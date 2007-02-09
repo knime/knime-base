@@ -113,6 +113,11 @@ public class ScatterMatrixDrawingPane extends ScatterPlotterDrawingPane {
         List<DotInfo>dotList = new ArrayList<DotInfo>();
         for (int i = 0; i < m_matrixElements.length; i++) {
             for (int j = 0; j < m_matrixElements[i].length; j++) {
+            	// matrix element might be null (if no rows available) since 
+            	// the array is initialized with column length
+            	if (m_matrixElements[i][j] == null) {
+            		continue;
+            	}            	
                 dotList.addAll(m_matrixElements[i][j].getDots());
             }
         }
@@ -145,7 +150,7 @@ public class ScatterMatrixDrawingPane extends ScatterPlotterDrawingPane {
      * Paints the rectangles of the scatter matrix elements and the vertical and
      * horizontal coordinates at the border of the drawing pane. The painting 
      * of the dots is inherited from the 
-     * {@link org.knime.base.node.viz.plotter.scatter.ScatterPlotterDrawingPane}.
+     *{@link org.knime.base.node.viz.plotter.scatter.ScatterPlotterDrawingPane}.
      * 
      * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotterDrawingPane
      * #paintContent(java.awt.Graphics)
@@ -161,6 +166,11 @@ public class ScatterMatrixDrawingPane extends ScatterPlotterDrawingPane {
         for (int i = 0; i < m_matrixElements.length; i++) {
             for (int j = 0; j < m_matrixElements[i].length; j++) {
                 ScatterMatrixElement element = m_matrixElements[i][j];
+            	// matrix element might be null (if no rows available) since 
+            	// the array is initialized with column length
+            	if (element == null) {
+            		continue;
+            	}                   
                 g.drawRect(element.getCorner().x, element.getCorner().y, 
                         element.getWidth(), element.getHeight());
                 // paint the background color of the matrix elements
@@ -232,10 +242,10 @@ public class ScatterMatrixDrawingPane extends ScatterPlotterDrawingPane {
         }
         for (CoordinateMapping mapping : mappings) {
             int value = (int)mapping.getMappingValue();
-            int y = element.getCorner().y + value;
+            int y = element.getCorner().y + (element.getHeight() - value);
             g.drawLine(x - TICK_SIZE / 2, y, x + TICK_SIZE / 2, y);
             String label = mapping.getDomainValueAsString();
-            int labelY = y; //+ g.getFontMetrics().getHeight() / 4;
+            int labelY = y; 
             int rectHeight = (int)element.getYCoordinate()
             .getUnusedDistBetweenTicks(element.getHeight());
             if (left) {

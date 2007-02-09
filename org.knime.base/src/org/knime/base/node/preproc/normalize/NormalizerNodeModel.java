@@ -30,8 +30,10 @@ import java.util.Vector;
 
 import org.knime.base.data.normalize.AffineTransTable;
 import org.knime.base.data.normalize.Normalizer;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -142,6 +144,7 @@ public class NormalizerNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
+        
         if (inSpecs[0].getNumColumns() > 0) {
             if (m_columns != null) {
                 // sanity check: selected columns in actual spec?
@@ -164,6 +167,12 @@ public class NormalizerNodeModel extends NodeModel {
                 m_columns = new String[poscolumns.size()];
                 m_columns = poscolumns.toArray(m_columns);
             }
+            // no normalization? Issue a warning and return original
+            // DataTableSpec
+            if (m_mode == NONORM_MODE) {
+                setWarningMessage("No normalization mode set.");
+                return new DataTableSpec[]{inSpecs[0]};
+            }
             return new DataTableSpec[]{Normalizer.generateNewSpec(inSpecs[0],
                     m_columns)};
         }
@@ -179,6 +188,12 @@ public class NormalizerNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
+        if (m_columns == null) {
+            throw new InvalidSettingsException(
+                    "Columns to work on not defined.");
+        }
+        int rowcount = inData[0].getRowCount();
+        ExecutionMonitor prepareExec = exec.createSubProgress(.3);
         Normalizer ntable = new Normalizer(inData[0], m_columns);
         AffineTransTable outTable;
         m_content = new ModelContent(CFG_MODEL_NAME);
@@ -186,23 +201,38 @@ public class NormalizerNodeModel extends NodeModel {
         case NONORM_MODE:
             return inData;
         case MINMAX_MODE:
-            outTable = ntable.doMinMaxNorm(m_max, m_min, exec);
+            outTable = ntable.doMinMaxNorm(m_max, m_min, prepareExec);
             break;
         case ZSCORE_MODE:
-            outTable = ntable.doZScoreNorm(exec);
+            outTable = ntable.doZScoreNorm(prepareExec);
             break;
         case DECIMALSCALING_MODE:
-            outTable = ntable.doDecimalScaling(exec);
+            outTable = ntable.doDecimalScaling(prepareExec);
             break;
         default:
             throw new Exception("No mode set");
         }
-        
+        if (outTable.getErrorMessage() != null) {
+            // something went wrong, report and throw an exception
+            throw new Exception(outTable.getErrorMessage());
+        }
         outTable.save((ModelContent)m_content);
-        BufferedDataTable bft = exec.createBufferedDataTable(outTable, exec);
-        return new BufferedDataTable[]{bft};
+
+        ExecutionMonitor normExec = exec.createSubProgress(.7);
+        BufferedDataContainer container =
+                exec.createDataContainer(outTable.getDataTableSpec());
+        int count = 1;
+        for (DataRow row : outTable) {
+            normExec.checkCanceled();
+            normExec.setProgress((double)count / (double)rowcount,
+                    "Normalizing row " + count + " (\"" + row.getKey() + "\")");
+            container.addRowToTable(row);
+            count++;
+        }
+        container.close();
+        return new BufferedDataTable[]{container.getTable()};
     }
-    
+
     /**
      * @see NodeModel#saveModelContent(int, ModelContentWO)
      */
@@ -276,11 +306,17 @@ public class NormalizerNodeModel extends NodeModel {
             throws InvalidSettingsException {
         int mode = settings.getInt(MODE_KEY);
         switch (mode) {
-        case NONORM_MODE:
-        case MINMAX_MODE:
-        case ZSCORE_MODE:
-        case DECIMALSCALING_MODE:
-            break;
+        case NONORM_MODE: break;
+        case MINMAX_MODE: double min = settings.getDouble(NEWMIN_KEY);
+                          double max = settings.getDouble(NEWMAX_KEY);
+                          if (min > max) {
+                              throw new InvalidSettingsException("New minimum" 
+                                   + " value should be smaller than new " 
+                                   + " maximum value.");
+                          }
+                          break;
+        case ZSCORE_MODE: break;
+        case DECIMALSCALING_MODE: break;
         default:
             throw new InvalidSettingsException("INVALID MODE");
         }

@@ -132,11 +132,15 @@ public class BoxPlotNodeModel extends NodeModel implements BoxPlotDataProvider {
         List<DataColumnSpec>numericCols = new ArrayList<DataColumnSpec>();
         for (DataColumnSpec colSpec : inSpecs[0]) {
             if (colSpec.getType().isCompatible(DoubleValue.class)) {
-                numericCols.add(colSpec);
+            	if (colSpec.getDomain().hasBounds()){
+            		numericCols.add(colSpec);
+            	}
             }
         }
         if (numericCols.size() == 0) {
-            setWarningMessage("Only numeric columns are displayed!");
+            throw new InvalidSettingsException(
+            		"Only numeric columns can be displayed! " 
+        			+"Found no numeric column or only some without bounds.");
         } 
         return new DataTableSpec[]{createOutputSpec(numericCols)};
     }
@@ -177,14 +181,16 @@ public class BoxPlotNodeModel extends NodeModel implements BoxPlotDataProvider {
                         .getUpperBound()).getDoubleValue();
                 outputColSpecs.add(colSpec);
                 double progress = currColumn++ * subProgress;
+                
                 exec.setProgress(progress, "sorting: " + table
                         .getDataTableSpec().getColumnSpec(colIdx).getName());
-//                System.out.println("progress: " + subProgress);
                 List<String> col = new ArrayList<String>();
                 col.add(colSpec.getName());
+                ExecutionContext exec2 = exec.createSubExecutionContext(
+                        subProgress);
                 SortedTable sorted = new SortedTable(table, 
                         col, new boolean[]{true}, 
-                        exec);
+                        exec2);
                 int currRow = 0;
                 double lastValue = 1;
                 for (DataRow row : sorted) {

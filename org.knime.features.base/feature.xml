@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.knime.features.base"
-      label="Konstanz Information Miner"
+      label="KNIME"
       version="1.2.0"
       provider-name="Chair for Bioinformatics and Information Mining, Prof. Berthold, University of Konstanz, Germany"
       plugin="org.knime.core"
       image="icons/knime64.gif">
 
    <description url="http://www.knime.org/">
-      This features containes KNIME, the Konstanz Information Miner. All plugins needed to run the information mining workbench are included. Note that there are additional plugins available.
+      This features containes KNIME. All plugins needed to run the
+information mining workbench are included. Note that there are
+additional features available.
    </description>
 
    <copyright>
-      Copyright, 2003 - 2006
-University of Konstanz, Germany.
-Chair for Bioinformatics and Information Mining
-Prof. Dr. Michael R. Berthold
+      Copyright, 2003 - 2007
+University of Konstanz, Germany
+Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
+and KNIME GmbH, Konstanz, Germany
    </copyright>
 
    <license>
@@ -341,12 +343,6 @@ terms of this License.
          version="1.2.0"/>
 
    <plugin
-         id="org.knime.ext.sun"
-         download-size="0"
-         install-size="0"
-         version="1.2.0"/>
-
-   <plugin
          id="org.knime.workbench.help"
          download-size="0"
          install-size="0"
@@ -356,7 +352,12 @@ terms of this License.
          id="org.knime.deprecated"
          download-size="0"
          install-size="0"
-         version="1.2.0"
-         unpack="false"/>
+         version="1.2.0"/>
+
+   <plugin
+         id="org.knime.ext.sun"
+         download-size="0"
+         install-size="0"
+         version="1.2.0"/>
 
 </feature>

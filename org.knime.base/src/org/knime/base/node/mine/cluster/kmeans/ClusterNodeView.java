@@ -22,6 +22,7 @@
 package org.knime.base.node.mine.cluster.kmeans;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -303,8 +304,9 @@ public class ClusterNodeView extends NodeView implements HiLiteListener {
                                     + myModel.getClusterCoverage(c) + ")",
                             new StringCell(ClusterNodeModel.CLUSTER + c));
                     for (int i = 0; i < myModel.getNrUsedColumns(); i++) {
-                        clusterParent.add(new DefaultMutableTreeNode("x[" + i
-                                + "]= " + myModel.getClusterCenter(c)[i]));
+                        clusterParent.add(new DefaultMutableTreeNode(
+                                  myModel.getFeatureName(i) + " = "
+                                + myModel.getClusterCenter(c)[i]));
                     }
                     root.add(clusterParent);
                 }
@@ -373,6 +375,8 @@ public class ClusterNodeView extends NodeView implements HiLiteListener {
                     setBackgroundNonSelectionColor(ColorAttr.BACKGROUND);
                 }
             }
+            setTextSelectionColor(Color.BLACK);
+            setTextNonSelectionColor(Color.BLACK);
             return super.getTreeCellRendererComponent(tree, value, sel,
                     expanded, leaf, row, hasFoc);
         }

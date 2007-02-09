@@ -32,7 +32,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,6 +55,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.util.StringHistory;
 import org.knime.core.util.KnimeEncryption;
 import org.knime.core.util.SimpleFileFilter;
 
@@ -83,10 +83,20 @@ public class DBReaderDialogPane extends NodeDialogPane {
 
     private JFileChooser m_chooser = null;
 
-    private final HashSet<String> m_driverLoaded = new HashSet<String>();
-    
     private boolean m_passwordChanged = false;
-
+    
+    /**
+     * Keeps the history of all loaded driver and its order.
+     */
+    static final StringHistory DRIVER_ORDER = StringHistory.getInstance(
+            "database_drivers");
+    
+    /**
+     * Keeps the history of all URL used to create a Database connection.
+     */
+    static final StringHistory DRIVER_URLS = StringHistory.getInstance(
+            "driver_urls");
+    
     /**
      * Creates new dialog.
      */
@@ -96,8 +106,8 @@ public class DBReaderDialogPane extends NodeDialogPane {
         JPanel parentPanel = new JPanel(new GridLayout(4, 1));
         m_driver.setEditable(false);
         m_driver.setFont(font);
-        m_driver.setPreferredSize(new Dimension(335, 20));
-        m_load.setPreferredSize(new Dimension(60, 20));
+        m_driver.setPreferredSize(new Dimension(320, 20));
+        m_load.setPreferredSize(new Dimension(75, 20));
         m_load.addActionListener(new ActionListener() {
             public void actionPerformed(final ActionEvent e) {
                 JFileChooser chooser = createFileChooser();
@@ -107,10 +117,8 @@ public class DBReaderDialogPane extends NodeDialogPane {
                     try {
                         DBDriverLoader.loadDriver(file);
                         updateDriver();
-                        m_driverLoaded.add(file.getAbsolutePath());
                     } catch (Exception exc) {
-                        LOGGER.warn("No driver loaded from: " + file);
-                        LOGGER.debug("", exc);
+                        LOGGER.warn("No driver loaded from: " + file, exc);
                     }
                 }
             }
@@ -122,7 +130,8 @@ public class DBReaderDialogPane extends NodeDialogPane {
         driverPanel.add(m_load, BorderLayout.EAST);
         parentPanel.add(driverPanel);
         JPanel dbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        dbPanel.setBorder(BorderFactory.createTitledBorder(" Database Name "));
+        dbPanel.setBorder(BorderFactory.createTitledBorder(
+                " Database URL "));
         m_db.setEditable(true);
         m_db.setFont(font);
         m_db.setPreferredSize(new Dimension(400, 20));
@@ -198,24 +207,32 @@ public class DBReaderDialogPane extends NodeDialogPane {
         String password = settings.getString("password", null);
         m_pass.setText(password == null ? "" : password);
         m_passwordChanged = false;
-        // save loaded driver
-        m_driverLoaded.clear();
-        m_driverLoaded.addAll(Arrays.asList(settings.getStringArray(
-                "loaded_driver", new String[0])));
-        for (String loadedDriver : m_driverLoaded) {
+        // loaded driver: need to load settings before 1.2
+        String[] loadedDriver = settings.getStringArray("loaded_driver",
+                new String[0]);
+        for (String driver : loadedDriver) {
             try {
-                DBDriverLoader.loadDriver(new File(loadedDriver));
+                DBDriverLoader.loadDriver(new File(driver));
             } catch (Exception e) {
-                LOGGER.info("Could not load driver from: " + loadedDriver);
+                LOGGER.warn("Could not load driver: " + driver, e);
             }
         }
         updateDriver();
-        m_driver.setSelectedItem(settings.getString("driver", ""));
+        String select = settings.getString("driver", 
+                m_driver.getSelectedItem().toString());
+        m_driver.setSelectedItem(select);
     }
 
     private void updateDriver() {
         m_driver.removeAllItems();
-        Set<String> driverNames = DBDriverLoader.getLoadedDriver();
+        Set<String> driverNames = new HashSet<String>(
+                DBDriverLoader.getLoadedDriver());
+        for (String driverName : DRIVER_ORDER.getHistory()) {
+            if (driverNames.contains(driverName)) {
+                m_driver.addItem(driverName);
+                driverNames.remove(driverName);
+            }
+        }
         for (String driverName : driverNames) {
             m_driver.addItem(driverName);
         }
@@ -229,7 +246,20 @@ public class DBReaderDialogPane extends NodeDialogPane {
             throws InvalidSettingsException {
         String driverName = m_driver.getSelectedItem().toString();
         settings.addString("driver", driverName);
-        settings.addString("database", m_db.getText().trim());
+        String url = m_db.getText().trim();
+        settings.addString("database", url);
+        try {
+            if (!DBDriverLoader.getWrappedDriver(driverName).acceptsURL(url)) {
+                throw new InvalidSettingsException("Driver \"" + driverName 
+                        + "\" does not accept URL: " + url);
+            }
+        } catch (Exception e) {
+            InvalidSettingsException ise = new InvalidSettingsException(
+                    "Couldn't test connection to URL \"" + url + "\" "
+                            + " with driver: " + driverName);
+            ise.initCause(e);
+            throw ise;
+        }        
         settings.addString("user", m_user.getText().trim());
         if (m_passwordChanged) {
             try {
@@ -244,8 +274,5 @@ public class DBReaderDialogPane extends NodeDialogPane {
             settings.addString("password", new String(m_pass.getPassword()));
         }
         settings.addString("statement", m_statmnt.getText().trim());
-        // save loaded driver
-        settings.addStringArray("loaded_driver", m_driverLoaded
-                .toArray(new String[0]));
     }
 }

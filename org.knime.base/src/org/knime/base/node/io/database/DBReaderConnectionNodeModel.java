@@ -29,12 +29,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.HashSet;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -60,11 +57,9 @@ class DBReaderConnectionNodeModel extends NodeModel {
     private static final NodeLogger LOGGER =
             NodeLogger.getLogger(DBReaderConnectionNodeModel.class);
 
-    private String m_driver = DBDriverLoader.JDBC_ODBC_DRIVER;
-
+    private String m_driver;
+    private String m_name;
     private String m_query = null;
-
-    private String m_name = null;
     private String m_user = null;
     private String m_pass = null;
 
@@ -72,21 +67,6 @@ class DBReaderConnectionNodeModel extends NodeModel {
      * The name of the view created on the database defined by the given query.
      */
     private String m_viewName;
-
-    private final HashSet<String> m_driverLoaded = new HashSet<String>();
-
-    static {
-        try {
-            Class<?> driverClass =
-                    Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-            Driver theDriver =
-                    new WrappedDriver((Driver)driverClass.newInstance());
-            DriverManager.registerDriver(theDriver);
-        } catch (Exception e) {
-            LOGGER.warn("Could not load 'sun.jdbc.odbc.JdbcOdbcDriver'.");
-            LOGGER.debug("", e);
-        }
-    }
 
     /**
      * Creates a new database reader.
@@ -99,6 +79,15 @@ class DBReaderConnectionNodeModel extends NodeModel {
     DBReaderConnectionNodeModel(final int dataIn, final int dataOut,
             final int modelIn, final int modelOut) {
         super(dataIn, dataOut, modelIn, modelOut);
+        // init default driver with the first from the driver list
+        // or use Java JDBC-ODBC as default
+        m_driver = DBDriverLoader.JDBC_ODBC_DRIVER;
+        String[] history = DBReaderDialogPane.DRIVER_ORDER.getHistory();
+        if (history != null && history.length > 0) {
+            m_driver = history[0];
+        }
+        // create database name from driver class
+        m_name = DBDriverLoader.getURLForDriver(m_driver);
     }
 
     /**
@@ -126,8 +115,6 @@ class DBReaderConnectionNodeModel extends NodeModel {
         settings.addString("statement", m_query);
         settings.addString("database", m_name);
         settings.addString("user", m_user);
-        settings.addStringArray("loaded_driver", m_driverLoaded
-                .toArray(new String[0]));
         settings.addString("password", m_pass);
     }
 
@@ -157,11 +144,13 @@ class DBReaderConnectionNodeModel extends NodeModel {
         String user = settings.getString("user");
         // password
         String password = settings.getString("password", "");
-        // loaded driver
-        String[] loadedDriver = settings.getStringArray("loaded_driver");
+        // loaded driver: need to load settings before 1.2
+        String[] loadedDriver = settings.getStringArray("loaded_driver", 
+                new String[0]);
         // write settings or skip it
         if (write) {
             m_driver = driver;
+            DBReaderDialogPane.DRIVER_ORDER.add(m_driver);
             m_query = statement;
             boolean changed = false;
             if (m_user != null && m_name != null && m_pass != null) { 
@@ -171,16 +160,14 @@ class DBReaderConnectionNodeModel extends NodeModel {
                 }
             }
             m_name = database;
+            DBReaderDialogPane.DRIVER_URLS.add(m_name);
             m_user = user;
             m_pass = password;
-            m_driverLoaded.clear();
-            m_driverLoaded.addAll(Arrays.asList(loadedDriver));
-            for (String fileName : m_driverLoaded) {
+            for (String fileName : loadedDriver) {
                 try {
                     DBDriverLoader.loadDriver(new File(fileName));
                 } catch (Exception e2) {
-                    LOGGER.info("Could not load driver from: "
-                            + loadedDriver, e2);
+                    LOGGER.info("Could not load driver: " + fileName, e2);
                 }
             }
             if (changed) {
@@ -228,6 +215,7 @@ class DBReaderConnectionNodeModel extends NodeModel {
         try {
             DBDriverLoader.registerDriver(getDriver());
             String password = KnimeEncryption.decrypt(m_pass);
+            DriverManager.setLoginTimeout(5);
             conn = DriverManager.getConnection(m_name, m_user, password);
             Statement stmt = conn.createStatement();
             stmt.execute(statement);

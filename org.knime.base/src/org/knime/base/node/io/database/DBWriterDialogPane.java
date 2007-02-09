@@ -32,7 +32,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,8 +80,6 @@ public class DBWriterDialogPane extends NodeDialogPane {
 
     private JFileChooser m_chooser = null;
 
-    private final HashSet<String> m_driverLoaded = new HashSet<String>();
-
     private final DBSQLTypesPanel m_typePanel;
     
     private boolean m_passwordChanged = false;
@@ -95,8 +92,8 @@ public class DBWriterDialogPane extends NodeDialogPane {
         Font font = new Font("Monospaced", Font.PLAIN, 12);
         m_driver.setEditable(false);
         m_driver.setFont(font);
-        m_driver.setPreferredSize(new Dimension(335, 20));
-        m_load.setPreferredSize(new Dimension(60, 20));
+        m_driver.setPreferredSize(new Dimension(320, 20));
+        m_load.setPreferredSize(new Dimension(75, 20));
         m_load.addActionListener(new ActionListener() {
             public void actionPerformed(final ActionEvent e) {
                 JFileChooser chooser = createFileChooser();
@@ -106,10 +103,8 @@ public class DBWriterDialogPane extends NodeDialogPane {
                     try {
                         DBDriverLoader.loadDriver(file);
                         updateDriver();
-                        m_driverLoaded.add(file.getAbsolutePath());
                     } catch (Exception exc) {
-                        LOGGER.warn("No driver loaded from: " + file);
-                        LOGGER.debug("", exc);
+                        LOGGER.warn("No driver loaded from: " + file, exc);
                     }
                 }
             }
@@ -123,7 +118,8 @@ public class DBWriterDialogPane extends NodeDialogPane {
         JPanel settPanel = new JPanel(new GridLayout(5, 1));
         settPanel.add(driverPanel);
         JPanel dbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        dbPanel.setBorder(BorderFactory.createTitledBorder(" Database Name "));
+        dbPanel.setBorder(BorderFactory.createTitledBorder(
+                " Database URL "));
         m_db.setEditable(true);
         m_db.setFont(font);
         m_db.setPreferredSize(new Dimension(400, 20));
@@ -187,27 +183,29 @@ public class DBWriterDialogPane extends NodeDialogPane {
             final DataTableSpec[] specs) throws NotConfigurableException {
         // database driver and name
         m_driver.removeAllItems();
-        m_db.setText(settings.getString("database", ""));
         // user
-        m_user.setText(settings.getString("user", ""));
+        m_user.setText(settings.getString("user", "<user>"));
         // password
         m_pass.setText(settings.getString("password", ""));
         m_passwordChanged = false;
-        // save loaded driver
-        m_driverLoaded.clear();
-        m_driverLoaded.addAll(Arrays.asList(settings.getStringArray(
-                "loaded_driver", new String[0])));
-        for (String loadedDriver : m_driverLoaded) {
+        // loaded driver: need to load settings before 1.2
+        String[] driverLoaded = settings.getStringArray("loaded_driver", 
+                new String[0]);
+        for (String driver : driverLoaded) {
             try {
-                DBDriverLoader.loadDriver(new File(loadedDriver));
+                DBDriverLoader.loadDriver(new File(driver));
             } catch (Exception e) {
-                LOGGER.info("Could not load driver from: " + loadedDriver);
+                LOGGER.warn("Could not load driver: " + driver, e);
             }
         }
         updateDriver();
-        m_driver.setSelectedItem(settings.getString("driver", ""));
+        String select = settings.getString("driver", 
+                m_driver.getSelectedItem().toString());
+        m_driver.setSelectedItem(select);
+        m_db.setText(settings.getString("database", 
+                DBDriverLoader.getURLForDriver(select)));
         // table name
-        m_table.setText(settings.getString("table", ""));
+        m_table.setText(settings.getString("table", "<table_name>"));
         
         // load sql type for each column
         try {
@@ -221,7 +219,14 @@ public class DBWriterDialogPane extends NodeDialogPane {
 
     private void updateDriver() {
         m_driver.removeAllItems();
-        Set<String> driverNames = DBDriverLoader.getLoadedDriver();
+        Set<String> driverNames = new HashSet<String>(
+                DBDriverLoader.getLoadedDriver());
+        for (String driverName : DBReaderDialogPane.DRIVER_ORDER.getHistory()) {
+            if (driverNames.contains(driverName)) {
+                m_driver.addItem(driverName);
+                driverNames.remove(driverName);
+            }
+        }
         for (String driverName : driverNames) {
             m_driver.addItem(driverName);
         }
@@ -234,8 +239,21 @@ public class DBWriterDialogPane extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         String driverName = m_driver.getSelectedItem().toString();
+        String url = m_db.getText().trim();
+        try {
+            if (!DBDriverLoader.getWrappedDriver(driverName).acceptsURL(url)) {
+                throw new InvalidSettingsException("Driver \"" + driverName 
+                        + "\" does not accept URL: " + url);
+            }
+        } catch (Exception e) {
+            InvalidSettingsException ise = new InvalidSettingsException(
+                    "Couldn't test connection to URL \"" + url + "\" "
+                            + " with driver: " + driverName);
+            ise.initCause(e);
+            throw ise;
+        }
         settings.addString("driver", driverName);
-        settings.addString("database", m_db.getText().trim());
+        settings.addString("database", url);
         settings.addString("user", m_user.getText().trim());
         settings.addString("table", m_table.getText().trim());
         if (m_passwordChanged) {
@@ -250,10 +268,6 @@ public class DBWriterDialogPane extends NodeDialogPane {
         } else {
             settings.addString("password", new String(m_pass.getPassword())); 
         }
-        // save loaded driver
-        settings.addStringArray("loaded_driver", m_driverLoaded
-                .toArray(new String[0]));
-        
         // save sql type for each column
         NodeSettingsWO typeSett = settings.addNodeSettings(
                 DBWriterNodeModel.CFG_SQL_TYPES);

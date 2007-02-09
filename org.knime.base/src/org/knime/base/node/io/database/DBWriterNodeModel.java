@@ -26,13 +26,9 @@ package org.knime.base.node.io.database;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -66,17 +62,15 @@ class DBWriterNodeModel extends NodeModel {
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(DBWriterNodeModel.class);
 
-    private String m_driver = DBDriverLoader.JDBC_ODBC_DRIVER;
+    private String m_driver;
 
-    private String m_url = "jdbc:odbc:<database_name>";
+    private String m_url;
 
     private String m_user = "<user>";
 
     private String m_pass = "";
 
     private String m_table = "<table_name>";
-
-    private final Set<String> m_driverLoaded = new HashSet<String>();
 
     private final Map<String, String> m_types = 
         new LinkedHashMap<String, String>();
@@ -93,25 +87,20 @@ class DBWriterNodeModel extends NodeModel {
     /** Config key for column to SQL-type mapping. */
     static final String CFG_SQL_TYPES = "sql_types";
     
-    static {        
-        try {
-            Class<?> driverClass = Class.forName(
-                    "sun.jdbc.odbc.JdbcOdbcDriver");
-            Driver theDriver = new WrappedDriver((Driver)driverClass
-                    .newInstance());
-            DriverManager.registerDriver(theDriver);
-        } catch (Exception e) {
-            LOGGER.warn("Could not load 'sun.jdbc.odbc.JdbcOdbcDriver'.");
-            LOGGER.debug("", e);
-        }
-    }
-
     /**
      * Creates a new model with one data outport.
      */
     DBWriterNodeModel() {
         super(1, 0);
-        reset();
+        // init default driver with the first from the driver list
+        // or use Java JDBC-ODBC as default
+        m_driver = DBDriverLoader.JDBC_ODBC_DRIVER;
+        String[] history = DBReaderDialogPane.DRIVER_ORDER.getHistory();
+        if (history != null && history.length > 0) {
+            m_driver = history[0];
+        }
+        // create database name from driver class
+        m_url = DBDriverLoader.getURLForDriver(m_driver);
     }
 
     /**
@@ -123,8 +112,6 @@ class DBWriterNodeModel extends NodeModel {
         settings.addString("database", m_url);
         settings.addString("user", m_user);
         settings.addString("password", m_pass);
-        settings.addStringArray("loaded_driver", m_driverLoaded
-                .toArray(new String[0]));
         settings.addString("table", m_table);
         // save sql type mapping
         NodeSettingsWO typeSett = settings.addNodeSettings(CFG_SQL_TYPES);
@@ -159,22 +146,23 @@ class DBWriterNodeModel extends NodeModel {
         String table = settings.getString("table");
         // password
         String password = settings.getString("password", "");
-        // loaded driver
-        String[] loadedDriver = settings.getStringArray("loaded_driver");
+        // loaded driver: need to load settings before 1.2
+        String[] loadedDriver = settings.getStringArray("loaded_driver",
+                new String[0]);
         // write settings or skip it
         if (write) {
             m_driver = driver;
+            DBReaderDialogPane.DRIVER_ORDER.add(m_driver);
             m_url = database;
+            DBReaderDialogPane.DRIVER_URLS.add(m_url);
             m_user = user;
             m_pass = password;
             m_table = table;
-            m_driverLoaded.clear();
-            m_driverLoaded.addAll(Arrays.asList(loadedDriver));
-            for (String fileName : m_driverLoaded) {
+            for (String fileName : loadedDriver) {
                 try {
                     DBDriverLoader.loadDriver(new File(fileName));
                 } catch (Exception e) {
-                    LOGGER.info("Could not load driver from: " + loadedDriver);
+                    LOGGER.warn("Could not load driver: " + fileName, e);
                 }
             }
             // load SQL type for each column
@@ -205,6 +193,7 @@ class DBWriterNodeModel extends NodeModel {
             // decryt password
             String password = KnimeEncryption.decrypt(m_pass);
             // create database connection
+            DriverManager.setLoginTimeout(5);
             conn = DriverManager.getConnection(m_url, m_user, password);
             // write entire data
             new DBWriterConnection(conn, m_table, inData[0], exec, m_types);
@@ -270,16 +259,16 @@ class DBWriterNodeModel extends NodeModel {
         m_types.clear();
         m_types.putAll(map);
         
+        WrappedDriver wDriver = DBDriverLoader.getWrappedDriver(m_driver);
         try {
-            WrappedDriver wDriver = DBDriverLoader.getWrappedDriver(m_driver);
             DriverManager.registerDriver(wDriver);
             if (!wDriver.acceptsURL(m_url)) {
-                throw new InvalidSettingsException("Driver does not support"
-                        + " url: " + m_url);
+                throw new InvalidSettingsException("Driver \"" + wDriver 
+                        + "\" does not accept URL: " + m_url);
             }
         } catch (Exception e) {
             throw new InvalidSettingsException("Could not register database"
-                    + " driver: " + m_driver);
+                    + " driver: " + wDriver);
         }
         
         // throw exception if no data provided
@@ -290,7 +279,7 @@ class DBWriterNodeModel extends NodeModel {
         // print warning if password is empty
         if (m_pass == null || m_pass.length() == 0) {
             super.setWarningMessage(
-                    "Please check if you need to set a password.");
+                    "Check if you need to set a password.");
         }
         
         return new DataTableSpec[0];

@@ -82,6 +82,7 @@ import org.knime.core.util.FileReaderFileFilter;
 
 import org.knime.base.node.io.filetokenizer.Comment;
 import org.knime.base.node.io.filetokenizer.Delimiter;
+import org.knime.base.node.io.filetokenizer.FileTokenizerException;
 import org.knime.base.node.io.filetokenizer.FileTokenizerSettings;
 
 /**
@@ -549,15 +550,18 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
                 && m_hasRowHeaders.isSelected()) {
             // somebody checked the hasRowheader box - that removes one column
             m_frSettings.setFileHasRowHeaders(true);
-            m_frSettings
-                    .setNumberOfColumns(m_frSettings.getNumberOfColumns() - 1);
-            Vector<ColProperty> colProps = m_frSettings.getColumnProperties();
-            // save the first colProp in case user changes his mind...
-            m_firstColProp = colProps.remove(0);
-            m_frSettings.setColumnProperties(colProps);
-            if (!m_frSettings.getFileHasColumnHeaders()) {
-                // re-generate the column names
-                recreateColNames(false);
+            if (m_frSettings.getNumberOfColumns() > 0) {
+                m_frSettings.setNumberOfColumns(
+                        m_frSettings.getNumberOfColumns() - 1);
+                Vector<ColProperty> colProps =
+                        m_frSettings.getColumnProperties();
+                // save the first colProp in case user changes his mind...
+                m_firstColProp = colProps.remove(0);
+                m_frSettings.setColumnProperties(colProps);
+                if (!m_frSettings.getFileHasColumnHeaders()) {
+                    // re-generate the column names
+                    recreateColNames(false);
+                }
             }
             analyzeDataFileAndUpdatePreview(true);
         }
@@ -983,6 +987,11 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         saveSettings();
+        String errLabel = getErrorLabelText(); 
+        if ((errLabel != null) && (errLabel.trim().length() > 0)) {
+            throw new InvalidSettingsException("With the current settings"
+                    + " an error occurs: " + errLabel);            
+        }
         if (m_previewTable.getErrorOccured()) {
             throw new InvalidSettingsException("With the current settings"
                     + " an error occures when reading the file (line "
@@ -1072,6 +1081,14 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
                     setErrorLabelText("Can't access '" + newURL + "'");
                     m_previewTableView.setDataTable(null);
                     return;
+                } catch (FileTokenizerException fte) {
+                    String msg = fte.getMessage();
+                    if ((msg == null) || (msg.length() == 0)) {
+                        msg = "Invalid Settings: No error message, sorry.";
+                    }
+                    setErrorLabelText(msg);
+                    m_previewTableView.setDataTable(null);
+                    return;                    
                 }
             } else {
                 // keep the old user settings - just blow away generated names
@@ -1085,7 +1102,7 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
                 if (oldColProps != null) {
                     for (ColProperty cProp : oldColProps) {
                         // take over only the ones modified by the user
-                        if (cProp.getUserSettings()) {
+                        if ((cProp != null) && (cProp.getUserSettings())) {
                             newProps.add(cProp);
                         } else {
                             newProps.add(null);
@@ -1108,6 +1125,14 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
                     setErrorLabelText("Can't access '" + newURL + "'");
                     m_previewTableView.setDataTable(null);
                     return;
+                } catch (FileTokenizerException fte) {
+                    String msg = fte.getMessage();
+                    if ((msg == null) || (msg.length() == 0)) {
+                        msg = "Invalid Settings: No error message, sorry.";
+                    }
+                    setErrorLabelText(msg);
+                    m_previewTableView.setDataTable(null);
+                    return;                    
                 }
             }
         }
@@ -1168,8 +1193,10 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
             String name;
             boolean userSet = false;
             if (c < m_frSettings.getNumberOfColumns()) {
-                userSet = m_frSettings.getColumnProperties().get(c)
-                        .getUserSettings();
+                if (m_frSettings.getColumnProperties().get(c) != null) {
+                    userSet = m_frSettings.getColumnProperties().get(c)
+                            .getUserSettings();
+                }
             }
             if (userSet) {
                 name = cSpec.getName().toString() + "*";
@@ -1242,6 +1269,9 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
 
         for (int c = 0; c < colProps.size(); c++) {
             ColProperty cProp = colProps.get(c);
+            if (cProp == null) {
+                continue;
+            }
             if ((cProp.getUserSettings())
                     && (!((c == 0) && uniquifyFirstColName))) {
                 // name was set by user - consider it fixed.
@@ -1269,7 +1299,7 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
                         continue;
                     }
                     ColProperty compProp = colProps.get(comp);
-                    if (!compProp.getUserSettings()) {
+                    if ((compProp == null) || (!compProp.getUserSettings())) {
                         // don't compare to generated headers - gonna change.
                         continue;
                     }
@@ -1444,6 +1474,10 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
         getPanel().validate();
     }
 
+    private String getErrorLabelText() {
+        return m_errorLabel.getText();
+    }
+    
     private void setAnalWarningText(final String text) {
         m_analyzeWarn.setText(text);
         getPanel().invalidate();

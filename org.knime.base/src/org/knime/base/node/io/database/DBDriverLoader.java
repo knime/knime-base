@@ -39,6 +39,7 @@ import java.util.zip.ZipFile;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.StringHistory;
 
 /**
  * Utility class to load additional drivers from jar and zip to the
@@ -50,6 +51,37 @@ final class DBDriverLoader {
     
     private static final NodeLogger LOGGER = 
         NodeLogger.getLogger(DBDriverLoader.class);
+    
+    /**
+     * Name of the standard JDBC-ODBC database driver, 
+     * <i>sun.jdbc.odbc.JdbcOdbcDriver</i> object. Loaded per default.
+     */
+    static final String JDBC_ODBC_DRIVER = "sun.jdbc.odbc.JdbcOdbcDriver";
+    
+    private static final HashMap<String, String> DRIVER_TO_URL
+        = new HashMap<String, String>();
+    
+    static {
+        DRIVER_TO_URL.put(JDBC_ODBC_DRIVER, "jdbc:odbc:");
+        DRIVER_TO_URL.put("com.ibm.db2.jcc.DB2Driver", "jdbc:db2:");
+        DRIVER_TO_URL.put("org.firebirdsql.jdbc.FBDriver", "jdbc:firebirdsql:");
+        DRIVER_TO_URL.put("com.mysql.jdbc.Driver", "jdbc:mysql:");
+        DRIVER_TO_URL.put("oracle.jdbc.driver.OracleDriver", "jdbc:mysql:thin:");
+        DRIVER_TO_URL.put("org.postgresql.Driver", "jdbc:postgresql:");
+        DRIVER_TO_URL.put("com.microsoft.sqlserver.jdbc.SQLServerDriver", 
+                "jdbc:sqlserver:");
+        DRIVER_TO_URL.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", 
+                "jdbc:microsoft:sqlserver:");
+        DRIVER_TO_URL.put("org.apache.derby.jdbc.ClientDriver", "jdbc:derby:");
+        DRIVER_TO_URL.put("jdbc.FrontBase.FBJDriver", "jdbc:FrontBase:");
+        DRIVER_TO_URL.put("org.hsqldb.jdbcDriver", "jdbc:hsqldb:hsql:");
+        DRIVER_TO_URL.put("com.ingres.jdbc.IngresDriver", "jdbc:ingres:");
+        DRIVER_TO_URL.put("com.openbase.jdbc.ObDriver", "jdbc:openbase:");
+        DRIVER_TO_URL.put("net.sourceforge.jtds.jdbc.Driver", 
+                "jdbc:jtds:sybase:");
+        DRIVER_TO_URL.put("com.sybase.jdbc3.jdbc.SybDriver", 
+                "jdbc:sybase:Tds:");
+    }
 
     /**
      * Allowed file extensions, jar and zip only.
@@ -63,11 +95,14 @@ final class DBDriverLoader {
         = new HashMap<String, WrappedDriver>();
     
     /**
-     * Name of the standard JDBC-ODBC database driver, 
-     * <i>sun.jdbc.odbc.JdbcOdbcDriver</i> object. Loaded per default.
+     * Keeps history of loaded driver libraries.
      */
-    static final String JDBC_ODBC_DRIVER = "sun.jdbc.odbc.JdbcOdbcDriver";
+    private static final StringHistory DRIVER_LIBRARY_HISTORY =
+        StringHistory.getInstance("database_library_files");
     
+    /**
+     * Register Java's jdbc-odbc bridge.
+     */
     static {
         try {
             Class<?> driverClass = Class.forName(JDBC_ODBC_DRIVER);
@@ -76,11 +111,29 @@ final class DBDriverLoader {
             // DriverManager.registerDriver(d);
             DRIVER_MAP.put(d.toString(), d);
         } catch (Exception e) {
-            LOGGER.warn("Could not load driver class: " + JDBC_ODBC_DRIVER);
-            LOGGER.debug("", e);
+            LOGGER.warn("Could not load driver class: " + JDBC_ODBC_DRIVER, e);
         }
     }
+    
+    /**
+     * Init driver history on start-up.
+     */
+    static {
+        for (String hist : DRIVER_LIBRARY_HISTORY.getHistory()) {
+            try {
+                File histFile = new File(hist);
+                loadDriver(histFile);
+            } catch (Exception e) {
+                LOGGER.warn("Could not load driver library: " + hist, e);
+            }
+        }
 
+    }
+
+    /**
+     * Hide (empty) constructor.
+     *
+     */
     private DBDriverLoader() {
 
     }
@@ -113,6 +166,7 @@ final class DBDriverLoader {
         if (file.isDirectory()) {
             // not yet supported
         } else if (fileName.endsWith(".jar") || fileName.endsWith(".zip")) {
+            DRIVER_LIBRARY_HISTORY.add(fileName);
             readZip(file, new JarFile(file));
         }
     }
@@ -167,5 +221,21 @@ final class DBDriverLoader {
         String newName = name.substring(0, name.indexOf(".class"));
         String className = newName.replace('/', '.');
         return cl.loadClass(className);
+    }
+    
+    /**
+     * Returns a URL protocol for a given <code>Driver</code> extended by 
+     * an default host, port, database name String. If no protocol URL has been
+     * defined the default String staring with protocol is return.
+     * @param driver the driver to match URL protocol
+     * @return an String containing protocol, port, host, and database name
+     *      place holder 
+     */
+    public static final String getURLForDriver(final String driver) {
+        String url = DRIVER_TO_URL.get(driver);
+        if (url == null) {
+            return "<protocol>://<host>:<port>/<database_name>";
+        }
+        return url + "//<host>:<port>/<database_name>";
     }
 }

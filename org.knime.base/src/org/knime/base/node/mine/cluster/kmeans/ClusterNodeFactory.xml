@@ -8,15 +8,16 @@
 			This node outputs the cluster centers for a predefined number of
 			clusters (no dynamic number of clusters).
 			K-means performs a crisp clustering that assigns a data
-			vector to exactly one cluster. The algorithm terminates once the accuracy
-			improvement is below a certain threshold. The node can be configured as follows:
+			vector to exactly one cluster. The algorithm terminates when the
+			cluster assignments do not change anymore.
+			The node can be configured as follows:
 		</intro>
 		<option name="number of clusters">
 			The number of clusters (cluster centers) to be created.
 	    </option>
 		<option name="max number of iterations">
 		    The number of iterations after which the algorithm terminates,
-			independant of the accuracy improvement of the cluster centers.
+			independent of the accuracy improvement of the cluster centers.
 		</option>
 	</fullDescription>
 	

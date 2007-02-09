@@ -30,8 +30,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.knime.base.node.mine.regression.linear.LinearRegressionParams;
-import org.knime.base.node.mine.regression.linear.view.LinRegDataProvider;
-import org.knime.base.node.util.DataArray;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -58,8 +56,7 @@ import org.knime.core.node.NodeSettingsWO;
  * 
  * @author Bernd Wiswedel, University of Konstanz
  */
-public class LinRegPredictorNodeModel extends NodeModel implements
-        LinRegDataProvider {
+public class LinRegPredictorNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(LinRegPredictorNodeModel.class);
@@ -257,20 +254,6 @@ public class LinRegPredictorNodeModel extends NodeModel implements
         ColumnRearranger c = new ColumnRearranger(inSpec);
         c.append(fac);
         return c;
-    }
-
-    /**
-     * @see LinRegDataProvider#getParams()
-     */
-    public LinearRegressionParams getParams() {
-        return null;
-    }
-
-    /**
-     * @see LinRegDataProvider#getRowContainer()
-     */
-    public DataArray getRowContainer() {
-        return null;
     }
 
     /**

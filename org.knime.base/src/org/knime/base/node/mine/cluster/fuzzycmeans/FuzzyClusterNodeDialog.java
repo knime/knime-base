@@ -21,7 +21,6 @@
  */
 package org.knime.base.node.mine.cluster.fuzzycmeans;
 
-
 import java.awt.Checkbox;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -118,7 +117,7 @@ public class FuzzyClusterNodeDialog extends NodeDialogPane {
     /*
      * The tab2's name.
      */
-    private static final String TAB2 = "Included Columns";
+    private static final String TAB2 = "Used Attributes";
 
     /**
      * Constructor - set name of fuzzy c-means cluster node.
@@ -151,15 +150,14 @@ public class FuzzyClusterNodeDialog extends NodeDialogPane {
         gbl.setConstraints(m_nrClustersSpinner, c);   
         clusterPropPane.add(nrClustersLabel);
         clusterPropPane.add(m_nrClustersSpinner);
-
         JLabel maxNrIterationsLabel = new JLabel("Max. number of iterations: ");
         c.gridx = 0;                      
         c.gridy = 1;                      
         gbl.setConstraints(maxNrIterationsLabel, c); 
+        
         SpinnerNumberModel nrmaxiterationsmodel = new SpinnerNumberModel(99, 1,
                 9999, 1);
         m_maxNrIterationsSpinner = new JSpinner(nrmaxiterationsmodel);
-
         c.gridx = 1;                      
         c.gridy = 1;                      
         gbl.setConstraints(m_maxNrIterationsSpinner, c); 

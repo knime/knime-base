@@ -214,7 +214,7 @@ public abstract class BasicPlotter extends AbstractPlotter {
                 .calculateMappedValue(new DoubleCell(value), 
                         getDrawingPaneDimension().height, true);
             int mappedX = (int)getXAxis().getCoordinate()
-                .calculateMappedValue(new IntCell((int)xCoords[i]), 
+                .calculateMappedValue(new IntCell(xCoords[i]), 
                         getDrawingPaneDimension().width, true);
             Point p = new Point(mappedX, (int)getScreenYCoordinate(
                     mappedValue));
@@ -282,7 +282,6 @@ public abstract class BasicPlotter extends AbstractPlotter {
                 new DoubleCell(value)));
         }
         ((BasicDrawingPane)getDrawingPane()).addDrawingElement(line);
-//        fitToScreen();
     }
     
     

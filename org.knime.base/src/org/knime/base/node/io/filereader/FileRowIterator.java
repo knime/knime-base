@@ -196,7 +196,15 @@ final class FileRowIterator extends RowIterator {
         int createdCols = 0;
 
         // first, create a row header. This will also read it from file, if any.
-        rowHeader = createRowHeader(m_rowNumber);
+        try {
+            rowHeader = createRowHeader(m_rowNumber);
+        } catch (FileTokenizerException fte) {
+            throw prepareForException(fte.getMessage() + " (line: "
+                    + m_tokenizer.getLineNumber() 
+                    + " source: '" + m_frSettings.getDataFileLocation()
+                    + "')", m_tokenizer.getLineNumber(), new StringCell("ERR"), 
+                    row);
+        }
 
         // we made sure before that there is at least one token in the stream
         assert rowHeader != null;
@@ -317,9 +325,15 @@ final class FileRowIterator extends RowIterator {
                 int val = Integer.parseInt(data);
                 return new IntCell(val);
             } catch (NumberFormatException nfe) {
+                int col = 0;
+                while (col < row.length && row[col] != null) {
+                    col++;
+                }
                 throw prepareForException("Wrong data format. In line "
-                        + m_tokenizer.getLineNumber() + " read '" + data
-                        + "' for an integer", m_tokenizer.getLineNumber(),
+                        + m_tokenizer.getLineNumber() + " (" + rowHeader 
+                        + ") read '" + data
+                        + "' for an integer (in column #" + col 
+                        + ")." , m_tokenizer.getLineNumber(),
                         rowHeader, row);
             }
         } else if (type.equals(DoubleCell.TYPE)) {
@@ -327,10 +341,16 @@ final class FileRowIterator extends RowIterator {
             if (m_customDecimalSeparator) {
                 // we must reject tokens with a '.'.
                 if (data.indexOf('.') >= 0) {
+                    int col = 0;
+                    while (col < row.length && row[col] != null) {
+                        col++;
+                    }
                     throw prepareForException("Wrong data format. In line "
-                            + m_tokenizer.getLineNumber() + " read '" + data
-                            + "' for a floating point.", m_tokenizer
-                            .getLineNumber(), rowHeader, row);
+                            + m_tokenizer.getLineNumber() + " (" + rowHeader
+                            + ") read '" + data
+                            + "' for a floating point (in column #" + col 
+                            + ").", m_tokenizer.getLineNumber(), rowHeader, 
+                            row);
                 }
                 dblData = data.replace(m_decSeparator, '.');
             }
@@ -338,10 +358,37 @@ final class FileRowIterator extends RowIterator {
                 double val = Double.parseDouble(dblData);
                 return new DoubleCell(val);
             } catch (NumberFormatException nfe) {
+                int col = 0;
+                while (col < row.length && row[col] != null) {
+                    col++;
+                }
                 throw prepareForException("Wrong data format. In line "
-                        + m_tokenizer.getLineNumber() + " read '" + data
-                        + "' for a floating point.", m_tokenizer
+                        + m_tokenizer.getLineNumber() + " (" + rowHeader 
+                        + ") read '" + data
+                        + "' for a floating point (in column #" + col
+                        + ").", m_tokenizer
                         .getLineNumber(), rowHeader, row);
+            }
+        } else if (type.equals(SmilesTypeHelper.INSTANCE.getSmilesType())) {
+            try {
+                
+                return SmilesTypeHelper.INSTANCE.newInstance(data);
+            
+            } catch (Throwable t) {
+                int col = 0;
+                while (col < row.length && row[col] != null) {
+                    col++;
+                }
+                String msg = "Error during SMILES cell creation: ";
+                if (t.getMessage() != null) {
+                    msg += t.getMessage();
+                } else {
+                    msg += "<no details available>";
+                }
+                msg += " (line: " + m_tokenizer.getLineNumber() + "("
+                                + rowHeader + "), column #" + col + ").";
+                throw prepareForException(msg, m_tokenizer.getLineNumber(), 
+                        rowHeader, row);
             }
         } else {
             throw prepareForException("Cannot create DataCell of type "
@@ -364,7 +411,8 @@ final class FileRowIterator extends RowIterator {
     private StringCell createRowHeader(final int rowNumber) {
 
         // the constructor sets m_rowHeaderPrefix if the file doesn't have one
-        assert (m_frSettings.getFileHasRowHeaders() || (m_rowHeaderPrefix != null));
+        assert (m_frSettings.getFileHasRowHeaders() 
+                || (m_rowHeaderPrefix != null));
 
         // if there is a row header in the file we must read it - independend
         // of if we are going to use it or not.
@@ -419,27 +467,35 @@ final class FileRowIterator extends RowIterator {
             // haven't seen the rowID so far.
             return newRowHeader;
         }
-
-        // we have seen this rowID before!
-        int idx = oldSuffix.intValue();
-
-        assert idx >= NOSUFFIX.intValue();
-
-        idx++;
-
-        if (oldSuffix == NOSUFFIX) {
-            // until now the NOSUFFIX placeholder was in the hash
-            assert idx - 1 == NOSUFFIX.intValue();
-            m_rowIDhash.put(newRowHeader, new MutableInteger(idx));
-        } else {
-            assert oldSuffix instanceof MutableInteger;
-            ((MutableInteger)oldSuffix).inc();
-            assert idx == oldSuffix.intValue();
-            // put back the old (incr.) suffix (overriden with NOSUFFIX).
-            m_rowIDhash.put(newRowHeader, oldSuffix);
+        
+        String result = newRowHeader;
+        while (oldSuffix != null) {
+            
+            // we have seen this rowID before!
+            int idx = oldSuffix.intValue();
+            
+            assert idx >= NOSUFFIX.intValue();
+            
+            idx++;
+            
+            if (oldSuffix == NOSUFFIX) {
+                // until now the NOSUFFIX placeholder was in the hash
+                assert idx - 1 == NOSUFFIX.intValue();
+                m_rowIDhash.put(result, new MutableInteger(idx));
+            } else {
+                assert oldSuffix instanceof MutableInteger;
+                ((MutableInteger)oldSuffix).inc();
+                assert idx == oldSuffix.intValue();
+                // put back the old (incr.) suffix (overriden with NOSUFFIX).
+                m_rowIDhash.put(result, oldSuffix);
+            }
+            
+            result = result + "_" + idx;
+            oldSuffix = m_rowIDhash.put(result, NOSUFFIX);
+            
         }
 
-        return newRowHeader + "_" + idx;
+        return result;
     }
 
     /*

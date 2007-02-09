@@ -80,7 +80,6 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
         /** Maximal distance between any two points of two clusters. */
         COMPLETE;
     }
-    
 
     private static final String CFG_HCLUST = "hClust";
 
@@ -187,7 +186,6 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
         DataContainer fusionCont = new DataContainer(createFusionSpec());
         int iterationStep = 0;
 
-        
         final HalfFloatMatrix cache;
         if (m_cacheDistances) {
             cache = new HalfFloatMatrix(inputData.getRowCount(), false);
@@ -197,11 +195,18 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
         }
         
         double max = inputData.getRowCount();
+        // the number of clusters at the beginning is equal to the number
+        // of data rows (each row is a cluster)
+        int numberDataRows = clusters.size();
+
         while (clusters.size() > 1) {
             // checks if number clusters to generate output table is reached
             if (m_numClustersForOutput == clusters.size()) {
                 outputData = createResultTable(inputData, clusters, exec);
             }
+            exec.setProgress((numberDataRows - clusters.size())
+                    / (double) numberDataRows, clusters.size()
+                    + " clusters left to merge.");
             iterationStep++;
             exec.setProgress(iterationStep / max,
                     "Iteration " + iterationStep + ", " + clusters.size()
@@ -211,6 +216,11 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
             float currentSmallestDist = Float.MAX_VALUE;
             ClusterNode currentClosestCluster1 = null;
             ClusterNode currentClosestCluster2 = null;            
+
+            // subprogress for loop
+            double availableProgress = (1 / numberDataRows);
+            ExecutionContext subexec = exec
+                    .createSubExecutionContext(availableProgress);
             for (int i = 0; i < clusters.size(); i++) {
                 exec.checkCanceled();
                 ClusterNode node1 = clusters.get(i);
@@ -236,10 +246,10 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
                     }
                 }
             }
+            subexec.setProgress(1.0);
             // make one cluster of the two closest
-            ClusterNode newNode =
-                    new ClusterNode(currentClosestCluster1,
-                            currentClosestCluster2, currentSmallestDist);
+            ClusterNode newNode = new ClusterNode(currentClosestCluster1,
+                    currentClosestCluster2, currentSmallestDist);
             clusters.remove(currentClosestCluster1);
             clusters.remove(currentClosestCluster2);
 
@@ -260,23 +270,37 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
             // printClustersDataRows(clusters);
 
         }
-        m_rootNode = clusters.get(0);
-        m_dataArray =
-                new DefaultDataArray(outputData, 1, inputData.getRowCount());
+        if (clusters.size() > 0) {
+            m_rootNode = clusters.get(0);
+
+        }
+
         fusionCont.close();
-        m_fusionTable =
-                new DefaultDataArray(fusionCont.getTable(), 1, iterationStep);
-        return new BufferedDataTable[]{exec.createBufferedDataTable(outputData,
-                exec)};
+
+        // if there was no input data create an empty output data
+        // also set the data array to null to inform the view
+        if (outputData == null) {
+            outputData = createResultTable(inputData, clusters, exec);
+            m_dataArray = null;
+            m_fusionTable = null;
+        } else {
+            m_dataArray = new DefaultDataArray(outputData, 1, inputData
+                    .getRowCount());
+            m_fusionTable = new DefaultDataArray(fusionCont.getTable(), 1,
+                    iterationStep);
+        }
+
+        return new BufferedDataTable[] {exec.createBufferedDataTable(
+                outputData, exec)};
     }
 
     private DataTableSpec createFusionSpec() {
-        DataColumnSpecCreator creatorX =
-                new DataColumnSpecCreator("Nr. of Clusters", IntCell.TYPE);
-        DataColumnSpecCreator creatorY =
-                new DataColumnSpecCreator("Distance", DoubleCell.TYPE);
-        DataTableSpec spec =
-                new DataTableSpec(creatorX.createSpec(), creatorY.createSpec());
+        DataColumnSpecCreator creatorX = new DataColumnSpecCreator(
+                "Nr. of Clusters", IntCell.TYPE);
+        DataColumnSpecCreator creatorY = new DataColumnSpecCreator("Distance",
+                DoubleCell.TYPE);
+        DataTableSpec spec = new DataTableSpec(creatorX.createSpec(), creatorY
+                .createSpec());
         return spec;
     }
 
@@ -393,10 +417,13 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
     /**
      * Creates number of data rows clusters as initial clustering.
      * 
-     * @param inputData the input data rows
-     * @param exec to check for user cancelations
+     * @param inputData
+     *            the input data rows
+     * @param exec
+     *            to check for user cancelations
      * 
-     * @throws CanceledExecutionException if user canceled
+     * @throws CanceledExecutionException
+     *             if user canceled
      * 
      * @return the vector with all initial clusters.
      */
@@ -415,14 +442,18 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
      * Creates a standard table as the result table. The result table is
      * constructed for the desired number of clusters.
      * 
-     * @param inputData the input data table which has the meta information like
+     * @param inputData
+     *            the input data table which has the meta information like
      *            column names classes, and so on
      * 
-     * @param clusters the vector with the clusters
-     * @param exec to check for user cancelations
+     * @param clusters
+     *            the vector with the clusters
+     * @param exec
+     *            to check for user cancelations
      * @return the result data table which contains the data rows with the class
      *         information
-     * @throws CanceledExecutionException if user canceled
+     * @throws CanceledExecutionException
+     *             if user canceled
      */
     private DataTable createResultTable(final DataTable inputData,
             final List<ClusterNode> clusters, final ExecutionContext exec)
@@ -441,9 +472,9 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
 
                 // append the cluster id the row belongs to
                 cells[cells.length - 1] = new StringCell("cluster_" + i);
-                resultTable.addRowToTable(
-                        new DefaultRow(dataRow.getKey(), cells));
-                
+                resultTable.addRowToTable(new DefaultRow(dataRow.getKey(),
+                        cells));
+
                 exec.checkCanceled();
             }
 
@@ -471,7 +502,7 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
                     + Linkage.SINGLE + ", " + Linkage.AVERAGE + " or "
                     + Linkage.COMPLETE);
         }
-        return new DataTableSpec[]{generateOutSpec(inSpecs[0])};
+        return new DataTableSpec[] {generateOutSpec(inSpecs[0])};
     }
 
     /**
@@ -533,7 +564,6 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
         String dist = settings.getString(DISTFUNCTION_KEY);
         DistanceFunction.Names.valueOf(dist);
 
-
         // check linkage methode
         String linkageType = settings.getString(LINKAGETYPE_KEY);
         boolean valid = false;
@@ -561,8 +591,8 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
             colSpecs[i] = inSpec.getColumnSpec(i);
         }
         // the additional column contains the cluster information
-        DataColumnSpecCreator colspeccreator =
-                new DataColumnSpecCreator("Cluster", StringCell.TYPE);
+        DataColumnSpecCreator colspeccreator = new DataColumnSpecCreator(
+                "Cluster", StringCell.TYPE);
         colSpecs[oldColCount] = colspeccreator.createSpec();
         return new DataTableSpec(colSpecs);
     }
