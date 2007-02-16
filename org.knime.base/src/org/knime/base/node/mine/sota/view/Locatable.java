@@ -22,7 +22,7 @@
  * History
  *   Dec 5, 2005 (Kilian Thiel): created
  */
-package org.knime.base.node.mine.sota.view.interaction;
+package org.knime.base.node.mine.sota.view;
 
 /**
  * 

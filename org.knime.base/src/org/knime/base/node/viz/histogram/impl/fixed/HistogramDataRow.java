@@ -22,62 +22,50 @@
  * History
  *   14.08.2006 (koetter): created
  */
-package org.knime.base.node.viz.histogram.datamodel;
-
-import java.awt.Color;
+package org.knime.base.node.viz.histogram.impl.fixed;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.property.ColorAttr;
 
 /**
  * Saves all information which is needed per row to create a histogram plotter. 
  * @author Tobias Koetter, University of Konstanz
  */
 public class HistogramDataRow {
-    private final Color m_color;
+    private final ColorAttr m_color;
 
     private final DataCell m_xVal;
 
-    private final DataCell[] m_aggrVal;
+    private final DataCell m_aggrVal;
 
     private final RowKey m_rowKey;
 
     /**Constructor for class HistogramDataRow.
      * @param key the row key
-     * @param rowColor the color attribute
+     * @param color the color attribute
      * @param xVal the value of the selected x column
      * @param aggrVal the value of the selected aggregation column
      */
-    public HistogramDataRow(final RowKey key, final Color rowColor,
-            final DataCell xVal, final DataCell... aggrVal) {
+    public HistogramDataRow(final RowKey key, final ColorAttr color,
+            final DataCell xVal, final DataCell aggrVal) {
         m_rowKey = key;
-        m_color = rowColor;
+        m_color = color;
         m_xVal = xVal;
         m_aggrVal = aggrVal;
     }
 
     /**
-     * @param index the index to retrieve
-     * @return the aggrVal at the given index
+     * @return the aggrVal
      */
-    public DataCell getAggrVal(final int index) {
-        if (index >= m_aggrVal.length) {
-            throw new IllegalArgumentException("Index out of bounds");
-        }
-        return m_aggrVal[index];
-    }
-    
-    /**
-     * @return the aggregation values
-     */
-    public DataCell[] getAggrVals() {
+    protected DataCell getAggrVal() {
         return m_aggrVal;
     }
 
     /**
      * @return the color
      */
-    public Color getColor() {
+    protected ColorAttr getColor() {
         return m_color;
     }
 

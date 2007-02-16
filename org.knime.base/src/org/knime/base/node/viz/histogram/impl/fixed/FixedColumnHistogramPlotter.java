@@ -22,17 +22,20 @@
 package org.knime.base.node.viz.histogram.impl.fixed;
 
 import org.knime.base.node.viz.histogram.AbstractHistogramPlotter;
-import org.knime.base.node.viz.histogram.datamodel.HistogramDataModel;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 
 /**
  * This class is the controller between the data model of the
- * {@link FixedColumnHistogramDataModel}
+ * {@link org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramDataModel}
  * class and the view
  * {@link org.knime.base.node.viz.histogram.HistogramDrawingPane}. It creates
- * the {@link HistogramDataModel} which contains the rectangles to draw
- * on the screen.
+ * the {@link org.knime.base.node.viz.histogram.BarVisModel} objects based on
+ * the
+ * {@link org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramDataModel}
+ * of the
+ * {@link org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramDataModel}
+ * class by enhancing these information with information about the size of the
+ * drawing space like height and width in pixel.
  * 
  * @author Tobias Koetter, University of Konstanz
  */
@@ -47,13 +50,12 @@ public class FixedColumnHistogramPlotter extends AbstractHistogramPlotter {
      * @param histogramProps the <code>FixedColumnHistogramProperties</code>
      *            with the view options for the user
      * @param dataModel the data model on which the plotter based on
-     * @param tableSpec the table specification
      * @param handler the hilite handler from the input port
      */
     public FixedColumnHistogramPlotter(
             final FixedColumnHistogramProperties histogramProps,
-            final HistogramDataModel dataModel, final DataTableSpec tableSpec,
+            final FixedColumnHistogramDataModel dataModel,
             final HiLiteHandler handler) {
-        super(histogramProps, dataModel, tableSpec, handler);
+        super(histogramProps, dataModel, handler);
     }
 }

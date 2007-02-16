@@ -24,11 +24,9 @@
  */
 package org.knime.base.node.viz.histogram.node;
 
-import org.knime.base.node.viz.histogram.AggregationMethod;
-import org.knime.base.node.viz.histogram.datamodel.HistogramDataModel;
+import org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramDataModel;
 import org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramPlotter;
 import org.knime.base.node.viz.histogram.impl.interactive.InteractiveHistogramProperties;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
@@ -72,28 +70,22 @@ public class HistogramNodeView extends NodeView {
      */
     @Override
     public void modelChanged() {
-        if (m_nodeModel == null) {
-            return;
-        }
-        final HistogramDataModel histogramModel = 
-            m_nodeModel.getHistogramDataModel();
-        final DataTableSpec tableSpec = m_nodeModel.getTableSpec();
+        final InteractiveHistogramDataModel histogramModel = 
+            m_nodeModel.getHistogramModelClone();
         if (histogramModel == null) {
             return;
         }
         if (m_plotter == null) {
             final InteractiveHistogramProperties props =
                 new InteractiveHistogramProperties(
-                        AggregationMethod.getDefaultMethod());
+                        histogramModel.getAggregationMethod());
             m_plotter = new InteractiveHistogramPlotter(props, histogramModel, 
-                    tableSpec, m_nodeModel.getInHiLiteHandler(0), 
-                    m_nodeModel.getRows());
+                    m_nodeModel.getInHiLiteHandler(0));
             // add the hilite menu to the menu bar of the node view
             getJMenuBar().add(m_plotter.getHiLiteMenu());
             setComponent(m_plotter);
         } else {
             m_plotter.reset();
-            m_plotter.setDataTableSpec(tableSpec);
             m_plotter.setHistogramDataModel(histogramModel);
             m_plotter.setHiLiteHandler(m_nodeModel.getInHiLiteHandler(0));
             m_plotter.updatePaintModel();
