@@ -20,28 +20,30 @@
  * -------------------------------------------------------------------
  * 
  * History
- *   Feb 9, 2006 (Kilian Thiel): created
+ *    10.01.2007 (Tobias Koetter): created
  */
-package org.knime.base.node.mine.sota.view;
+
+package org.knime.base.node.viz.histogram;
 
 /**
- * 
- * @author Kilian Thiel, University of Konstanz
+ * Used to create a {@link ButtonGroup} in the 
+ * {@link AbstractHistogramProperties} class.
+ * @author Tobias Koetter, University of Konstanz
  */
-public interface Selectable {
-    /**
-     * Returns <code>true</code> if object is selected, <code>false</code>
-     * if not.
-     * 
-     * @return <code>true</code> if object is selected, <code>false</code>
-     *         if not
-     */
-    public boolean isSelected();
+public interface HistogramProperty {
 
     /**
-     * Sets the given select flag.
-     * 
-     * @param select selectflag to set
+     * @return the label to display
      */
-    public void setSelected(boolean select);
+    public String getLabel();
+    
+    /**
+     * @return the id of this option
+     */
+    public String getID();
+ 
+    /**
+     * @return <code>true</code> if this is the default option
+     */
+    public boolean isDefault();
 }
