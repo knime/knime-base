@@ -137,7 +137,7 @@ public class ScatterMatrixDrawingPane extends ScatterPlotterDrawingPane {
     }
     
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#setBackground(java.awt.Color)
      */
     @Override
     public void setBackground(final Color bg) {

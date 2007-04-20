@@ -136,7 +136,7 @@ public class RowNoRowFilterPanel extends RowFilterPanel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilterPanel#loadSettingsFromFilter(RowFilter)
      */
     @Override
     public void loadSettingsFromFilter(final RowFilter filter)
@@ -171,7 +171,7 @@ public class RowNoRowFilterPanel extends RowFilterPanel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilterPanel#createFilter(boolean)
      */
     @Override
     public RowFilter createFilter(final boolean include)

@@ -197,7 +197,8 @@ public class ParallelCoordinateDrawingPane extends BasicDrawingPane {
 
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.basic.BasicDrawingPane
+     * #paintContent(java.awt.Graphics)
      */
     @Override
     public void paintContent(final Graphics g) {
@@ -629,7 +630,8 @@ public class ParallelCoordinateDrawingPane extends BasicDrawingPane {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see javax.swing.JComponent#getToolTipText(java.awt.event.MouseEvent)
      */
     @Override
     public String getToolTipText(final MouseEvent e) {

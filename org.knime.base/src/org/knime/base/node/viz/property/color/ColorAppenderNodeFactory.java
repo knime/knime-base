@@ -36,7 +36,7 @@ import org.knime.core.node.NodeView;
  */
 public class ColorAppenderNodeFactory extends NodeFactory {
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -44,7 +44,7 @@ public class ColorAppenderNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     protected int getNrNodeViews() {
@@ -52,7 +52,7 @@ public class ColorAppenderNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, org.knime.core.node.NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex, final NodeModel nm) {
@@ -61,7 +61,7 @@ public class ColorAppenderNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#hasDialog()
      */
     @Override
     protected boolean hasDialog() {
@@ -69,7 +69,7 @@ public class ColorAppenderNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {

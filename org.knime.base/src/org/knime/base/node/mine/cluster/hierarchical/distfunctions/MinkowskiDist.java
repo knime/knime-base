@@ -93,7 +93,8 @@ public class MinkowskiDist implements DistanceFunction {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see Object#hashCode()
      */
     @Override
     public int hashCode() {

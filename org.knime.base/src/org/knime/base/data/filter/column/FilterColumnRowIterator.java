@@ -57,7 +57,7 @@ final class FilterColumnRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#hasNext()
      */
     @Override
     public boolean hasNext() {
@@ -65,7 +65,7 @@ final class FilterColumnRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#next()
      */
     @Override
     public DataRow next() {

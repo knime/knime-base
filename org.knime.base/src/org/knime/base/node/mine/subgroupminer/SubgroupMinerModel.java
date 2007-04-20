@@ -165,7 +165,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -184,7 +184,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -208,7 +208,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadValidatedSettingsFrom(
+     *      NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -274,7 +275,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#execute(BufferedDataTable[],
+     *      ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -324,7 +326,9 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.core.node.property.hilite.HiLiteMapper#getKeys(
+     *      org.knime.core.data.DataCell)
      */
     public Set<DataCell> getKeys(final DataCell key) {
         LOGGER.debug("getKeys for: " + key);
@@ -343,7 +347,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.property.hilite.HiLiteMapper#keySet()
      */
     public Set<DataCell> keySet() {
         return Collections.unmodifiableSet(new LinkedHashSet<DataCell>(
@@ -399,7 +403,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveModelContent(int,
+     *      org.knime.core.node.ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index,
@@ -481,14 +486,15 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#configure(
+     *      org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -557,7 +563,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -565,7 +572,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

@@ -130,7 +130,8 @@ public class HierarchicalClusterNodeView extends DefaultVisualizationNodeView {
 
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see DefaultVisualizationNodeView#modelChanged()
      */
     @Override
     public void modelChanged() {
@@ -172,7 +173,7 @@ public class HierarchicalClusterNodeView extends DefaultVisualizationNodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -180,7 +181,7 @@ public class HierarchicalClusterNodeView extends DefaultVisualizationNodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

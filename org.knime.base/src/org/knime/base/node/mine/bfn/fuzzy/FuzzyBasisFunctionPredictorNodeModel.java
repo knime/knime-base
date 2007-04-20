@@ -38,7 +38,8 @@ public class FuzzyBasisFunctionPredictorNodeModel extends
         BasisFunctionPredictorNodeModel {
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionPredictorNodeModel
+     *      #createPredictorRow(org.knime.core.node.ModelContentRO)
      */
     @Override
     protected BasisFunctionPredictorRow createPredictorRow(

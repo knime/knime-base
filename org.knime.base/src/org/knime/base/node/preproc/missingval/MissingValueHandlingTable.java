@@ -113,14 +113,14 @@ public final class MissingValueHandlingTable implements DataTable {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#getDataTableSpec()
      */
     public DataTableSpec getDataTableSpec() {
         return m_spec;
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#iterator()
      */
     public RowIterator iterator() {
         return new MissingValueHandlingTableIterator(this);
@@ -526,7 +526,7 @@ public final class MissingValueHandlingTable implements DataTable {
         }
         
         /**
-         * {@inheritDoc}
+         * @see StatisticsTable#calculateMomentInSubClass(DataRow)
          */
         @Override
         protected void calculateMomentInSubClass(final DataRow row) {

@@ -181,7 +181,8 @@ public class RadialBasisFunctionPredictorRow extends BasisFunctionPredictorRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionPredictorRow
+     *      #save(org.knime.core.node.ModelContentWO)
      */
     @Override
     public void save(final ModelContentWO pp) {

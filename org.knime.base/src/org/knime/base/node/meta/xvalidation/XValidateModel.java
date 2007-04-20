@@ -83,7 +83,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -103,17 +103,13 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel #execute(BufferedDataTable[], ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        final int iterations =
-                m_settings.leaveOneOut() ? inData[0].getRowCount() : m_settings
-                        .validations();
-
-        for (int i = 0; i < iterations; i++) {
-            exec.setProgress(i / (double)iterations,
+        for (int i = 0; i < m_settings.validations(); i++) {
+            exec.setProgress(i / (double)m_settings.validations(),
                     "Validating in iteration " + (i + 1));
 
             m_partitionModel.setPartitionNumber((short)i);
@@ -130,10 +126,10 @@ public class XValidateModel extends MetaNodeModel {
                 throw new Exception("Cross validation failed in inner node");
             }
         }
-
+        
         m_aggregateModel.setIgnoreReset(false);
-        m_partitionModel.setIgnoreNextReset(false);
-
+        m_partitionModel.setIgnoreNextReset(false);        
+        
         ColumnRearranger colRePort0 =
                 m_aggregateModel.createColumnRearrangerPort0(inData[0]
                         .getDataTableSpec());
@@ -145,7 +141,8 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *      #validateSettings(java.io.File, org.knime.core.node.NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final File nodeFile,
@@ -155,7 +152,10 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *      #loadValidatedSettingsFrom(java.io.File,
+     *      org.knime.core.node.NodeSettingsRO,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadValidatedSettingsFrom(final File nodeDir,
@@ -213,7 +213,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveInternals(File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,
@@ -222,7 +222,9 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel #saveSettingsTo(java.io.File,
+     *      org.knime.core.node.NodeSettingsWO,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveSettingsTo(final File nodeDir,
@@ -241,7 +243,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see MetaNodeModel#addInternalConnections()
      */
     @Override
     protected void addInternalConnections() {
@@ -255,7 +257,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see MetaNodeModel#addInternalNodes()
      */
     @Override
     protected void addInternalNodes() {
@@ -271,7 +273,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see MetaNodeModel#receiveModel(NodeModel)
      */
     @Override
     public void receiveModel(final NodeModel model) {
@@ -284,7 +286,7 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -292,12 +294,12 @@ public class XValidateModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel#reset()
      */
     @Override
     protected void reset() {
         super.reset();
         m_aggregateModel.setIgnoreReset(false);
-        m_partitionModel.setIgnoreNextReset(false);
+        m_partitionModel.setIgnoreNextReset(false);        
     }
 }

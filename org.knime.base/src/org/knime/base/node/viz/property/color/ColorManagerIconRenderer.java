@@ -34,7 +34,8 @@ import javax.swing.JList;
  */
 class ColorManagerIconRenderer extends DefaultListCellRenderer {
     /**
-     * {@inheritDoc}
+     * @see javax.swing.ListCellRenderer#getListCellRendererComponent(
+     *      javax.swing.JList, java.lang.Object, int, boolean, boolean)
      */
     @Override
     public Component getListCellRendererComponent(final JList list,

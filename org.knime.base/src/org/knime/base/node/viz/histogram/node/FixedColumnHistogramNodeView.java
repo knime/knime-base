@@ -24,10 +24,9 @@
  */
 package org.knime.base.node.viz.histogram.node;
 
-import org.knime.base.node.viz.histogram.datamodel.AbstractHistogramVizModel;
-import org.knime.base.node.viz.histogram.impl.fixed.FixedHistogramPlotter;
-import org.knime.base.node.viz.histogram.impl.fixed.FixedHistogramProperties;
-import org.knime.core.data.DataTableSpec;
+import org.knime.base.node.viz.histogram.impl.fixed.FixedColumnHistogramDataModel;
+import org.knime.base.node.viz.histogram.impl.fixed.FixedColumnHistogramPlotter;
+import org.knime.base.node.viz.histogram.impl.fixed.FixedColumnHistogramProperties;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
@@ -39,9 +38,9 @@ import org.knime.core.node.NodeView;
  */
 public class FixedColumnHistogramNodeView extends NodeView {
     
-    private final AbstractHistogramNodeModel m_nodeModel;
+    private final FixedColumnHistogramNodeModel m_nodeModel;
     
-    private FixedHistogramPlotter m_plotter;
+    private FixedColumnHistogramPlotter m_plotter;
 
     /**
      * Creates a new view instance for the histogram node.
@@ -53,9 +52,9 @@ public class FixedColumnHistogramNodeView extends NodeView {
         if (!(nodeModel instanceof FixedColumnHistogramNodeModel)) {
             throw new IllegalArgumentException(NodeModel.class.getName()
                     + " not an instance of "
-                    + AbstractHistogramNodeModel.class.getName());
+                    + HistogramNodeModel.class.getName());
         }
-        m_nodeModel = (AbstractHistogramNodeModel)nodeModel;
+        m_nodeModel = (FixedColumnHistogramNodeModel)nodeModel;
     }
 
     /**
@@ -74,32 +73,30 @@ public class FixedColumnHistogramNodeView extends NodeView {
         if (m_nodeModel == null) {
             return;
         }
-        final DataTableSpec tableSpec = m_nodeModel.getTableSpec();
-        if (m_plotter != null) {
-            m_plotter.reset();
-        }
-        final AbstractHistogramVizModel vizModel = 
-            m_nodeModel.getHistogramVizModel();
-        if (vizModel == null) {
+        final FixedColumnHistogramDataModel histogramModel = 
+            m_nodeModel.getHistogramModelClone();
+        if (histogramModel == null) {
             return;
         }
         if (m_plotter == null) {
-            final FixedHistogramProperties props =
-                new FixedHistogramProperties(tableSpec, vizModel);
-            m_plotter = new FixedHistogramPlotter(props, 
+            final FixedColumnHistogramProperties props =
+                new FixedColumnHistogramProperties(
+                        histogramModel.getAggregationMethod());
+            m_plotter = new FixedColumnHistogramPlotter(props, histogramModel, 
                     m_nodeModel.getInHiLiteHandler(0));
-            //hiliting is not supported in the fixed column histogram
             // add the hilite menu to the menu bar of the node view
-//            getJMenuBar().add(m_plotter.getHiLiteMenu());
+            getJMenuBar().add(m_plotter.getHiLiteMenu());
             setComponent(m_plotter);
+        } else {
+            m_plotter.reset();
+            m_plotter.setHistogramDataModel(histogramModel);
+            m_plotter.setHiLiteHandler(m_nodeModel.getInHiLiteHandler(0));
+            m_plotter.updatePaintModel();
         }
-        m_plotter.setHiLiteHandler(m_nodeModel.getInHiLiteHandler(0));
-        m_plotter.setHistogramVizModel(tableSpec, vizModel);
-        m_plotter.updatePaintModel();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -107,7 +104,7 @@ public class FixedColumnHistogramNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

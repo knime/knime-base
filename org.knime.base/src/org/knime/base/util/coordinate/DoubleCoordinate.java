@@ -225,7 +225,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate#getTickPositions(double,
+     *      boolean)
      */
     @Override
     public CoordinateMapping[] getTickPositions(final double absolutLength,
@@ -476,7 +477,9 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #calculateMappedValue(org.knime.core.data.DataCell, double,
+     *      boolean)
      */
     @Override
     public double calculateMappedValue(final DataCell domainValueCell,
@@ -508,7 +511,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #getMaxDomainValue()
      */
     @Override
     public double getMaxDomainValue() {
@@ -516,7 +520,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #getMinDomainValue()
      */
     @Override
     public double getMinDomainValue() {
@@ -524,7 +529,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #isMinDomainValueSet()
      */
     @Override
     public boolean isMinDomainValueSet() {
@@ -536,7 +542,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #isMaxDomainValueSet()
      */
     @Override
     public boolean isMaxDomainValueSet() {
@@ -548,7 +555,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #setMaxDomainValue(double)
      */
     @Override
     public void setMaxDomainValue(final double maxDomainValue) {
@@ -557,7 +565,8 @@ public class DoubleCoordinate extends NumericCoordinate {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.util.coordinate.NumericCoordinate
+     *      #setMinDomainValue(double)
      */
     @Override
     public void setMinDomainValue(final double minDomainValue) {

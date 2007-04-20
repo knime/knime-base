@@ -283,7 +283,11 @@ public class MultiLayerPerceptron {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see #output(double[])
+     * @param in input for the mlp
+     * @return output of the output neurons after having processed a forward
+     *         wave through the net
      */
     public double[] output(final Double[] in) {
         double[] temp = new double[in.length];

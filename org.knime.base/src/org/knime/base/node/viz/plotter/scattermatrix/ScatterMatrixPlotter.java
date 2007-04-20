@@ -107,7 +107,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         ((ScatterMatrixProperties)getProperties()).getColumnFilter();
             colFilter.addChangeListener(new ChangeListener() {
                 /**
-                 * {@inheritDoc}
+                 * @see javax.swing.event.ChangeListener#stateChanged(
+                 * javax.swing.event.ChangeEvent)
                  */
                 public void stateChanged(final ChangeEvent e) {
                     m_selectedColumns = colFilter.getIncludedColumnSet();
@@ -119,7 +120,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
             ((ScatterMatrixProperties)getProperties()).addDotSizeChangeListener(
                     new ChangeListener() {
                         /**
-                         * {@inheritDoc}
+                         * @see javax.swing.event.ChangeListener#stateChanged(
+                         * javax.swing.event.ChangeEvent)
                          */
                         public void stateChanged(final ChangeEvent e) {
                             setDotSize(
@@ -137,7 +139,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
                     new MouseAdapter() {
 
                         /**
-                         * {@inheritDoc}
+                         * @see java.awt.event.MouseAdapter#mouseReleased(
+                         *      java.awt.event.MouseEvent)
                          */
                         @Override
                         public void mouseReleased(final MouseEvent e) {
@@ -297,9 +300,6 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
                     boolean hilite = delegateIsHiLit(row.getKey().getId());
                     if (!hilite && isHideMode()) {
                         continue;
-                    } 
-                    if (isHideMode() && hilite) {
-                        hilite = false;
                     }
                     DotInfo dot = new DotInfo(x, y, row.getKey(),
                             hilite, data
@@ -356,7 +356,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
 
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotter#updateSize()
      */
     @Override
     public void updateSize() {
@@ -380,7 +381,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         private final Cursor m_default = Cursor.getDefaultCursor();
         
         /**
-         * {@inheritDoc}
+         * 
+         * @see java.lang.Object#toString()
          */
         @Override
         public String toString() {
@@ -388,7 +390,7 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         }
 
         /**
-         * {@inheritDoc}
+         * @see org.knime.base.node.viz.plotter.PlotterMouseListener#getCursor()
          */
         @Override
         public Cursor getCursor() {
@@ -396,7 +398,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         }
 
         /**
-         * {@inheritDoc}
+         * @see org.knime.base.node.viz.plotter.PlotterMouseListener
+         * #mouseDragged(java.awt.event.MouseEvent)
          */
         @Override
         public void mouseDragged(final MouseEvent e) {
@@ -405,7 +408,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseAdapter#mousePressed(
+         * java.awt.event.MouseEvent)
          */
         @Override
         public void mousePressed(final MouseEvent e) {
@@ -417,7 +421,8 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseAdapter#mouseReleased(
+         * java.awt.event.MouseEvent)
          */
         @Override
         public void mouseReleased(final MouseEvent e) {

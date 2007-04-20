@@ -34,7 +34,7 @@ import org.knime.core.node.NodeView;
 public class CacheNodeFactory extends NodeFactory {
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -42,7 +42,7 @@ public class CacheNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -50,7 +50,7 @@ public class CacheNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(final int i, final NodeModel nodeModel) {
@@ -59,7 +59,7 @@ public class CacheNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#hasDialog()
      */
     @Override
     public boolean hasDialog() {
@@ -67,7 +67,7 @@ public class CacheNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {

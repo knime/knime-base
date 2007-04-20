@@ -125,7 +125,7 @@ final class ScorerNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -134,7 +134,7 @@ final class ScorerNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

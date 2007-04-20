@@ -329,7 +329,7 @@ public class ColValRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#matches(org.knime.core.data.DataRow, int)
      */
     @Override
     public boolean matches(final DataRow row, final int rowIndex)
@@ -439,7 +439,8 @@ public class ColValRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter
+     *      #saveSettings(NodeSettingsWO)
      */
     @Override
     protected void saveSettings(final NodeSettingsWO cfg) {
@@ -491,9 +492,13 @@ public class ColValRowFilter extends RowFilter {
                         + "column type. (Col#:"
                         + m_colIndex
                         + ",ColType:"
-                        + colType
+                        + colType.getClass().getName().substring(
+                                colType.getClass().getName().lastIndexOf('.'))
                         + ",RangeType:"
-                        + m_lowerBound.getType());
+                        + m_lowerBound.getType().getClass().getName()
+                                .substring(
+                                        m_lowerBound.getType().getClass()
+                                                .getName().lastIndexOf('.')));
             }
         }
         if (m_upperBound != null) {
@@ -503,9 +508,13 @@ public class ColValRowFilter extends RowFilter {
                         + "column type. (Col#:"
                         + m_colIndex
                         + ",ColType:"
-                        + colType
+                        + colType.getClass().getName().substring(
+                                colType.getClass().getName().lastIndexOf('.'))
                         + ",RangeType:"
-                        + m_upperBound.getType());
+                        + m_upperBound.getType().getClass().getName()
+                                .substring(
+                                        m_upperBound.getType().getClass()
+                                                .getName().lastIndexOf('.')));
             }
         }
 
@@ -514,7 +523,7 @@ public class ColValRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

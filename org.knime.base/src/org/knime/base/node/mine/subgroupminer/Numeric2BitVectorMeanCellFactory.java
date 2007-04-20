@@ -24,7 +24,6 @@
 package org.knime.base.node.mine.subgroupminer;
 
 import java.util.BitSet;
-import java.util.List;
 
 import org.knime.base.data.bitvector.BitVectorCell;
 import org.knime.base.data.bitvector.BitVectorRowCellFactory;
@@ -50,21 +49,21 @@ public class Numeric2BitVectorMeanCellFactory extends BitVectorRowCellFactory {
     /**
      * 
      * @param bitColSpec the column spec of the column containing the bitvectors
-     * @param nameMapping optional bitposition - column name mapping
      * @param meanValues the mean values of the numeric columns
      * @param meanThreshold threshold above which the bits should be set
      *            (percentage of the mean)
      */
     public Numeric2BitVectorMeanCellFactory(final DataColumnSpec bitColSpec,
-            final List<String>nameMapping,
             final double[] meanValues, final double meanThreshold) {
-        super(bitColSpec, nameMapping);
+        super(bitColSpec);
         m_meanValues = meanValues;
         m_meanFactor = meanThreshold;
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #getNumberOfNotSetBits()
      */
     @Override
     public int getNumberOfNotSetBits() {
@@ -72,7 +71,9 @@ public class Numeric2BitVectorMeanCellFactory extends BitVectorRowCellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #getNumberOfSetBits()
      */
     @Override
     public int getNumberOfSetBits() {
@@ -80,7 +81,9 @@ public class Numeric2BitVectorMeanCellFactory extends BitVectorRowCellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #wasSuccessful()
      */
     @Override
     public boolean wasSuccessful() {
@@ -88,7 +91,8 @@ public class Numeric2BitVectorMeanCellFactory extends BitVectorRowCellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.container.SingleCellFactory#getCell(
+     * org.knime.core.data.DataRow)
      */
     @Override
     public DataCell getCell(DataRow row) {
@@ -110,10 +114,6 @@ public class Numeric2BitVectorMeanCellFactory extends BitVectorRowCellFactory {
                 m_totalNrOf0s++;
             }
         }
-        if (getNameMapping() != null) {
-            return new BitVectorCell(currBitSet, row.getNumCells(), 
-                    getNameMapping());
-        }        
         return new BitVectorCell(currBitSet, row.getNumCells());
     }
 

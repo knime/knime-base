@@ -95,7 +95,7 @@ class ColorManagerRangeIcon extends JPanel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
     public void paintComponent(final Graphics gx) {

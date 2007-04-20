@@ -48,7 +48,7 @@ final class WrappedDriver implements Driver {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.sql.Driver#connect(java.lang.String, java.util.Properties)
      */
     public Connection connect(final String url, final Properties info)
             throws SQLException {
@@ -56,14 +56,15 @@ final class WrappedDriver implements Driver {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see java.sql.Driver#acceptsURL(java.lang.String)
      */
     public boolean acceptsURL(final String url) throws SQLException {
         return m_d.acceptsURL(url);
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.sql.Driver#getPropertyInfo(String, java.util.Properties)
      */
     public DriverPropertyInfo[] getPropertyInfo(final String url,
             final Properties info) throws SQLException {
@@ -71,28 +72,28 @@ final class WrappedDriver implements Driver {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.sql.Driver#getMajorVersion()
      */
     public int getMajorVersion() {
         return m_d.getMajorVersion();
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.sql.Driver#getMinorVersion()
      */
     public int getMinorVersion() {
         return m_d.getMinorVersion();
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.sql.Driver#jdbcCompliant()
      */
     public boolean jdbcCompliant() {
         return m_d.jdbcCompliant();
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
@@ -100,7 +101,7 @@ final class WrappedDriver implements Driver {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {

@@ -218,7 +218,8 @@ public class ARFFReaderNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.ItemListener
+     *      #itemStateChanged(java.awt.event.ItemEvent)
      */
     public void itemStateChanged(final ItemEvent e) {
         updateFileError();
@@ -293,8 +294,8 @@ public class ARFFReaderNodeDialog extends NodeDialogPane implements
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             String path;
             try {
-                path = chooser.getSelectedFile().getAbsoluteFile()
-                        .toURI().toURL().toString();
+                path = chooser.getSelectedFile().getAbsoluteFile().toURL()
+                        .toString();
             } catch (Exception e) {
                 path = "<Error: Couldn't create URL for file>";
             }
@@ -305,7 +306,7 @@ public class ARFFReaderNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -331,7 +332,7 @@ public class ARFFReaderNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
@@ -350,7 +351,8 @@ public class ARFFReaderNodeDialog extends NodeDialogPane implements
     /** Renderer that also supports to show customized tooltip. */
     private static class MyComboBoxRenderer extends BasicComboBoxRenderer {
         /**
-         * {@inheritDoc}
+         * @see BasicComboBoxRenderer#getListCellRendererComponent(
+         *      javax.swing.JList, java.lang.Object, int, boolean, boolean)
          */
         @Override
         public Component getListCellRendererComponent(final JList list,

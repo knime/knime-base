@@ -127,7 +127,8 @@ class RadialBasisFunctionFactory extends BasisFunctionFactory {
     static final String THETA_PLUS = "theta_plus";
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionFactory
+     *      #save(org.knime.core.node.ModelContent)
      */
     @Override
     public void save(final ModelContent pp) {

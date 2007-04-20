@@ -145,7 +145,7 @@ public class ClusterNodeModel extends NodeModel {
     }
     
     /**
-     * {@inheritDoc}
+     * @see NodeModel#setInHiLiteHandler(int, HiLiteHandler)
      */
     @Override
     protected void setInHiLiteHandler(final int inIndex, 
@@ -523,7 +523,8 @@ public class ClusterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveModelContent(int,
+     *      ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index,
@@ -613,7 +614,8 @@ public class ClusterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -648,7 +650,8 @@ public class ClusterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

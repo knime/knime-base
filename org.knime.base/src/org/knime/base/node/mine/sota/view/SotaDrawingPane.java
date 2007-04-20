@@ -45,8 +45,8 @@ import javax.swing.JPanel;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
-import org.knime.base.node.mine.sota.logic.SotaManager;
-import org.knime.base.node.mine.sota.logic.SotaTreeCell;
+import org.knime.base.node.mine.sota.SotaManager;
+import org.knime.base.node.mine.sota.SotaTreeCell;
 import org.knime.base.node.util.DataArray;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -77,14 +77,12 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     private static final int PIXEL_HEIGHT = 20;
 
     private static final int HILITE_HEIGHT = 7;
-    
-    private static final int DATA_SEPARATOR_HEIGHT = 0;
 
     private int m_pixelWidth = 6;
 
     private final int m_defPixelWidth = 3;
 
-    // Line height and rectangle width of cluster lines and rectangles
+    // Line height and rectangle width of cluster lines and rectabgles
     private int m_clusterLineHeight = 50;
 
     private int m_clusterRectWidth = 4;
@@ -199,7 +197,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#getToolTipText(java.awt.event.MouseEvent)
      */
     @Override
     public String getToolTipText(final MouseEvent event) {
@@ -244,7 +242,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#createToolTip()
      */
     @Override
     public JToolTip createToolTip() {
@@ -329,7 +327,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.Component#paint(java.awt.Graphics)
      */
     @Override
     public void paint(final Graphics g) {
@@ -389,7 +387,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
         int startX = 0;
         int startY = m_jpHeight - PIXEL_HEIGHT;
         int tmpStartY = startY;
-        int clusterSeparatorHeight = DATA_SEPARATOR_HEIGHT;
+        int clusterSeparatorHeight = 10;
 
         int count = 0;
         // through all cells
@@ -922,7 +920,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     class PaneController extends KeyAdapter implements MouseListener {
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.KeyListener#keyTyped(java.awt.event.KeyEvent)
          */
         @Override
         public void keyTyped(final KeyEvent e) {
@@ -934,7 +932,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseListener#mouseClicked(MouseEvent)
          */
         public void mouseClicked(final MouseEvent e) {
             if (m_data != null && m_root != null) {
@@ -969,25 +967,25 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseListener#mousePressed(MouseEvent)
          */
         public void mousePressed(final MouseEvent e) {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseListener#mouseReleased(MouseEvent)
          */
         public void mouseReleased(final MouseEvent e) {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseListener#mouseEntered(MouseEvent)
          */
         public void mouseEntered(final MouseEvent e) {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.MouseListener#mouseExited(MouseEvent)
          */
         public void mouseExited(final MouseEvent e) {
         }
@@ -1034,7 +1032,7 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#unHiLiteAll()
      */
     public void unHiLiteAll() {
         if (m_root != null) {
@@ -1047,7 +1045,8 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#hiLite(
+     *      org.knime.core.node.property.hilite.KeyEvent)
      */
     public void hiLite(
             final org.knime.core.node.property.hilite.KeyEvent event) {
@@ -1061,7 +1060,8 @@ public class SotaDrawingPane extends JPanel implements HiLiteListener {
     }
 
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#unHiLite(
+     *      org.knime.core.node.property.hilite.KeyEvent)
      */
     public void unHiLite(
             final org.knime.core.node.property.hilite.KeyEvent event) {

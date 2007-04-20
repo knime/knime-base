@@ -831,7 +831,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#getToolTipText(java.awt.event.MouseEvent)
      */
     @Override
     public String getToolTipText(final MouseEvent e) {
@@ -907,7 +907,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
 
     // ******************* hiliting methods **********************
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#hiLite(KeyEvent)
      */
     public void hiLite(final KeyEvent event) {
         Set<DataCell> keySet = event.keys();
@@ -920,7 +920,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#unHiLite(KeyEvent)
      */
     public void unHiLite(final KeyEvent event) {
         Set<DataCell> keySet = event.keys();
@@ -934,7 +934,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
 
 
     /**
-     * {@inheritDoc}
+     * @see HiLiteListener#unHiLiteAll()
      */
     public void unHiLiteAll() {
         for (int i = 0; i < m_rowCount; i++) {
@@ -993,7 +993,8 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     // ******************* selection methods **********************
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseClicked
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseClicked(final MouseEvent e) {
     }
@@ -1011,21 +1012,23 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseEntered
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseEntered(final MouseEvent e) {
 
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseExited (java.awt.event.MouseEvent)
      */
     public void mouseExited(final MouseEvent e) {
 
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mousePressed
+     *      (java.awt.event.MouseEvent)
      */
     public void mousePressed(final MouseEvent e) {
         if (m_content != null) {
@@ -1050,7 +1053,8 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseReleased
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseReleased(final MouseEvent e) {
 
@@ -1195,7 +1199,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseDragged(MouseEvent)
      */
     public void mouseDragged(final MouseEvent e) {
         if (m_content != null) {
@@ -1225,7 +1229,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseMoved(MouseEvent)
      */
     public void mouseMoved(final MouseEvent e) {
 
@@ -1499,7 +1503,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see VisibilityListener#select(VisibilityEvent)
      */
     public void select(final VisibilityEvent event) {
         Set<DataCell> keySet = event.keys();
@@ -1515,7 +1519,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see VisibilityListener#unselect(VisibilityEvent)
      */
     public void unselect(final VisibilityEvent event) {
         Set<DataCell> keySet = event.keys();
@@ -1529,7 +1533,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see VisibilityListener#makeVisible(VisibilityEvent)
      */
     public void makeVisible(final VisibilityEvent event) {
         Set<DataCell> keySet = event.keys();
@@ -1543,7 +1547,7 @@ public final class ParallelCoordinatesViewPanel extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see VisibilityListener#makeInvisible(VisibilityEvent)
      */
     public void makeInvisible(final VisibilityEvent event) {
         Set<DataCell> keySet = event.keys();

@@ -36,7 +36,7 @@ import org.knime.core.node.NodeView;
 public class CAIMDiscretizationNodeFactory extends NodeFactory {
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -44,7 +44,7 @@ public class CAIMDiscretizationNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -52,7 +52,8 @@ public class CAIMDiscretizationNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeView(int, 
+     * org.knime.core.node.NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex, 
@@ -71,7 +72,7 @@ public class CAIMDiscretizationNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {

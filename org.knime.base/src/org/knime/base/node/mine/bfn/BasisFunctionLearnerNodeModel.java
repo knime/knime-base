@@ -136,7 +136,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #setInHiLiteHandler(int,
+     *      HiLiteHandler)
      */
     @Override
     protected void setInHiLiteHandler(final int id, final HiLiteHandler hdl) {
@@ -146,7 +147,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#getOutHiLiteHandler(int)
      */
     @Override
     public HiLiteHandler getOutHiLiteHandler(final int outPortID) {
@@ -155,7 +156,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #configure(org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] ins)
@@ -278,7 +280,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -309,7 +311,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -327,7 +330,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -343,8 +346,9 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
         settings.addInt(MAX_EPOCHS, m_maxEpochs);
     }
 
-    /**
-     * {@inheritDoc}
+    /** 
+     * @see org.knime.core.node.NodeModel
+     *  #saveModelContent(int, org.knime.core.node.ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index, final ModelContentWO pp)
@@ -382,7 +386,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
         "hilite_mapping.pmml.gz";
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #loadInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -411,7 +416,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #saveInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

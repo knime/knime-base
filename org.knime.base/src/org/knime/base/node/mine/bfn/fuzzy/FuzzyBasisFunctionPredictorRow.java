@@ -103,7 +103,8 @@ public class FuzzyBasisFunctionPredictorRow extends BasisFunctionPredictorRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionPredictorRow
+     *      #save(org.knime.core.node.ModelContentWO)
      */
     @Override
     protected void save(final ModelContentWO pp) {

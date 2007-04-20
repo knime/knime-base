@@ -37,7 +37,7 @@ import org.knime.core.node.NodeView;
  */
 public class LinRegLearnerNodeFactory extends NodeFactory {
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -45,7 +45,7 @@ public class LinRegLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -53,7 +53,7 @@ public class LinRegLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(final int index, final NodeModel model) {
@@ -69,7 +69,7 @@ public class LinRegLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#hasDialog()
      */
     @Override
     public boolean hasDialog() {
@@ -77,7 +77,7 @@ public class LinRegLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {

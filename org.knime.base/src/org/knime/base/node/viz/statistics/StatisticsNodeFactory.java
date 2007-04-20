@@ -44,7 +44,7 @@ public class StatisticsNodeFactory extends NodeFactory {
         return null;
     }
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {

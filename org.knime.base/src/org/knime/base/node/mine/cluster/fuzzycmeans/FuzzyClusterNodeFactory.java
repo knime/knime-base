@@ -35,7 +35,7 @@ import org.knime.core.node.NodeView;
  */
 public class FuzzyClusterNodeFactory extends NodeFactory {
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -43,7 +43,7 @@ public class FuzzyClusterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -51,7 +51,7 @@ public class FuzzyClusterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int,NodeModel)
      */
     @Override
     public NodeView createNodeView(final int i, final NodeModel nodeModel) {
@@ -64,7 +64,7 @@ public class FuzzyClusterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -72,7 +72,7 @@ public class FuzzyClusterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#hasDialog()
      */
     @Override
     public boolean hasDialog() {

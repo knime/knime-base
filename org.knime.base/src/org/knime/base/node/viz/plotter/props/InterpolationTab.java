@@ -62,7 +62,8 @@ public class InterpolationTab extends PropertiesTab {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.node.viz.plotter.props.PropertiesTab#getDefaultName()
      */
     @Override
     public String getDefaultName() {

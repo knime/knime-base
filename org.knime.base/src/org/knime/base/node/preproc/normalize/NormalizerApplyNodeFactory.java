@@ -36,7 +36,7 @@ import org.knime.core.node.NodeView;
 public class NormalizerApplyNodeFactory extends NodeFactory {
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -44,7 +44,7 @@ public class NormalizerApplyNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -52,7 +52,7 @@ public class NormalizerApplyNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(
@@ -61,7 +61,7 @@ public class NormalizerApplyNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#getNrNodeViews()
      */
     @Override
     protected int getNrNodeViews() {
@@ -69,7 +69,7 @@ public class NormalizerApplyNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#hasDialog()
      */
     @Override
     protected boolean hasDialog() {

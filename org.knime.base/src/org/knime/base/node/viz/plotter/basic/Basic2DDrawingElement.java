@@ -58,7 +58,8 @@ public abstract class Basic2DDrawingElement extends BasicDrawingElement {
     }
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.basic.BasicDrawingElement#paint(
+     * java.awt.Graphics2D)
      */
     @Override
     public abstract void paint(final Graphics2D g2);

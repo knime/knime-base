@@ -104,7 +104,7 @@ public class BasisFunctionLearnerNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -112,7 +112,7 @@ public class BasisFunctionLearnerNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

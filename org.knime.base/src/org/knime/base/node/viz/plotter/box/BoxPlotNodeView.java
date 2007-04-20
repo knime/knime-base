@@ -51,7 +51,7 @@ public class BoxPlotNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#modelChanged()
      */
     @Override
     protected void modelChanged() {
@@ -66,7 +66,7 @@ public class BoxPlotNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -75,7 +75,7 @@ public class BoxPlotNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

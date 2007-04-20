@@ -24,7 +24,6 @@
 package org.knime.base.node.mine.subgroupminer;
 
 import java.util.BitSet;
-import java.util.List;
 
 import org.knime.base.data.bitvector.BitVectorCell;
 import org.knime.base.data.bitvector.BitVectorRowCellFactory;
@@ -49,20 +48,19 @@ public class Numeric2BitVectorThresholdCellFactory extends BitVectorRowCellFacto
      * 
      * @param bitColSpec {@link DataColumnSpec} of the column containing the 
      * bitvectors
-     * @param nameMapping optional bit position to column name mapping
      * @param threshold the threshold above which the bit is set
      */
-    public Numeric2BitVectorThresholdCellFactory(
-            final DataColumnSpec bitColSpec,
-            final List<String> nameMapping,
+    public Numeric2BitVectorThresholdCellFactory(final DataColumnSpec bitColSpec,
             final double threshold) {
-        super(bitColSpec, nameMapping);
+        super(bitColSpec);
         m_threshold = threshold;
     }
 
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #getNumberOfNotSetBits()
      */
     @Override
     public int getNumberOfNotSetBits() {
@@ -70,7 +68,9 @@ public class Numeric2BitVectorThresholdCellFactory extends BitVectorRowCellFacto
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #getNumberOfSetBits()
      */
     @Override
     public int getNumberOfSetBits() {
@@ -79,7 +79,9 @@ public class Numeric2BitVectorThresholdCellFactory extends BitVectorRowCellFacto
 
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.base.data.bitvector.BitVectorRowCellFactory
+     * #wasSuccessful()
      */
     @Override
     public boolean wasSuccessful() {
@@ -87,7 +89,8 @@ public class Numeric2BitVectorThresholdCellFactory extends BitVectorRowCellFacto
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.container.SingleCellFactory#getCell(
+     * org.knime.core.data.DataRow)
      */
     @Override
     public DataCell getCell(DataRow row) {
@@ -110,10 +113,6 @@ public class Numeric2BitVectorThresholdCellFactory extends BitVectorRowCellFacto
                 } else {
                     m_totalNrOf0s++;
                 }
-        }
-        if (getNameMapping() != null) {
-            return new BitVectorCell(currBitSet, row.getNumCells(), 
-                    getNameMapping());
         }
         return new BitVectorCell(currBitSet, row.getNumCells());
     }

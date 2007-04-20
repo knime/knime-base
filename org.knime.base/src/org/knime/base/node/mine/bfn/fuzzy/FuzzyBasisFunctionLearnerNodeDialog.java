@@ -80,7 +80,7 @@ public class FuzzyBasisFunctionLearnerNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,

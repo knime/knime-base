@@ -169,7 +169,8 @@ public class BitVectorCell extends DataCell implements BitVectorValue,
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see BitVectorValue#getNaming()
      */
     public List<String> getNaming() {
         if (m_nameMapping != null) {
@@ -342,7 +343,7 @@ public class BitVectorCell extends DataCell implements BitVectorValue,
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {

@@ -83,7 +83,7 @@ final class TerminalNode<T> implements Node {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

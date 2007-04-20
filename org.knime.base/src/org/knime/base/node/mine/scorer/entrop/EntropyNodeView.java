@@ -55,7 +55,7 @@ public class EntropyNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeView#modelChanged()
      */
     @Override
     protected void modelChanged() {
@@ -66,14 +66,14 @@ public class EntropyNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeView#onClose()
      */
     @Override
     protected void onClose() {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

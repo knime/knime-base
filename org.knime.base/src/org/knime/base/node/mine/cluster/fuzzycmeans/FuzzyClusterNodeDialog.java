@@ -163,7 +163,6 @@ public class FuzzyClusterNodeDialog extends NodeDialogPane {
         gbl.setConstraints(m_maxNrIterationsSpinner, c); 
         clusterPropPane.add(maxNrIterationsLabel);
         clusterPropPane.add(m_maxNrIterationsSpinner);
-
         JLabel fuzzifierLabel = new JLabel("Fuzzifier: ");
         c.gridx = 0;                      
         c.gridy = 2;                      

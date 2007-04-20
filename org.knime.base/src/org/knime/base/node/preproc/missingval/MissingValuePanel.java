@@ -392,7 +392,7 @@ final class MissingValuePanel extends JPanel {
     /** Action Listener for buttons. */
     private class ButtonListener implements ActionListener {
         /**
-         * {@inheritDoc}
+         * @see ActionListener#actionPerformed(ActionEvent)
          */
         public void actionPerformed(final ActionEvent e) {
             if (m_fixButton == null) {

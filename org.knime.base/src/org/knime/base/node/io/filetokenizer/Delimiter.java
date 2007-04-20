@@ -182,7 +182,7 @@ public class Delimiter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
@@ -195,7 +195,7 @@ public class Delimiter {
      */
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(final Object obj) {
@@ -209,7 +209,7 @@ public class Delimiter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {

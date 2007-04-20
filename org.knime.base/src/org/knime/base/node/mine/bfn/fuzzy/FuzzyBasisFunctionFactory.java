@@ -126,7 +126,8 @@ public final class FuzzyBasisFunctionFactory extends BasisFunctionFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionFactory
+     *      #save(org.knime.core.node.ModelContent)
      */
     @Override
     public void save(final ModelContent pp) {

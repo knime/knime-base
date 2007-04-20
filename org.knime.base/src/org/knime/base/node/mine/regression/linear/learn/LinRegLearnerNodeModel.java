@@ -125,7 +125,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -139,7 +139,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -178,7 +178,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -191,7 +191,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[], ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -433,7 +433,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveModelContent(int, ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index,
@@ -446,7 +446,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -457,7 +457,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -531,7 +531,7 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see LinRegDataProvider#getRowContainer()
      */
     public DataArray getRowContainer() {
         return m_rowContainer;
@@ -539,14 +539,14 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.DataProvider#getDataArray(int)
      */
     public DataArray getDataArray(final int index) {
         return m_rowContainer;
     }
 
     /**
-     * {@inheritDoc}
+     * @see LinRegDataProvider#getIncludedColumns()
      */
     public String[] getIncludedColumns() {
         return m_includes;
@@ -581,7 +581,8 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     private static final String CFG_PARAMS = "params";
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -609,7 +610,8 @@ public class LinRegLearnerNodeModel extends NodeModel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

@@ -109,21 +109,21 @@ class ColorManagerIcon implements Icon {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.Icon#getIconHeight()
      */
     public int getIconHeight() {
         return SIZE;
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.Icon#getIconWidth()
      */
     public int getIconWidth() {
         return SIZE;
     }
 
     /**
-     * {@inheritDoc}
+     * @see Icon#paintIcon(java.awt.Component, java.awt.Graphics, int, int)
      */
     public void paintIcon(final Component c, final Graphics g, final int x,
             final int y) {

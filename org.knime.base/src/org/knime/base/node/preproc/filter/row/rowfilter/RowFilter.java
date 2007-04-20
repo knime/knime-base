@@ -117,7 +117,7 @@ public abstract class RowFilter implements Cloneable {
             throws InvalidSettingsException;
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#clone()
      */
     @Override
     public Object clone() {

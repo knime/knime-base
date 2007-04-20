@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.knime.base.data.bitvector.BitString2BitVectorCellFactory;
 import org.knime.base.data.bitvector.BitVectorCell;
-import org.knime.base.data.bitvector.BitVectorCellFactory;
+import org.knime.base.data.bitvector.BitVectorRowCellFactory;
 import org.knime.base.data.bitvector.Hex2BitVectorCellFactory;
 import org.knime.base.data.bitvector.IdString2BitVectorCellFactory;
 import org.knime.core.data.DataCell;
@@ -129,7 +129,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
     private static final String INT_CFG_NR_ONES = "nrOfOnes";
     
-    private BitVectorCellFactory m_factory;
+    private BitVectorRowCellFactory m_factory;
     
     private boolean m_replace = false;
 
@@ -181,7 +181,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo( NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -195,7 +195,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings( NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -214,7 +214,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadValidatedSettingsFrom(
+     *      NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -249,7 +250,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#execute( BufferedDataTable[],
+     *      ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -279,14 +281,13 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
         } else {
             BufferedDataTable[] bfdt = createBitVectorsFromNumericData(
-                    inData[0], nameMapping, exec);
+                    inData[0], exec);
             return bfdt;
         }
     }
     
     private BufferedDataTable[] createBitVectorsFromNumericData(
-            final BufferedDataTable data, final List<String> nameMapping, 
-            final ExecutionContext exec)
+            final BufferedDataTable data, final ExecutionContext exec)
             throws CanceledExecutionException {
         DataColumnSpec colSpec =
                 createNumericOutputSpec(data.getDataTableSpec());
@@ -298,13 +299,12 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
             meanValues = calculateMeanValues(data);
             m_factory =
                     new Numeric2BitVectorMeanCellFactory(colSpec,
-                            nameMapping,
                             meanValues, meanFactor);
         } else {
             // or dependend on fixed threshold
             m_factory =
                     new Numeric2BitVectorThresholdCellFactory(colSpec,
-                            nameMapping, m_threshold);
+                            m_threshold);
 
         }
         ColumnRearranger c = new ColumnRearranger(data.getDataTableSpec());
@@ -385,7 +385,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -455,7 +455,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -474,7 +475,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

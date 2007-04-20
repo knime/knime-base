@@ -63,7 +63,9 @@ public class ClusterMembershipFactory implements CellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.core.data.container.CellFactory
+     *      #getCells(org.knime.core.data.DataRow)
      */
     public DataCell[] getCells(final DataRow row) {
         DataCell[] memberships = new DataCell[m_nrClusters + 1];
@@ -89,7 +91,7 @@ public class ClusterMembershipFactory implements CellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.container.CellFactory#getColumnSpecs()
      */
     public DataColumnSpec[] getColumnSpecs() {
         int nrclusters = m_nrClusters;
@@ -113,7 +115,10 @@ public class ClusterMembershipFactory implements CellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.core.data.container.CellFactory#setProgress(int,
+     *      int, org.knime.core.data.RowKey,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     public void setProgress(final int curRowNr, final int rowCount,
             final RowKey lastKey, final ExecutionMonitor exec) {

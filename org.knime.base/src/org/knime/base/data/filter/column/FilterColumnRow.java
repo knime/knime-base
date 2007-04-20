@@ -60,14 +60,14 @@ public final class FilterColumnRow implements DataRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataRow#getNumCells()
      */
     public int getNumCells() {
         return m_columns.length;
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataRow#getKey()
      */
     public RowKey getKey() {
         return m_row.getKey();
@@ -86,7 +86,7 @@ public final class FilterColumnRow implements DataRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Iterable#iterator()
      */
     public Iterator<DataCell> iterator() {
         return new DefaultCellIterator(this);

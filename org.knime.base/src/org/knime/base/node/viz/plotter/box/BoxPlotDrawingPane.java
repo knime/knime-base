@@ -93,7 +93,8 @@ public class BoxPlotDrawingPane extends ScatterPlotterDrawingPane {
     }
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractDrawingPane#paintContent(
+     * java.awt.Graphics)
      */
     @Override
     public void paintContent(final Graphics g) {
@@ -217,7 +218,8 @@ public class BoxPlotDrawingPane extends ScatterPlotterDrawingPane {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see javax.swing.JComponent#getToolTipText(java.awt.event.MouseEvent)
      */
     @Override
     public String getToolTipText(final MouseEvent e) {

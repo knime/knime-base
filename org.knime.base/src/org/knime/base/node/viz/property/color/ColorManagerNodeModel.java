@@ -108,7 +108,8 @@ class ColorManagerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadInternals(File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -118,7 +119,8 @@ class ColorManagerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveInternals(java.io.File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -141,7 +143,7 @@ class ColorManagerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -151,7 +153,7 @@ class ColorManagerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -159,7 +161,7 @@ class ColorManagerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)

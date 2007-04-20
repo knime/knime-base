@@ -105,7 +105,7 @@ public class ColumnRowFilterPanel extends RowFilterPanel {
      * @param tSpec table spec containing column specs to select from
      * @throws NotConfigurableException it tspec is <code>null</code> or emtpy
      */
-    public ColumnRowFilterPanel(final DataTableSpec tSpec)
+    ColumnRowFilterPanel(final DataTableSpec tSpec)
             throws NotConfigurableException {
 
         super(400, 350);
@@ -132,6 +132,9 @@ public class ColumnRowFilterPanel extends RowFilterPanel {
         Box idxBox = Box.createHorizontalBox();
         idxBox.add(Box.createHorizontalGlue());
         idxBox.add(m_colCombo);
+        m_colCombo.setPreferredSize(new Dimension(150, 20));
+        m_colCombo.setMaximumSize(new Dimension(150, 20));
+        m_colCombo.setPreferredSize(new Dimension(150, 20));
         idxBox.add(Box.createHorizontalGlue());
         panel.add(idxBox);
 
@@ -423,7 +426,7 @@ public class ColumnRowFilterPanel extends RowFilterPanel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilterPanel#loadSettingsFromFilter(RowFilter)
      */
     @Override
     public void loadSettingsFromFilter(final RowFilter filter)
@@ -462,7 +465,7 @@ public class ColumnRowFilterPanel extends RowFilterPanel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilterPanel#createFilter(boolean)
      */
     @Override
     public RowFilter createFilter(final boolean include)

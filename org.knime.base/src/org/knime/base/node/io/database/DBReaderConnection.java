@@ -92,14 +92,14 @@ public final class DBReaderConnection implements DataTable {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#getDataTableSpec()
      */
     public DataTableSpec getDataTableSpec() {
         return m_spec;
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Iterable#iterator()
      */
     public RowIterator iterator() {
         try {
@@ -178,7 +178,7 @@ final class DBRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#hasNext()
      */
     @Override
     public boolean hasNext() {
@@ -186,7 +186,7 @@ final class DBRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#next()
      */
     @Override
     public DataRow next() {

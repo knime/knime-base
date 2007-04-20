@@ -28,19 +28,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.knime.base.data.append.row.AppendedRowsTable;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowIterator;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeModel;
 import org.knime.core.util.ThreadPool;
@@ -55,7 +59,7 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
 
         private final ExtendedCellFactory[] m_cellFacs;
 
-        private final List<Future<BufferedDataContainer[]>> m_futures;
+        private final List<Future<DataContainer[]>> m_futures;
 
         private final ExecutionContext m_exec;
 
@@ -65,7 +69,7 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
 
         Submitter(final BufferedDataTable[] data,
                 final ExtendedCellFactory[] cellFacs,
-                final List<Future<BufferedDataContainer[]>> futures,
+                final List<Future<DataContainer[]>> futures,
                 final ExecutionContext exec) {
             m_data = data;
             m_cellFacs = cellFacs;
@@ -79,12 +83,12 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.lang.Runnable#run()
          */
         public void run() {
             final double max = m_data[0].getRowCount();
-            final int chunkSize =
-                    (int)Math.ceil(max / (4.0 * m_workers.getMaxThreads()));
+            final int chunkSize = (int)Math.ceil(max
+                    / (4.0 * m_workers.getMaxThreads()));
             final RowIterator it = m_data[0].iterator();
             BufferedDataContainer container = null;
             int count = 0, chunks = 0;
@@ -110,37 +114,34 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
                         break;
                     }
 
-                    container =
-                            m_exec.createDataContainer(m_data[0]
-                                    .getDataTableSpec());
+                    container = m_exec.createDataContainer(m_data[0]
+                            .getDataTableSpec());
                 }
                 container.addRowToTable(it.next());
             }
         }
 
-        private Callable<BufferedDataContainer[]> createCallable(
+        private Callable<DataContainer[]> createCallable(
                 final BufferedDataTable data, final int chunkSize,
                 final double max) {
-            return new Callable<BufferedDataContainer[]>() {
-                public BufferedDataContainer[] call() throws Exception {
-                    BufferedDataContainer[] result =
-                            new BufferedDataContainer[m_specs.length];
+            return new Callable<DataContainer[]>() {
+                public DataContainer[] call() throws Exception {
+                    DataContainer[] result = new DataContainer[m_specs.length];
                     for (int i = 0; i < result.length; i++) {
                         result[i] = m_exec.createDataContainer(m_specs[i]);
 
                         for (DataRow r : data) {
                             m_exec.checkCanceled();
                             DataCell[] newCells = m_cellFacs[i].getCells(r);
-                            DataRow newRow =
-                                    new DefaultRow(r.getKey(), newCells);
+                            DataRow newRow = new DefaultRow(r.getKey(),
+                                    newCells);
                             result[i].addRowToTable(newRow);
 
                             int pr = m_processedRows.incrementAndGet();
                             if (pr % 10 == 0) {
                                 // 5% of the progress are reserved for combining
                                 // the partial results lateron
-                                m_exec.setProgress(0.9 * pr / max, "Processed "
-                                        + pr + " rows");
+                                m_exec.setProgress(0.95 * pr / max);
                             }
                         }
                         result[i].close();
@@ -154,13 +155,12 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
     }
 
     /** The default maximum number of threads for each threaded node. */
-    public static final int DEFAULT_MAX_THREAD_COUNT =
-            Runtime.getRuntime().availableProcessors() + 1;
+    public static final int DEFAULT_MAX_THREAD_COUNT = Runtime.getRuntime()
+            .availableProcessors() + 1;
 
     /** The execution service that is used. */
-    private final ThreadPool m_workers =
-            KNIMEConstants.GLOBAL_THREAD_POOL
-                    .createSubPool(DEFAULT_MAX_THREAD_COUNT);
+    private final ThreadPool m_workers = KNIMEConstants.GLOBAL_THREAD_POOL
+            .createSubPool(DEFAULT_MAX_THREAD_COUNT);
 
     private BufferedDataTable[] m_additionalTables;
 
@@ -206,7 +206,8 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
             final DataTable[] data) throws Exception;
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #execute(BufferedDataTable[],
+     *      ExecutionContext)
      */
     @Override
     protected final BufferedDataTable[] execute(final BufferedDataTable[] data,
@@ -219,27 +220,12 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
                 + " Number of provided DataTableSpecs doesn't match number of "
                 + "output ports";
 
-        if (data[0].getRowCount() == 0) {
-            BufferedDataTable[] result = new BufferedDataTable[getNrDataOuts()];
-            for (int i = 0; i < cellFacs.length; i++) {
-                DataTableSpec spec =
-                        createOutputSpec(data[i].getDataTableSpec(),
-                                cellFacs[i]);
-                BufferedDataContainer cont = exec.createDataContainer(spec);
-                cont.close();
-                result[i] = cont.getTable();
-            }
-            return result;
-        }
-
         exec.setProgress(0, "Processing chunks");
-        m_additionalTables =
-                new BufferedDataTable[Math.max(0, data.length - 1)];
+        m_additionalTables = new BufferedDataTable[Math.max(0, data.length - 1)];
         System.arraycopy(data, 1, m_additionalTables, 0,
                 m_additionalTables.length);
 
-        final List<Future<BufferedDataContainer[]>> futures =
-                new ArrayList<Future<BufferedDataContainer[]>>();
+        final List<Future<DataContainer[]>> futures = new ArrayList<Future<DataContainer[]>>();
 
         Submitter submitter = new Submitter(data, cellFacs, futures, exec);
 
@@ -251,79 +237,61 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
             submitter.run();
         }
 
-        final BufferedDataTable[] combinedResults =
-                getCombinedResults(futures, exec);
-        final BufferedDataTable[] resultTables =
-                new BufferedDataTable[getNrDataOuts()];
+        final AppendedRowsTable[] combinedResults = getCombinedResults(futures,
+                exec);
+        final BufferedDataTable[] resultTables = new BufferedDataTable[getNrDataOuts()];
 
         for (int i = 0; i < getNrDataOuts(); i++) {
-            final int leftColCount = data[i].getDataTableSpec().getNumColumns();
+            final int outTableNr = i;
+
+            ColumnRearranger rea = new ColumnRearranger(data[0]
+                    .getDataTableSpec());
+
             ColumnDestination[] dests = cellFacs[i].getColumnDestinations();
-            ColumnRearranger crea =
-                    new ColumnRearranger(data[i].getDataTableSpec());
-            int[] newPositions = new int[leftColCount + dests.length];
-            for (int m = 0; m < newPositions.length; m++) {
-                newPositions[m] = m;
-            }
-
-            // first part of handling replacements: remove the columns
-            // that should be replaced; necessary because of duplicate
-            // column names in the appended ones
             for (int k = 0; k < dests.length; k++) {
-                if (dests[k] instanceof ReplaceColumn) {
-                    int insertIndex = ((ReplaceColumn)dests[k]).getIndex();
-                    crea.remove(newPositions[insertIndex]);
-                    for (int m = insertIndex; m < newPositions.length; m++) {
-                        newPositions[m]--;
+                final int cellIndex = k;
+
+                ColumnDestination cd = dests[k];
+
+                CellFactory cf = new CellFactory() {
+                    private final RowIterator m_it = combinedResults[outTableNr]
+                            .iterator();
+
+                    public DataCell[] getCells(final DataRow row) {
+                        DataRow r2 = m_it.next();
+
+                        assert r2.getKey().equals(row.getKey()) : "row IDs do not match: "
+                                + r2.getKey() + " <=> " + row.getKey();
+
+                        return new DataCell[]{r2.getCell(cellIndex)};
                     }
 
-                    newPositions[insertIndex] = Integer.MIN_VALUE;
+                    public DataColumnSpec[] getColumnSpecs() {
+                        return new DataColumnSpec[]{cellFacs[outTableNr]
+                                .getColumnSpecs()[cellIndex]};
+                    }
+
+                    public void setProgress(final int curRowNr,
+                            final int rowCount, final RowKey lastKey,
+                            final ExecutionMonitor exek) {
+                        exec.setProgress(curRowNr / (double)rowCount,
+                                "Processed row " + curRowNr + " (\"" + lastKey
+                                        + "\")");
+                    }
+                };
+
+                if (cd instanceof AppendColumn) {
+                    rea.append(cf);
+                } else if (cd instanceof InsertColumn) {
+                    rea.insertAt(((InsertColumn)cd).getIndex(), cf);
+                } else {
+                    rea.replace(cf, ((ReplaceColumn)cd).getIndex());
                 }
             }
 
-            resultTables[i] =
-                    exec.createColumnRearrangeTable(data[i], crea, exec
-                            .createSubExecutionContext(0));
-
-            resultTables[i] =
-                    exec.createJoinedTable(resultTables[i], combinedResults[i],
-                            exec.createSubExecutionContext(0.1));
-
-            // move replacement columns to their final destinations
-            crea = new ColumnRearranger(resultTables[i].getDataTableSpec());
-            for (int k = 0; k < dests.length; k++) {
-                if (dests[k] instanceof ReplaceColumn) {
-                    int oldPos = newPositions[k + leftColCount];
-                    int insertIndex = ((ReplaceColumn)dests[k]).getIndex();
-                    if (oldPos != insertIndex) {
-                        crea.move(oldPos, insertIndex);
-
-                        for (int m = insertIndex; m < k + leftColCount; m++) {
-                            newPositions[m]++;
-                        }
-                        for (int m = k + leftColCount; m < newPositions.length; m++) {
-                            newPositions[m]--;
-                        }
-                        newPositions[k + leftColCount] = insertIndex;
-                    }
-                }
-            }
-
-            // then handle explicit inserts
-            for (int k = 0; k < dests.length; k++) {
-                if (dests[k] instanceof InsertColumn) {
-                    int oldPos = newPositions[k + leftColCount];
-                    int insertIndex = ((InsertColumn)dests[k]).getIndex();
-                    crea.move(oldPos, insertIndex);
-                    for (int m = insertIndex + 1; m < k + leftColCount; m++) {
-                        newPositions[m]++;
-                    }
-                    newPositions[k + leftColCount] = insertIndex;
-                }
-            }
-            resultTables[i] =
-                    exec.createColumnRearrangeTable(resultTables[i], crea, exec
-                            .createSubExecutionContext(0));
+            exec.setMessage("Aggregating chunks");
+            resultTables[i] = exec.createColumnRearrangeTable(data[0], rea,
+                    exec.createSubProgress(0.05));
         }
 
         m_additionalTables = null;
@@ -342,24 +310,24 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
         return m_additionalTables;
     }
 
-    private BufferedDataTable[] getCombinedResults(
-            final List<Future<BufferedDataContainer[]>> futures,
+    private AppendedRowsTable[] getCombinedResults(
+            final List<Future<DataContainer[]>> futures,
             final ExecutionContext exec) throws InterruptedException,
             ExecutionException, CanceledExecutionException {
-        final BufferedDataTable[][] tempTables =
-                new BufferedDataTable[getNrDataOuts()][futures.size()];
+        final DataTable[][] tempTables = new DataTable[getNrDataOuts()][futures
+                .size()];
         int k = 0;
-        for (Future<BufferedDataContainer[]> results : futures) {
+        for (Future<DataContainer[]> results : futures) {
             try {
                 exec.checkCanceled();
             } catch (CanceledExecutionException ex) {
-                for (Future<BufferedDataContainer[]> cancel : futures) {
+                for (Future<DataContainer[]> cancel : futures) {
                     cancel.cancel(true);
                 }
                 throw ex;
             }
 
-            final BufferedDataContainer[] temp = results.get();
+            final DataContainer[] temp = results.get();
 
             if ((temp == null) || (temp.length != getNrDataOuts())) {
                 throw new IllegalStateException("Invalid result. Execution "
@@ -373,11 +341,9 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
             k++;
         }
 
-        final BufferedDataTable[] combinedResults =
-                new BufferedDataTable[getNrDataOuts()];
+        final AppendedRowsTable[] combinedResults = new AppendedRowsTable[getNrDataOuts()];
         for (int i = 0; i < combinedResults.length; i++) {
-            combinedResults[i] =
-                    exec.createConcatenateTable(exec, tempTables[i]);
+            combinedResults[i] = new AppendedRowsTable(tempTables[i]);
         }
 
         return combinedResults;
@@ -390,39 +356,5 @@ public abstract class ThreadedColAppenderNodeModel extends NodeModel {
      */
     public void setMaxThreads(final int count) {
         m_workers.setMaxThreads(count);
-    }
-
-    /**
-     * Returns the output spec based on the input spec and the cell factory.
-     * 
-     * @param inSpec the input spec
-     * @param cellFactory the cell factory used
-     * @return the output spec
-     */
-    protected static DataTableSpec createOutputSpec(final DataTableSpec inSpec,
-            final ExtendedCellFactory cellFactory) {
-        ColumnRearranger rea = new ColumnRearranger(inSpec);
-
-        ColumnDestination[] dests = cellFactory.getColumnDestinations();
-        for (int k = 0; k < dests.length; k++) {
-            ColumnDestination cd = dests[k];
-
-            CellFactory cf =
-                    new SingleCellFactory(cellFactory.getColumnSpecs()[k]) {
-                        @Override
-                        public DataCell getCell(final DataRow row) {
-                            return null;
-                        }
-                    };
-
-            if (cd instanceof AppendColumn) {
-                rea.append(cf);
-            } else if (cd instanceof InsertColumn) {
-                rea.insertAt(((InsertColumn)cd).getIndex(), cf);
-            } else {
-                rea.replace(cf, ((ReplaceColumn)cd).getIndex());
-            }
-        }
-        return rea.createSpec();
     }
 }

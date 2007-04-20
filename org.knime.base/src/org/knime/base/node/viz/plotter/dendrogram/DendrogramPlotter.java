@@ -86,7 +86,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         m_selected = new LinkedHashSet<DendrogramPoint>();
         props.getShowDotsBox().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setShowDots(
@@ -96,7 +97,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         });
         props.getThicknessSpinner().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setLineThickness(
@@ -106,7 +108,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         });
         props.getDotSizeSpinner().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setDotSize(
@@ -141,7 +144,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#clearSelection()
      */
     @Override
     public void clearSelection() {
@@ -152,7 +155,7 @@ public class DendrogramPlotter extends ScatterPlotter {
 
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#hiLiteSelected()
      */
     @Override
     public void hiLiteSelected() {
@@ -163,7 +166,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter
+     * #selectClickedElement(java.awt.Point)
      */
     @Override
     public void selectClickedElement(final Point clicked) {
@@ -173,7 +177,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#selectElementsIn(
+     * java.awt.Rectangle)
      */
     @Override
     public void selectElementsIn(final Rectangle selectionRectangle) {
@@ -192,7 +197,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#unHiLiteSelected()
      */
     @Override
     public void unHiLiteSelected() {
@@ -203,7 +208,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#updatePaintModel()
      */
     @Override
     public void updatePaintModel() {
@@ -342,7 +347,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#updateSize()
      */
     @Override
     public void updateSize() {
@@ -363,7 +368,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.property.hilite.HiLiteListener#unHiLiteAll()
      */
     @Override
     public void unHiLiteAll() {
@@ -371,7 +376,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotter#hiLite(
+     * org.knime.core.node.property.hilite.KeyEvent)
      */
     @Override
     public void hiLite(KeyEvent event) {
@@ -379,7 +385,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotter#unHiLite(
+     * org.knime.core.node.property.hilite.KeyEvent)
      */
     @Override
     public void unHiLite(KeyEvent event) {

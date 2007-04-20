@@ -35,7 +35,7 @@ import org.knime.core.node.NodeView;
  */
 public class FixedColumnHistogramNodeFactory extends NodeFactory {
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -43,7 +43,7 @@ public class FixedColumnHistogramNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -51,7 +51,7 @@ public class FixedColumnHistogramNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex,
@@ -61,15 +61,15 @@ public class FixedColumnHistogramNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new FixedColumnHistogramDialogPane();
+        return new FixedColumnHistogramNodeDialog();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#hasDialog()
      */
     @Override
     public boolean hasDialog() {

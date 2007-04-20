@@ -47,7 +47,8 @@ import org.knime.core.data.DataValue.UtilityFactory;
  */
 public class DataTypeNameRenderer extends DefaultListCellRenderer {
     /**
-     * {@inheritDoc}
+     * @see javax.swing.ListCellRenderer#getListCellRendererComponent(JList,
+     *      Object, int, boolean, boolean)
      */
     @Override
     public Component getListCellRendererComponent(final JList list,

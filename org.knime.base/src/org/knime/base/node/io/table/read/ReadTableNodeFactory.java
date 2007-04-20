@@ -37,7 +37,7 @@ import org.knime.core.node.NodeView;
 public class ReadTableNodeFactory extends NodeFactory {
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -45,7 +45,7 @@ public class ReadTableNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#getNrNodeViews()
      */
     @Override
     protected int getNrNodeViews() {
@@ -53,7 +53,7 @@ public class ReadTableNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(
@@ -62,7 +62,7 @@ public class ReadTableNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#hasDialog()
      */
     @Override
     protected boolean hasDialog() {
@@ -70,7 +70,7 @@ public class ReadTableNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {

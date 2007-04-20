@@ -88,7 +88,7 @@ class RadialBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow#getPredictorRow()
      */
     @Override
     public BasisFunctionPredictorRow getPredictorRow() {
@@ -290,7 +290,7 @@ class RadialBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
@@ -298,7 +298,7 @@ class RadialBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow#getFinalCell(int)
      */
     @Override
     protected DataCell getFinalCell(final int index) {
@@ -306,7 +306,8 @@ class RadialBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow
+     *      #computeActivation(org.knime.core.data.DataRow)
      */
     @Override
     public double computeActivation(final DataRow row) {

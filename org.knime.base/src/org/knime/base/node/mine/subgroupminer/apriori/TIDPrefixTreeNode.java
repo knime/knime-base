@@ -77,7 +77,7 @@ public class TIDPrefixTreeNode {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

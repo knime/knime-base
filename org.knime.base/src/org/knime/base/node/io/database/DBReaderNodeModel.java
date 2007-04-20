@@ -55,7 +55,9 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.io.database.DBReaderConnectionNodeModel#execute(
+     * org.knime.core.node.BufferedDataTable[], 
+     * org.knime.core.node.ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -79,7 +81,7 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -87,7 +89,8 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadInternals(java.io.File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -112,7 +115,8 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveInternals(java.io.File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -125,7 +129,7 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
     
     /**
-     * {@inheritDoc}
+     * @see DBReaderConnectionNodeModel#connectionChanged()
      */
     @Override
     protected void connectionChanged() {
@@ -133,7 +137,8 @@ class DBReaderNodeModel extends DBReaderConnectionNodeModel {
     }
  
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.io.database.DBReaderConnectionNodeModel
+     *  #configure(org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)

@@ -98,7 +98,7 @@ public class FuzzyClusterNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeView#onClose()
      */
     @Override
     protected void onClose() {
@@ -106,7 +106,7 @@ public class FuzzyClusterNodeView extends NodeView {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeView#onOpen()
      */
     @Override
     protected void onOpen() {

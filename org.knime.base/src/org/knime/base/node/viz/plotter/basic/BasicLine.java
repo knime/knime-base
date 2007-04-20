@@ -71,8 +71,9 @@ public class BasicLine extends BasicDrawingElement {
     
     
    /**
-    * {@inheritDoc}
-    */
+     * @see org.knime.base.node.viz.plotter.basic.BasicDrawingElement
+     * #setPoints(java.util.List)
+     */
     @Override
     public void setPoints(final List<Point> points) {
         super.setPoints(points);
@@ -81,7 +82,8 @@ public class BasicLine extends BasicDrawingElement {
 
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.basic.BasicDrawingElement
+     * #setPoints(java.awt.Point[])
      */
     @Override
     public void setPoints(final Point... points) {
@@ -91,7 +93,8 @@ public class BasicLine extends BasicDrawingElement {
 
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.basic.BasicDrawingElement
+     * #setStroke(java.awt.Stroke)
      */
     @Override
     public void setStroke(final Stroke stroke) {

@@ -198,7 +198,8 @@ public class ARFFWriterNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.ItemListener
+     *      #itemStateChanged(java.awt.event.ItemEvent)
      */
     public void itemStateChanged(final ItemEvent e) {
         updateFileError();
@@ -278,8 +279,8 @@ public class ARFFWriterNodeDialog extends NodeDialogPane implements
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             String path;
             try {
-                path = chooser.getSelectedFile().getAbsoluteFile().toURI()
-                        .toURL().toString();
+                path = chooser.getSelectedFile().getAbsoluteFile().toURL()
+                        .toString();
                 if (!path.toLowerCase().endsWith(".arff")) {
                     path += ".arff";
                 }
@@ -293,7 +294,7 @@ public class ARFFWriterNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
@@ -309,7 +310,7 @@ public class ARFFWriterNodeDialog extends NodeDialogPane implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -337,7 +338,8 @@ public class ARFFWriterNodeDialog extends NodeDialogPane implements
     private static class MyComboBoxRenderer extends BasicComboBoxRenderer {
 
         /**
-         * {@inheritDoc}
+         * @see BasicComboBoxRenderer#getListCellRendererComponent(
+         *      javax.swing.JList, java.lang.Object, int, boolean, boolean)
          */
         @Override
         public Component getListCellRendererComponent(final JList list,
