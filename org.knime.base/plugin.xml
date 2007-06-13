@@ -108,7 +108,7 @@
       <category
             icon="icons/missing.gif"
             level-id="modeleval"
-            name="Model Evaluation"
+            name="Scoring"
             path="/mining"/>
       <category
             after="write"
@@ -308,8 +308,8 @@
             id="org.knime.base.node.preproc.transpose.TransposeTableNodeFactory"/>
       <node
             category-path="/mining/dtree"
-            factory-class="org.knime.base.node.mine.decisiontree.predictor.DecTreePredictorNodeFactory"
-            id="org.knime.base.node.mine.decisiontree.predictor.DecTreePredictorNodeFactory"/>
+            factory-class="org.knime.base.node.mine.decisiontree2.predictor.DecTreePredictorNodeFactory"
+            id="org.knime.base.node.mine.decisiontreenew.predictor.DecTreePredictorNodeFactory"/>
       <node
             category-path="/view"
             factory-class="org.knime.base.node.viz.rulevis2d.Rule2DNodeFactory"
@@ -446,7 +446,19 @@
    <node
          category-path="/mining/clustering"
          factory-class="org.knime.base.node.mine.cluster.hierarchical.HierarchicalClusterNodeFactory"
-         id="org.knime.base.node.mine.cluster.hierarchical.HierarchicalClusterNodeFactory"/>         
+         id="org.knime.base.node.mine.cluster.hierarchical.HierarchicalClusterNodeFactory"/>
+   <node
+         category-path="/mining/clustering"
+         factory-class="org.knime.base.node.mine.sota.predictor.SotaPredictorNodeFactory"
+         id="org.knime.base.node.mine.sota.predictor.SotaPredictorNodeFactory"/>         
+      <node
+            category-path="/statistics/regression"
+            factory-class="org.knime.base.node.mine.regression.polynomial.learner.PolyRegLearnerNodeFactory"
+	        id="org.knime.dev.nodes.polyreg.learner.PolyRegLearnerNodeFactory"/>
+      <node
+            category-path="/statistics/regression"
+            factory-class="org.knime.base.node.mine.regression.polynomial.predictor.PolyRegPredictorNodeFactory"
+	        id="org.knime.dev.nodes.polyreg.predictor.PolyRegPredictorNodeFactory"/>
             
    </extension>
    
