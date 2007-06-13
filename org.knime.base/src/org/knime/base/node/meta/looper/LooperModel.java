@@ -57,7 +57,9 @@ public class LooperModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *      #execute(org.knime.core.node.BufferedDataTable[],
+     *      org.knime.core.node.ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -103,7 +105,10 @@ public class LooperModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *      #loadValidatedSettingsFrom(java.io.File,
+     *      org.knime.core.node.NodeSettingsRO,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadValidatedSettingsFrom(final File nodeFile,
@@ -115,7 +120,8 @@ public class LooperModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *  #saveSettingsTo(org.knime.core.node.NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -124,7 +130,8 @@ public class LooperModel extends MetaNodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.meta.MetaNodeModel
+     *      #validateSettings(java.io.File, org.knime.core.node.NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final File nodeFile,

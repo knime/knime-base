@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.knime.base.data.filter.column.FilterColumnTable;
+import org.knime.base.data.join.JoinedRow;
 import org.knime.base.data.join.JoinedTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -40,7 +41,6 @@ import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -122,7 +122,7 @@ public class JoinerNodeModel extends NodeModel {
     private Helper m_firstMapHelper;
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[],ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -319,7 +319,7 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#getOutHiLiteHandler(int)
      */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
@@ -328,7 +328,7 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -346,7 +346,7 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -356,7 +356,7 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -365,7 +365,7 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -424,7 +424,8 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -434,7 +435,8 @@ public class JoinerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -505,7 +507,7 @@ public class JoinerNodeModel extends NodeModel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see org.knime.core.data.RowIterator#hasNext()
          */
         @Override
         public boolean hasNext() {
@@ -513,7 +515,7 @@ public class JoinerNodeModel extends NodeModel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see org.knime.core.data.RowIterator#next()
          */
         @Override
         public DataRow next() {

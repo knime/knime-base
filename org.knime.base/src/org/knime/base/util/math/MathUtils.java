@@ -96,7 +96,7 @@ public final class MathUtils {
         // check matrix compatibility
         if (numColsM1 != numRowsM2) {
             throw new IllegalArgumentException(
-                    "Uncompatible matrices for multiplication.");
+                    "Incompatible matrices for multiplication.");
         }
 
         // the result matrix has the number of rows of matrix 1 and the

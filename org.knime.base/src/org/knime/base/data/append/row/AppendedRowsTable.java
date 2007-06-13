@@ -114,14 +114,14 @@ public class AppendedRowsTable implements DataTable {
     } // AppendedRowsTable(DataTable[],String,boolean)
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#getDataTableSpec()
      */
     public DataTableSpec getDataTableSpec() {
         return m_spec;
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#iterator()
      */
     public RowIterator iterator() {
         return new AppendedRowsIterator(m_tables, m_spec, m_suffix);
@@ -139,7 +139,7 @@ public class AppendedRowsTable implements DataTable {
      * @return an iterator which reacts on cancel events
      * @see AppendedRowsIterator.RuntimeCanceledExecutionException
      */
-    public AppendedRowsIterator iterator(final ExecutionMonitor exec,
+    public RowIterator iterator(final ExecutionMonitor exec,
             final int totalRowCount) {
         return new AppendedRowsIterator(m_tables, m_spec, m_suffix, exec,
                 totalRowCount);

@@ -80,7 +80,7 @@ public class RenameNodeDialogPane extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -146,7 +146,7 @@ public class RenameNodeDialogPane extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)

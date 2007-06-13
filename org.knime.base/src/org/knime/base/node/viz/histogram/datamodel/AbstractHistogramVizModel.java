@@ -490,7 +490,7 @@ public abstract class AbstractHistogramVizModel {
      */
     public Set<DataCell> getBinCaptions() {
         final Collection<BinDataModel> bins = getBins();
-        final Set<DataCell> captions = 
+        final LinkedHashSet<DataCell> captions = 
             new LinkedHashSet<DataCell>(bins.size());
         for (final BinDataModel bin : bins) {
             if (m_showEmptyBins || bin.getMaxBarRowCount() > 0) {

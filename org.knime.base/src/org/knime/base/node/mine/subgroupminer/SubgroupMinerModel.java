@@ -71,10 +71,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteMapper;
 
 /**
@@ -127,30 +124,24 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     public static final double DEFAULT_CONFIDENCE = 0.8;
 
     /* ---------- fields ---------- */
-    private SettingsModelString m_bitVectorColumn 
-        = SubgroupMinerDialog.createBitVectorColumnModel();
+    private String m_bitVectorColumn;
 
-    private SettingsModelDoubleBounded m_minSupport 
-        = SubgroupMinerDialog.createMinSupportModel(); 
-        
-    private SettingsModelIntegerBounded m_maxItemSetLength 
-        = SubgroupMinerDialog.createItemsetLengthModel();
+    private double m_minSupport = DEFAULT_MIN_SUPPORT;
 
-    private SettingsModelString m_itemSetType 
-        = SubgroupMinerDialog.createItemSetTypeModel();
+    private int m_maxItemSetLength = DEFAULT_MAX_ITEMSET_LENGTH;
 
-    private SettingsModelString m_sorter 
-        = SubgroupMinerDialog.createSortByModel();
-    
-    private SettingsModelBoolean m_associationRules
-        = SubgroupMinerDialog.createAssociationRuleFlagModel();
-    
-    private SettingsModelDoubleBounded m_confidence 
-        = SubgroupMinerDialog.createConfidenceModel(); 
-            
-    private SettingsModelString m_underlyingStruct 
-        = SubgroupMinerDialog.createAlgorithmModel();
-    
+    private FrequentItemSet.Type m_itemSetType = FrequentItemSet.Type.CLOSED;
+
+    private FrequentItemSetTable.Sorter m_sorter 
+        = FrequentItemSetTable.Sorter.NONE;
+
+    private boolean m_associationRules = false;
+
+    private double m_confidence = DEFAULT_CONFIDENCE;
+
+    private AprioriAlgorithmFactory.AlgorithmDataStructure m_underlyingStruct 
+        = AprioriAlgorithmFactory.AlgorithmDataStructure.ARRAY;
+
     private BufferedDataTable m_itemSetTable;
 
     private AprioriAlgorithm m_apriori;
@@ -174,50 +165,73 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_bitVectorColumn.saveSettingsTo(settings);
-        m_maxItemSetLength.saveSettingsTo(settings);
-        m_minSupport.saveSettingsTo(settings);
-        m_itemSetType.saveSettingsTo(settings);
-        m_sorter.saveSettingsTo(settings);
-        m_associationRules.saveSettingsTo(settings);
-        m_confidence.saveSettingsTo(settings);
-        m_underlyingStruct.saveSettingsTo(settings);
+        // input
+        settings.addString(CFG_BITVECTOR_COL, m_bitVectorColumn);
+
+        // output
+        settings.addInt(CFG_MAX_ITEMSET_LENGTH, m_maxItemSetLength);
+        settings.addDouble(CFG_MIN_SUPPORT, m_minSupport);
+        settings.addString(CFG_ITEMSET_TYPE, m_itemSetType.name());
+        settings.addString(CFG_SORT_BY, m_sorter.name());
+        settings.addBoolean(CFG_ASSOCIATION_RULES, m_associationRules);
+        settings.addDouble(CFG_CONFIDENCE, m_confidence);
+        // data structure:
+        settings.addString(CFG_UNDERLYING_STRUCT, m_underlyingStruct.name());
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_bitVectorColumn.validateSettings(settings);
-        m_maxItemSetLength.validateSettings(settings);
-        m_minSupport.validateSettings(settings);
-        m_itemSetType.validateSettings(settings);
-        m_sorter.validateSettings(settings);
-        m_associationRules.validateSettings(settings);
-        m_confidence.validateSettings(settings);
-        m_underlyingStruct.validateSettings(settings);
+        settings.getString(CFG_BITVECTOR_COL);
+
+        int maxLength = settings.getInt(CFG_MAX_ITEMSET_LENGTH);
+        if (maxLength <= 0) {
+            throw new InvalidSettingsException("Invalid max item set length: "
+                    + maxLength);
+        }
+        double min = settings.getDouble(CFG_MIN_SUPPORT);
+        if (min < 0) {
+            throw new InvalidSettingsException("Invalid min support: " + min);
+        }
+        settings.getString(CFG_ITEMSET_TYPE);
+        settings.getString(CFG_SORT_BY);
+        settings.getBoolean(CFG_ASSOCIATION_RULES);
+        settings.getDouble(CFG_CONFIDENCE);
+        settings.getString(CFG_UNDERLYING_STRUCT);
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadValidatedSettingsFrom(
+     *      NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_bitVectorColumn.loadSettingsFrom(settings);
-        m_maxItemSetLength.loadSettingsFrom(settings);
-        m_minSupport.loadSettingsFrom(settings);
-        m_itemSetType.loadSettingsFrom(settings);
-        m_sorter.loadSettingsFrom(settings);
-        m_associationRules.loadSettingsFrom(settings);
-        m_confidence.loadSettingsFrom(settings);
-        m_underlyingStruct.loadSettingsFrom(settings);
+        // input
+        m_bitVectorColumn = settings.getString(CFG_BITVECTOR_COL);
+
+        // output
+        m_minSupport = settings.getDouble(CFG_MIN_SUPPORT);
+        m_maxItemSetLength = settings.getInt(CFG_MAX_ITEMSET_LENGTH);
+        m_itemSetType = FrequentItemSet.Type.valueOf(settings
+                .getString(CFG_ITEMSET_TYPE));
+        m_sorter = FrequentItemSetTable.Sorter.valueOf(settings
+                .getString(CFG_SORT_BY));
+        if (m_maxItemSetLength == 0) {
+            m_maxItemSetLength = DEFAULT_MAX_ITEMSET_LENGTH;
+        }
+        m_associationRules = settings.getBoolean(CFG_ASSOCIATION_RULES);
+        m_confidence = settings.getDouble(CFG_CONFIDENCE);
+        // underlying data structure
+        m_underlyingStruct = AprioriAlgorithmFactory.AlgorithmDataStructure
+                .valueOf(settings.getString(CFG_UNDERLYING_STRUCT));
     }
 
     private List<BitSet> preprocess(final DataTable inData,
@@ -229,10 +243,11 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
         m_maxBitsetLength = 0;
         List<BitSet> bitSets = new ArrayList<BitSet>();
         int bitVectorIndex = inData.getDataTableSpec().findColumnIndex(
-                m_bitVectorColumn.getStringValue());
+                m_bitVectorColumn);
         if (bitVectorIndex < 0) {
             return new ArrayList<BitSet>();
         }
+        boolean first = true;
         for (RowIterator itr = inData.iterator(); itr.hasNext();) {
             exec.checkCanceled();
             DataRow currRow = itr.next();
@@ -241,6 +256,10 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
             BitSet currBitSet = currCell.getBitSet();
             m_maxBitsetLength = Math.max(m_maxBitsetLength, currCell
                     .getNumBits());
+            if (first) {
+                m_nameMapping = currCell.getNaming();
+                first = false;
+            }
             bitSets.add(currBitSet);
             m_tidRowKeyMapping.put(m_nrOfRows, currRow.getKey().getId());
             m_nrOfRows++;
@@ -253,7 +272,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#execute(BufferedDataTable[],
+     *      ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -264,16 +284,11 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
         List<BitSet> transactions = preprocess(input, exec1);
 
         m_apriori = AprioriAlgorithmFactory.getAprioriAlgorithm(
-                AprioriAlgorithmFactory.AlgorithmDataStructure.valueOf(
-                        m_underlyingStruct.getStringValue()), 
-                        m_maxBitsetLength, m_nrOfRows);
+                m_underlyingStruct, m_maxBitsetLength, m_nrOfRows);
         LOGGER.debug("support: " + m_minSupport);
         LOGGER.debug(m_minSupport + " start apriori: " + new Date());
-        m_apriori.findFrequentItemSets(transactions, 
-                m_minSupport.getDoubleValue(),
-                m_maxItemSetLength.getIntValue(), 
-                FrequentItemSet.Type.valueOf(m_itemSetType.getStringValue()), 
-                exec2);
+        m_apriori.findFrequentItemSets(transactions, m_minSupport,
+                m_maxItemSetLength, m_itemSetType, exec2);
         LOGGER.debug("ended apriori: " + new Date());
         m_itemSetTable = createOutputTable(exec);
 
@@ -295,12 +310,22 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
      * @return the minimum support
      */
     public double getMinSupport() {
-        return m_minSupport.getDoubleValue();
+        return m_minSupport;
     }
 
+    /**
+     * Returns the intern hilite handler.
+     * 
+     * @return the internal hilite handler
+     */
+    public HiLiteHandler getInternHiLiteHandler() {
+        return getOutHiLiteHandler(0);
+    }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.core.node.property.hilite.HiLiteMapper#getKeys(
+     *      org.knime.core.data.DataCell)
      */
     public Set<DataCell> getKeys(final DataCell key) {
         LOGGER.debug("getKeys for: " + key);
@@ -319,7 +344,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.property.hilite.HiLiteMapper#keySet()
      */
     public Set<DataCell> keySet() {
         return Collections.unmodifiableSet(new LinkedHashSet<DataCell>(
@@ -328,7 +353,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
 
     private BufferedDataTable createOutputTable(final ExecutionContext exec)
             throws CanceledExecutionException {
-        if (m_associationRules.getBooleanValue()) {
+        if (m_associationRules) {
             return createAssociationRulesOutput(exec);
         }
         return createFrequentItemsetOutput(exec);
@@ -340,9 +365,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     private BufferedDataTable createFrequentItemsetOutput(
             final ExecutionContext exec) throws CanceledExecutionException {
         List<FrequentItemSet> freqSets = m_apriori
-                .getFrequentItemSets(
-                        FrequentItemSet.Type.valueOf(
-                                m_itemSetType.getStringValue()));
+                .getFrequentItemSets(m_itemSetType);
         List<FrequentItemSetRow> rows = new LinkedList<FrequentItemSetRow>();
         // iterate over set list
         int rowKeyCounter = 0;
@@ -351,7 +374,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
                     "creating output table. Row number: " + rowKeyCounter);
             List<String> itemList = new ArrayList<String>();
             for (int i = 0; i < set.getItems().size(); i++) {
-                if (i > m_maxItemSetLength.getIntValue()) {
+                if (i > m_maxItemSetLength) {
                     break;
                 }
                 Integer item = set.getItems().get(i);
@@ -367,18 +390,18 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
             // create for every set a row
             FrequentItemSetRow row = new FrequentItemSetRow(new RowKey(
                     "item set " + rowKeyCounter++), itemList,
-                    m_maxItemSetLength.getIntValue(), set.getSupport());
+                    m_maxItemSetLength, set.getSupport());
             rows.add(row);
         }
         DataTableSpec outSpec = createItemsetOutputSpec();
         FrequentItemSetTable result = new FrequentItemSetTable(rows, outSpec);
-        result.sortBy(FrequentItemSetTable.Sorter.valueOf(
-                m_sorter.getStringValue()));
+        result.sortBy(m_sorter);
         return exec.createBufferedDataTable(result, exec);
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveModelContent(int,
+     *      org.knime.core.node.ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index,
@@ -386,20 +409,18 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
         assert index == 0;
         // check if the node is executed
         if (m_apriori != null) {
-            if (m_associationRules.getBooleanValue()) {
+            if (m_associationRules) {
                 AssociationRuleModel model = new AssociationRuleModel();
                 model.setNameMapping(m_nameMapping);
                 model.setAssociationRules(m_apriori
-                        .getAssociationRules(m_confidence.getDoubleValue()));
+                        .getAssociationRules(m_confidence));
                 model.saveToModelContent(predParams);
 
             } else {
                 FrequentItemSetModel model = new FrequentItemSetModel();
                 model.setNameMapping(m_nameMapping);
                 model.setFrequentItemsets(m_apriori
-                        .getFrequentItemSets(
-                                FrequentItemSet.Type.valueOf(
-                                        m_itemSetType.getStringValue())));
+                        .getFrequentItemSets(m_itemSetType));
                 model.setDBSize(m_nrOfRows);
                 model.saveToModelContent(predParams);
             }
@@ -415,7 +436,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
         BufferedDataContainer ruleRows = exec.createDataContainer(outSpec);
 
         List<AssociationRule> associationRules = m_apriori
-                .getAssociationRules(m_confidence.getDoubleValue());
+                .getAssociationRules(m_confidence);
         // for every association rule
         int rowKeyCounter = 0;
         for (AssociationRule r : associationRules) {
@@ -428,8 +449,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
             // get the consequence
             Integer consequent = r.getConsequent();
 
-            DataCell[] allCells 
-                = new DataCell[m_maxItemSetLength.getIntValue() + 4];
+            DataCell[] allCells = new DataCell[m_maxItemSetLength + 4];
             allCells[0] = new DoubleCell(support);
             allCells[1] = new DoubleCell(confidence);
             if (m_nameMapping != null) {
@@ -439,7 +459,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
             }
             allCells[3] = new StringCell("<---");
             for (int i = 0; i < antecedent.size() 
-                && i < m_maxItemSetLength.getIntValue() + 4; i++) {
+                && i < m_maxItemSetLength + 4; i++) {
                 if (m_nameMapping != null) {
                     allCells[i + 4] = new StringCell(m_nameMapping
                             .get(antecedent.get(i)));
@@ -448,9 +468,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
                             "Item" + antecedent.get(i));
                 }
             }
-            int start = Math.min(antecedent.size() + 4, 
-                    m_maxItemSetLength.getIntValue() + 4);
-            for (int i = start; i < m_maxItemSetLength.getIntValue() + 4; i++) {
+            int start = Math.min(antecedent.size() + 4, m_maxItemSetLength + 4);
+            for (int i = start; i < m_maxItemSetLength + 4; i++) {
                 allCells[i] = DataType.getMissingCell();
             }
             if (antecedent.size() > 0) {
@@ -464,14 +483,15 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#configure(
+     *      org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -489,16 +509,12 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
                     "Expecting at least on BitVector column");
         }
         if (m_bitVectorColumn == null
-                || !inSpecs[0].containsName(
-                        m_bitVectorColumn.getStringValue())) {
+                || !inSpecs[0].containsName(m_bitVectorColumn)) {
             throw new InvalidSettingsException(
                     "Set the column with the bit vectors");
         }
-        m_nameMapping = inSpecs[0].getColumnSpec(
-                m_bitVectorColumn.getStringValue())
-            .getElementNames();
         DataTableSpec outputSpec;
-        if (m_associationRules.getBooleanValue()) {
+        if (m_associationRules) {
             outputSpec = createAssociationRulesSpec();
         } else {
             outputSpec = createItemsetOutputSpec();
@@ -511,14 +527,13 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
          * creating the ouput spec with (maxDepth + 1) String columns and the
          * first column as an int colum (the support)
          */
-        DataColumnSpec[] colSpecs 
-            = new DataColumnSpec[m_maxItemSetLength.getIntValue() + 1];
+        DataColumnSpec[] colSpecs = new DataColumnSpec[m_maxItemSetLength + 1];
         DataColumnSpecCreator colspeccreator = new DataColumnSpecCreator(
                 "Support(0-1):", DoubleCell.TYPE);
         colspeccreator.setDomain(new DataColumnDomainCreator(new DoubleCell(0),
                 new DoubleCell(1)).createDomain());
         colSpecs[0] = colspeccreator.createSpec();
-        for (int i = 1; i < m_maxItemSetLength.getIntValue() + 1; i++) {
+        for (int i = 1; i < m_maxItemSetLength + 1; i++) {
             colSpecs[i] = new DataColumnSpecCreator("Item_" + i,
                     StringCell.TYPE).createSpec();
         }
@@ -527,8 +542,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
 
     private DataTableSpec createAssociationRulesSpec() {
         /* now create the table spec */
-        DataColumnSpec[] colSpecs 
-            = new DataColumnSpec[m_maxItemSetLength.getIntValue() + 4];
+        DataColumnSpec[] colSpecs = new DataColumnSpec[m_maxItemSetLength + 4];
         DataColumnSpecCreator creator = new DataColumnSpecCreator("Support",
                 DoubleCell.TYPE);
         colSpecs[0] = creator.createSpec();
@@ -538,7 +552,7 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
         colSpecs[2] = creator.createSpec();
         creator = new DataColumnSpecCreator("implies", StringCell.TYPE);
         colSpecs[3] = creator.createSpec();
-        for (int i = 0; i < m_maxItemSetLength.getIntValue(); i++) {
+        for (int i = 0; i < m_maxItemSetLength; i++) {
             creator = new DataColumnSpecCreator("Item" + i, StringCell.TYPE);
             colSpecs[i + 4] = creator.createSpec();
         }
@@ -546,7 +560,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -554,7 +569,8 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

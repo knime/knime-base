@@ -51,7 +51,7 @@ public class Plotter2DScrollPane extends JScrollPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.Container#setLayout(java.awt.LayoutManager)
      */
     @Override
     public void setLayout(final LayoutManager layout) {

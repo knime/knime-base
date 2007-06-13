@@ -53,9 +53,9 @@ public abstract class BasisFunctionPredictorRow {
 
     /** Number of wrong covered pattern. */
     private int m_wrongCovered;
-
-    /** Within-cluster variance. */
-    private double m_clusterVariance;
+    
+    /** Number of pattern of this class used for training. */
+    private final int m_numPatOfClass;
 
     /**
      * Creates new predictor row.
@@ -63,15 +63,18 @@ public abstract class BasisFunctionPredictorRow {
      * @param key the key of this row
      * @param classLabel class label of the target attribute
      * @param dontKnowDegree don't know probability
+     * @param numPatOfThisClass number of pattern for this class 
      */
     protected BasisFunctionPredictorRow(final DataCell key,
-            final DataCell classLabel, final double dontKnowDegree) {
+            final DataCell classLabel, final int numPatOfThisClass, 
+            final double dontKnowDegree) {
         m_key = key;
         m_classLabel = classLabel;
         m_dontKnowDegree = dontKnowDegree;
+        m_numPatOfClass = numPatOfThisClass;
         m_correctCovered = 0;
         m_wrongCovered = 0;
-        m_clusterVariance = 0;
+
     }
 
     /**
@@ -87,40 +90,20 @@ public abstract class BasisFunctionPredictorRow {
         m_dontKnowDegree = pp.getDouble("dont_know_class");
         m_correctCovered = pp.getInt("correct_covered");
         m_wrongCovered = pp.getInt("wrong_covered");
-        m_clusterVariance = pp.getDouble("within-cluster_variance", 0);
+        m_numPatOfClass = pp.getInt("number_pattern_class", 1); //backward comp.
     }
-    
-    /**
-     * @param row to compute distance with
-     * @return computes the distance between this row and the anchor
-     */
-    public abstract double computeDistance(final DataRow row);
     
     /**
      * If the same class as this basisfunction is assigned to, the number of
      * correctly covered pattern is increased, otherwise the number of wrong
      * covered ones.
-     * @param row to cover
      * @param classLabel a pattern of the given class has to be covered
      */
-    final void cover(final DataRow row, final DataCell classLabel) {
+    final void cover(final DataCell classLabel) {
         if (m_classLabel.equals(classLabel)) {
             m_correctCovered++;
         } else {
             m_wrongCovered++;
-        }
-        double d = computeDistance(row);
-        m_clusterVariance += d * d;
-    }
-    
-    /**
-     * @return with-in cluster variance
-     */
-    public final double getVariance() {
-        if (m_clusterVariance > 0) {
-            return m_clusterVariance / getNumAllCoveredPattern();
-        } else {
-            return 0;
         }
     }
     
@@ -141,11 +124,6 @@ public abstract class BasisFunctionPredictorRow {
      * @return the new activation compromising the given activation
      */
     public abstract double compose(DataRow row, double act);
-    
-    /**
-     * @return number of features that have been shrunken
-     */
-    public abstract int getNrUsedFeatures();
 
     /**
      * @return <i>don't know</i> class probability
@@ -159,6 +137,13 @@ public abstract class BasisFunctionPredictorRow {
      */
     public final DataCell getClassLabel() {
         return m_classLabel;
+    }
+    
+    /**
+     * @return Number of pattern of this class used for training.
+     */
+    public int getNumPattern() {
+        return m_numPatOfClass;
     }
 
     /**
@@ -194,7 +179,22 @@ public abstract class BasisFunctionPredictorRow {
     final void resetCoveredPattern() {
         m_correctCovered = 0;
         m_wrongCovered = 0;
-        m_clusterVariance = 0;
+    }
+    
+    /**
+     * @return The ratio of the number of all (correctly and wrong) covered 
+     *         pattern to all pattern of this class 
+     */
+    public final double getSupport() {
+        return getNumAllCoveredPattern() / m_numPatOfClass; 
+    }
+    
+    /**
+     * @return The ratio of the number of all correctly covered pattern to all 
+     *         pattern of this class 
+     */
+    public final double getConfidence() {
+        return getNumCorrectCoveredPattern() / m_numPatOfClass; 
     }
 
     /**
@@ -215,6 +215,6 @@ public abstract class BasisFunctionPredictorRow {
         pp.addDouble("dont_know_class", m_dontKnowDegree);
         pp.addInt("correct_covered", m_correctCovered);
         pp.addInt("wrong_covered", m_wrongCovered);
-        pp.addDouble("within-cluster_variance", m_clusterVariance);
+        pp.addInt("number_pattern_class", m_numPatOfClass);
     }
 }

@@ -51,7 +51,7 @@ public class IntegerCoordinateMapping extends CoordinateMapping {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

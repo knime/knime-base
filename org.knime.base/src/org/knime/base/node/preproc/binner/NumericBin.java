@@ -81,7 +81,7 @@ public class NumericBin implements Bin {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BinnerColumnFactory.Bin#getBinName()
      */
     public String getBinName() {
         return m_binName;
@@ -141,7 +141,7 @@ public class NumericBin implements Bin {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BinnerColumnFactory.Bin#saveToSettings(NodeSettingsWO)
      */
     public void saveToSettings(final NodeSettingsWO bin) {
         bin.addString(BIN_NAME, getBinName());

@@ -120,7 +120,7 @@ public class RowNoRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#matches(DataRow, int)
      */
     @Override
     public boolean matches(final DataRow row, final int rowIndex)
@@ -169,7 +169,7 @@ public class RowNoRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#loadSettingsFrom(NodeSettingsRO)
      */
     @Override
     public void loadSettingsFrom(final NodeSettingsRO cfg)
@@ -180,7 +180,7 @@ public class RowNoRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#saveSettings(NodeSettingsWO)
      */
     @Override
     protected void saveSettings(final NodeSettingsWO cfg) {
@@ -190,7 +190,7 @@ public class RowNoRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#configure(org.knime.core.data.DataTableSpec)
      */
     @Override
     public DataTableSpec configure(final DataTableSpec inSpec)
@@ -207,7 +207,7 @@ public class RowNoRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

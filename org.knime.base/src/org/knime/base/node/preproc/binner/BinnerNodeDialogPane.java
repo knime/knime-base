@@ -117,7 +117,8 @@ final class BinnerNodeDialogPane extends NodeDialogPane {
          */
         class BinnerListCellRenderer extends DataColumnSpecListCellRenderer {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.ListCellRenderer#getListCellRendererComponent(
+             *      javax.swing.JList, java.lang.Object, int, boolean, boolean)
              */
             @Override
             public Component getListCellRendererComponent(final JList list,
@@ -382,7 +383,8 @@ final class BinnerNodeDialogPane extends NodeDialogPane {
             m_appendName.setPreferredSize(new Dimension(150, 20));
             m_appendColumn.addItemListener(new ItemListener() {
                 /**
-                 * {@inheritDoc}
+                 * @see java.awt.event.ItemListener#itemStateChanged(
+                 *      java.awt.event.ItemEvent)
                  */
                 public void itemStateChanged(final ItemEvent e) {
                     if (m_appendColumn.isSelected()) {

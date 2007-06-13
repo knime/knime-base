@@ -41,8 +41,7 @@ import org.knime.core.data.property.ColorAttr;
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class ColorManagerRangeIcon extends JPanel {
-    
+class ColorManagerRangeIcon extends JPanel {
     private Color m_min;
 
     private Color m_max;
@@ -52,7 +51,7 @@ public class ColorManagerRangeIcon extends JPanel {
      * 
      * @see ColorAttr#DEFAULT
      */
-    public ColorManagerRangeIcon() {
+    ColorManagerRangeIcon() {
         this(ColorAttr.DEFAULT.getColor(), ColorAttr.DEFAULT.getColor());
     }
 
@@ -63,7 +62,7 @@ public class ColorManagerRangeIcon extends JPanel {
      * @param max the right color
      * @throws NullPointerException if on the colors is <code>null</code>
      */
-    public ColorManagerRangeIcon(final Color min, final Color max) {
+    ColorManagerRangeIcon(final Color min, final Color max) {
         super(null);
         super.setPreferredSize(new Dimension(super.getWidth(), 15));
         if (min == null || max == null) {
@@ -78,17 +77,10 @@ public class ColorManagerRangeIcon extends JPanel {
      * 
      * @param min the left color
      */
-    public void setMinColor(final Color min) {
+    void setMinColor(final Color min) {
         m_min = min;
         super.validate();
         super.repaint();
-    }
-    
-    /**
-     * @return current minimum color of this range icon
-     */
-    public Color getMinColor() {
-        return m_min;
     }
 
     /**
@@ -96,21 +88,14 @@ public class ColorManagerRangeIcon extends JPanel {
      * 
      * @param max the right color
      */
-    public void setMaxColor(final Color max) {
+    void setMaxColor(final Color max) {
         m_max = max;
         super.validate();
         super.repaint();
     }
-    
-    /**
-     * @return current maximum color of this range icon
-     */
-    public Color getMaxColor() {
-        return m_max;
-    }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
     public void paintComponent(final Graphics gx) {

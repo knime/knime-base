@@ -126,7 +126,7 @@ public class Header extends JComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
     protected void paintComponent(final Graphics g) {

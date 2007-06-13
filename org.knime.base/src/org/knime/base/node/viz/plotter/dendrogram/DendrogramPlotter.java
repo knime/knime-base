@@ -42,11 +42,11 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.property.hilite.KeyEvent;
 
 /**
- * Converts a {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramNode}
+ * Converts a {@link org.knime.base.node.viz.plotter.dendrogram.ClusterNode}
  * into a {@link org.knime.base.node.viz.plotter.dendrogram.BinaryTree} of 
  * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramPoint}s, which
  * is the visual representation of a hierachical clustering result stored in the
- * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramNode}.
+ * {@link org.knime.base.node.viz.plotter.dendrogram.ClusterNode}.
  *  
  * @author Fabian Dill, University of Konstanz
  */
@@ -54,8 +54,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     
     private static final int OFFSET = 6;
 
-    /** The hierarchical clustering result. */
-    private DendrogramNode m_rootNode;
+    /** The hierachcal clustering result. */
+    private ClusterNode m_rootNode;
     /** The visual model of the clustering result. */ 
     private BinaryTree<DendrogramPoint> m_tree;
     /** The set of selected dendrogram points. */
@@ -86,7 +86,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         m_selected = new LinkedHashSet<DendrogramPoint>();
         props.getShowDotsBox().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setShowDots(
@@ -96,7 +97,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         });
         props.getThicknessSpinner().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setLineThickness(
@@ -106,7 +108,8 @@ public class DendrogramPlotter extends ScatterPlotter {
         });
         props.getDotSizeSpinner().addChangeListener(new ChangeListener() {
             /**
-             * {@inheritDoc}
+             * @see javax.swing.event.ChangeListener#stateChanged(
+             * javax.swing.event.ChangeEvent)
              */
             public void stateChanged(final ChangeEvent e) {
                 ((DendrogramDrawingPane)getDrawingPane()).setDotSize(
@@ -132,16 +135,16 @@ public class DendrogramPlotter extends ScatterPlotter {
     
     /**
      * Sets the result of the hierachical clustering represented in a 
-     * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramNode}.
+     * {@link org.knime.base.node.viz.plotter.dendrogram.ClusterNode}.
      * 
      * @param root the root node of the dendrogram.
      */
-    public void setRootNode(final DendrogramNode  root) {
+    public void setRootNode(final ClusterNode  root) {
         m_rootNode = root;
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#clearSelection()
      */
     @Override
     public void clearSelection() {
@@ -152,7 +155,7 @@ public class DendrogramPlotter extends ScatterPlotter {
 
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#hiLiteSelected()
      */
     @Override
     public void hiLiteSelected() {
@@ -163,7 +166,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter
+     * #selectClickedElement(java.awt.Point)
      */
     @Override
     public void selectClickedElement(final Point clicked) {
@@ -173,7 +177,8 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#selectElementsIn(
+     * java.awt.Rectangle)
      */
     @Override
     public void selectElementsIn(final Rectangle selectionRectangle) {
@@ -192,7 +197,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#unHiLiteSelected()
      */
     @Override
     public void unHiLiteSelected() {
@@ -203,7 +208,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#updatePaintModel()
      */
     @Override
     public void updatePaintModel() {
@@ -211,12 +216,11 @@ public class DendrogramPlotter extends ScatterPlotter {
             return;
         }
         if (getDataProvider() == null 
-                || getDataProvider().getDataArray(1) == null
-                || getDataProvider().getDataArray(1).size() == 0) {
+                || getDataProvider().getDataArray(1) == null) {
             return;
         }
         double min = 0.0;
-        double max = m_rootNode.getMaxDistance();
+        double max = m_rootNode.getMaxDistance(m_rootNode);
         setPreserve(false);
         createYCoordinate(min, max);
         m_dotSize = ((DendrogramDrawingPane)getDrawingPane()).getDotSize();
@@ -231,7 +235,7 @@ public class DendrogramPlotter extends ScatterPlotter {
         
     }
     
-    private void getRowKeys(final DendrogramNode node, final Set<DataCell> ids) {
+    private void getRowKeys(final ClusterNode node, final Set<DataCell> ids) {
         if (node == null) {
             return;
         }
@@ -250,7 +254,7 @@ public class DendrogramPlotter extends ScatterPlotter {
      * 
      * @param node the cluster node tree.
      */
-    public void createViewModel(final DendrogramNode node) {
+    public void createViewModel(final ClusterNode node) {
         if (node == null) {
             return;
         }
@@ -261,16 +265,16 @@ public class DendrogramPlotter extends ScatterPlotter {
     /**
      * Recursive method to convert the result of the hierachical clustering 
      * result represented by a 
-     * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramNode} into a 
+     * {@link org.knime.base.node.viz.plotter.dendrogram.ClusterNode} into a 
      * {@link org.knime.base.node.viz.plotter.dendrogram.BinaryTree} of 
      * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramPoint}s.
      * 
      * @param node the node to convert
      * @return the visual model of the passed 
-     * {@link org.knime.base.node.viz.plotter.dendrogram.DendrogramNode}
+     * {@link org.knime.base.node.viz.plotter.dendrogram.ClusterNode}
      */
     private BinaryTreeNode<DendrogramPoint> createViewModelFor(
-            final DendrogramNode node) {
+            final ClusterNode node) {
         if (getXAxis() == null || getXAxis().getCoordinate() == null
                 || getYAxis() == null || getYAxis().getCoordinate() == null) {
             updatePaintModel();
@@ -332,7 +336,7 @@ public class DendrogramPlotter extends ScatterPlotter {
      * @param node the node to determine the mapped x position for
      * @return the x position of the visual model for the passed node
      */
-    private int getXPosition(final DendrogramNode node) {
+    private int getXPosition(final ClusterNode node) {
         if (node.isLeaf()) {
             DataCell value = node.getLeafDataPoint().getKey().getId();
             return (int)getXAxis().getCoordinate().calculateMappedValue(
@@ -343,7 +347,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.AbstractPlotter#updateSize()
      */
     @Override
     public void updateSize() {
@@ -364,7 +368,7 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.property.hilite.HiLiteListener#unHiLiteAll()
      */
     @Override
     public void unHiLiteAll() {
@@ -372,18 +376,23 @@ public class DendrogramPlotter extends ScatterPlotter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotter#hiLite(
+     * org.knime.core.node.property.hilite.KeyEvent)
      */
     @Override
-    public void hiLite(final KeyEvent event) {
+    public void hiLite(KeyEvent event) {
         updatePaintModel();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter.scatter.ScatterPlotter#unHiLite(
+     * org.knime.core.node.property.hilite.KeyEvent)
      */
     @Override
-    public void unHiLite(final KeyEvent event) {
+    public void unHiLite(KeyEvent event) {
         updatePaintModel();
     }
+    
+    
+
 }

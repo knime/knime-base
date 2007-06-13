@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.JoinedRow;
 import org.knime.core.node.BufferedDataTable;
 
 
@@ -86,7 +85,7 @@ class InMemoryIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#hasNext()
      */
     @Override
     public boolean hasNext() {
@@ -94,7 +93,7 @@ class InMemoryIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#next()
      */
     @Override
     public DataRow next() {

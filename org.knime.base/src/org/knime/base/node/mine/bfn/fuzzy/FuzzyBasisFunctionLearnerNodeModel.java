@@ -69,36 +69,38 @@ public class FuzzyBasisFunctionLearnerNodeModel extends
      * @throws CanceledExecutionException if the training was canceled
      */
     @Override
-    public BufferedDataTable[] execute(final BufferedDataTable[] data,
+    protected BufferedDataTable[] execute(final BufferedDataTable[] data,
             final ExecutionContext exec) throws CanceledExecutionException {
         return super.execute(data, exec);
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerNodeModel
+     *      #getFactory(org.knime.core.data.DataTableSpec)
      */
     @Override
-    public BasisFunctionFactory getFactory(final DataTableSpec spec) {
+    protected BasisFunctionFactory getFactory(final DataTableSpec spec) {
         LOGGER.debug("fuzzy_norm   : " + Norm.NORMS[m_norm]);
         LOGGER.debug("shrink       : " + Shrink.SHRINKS[m_shrink]);
         return new FuzzyBasisFunctionFactory(m_norm, m_shrink, spec,
-                getDataColumns(), getTargetColumns(), getDistance());
-    } 
+                getTargetColumn(), getDistance());
+    }
 
     /**
-     * {@inheritDoc}
+     * @see #configure(DataTableSpec[])
      */
     @Override
-    public DataTableSpec[] configure(final DataTableSpec[] ins)
+    protected DataTableSpec[] configure(final DataTableSpec[] ins)
             throws InvalidSettingsException {
         return super.configure(ins);
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
-    public void loadValidatedSettingsFrom(final NodeSettingsRO settings)
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         super.loadValidatedSettingsFrom(settings);
         // shrink procedure
@@ -108,10 +110,10 @@ public class FuzzyBasisFunctionLearnerNodeModel extends
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
         super.saveSettingsTo(settings);
         // shrink procedure
         settings.addInt(Shrink.SHRINK_KEY, m_shrink);
@@ -120,10 +122,10 @@ public class FuzzyBasisFunctionLearnerNodeModel extends
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
-    public void validateSettings(final NodeSettingsRO settings)
+    protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         super.validateSettings(settings);
         StringBuffer msg = new StringBuffer();

@@ -54,17 +54,15 @@ public class MinkowskiDist implements DistanceFunction {
      * 
      * @param firstDataRow the first data row used to calculate the distance
      * @param secondDataRow the second data row used to calculate the distance
-     * @param includedCols the columns to include into the calculation
      * 
      * @return the distance of the two rows
      */
-    public double calcDistance(final DataRow firstDataRow,
-            final DataRow secondDataRow, final int[] includedCols) {
+    public double calcDistance(final DataRow firstDataRow, 
+                               final DataRow secondDataRow) {
         
         double sumPowDist = 0;
 
-        for (int i : includedCols) {
-            // skip not included cells
+        for (int i = 0; i < secondDataRow.getNumCells(); i++) {
             DataCell x = firstDataRow.getCell(i);
             DataCell y = secondDataRow.getCell(i);
             if (!x.isMissing() && x instanceof DoubleValue
@@ -95,7 +93,8 @@ public class MinkowskiDist implements DistanceFunction {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see Object#hashCode()
      */
     @Override
     public int hashCode() {

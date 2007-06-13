@@ -27,11 +27,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import org.knime.base.node.mine.bfn.BasisFunctionLearnerNodeDialogPane;
+import org.knime.base.node.mine.bfn.BasisFunctionLearnerNodeDialogPanel;
 import org.knime.base.node.mine.bfn.fuzzy.norm.Norm;
 import org.knime.base.node.mine.bfn.fuzzy.shrink.Shrink;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -42,9 +43,10 @@ import org.knime.core.node.NotConfigurableException;
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class FuzzyBasisFunctionLearnerNodeDialog
-        extends BasisFunctionLearnerNodeDialogPane {
-    
+public class FuzzyBasisFunctionLearnerNodeDialog extends NodeDialogPane {
+    /** Contains the basic settings for this learner. */
+    private final BasisFunctionLearnerNodeDialogPanel m_basicsPanel;
+
     /** Holds all possible fuzzy norms. */
     private final JComboBox m_norm = new JComboBox(Norm.NORMS);
 
@@ -52,11 +54,14 @@ public class FuzzyBasisFunctionLearnerNodeDialog
     private final JComboBox m_shrink = new JComboBox(Shrink.SHRINKS);
 
     /**
-     * Creates a new dialog pane for fuzzy basis functions in order
+     * Creates a new {@link NodeDialogPane} for fuzzy basis functions in order
      * to set theta minus, theta plus, and a choice of distance function.
      */
     public FuzzyBasisFunctionLearnerNodeDialog() {
         super();
+        // panel with model specific settings
+        m_basicsPanel = new BasisFunctionLearnerNodeDialogPanel();
+        super.addTab(m_basicsPanel.getName(), m_basicsPanel);
         // panel with advance settings
         JPanel p = new JPanel(new GridLayout(2, 1));
         // norm combo box
@@ -71,16 +76,17 @@ public class FuzzyBasisFunctionLearnerNodeDialog
         shrinkPanel.add(m_shrink);
         p.add(shrinkPanel);
         // add fuzzy learner tab
-        super.addTab("Advanced", p);
+        super.addTab(" Learner ", p);
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
-        super.loadSettingsFrom(settings, specs);
+        // update settings of basic tab
+        m_basicsPanel.loadSettingsFrom(settings, specs);
         // set shrink choice
         int shrink = settings.getInt(Shrink.SHRINK_KEY, 0);
         if (shrink >= 0 && shrink < m_shrink.getItemCount()) {
@@ -104,10 +110,11 @@ public class FuzzyBasisFunctionLearnerNodeDialog
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
-        super.saveSettingsTo(settings);
         // shrink procedure
         settings.addInt(Shrink.SHRINK_KEY, m_shrink.getSelectedIndex());
         // fuzzy norm
         settings.addInt(Norm.NORM_KEY, m_norm.getSelectedIndex());
+        // save settings from basic tab
+        m_basicsPanel.saveSettingsTo(settings);
     }
 }

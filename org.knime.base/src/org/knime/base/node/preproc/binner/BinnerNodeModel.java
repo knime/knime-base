@@ -74,7 +74,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[],ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] data,
@@ -87,7 +87,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -142,7 +142,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -170,7 +170,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -194,7 +194,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -261,7 +261,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveInternals(java.io.File, ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -271,7 +271,7 @@ final class BinnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadInternals(java.io.File, ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,

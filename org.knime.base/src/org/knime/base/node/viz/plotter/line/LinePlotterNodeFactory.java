@@ -39,7 +39,7 @@ import org.knime.core.node.NodeView;
 public class LinePlotterNodeFactory extends NodeFactory {
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -47,7 +47,7 @@ public class LinePlotterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -55,7 +55,8 @@ public class LinePlotterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeView(int, 
+     * org.knime.core.node.NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex, 
@@ -64,7 +65,7 @@ public class LinePlotterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     protected int getNrNodeViews() {
@@ -72,7 +73,7 @@ public class LinePlotterNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#hasDialog()
      */
     @Override
     protected boolean hasDialog() {

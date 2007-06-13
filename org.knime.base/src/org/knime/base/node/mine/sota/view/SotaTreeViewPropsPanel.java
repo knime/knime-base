@@ -176,7 +176,7 @@ public class SotaTreeViewPropsPanel extends JPanel {
     class SotaTreeViewPanelController implements ChangeListener,
             ActionListener, MouseWheelListener {
         /**
-         * {@inheritDoc}
+         * @see javax.swing.event.ChangeListener#stateChanged(ChangeEvent)
          */
         public void stateChanged(final ChangeEvent e) {
             m_pane.setAccentHLevel(m_slider.getValue());
@@ -184,7 +184,7 @@ public class SotaTreeViewPropsPanel extends JPanel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see java.awt.event.ActionListener#actionPerformed(ActionEvent)
          */
         public void actionPerformed(final ActionEvent e) {
             Object source = e.getSource();
@@ -218,7 +218,7 @@ public class SotaTreeViewPropsPanel extends JPanel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see MouseWheelListener#mouseWheelMoved(MouseWheelEvent)
          */
         public void mouseWheelMoved(final MouseWheelEvent e) {
             int level = m_slider.getValue();

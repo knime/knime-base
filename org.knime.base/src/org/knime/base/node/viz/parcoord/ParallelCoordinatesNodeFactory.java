@@ -36,7 +36,7 @@ public class ParallelCoordinatesNodeFactory extends NodeFactory {
 
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -44,7 +44,7 @@ public class ParallelCoordinatesNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -52,7 +52,7 @@ public class ParallelCoordinatesNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeView (int, NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex,
@@ -61,7 +61,7 @@ public class ParallelCoordinatesNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -69,7 +69,7 @@ public class ParallelCoordinatesNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#hasDialog()
      */
     @Override
     public boolean hasDialog() {

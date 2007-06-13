@@ -218,7 +218,7 @@ public abstract class AbstractPlotter2D extends JPanel implements
 //    }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.Component#setBackground(java.awt.Color)
      */
     @Override
     public void setBackground(final Color bg) {
@@ -368,7 +368,7 @@ public abstract class AbstractPlotter2D extends JPanel implements
     protected abstract void updatePaintModel();
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
      */
     public void mouseEntered(final MouseEvent e) {
         if (m_crosshair) {
@@ -412,7 +412,7 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
      */
     public void mouseExited(final MouseEvent e) {
         if (m_crosshair) {
@@ -425,7 +425,7 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
      */
     public void mousePressed(final MouseEvent e) {
 
@@ -447,7 +447,8 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseDragged
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseDragged(final MouseEvent e) {
         // only with mouse down coord we drag (btw. getButton doesn't work
@@ -461,7 +462,8 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseReleased
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseReleased(final MouseEvent e) {
         if (m_drawingPane.mouseDownSet()) {
@@ -610,7 +612,7 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
     public void mouseClicked(final MouseEvent e) {
         // we don't do anything here. Linux triggers a Mouse down and release
@@ -619,7 +621,8 @@ public abstract class AbstractPlotter2D extends JPanel implements
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseMoved
+     *      (java.awt.event.MouseEvent)
      */
     public void mouseMoved(final MouseEvent e) {
         if (m_crosshair) { // && m_zoomMode) {

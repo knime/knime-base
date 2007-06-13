@@ -75,7 +75,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -90,7 +90,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -99,7 +99,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -121,7 +121,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[], ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -173,14 +173,14 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveInternals(File, ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -189,7 +189,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadInternals(File, ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -198,7 +198,7 @@ public class RenameNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -271,14 +271,14 @@ public class RenameNodeModel extends NodeModel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see CellFactory#getColumnSpecs()
          */
         public DataColumnSpec[] getColumnSpecs() {
             return m_returnSpecs;
         }
 
         /**
-         * {@inheritDoc}
+         * @see CellFactory#setProgress(int, int, RowKey, ExecutionMonitor)
          */
         public void setProgress(final int curRowNr, final int rowCount,
                 final RowKey lastKey, final ExecutionMonitor exec) {
@@ -287,7 +287,7 @@ public class RenameNodeModel extends NodeModel {
         }
 
         /**
-         * {@inheritDoc}
+         * @see CellFactory#getCells(DataRow)
          */
         public DataCell[] getCells(final DataRow row) {
             DataCell[] result = new DataCell[m_columns.length];

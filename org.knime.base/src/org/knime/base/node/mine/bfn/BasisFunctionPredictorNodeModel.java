@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -42,6 +42,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
+
 /**
  * The basis function predictor model performing a prediction on the data from
  * the first input and the radial basisfunction model from the second.
@@ -52,7 +53,7 @@ import org.knime.core.node.NodeSettingsWO;
  */
 public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     
-    private String m_applyColumn = "Winner";
+    private String m_applyColumn = "BF (Predictor)";
 
     private double m_dontKnow = -1.0;
     
@@ -62,7 +63,7 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
         new ArrayList<BasisFunctionPredictorRow>();
 
     private DataColumnSpec[] m_modelSpec;
-    
+
     /**
      * Creates a new basisfunction predictor model with two inputs, the first
      * one which contains the data and the second with the model.
@@ -72,24 +73,33 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * Executes this basisfunction predictor node model with two given
+     * {@link org.knime.core.data.DataTable} elements. The first one
+     * contains the data and the second one the model.
+     * 
+     * @see NodeModel#execute(BufferedDataTable[],ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] data,
             final ExecutionContext exec) throws CanceledExecutionException {
-        // data spec
-        final DataTableSpec dataSpec = data[0].getDataTableSpec();
-        final ColumnRearranger colreg = new ColumnRearranger(dataSpec);
+        // check input data
+        assert (data != null && data.length == 1);
+        assert (data[0] != null);
+
+        DataTableSpec dataSpec = data[0].getDataTableSpec();
+        ColumnRearranger colreg = new ColumnRearranger(dataSpec);
+        DataColumnSpec targetSpec = new DataColumnSpecCreator(
+                m_applyColumn, 
+                m_modelSpec[m_modelSpec.length - 1].getType()).createSpec();
         colreg.append(new BasisFunctionPredictorCellFactory(
-                dataSpec, m_modelSpec, m_bfs, m_applyColumn, m_dontKnow,
-                normalizeClassification()));
+                dataSpec, m_modelSpec, m_bfs, targetSpec, m_dontKnow));
         
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(
-                data[0], colreg, exec)};
+                data[0], colreg, exec.createSubProgress(1.0))};
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadModelContent(int, ModelContentRO)
      */
     @Override
     protected void loadModelContent(final int index,
@@ -109,8 +119,10 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
             m_modelSpec = new DataColumnSpec[keySet.size()];
             int idx = 0;
             for (String key : keySet) {
-                m_modelSpec[idx] = 
-                    DataColumnSpec.load(modelInfo.getConfig(key));
+                DataType type = modelInfo.getDataType(key);
+                DataColumnSpecCreator specCreator = new DataColumnSpecCreator(
+                        key, type);
+                m_modelSpec[idx] = specCreator.createSpec();
                 idx++;
             }
         } else {
@@ -129,11 +141,6 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
      */
     protected abstract BasisFunctionPredictorRow createPredictorRow(
             ModelContentRO pp) throws InvalidSettingsException;
-    
-    /**
-     * @return <code>true</code> if normalization is required for output
-     */
-    protected abstract boolean normalizeClassification();
 
     /**
      * @return the <i>don't know</i> class probability between 0.0 and 1.0
@@ -143,7 +150,7 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -153,23 +160,19 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
         }
         if (m_modelSpec == null || m_modelSpec.length == 0) {
             throw new InvalidSettingsException("No model spec found.");
-        }
-                
-        // data model columns need to be in the data
-        for (int i = 0; i < m_modelSpec.length - 5; i++) {
+        } // first n-1 model columns need to be in the data
+        for (int i = 0; i < m_modelSpec.length - 1; i++) {
             int idx = inSpecs[0].findColumnIndex(m_modelSpec[i].getName());
             if (idx >= 0) {
                 DataType dataType = inSpecs[0].getColumnSpec(idx).getType();
-                Class<? extends DataValue> prefValue = 
-                    m_modelSpec[i].getType().getPreferredValueClass();
-                if (!dataType.isCompatible(prefValue)) {
+                if (!m_modelSpec[i].getType().isASuperTypeOf(dataType)) {
                     throw new InvalidSettingsException("Model type "
                             + m_modelSpec[i].getType()
                             + " is not a super type of " + dataType);
                 }
             } else {
-                throw new InvalidSettingsException("Model column \""
-                        + m_modelSpec[i].getName() + "\" not in data spec.");
+                throw new InvalidSettingsException("Model column name "
+                        + m_modelSpec[i].getName() + " not in data spec.");
             }
         }
         return new DataTableSpec[]{createSpec(inSpecs[0]).createSpec()};
@@ -202,9 +205,11 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
                 break;
             }
         }
+        DataColumnSpec targetSpec = new DataColumnSpecCreator(
+                m_applyColumn, 
+                m_modelSpec[m_modelSpec.length - 1].getType()).createSpec();
         ColumnRearranger colreg = new ColumnRearranger(oSpec);
-        colreg.append(new BasisFunctionPredictorCellFactory(
-                m_modelSpec, m_applyColumn));
+        colreg.append(new BasisFunctionPredictorCellFactory(targetSpec));
         return colreg;
     }
     
@@ -220,7 +225,7 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -236,7 +241,7 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -252,7 +257,7 @@ public abstract class BasisFunctionPredictorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)

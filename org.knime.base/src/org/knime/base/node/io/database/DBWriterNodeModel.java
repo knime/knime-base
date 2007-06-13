@@ -106,7 +106,7 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -124,7 +124,7 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -133,7 +133,7 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -185,7 +185,7 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[], ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -201,7 +201,7 @@ class DBWriterNodeModel extends NodeModel {
             DriverManager.setLoginTimeout(5);
             conn = DriverManager.getConnection(m_url, m_user, password);
             // write entire data
-            String error = DBWriterConnection.writeData(
+            String error = DBWriterConnection.writeData( 
                     conn, m_table, inData[0], m_append, exec, m_types);
             if (error != null) {
                 super.setWarningMessage(error);
@@ -215,14 +215,15 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadInternals(java.io.File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -231,7 +232,8 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveInternals(java.io.File,
+     *      ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -240,7 +242,7 @@ class DBWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)

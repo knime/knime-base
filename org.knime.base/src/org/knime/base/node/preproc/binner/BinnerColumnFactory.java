@@ -166,7 +166,8 @@ final class BinnerColumnFactory implements CellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.container.CellFactory
+     *      #getCells(org.knime.core.data.DataRow)
      */
     public DataCell[] getCells(final DataRow row) {
         DataCell cell = row.getCell(m_columnIdx);
@@ -174,14 +175,16 @@ final class BinnerColumnFactory implements CellFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.container.CellFactory#getColumnSpecs()
      */
     public DataColumnSpec[] getColumnSpecs() {
         return new DataColumnSpec[]{m_columnSpec};
     }
 
     /**
-     * {@inheritDoc}
+     * 
+     * @see org.knime.core.data.container.CellFactory #setProgress(int,
+     *      int, RowKey, ExecutionMonitor)
      */
     public void setProgress(final int curRowNr, final int rowCount,
             final RowKey lastKey, final ExecutionMonitor exec) {

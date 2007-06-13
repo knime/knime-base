@@ -161,8 +161,7 @@ public class DBWriterDialogPane extends NodeDialogPane {
         settPanel.add(tablePanel);
         
         JPanel appendPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        appendPanel.setBorder(
-                BorderFactory.createTitledBorder(" Append data "));
+        appendPanel.setBorder(BorderFactory.createTitledBorder(" Append data "));
         m_append.setPreferredSize(new Dimension(400, 20));
         m_append.setFont(font);
         m_append.setToolTipText("Table structure from input and database table"
@@ -191,7 +190,7 @@ public class DBWriterDialogPane extends NodeDialogPane {
     }
     
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -250,7 +249,7 @@ public class DBWriterDialogPane extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)

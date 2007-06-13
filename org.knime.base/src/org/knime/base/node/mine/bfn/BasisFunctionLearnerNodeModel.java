@@ -30,13 +30,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -86,31 +83,20 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     /** NodeSettings key for <i>shrink_after_commit</i>. */
     public static final String SHRINK_AFTER_COMMIT = "shrink_after_commit";
 
-    /** NodeSettings key for <i>max_class_coverage</i>. */
-    public static final String MAX_CLASS_COVERAGE = "max_class_coverage";
-    
     /** Key of the target column. */
-    public static final String TARGET_COLUMNS = "target_column";
-    
-    /** Key of the target column. */
-    public static final String DATA_COLUMNS = "data_columns";
+    public static final String TARGET_COLUMN = "target_column";
 
     /**
-     * Keeps names of all columns used to make classification during training.
+     * Keeps the name of the column which is used to make classification during
+     * training. Also an indication if the node is executable.
      */
-    private String[] m_targetColumns = null;
-    
-    /** Keeps names of all numeric columns used for training. */
-    private String[] m_dataColumns = null;
-    
+    private String m_target = null;
+
     /** Keeps a value for missing replacement function index. */
     private int m_missing = -1;
 
     /** The <i>shrink_after_commit</i> flag. */
     private boolean m_shrinkAfterCommit = true;
-    
-    /** The <i>max_class_coverage</i> flag. */
-    private boolean m_maxCoverage = true;
     
     /** Config key for maximum number of epochs. */
     public static final String MAX_EPOCHS = "max_epochs";
@@ -127,15 +113,6 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
 
     /** Translates hilite events between model and training data. */
     private final HiLiteTranslator m_translator;
-    
-    /** Number of data inports. */
-    public static final int NR_DATA_INS   = 1;
-    /** Number of data outports. */
-    public static final int NR_DATA_OUTS  = 1;
-    /** Number of model inports. */
-    public static final int NR_MODEL_INS  = 0;
-    /** Number of model outports. */
-    public static final int NR_MODEL_OUTS = 1;
 
     /**
      * Creates a new model with one data in and out port, and model outport.
@@ -159,7 +136,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #setInHiLiteHandler(int,
+     *      HiLiteHandler)
      */
     @Override
     protected void setInHiLiteHandler(final int id, final HiLiteHandler hdl) {
@@ -169,7 +147,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#getOutHiLiteHandler(int)
      */
     @Override
     public HiLiteHandler getOutHiLiteHandler(final int outPortID) {
@@ -178,68 +156,39 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #configure(org.knime.core.data.DataTableSpec[])
      */
     @Override
-    public DataTableSpec[] configure(final DataTableSpec[] ins)
+    protected DataTableSpec[] configure(final DataTableSpec[] ins)
             throws InvalidSettingsException {
         // check if target column available
-        if (m_targetColumns == null) {
-            throw new InvalidSettingsException("Target columns not available.");
-        }
-        for (String target : m_targetColumns) {
-            if (!ins[0].containsName(target)) {
-                throw new InvalidSettingsException(
-                    "Target \"" + target + "\" column not available.");
-            }
-            if (m_targetColumns.length > 1) {
-                if (!ins[0].getColumnSpec(target).getType().isCompatible(
-                        DoubleValue.class)) {
-                    throw new InvalidSettingsException(
-                            "Target \"" + target 
-                            + "\" column not of type DoubleValue.");
-                }
-            }
+        if (m_target == null || !ins[0].containsName(m_target)) {
+            throw new InvalidSettingsException("Target column not available.");
         }
         // check if double type column available
         if (!ins[0].containsCompatibleType(DoubleValue.class)) {
             throw new InvalidSettingsException(
-                    "No data column of type DoubleValue found.");
+                    "No double-type column(s) found.");
         }
-        
-        List<String> targetHash = Arrays.asList(m_targetColumns);
         // if only one double type column, check if not the target column
         for (int i = 0; i < ins[0].getNumColumns(); i++) {
             DataColumnSpec cspec = ins[0].getColumnSpec(i);
             if (cspec.getType().isCompatible(DoubleValue.class)) {
-                if (!targetHash.contains(cspec.getName())) {
+                if (!cspec.getName().equals(m_target)) {
                     break;
                 }
             }
             // if last column was tested
             if (i + 1 == ins[0].getNumColumns()) {
-                throw new InvalidSettingsException("Found only one column of"
-                        + " type DoubleValue: " 
-                        + Arrays.toString(m_targetColumns));
+                assert ins[0].getColumnSpec(m_target).getType().isCompatible(
+                        DoubleValue.class);
+                throw new InvalidSettingsException("Found only one double-type"
+                        + " column: " + m_target);
             }
         }
-        
-        // check data columns, only numeric
-        for (String dataColumn : m_dataColumns) {
-            if (!ins[0].containsName(dataColumn)) {
-                throw new InvalidSettingsException(
-                    "Data \"" + dataColumn + "\" column not available.");
-            }
-            if (!ins[0].getColumnSpec(dataColumn).getType().isCompatible(
-                        DoubleValue.class)) {
-                    throw new InvalidSettingsException(
-                            "Data \"" + dataColumn 
-                            + "\" column not of type DoubleValue.");
-            }
-        }
-        
         return new DataTableSpec[]{BasisFunctionFactory.createModelSpec(ins[0],
-                m_dataColumns, m_targetColumns, getModelType())};
+                m_target, getModelType())};
     }
 
     /**
@@ -256,7 +205,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
      * @throws CanceledExecutionException if the training was canceled
      */
     @Override
-    public BufferedDataTable[] execute(final BufferedDataTable[] data,
+    protected BufferedDataTable[] execute(final BufferedDataTable[] data,
             final ExecutionContext exec) throws CanceledExecutionException {
         // check input data
         assert (data != null && data.length == 1 && data[0] != null);
@@ -265,19 +214,18 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
         DataTableSpec tSpec = data[0].getDataTableSpec();
         LinkedHashSet<String> columns = new LinkedHashSet<String>(tSpec
                 .getNumColumns());
-        List<String> targetHash = Arrays.asList(m_targetColumns);
         for (int c = 0; c < tSpec.getNumColumns(); c++) {
             DataColumnSpec cSpec = tSpec.getColumnSpec(c);
             String name = cSpec.getName();
-            if (!targetHash.contains(name)) {
+            if (!name.equals(m_target)) {
                 // TODO only numeric columns allowed
                 if (cSpec.getType().isCompatible(DoubleValue.class)) {
                     columns.add(cSpec.getName());
                 }
             }
         }
-        // add target columns at the end
-        columns.addAll(Arrays.asList(m_targetColumns));
+        // add target column at the end
+        columns.add(m_target);
 
         // filter selected columns from input data
         String[] cols = columns.toArray(new String[]{});
@@ -289,19 +237,17 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
         // print settings info
         LOGGER.debug("distance     : " + getDistance());
         LOGGER.debug("missing      : " + getMissingFct());
-        LOGGER.debug("targets      : " + m_targetColumns);
+        LOGGER.debug("target       : " + m_target);
         LOGGER.debug("shrink_commit: " + isShrinkAfterCommit());
-        LOGGER.debug("max_coverage : " + isMaxClassCoverage());
         LOGGER.debug("max #epochs  : " + m_maxEpochs);
 
         // create factory
-        BasisFunctionFactory factory = getFactory(
-                trainData.getDataTableSpec());
+        BasisFunctionFactory factory = getFactory(trainData.getDataTableSpec());
         // start training
         BasisFunctionLearnerTable table = new BasisFunctionLearnerTable(
-                trainData, m_dataColumns, m_targetColumns, factory,
+                trainData, m_target, factory,
                 BasisFunctionLearnerTable.MISSINGS[m_missing],
-                m_shrinkAfterCommit, m_maxCoverage, m_maxEpochs, exec);
+                m_shrinkAfterCommit, m_maxEpochs, exec);
         m_modelSpec = table.getDataTableSpec();
 
         // set translator mapping
@@ -324,50 +270,27 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
      * @param spec the cleaned data for training
      * @return factory to create special basis function rules
      */
-    public abstract BasisFunctionFactory getFactory(DataTableSpec spec);
+    protected abstract BasisFunctionFactory getFactory(DataTableSpec spec);
 
     /**
      * @return get model info after training or <code>null</code>
      */
-    public ModelContentRO getModelInfo() {
+    protected ModelContentRO getModelInfo() {
         return m_modelInfo;
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
-    public void validateSettings(final NodeSettingsRO settings)
+    protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         StringBuffer msg = new StringBuffer();
-        // get target columns
-        String[] targetColumns = null;
+        // target column
         try {
-            targetColumns = settings.getStringArray(TARGET_COLUMNS);
-            if (targetColumns == null || targetColumns.length == 0) {
-                msg.append("No target column specified.\n");
-            }
+            settings.getString(TARGET_COLUMN);
         } catch (InvalidSettingsException ise) {
-            msg.append("Target columns not found in settings.\n");
-        }
-        // get data columns
-        String[] dataColumns = null;
-        try {
-            dataColumns = settings.getStringArray(DATA_COLUMNS);
-        } catch (InvalidSettingsException ise) {
-            msg.append("Data columns not found in settings.\n");
-        }
-        if (dataColumns == null || dataColumns.length == 0) {
-            msg.append("No data column specified.\n");
-        }
-        if (dataColumns != null && targetColumns != null) {
-            Set<String> hash = new HashSet<String>(Arrays.asList(dataColumns));
-            for (String target : targetColumns) {
-                if (hash.contains(target)) {
-                    msg.append("Target and data columns overlap in: " 
-                            + Arrays.toString(targetColumns) + "\n");
-                }
-            }
+            msg.append("Target column not found in settings.\n");
         }
         // distance function
         int distance = settings.getInt(DISTANCE, -1);
@@ -388,52 +311,44 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
-    public void loadValidatedSettingsFrom(final NodeSettingsRO settings)
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        // target columns for classification
-        m_targetColumns = settings.getStringArray(
-                TARGET_COLUMNS, (String[]) null);
-        // data columns for training
-        m_dataColumns = settings.getStringArray(
-                DATA_COLUMNS, (String[]) null);
+        // target column for classification
+        m_target = settings.getString(TARGET_COLUMN);
         // missing value replacement
         m_missing = settings.getInt(BasisFunctionLearnerTable.MISSING);
         // distance function
         m_distance = settings.getInt(DISTANCE);
         // shrink after commit
         m_shrinkAfterCommit = settings.getBoolean(SHRINK_AFTER_COMMIT);
-        // max class coverage
-        m_maxCoverage = settings.getBoolean(MAX_CLASS_COVERAGE);
         // maximum epochs
         m_maxEpochs = settings.getInt(MAX_EPOCHS, -1);
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        // selected target columns
-        settings.addStringArray(TARGET_COLUMNS, m_targetColumns);
-        // selected target columns
-        settings.addStringArray(DATA_COLUMNS, m_dataColumns);
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
+        // selected target column
+        settings.addString(TARGET_COLUMN, m_target);
         // missing value replacement function
         settings.addInt(BasisFunctionLearnerTable.MISSING, m_missing);
         // distance function
         settings.addInt(DISTANCE, m_distance);
         // shrink after commit
         settings.addBoolean(SHRINK_AFTER_COMMIT, m_shrinkAfterCommit);
-        // max class coverage
-        settings.addBoolean(MAX_CLASS_COVERAGE, m_maxCoverage);
         // maximum number of epochs
         settings.addInt(MAX_EPOCHS, m_maxEpochs);
     }
 
-    /**
-     * {@inheritDoc}
+    /** 
+     * @see org.knime.core.node.NodeModel
+     *  #saveModelContent(int, org.knime.core.node.ModelContentWO)
      */
     @Override
     protected void saveModelContent(final int index, final ModelContentWO pp)
@@ -444,7 +359,7 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
         ModelContentWO modelSpec = pp.addModelContent("model_spec");
         for (int i = 0; i < m_modelSpec.getNumColumns(); i++) {
             DataColumnSpec cspec = m_modelSpec.getColumnSpec(i);
-            cspec.save(modelSpec.addConfig(cspec.getName()));
+            modelSpec.addDataType(cspec.getName(), cspec.getType());
         }
         // save basisfunctions
         ModelContentWO ruleSpec = pp.addModelContent("rules");
@@ -460,17 +375,19 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /** Model info identifier. */
-    public static final String MODEL_INFO = "model_info";
+    protected static final String MODEL_INFO = "model_info";
 
     /** Model info file extension. */
-    public static final String MODEL_INFO_FILE_NAME = MODEL_INFO + ".pmml.gz";
+    protected static final String MODEL_INFO_FILE_NAME = MODEL_INFO
+            + ".pmml.gz";
 
     /** File name for hilite mapping. */
-    public static final String HILITE_MAPPING_FILE_NAME = 
+    protected static final String HILITE_MAPPING_FILE_NAME = 
         "hilite_mapping.pmml.gz";
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #loadInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -499,7 +416,8 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #saveInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,
@@ -532,33 +450,19 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
     }
 
     /**
-     * @return the target columns with class info
+     * @return the target column with class info
      */
-    public final String[] getTargetColumns() {
-        return m_targetColumns;
-    }
-    
-    /**
-     * @return the data columns used for training
-     */
-    public final String[] getDataColumns() {
-        return m_dataColumns;
+    public final String getTargetColumn() {
+        return m_target;
     }
 
     /**
-     * @return <code>true</code> if shrink after commit
+     * @return <code>true</code> if selected
      */
     public final boolean isShrinkAfterCommit() {
         return m_shrinkAfterCommit;
     }
 
-    /**
-     * @return <code>true</code> if max class coverage
-     */
-    public final boolean isMaxClassCoverage() {
-        return m_maxCoverage;
-    }
-    
     /**
      * @return the choice of distance function
      */

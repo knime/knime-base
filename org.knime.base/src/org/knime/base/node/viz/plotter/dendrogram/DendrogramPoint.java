@@ -216,7 +216,8 @@ public class DendrogramPoint {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(final Object o) {
@@ -225,7 +226,8 @@ public class DendrogramPoint {
     }
     
     /**
-     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {

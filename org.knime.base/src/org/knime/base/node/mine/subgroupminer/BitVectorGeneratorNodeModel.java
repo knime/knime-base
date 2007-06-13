@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.knime.base.data.bitvector.BitString2BitVectorCellFactory;
 import org.knime.base.data.bitvector.BitVectorCell;
-import org.knime.base.data.bitvector.BitVectorCellFactory;
+import org.knime.base.data.bitvector.BitVectorRowCellFactory;
 import org.knime.base.data.bitvector.Hex2BitVectorCellFactory;
 import org.knime.base.data.bitvector.IdString2BitVectorCellFactory;
 import org.knime.core.data.DataCell;
@@ -44,8 +44,8 @@ import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -129,7 +129,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
     private static final String INT_CFG_NR_ONES = "nrOfOnes";
     
-    private BitVectorCellFactory m_factory;
+    private BitVectorRowCellFactory m_factory;
     
     private boolean m_replace = false;
 
@@ -181,7 +181,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo( NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -195,7 +195,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings( NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -214,7 +214,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadValidatedSettingsFrom(
+     *      NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -249,11 +250,20 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#execute( BufferedDataTable[],
+     *      ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
+        BufferedDataTable numericValues = inData[0];
+        List<String> nameMapping = new ArrayList<String>();
+        for (int i = 0; i < numericValues.getDataTableSpec().getNumColumns(); 
+            i++) {
+            nameMapping.add(numericValues.getDataTableSpec().getColumnSpec(i)
+                    .getName().toString());
+        }
+
         if (m_fromString) {
             // parse id, hex or bit strings
             int stringColumnPos = inData[0].getDataTableSpec().findColumnIndex(
@@ -269,7 +279,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
             }
             return bfdt;
 
-        } else {          
+        } else {
             BufferedDataTable[] bfdt = createBitVectorsFromNumericData(
                     inData[0], exec);
             return bfdt;
@@ -277,8 +287,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     }
     
     private BufferedDataTable[] createBitVectorsFromNumericData(
-            final BufferedDataTable data, 
-            final ExecutionContext exec)
+            final BufferedDataTable data, final ExecutionContext exec)
             throws CanceledExecutionException {
         DataColumnSpec colSpec =
                 createNumericOutputSpec(data.getDataTableSpec());
@@ -308,8 +317,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
             // put out only the generated one
             DataTableSpec spec = new DataTableSpec(createNumericOutputSpec(
                     data.getDataTableSpec()));
-            DataContainer cont = exec.createDataContainer(spec);
-            double rowNr = 0;
+            BufferedDataContainer cont = exec.createDataContainer(spec);
+            int rowNr = 0;
             double nrOfRows = data.getRowCount();
             for (DataRow row : data) {
                 exec.checkCanceled();
@@ -320,8 +329,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
                 cont.addRowToTable(newRow);
             }
             cont.close();
-            return new BufferedDataTable[]{exec.createBufferedDataTable(
-                    cont.getTable(), exec)};
+            return new BufferedDataTable[]{cont.getTable()};
         }
     }
     
@@ -347,7 +355,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
         if (!m_replace) {
             String colName = spec.getColumnSpec(colIdx).getName() + "_bits";
             creator.setName(colName);
-            if (spec.containsName(colName)) {
+            if (spec.containsName(colName)){
                 throw new InvalidSettingsException("Column " + colName 
                         + " already exist in table!");
             }
@@ -362,8 +370,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
             m_factory = new IdString2BitVectorCellFactory(creator.createSpec(),
                     colIdx);
         } else {
-            throw new InvalidSettingsException(
-                    "String type to parse bitvectors" + " from unknown!");
+            throw new InvalidSettingsException("String type to parse bitvectors" 
+                    + " from unknown!");
         }
         ColumnRearranger c = new ColumnRearranger(spec);
         if (m_replace) {
@@ -376,7 +384,7 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -389,7 +397,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     /**
      * Assume to get numeric data only. Output is one column of type BitVector.
      * 
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#configure(
+     *      org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -434,26 +443,19 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
     
     private DataColumnSpec createNumericOutputSpec(final DataTableSpec spec) {
         String name;
-        int j = 0;
+        int i = 0;
         do {
-            name = "BitVectors" + (j == 0 ? "" : "_" + j); 
-            j++;
+            name = "BitVectors" + (i == 0 ? "" : "_" + i); 
+            i++;
         } while (spec.containsName(name));
-        // get the names of numeric columns
-        List<String> nameMapping = new ArrayList<String>();
-        for (int i = 0; i < spec.getNumColumns(); i++) {
-            nameMapping.add(spec.getColumnSpec(i)
-                    .getName().toString());
-        }  
         DataColumnSpecCreator creator = new DataColumnSpecCreator(
                 name, BitVectorCell.TYPE);
-        creator.setElementNames(nameMapping.toArray(
-                new String[nameMapping.size()]));
         return creator.createSpec(); 
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File internDir,
@@ -472,7 +474,8 @@ public class BitVectorGeneratorNodeModel extends NodeModel {
 
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveInternals(java.io.File,ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File internDir,

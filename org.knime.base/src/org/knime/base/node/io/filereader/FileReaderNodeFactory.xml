@@ -48,9 +48,8 @@
 	    <option name="Advanced...">Opens a new dialog with advanced settings.
 	    	There is more advanced support for quotes, support for different
 	    	decimal separators in floating point numbers, for ignoring whitespaces,
-	    	for allowing rows with too few data items, for making row IDs
-	    	unique (not recommented for huge files), and for limiting the number
-	    	of rows read in.	    
+	    	for allowing rows with too few data items, and for making row IDs
+	    	unique (not recommented for huge files).	    
 			</option>
 	    <option name="Click on the table header">If the column header in the 
 	    	preview table is clicked, a new dialog 
@@ -59,8 +58,7 @@
 	     	A pattern can be entered that will cause a "missing
 	        cell" to be created when it's read for this column. Additionally,
 	        possible values of the column domain can be updated by selecting
-	        "Domain". And, you can choose to skip this column entirely, i.e. it
-	        will not be included in the output table then.
+	        "Domain".
 		    </option>	      	
 	</fullDescription>
 	

@@ -194,8 +194,9 @@ public class InteractiveHistogramProperties extends
         }
         m_aggrCol.update(spec, aggrColumns);
         // set the values for the y axis select box
-        if (m_aggrCol.getNoOfColumns() < 1) {
-            // if we have no aggregation columns disable it
+        if (aggrMethod.equals(AggregationMethod.COUNT)
+                || m_aggrCol.getNoOfColumns() < 1) {
+            // if the aggregation method is count disable the y axis select box
             m_aggrCol.setEnabled(false);
         } else {
             // enable the select box only if it contains at least one value
@@ -215,7 +216,10 @@ public class InteractiveHistogramProperties extends
      */
     @Override
     protected void onSelectAggrMethod(final String actionCommand) {
-        if (m_aggrCol.getNoOfColumns() < 1) {
+        final AggregationMethod method = AggregationMethod
+                .getMethod4String(actionCommand);
+        if (method.equals(AggregationMethod.COUNT)
+                || m_aggrCol.getNoOfColumns() < 1) {
             m_aggrCol.setEnabled(false);
             m_aggrCol.setToolTipText(
                     AGGREGATION_COLUMN_DISABLED_TOOLTIP);

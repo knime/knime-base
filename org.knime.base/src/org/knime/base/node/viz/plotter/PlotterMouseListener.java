@@ -40,13 +40,15 @@ public class PlotterMouseListener extends MouseAdapter
         implements MouseMotionListener {
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseDragged(
+     * java.awt.event.MouseEvent)
      */
     public void mouseDragged(final MouseEvent e) {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.awt.event.MouseMotionListener#mouseMoved(
+     * java.awt.event.MouseEvent)
      */
     public void mouseMoved(final MouseEvent e) {
     }

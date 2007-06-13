@@ -93,7 +93,9 @@ public class KnnNodeDialogPane extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeDialogPane
+     *      #loadSettingsFrom(org.knime.core.node.NodeSettingsRO,
+     *      org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -110,7 +112,8 @@ public class KnnNodeDialogPane extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeDialogPane
+     *      #saveSettingsTo(org.knime.core.node.NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)

@@ -78,7 +78,7 @@ public class DefaultVisibilityHandler implements VisibilityHandler {
     }
     
     /**
-     * {@inheritDoc}
+     * @see VisibilityHandler#removeVisibilityListener(VisibilityListener)
      */
     public void removeVisibilityListener(final VisibilityListener listener) {
         m_listenerList.remove(listener);
@@ -140,7 +140,7 @@ public class DefaultVisibilityHandler implements VisibilityHandler {
     }
 
     /**
-     * {@inheritDoc}
+     * @see VisibilityHandler#resetSelection()
      */
     public void resetSelection() {
         if (m_selected == null) {

@@ -91,8 +91,7 @@ public final class FileAnalyzer {
         result.setTableName(userSettings.getTableName());
         result.setDecimalSeparator(userSettings.getDecimalSeparator());
         result.setUniquifyRowIDs(userSettings.uniquifyRowIDs());
-        result.setMaximumNumberOfRowsToRead(userSettings
-                .getMaximumNumberOfRowsToRead());
+        
         result.setAnalyzeUsedAllRows(true); // default is true, to avoid warning
 
         if (!userSettings.isCommentUserSet()) {
@@ -146,9 +145,6 @@ public final class FileAnalyzer {
         setDelimitersAndColNum(userSettings, result);
         assert result.getNumberOfColumns() > 0;
 
-        // the number of column set as of now does not take into account the
-        // skipped columns.
-        
         if (userSettings.isFileHasRowHeadersUserSet()) {
             result.setFileHasRowHeaders(userSettings.getFileHasRowHeaders());
             result.setFileHasRowHeadersUserSet(true);
@@ -169,7 +165,7 @@ public final class FileAnalyzer {
             result.setNumberOfColumns(result.getNumberOfColumns() - 1);
         }
 
-        // guesses (or copies) column types and names.
+        // guesses (copies) column types and names.
         Vector<ColProperty> columnProps = createColumnProperties(userSettings,
                 result);
         result.setColumnProperties(columnProps);
@@ -221,7 +217,7 @@ public final class FileAnalyzer {
 
         // first detect the type of each column
         DataType[] columnTypes = createColumnTypes(userSettings, result);
-        // number of columns must be set accordingly (including skipped cols)
+        // number of columns must be set accordingly
         assert result.getNumberOfColumns() == columnTypes.length;
         // store the first line here to analyze the tokens - depending on the
         // row header flag expect one more token to come.
@@ -264,7 +260,7 @@ public final class FileAnalyzer {
 
         Vector<ColProperty> userColProps = userSettings.getColumnProperties();
         if (userColProps == null) {
-            // that saves us quite some checking later
+            // that saves us quite some checkings later
             userColProps = new Vector<ColProperty>();
         }
         if (!userSettings.isFileHasColumnHeadersUserSet()) {
@@ -530,14 +526,14 @@ public final class FileAnalyzer {
 
         assert colNames.length == colTypes.length;
 
-        // extract user preset column names to make uniquifying faster/easier
+        // extract user preset column names top make uniquifying faster/easier
         String[] userNames = new String[colNames.length];
         for (int c = 0; c < colNames.length; c++) {
             if (c >= userProps.size()) {
                 break;
             }
             ColProperty cProp = userProps.get(c);
-            if ((cProp != null) && !cProp.getSkipThisColumn()) {
+            if (cProp != null) {
                 DataColumnSpec cSpec = cProp.getColumnSpec();
                 if (cSpec != null) {
                     userNames[c] = cSpec.getName().toString();
@@ -552,7 +548,7 @@ public final class FileAnalyzer {
 
             if ((userProps.size() > c) && (userProps.get(c) != null)) {
 
-                // user specified col properties - take them
+                // user specifed col properties - take them
                 colProp = userProps.get(c);
 
             } else {
@@ -705,7 +701,7 @@ public final class FileAnalyzer {
                 if (userTypes[colIdx] == null) {
                     // no user preset type - figure out the right type
                     if (types[colIdx] == null) {
-                        // we come across this columns for the first time:
+                        // we come accross this columns for the first time:
                         // start with INT type
                         types[colIdx] = IntCell.TYPE;
                     }
@@ -763,17 +759,13 @@ public final class FileAnalyzer {
             }
         }
         tokenizer.closeSourceStream();
-        // if there is still a type set to null we got only missing values
-        // in that column: warn user (unless he already chose to skip column)
+        // if there is still a type set to null we got only missig values
+        // in that column: warn user
         String cols = "";
         for (int t = 0; t < types.length; t++) {
             if (types[t] == null) {
+                cols += "#" + t + ", ";
                 types[t] = StringCell.TYPE;
-                if ((userColProps == null) || (userColProps.size() < t) 
-                    || (userColProps.get(t) == null) 
-                    || (!userColProps.get(t).getSkipThisColumn())) { 
-                    cols += "#" + t + ", ";
-                }
             }
         }
         if (cols.length() > 0) {

@@ -121,7 +121,7 @@ public class SmoteNodeDialog extends NodeDialogPane {
                 StringValue.class);
         m_seedField = new JFormattedTextField(new AbstractFormatter() {
             /**
-             * {@inheritDoc}
+             * @see AbstractFormatter#stringToValue(String)
              */
             @Override
             public Object stringToValue(
@@ -133,7 +133,7 @@ public class SmoteNodeDialog extends NodeDialogPane {
                 }
             }
             /**
-             * {@inheritDoc}
+             * @see AbstractFormatter#valueToString(Object)
              */
             @Override
             public String valueToString(
@@ -179,7 +179,7 @@ public class SmoteNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
@@ -214,7 +214,7 @@ public class SmoteNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)

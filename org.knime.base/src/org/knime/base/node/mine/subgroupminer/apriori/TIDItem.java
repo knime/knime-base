@@ -88,7 +88,7 @@ public class TIDItem implements Comparable<TIDItem> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(final Object o) {
@@ -103,7 +103,7 @@ public class TIDItem implements Comparable<TIDItem> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {
@@ -111,7 +111,7 @@ public class TIDItem implements Comparable<TIDItem> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#clone()
      */
     @Override
     public TIDItem clone() {
@@ -139,7 +139,7 @@ public class TIDItem implements Comparable<TIDItem> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

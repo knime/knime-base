@@ -99,10 +99,7 @@ public class AppendedRowsIterator extends RowIterator {
 
     /** The total number of rows, double for floating point operation. */
     private final double m_totalRowCount;
-    
-    /** The number of rows skipped so far, just for user statistics. */
-    private int m_nrRowsSkipped;
-    
+
     /**
      * Creates new iterator of <code>tables</code> following <code>spec</code>.
      * 
@@ -149,7 +146,7 @@ public class AppendedRowsIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#hasNext()
      */
     @Override
     public boolean hasNext() {
@@ -157,7 +154,7 @@ public class AppendedRowsIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#next()
      */
     @Override
     public DataRow next() {
@@ -167,15 +164,6 @@ public class AppendedRowsIterator extends RowIterator {
         DataRow next = m_nextRow;
         initNextRow();
         return next;
-    }
-    
-    /**
-     * Get the number of rows that have been skipped due to duplicate row
-     * keys. 
-     * @return Number of rows skipped.
-     */
-    public int getNrRowsSkipped() {
-        return m_nrRowsSkipped;
     }
 
     /**
@@ -219,7 +207,6 @@ public class AppendedRowsIterator extends RowIterator {
                     return;
                 }
                 if (m_exec != null) {
-                    m_nrRowsSkipped++;
                     String message = "Skipping row " + m_curRowIndex + " (\""
                             + key.toString() + "\")";
                     if (m_totalRowCount > 0) {

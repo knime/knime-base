@@ -37,7 +37,7 @@ import org.knime.core.node.NodeSettingsWO;
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class RadialBasisFunctionLearnerNodeModel 
+class RadialBasisFunctionLearnerNodeModel 
         extends BasisFunctionLearnerNodeModel {
     
     /** The node logger for this class. */
@@ -60,26 +60,37 @@ public class RadialBasisFunctionLearnerNodeModel
     private double m_thetaPlus = THETAPLUS;
 
     /** Inits a new RadialBasisFunctionFactory with one in- and one output. */
-    public RadialBasisFunctionLearnerNodeModel() {
+    RadialBasisFunctionLearnerNodeModel() {
         super();
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerNodeModel
+     *      #getFactory(org.knime.core.data.DataTableSpec)
      */
     @Override
-    public BasisFunctionFactory getFactory(final DataTableSpec spec) {
+    protected BasisFunctionFactory getFactory(final DataTableSpec spec) {
         LOGGER.debug("theta-minus  : " + m_thetaMinus);
         LOGGER.debug("theta-plus   : " + m_thetaPlus);
         return new RadialBasisFunctionFactory(m_thetaMinus, m_thetaPlus,
-                getDistance(), spec, getDataColumns(), getTargetColumns());
+                getDistance(), spec, getTargetColumn());
     }
 
     /**
-     * {@inheritDoc}
+     * @see #configure(DataTableSpec[])
      */
     @Override
-    public void loadValidatedSettingsFrom(final NodeSettingsRO settings)
+    protected DataTableSpec[] configure(final DataTableSpec[] ins)
+            throws InvalidSettingsException {
+        return super.configure(ins);
+    }
+
+    /**
+     * @see org.knime.core.node.NodeModel
+     *      #loadValidatedSettingsFrom(NodeSettingsRO)
+     */
+    @Override
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         super.loadValidatedSettingsFrom(settings);
         // update theta minus
@@ -90,10 +101,10 @@ public class RadialBasisFunctionLearnerNodeModel
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
         super.saveSettingsTo(settings);
         // theta minus
         settings.addDouble(RadialBasisFunctionFactory.THETA_MINUS, 
@@ -103,10 +114,10 @@ public class RadialBasisFunctionLearnerNodeModel
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
-    public void validateSettings(final NodeSettingsRO settings)
+    protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         super.validateSettings(settings);
         // the error string
@@ -132,24 +143,11 @@ public class RadialBasisFunctionLearnerNodeModel
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerNodeModel
+     *      #getModelType()
      */
     @Override
-    public final DataType getModelType() {
+    protected final DataType getModelType() {
         return DoubleCell.TYPE;
-   }
-    
-    /**
-     * @return theta minus
-     */
-    public double getThetaMinus() {
-        return m_thetaMinus;
-    }
-    
-    /**
-     * @return theta plus
-     */
-    public double getThetaPlus() {
-        return m_thetaPlus;
     }
 }

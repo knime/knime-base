@@ -44,7 +44,7 @@ public class JMultiLineToolTip extends JToolTip {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#updateUI()
      */
     @Override
     public void updateUI() {

@@ -256,7 +256,8 @@ public class ScatterPlotDrawingPane extends AbstractDrawingPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter2D.AbstractDrawingPane
+     *      #getNumberSelectedElements()
      */
     @Override
     public int getNumberSelectedElements() {
@@ -298,7 +299,7 @@ public class ScatterPlotDrawingPane extends AbstractDrawingPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#getToolTipText(java.awt.event.MouseEvent)
      */
     @Override
     public String getToolTipText(final MouseEvent e) {
@@ -353,7 +354,8 @@ public class ScatterPlotDrawingPane extends AbstractDrawingPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter2D.AbstractDrawingPane
+     *      #paintPlotDrawingPane(java.awt.Graphics)
      */
     @Override
     protected void paintPlotDrawingPane(final Graphics g) {
@@ -427,7 +429,8 @@ public class ScatterPlotDrawingPane extends AbstractDrawingPane {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.base.node.viz.plotter2D.AbstractDrawingPane
+     *      #clearSelection()
      */
     @Override
     protected void clearSelection() {

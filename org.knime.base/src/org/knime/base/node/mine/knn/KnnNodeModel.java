@@ -130,7 +130,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #configure(org.knime.core.data.DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
@@ -179,7 +180,9 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #execute(org.knime.core.node.BufferedDataTable[],
+     *      org.knime.core.node.ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -235,7 +238,7 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#reset()
      */
     @Override
     protected void reset() {
@@ -243,7 +246,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #saveSettingsTo(org.knime.core.node.NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
@@ -251,7 +255,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #validateSettings(org.knime.core.node.NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -260,7 +265,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel
+     *      #loadValidatedSettingsFrom(org.knime.core.node.NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -269,7 +275,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#saveInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -279,7 +286,8 @@ public class KnnNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel#loadInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -304,7 +312,8 @@ public class KnnNodeModel extends NodeModel {
 
         c.append(new SingleCellFactory(crea.createSpec()) {
             /**
-             * {@inheritDoc}
+             * @see org.knime.core.data.container.SingleCellFactory
+             *      #getCell(org.knime.core.data.DataRow)
              */
             @Override
             public DataCell getCell(final DataRow row) {
@@ -312,7 +321,9 @@ public class KnnNodeModel extends NodeModel {
             }
 
             /**
-             * {@inheritDoc}
+             * @see org.knime.core.data.container.SingleCellFactory
+             *      #setProgress(int, int, org.knime.core.data.RowKey,
+             *      org.knime.core.node.ExecutionMonitor)
              */
             @Override
             public void setProgress(final int curRowNr, final int rowCount,

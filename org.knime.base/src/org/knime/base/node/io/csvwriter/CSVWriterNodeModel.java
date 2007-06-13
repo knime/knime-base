@@ -19,17 +19,13 @@
  * email: contact@knime.org
  * -------------------------------------------------------------------
  * 
- * History: 
- *   Dec 17, 2005 (wiswedel): created
- *   Mar  7, 2007 (ohl): extended with more options
  */
 package org.knime.base.node.io.csvwriter;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
+import java.net.MalformedURLException;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
@@ -48,18 +44,17 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.StringHistory;
 
+
 /**
- * NodeModel to write a DataTable to a CSV (comma separated value) file.
+ * NodeModel to write a DataTable to a csv (comma separated value) file.
  * 
  * @author Bernd Wiswedel, University of Konstanz
  */
 public class CSVWriterNodeModel extends NodeModel {
 
-    /** The node logger for this class. */
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(CSVWriterNodeModel.class);
-
-    private FileWriterNodeSettings m_settings;
+    /** The node logger fot this class. */
+    private static final NodeLogger LOGGER = NodeLogger
+            .getLogger(CSVWriterNodeModel.class);
 
     /**
      * Identifier for StringHistory.
@@ -68,233 +63,147 @@ public class CSVWriterNodeModel extends NodeModel {
      */
     public static final String FILE_HISTORY_ID = "csvwrite";
 
+    /** Identifier in NodeSettings object for file name. */
+    static final String CFGKEY_FILE = "filename";
+
+    /** Identifier in NodeSettings object if writing column header. */
+    static final String CFGKEY_COLHEADER = "writeColHeader";
+
+    /** Identifier in NodeSettings object if writing column header 
+     * when file exists. */
+    static final String CFGKEY_COLHEADER_SKIP_ON_APPEND = 
+        "skipWriteColHeaderOnAppend";
+
+    /** Identifier in NodeSettings object if writing row header. */
+    static final String CFGKEY_ROWHEADER = "writeRowHeader";
+    
+    /** Identifier in NodeSettings object if append to output. */
+    static final String CFGKEY_APPEND = "isAppendToFile";
+
+    /** Identfier for missing pattern. */
+    static final String CFGKEY_MISSING = "missing";
+
+    /** File to write to. */
+    private String m_fileName;
+
+    /** write column header in file? */
+    private boolean m_writeColHeader;
+
+    /** write row header in file? */
+    private boolean m_writeRowHeader;
+    
+    /** append to file, if exists. */
+    private boolean m_isAppend;
+    
+    /** If to skip col header writing if file exists. */
+    private boolean m_writeColHeaderSkipOnAppend;
+
+    /** string to be used for missing cells. */
+    private String m_missingPattern;
+
     /**
      * Constructor, sets port count.
      */
     public CSVWriterNodeModel() {
         super(1, 0);
-        m_settings = new FileWriterNodeSettings();
+        m_missingPattern = "";
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
+        if (m_fileName != null) {
+            settings.addString(CFGKEY_FILE, m_fileName);
+        }
+        settings.addBoolean(CFGKEY_COLHEADER, m_writeColHeader);
+        settings.addBoolean(CFGKEY_COLHEADER_SKIP_ON_APPEND, 
+                m_writeColHeaderSkipOnAppend);
+        settings.addBoolean(CFGKEY_ROWHEADER, m_writeRowHeader);
+        settings.addBoolean(CFGKEY_APPEND, m_isAppend);
+        settings.addString(CFGKEY_MISSING, m_missingPattern);
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-
-        // the constructor complains if settings are missing
-        FileWriterNodeSettings fws = new FileWriterNodeSettings(settings);
-
-        // check consistency of settings
-
-        // the separator must not be contained in the missing value pattern
-        // nor in the quote begin pattern.
-        if (notEmtpy(fws.getColSeparator())) {
-            if (notEmtpy(fws.getMissValuePattern())) {
-                if (fws.getMissValuePattern().contains(fws.getColSeparator())) {
-                    throw new InvalidSettingsException(
-                            "The pattern for missing values ('"
-                                    + fws.getMissValuePattern()
-                                    + "') must not contain the data "
-                                    + "separator ('" + fws.getColSeparator()
-                                    + "').");
-                }
-            }
-
-            if (notEmtpy(fws.getCommentBegin())) {
-                if (fws.getCommentBegin().contains(fws.getColSeparator())) {
-                    throw new InvalidSettingsException(
-                            "The left quote pattern ('" + fws.getQuoteBegin()
-                                    + "') must not contain the data "
-                                    + "separator ('" + fws.getColSeparator()
-                                    + "').");
-                }
-            }
+        String missing = settings.getString(CFGKEY_MISSING);
+        if (missing != null && missing.indexOf(',') >= 0) {
+            throw new InvalidSettingsException("Missing pattern must not "
+                    + "contain comma: " + missing);
         }
-
-        // if we are supposed to add some creation data, we need to know
-        // the comment pattern
-        if (fws.addCreationTime() || fws.addCreationUser()
-                || fws.addTableName() || notEmtpy(fws.getCustomCommentLine())) {
-            if (isEmpty(fws.getCommentBegin())) {
-                throw new InvalidSettingsException(
-                        "The comment pattern must be defined in order to add "
-                                + "user, creation date or table name");
-            }
-            // if the end pattern is empty, assume a single line comment and
-            // write the comment begin pattern in every line.
-        }
-
-        // if a custom comment line is specified, is must not contain the
-        // comment end pattern
-        if (notEmtpy(fws.getCustomCommentLine())
-                && notEmtpy(fws.getCommentEnd())) {
-            if (fws.getCustomCommentLine().contains(fws.getCommentEnd())) {
-                throw new InvalidSettingsException(
-                        "The specified comment to add must not contain the"
-                        + " comment end pattern.");
-            }
-        }
-
+        settings.getString(CFGKEY_FILE);
+        settings.getBoolean(CFGKEY_COLHEADER);
+        // setting was not available in KNIME 1.1.x
+        settings.getBoolean(CFGKEY_COLHEADER_SKIP_ON_APPEND, false);
+        settings.getBoolean(CFGKEY_ROWHEADER);
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_settings = new FileWriterNodeSettings(settings);
-
-        if (notEmtpy(m_settings.getFileName())) {
-            StringHistory history = StringHistory.getInstance(FILE_HISTORY_ID);
-            history.add(m_settings.getFileName());
+        m_fileName = settings.getString(CFGKEY_FILE);
+        File file = new File(m_fileName);
+        String forhistory;
+        try {
+            forhistory = file.toURL().toString();
+        } catch (MalformedURLException mue) {
+            forhistory = null;
+        }
+        m_writeColHeader = settings.getBoolean(CFGKEY_COLHEADER);
+        // setting was not available in KNIME 1.1.x
+        m_writeColHeaderSkipOnAppend = 
+            settings.getBoolean(CFGKEY_COLHEADER_SKIP_ON_APPEND, false);
+        m_writeRowHeader = settings.getBoolean(CFGKEY_ROWHEADER);
+        m_isAppend = settings.getBoolean(CFGKEY_APPEND);
+        m_missingPattern = settings.getString(CFGKEY_MISSING, "");
+        StringHistory history = StringHistory.getInstance(FILE_HISTORY_ID);
+        if (forhistory != null) {
+            history.add(forhistory);
         }
     }
 
     /**
-     * {@inheritDoc}
+     * Writes to file...
+     * 
+     * @see NodeModel#execute(BufferedDataTable[],ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] data,
             final ExecutionContext exec) throws CanceledExecutionException,
             IOException {
-
         DataTable in = data[0];
-
-        File file = new File(m_settings.getFileName());
-
-        // figure out if the writer is actually supposed to write col headers
-        boolean writeColHeader = m_settings.writeColumnHeader();
+        File file = new File(m_fileName);
+        boolean writeColHeader = m_writeColHeader;
         if (writeColHeader && file.exists()) {
-            writeColHeader = !m_settings.skipColHeaderIfFileExists();
+            writeColHeader = !m_writeColHeaderSkipOnAppend;
         }
-        // make a copy of the settings with the modified value
-        FileWriterSettings writerSettings = new FileWriterSettings(m_settings);
-        writerSettings.setWriteColumnHeader(writeColHeader);
-
-        CSVWriter tableWriter =
-                new CSVWriter(new FileWriter(file, m_settings
-                        .appendToFile()), writerSettings);
-
-        // write the comment header, if we are supposed to
-        writeCommentHeader(m_settings, tableWriter, data[0]);
-
+        CSVWriter writer = new CSVWriter(new FileWriter(file, m_isAppend));
+        writer.setWriteColHeader(writeColHeader);
+        writer.setWriteRowHeader(m_writeRowHeader);
+        writer.setMissing(m_missingPattern);
         try {
-            tableWriter.write(in, exec);
+            writer.write(in, exec);
         } catch (CanceledExecutionException cee) {
-            LOGGER.info("Table FileWriter canceled.");
-            tableWriter.close();
+            LOGGER.info("CSV Writer canceled");
+            writer.close();
             if (file.delete()) {
-                LOGGER.debug("File " + m_settings.getFileName() + " deleted.");
+                LOGGER.debug("File " + m_fileName + " deleted.");
             } else {
-                LOGGER.warn("Unable to delete file '"
-                        + m_settings.getFileName() + "' after cancellation.");
+                LOGGER.warn("Unable to delete file " + m_fileName);
             }
             throw cee;
         }
-
-        tableWriter.close();
-
+        writer.close();
         // execution successful return empty array
         return new BufferedDataTable[0];
-    }
-
-    /**
-     * Writes a comment header to the file, if specified so in the settings.
-     * 
-     * @param settings where it is specified if and how to write the comment
-     *            header
-     * @param file the writer to write the header out to.
-     * @param inData the table that is going to be written in the file.
-     * @throws IOException if something went wrong during writing.
-     */
-    private void writeCommentHeader(
-            final FileWriterNodeSettings settings, final BufferedWriter file,
-            final DataTable inData) throws IOException {
-        if ((file == null) || (settings == null)) {
-            return;
-        }
-        if (isEmpty(settings.getCommentBegin())) {
-            return;
-        }
-
-        // figure out if we have to write anything at all:
-        boolean writeComment = false;
-        writeComment |= settings.addCreationTime();
-        writeComment |= settings.addCreationUser();
-        writeComment |= settings.addTableName();
-        writeComment |= notEmtpy(settings.getCustomCommentLine());
-
-        if (!writeComment) {
-            return;
-        }
-
-        // if we have block comment patterns we write them only once. Otherwise
-        // we add the commentBegin to every line.
-        boolean blockComment = notEmtpy(settings.getCommentEnd());
-
-        if (blockComment) {
-            file.write(settings.getCommentBegin());
-            file.newLine();
-        }
-
-        // add date/time and user, if we are supposed to
-        if (settings.addCreationTime() || settings.addCreationUser()) {
-            if (!blockComment) {
-                file.write(settings.getCommentBegin());
-            }
-            if (settings.appendToFile()) {
-                file.write("   The following data was added ");
-            } else {
-                file.write("   This file was created ");
-            }
-            if (settings.addCreationTime()) {
-                file.write("on " + new Date() + " ");
-            }
-            if (settings.addCreationUser()) {
-                file.write("by user '" + System.getProperty("user.name") + "'");
-            }
-            file.newLine();
-        }
-        
-        // add the table name
-        if (settings.addTableName()) {
-            if (!blockComment) {
-                file.write(settings.getCommentBegin());
-            }
-            file.write("   The data was read from the \""
-                    + inData.getDataTableSpec().getName() + "\" data table.");
-            file.newLine();
-        }
-
-        // at last: add the user comment line
-        if (notEmtpy(settings.getCustomCommentLine())) {
-            String[] lines = settings.getCustomCommentLine().split("\n");
-            for (String line : lines) {
-                if (!blockComment) {
-                    file.write(settings.getCommentBegin());
-                }
-                file.write("   " + line);
-                file.newLine();
-            }
-        }
-        
-        // close the block comment
-        if (blockComment) {
-            file.write(settings.getCommentEnd());
-            file.newLine();
-        }
-
     }
 
     /**
@@ -307,7 +216,8 @@ public class CSVWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #loadInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -317,7 +227,8 @@ public class CSVWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeModel #saveInternals(java.io.File,
+     *      org.knime.core.node.ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -327,31 +238,17 @@ public class CSVWriterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-
-        checkFileAccess(m_settings.getFileName());
-
-        if (isEmpty(m_settings.getColSeparator())
-                && isEmpty(m_settings.getMissValuePattern())
-                && (isEmpty(m_settings.getQuoteBegin()) || isEmpty(m_settings
-                        .getQuoteEnd()))) {
-            // we will write the table out - but they will have a hard
-            // time reading it in again.
-            String addMsg =
-                    "No separator and no quotes and no missing value pattern"
-                            + " set.\nWritten data will be hard read!";
-            String warnMsg = getWarningMessage();
-            if (notEmtpy(warnMsg)) {
-                setWarningMessage(warnMsg + "\n" + addMsg);
-            } else {
-                setWarningMessage(addMsg);
-            }
+        if (m_missingPattern != null && m_missingPattern.indexOf(',') >= 0) {
+            throw new InvalidSettingsException(
+                    "Missing pattern must not contain comma: "
+                            + m_missingPattern);
         }
-
+        checkFileAccess(m_fileName);
         DataTableSpec inSpec = inSpecs[0];
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
             DataType c = inSpec.getColumnSpec(i).getType();
@@ -392,28 +289,9 @@ public class CSVWriterNodeModel extends NodeModel {
                     + file.getAbsolutePath() + "\".");
         }
         // here it exists and we can write it: warn user if we will overwrite
-        if (!m_settings.appendToFile()) {
+        if (!m_isAppend) {
             setWarningMessage("Selected output file exists and will be "
                     + "overwritten!");
         }
-    }
-
-    /**
-     * @param s the String to test
-     * @return true only if s is not null and not empty (i.e. not of length 0)
-     */
-    static boolean notEmtpy(final String s) {
-        if (s == null) {
-            return false;
-        }
-        return (s.length() > 0);
-    }
-
-    /**
-     * @param s the String to test
-     * @return true if s is null or of length zero.
-     */
-    static boolean isEmpty(final String s) {
-        return !notEmtpy(s);
     }
 }

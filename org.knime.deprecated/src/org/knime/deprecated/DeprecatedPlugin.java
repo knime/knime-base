@@ -39,7 +39,7 @@ import org.osgi.framework.BundleContext;
  */
 public class DeprecatedPlugin extends Plugin {
     /**
-     * {@inheritDoc}
+     * @see Plugin#start(BundleContext)
      */
     @Override
     public void start(final BundleContext context) throws Exception {

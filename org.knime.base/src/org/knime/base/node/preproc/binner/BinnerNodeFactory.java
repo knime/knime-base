@@ -32,7 +32,7 @@ import org.knime.core.node.NodeView;
  */
 public final class BinnerNodeFactory extends NodeFactory {
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -40,7 +40,7 @@ public final class BinnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -48,7 +48,7 @@ public final class BinnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeView(int, NodeModel)
      */
     @Override
     public NodeView createNodeView(final int viewIndex,
@@ -66,7 +66,7 @@ public final class BinnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {

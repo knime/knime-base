@@ -39,7 +39,6 @@ import org.knime.base.node.viz.histogram.datamodel.InteractiveBinDataModel;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 
@@ -60,30 +59,27 @@ public final class BinningUtil {
     /**
      * @param maxVal the maximum possible value
      * @param minVal the minimum possible value
-     * @param noOfBins the number of bars
+     * @param noOfBars the number of bars
      * @param isInteger <code>true</code> if the value should be an integer
      * @return the interval for the given min, max value and no of bars
      */
     public static double createBinInterval(final double maxVal,
-            final double minVal, final int noOfBins,
+            final double minVal, final int noOfBars,
             final boolean isInteger) {
         if (maxVal < minVal) {
             throw new IllegalArgumentException(
                     "Max value should be at least as big as min value.");
         }
-        if (noOfBins == 0) {
+        if (noOfBars == 0) {
             return maxVal - minVal;
         }
-        double interval = (maxVal - minVal) / noOfBins;
+        double interval = (maxVal - minVal) / noOfBars;
         if (interval > 10) {
                 // find the next higher number divided by ten.
                 interval = bigValueRounder(interval, true);
         } else {
             interval = smallValueRounder(interval, 
                     AbstractHistogramPlotter.INTERVAL_DIGITS, isInteger, true);
-        }
-        if (isInteger && interval == 1 && (maxVal - minVal) == noOfBins) {
-            interval = 2;
         }
         return interval;
     }
@@ -135,13 +131,16 @@ public final class BinningUtil {
      * @param firstBar indicates if this is the first bar
      * @param leftBoundary the left boundary of the bin
      * @param rightBoundary the right boundary of the bin
+     * @param isInteger indicates that the x column is of type integer so we
+     * display simply the upper value if its in a range of one
      * @return the bin name
      */
     public static String createBarName(final boolean firstBar,
-            final double leftBoundary, final double rightBoundary) {
+            final double leftBoundary, final double rightBoundary, 
+            final boolean isInteger) {
         StringBuffer buf = new StringBuffer();
         //treat integer intervals special if they are only the size of one
-        if (leftBoundary == rightBoundary) {
+        if (!firstBar && isInteger && rightBoundary - leftBoundary <= 1) {
             return Integer.toString((int)rightBoundary);
         }
         //append the interval border indicator
@@ -341,16 +340,23 @@ public final class BinningUtil {
      */
     public static List<InteractiveBinDataModel> createInteractiveNominalBins(
                 final DataColumnSpec colSpec) {
-        final Set<DataCell> values = getBinDataCells(colSpec);
-        final List<InteractiveBinDataModel> bins = 
-            new ArrayList<InteractiveBinDataModel>(values.size());
-        for (DataCell value : values) {
-            bins.add(new InteractiveBinDataModel(value.toString(), 0, 0));
+            //check if we have the values
+            if (colSpec.getDomain().getValues() == null) {
+                throw new IllegalArgumentException(
+                        "No domain values defined for nominal binning column. " 
+                        + "Please use DomainCalculator or ColumnFilter node "
+                        + "to set the domain values.");
+            }
+            final Set<DataCell> values = colSpec.getDomain().getValues();
+            final List<InteractiveBinDataModel> bins = 
+                new ArrayList<InteractiveBinDataModel>(values.size());
+            for (DataCell value : values) {
+                bins.add(new InteractiveBinDataModel(value.toString(), 0, 0));
+            }
+            //sort the bins by their caption
+            Collections.sort(bins, BinningUtil.BIN_CAPTION_COMPARATOR);
+            return bins;
         }
-        //sort the bins by their caption
-        Collections.sort(bins, BinningUtil.BIN_CAPTION_COMPARATOR);
-        return bins;
-    }
 
     /**
      * Creates interactive nominal bins for the given column specification.
@@ -359,44 +365,23 @@ public final class BinningUtil {
      */
     public static List<BinDataModel> createNominalBins(
                 final DataColumnSpec colSpec) {
-        final Set<DataCell> values = getBinDataCells(colSpec);
-        final List<BinDataModel> bins = 
-            new ArrayList<BinDataModel>(values.size());
-        for (DataCell value : values) {
-            bins.add(new BinDataModel(value.toString(), 0, 0));
-        }
-        //sort the bins by their caption
-        Collections.sort(bins, BinningUtil.BIN_CAPTION_COMPARATOR);
-        return bins;
-    }
-
-    private static Set<DataCell> getBinDataCells(final DataColumnSpec colSpec) {
-        final DataColumnDomain domain = colSpec.getDomain();
-        final Set<DataCell> values;
-        //check if we have the values
-        if (domain.getValues() == null) {
-            //check if it's an integer
-//            if (!colSpec.getType().isCompatible(IntValue.class)) {
+            //check if we have the values
+            if (colSpec.getDomain().getValues() == null) {
                 throw new IllegalArgumentException(
-                    "No domain values defined for nominal binning column. " 
-                    + "Please use DomainCalculator or ColumnFilter node "
-                    + "to set the domain values.");
-//            }
-//            final int lowerBound = 
-//                ((IntValue)domain.getLowerBound()).getIntValue();
-//            final int upperBound = 
-//                ((IntValue)domain.getUpperBound()).getIntValue();
-//            values = 
-//                new LinkedHashSet<DataCell>(upperBound - lowerBound + 1);
-//            for (int i = lowerBound; i <= upperBound; i++) {
-//                values.add(new IntCell(i));
-//            }
-        } 
-//        else {
-            values = colSpec.getDomain().getValues();
-//        }
-        return values;
-    }
+                        "No domain values defined for nominal binning column. " 
+                        + "Please use DomainCalculator or ColumnFilter node "
+                        + "to set the domain values.");
+            }
+            final Set<DataCell> values = colSpec.getDomain().getValues();
+            final List<BinDataModel> bins = 
+                new ArrayList<BinDataModel>(values.size());
+            for (DataCell value : values) {
+                bins.add(new BinDataModel(value.toString(), 0, 0));
+            }
+            //sort the bins by their caption
+            Collections.sort(bins, BinningUtil.BIN_CAPTION_COMPARATOR);
+            return bins;
+        }
 
     /**
      * Creates the given number of interval bins for the given 
@@ -416,8 +401,7 @@ public final class BinningUtil {
                 throw new IllegalArgumentException(
                 "The lower bound of the x column domain should be defined");
             }
-            final double lowerBound = 
-                ((DoubleValue)lowerBoundCell).getDoubleValue();
+            double lowerBound = ((DoubleValue)lowerBoundCell).getDoubleValue();
             final DataCell upperBoundCell = domain.getUpperBound();
             if (upperBoundCell == null || upperBoundCell.isMissing()
                     || !upperBoundCell.getType().isCompatible(
@@ -437,20 +421,14 @@ public final class BinningUtil {
             }
             final boolean isInteger = 
                 colSpec.getType().isCompatible(IntValue.class);
-            double binInterval = createBinInterval(upperBound, 
+            final double binInterval = createBinInterval(upperBound, 
                     lowerBound, noOfBins, isInteger);
-            final double calculatedLowerBound = 
-                createBinStart(lowerBound, binInterval);
-            if (calculatedLowerBound != lowerBound) {
-                binInterval = createBinInterval(upperBound, 
-                        calculatedLowerBound, noOfBins, isInteger);
-            }
+            lowerBound = createBinStart(lowerBound, binInterval);
             // increase the number of bars to include the max value
-            while (calculatedLowerBound + (binInterval * noOfBins) 
-                    < upperBound) {
+            while (lowerBound + (binInterval * noOfBins) < upperBound) {
                 noOfBins++;
             }
-            double leftBoundary = myRoundedBorders(calculatedLowerBound, 
+            double leftBoundary = myRoundedBorders(lowerBound, 
                     binInterval, AbstractHistogramVizModel.INTERVAL_DIGITS);
             boolean firstBar = true;
             final List<InteractiveBinDataModel> bins = 
@@ -460,27 +438,17 @@ public final class BinningUtil {
         // small intervals. If the interval is very small it could happen
         // that we get the same boundaries for several bars by rounding the
         // borders
-                final double rightBoundary;
-                if (isInteger && binInterval == 1) {
-                    rightBoundary = leftBoundary;
-                } else {
-                    rightBoundary = myRoundedBorders(
-                            leftBoundary + binInterval, binInterval, 
+                double rightBoundary = myRoundedBorders(
+                        leftBoundary + binInterval, binInterval, 
                         AbstractHistogramVizModel.INTERVAL_DIGITS);
-                
-                }
                 final String binCaption = createBarName(
-                        firstBar, leftBoundary, rightBoundary);
+                        firstBar, leftBoundary, rightBoundary, isInteger);
                 firstBar = false;
                 bins.add(new InteractiveBinDataModel(
                         binCaption, leftBoundary, rightBoundary));
                 // set the left boundary of the next bar to the current right
                 // boundary
-                if (isInteger && binInterval == 1) {
-                    leftBoundary = rightBoundary + binInterval;
-                } else {
-                    leftBoundary = rightBoundary;
-                }
+                leftBoundary = rightBoundary;
             }
             return bins;
         }
@@ -539,26 +507,17 @@ public final class BinningUtil {
         // small intervals. If the interval is very small it could happen
         // that we get the same boundaries for several bars by rounding the
         // borders
-                double rightBoundary;
-                if (isInteger && binInterval == 1) {
-                    rightBoundary = leftBoundary;
-                } else {
-                    rightBoundary = myRoundedBorders(
+                double rightBoundary = myRoundedBorders(
                         leftBoundary + binInterval, binInterval, 
                         AbstractHistogramVizModel.INTERVAL_DIGITS);
-                }
                 final String binCaption = createBarName(
-                        firstBar, leftBoundary, rightBoundary);
+                        firstBar, leftBoundary, rightBoundary, isInteger);
                 firstBar = false;
                 bins.add(new BinDataModel(
                         binCaption, leftBoundary, rightBoundary));
                 // set the left boundary of the next bar to the current right
                 // boundary
-                if (isInteger && binInterval == 1) {
-                    leftBoundary = rightBoundary + binInterval;
-                } else {
-                    leftBoundary = rightBoundary;
-                }
+                leftBoundary = rightBoundary;
             }
             return bins;
         }
@@ -583,14 +542,13 @@ public final class BinningUtil {
      * @param aggrCells the aggregation {@link DataCell} objects which 
      * contain the value
      * @return the index of the bin where the row was added
-     * @throws IllegalArgumentException if the given row doesn't fit in any bin
      */
     public static int addDataRow2Bin(final boolean binNominal,
             final List<? extends BinDataModel> bins, 
             final BinDataModel missingValueBin, final int startBin, 
             final DataCell xCell, final Color rowColor, final DataCell id, 
             final Collection<ColorColumn> aggrColumns, 
-            final DataCell... aggrCells) throws IllegalArgumentException {
+            final DataCell... aggrCells) {
         if (bins == null) {
             throw new NullPointerException("Bins must not be null");
         }
@@ -687,11 +645,9 @@ public final class BinningUtil {
             boolean add2Bin = false;
             if (binIdx == 0) {
                 add2Bin = (value >= lowerBound && value <= upperBound);
-            } else if (lowerBound == upperBound && upperBound == value) {
-                add2Bin = true;
             } else {
                 add2Bin = (value > lowerBound && value <= upperBound);
-            } 
+            }
             if (add2Bin) {
                 bin.addDataRow(id, color, aggrColumns, aggrVals);
                 return binIdx;
@@ -699,75 +655,5 @@ public final class BinningUtil {
          }
         throw new IllegalArgumentException("No bin found for x value:" 
                 + xVal.toString());
-    }
-
-    /**
-     * @param colSpec the {@link DataColumnSpec} of the column to bin
-     * @param noOfBins the number of bins
-     * @return <code>true</code> if the bins should be nominal
-     */
-    public static boolean binNominal(final DataColumnSpec colSpec, 
-            final int noOfBins) {
-        final DataType dataType = colSpec.getType();
-        if (!dataType.isCompatible(DoubleValue.class)) {
-            //it's not numerical
-            return true;
-        }
-        if (dataType.isCompatible(IntValue.class)) {
-            //it's an integer...
-            final DataColumnDomain domain = colSpec.getDomain();
-            int lowerBound = ((IntValue)domain.getLowerBound()).getIntValue();
-            int upperBound = ((IntValue)domain.getUpperBound()).getIntValue();
-            if (upperBound - lowerBound <= noOfBins) {
-                //... and should be binned nominal to have for each value
-                //an own bin
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Checks if the given cell is in the domain range of the given 
-     * {@link DataColumnSpec}. If the cell is missing the method returns 
-     * <code>true</code>.
-     * @param cell the cell to check
-     * @param spec the {@link DataColumnSpec} with the domain
-     * @return <code>true</code> if the cell is missing or the value is between
-     * the upper and lower bound specified by the domain of the given column 
-     * specification
-     */
-    public static boolean checkDomainRange(final DataCell cell, 
-            final DataColumnSpec spec) {
-        if (!cell.isMissing()) {
-            if (!cell.getType().isCompatible(DoubleValue.class)) {
-                throw new IllegalStateException(
-                        "X value is not a valid number");
-            }
-            final DataColumnDomain domain = spec.getDomain();
-            final DataCell lowerBoundCell = domain.getLowerBound();
-            if (lowerBoundCell == null || lowerBoundCell.isMissing()
-                    || !lowerBoundCell.getType().isCompatible(
-                            DoubleValue.class)) {
-                throw new IllegalArgumentException(
-                "The lower bound of the x column domain should be defined");
-            }
-            double lowerBound = 
-                ((DoubleValue)lowerBoundCell).getDoubleValue();
-            final DataCell upperBoundCell = domain.getUpperBound();
-            if (upperBoundCell == null || upperBoundCell.isMissing()
-                    || !upperBoundCell.getType().isCompatible(
-                            DoubleValue.class)) {
-                throw new IllegalArgumentException(
-                "The upper bound of the x column domain should be defined");
-            }
-            final double upperBound = 
-                ((DoubleValue)upperBoundCell).getDoubleValue();
-            if (((DoubleValue)cell).getDoubleValue() < lowerBound 
-                    || ((DoubleValue)cell).getDoubleValue() > upperBound) {
-                return false;
-            }
-        }
-        return true;
     }
 }

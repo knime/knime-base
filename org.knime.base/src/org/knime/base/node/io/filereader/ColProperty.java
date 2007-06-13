@@ -61,11 +61,6 @@ class ColProperty {
      * integer columns only)
      */
     private boolean m_readPossValsFromFile;
-    
-    /*
-     * if true, the column will not be added to the output table.
-     */
-    private boolean m_skipColumn;
 
     private static final String CFGKEY_USERSETTINGS = "UserSetValues";
 
@@ -84,8 +79,6 @@ class ColProperty {
     private static final String CFGKEY_UPPERBOUND = "UpperBound";
 
     private static final String CFGKEY_LOWERBOUND = "LowerBound";
-    
-    private static final String CFGKEY_SKIP = "SkipThisColumn";
 
     /**
      * Creates an empty column properties object.
@@ -95,7 +88,6 @@ class ColProperty {
         m_missValuePattern = null;
         m_userSettings = false;
         m_readPossValsFromFile = false;
-        m_skipColumn = false;
     }
 
     /**
@@ -115,8 +107,6 @@ class ColProperty {
         m_userSettings = cfg.getBoolean(CFGKEY_USERSETTINGS);
         m_missValuePattern = cfg.getString(CFGKEY_MISSVALUE, null);
         m_readPossValsFromFile = cfg.getBoolean(CFGKEY_READVALS);
-        // default to false for backward compatibility
-        m_skipColumn = cfg.getBoolean(CFGKEY_SKIP, false);
 
         // read the stuff for the ColumnSpec
         String colName = cfg.getString(CFGKEY_COLNAME);
@@ -154,8 +144,7 @@ class ColProperty {
         // constructor. In case somebody changes it in the future.
         assert (new DataColumnDomainCreator(null, null) != null);
 
-        DataColumnSpecCreator dcsc = 
-            new DataColumnSpecCreator(colName, colType);
+        DataColumnSpecCreator dcsc = new DataColumnSpecCreator(colName, colType);
         if ((posValues != null) && (posValues.size() > 0)) {
             dcsc.setDomain(new DataColumnDomainCreator(posValues, lowerBound,
                     upperBound).createDomain());
@@ -183,7 +172,6 @@ class ColProperty {
         cfg.addBoolean(CFGKEY_USERSETTINGS, m_userSettings);
         cfg.addString(CFGKEY_MISSVALUE, m_missValuePattern);
         cfg.addBoolean(CFGKEY_READVALS, m_readPossValsFromFile);
-        cfg.addBoolean(CFGKEY_SKIP, m_skipColumn);
 
         // add the stuff from the ColumnSpec
         cfg.addString(CFGKEY_COLNAME, m_colSpec.getName());
@@ -273,22 +261,6 @@ class ColProperty {
     }
 
     /**
-     * @return true if this column is not included in the reader's table.
-     */
-    boolean getSkipThisColumn() {
-        return m_skipColumn;
-    }
-    
-    /**
-     * @param skipIt specify true, if this column should not be included in
-     * the reader's file table. Set to false (the default), if the column should
-     * appear in the file reader's output table. 
-     */
-    void setSkipThisColumn(final boolean skipIt) {
-        m_skipColumn = skipIt;
-    }
-    
-    /**
      * Sets a new column name for this column.
      * 
      * @param colName the new name
@@ -344,7 +316,7 @@ class ColProperty {
     /**
      * Returns a new ColProperty object containing a deep copy of this one.
      * 
-     * {@inheritDoc}
+     * @see java.lang.Object#clone()
      */
     @Override
     public Object clone() {

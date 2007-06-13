@@ -164,14 +164,14 @@ public class FrequentItemSetTable implements DataTable {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#getDataTableSpec()
      */
     public DataTableSpec getDataTableSpec() {
         return m_spec;
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Iterable#iterator()
      */
     public RowIterator iterator() {
         return new FrequentItemSetRowIterator();

@@ -89,7 +89,7 @@ class NonterminalNode implements Node {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

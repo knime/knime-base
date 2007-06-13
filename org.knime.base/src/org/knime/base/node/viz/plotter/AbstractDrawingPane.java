@@ -118,7 +118,7 @@ public abstract class AbstractDrawingPane extends JPanel {
      * Calls the {@link #paintContent(Graphics)} method and then draws the 
      * selection rectangle. Also the flag for anti-aliasing is evaluated here.
      * 
-     * {@inheritDoc}
+     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
     @Override
     protected synchronized void paintComponent(final Graphics g) {

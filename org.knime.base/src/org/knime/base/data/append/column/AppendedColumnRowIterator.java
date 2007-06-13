@@ -53,7 +53,7 @@ public class AppendedColumnRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#hasNext()
      */
     @Override
     public boolean hasNext() {
@@ -61,7 +61,7 @@ public class AppendedColumnRowIterator extends RowIterator {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.RowIterator#next()
      */
     @Override
     public DataRow next() {

@@ -37,6 +37,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultCellIterator;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -44,6 +45,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
+
 
 /**
  * This class implements the DDA-algorithm published by <i>Berthold&Huber</i>
@@ -53,7 +55,7 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
  * The learning algorithm itself is based on two distinct phases. During the
  * training phase, miss-classified pattern either prompt the spontaneous
  * creation of new basisfunctions units (commitment) or the adjustment of
- * conflicting basisfunction radii (shrinking of Basisfunctions belonging to
+ * conflicting basisfunction radi (shrinking of Basisfunctions belonging to
  * incorrect classes). To commit a new prototype, none of existing
  * Basisfunctions of the correct class has an activation above a certain
  * threshold and, after shrinking, no Basisfunction of a conflicting class is
@@ -65,7 +67,6 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
  * @author Thomas Gabriel, University of Konstanz
  */
 public final class BasisFunctionLearnerTable implements DataTable {
-    
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(BasisFunctionLearnerTable.class);
@@ -103,31 +104,26 @@ public final class BasisFunctionLearnerTable implements DataTable {
      * @param data the training data from which are all {@link DoubleCell}
      *            columns are used for training and the last the specified
      *            <code>target</code> column for classification
-     * @param dataColumns used for training
-     * @param targetColumns name of the classification column
+     * @param target name of the classification column
      * @param factory the factory used to generate
      *            {@link BasisFunctionLearnerRow}s
      * @param missing the missing values replacement function
      * @param shrinkAfterCommit if <code>true</code> do it
-     * @param maxClassCoverage use only maximum class coverage to check
      * @param maxEpochs maximum number of epochs to train
      * @param exec the execution monitor
      * @throws CanceledExecutionException always tested when a new run over data
      *             is started.
      */
     public BasisFunctionLearnerTable(final BufferedDataTable data,
-            final String[] dataColumns,
-            final String[] targetColumns,
+            final String target,
             final BasisFunctionFactory factory,
             final MissingValueReplacementFunction missing,
-            final boolean shrinkAfterCommit,
-            final boolean maxClassCoverage,
+            final boolean shrinkAfterCommit, 
             final int maxEpochs, 
             final ExecutionMonitor exec)
             throws CanceledExecutionException {
-        this(data, dataColumns, targetColumns, factory, missing, 
-                shrinkAfterCommit, maxClassCoverage, maxEpochs, new int[]{1}, 
-                exec);
+        this(data, target, factory, missing, shrinkAfterCommit, maxEpochs, 
+                new int[]{1}, exec);
     }
 
     /**
@@ -135,33 +131,28 @@ public final class BasisFunctionLearnerTable implements DataTable {
      * The given data (only double columns) is used for training. Its assigned
      * class label is used to determine the class info for each row.
      * Furthermore, we provide a name for the new model column. The factory is
-     * used to automatically generate new prototypes of a certain basisfunction
+     * used to automatically generate new prototypes of a certain basisfuntion
      * type.
      * 
      * @param data The training data from which are all {@link DoubleCell}
      *            columns are used for training and the last the specified
-     *            <code>target</code> column for classification
-     * @param dataColumns used for training
-     * @param targetColumns name of the classification column            
+     *            <code>target</code> column for classification.
+     * @param target name of the classification column            
      * @param factory the factory used to generate
      *            {@link BasisFunctionLearnerRow}s
      * @param missing the missing values replacement function
      * @param shrinkAfterCommit if <code>true</code> do it
-     * @param maxClassCoverage use only maximum class coverage to check 
      * @param maxEpochs maximum number of epochs to train 
      * @param startRuleCount at this point
      * @param exec the execution monitor
      * @throws CanceledExecutionException always tested when a new run over data
      *             is started
      */
-    public BasisFunctionLearnerTable(
-            final BufferedDataTable data,
-            final String[] dataColumns,
-            final String[] targetColumns,
+    public BasisFunctionLearnerTable(final BufferedDataTable data,
+            final String target,
             final BasisFunctionFactory factory,
             final MissingValueReplacementFunction missing,
-            final boolean shrinkAfterCommit,
-            final boolean maxClassCoverage,
+            final boolean shrinkAfterCommit, 
             final int maxEpochs,
             final int[] startRuleCount,
             final ExecutionMonitor exec) throws CanceledExecutionException {
@@ -171,22 +162,27 @@ public final class BasisFunctionLearnerTable implements DataTable {
         m_factory = factory;
         // keeps missing replacement function
         m_missing = missing;
-        assert (m_missing != null);
         // correct max epochs
         final int maxNrEpochs = (maxEpochs > 0 ? maxEpochs : Integer.MAX_VALUE);
-        DataTableSpec dataSpec = data.getDataTableSpec();
-        // indices of the class columns
-        int[] classColumnsIdx = findTargetIndices(dataSpec, targetColumns);
-        String[] classColumnNames = new String[classColumnsIdx.length];
-        for (int i = 0; i < classColumnNames.length; i++) {
-            classColumnNames[i] = dataSpec.getColumnSpec(
-                    classColumnsIdx[i]).getName();
-        }
-        // indices of data columns
-        int[] dataColumnsIdx = findDataIndices(dataSpec, dataColumns);
-        
+        // index of the class info column which is the last one here
+        int classColumn = data.getDataTableSpec().findColumnIndex(target);
         // number of training pattern per class, count from table
         m_numPatPerClass = new LinkedHashMap<DataCell, int[]>();
+        for (DataRow row : data) {
+            DataCell classLabel = row.getCell(classColumn);
+            if (m_numPatPerClass.containsKey(classLabel)) {
+                int[] value = m_numPatPerClass.get(classLabel);
+                value[0] += 1;
+            } else {
+                m_numPatPerClass.put(classLabel, new int[]{1});
+            }
+        }
+
+        // init array if column indices without last class column
+        int[] columns = new int[classColumn];
+        for (int i = 0; i < columns.length; i++) {
+            columns[i] = i;
+        }
 
         // true if shrink or a new prototype was created otherwise false
         boolean goon = false;
@@ -219,58 +215,33 @@ public final class BasisFunctionLearnerTable implements DataTable {
                 progMsg = "Learning... #rules=" + getNumBasisFunctions()
                         + " at #epoch=" + (m_cycles + 1);
                 exec.setMessage(progMsg + " \"" + oRow.getKey().getId() + "\"");
-                final BasisFunctionFilterRow row = new BasisFunctionFilterRow(
-                        this, oRow, dataColumnsIdx, classColumnsIdx, 
-                        classColumnNames, missing);
+                final FilteredClassRow row = 
+                    new FilteredClassRow(oRow, classColumn, missing);
+                // get current class label of current bf
+                final DataCell classInfo = row.getClassInfo();
 
-                if (m_cycles == 0) {
-                    DataCell classLabel = row.getBestClass();
-                    if (m_numPatPerClass.containsKey(classLabel)) {
-                        int[] value = m_numPatPerClass.get(classLabel);
-                        value[0] += 1;
-                    } else {
-                        m_numPatPerClass.put(classLabel, new int[]{1});
-                    }
-                }
-                
                 /* --- C O V E R S --- */
 
                 // find best covering bf of correct class, if exist
                 BasisFunctionLearnerRow bestBF = null;
                 // overall bfs within the model
-                for (BasisFunctionIterator it = getBasisFunctionIterator();
-                        it.hasNext();) {
-                    // get next basisfunction
-                    BasisFunctionLearnerRow nextBF = it.nextBasisFunction();
-                    // check if classes match
-                    boolean classMatch = false;
-                    // if max class coverage
-                    if (maxClassCoverage) {
-                        // check only for same classes
-                        if (row.getBestClass().equals(nextBF.getClassLabel())) {
-                            classMatch = true;
-                        }
-                    } else if (row.getMatch(nextBF.getClassLabel()) 
-                          > nextBF.getPredictorRow().getDontKnowClassDegree()) {
-                        // otherwise all classes with degree greater 0 match
-                        classMatch = true;
-                    }
-                    // class match, true
-                    if (classMatch) {
+                for (BasisFunctionIterator it = getBasisFunctionIterator(); it
+                        .hasNext();) {
+                    // get current bf
+                    final BasisFunctionLearnerRow currentBF = it
+                            .nextBasisFunction();
+                    // check if class indices match
+                    if (currentBF.getClassLabel().equals(classInfo)) {
                         // if pattern covered
-                        if (nextBF.covers(row)) {
+                        if (currentBF.covers(row)) {
                             // null?; first one
                             if (bestBF == null) {
                                 // init with first one
-                                bestBF = nextBF; // first one that covers
-                            } else if (nextBF.compareCoverage(bestBF, row)) {
-                                if (!maxClassCoverage
-                                     || row.getMatch(bestBF.getClassLabel()) 
-                                     >= row.getMatch(nextBF.getClassLabel())) {
-                                    // otherwise compare coverage with best one
-                                    assert (bestBF != nextBF);
-                                    bestBF = nextBF;
-                                }
+                                bestBF = currentBF; // first one that covers
+                            } else if (currentBF.compareCoverage(bestBF, row)) {
+                                // otherwise compare coverage with best one
+                                assert (bestBF != currentBF);
+                                bestBF = currentBF;
                             }
                         }
                     } else { // skip current class
@@ -279,17 +250,17 @@ public final class BasisFunctionLearnerTable implements DataTable {
                 }
 
                 // we didn't find any covering prototype
-                if (bestBF == null 
-                        || row.getMatch(bestBF.getClassLabel()) 
-                        <= bestBF.getPredictorRow().getDontKnowClassDegree()) {
+                if (bestBF == null) {
 
                     /* --- C O M M I T --- */
 
                     String bfRowPrefix = RULE_PREFIX + (startRuleCount[0]++);
                     // (level >= 0 ? RULE_PREFIX + (level + 1) + "_" +
-                    // (bfKEY++): new bf with initial vector and data key
+                    // (bfKEY++):
+                    // new bf with initial vector and data key
                     BasisFunctionLearnerRow newBF = factory.commit(
-                            new RowKey(bfRowPrefix), row.getBestClass(), row);
+                            new RowKey(bfRowPrefix), classInfo, row, 
+                            m_numPatPerClass.get(classInfo)[0]);
                     // add new prototype to the collection
                     addBasisFunction(newBF);
 
@@ -304,9 +275,8 @@ public final class BasisFunctionLearnerTable implements DataTable {
                                 getBasisFunctionIterator(); it.hasNext();) {
                             BasisFunctionLearnerRow bf = it.nextBasisFunction();
                             // if class indices don't match
-                            if (row.getMatch(bf.getClassLabel()) 
-                             <= bf.getPredictorRow().getDontKnowClassDegree()) {
-                                // shrinks new bf on all conflicting bfs
+                            if (!bf.getClassLabel().equals(classInfo)) {
+                                // shrinks new bf on current bf, true if changed
                                 newBF.shrink(bf.getAnchor());
                             } else { // skip bfs of current class
                                 it.skipClass();
@@ -331,8 +301,7 @@ public final class BasisFunctionLearnerTable implements DataTable {
                     // get current basisfunction
                     final BasisFunctionLearnerRow bf = it.nextBasisFunction();
                     // if class indices don't match
-                    if (row.getMatch(bf.getClassLabel()) 
-                            <= bf.getPredictorRow().getDontKnowClassDegree()) {
+                    if (!bf.getClassLabel().equals(classInfo)) {
                         // shrink the bf on the current input pattern
                         goon |= bf.shrink(row); // true if changed
                     } else {
@@ -349,48 +318,18 @@ public final class BasisFunctionLearnerTable implements DataTable {
         /* --- P R U N E --- */
         prune(0, m_cycles); // prune all rules with zero coverage
     }
-    
-    private static int[] findTargetIndices(
-            final DataTableSpec spec, final String[] targets) {
-        // indices of the class columns
-        int[] classColumns = new int[targets.length];
-        for (int i = 0; i < targets.length; i++) {
-            classColumns[i] = spec.findColumnIndex(targets[i]);
-        }
-        return classColumns;
-    }
-    
-    private static int[] findDataIndices(final DataTableSpec spec,
-            final String[] dataColumns) {
-        // indices of data columns
-        int[] dataIndices = new int[dataColumns.length];
-        for (int i = 0; i < dataColumns.length; i++) {
-            dataIndices[i] = spec.findColumnIndex(dataColumns[i]);
-        }
-        return dataIndices;
-    }
 
     /**
      * Assigns all explained examples to to basis functions.
+     * @param classColumnIdx index of the classification column
      * @param data the data to explain
-     * @param dataColumns used for training only
-     * @param targetColumns names of target columns
      */
-    public final void explain(final BufferedDataTable data,
-            final String[] dataColumns, final String[] targetColumns) {
-        DataTableSpec spec = data.getDataTableSpec();
-        // overall rows to explain
+    public final void explain(final BufferedDataTable data, 
+            final int classColumnIdx) {
+        // overall training rows
         for (RowIterator rowIt = data.iterator(); rowIt.hasNext();) {
-            // indices of the class columns
-            int[] classColumns = findTargetIndices(spec, targetColumns);
-            String[] classColumnNames = new String[classColumns.length];
-            for (int i = 0; i < classColumnNames.length; i++) {
-                classColumnNames[i] = spec.getColumnSpec(
-                        classColumns[i]).getName();
-            }
-            final BasisFunctionFilterRow row = new BasisFunctionFilterRow(
-                    this, rowIt.next(), findDataIndices(spec, dataColumns), 
-                    classColumns, classColumnNames, m_missing);
+            final FilteredClassRow row = new FilteredClassRow(rowIt.next(),
+                    classColumnIdx, m_missing);
             // overall basisfunctions in the model
             for (BasisFunctionIterator it = getBasisFunctionIterator(); it
                     .hasNext();) {
@@ -399,11 +338,86 @@ public final class BasisFunctionLearnerTable implements DataTable {
                 // if row is explained
                 if (bf.explains(row)) {
                     // keep key
-                    bf.addCovered(row, row.getBestClass());
+                    bf.addCovered(row.getKey().getId(), row.getClassInfo());
                 }
             }
         }
     }
+
+    /**
+     * Inner class to separate an data input row into a new row which are the
+     * first n-1 double cells and returns the class label.
+     */
+    final class FilteredClassRow implements DataRow {
+        private final DataCell[] m_data;
+
+        private final DataCell m_class;
+
+        private final RowKey m_key;
+
+        /**
+         * @param row the row to filter in data and class label
+         * @param classColumn index of the classification column
+         * @param missing the missing value replacement function
+         */
+        FilteredClassRow(final DataRow row, final int classColumn,
+                final MissingValueReplacementFunction missing) {
+            m_key = row.getKey();
+            m_class = row.getCell(classColumn);
+            int numCells = row.getNumCells() - 1; // exclude class column
+            // init entire data array
+            m_data = new DataCell[numCells];
+            int idx = 0;
+            for (int i = 0; i < row.getNumCells(); i++) {
+                if (i != classColumn) {
+                    m_data[idx] = row.getCell(i);
+                    idx++;
+                }
+            }
+            // replace missing values
+            DataCell[] newCells = new DataCell[numCells];
+            for (int i = 0; i < numCells; i++) {
+                if (m_data[i].isMissing()) {
+                    newCells[i] = missing.getMissing(this, i,
+                            BasisFunctionLearnerTable.this);
+                } else {
+                    newCells[i] = m_data[i];
+                }
+            }
+            // copy everything back to the data array
+            for (int i = 0; i < m_data.length; i++) {
+                m_data[i] = newCells[i];
+            }
+        }
+
+        /** @see org.knime.core.data.DataRow#getNumCells() */
+        public int getNumCells() {
+            return m_data.length;
+        }
+
+        /** @see org.knime.core.data.DataRow#getKey() */
+        public RowKey getKey() {
+            return m_key;
+        }
+
+        /** @see org.knime.core.data.DataRow#getCell(int) */
+        public DataCell getCell(final int index) {
+            assert (index >= 0 && index < getNumCells());
+            return m_data[index];
+        }
+
+        /** @return The last column of the internal row. */
+        DataCell getClassInfo() {
+            return m_class;
+        }
+
+        /**
+         * @see java.lang.Iterable#iterator()
+         */
+        public Iterator<DataCell> iterator() {
+            return new DefaultCellIterator(this);
+        }
+    } // FilteredClassRow
 
     /**
      * Keeps the first available
@@ -516,6 +530,13 @@ public final class BasisFunctionLearnerTable implements DataTable {
     }
 
     /**
+     * @return number of trained basis functions
+     */
+    public int getRowCount() {
+        return getNumBasisFunctions();
+    }
+
+    /**
      * Returns the overall number of Basisfunction in this model.
      * 
      * @return the number of basis functions
@@ -561,14 +582,14 @@ public final class BasisFunctionLearnerTable implements DataTable {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#iterator()
      */
-    public BasisFunctionIterator iterator() {
+    public RowIterator iterator() {
         return getBasisFunctionIterator();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataTable#getDataTableSpec()
      */
     public DataTableSpec getDataTableSpec() {
         return getFactory().getModelSpec();
@@ -643,6 +664,17 @@ public final class BasisFunctionLearnerTable implements DataTable {
         }
         pp.addString("Number of training instances per class: ", 
                 "(in total " + cnt + ")");
+        
+//        // save model spec
+//        DataTableSpec modelSpec = m_factory.getModelSpec();
+//        ModelContentWO specContent = pp.addModelContent("column_info");
+//        specContent.addString("Number of columns: ", ""
+//                + modelSpec.getNumColumns());
+//        for (int i = 0; i < modelSpec.getNumColumns(); i++) {
+//            DataColumnSpec spec = modelSpec.getColumnSpec(i);
+//            specContent.addString(spec.getName() + ": ", spec.getType()
+//                    .toString());
+//        }
     }
 
     /**
@@ -677,12 +709,12 @@ public final class BasisFunctionLearnerTable implements DataTable {
         }
         buf.append("\n###\n");
         if (full) {
-            // print info about all basisfunctions
+            // print info about alle Basisfunctions
             for (BasisFunctionIterator it = getBasisFunctionIterator(); it
                     .hasNext();) {
                 // get current Basisfunction
                 BasisFunctionLearnerRow bf = it.nextBasisFunction();
-                // add basisfunction specific info
+                // add Basisfunction specific info
                 buf.append(bf.getKey().getId() + ": " + bf.toString() + "\n");
             }
         }
@@ -726,28 +758,29 @@ public final class BasisFunctionLearnerTable implements DataTable {
          * This function returns the missing replacement value for a given
          * value.
          * 
-         * @param row the row to replace the missing value in
+         * @param row the row te replace the missing value in
          * @param col the column index
          * @param model this basis function model
          * @return the missing replacement value
          */
-        DataCell getMissing(final BasisFunctionFilterRow row, final int col,
+        DataCell getMissing(final FilteredClassRow row, final int col,
                 final BasisFunctionLearnerTable model);
     }
 }
 
 /**
  * Makes use the missing value by using it inside the model. The missing value
- * will be replaced as soon as real value(s) are available from the training
+ * will be replaced as soon as real value(s) are available from the trinaings
  * data.
  */
 final class IncorpMissingValueReplacementFunction implements
         BasisFunctionLearnerTable.MissingValueReplacementFunction {
-    
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
-    public DataCell getMissing(final BasisFunctionFilterRow row, 
+    public DataCell getMissing(
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         return row.getCell(col);
     }
@@ -768,17 +801,18 @@ final class IncorpMissingValueReplacementFunction implements
 final class BestGuessMissingValueReplacementFunction implements
         BasisFunctionLearnerTable.MissingValueReplacementFunction {
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         BasisFunctionLearnerRow best = null;
         for (BasisFunctionIterator i = model.getBasisFunctionIterator(); i
                 .hasNext();) {
             BasisFunctionLearnerRow bf = i.nextBasisFunction();
             // check if class indices match
-            if (bf.getClassLabel().equals(row.getBestClass())) {
+            if (bf.getClassLabel().equals(row.getClassInfo())) {
                 // if pattern covered
                 if (bf.covers(row)) {
                     // null?; first one
@@ -824,10 +858,11 @@ final class BestGuessMissingValueReplacementFunction implements
 final class MinimumMissingValueReplacementFunction implements
         BasisFunctionLearnerTable.MissingValueReplacementFunction {
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         double min = model.getFactory().getMinimums()[col].doubleValue();
         if (Double.isNaN(min)) {
@@ -851,10 +886,11 @@ final class MinimumMissingValueReplacementFunction implements
 final class MaximumMissingValueReplacementFunction implements
         BasisFunctionLearnerTable.MissingValueReplacementFunction {
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         double max = model.getFactory().getMaximums()[col].doubleValue();
         if (Double.isNaN(max)) {
@@ -878,10 +914,11 @@ final class MaximumMissingValueReplacementFunction implements
 final class MeanMissingValueReplacementFunction implements
         BasisFunctionLearnerTable.MissingValueReplacementFunction {
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         double min = model.getFactory().getMinimums()[col].doubleValue();
         double max = model.getFactory().getMaximums()[col].doubleValue();
@@ -910,10 +947,11 @@ final class ZeroMissingValueReplacementFunction implements
     static final DataCell ZERO = new DoubleCell(0.0);
 
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         return ZERO;
     }
@@ -937,10 +975,11 @@ final class OneMissingValueReplacementFunction implements
     static final DataCell ONE = new DoubleCell(1.0);
 
     /**
-     * {@inheritDoc}
+     * @see #getMissing(BasisFunctionLearnerTable.FilteredClassRow,int,
+     *      BasisFunctionLearnerTable)
      */
     public DataCell getMissing(
-            final BasisFunctionFilterRow row,
+            final BasisFunctionLearnerTable.FilteredClassRow row,
             final int col, final BasisFunctionLearnerTable model) {
         return ONE;
     }

@@ -22,6 +22,7 @@
  */
 package org.knime.base.node.io.csvwriter;
 
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
@@ -30,7 +31,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -38,6 +41,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+
 
 /**
  * Dialog to choose a file for csv output.
@@ -54,19 +58,15 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
 
     /** Checkbox for writing column header even if file exits. */
     private final JCheckBox m_colHeaderWriteSkipOnAppend;
-
+    
     /** Checkbox for writing column header. */
     private final JCheckBox m_rowHeaderChecker;
 
     /** Checkbox if append to output file (if exists). */
     private final JCheckBox m_appendChecker;
 
-    private final QuotePanel m_quotePanel;
-    
-    private final AdvancedPanel m_advancedPanel;
-    
-    private final CommentPanel m_commentPanel;
-    
+    /** text field for missing pattern. */
+    private final JTextField m_missingField;
 
     /**
      * Creates a new CSV writer dialog.
@@ -94,19 +94,28 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         };
         m_colHeaderChecker = new JCheckBox("Write column header");
         m_colHeaderChecker.addItemListener(l);
-        m_colHeaderWriteSkipOnAppend =
-                new JCheckBox("Don't write column headers if file exists");
+        m_colHeaderWriteSkipOnAppend = new JCheckBox(
+                "Skip column header when appended");
         m_rowHeaderChecker = new JCheckBox("Write row ID");
         m_appendChecker = new JCheckBox("Append to output file");
         m_appendChecker.addItemListener(l);
+        m_missingField = new JTextField(3);
+        m_missingField.setMaximumSize(new Dimension(40, 20));
+        m_missingField.setToolTipText(
+                "Pattern for missing values. If unsure, simply leave empty");
+        final JPanel missingPanel = new JPanel();
+        missingPanel.setLayout(new BoxLayout(missingPanel, BoxLayout.X_AXIS));
+        missingPanel.add(m_missingField);
+        missingPanel.add(new JLabel(" Missing Pattern"));
+        missingPanel.add(Box.createHorizontalGlue());
 
         final JPanel colHeaderPane = new JPanel();
         colHeaderPane.setLayout(new BoxLayout(colHeaderPane, BoxLayout.X_AXIS));
         colHeaderPane.add(m_colHeaderChecker);
         colHeaderPane.add(Box.createHorizontalGlue());
         final JPanel colHeaderPane2 = new JPanel();
-        colHeaderPane2
-                .setLayout(new BoxLayout(colHeaderPane2, BoxLayout.X_AXIS));
+        colHeaderPane2.setLayout(
+                new BoxLayout(colHeaderPane2, BoxLayout.X_AXIS));
         colHeaderPane2.add(m_colHeaderWriteSkipOnAppend);
         colHeaderPane2.add(Box.createHorizontalGlue());
         final JPanel rowHeaderPane = new JPanel();
@@ -118,6 +127,8 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         appendPane.add(m_appendChecker);
         appendPane.add(Box.createHorizontalGlue());
 
+        optionsPanel.add(missingPanel);
+        optionsPanel.add(Box.createVerticalStrut(5));
         optionsPanel.add(colHeaderPane);
         optionsPanel.add(Box.createVerticalStrut(5));
         optionsPanel.add(colHeaderPane2);
@@ -126,89 +137,77 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         optionsPanel.add(Box.createVerticalStrut(5));
         optionsPanel.add(appendPane);
         optionsPanel.add(Box.createVerticalStrut(5));
-
+        
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(filePanel);
         panel.add(Box.createVerticalStrut(5));
         panel.add(optionsPanel);
         panel.add(Box.createVerticalGlue());
-        
         addTab("Settings", panel);
-        
-        m_advancedPanel = new AdvancedPanel();
-        addTab("Advanced", m_advancedPanel);
-
-        m_quotePanel = new QuotePanel();
-        addTab("Quotes", m_quotePanel);
-        
-        m_commentPanel = new CommentPanel();
-        addTab("Comment Header", m_commentPanel);
-        
-        
     }
-
+    
     /** Checks whether or not the "on file exists" check should be enabled. */
     private void checkCheckerState() {
-        m_colHeaderWriteSkipOnAppend.setEnabled(m_colHeaderChecker.isSelected()
+        m_colHeaderWriteSkipOnAppend.setEnabled(
+                m_colHeaderChecker.isSelected() 
                 && m_appendChecker.isSelected());
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#loadSettingsFrom(NodeSettingsRO, DataTableSpec[])
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
-
-        FileWriterNodeSettings newValues;
-        try {
-            newValues = new FileWriterNodeSettings(settings);
-        } catch (InvalidSettingsException ise) {
-            // use default settings if we didn't get any useful ones
-            newValues = new FileWriterNodeSettings();
-        }
-
+        String fileName = settings.getString(CSVWriterNodeModel.CFGKEY_FILE,
+                null);
+        boolean writeColHeader = settings.getBoolean(
+                CSVWriterNodeModel.CFGKEY_COLHEADER, true);
+        boolean colHeaderWriteSkipOnAppend = settings.getBoolean(
+                CSVWriterNodeModel.CFGKEY_COLHEADER_SKIP_ON_APPEND, true);
+        boolean writeRowHeader = settings.getBoolean(
+                CSVWriterNodeModel.CFGKEY_ROWHEADER, true);
+        boolean isAppend = settings.getBoolean(
+                CSVWriterNodeModel.CFGKEY_APPEND, true);
+        String missing = settings.getString(CSVWriterNodeModel.CFGKEY_MISSING,
+                "");
         m_textBox.updateHistory();
-        m_textBox.setSelectedFile(newValues.getFileName());
-        m_colHeaderChecker.setSelected(newValues.writeColumnHeader());
-        m_colHeaderWriteSkipOnAppend.setSelected(newValues
-                .skipColHeaderIfFileExists());
-        m_rowHeaderChecker.setSelected(newValues.writeRowID());
-        m_appendChecker.setSelected(newValues.appendToFile());
+        m_textBox.setSelectedFile(fileName);
+        m_missingField.setText(missing);
+        m_colHeaderChecker.setSelected(writeColHeader);
+        m_colHeaderWriteSkipOnAppend.setSelected(colHeaderWriteSkipOnAppend);
+        m_rowHeaderChecker.setSelected(writeRowHeader);
+        m_appendChecker.setSelected(isAppend);
         checkCheckerState();
-        
-        m_quotePanel.loadValuesIntoPanel(newValues);
-        m_advancedPanel.loadValuesIntoPanel(newValues);
-        m_commentPanel.loadValuesIntoPanel(newValues);
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeDialogPane#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
-
-        FileWriterNodeSettings values = new FileWriterNodeSettings();
-
         String fileName = m_textBox.getSelectedFile();
         if (!fileName.equals("")) {
             File file = CSVFilesHistoryPanel.getFile(fileName);
-            fileName = file.getAbsolutePath();
+            settings.addString(CSVWriterNodeModel.CFGKEY_FILE, file
+                    .getAbsolutePath());
         }
-        values.setFileName(fileName);
-
-        values.setWriteColumnHeader(m_colHeaderChecker.isSelected());
-        values.setSkipColHeaderIfFileExists(m_colHeaderWriteSkipOnAppend
-                .isSelected());
-        values.setWriteRowID(m_rowHeaderChecker.isSelected());
-        values.setAppendToFile(m_appendChecker.isSelected());
-
-        m_quotePanel.saveValuesFromPanelInto(values);
-        m_advancedPanel.saveValuesFromPanelInto(values);
-        m_commentPanel.saveValuesFromPanelInto(values);
-        
-        values.saveSettingsTo(settings);
+        boolean writeColHeader = m_colHeaderChecker.isSelected();
+        boolean writeColHeaderOnFileExists = 
+            m_colHeaderWriteSkipOnAppend.isSelected();
+        boolean writeRowHeader = m_rowHeaderChecker.isSelected();
+        boolean isAppend = m_appendChecker.isSelected();
+        String missing = m_missingField.getText();
+        settings.addString(CSVWriterNodeModel.CFGKEY_MISSING, missing);
+        settings.addBoolean(
+                CSVWriterNodeModel.CFGKEY_COLHEADER, writeColHeader);
+        settings.addBoolean(CSVWriterNodeModel.CFGKEY_COLHEADER_SKIP_ON_APPEND, 
+                writeColHeaderOnFileExists);
+        settings.addBoolean(
+                CSVWriterNodeModel.CFGKEY_ROWHEADER, writeRowHeader);
+        settings.addBoolean(
+                CSVWriterNodeModel.CFGKEY_APPEND, isAppend);
     }
 }

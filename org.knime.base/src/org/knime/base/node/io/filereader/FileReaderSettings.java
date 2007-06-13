@@ -109,12 +109,6 @@ public class FileReaderSettings extends FileTokenizerSettings {
      * a missing cell.
      */
     private Vector<String> m_missingPatterns;
-    
-    /*
-     * if set to a not-negative number, it limits the number of lines read from
-     * the input file. -1 reads all.
-     */
-    private long m_maxNumberOfRowsToRead;
 
     /**
      * This will be used if the file has not row headers and no row prefix is
@@ -152,8 +146,6 @@ public class FileReaderSettings extends FileTokenizerSettings {
     private static final String CFGKEY_MISSING = "MissPattern";
 
     private static final String CFGKEY_TABLENAME = "TableName";
-    
-    private static final String CFGKEY_MAXROWS = "MaxNumOfRows";
 
     /**
      * Creates a new object holding all settings needed to read the specified
@@ -179,8 +171,7 @@ public class FileReaderSettings extends FileTokenizerSettings {
         m_ignoreEmptyLines = false;
         m_ignoreEmptyTokensAtEOR = false;
         m_supportShortLines = false;
-        m_maxNumberOfRowsToRead = -1; // default is: read them all
-        
+
         m_rowHeaderPrefix = null;
         m_uniquifyRowIDs = false;
         
@@ -299,9 +290,6 @@ public class FileReaderSettings extends FileTokenizerSettings {
             // default to false, for backward compatibility
             m_uniquifyRowIDs = cfg.getBoolean(CFGKEY_UNIQUIFYID, false);
             
-            // default to "read them all", for backward compatibility
-            m_maxNumberOfRowsToRead = cfg.getLong(CFGKEY_MAXROWS, -1);
-            
             readRowDelimitersFromConfig(rowDelimConf);
 
         } // if (cfg != null)
@@ -342,8 +330,6 @@ public class FileReaderSettings extends FileTokenizerSettings {
         cfg.addBoolean(CFGKEY_IGNOREATEOR, m_ignoreEmptyTokensAtEOR);
         cfg.addBoolean(CFGKEY_SHORTLINES, m_supportShortLines);
         cfg.addBoolean(CFGKEY_UNIQUIFYID, m_uniquifyRowIDs);
-        cfg.addLong(CFGKEY_MAXROWS, m_maxNumberOfRowsToRead);
-        
     }
 
     /*
@@ -859,33 +845,15 @@ public class FileReaderSettings extends FileTokenizerSettings {
     public boolean getSupportShortLines() {
         return m_supportShortLines;
     }
-    
-    /**
-     * @return the maximum number of lines that should be read from the source.
-     *         If -1 is returned all rows should be read.
-     */
-    public long getMaximumNumberOfRowsToRead() {
-        return m_maxNumberOfRowsToRead;
-    }
 
-    /**
-     * Sets a new maximum for the number of rows to read.
-     * 
-     * @param maxNum the new maximum. If set to -1 all rows of the source will
-     *            be read, otherwise no more than the specified number.
-     */
-    public void setMaximumNumberOfRowsToRead(final long maxNum) {
-        m_maxNumberOfRowsToRead = maxNum;
-    }
-    
     /**
      * Method to check consistency and completeness of the current settings. It
      * will return a {@link SettingsStatus} object which contains info, warning
      * and error messages. Or if the settings are alright it will return null.
      * 
-     * @param openDataFile tells whether or not this method should try to access
+     * @param openDataFile tells wether or not this method should try to access
      *            the data file. This will - if set <code>true</code> - verify
-     *            the accessibility of the data.
+     *            the accessability of the data.
      * @param tableSpec the spec of the DataTable these settings are for. If set
      *            <code>null</code> only a few checks will be performed - the
      *            ones that are possible without the knowledge of the structure

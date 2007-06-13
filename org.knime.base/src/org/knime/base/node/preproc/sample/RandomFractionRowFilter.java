@@ -73,7 +73,7 @@ public class RandomFractionRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see RowFilter#matches(org.knime.core.data.DataRow, int)
      */
     @Override
     public boolean matches(final DataRow row, final int rowIndex)
@@ -114,7 +114,7 @@ public class RandomFractionRowFilter extends RowFilter {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#clone()
      */
     @Override
     public Object clone() {

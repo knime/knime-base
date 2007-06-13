@@ -54,7 +54,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#execute(BufferedDataTable[],ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] data,
@@ -66,13 +66,13 @@ final class CacheNodeModel extends NodeModel {
         // slow.
         BufferedDataContainer con = exec.createDataContainer(data[0]
                 .getDataTableSpec());
-        final int totalCount = 0;
-        int row = 0;
+        final int totalCount = data[0].getRowCount();
+        int row = 1;
         try {
             for (RowIterator it = data[0].iterator(); it.hasNext(); row++) {
                 DataRow next = it.next();
-                String message = "Caching row " + (row + 1) + "/" + totalCount
-                        + "( \"" + next.getKey() + "\")";
+                String message = "Caching row " + row + "/" + totalCount
+                        + " (\"" + next.getKey() + "\")";
                 exec.setProgress(row / (double)totalCount, message);
                 exec.checkCanceled();
                 con.addRowToTable(next);
@@ -84,7 +84,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#configure(DataTableSpec[])
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) {
@@ -92,14 +92,14 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveSettingsTo(NodeSettingsWO)
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#validateSettings(NodeSettingsRO)
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
@@ -107,7 +107,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadValidatedSettingsFrom(NodeSettingsRO)
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
@@ -115,7 +115,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#loadInternals(File, ExecutionMonitor)
      */
     @Override
     protected void loadInternals(final File nodeInternDir,
@@ -124,7 +124,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#saveInternals(File, ExecutionMonitor)
      */
     @Override
     protected void saveInternals(final File nodeInternDir,
@@ -133,7 +133,7 @@ final class CacheNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @see NodeModel#reset()
      */
     @Override
     protected void reset() {

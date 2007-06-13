@@ -61,28 +61,28 @@ public class ResortedCellsRow implements DataRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataRow#getNumCells()
      */
     public int getNumCells() {
         return m_row.getNumCells();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataRow#getKey()
      */
     public RowKey getKey() {
         return m_row.getKey();
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.data.DataRow#getCell(int)
      */
     public DataCell getCell(final int index) {
         return m_row.getCell(m_sort[index]);
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Iterable#iterator()
      */
     public Iterator<DataCell> iterator() {
         return new DefaultCellIterator(this);

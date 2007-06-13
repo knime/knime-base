@@ -71,7 +71,7 @@ public class NearestNeighbour<T> implements Comparable<NearestNeighbour<T>> {
     }
     
     /**
-     * {@inheritDoc}
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     public int compareTo(final NearestNeighbour<T> o) {
         // query results are sorted by *de*creasing distance
@@ -79,7 +79,7 @@ public class NearestNeighbour<T> implements Comparable<NearestNeighbour<T>> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

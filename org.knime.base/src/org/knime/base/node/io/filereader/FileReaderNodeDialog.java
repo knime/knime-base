@@ -77,7 +77,6 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -1023,7 +1022,7 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
             throw new InvalidSettingsException("With the current settings"
                     + " an error occurs: " + errLabel);            
         }
-        if (m_previewTable.getErrorOccurred()) {
+        if (m_previewTable.getErrorOccured()) {
             throw new InvalidSettingsException("With the current settings"
                     + " an error occurs when reading the file (line "
                     + m_previewTable.getErrorLine() + "): "
@@ -1189,17 +1188,15 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
             m_previewTableView.setDataTable(null);
             return;
         }
-        FileReaderNodeSettings previewSettings = 
-            createPreviewSettings(m_frSettings);
-        SettingsStatus status = previewSettings.getStatusOfSettings(true, null);
+        SettingsStatus status = m_frSettings.getStatusOfSettings(true, null);
         if (status.getNumOfErrors() > 0) {
             setErrorLabelText(status.getErrorMessage(0));
             m_previewTableView.setDataTable(null);
             return;
         }
-        DataTableSpec tSpec = previewSettings.createDataTableSpec();
-        m_previewTable = 
-            new FileReaderPreviewTable(tSpec, previewSettings, null);
+        DataTableSpec tSpec = m_frSettings.createDataTableSpec();
+        tSpec = modifyPreviewColNames(tSpec);
+        m_previewTable = new FileReaderPreviewTable(tSpec, m_frSettings, null);
         m_previewTable.addChangeListener(new ChangeListener() {
             public void stateChanged(final ChangeEvent e) {
                 setErrorLabelText(m_previewTable.getErrorMsg());
@@ -1209,75 +1206,41 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
     }
 
     /*
-     * Creates a new settings object that has the same settings, except for the
-     * column names and the "skipColumn" flag. Names are tagged with an asterisk
-     * if the name and type of the column is user set, and specially marked if
-     * the user chose to skip (not read in) this column. Additionally all 
-     * columns are marked "don't skip", so they appear in the preview table.
+     * returns a new table spec object with the same content - just different
+     * column names. If the current settings have the 'user settings' flag set
+     * true for a column a asterisk is appended to the column name.
      */
-    private FileReaderNodeSettings createPreviewSettings(
-            final FileReaderNodeSettings settings) {
-        assert settings != null;
-        if (settings == null) {
+    private DataTableSpec modifyPreviewColNames(final DataTableSpec tSpec) {
+        assert tSpec != null;
+        if (tSpec == null) {
             return null;
         }
 
-        // create a clone of the specified settings object.
-        NodeSettings nso = new NodeSettings("TempForCloningSettings");
-        settings.saveToConfiguration(nso);
-        FileReaderNodeSettings result;
-        try {
-            result = new FileReaderNodeSettings(nso);
-        } catch (InvalidSettingsException ise) {
-            return null;
-        }
-        
-        int numCols = result.getNumberOfColumns();
-        Vector<ColProperty> colProps = result.getColumnProperties();
-        
+        int numCols = tSpec.getNumColumns();
+        DataColumnSpec[] colSpecs = new DataColumnSpec[numCols];
         for (int c = 0; c < numCols; c++) {
-
-            ColProperty cProp = colProps.get(c);
-            assert (cProp != null);
-            String name = cProp.getColumnSpec().getName();
-            
-            // mark columns marked "skip"
-            if (cProp.getSkipThisColumn()) {
-                name = "[SKIP: \"" + name + "\"]";
-                // change type to string because it accepts all data
-                cProp.changeColumnType(StringCell.TYPE);
-            } else {
-                // mark user set column names with an "*"
-                if (cProp.getUserSettings()) {
-                    name = "*" + name;
+            DataColumnSpec cSpec = tSpec.getColumnSpec(c);
+            String name;
+            boolean userSet = false;
+            if (c < m_frSettings.getNumberOfColumns()) {
+                if (m_frSettings.getColumnProperties().get(c) != null) {
+                    userSet = m_frSettings.getColumnProperties().get(c)
+                            .getUserSettings();
                 }
             }
-            
-            // need to make it unique
-            int idx = 2; // the index we append to the name to make it unique
-            String colName = name;
-            boolean unique;
-            do {
-                unique = true;
-                for (int i = 0; i < c; i++) {
-                    if (colName.equals(
-                            colProps.get(i).getColumnSpec().getName())) {
-                        unique = false;
-                        colName = name + "(" + idx + ")";
-                        idx++;
-                        break;
-                    }
-                }
-            } while (!unique);
-            
-            // set the new name
-            cProp.changeColumnName(colName);
-            cProp.setSkipThisColumn(false);
-            // no need to set it in the result as the ColProperty object is
-            // the same in our vector and in the result.
+            if (userSet) {
+                name = cSpec.getName().toString() + "*";
+            } else {
+                name = cSpec.getName().toString();
+            }
+            DataColumnSpecCreator dcsc = new DataColumnSpecCreator(name, cSpec
+                    .getType());
+            dcsc.setDomain(cSpec.getDomain());
+            DataColumnSpec newSpec = dcsc.createSpec();
+            colSpecs[c] = newSpec;
         }
 
-        return result;
+        return new DataTableSpec(colSpecs);
 
     }
 
@@ -1411,11 +1374,8 @@ class FileReaderNodeDialog extends NodeDialogPane implements ItemListener {
             readXMLSettings();
             analyzeDataFileAndUpdatePreview(false); // don't reanalyze
         } else if (advDlg.closedViaOk()) {
-            // call with the actual settings
             advDlg.overrideSettings(m_frSettings);
-            if (advDlg.needsReAnalyze()) {
-                analyzeDataFileAndUpdatePreview(true); // re-analyze
-            }
+            analyzeDataFileAndUpdatePreview(true); // re-analyze
         }
         advDlg.dispose();
     }

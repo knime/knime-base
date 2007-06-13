@@ -33,19 +33,17 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.util.MutableDouble;
 
 /**
- * Extends the general {@link BasisFunctionLearnerRow} object to act as
+ * Extends the general {@link FuzzyBasisFunctionLearnerRow} object to act as
  * rectangular fuzzy prototype. Each feature value holds a fuzzy membership
  * function (trapezoid membership function so far) with a assigned anchor
  * retrieved from the input row which commit this rule.
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
-    
+final class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     /** The choice of shrink procedure. */
     private final Shrink m_shrink;
 
-    /** Underlying predictive fuzzy row. */
     private final FuzzyBasisFunctionPredictorRow m_predRow;
 
     /**
@@ -58,12 +56,14 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
      * @param shrink A function to shrink rules.
      * @param min An array if minimum bounds, for each input dimension.
      * @param max An array if maximum bounds, for each input dimension.
+     * @param numPat The overall number of pattern used for training. 
+     * @param isHierarchical If hierarchical rules have to be commited.
      */
-    protected FuzzyBasisFunctionLearnerRow(final RowKey key, 
-            final DataCell classInfo, final DataRow centroid, final int norm, 
-            final int shrink, 
-            final MutableDouble[] min, final MutableDouble[] max) {
-        super(key, centroid, classInfo);
+    FuzzyBasisFunctionLearnerRow(final RowKey key, final DataCell classInfo,
+            final DataRow centroid, final int norm, final int shrink,
+            final MutableDouble[] min, final MutableDouble[] max, 
+            final int numPat, final boolean isHierarchical) {
+        super(key, centroid, classInfo, isHierarchical);
         m_shrink = Shrink.SHRINKS[shrink];
         assert (min.length == centroid.getNumCells());
         assert (max.length == centroid.getNumCells());
@@ -82,12 +82,12 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
         }
 
         m_predRow = new FuzzyBasisFunctionPredictorRow(key.getId(), classInfo,
-                mem, norm);
-        addCovered(centroid, classInfo);
+                mem, norm, numPat);
+        addCovered(centroid.getKey().getId(), classInfo);
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow#getPredictorRow()
      */
     @Override
     public FuzzyBasisFunctionPredictorRow getPredictorRow() {
@@ -144,8 +144,8 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
      * 
      * @param bf the other fuzzy basis function
      * @param symmetric if the result is proportional to both basis functions,
-     *            and thus symmetric, or if it is proportional to the area of
-     *            the basis function on which the function is called
+     *            and thus symetric, or if it is proportional to the area of the
+     *            basis function on which the function is called
      * @return a degree of overlap normalized with the overall volume of both
      *         basis functions
      */
@@ -187,17 +187,17 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
      * If a new prototype has to be adjusted. Goes through all membership
      * function dimensions and looks for this with the smallest loss value. The
      * support shrink has priority for the core region, if no shrink need the
-     * function returns false, otherwise true if the shrink was effected.
+     * fct returns false, otherwise true if the shrink was effected.
      * 
      * @param row the input pattern for shrinking
      * @return <code>true</code> if a dimension was effect by this operation
      */
     @Override
     protected final boolean shrink(final DataRow row) {
-        return shrinkIt(row, true) > 1E-10;
+        return shrinkIt(row, true) > 0.0;
     }
 
-    /**
+    /*
      * If <code>shrinkIt</code> is <code>true</code> the shrink will be
      * executed otherwise the shrink value is only returned.
      * 
@@ -281,6 +281,7 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
                         } else { // if value is not in core region,
                             if (value <= m_predRow.getMemship(i)
                                     .getMaxSupport()) {
+                                // gets new loss value
                                 double loss = m_shrink.rightSuppLoss(value,
                                         m_predRow.getMemship(i));
                                 assert (0.0 <= loss && loss <= 1.0) : loss;
@@ -366,7 +367,7 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * Resets core value of all dimensions to the initial anchor value.
+     * Resets core value of all dimensions to the intial anchor value.
      */
     @Override
     protected void reset() {
@@ -420,7 +421,7 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
      * @param r the row to compute activation on
      * @return <code>true</code> if the number covered pattern of
      *         <code>this</code> object is greater
-     * @throws NullPointerException if one of the args in <code>null</code>
+     * @throws NullPointerException tf one of the args in <code>null</code>
      */
     @Override
     protected boolean compareCoverage(final BasisFunctionLearnerRow o,
@@ -435,27 +436,18 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
      * @return the overall spread of the core regions
      */
     @Override
-    public double computeSpread() {
+    public double computeCoverage() {
         double vol = 0.0;
-        double dom = 0.0;
         for (int i = 0; i < m_predRow.getNrMemships(); i++) {
-            MembershipFunction mem = m_predRow.getMemship(i);
-            double spread = (mem.getMaxSupport() - mem.getMinSupport());
-            if (spread > 0.0) {
-                if (vol == 0.0) {
-                    vol = spread;
-                    dom = (mem.getMax() - mem.getMin());
-                } else {
-                    vol *= spread;
-                    dom *= (mem.getMax() - mem.getMin());
-                }
-            }
+            double minCore = m_predRow.getMemship(i).getMinCore();
+            double maxCore = m_predRow.getMemship(i).getMaxCore();
+            vol += (maxCore - minCore);
         }
-        return (vol > 0 ? vol / dom : 0);
+        return vol;
     }
 
     /**
-     * Returns a string representation of this basis function. Calls the super
+     * Returns a string represenation of this basis function. Calls the super
      * <code>toString()</code> before adding this fuzzy bfs membership
      * functions.
      * 
@@ -491,7 +483,7 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow#getFinalCell(int)
      */
     @Override
     protected DataCell getFinalCell(final int index) {
@@ -499,11 +491,11 @@ public class FuzzyBasisFunctionLearnerRow extends BasisFunctionLearnerRow {
     }
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionLearnerRow
+     *      #computeActivation(org.knime.core.data.DataRow)
      */
     @Override
     public double computeActivation(final DataRow row) {
         return m_predRow.computeActivation(row);
     }
-
 }

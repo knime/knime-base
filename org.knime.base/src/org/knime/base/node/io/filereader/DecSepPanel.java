@@ -92,31 +92,11 @@ public class DecSepPanel extends JPanel {
     }
 
     /**
-     * Checks if the settings in the panel are good for applying them.
-     * @return null if all settings are okay, or an error message if settings
-     * can't be taken over.
-     * 
-     */
-    String checkSettings() {
-        String sep = m_decSep.getText();
-        if ((sep == null) || (sep.length() == 0)) {
-            return "No decimal separator specified.";
-        }
-        if (sep.length() > 1) {
-            return "Please enter only one character.";
-        }
-        return null;
-    }
-    
-    /**
      * Writes the current settings of the panel into the passed settings object.
      * 
      * @param settings the object to write settings in
-     * @return true if the new settings are different from the one passed in.
      */
-    boolean overrideSettings(final FileReaderSettings settings) {
-        char oldSep = settings.getDecimalSeparator();
+    void overrideSettings(final FileReaderSettings settings) {
         settings.setDecimalSeparator(m_decSep.getText().charAt(0));
-        return oldSep != settings.getDecimalSeparator();
     }
 }

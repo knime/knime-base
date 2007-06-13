@@ -35,7 +35,7 @@ import org.knime.core.node.NodeView;
 public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory {
     
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeModel()
      */
     @Override
     public NodeModel createNodeModel() {
@@ -43,7 +43,7 @@ public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#getNrNodeViews()
      */
     @Override
     public int getNrNodeViews() {
@@ -51,7 +51,7 @@ public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeView(int,NodeModel)
      */
     @Override
     public NodeView createNodeView(final int i, final NodeModel nodeModel) {
@@ -70,7 +70,7 @@ public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory {
     }
 
     /**
-     * {@inheritDoc}
+     * @see org.knime.core.node.NodeFactory#createNodeDialogPane()
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {

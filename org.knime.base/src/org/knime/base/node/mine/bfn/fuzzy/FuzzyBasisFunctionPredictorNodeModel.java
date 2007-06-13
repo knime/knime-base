@@ -38,19 +38,12 @@ public class FuzzyBasisFunctionPredictorNodeModel extends
         BasisFunctionPredictorNodeModel {
 
     /**
-     * {@inheritDoc}
+     * @see BasisFunctionPredictorNodeModel
+     *      #createPredictorRow(org.knime.core.node.ModelContentRO)
      */
     @Override
-    public BasisFunctionPredictorRow createPredictorRow(
+    protected BasisFunctionPredictorRow createPredictorRow(
             final ModelContentRO pp) throws InvalidSettingsException {
         return new FuzzyBasisFunctionPredictorRow(pp);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean normalizeClassification() {
-         return false;
     }
 }
