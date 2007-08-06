@@ -82,7 +82,7 @@ public class SubgroupMinerDialog extends DefaultNodeSettingsPane {
         
         m_minSupportComp = new DialogComponentNumber(
                 createMinSupportModel(),
-                "Minimum support (0-1)", 0.1);
+                "Minimum support (0-1)", 0.0);
         
         m_itemSetTypeComp = new DialogComponentStringSelection(
                 createItemSetTypeModel(), "Item Set Type",
@@ -111,7 +111,7 @@ public class SubgroupMinerDialog extends DefaultNodeSettingsPane {
         
         // components 
         m_confidence = new DialogComponentNumber(
-                confidenceModel, "Minimum Confidence:", 0.1);
+                confidenceModel, "Minimum Confidence:", 0.0);
         
 
         m_associationRules = new DialogComponentBoolean(
