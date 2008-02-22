@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -21,22 +21,24 @@
  */
 package org.knime.base.node.mine.bfn.fuzzy;
 
-import org.knime.core.node.GenericNodeDialogPane;
-import org.knime.core.node.GenericNodeFactory;
-import org.knime.core.node.GenericNodeView;
+import org.knime.base.node.mine.bfn.BasisFunctionLearnerNodeModel;
+import org.knime.base.node.mine.bfn.BasisFunctionLearnerNodeView;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeView;
 
 /**
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class FuzzyBasisFunctionLearnerNodeFactory
-        extends GenericNodeFactory<FuzzyBasisFunctionLearnerNodeModel> {
+public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory {
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public FuzzyBasisFunctionLearnerNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new FuzzyBasisFunctionLearnerNodeModel();
     }
 
@@ -47,15 +49,15 @@ public class FuzzyBasisFunctionLearnerNodeFactory
     public int getNrNodeViews() {
         return 1;
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public GenericNodeView<FuzzyBasisFunctionLearnerNodeModel> createNodeView(
-            final int viewIndex, 
-            final FuzzyBasisFunctionLearnerNodeModel nodeModel) {
-        return new FuzzyBasisFunctionLearnerNodeView(nodeModel);
+    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
+        assert i == 0;
+        return new BasisFunctionLearnerNodeView(
+                (BasisFunctionLearnerNodeModel)nodeModel);
     }
 
     /**
@@ -71,7 +73,7 @@ public class FuzzyBasisFunctionLearnerNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public GenericNodeDialogPane createNodeDialogPane() {
+    public NodeDialogPane createNodeDialogPane() {
         return new FuzzyBasisFunctionLearnerNodeDialog();
     }
 }

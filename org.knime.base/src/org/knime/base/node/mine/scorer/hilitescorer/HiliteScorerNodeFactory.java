@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -23,6 +23,7 @@ package org.knime.base.node.mine.scorer.hilitescorer;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
@@ -30,14 +31,12 @@ import org.knime.core.node.NodeView;
  * 
  * @author Christoph Sieb, University of Konstanz
  */
-public class HiliteScorerNodeFactory 
-        extends NodeFactory<HiliteScorerNodeModel> {
-    
+public class HiliteScorerNodeFactory extends NodeFactory {
     /**
      * {@inheritDoc}
      */
     @Override
-    public HiliteScorerNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new HiliteScorerNodeModel();
     }
 
@@ -53,10 +52,9 @@ public class HiliteScorerNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<HiliteScorerNodeModel> createNodeView(
-            final int i, final HiliteScorerNodeModel nodeModel) {
+    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
         if (i == 0) {
-            return new HiliteScorerNodeView(nodeModel);
+            return new HiliteScorerNodeView((HiliteScorerNodeModel)nodeModel);
 //        } else if (i == 1) {
 //            return new ROCView((HiliteScorerNodeModel)nodeModel);
         } else {

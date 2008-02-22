@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -385,7 +385,7 @@ public class ScatterPlotter extends TwoColumnPlotter {
             List<DotInfo> dotList = new ArrayList<DotInfo>();
             int rowNr = 0;
             for (DataRow row : rowsCont) {
-                double size = rowsCont.getDataTableSpec().getRowSizeFactor(row);
+                double size = rowsCont.getDataTableSpec().getRowSize(row);
                 ColorAttr colorAttr =
                         rowsCont.getDataTableSpec().getRowColor(row);
                 boolean isHilite = delegateIsHiLit(row.getKey().getId());

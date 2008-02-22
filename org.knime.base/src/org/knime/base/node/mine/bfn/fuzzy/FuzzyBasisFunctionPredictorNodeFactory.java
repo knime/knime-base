@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -22,23 +22,22 @@
 package org.knime.base.node.mine.bfn.fuzzy;
 
 import org.knime.base.node.mine.bfn.BasisFunctionPredictorNodeDialog;
-import org.knime.core.node.GenericNodeFactory;
-import org.knime.core.node.GenericNodeView;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeView;
 
 /**
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class FuzzyBasisFunctionPredictorNodeFactory 
-        extends GenericNodeFactory<FuzzyBasisFunctionPredictorNodeModel> {
-    
+public class FuzzyBasisFunctionPredictorNodeFactory extends NodeFactory {
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public FuzzyBasisFunctionPredictorNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new FuzzyBasisFunctionPredictorNodeModel();
     }
 
@@ -54,9 +53,8 @@ public class FuzzyBasisFunctionPredictorNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public GenericNodeView<FuzzyBasisFunctionPredictorNodeModel> createNodeView(
-            final int viewIndex, 
-            final FuzzyBasisFunctionPredictorNodeModel nodeModel) {
+    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
+        assert false;
         return null;
     }
 

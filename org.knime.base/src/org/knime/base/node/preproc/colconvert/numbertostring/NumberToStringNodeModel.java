@@ -1,7 +1,7 @@
  /* This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -278,7 +278,7 @@ public class NumberToStringNodeModel extends NodeModel {
                     newcells[i] = new StringCell(Integer.toString(iVal));
                 } else if (dc instanceof DoubleValue) {
                     double d = ((DoubleValue)dc).getDoubleValue();
-                    newcells[i] = new StringCell(Double.toString(d));
+                    newcells[i] = new StringCell("" + d);
                 } else {
                     newcells[i] = DataType.getMissingCell();
                 }

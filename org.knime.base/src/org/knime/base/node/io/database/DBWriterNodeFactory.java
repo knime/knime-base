@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -26,18 +26,19 @@ package org.knime.base.node.io.database;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class DBWriterNodeFactory extends NodeFactory<DBWriterNodeModel> {
+public class DBWriterNodeFactory extends NodeFactory {
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBWriterNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new DBWriterNodeModel();
     }
 
@@ -53,8 +54,8 @@ public class DBWriterNodeFactory extends NodeFactory<DBWriterNodeModel> {
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBWriterNodeModel> createNodeView(final int viewIndex,
-            final DBWriterNodeModel nodeModel) {
+    public NodeView createNodeView(final int viewIndex,
+            final NodeModel nodeModel) {
         return null;
     }
 

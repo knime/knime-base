@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -27,23 +27,18 @@ package org.knime.base.node.mine.bfn;
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
 
-import org.knime.core.node.GenericNodeView;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeView;
 
 
 /**
  * View to display basisfunction rule models.
  * 
  * @author Thomas Gabriel, University of Konstanz
- * @param <T> the type of <code>BasisFunctionLearnerNodeModel</code>
- * 
  */
-public class BasisFunctionLearnerNodeView
-    <T extends BasisFunctionLearnerNodeModel> 
-        extends GenericNodeView<T> {
-    
+public class BasisFunctionLearnerNodeView extends NodeView {
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(BasisFunctionLearnerNodeView.class);
 
@@ -55,7 +50,8 @@ public class BasisFunctionLearnerNodeView
      * 
      * @param model the bf model
      */
-    public BasisFunctionLearnerNodeView(final T model) {
+    public BasisFunctionLearnerNodeView(
+            final BasisFunctionLearnerNodeModel model) {
         super(model);
         m_content = new JEditorPane("text/html", "");
         m_content.setEditable(false);
@@ -70,7 +66,8 @@ public class BasisFunctionLearnerNodeView
      */
     @Override
     public void modelChanged() {
-        BasisFunctionLearnerNodeModel model = getNodeModel();
+        BasisFunctionLearnerNodeModel model = 
+            (BasisFunctionLearnerNodeModel)super.getNodeModel();
         ModelContentRO pp = model.getModelInfo();
         if (pp == null) {
             m_content.setText("");

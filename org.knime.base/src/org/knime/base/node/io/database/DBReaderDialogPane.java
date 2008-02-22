@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -32,19 +32,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import org.knime.core.node.GenericNodeDialogPane;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.PortObjectSpec;
 
 
 /**
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class DBReaderDialogPane extends GenericNodeDialogPane {
+public class DBReaderDialogPane extends NodeDialogPane {
     
     private final DBDialogPane m_loginPane = new DBDialogPane();
   
@@ -53,11 +53,10 @@ public class DBReaderDialogPane extends GenericNodeDialogPane {
     /**
      * Creates new dialog.
      */
-    public DBReaderDialogPane() {
+    DBReaderDialogPane() {
         super();
         m_statmnt.setFont(DBDialogPane.FONT);
-        m_statmnt.setText("SELECT * FROM " 
-                + DBQueryConnection.TABLE_PLACEHOLDER);
+        m_statmnt.setText("SELECT * FROM <table>");
         final JScrollPane scrollPane = new JScrollPane(m_statmnt,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -74,14 +73,13 @@ public class DBReaderDialogPane extends GenericNodeDialogPane {
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final PortObjectSpec[] specs) throws NotConfigurableException {
+            final DataTableSpec[] specs) throws NotConfigurableException {
         m_loginPane.loadSettingsFrom(settings, specs);
         // statement
         String statement = 
             settings.getString(DBConnection.CFG_STATEMENT, null); 
         m_statmnt.setText(statement == null 
-                ? "SELECT * FROM " + DBQueryConnection.TABLE_PLACEHOLDER 
-                : statement);
+                ? "SELECT * FROM <table>" : statement);
     }
 
     /**

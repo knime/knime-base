@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -31,8 +31,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,11 +45,11 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.PortObjectSpec;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.util.KnimeEncryption;
 import org.knime.core.util.SimpleFileFilter;
@@ -95,9 +93,6 @@ public class DBDialogPane extends JPanel {
     static final StringHistory DATABASE_URLS = StringHistory.getInstance(
             "database_urls");
     
-    /** Default user place holder, <code>&ltuser&gt</code>. */
-    static final String DFT_USER_TAG = "<user>";
-    
     /**
      * Creates new dialog.
      */
@@ -140,14 +135,6 @@ public class DBDialogPane extends JPanel {
         userPanel.setBorder(BorderFactory.createTitledBorder(" User name "));
         m_user.setPreferredSize(new Dimension(400, 20));
         m_user.setFont(FONT);
-        m_user.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(final FocusEvent fe) {
-                if (m_user.getText().equals(DFT_USER_TAG)) {
-                    m_user.setText("");
-                }
-            } 
-        });
         userPanel.add(m_user);
         super.add(userPanel);
         JPanel passPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -187,7 +174,7 @@ public class DBDialogPane extends JPanel {
      * @param specs input spec
      */
     protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final PortObjectSpec[] specs) {
+            final DataTableSpec[] specs) {
         // database driver and name
         m_driver.removeAllItems();
         m_db.removeAllItems();
@@ -199,7 +186,7 @@ public class DBDialogPane extends JPanel {
                 dbName == null ? "jdbc:odbc:<database_name>" : dbName);
         // user
         String user = settings.getString("user", null);
-        m_user.setText(user == null ? DFT_USER_TAG : user);
+        m_user.setText(user == null ? "<user>" : user);
         // password
         String password = settings.getString("password", null);
         m_pass.setText(password == null ? "" : password);

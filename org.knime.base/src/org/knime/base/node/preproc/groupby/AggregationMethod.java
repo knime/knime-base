@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -25,24 +25,20 @@
 
 package org.knime.base.node.preproc.groupby;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.util.MutableInteger;
-
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.util.MutableInteger;
 
 
 /**
@@ -72,19 +68,11 @@ public enum AggregationMethod {
     LAST("Last", false, "Last({1})", null, false),
     /**Takes the value which occurs most.*/
     MODE("Mode", false, "Mode({1})", null, true),
-    /**Takes the value which occurs most.*/
-    CONCATENATE("Concatenate", false, "Concatenate({1})", StringCell.TYPE,
-            false),
-    /**Takes the value which occurs most.*/
-    UNIQUE_CONCATENATE("Unique concatenate", false, "Unique concatenate({1})",
-            StringCell.TYPE, true),
     /**Counts the number of group members.*/
     COUNT("Count", false, "Count({1})", IntCell.TYPE, false);
 
     /**The column name place holder.*/
-    private static final String PLACE_HOLDER = "{1}";
-
-    private static final String CONCATENATOR = ", ";
+    private static final String COL_NAME_PLACE_HOLDER = "{1}";
 
 
     private final class MinOperator extends AggregationOperator {
@@ -94,7 +82,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        MinOperator(final int maxUniqueValues) {
+        public MinOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -125,7 +113,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_minVal = Double.NaN;
         }
     }
@@ -137,7 +125,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        MaxOperator(final int maxUniqueValues) {
+        public MaxOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -168,7 +156,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_maxVal = Double.NaN;
         }
     }
@@ -181,7 +169,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        MeanOperator(final int maxUniqueValues) {
+        public MeanOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -211,7 +199,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_sum = 0;
             m_count = 0;
         }
@@ -224,7 +212,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        SumOperator(final int maxUniqueValues) {
+        public SumOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -254,7 +242,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_valid = false;
             m_sum = 0;
         }
@@ -265,7 +253,7 @@ public enum AggregationMethod {
         /**Constructor for class VarianceOperator.
          * @param maxUniqueValues
          */
-        VarianceOperator(final int maxUniqueValues) {
+        public VarianceOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -309,7 +297,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_sumSquare = 0;
             m_sum = 0;
             m_validCount = 0;
@@ -324,7 +312,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        FirstOperator(final int maxUniqueValues) {
+        public FirstOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -354,7 +342,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_firstCell = null;
         }
     }
@@ -366,7 +354,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        LastOperator(final int maxUniqueValues) {
+        public LastOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -394,7 +382,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_lastCell = null;
         }
     }
@@ -406,7 +394,7 @@ public enum AggregationMethod {
         /**Constructor for class MinOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        ModeOperator(final int maxUniqueValues) {
+        public ModeOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
             try {
                 m_valCounter =
@@ -463,117 +451,10 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
-            m_valCounter.clear();
-        }
-    }
-
-    private final class ConcatenateOperator extends AggregationOperator {
-
-        private final StringBuilder m_buf = new StringBuilder();
-
-        private boolean m_first = true;
-
-        /**Constructor for class Concatenate.
-         * @param maxUniqueValues the maximum number of unique values
-         */
-        public ConcatenateOperator(final int maxUniqueValues) {
-            super(maxUniqueValues);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected boolean computeInternal(final DataCell cell) {
-            if (m_first) {
-                m_first = false;
-            } else {
-                m_buf.append(CONCATENATOR);
+        public void resetInternal() {
+            if (m_valCounter != null) {
+                m_valCounter.clear();
             }
-            m_buf.append(cell.toString());
-            return false;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected DataCell getResultInternal() {
-            return new StringCell(m_buf.toString());
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected void resetInternal() {
-            m_buf.setLength(0);
-            m_first = true;
-        }
-    }
-
-    private final class UniqueConcatenateOperator extends AggregationOperator {
-
-        private final Set<String> m_vals;
-
-        private final StringBuilder m_buf = new StringBuilder();
-
-        private boolean m_first = true;
-
-        /**Constructor for class Concatenate.
-         * @param maxUniqueValues the maximum number of unique values
-         */
-        public UniqueConcatenateOperator(final int maxUniqueValues) {
-            super(maxUniqueValues);
-            try {
-                m_vals = new HashSet<String>(maxUniqueValues);
-            } catch (final OutOfMemoryError e) {
-                throw new IllegalArgumentException(
-                        "Maximum unique values number to big");
-            }
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected boolean computeInternal(final DataCell cell) {
-            final String val = cell.toString();
-            if (m_vals.contains(val)) {
-                return false;
-            }
-            //check if the set contains more values than allowed
-            //before adding a new value
-            if (m_vals.size() >= getMaxUniqueValues()) {
-                return true;
-            }
-            m_vals.add(val);
-            if (m_first) {
-                m_first = false;
-            } else {
-                m_buf.append(CONCATENATOR);
-            }
-            m_buf.append(val);
-            return false;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected DataCell getResultInternal() {
-            return new StringCell(m_buf.toString());
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected void resetInternal() {
-            m_buf.setLength(0);
-            m_first = true;
-            m_vals.clear();
         }
     }
 
@@ -584,7 +465,7 @@ public enum AggregationMethod {
         /**Constructor for class CountOperator.
          * @param maxUniqueValues the maximum number of unique values
          */
-        CountOperator(final int maxUniqueValues) {
+        public CountOperator(final int maxUniqueValues) {
             super(maxUniqueValues);
         }
 
@@ -609,7 +490,7 @@ public enum AggregationMethod {
          * {@inheritDoc}
          */
         @Override
-        protected void resetInternal() {
+        public void resetInternal() {
             m_counter = 0;
         }
     }
@@ -619,7 +500,6 @@ public enum AggregationMethod {
     private final String m_columnNamePattern;
     private final DataType m_dataType;
     private final boolean m_usesLimit;
-    private final boolean m_keepColSpec;
 
     /**Constructor for class AggregationMethod.
      * @param label user readable label
@@ -639,9 +519,6 @@ public enum AggregationMethod {
         m_columnNamePattern = columnNamePattern;
         m_dataType = type;
         m_usesLimit = usesLimit;
-        //if no data type is defined the original column spec should be
-        //preserved
-        m_keepColSpec = (m_dataType == null);
     }
 
 
@@ -674,9 +551,6 @@ public enum AggregationMethod {
             case FIRST:     return new FirstOperator(maxUniqueValues);
             case LAST:      return new LastOperator(maxUniqueValues);
             case MODE:      return new ModeOperator(maxUniqueValues);
-            case CONCATENATE: return new ConcatenateOperator(maxUniqueValues);
-            case UNIQUE_CONCATENATE:
-                return new UniqueConcatenateOperator(maxUniqueValues);
             case COUNT:     return new CountOperator(maxUniqueValues);
         }
         throw new IllegalStateException("No operator found");
@@ -690,39 +564,21 @@ public enum AggregationMethod {
         if (m_columnNamePattern == null || m_columnNamePattern.length() < 1) {
             return origColumnName;
         }
-        return m_columnNamePattern.replace(PLACE_HOLDER, origColumnName);
+        return m_columnNamePattern.replace(COL_NAME_PLACE_HOLDER,
+                origColumnName);
     }
 
     /**
-     * @param origSpec the original {@link DataColumnSpec}
-     * @param keepColName <code>true</code> if the original column name
-     * should be kept
-     * @return the new {@link DataColumnSpec} for the aggregated column
+     * @param origDataType the original {@link DataType}
+     * @return the {@link DataType} of the aggregation column
      */
-    public DataColumnSpec createColumnSpec(final DataColumnSpec origSpec,
-            final boolean keepColName) {
-        if (origSpec == null) {
-            throw new NullPointerException(
-                    "Original column spec must not be null");
-        }
-        final DataType type;
+    public DataType getColumnType(final DataType origDataType) {
         if (m_dataType == null) {
-            type = origSpec.getType();
-        } else {
-            type = m_dataType;
+            return origDataType;
         }
-        final DataColumnSpecCreator specCreator;
-        if (m_keepColSpec) {
-             specCreator = new DataColumnSpecCreator(origSpec);
-        } else {
-            specCreator = new DataColumnSpecCreator(origSpec.getName(), type);
-        }
-
-        if (!keepColName) {
-            specCreator.setName(getColumnName(origSpec.getName()));
-        }
-        return specCreator.createSpec();
+        return m_dataType;
     }
+
 
     /**
      * @return <code>true</code> if this method checks the maximum unique

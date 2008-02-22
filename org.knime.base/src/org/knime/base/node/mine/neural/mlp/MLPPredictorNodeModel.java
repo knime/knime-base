@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -32,8 +32,6 @@ import java.util.Set;
 import org.knime.base.data.neural.Layer;
 import org.knime.base.data.neural.MultiLayerPerceptron;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnDomain;
-import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
@@ -313,20 +311,12 @@ public class MLPPredictorNodeModel extends NodeModel {
                 allappSpec[0] = appendSpec;
                 Layer outputlayer = m_mlp.getLayer(m_mlp.getNrLayers() - 1);
                 int index = 1;
-                DataColumnDomainCreator domaincreator =
-                        new DataColumnDomainCreator();
-                domaincreator.setLowerBound(new DoubleCell(0));
-                domaincreator.setUpperBound(new DoubleCell(1));
-                DataColumnDomain domain = domaincreator.createDomain();
                 for (int i = 0; i < m_nrPossValues; i++) {
-                    name =
-                            outputlayer.getPerceptron(i).getClassValue()
+                    name = outputlayer.getPerceptron(i).getClassValue()
                                     + " (Neuron " + i + ")";
                     type = DoubleCell.TYPE;
-                    DataColumnSpecCreator colspeccreator =
-                            new DataColumnSpecCreator(name, type);
-                    colspeccreator.setDomain(domain);
-                    allappSpec[index] = colspeccreator.createSpec();
+                    allappSpec[index] =
+                            new DataColumnSpecCreator(name, type).createSpec();
                     index++;
                 }
             }

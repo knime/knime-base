@@ -2,7 +2,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -107,11 +107,6 @@ public class NewJoinerNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        if ((m_settings.secondTableColumn() == null)
-                || (m_settings.secondTableColumn().length() < 1)) {
-            throw new InvalidSettingsException(
-                    "No column from the second table selected");
-        }
         if (!NewJoinerSettings.ROW_KEY_IDENTIFIER.equals(
                 m_settings.secondTableColumn()) 
                 && inSpecs[1].findColumnIndex(m_settings.secondTableColumn()) 
@@ -396,7 +391,7 @@ public class NewJoinerNodeModel extends NodeModel {
     @Override
     protected void reset() {
         m_hiliteHandler.removeAllHiLiteHandlers();
-        for (int i = 0; i < getNrInPorts(); i++) {
+        for (int i = 0; i < getNrDataIns(); i++) {
             HiLiteHandler hdl = getInHiLiteHandler(i);
             m_hiliteHandler.addHiLiteHandler(hdl);
         }

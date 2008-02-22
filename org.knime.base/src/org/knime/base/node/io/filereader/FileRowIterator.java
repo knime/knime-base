@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -194,29 +194,6 @@ class FileRowIterator extends RowIterator {
 
     } // FileRowIterator(FileTableSpec)
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        m_source.close();
-        super.finalize();
-    }
-
-    /**
-     * Call this before releasing the last reference to this iterator. It closes
-     * the underlying source. Especially if the iterator didn't run to the end
-     * of the table, it is required to call this method. Otherwise the file
-     * handle is not released until the garbage collector cleans up. A call to
-     * {@link #next()} after disposing of the iterator has undefined behavior.
-     */
-    public void dispose() {
-        try {
-            m_source.close();
-        } catch (IOException ioe) {
-            // then don't close it
-        }
-    }
 
     /**
      * {@inheritDoc}
@@ -264,9 +241,6 @@ class FileRowIterator extends RowIterator {
             result = false;
         }
 
-        if (!result) {
-            m_tokenizer.closeSourceStream();
-        }
         return result;
     }
 
@@ -294,6 +268,7 @@ class FileRowIterator extends RowIterator {
                             + m_frSettings.getDataFileLocation().toString()
                             + "'.");
         }
+
         // counts the columns (tokens) read from the file
         int readCols = 0;
         // counts the number of columns we've created (excl. skipped columns)
@@ -309,8 +284,10 @@ class FileRowIterator extends RowIterator {
                     + m_frSettings.getDataFileLocation() + "')", m_tokenizer
                     .getLineNumber(), new StringCell("ERR"), row);
         }
+
         // we made sure before that there is at least one token in the stream
         assert rowHeader != null;
+
         // Now, read the columns until we have enough or see a row delimiter
         while (readCols < colsToRead) {
 
@@ -329,6 +306,7 @@ class FileRowIterator extends RowIterator {
                 // we need the row delim in the file, for after the loop
                 break;
             }
+
             // check if we have a missing cell (i.e. nothing between two
             // column delimiters).
             if (token.equals("") && (!m_tokenizer.lastTokenWasQuoted())) {
@@ -340,16 +318,18 @@ class FileRowIterator extends RowIterator {
             } else {
                 isMissingCell = false;
             }
+
             if (!m_skipColumns[readCols]) {
-                DataColumnSpec cSpec = m_tableSpec.getColumnSpec(createdCols);
+            DataColumnSpec cSpec = m_tableSpec.getColumnSpec(createdCols);
                 // now get that new cell
                 // (it throws an exception at us if it couldn't)
-                row[createdCols] =
-                        createNewDataCellOfType(cSpec.getType(), token,
-                                isMissingCell, rowHeader, row);
+                row[createdCols] = createNewDataCellOfType(cSpec.getType(),
+                        token, isMissingCell, rowHeader, row);
                 createdCols++;
             }
+
             readCols++;
+
         } // end of while(readCols < colsToRead)
 
         int lineNr = m_tokenizer.getLineNumber();
@@ -422,6 +402,7 @@ class FileRowIterator extends RowIterator {
             m_exec.setProgress(readBytes / m_source.getFileSize());
             m_lastReport++;
         }
+
         return new DefaultRow(rowHeader, row);
     } // next()
 
@@ -455,12 +436,12 @@ class FileRowIterator extends RowIterator {
         if (type.equals(StringCell.TYPE)) {
             return new StringCell(data);
         } else if (type.equals(IntCell.TYPE)) {
-            // for numbers, trim data and accept empty tokens as missing cells
-            String trimmed = data.trim();
-            if (trimmed.isEmpty()) {
-                return DataType.getMissingCell();
-            }
             try {
+                // trim numbers, and accept empty as missing value
+                String trimmed = data.trim();
+                if (trimmed.length() == 0) {
+                    return DataType.getMissingCell();
+                }
                 int val = Integer.parseInt(trimmed);
                 return new IntCell(val);
             } catch (NumberFormatException nfe) {
@@ -472,18 +453,14 @@ class FileRowIterator extends RowIterator {
                         + m_tokenizer.getLineNumber() + " (" + rowHeader
                         + ") read '" + data + "' for an integer (in column #"
                         + col + " '" + m_tableSpec.getColumnSpec(col).getName()
-                        + "').", m_tokenizer.getLineNumber(), rowHeader, row);
+                        + "').", m_tokenizer.getLineNumber(), rowHeader,
+                        row);
             }
         } else if (type.equals(DoubleCell.TYPE)) {
-            // for numbers, trim data and accept empty tokens as missing cells
-            String trimmed = data.trim();
-            if (trimmed.isEmpty()) {
-                return DataType.getMissingCell();
-            }
-            String dblData = trimmed;
+            String dblData = data;
             if (m_customDecimalSeparator) {
                 // we must reject tokens with a '.'.
-                if (trimmed.indexOf('.') >= 0) {
+                if (data.indexOf('.') >= 0) {
                     int col = 0;
                     while (col < row.length && row[col] != null) {
                         col++;
@@ -493,12 +470,17 @@ class FileRowIterator extends RowIterator {
                             + ") read '" + data
                             + "' for a floating point (in column #" + col
                             + " '" + m_tableSpec.getColumnSpec(col).getName()
-                            + "').", m_tokenizer.getLineNumber(), rowHeader,
-                            row);
+                            + "').",
+                            m_tokenizer.getLineNumber(), rowHeader, row);
                 }
-                dblData = trimmed.replace(m_decSeparator, '.');
+                dblData = data.replace(m_decSeparator, '.');
             }
             try {
+                // trim numbers, and accept empty as missing value
+                dblData = dblData.trim();
+                if (dblData.length() == 0) {
+                    return DataType.getMissingCell();
+                }
                 double val = Double.parseDouble(dblData);
                 return new DoubleCell(val);
             } catch (NumberFormatException nfe) {
@@ -509,8 +491,9 @@ class FileRowIterator extends RowIterator {
                 throw prepareForException("Wrong data format. In line "
                         + m_tokenizer.getLineNumber() + " (" + rowHeader
                         + ") read '" + data
-                        + "' for a floating point (in column #" + col + " '"
-                        + m_tableSpec.getColumnSpec(col).getName() + "').",
+                        + "' for a floating point (in column #" + col
+                        + " '" + m_tableSpec.getColumnSpec(col).getName()
+                        + "').",
                         m_tokenizer.getLineNumber(), rowHeader, row);
             }
         } else if (type.equals(SmilesTypeHelper.INSTANCE.getSmilesType())) {
@@ -531,7 +514,8 @@ class FileRowIterator extends RowIterator {
                 }
                 msg +=
                         " (line: " + m_tokenizer.getLineNumber() + "("
-                                + rowHeader + "), column #" + col + " '"
+                                + rowHeader + "), column #" + col
+                                + " '"
                                 + m_tableSpec.getColumnSpec(col).getName()
                                 + "').";
                 throw prepareForException(msg, m_tokenizer.getLineNumber(),
@@ -704,7 +688,7 @@ class FileRowIterator extends RowIterator {
      * source, the result is always false.
      *
      * @return true, if the source was read til the end and it is a ZIP archive
-     *         with more than one entry
+     * with more than one entry
      */
     public boolean zippedSourceHasMoreEntries() {
         return m_source.hasMoreZipEntries();
@@ -717,5 +701,6 @@ class FileRowIterator extends RowIterator {
     public String getZipEntryName() {
         return m_source.getZipEntryName();
     }
+
 
 }

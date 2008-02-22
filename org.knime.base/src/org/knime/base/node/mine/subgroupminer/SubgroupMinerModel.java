@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -483,32 +483,17 @@ public class SubgroupMinerModel extends NodeModel implements HiLiteMapper {
             throws InvalidSettingsException {
         // check if there is at least one BitVector column
         boolean hasBitVectorColumn = false;
-        boolean autoguessed = false;
-        boolean autoconfigured = false;
         for (int i = 0; i < inSpecs[0].getNumColumns(); i++) {
             if (inSpecs[0].getColumnSpec(i).getType().isCompatible(
                     BitVectorValue.class)) {
                 hasBitVectorColumn = true;
-                if (autoconfigured) {
-                    autoguessed = true;
-                    autoconfigured = false;
-                }
-                if (m_bitVectorColumn.getStringValue().equals("")) {
-                    m_bitVectorColumn.setStringValue(
-                            inSpecs[0].getColumnSpec(i).getName());
-                    autoconfigured = true;
-                }
             }
         }
         if (!hasBitVectorColumn) {
             throw new InvalidSettingsException(
                     "Expecting at least on BitVector column");
         }
-        if (autoguessed) {
-            setWarningMessage("Auto-guessed the bitvector column: " 
-                    + m_bitVectorColumn.getStringValue());
-        }
-        if (m_bitVectorColumn.getStringValue().equals("")
+        if (m_bitVectorColumn == null
                 || !inSpecs[0].containsName(
                         m_bitVectorColumn.getStringValue())) {
             throw new InvalidSettingsException(

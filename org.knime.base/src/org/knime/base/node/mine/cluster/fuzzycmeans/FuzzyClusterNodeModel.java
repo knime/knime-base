@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -30,10 +30,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import org.knime.base.node.mine.cluster.assign.Prototype;
+import org.knime.base.data.filter.column.FilterColumnTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.container.CellFactory;
@@ -102,6 +103,11 @@ public class FuzzyClusterNodeModel extends NodeModel {
      * Key to store the lambda value in the config.
      */
     public static final String LAMBDAVALUE_KEY = "lambda";
+
+    /**
+     * Key to store the columns used for clustering in the PredParams.
+     */
+    public static final String COLUMNSUSED_KEY = "colsused";
     
     /**
      * Key to store whether the clustering should be performed in memory
@@ -229,11 +235,6 @@ public class FuzzyClusterNodeModel extends NodeModel {
      */
     private boolean m_measures;
 
-    /*
-     * DataTableSpec of table used for clustering.
-     */
-    private DataTableSpec m_clusterSpec;
-    
     /**
      * Constructor, remember parent and initialize status.
      */
@@ -304,13 +305,9 @@ public class FuzzyClusterNodeModel extends NodeModel {
                 z++;
             }
         }
-        ColumnRearranger colre = new ColumnRearranger(m_spec);
-        colre.keepOnly(columns);
-        m_clusterSpec = colre.createSpec();
-        BufferedDataTable filteredtable =
-                exec.createColumnRearrangeTable(inData[INPORT], colre, exec);
-        
-        
+        DataTable filteredtable = new FilterColumnTable(inData[0], true,
+                columns);
+
         // get dimension of feature space
         int dimension = filteredtable.getDataTableSpec().getNumColumns();
         m_fcmAlgo.init(nrRows, dimension, filteredtable);
@@ -681,26 +678,27 @@ public class FuzzyClusterNodeModel extends NodeModel {
         /*
          * Determine the columns that have been used for clustering.
          */
-        ModelContentWO specWO =
-                predParams.addModelContent(Prototype.CFG_COLUMNSUSED);
-        m_clusterSpec.save(specWO);
+        String[] colsused = new String[m_list.size()];
+        int i = 0;
+        for (DataColumnSpec colspec : m_spec) {
+            if (m_list.contains(colspec.getName())) {
+                colsused[i] = colspec.getName();
+                i++;
+            }
+        }
+        predParams.addStringArray(COLUMNSUSED_KEY, colsused);
 
         /*
          * Store all clusters in the predParams.
          */
         double[][] clusters = m_fcmAlgo.getClusterCentres();
-        int nrclusters = clusters.length;
-        if (m_noise) {
-            nrclusters -= 1;
-        }
-        ModelContentWO protos =
-                predParams.addModelContent(Prototype.CFG_PROTOTYPE);
-        for (int c = 0; c < nrclusters; c++) {
+        for (int c = 0; c < clusters.length; c++) {
             double[] cluster = clusters[c];
-            ModelContentWO protoWO = protos.addModelContent(CLUSTER_KEY + c);
-            Prototype proto =
-                    new Prototype(cluster, new StringCell(CLUSTER_KEY + c));
-            proto.save(protoWO);
+            if (m_noise && c == clusters.length - 1) {
+                predParams.addDouble(NOISESPEC_KEY, m_delta);
+                break;
+            }
+            predParams.addDoubleArray(CLUSTER_KEY + c, cluster);
         }
 
     }

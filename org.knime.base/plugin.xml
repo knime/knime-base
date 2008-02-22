@@ -178,37 +178,20 @@
       </node>
       <node
             category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"
-            id="org.knime.base.node.viz.property.color.ColorManager2NodeFactory">
+            factory-class="org.knime.base.node.viz.property.color.ColorManagerNodeFactory"
+            id="org.knime.base.node.viz.property.color.ColorManagerNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"
-            category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"
-            id="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"/>
-      <node
-	        after="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"
+	        after="org.knime.base.node.viz.property.size.SizeManagerNodeFactory"
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
             id="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
-            category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.color.ColorAppender2NodeFactory"
-            id="org.knime.base.node.viz.property.color.ColorAppenderNodeFactory">
-      </node>
-      <node
-            after="org.knime.base.node.viz.property.color.ColorAppenderNodeFactory"
-            category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory"
-            id="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory">
-      </node>
-      <node
-            after="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory"
-            category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.shape.ShapeAppenderNodeFactory"
-            id="org.knime.base.node.viz.property.shape.ShapeAppenderNodeFactory">
+                  after="org.knime.base.node.viz.property.size.ShapeManagerNodeFactory"
+                  category-path="/view/property"
+                  factory-class="org.knime.base.node.viz.property.color.ColorAppenderNodeFactory"
+                  id="org.knime.base.node.viz.property.color.ColorAppenderNodeFactory">
       </node>
       <node
             category-path="/view"
@@ -362,6 +345,11 @@
             factory-class="org.knime.base.node.preproc.rename.RenameNodeFactory"
             id="org.knime.base.node.preproc.rename.RenameNodeFactory"/>
       <node
+            after="org.knime.base.node.viz.property.color.ColorManagerNodeFactory"
+            category-path="/view/property"
+            factory-class="org.knime.base.node.viz.property.size.SizeManagerNodeFactory"
+            id="org.knime.base.node.viz.property.size.SizeManagerNodeFactory"/>
+      <node
             category-path="/mining/subgroup"
             factory-class="org.knime.base.node.mine.subgroupminer.BitVectorGeneratorNodeFactory"
             id="org.knime.base.node.mine.subgroupminer.BitVectorGeneratorNodeFactory"/>
@@ -402,9 +390,37 @@
            factory-class="org.knime.base.node.viz.histogram.node.HistogramNodeFactory"
            id="org.knime.base.node.viz.histogram.node.HistogramNodeFactory"/>
      <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.xvalidation.XValidateNodeFactory"
+           id="org.knime.base.node.meta.xvalidation.XValidateNodeFactory"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.MetaNodeFactory11"
+           id="org.knime.base.node.meta.MetaNodeFactory11"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.MetaNodeFactory12"
+           id="org.knime.base.node.meta.MetaNodeFactory12"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.MetaNodeFactory21"
+           id="org.knime.base.node.meta.MetaNodeFactory21"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.MetaNodeFactory22"
+           id="org.knime.base.node.meta.MetaNodeFactory22"/>
+     <node
            category-path="/view"
            factory-class="org.knime.base.node.viz.histogram.node.FixedColumnHistogramNodeFactory"
            id="org.knime.base.node.viz.histogram.node.FixedColumnHistogramNodeFactory"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.looper.LooperFactory"
+           id="org.knime.base.node.meta.looper.LooperFactory"/>
+     <node
+           category-path="/meta"
+           factory-class="org.knime.base.node.meta.MetaNodeFactory01"
+           id="org.knime.base.node.meta.MetaNodeFactory01"/>
      <node
            category-path="/manipulation/column"
            factory-class="org.knime.base.node.preproc.normalize.NormalizerApplyNodeFactory"
@@ -518,10 +534,6 @@
             factory-class="org.knime.base.node.mine.mds.MDSPivotNodeFactory"
             id="org.knime.base.node.mine.mds.MDSPivotNodeFactory"/>
       <node
-            category-path="/mining/mds"
-            factory-class="org.knime.base.node.mine.mds.MDSPivotDataNodeFactory"
-            id="org.knime.base.node.mine.mds.MDSPivotDataNodeFactory"/>
-      <node
             category-path="/mining/modeleval"
             factory-class="org.knime.base.node.viz.enrich.EnrichmentPlotterFactory"
             id="org.knime.chem.node.viz.enrich.EnrichmentPlotterFactory"/>
@@ -580,57 +592,7 @@
       <node
             category-path="/manipulation/column"
             factory-class="org.knime.base.node.preproc.colcombine.ColCombineNodeFactory"
-            id="org.knime.base.node.preproc.colcombine.ColCombineNodeFactory">
-      </node>
-      <node
-            category-path="/mining/clustering"
-            factory-class="org.knime.base.node.mine.cluster.assign.ClusterAssignerNodeFactory"
-            id="org.knime.base.node.mine.cluster.assign.ClusterAssignerNodeFactory">
-      </node>
-      <node
-            category-path="/mining/modeleval"
-            factory-class="org.knime.base.node.viz.roc.ROCNodeFactory"
-            id="org.knime.base.node.viz.roc.ROCNodeFactory">
-      </node>
-      <node
-            category-path="/meta"
-            factory-class="org.knime.base.node.meta.xvalidation.XValidatePartitionerFactory"
-            id="org.knime.base.node.meta.xvalidation.XValidatePartitionerFactory">
-      </node>
-      <node
-            category-path="/meta"
-            factory-class="org.knime.base.node.meta.xvalidation.AggregateOutputNodeFactory"
-            id="org.knime.base.node.meta.xvalidation.AggregateOutputNodeFactory">
-      </node>
-      <node
-            category-path="/meta"
-            factory-class="org.knime.base.node.meta.looper.ForLoopHeadNodeFactory"
-            id="org.knime.base.node.meta.looper.ForLoopHeadNodeFactory">
-      </node>
-      <node
-            category-path="/meta"
-            factory-class="org.knime.base.node.meta.looper.ForLoopTailNodeFactory"
-            id="org.knime.base.node.meta.looper.ForLoopTailNodeFactory">
-      </node>
-         <node
-         category-path="/database"
-         factory-class="org.knime.base.node.io.database.DBConnectionNodeFactory"
-         id="org.knime.base.node.io.database.DBConnectionNodeFactory">
-   	  </node>
-      <node
-         category-path="/database"
-         factory-class="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
-         id="org.knime.base.node.io.database.DBConnectionWriterNodeFactory">
-      </node>
-      <node
-         category-path="/database"
-         factory-class="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"
-         id="org.knime.base.node.io.database.DBReaderConnectionNodeFactory">
-      </node>
-            <node
-            category-path="/manipulation/column"
-            factory-class="org.knime.base.node.preproc.cellsplitbypos.CellSplitterByPosNodeFactory"
-            id="org.knime.base.node.preproc.cellsplitbypos.CellSplitterByPositionNodeFactory">
+            id="org.knime.base.node.preproc.colcombine.ColCombineSimNodeFactory">
       </node>
    </extension>
    

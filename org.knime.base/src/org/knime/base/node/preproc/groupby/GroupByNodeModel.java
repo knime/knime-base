@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany.
  * Chair for Bioinformatics and Information Mining
  * Prof. Dr. Michael R. Berthold
@@ -87,21 +87,17 @@ public class GroupByNodeModel extends NodeModel {
     protected static final String CFG_MOVE_GROUP_BY_COLS_2_FRONT =
         "moveGroupByCols2Front";
 
-    /**Configuration key for the keep original column name option.*/
-    protected static final String CFG_KEEP_COLUMN_NAME =
-        "keepColumnName";
-
 
 
     private final SettingsModelFilterString m_groupByCols =
-        new SettingsModelFilterString(CFG_GROUP_BY_COLUMNS);
+        new SettingsModelFilterString(GroupByNodeModel.CFG_GROUP_BY_COLUMNS);
 
     private final SettingsModelString m_numericColMethod =
-        new SettingsModelString(CFG_NUMERIC_COL_METHOD,
+        new SettingsModelString(GroupByNodeModel.CFG_NUMERIC_COL_METHOD,
                 AggregationMethod.getDefaultNumericMethod().getLabel());
 
     private final SettingsModelString m_nominalColMethod =
-        new SettingsModelString(CFG_NOMINAL_COL_METHOD,
+        new SettingsModelString(GroupByNodeModel.CFG_NOMINAL_COL_METHOD,
                 AggregationMethod.getDefaultNominalMethod().getLabel());
 
     private final SettingsModelIntegerBounded m_maxUniqueValues =
@@ -109,16 +105,14 @@ public class GroupByNodeModel extends NodeModel {
                 Integer.MAX_VALUE);
 
     private final SettingsModelBoolean m_enableHilite =
-        new SettingsModelBoolean(CFG_ENABLE_HILITE, false);
+        new SettingsModelBoolean(GroupByNodeModel.CFG_ENABLE_HILITE, false);
 
     private final SettingsModelBoolean m_sortInMemory =
-        new SettingsModelBoolean(CFG_SORT_IN_MEMORY, false);
+        new SettingsModelBoolean(GroupByNodeModel.CFG_SORT_IN_MEMORY, false);
 
     private final SettingsModelBoolean m_moveGroupCols2Front =
-        new SettingsModelBoolean(CFG_MOVE_GROUP_BY_COLS_2_FRONT, false);
-
-    private final SettingsModelBoolean m_keepColumnName =
-        new SettingsModelBoolean(CFG_KEEP_COLUMN_NAME, false);
+        new SettingsModelBoolean(
+                GroupByNodeModel.CFG_MOVE_GROUP_BY_COLS_2_FRONT, false);
 
     /**
      * Node returns a new hilite handler instance.
@@ -201,7 +195,6 @@ public class GroupByNodeModel extends NodeModel {
         m_enableHilite.saveSettingsTo(settings);
         m_sortInMemory.saveSettingsTo(settings);
         m_moveGroupCols2Front.saveSettingsTo(settings);
-        m_keepColumnName.saveSettingsTo(settings);
     }
 
     /**
@@ -223,11 +216,6 @@ public class GroupByNodeModel extends NodeModel {
         m_enableHilite.validateSettings(settings);
         m_sortInMemory.validateSettings(settings);
         m_moveGroupCols2Front.validateSettings(settings);
-        try {
-            m_keepColumnName.validateSettings(settings);
-        } catch (final InvalidSettingsException e) {
-            //be compatible to previous versions
-        }
     }
 
     /**
@@ -243,12 +231,6 @@ public class GroupByNodeModel extends NodeModel {
        m_enableHilite.loadSettingsFrom(settings);
        m_sortInMemory.loadSettingsFrom(settings);
        m_moveGroupCols2Front.loadSettingsFrom(settings);
-       try {
-           m_keepColumnName.loadSettingsFrom(settings);
-       } catch (final InvalidSettingsException e) {
-           //be compatible to previous versions
-           m_keepColumnName.setBooleanValue(false);
-       }
     }
 
     /**
@@ -309,8 +291,7 @@ public class GroupByNodeModel extends NodeModel {
             AggregationMethod.getMethod4SettingsModel(m_nominalColMethod);
         final DataTableSpec spec = GroupByTable.createGroupByTableSpec(
                 origSpec, inclList, numericMethod, nominalMethod,
-                m_moveGroupCols2Front.getBooleanValue(),
-                m_keepColumnName.getBooleanValue());
+                m_moveGroupCols2Front.getBooleanValue());
         return new DataTableSpec[] {spec};
     }
 
@@ -336,10 +317,9 @@ public class GroupByNodeModel extends NodeModel {
         final boolean sortInMemory = m_sortInMemory.getBooleanValue();
         final boolean enableHilite = m_enableHilite.getBooleanValue();
         final boolean move2Front = m_moveGroupCols2Front.getBooleanValue();
-        final boolean keepColName = m_keepColumnName.getBooleanValue();
         final GroupByTable resultTable = new GroupByTable(table, includeList,
                 numericMethod, noneNumericMethod, maxUniqueVals, sortInMemory,
-                enableHilite, move2Front, keepColName, exec);
+                enableHilite, move2Front, exec);
         if (m_enableHilite.getBooleanValue()) {
             m_hilite.setMapper(new DefaultHiLiteMapper(
                     resultTable.getHiliteMapping()));

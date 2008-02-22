@@ -2,7 +2,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  * 
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * Universitaet Konstanz, Germany.
  * Lehrstuhl fuer Angewandte Informatik
  * Prof. Dr. Michael R. Berthold
@@ -66,16 +66,10 @@ CellFactory {
      * @param inclClassProbVals if the probability per class instance should
      * be appended as columns
      */
-    public NaiveBayesCellFactory(final NaiveBayesModel model, 
+    protected NaiveBayesCellFactory(final NaiveBayesModel model, 
             final DataTableSpec tableSpec, final boolean inclClassProbVals) {
-        if (model == null) {
-           throw new NullPointerException("Model must not be null.");
-        }
         m_model = model;
         m_sortedClassVals = model.getSortedClassValues();
-        if (tableSpec == null) {
-            throw new NullPointerException("TableSpec must not be null.");
-         }
         m_tableSpec = tableSpec;
         m_inclClassProbVals = inclClassProbVals;
         m_attributeNames = new String[tableSpec.getNumColumns()];

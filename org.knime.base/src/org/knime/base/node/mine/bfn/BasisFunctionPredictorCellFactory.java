@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -65,7 +65,7 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
      * 
      */
     public BasisFunctionPredictorCellFactory(
-            final DataTableSpec modelSpecs, final String newTargetName) {
+            final DataColumnSpec[] modelSpecs, final String newTargetName) {
         m_model = null;
         m_filteredColumns = null;
         m_dontKnowClass = Double.NaN;
@@ -74,10 +74,10 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
     }
     
     private static DataColumnSpec[] createSpec(
-            final DataTableSpec modelSpecs, final String newTargetName) {
-        int modelClassIdx = modelSpecs.getNumColumns() - 5;
+            final DataColumnSpec[] modelSpecs, final String newTargetName) {
+        int modelClassIdx = modelSpecs.length - 5;
         Set<DataCell> possClasses = 
-            modelSpecs.getColumnSpec(modelClassIdx).getDomain().getValues();
+            modelSpecs[modelClassIdx].getDomain().getValues();
         if (possClasses == null) {
             return new DataColumnSpec[0];
         }
@@ -88,7 +88,7 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
                     it.next().toString(), DoubleCell.TYPE).createSpec();
         }
         DataColumnSpecCreator newTargetSpec = new DataColumnSpecCreator(
-                modelSpecs.getColumnSpec(modelClassIdx));
+                modelSpecs[modelClassIdx]);
         newTargetSpec.setName(newTargetName);
         specs[specs.length - 1] = newTargetSpec.createSpec();
         return specs;
@@ -108,7 +108,7 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
      * @throws NullPointerException if one of the arguments is <code>null</code>
      */
     public BasisFunctionPredictorCellFactory(final DataTableSpec dataSpec, 
-            final DataTableSpec modelSpecs,
+            final DataColumnSpec[] modelSpecs,
             final List<BasisFunctionPredictorRow> model,
             final String newTargetName,
             final double dontKnowClass,
@@ -128,10 +128,10 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
         
         m_specs = createSpec(modelSpecs, newTargetName);
         
-        m_filteredColumns = new int[modelSpecs.getNumColumns() - 5];
+        m_filteredColumns = new int[modelSpecs.length - 5];
         for (int i = 0; i < m_filteredColumns.length; i++) {
             m_filteredColumns[i] = dataSpec.findColumnIndex(
-                    modelSpecs.getColumnSpec(i).getName());
+                    modelSpecs[i].getName());
         }
     }
     
@@ -225,7 +225,6 @@ public class BasisFunctionPredictorCellFactory implements CellFactory {
      */
     public void setProgress(final int curRowNr, final int rowCount, 
             final RowKey lastKey, final ExecutionMonitor exec) {
-        exec.setProgress((double) curRowNr / rowCount,
-                "Predicting row \"" + lastKey.getId() + "\"");
+        exec.setProgress((double) curRowNr / rowCount);
     }
 }

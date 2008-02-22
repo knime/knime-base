@@ -1,9 +1,9 @@
-/*
+/* 
  * -------------------------------------------------------------------
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -18,7 +18,7 @@
  * website: www.knime.org
  * email: contact@knime.org
  * -------------------------------------------------------------------
- *
+ * 
  * History
  *   Nov 7, 2006 (wiswedel): created
  */
@@ -26,16 +26,15 @@ package org.knime.base.node.meta.xvalidation;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
- * This factory creates all necessary classes for the Cross validation
- * aggregator node.
- *
+ * Aggregator node for the cross validator.
  * @author Bernd Wiswedel, University of Konstanz
  */
-public class AggregateOutputNodeFactory extends
-        NodeFactory<AggregateOutputNodeModel> {
+public class AggregateOutputNodeFactory extends NodeFactory {
+
     /**
      * {@inheritDoc}
      */
@@ -48,8 +47,17 @@ public class AggregateOutputNodeFactory extends
      * {@inheritDoc}
      */
     @Override
-    public AggregateOutputNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new AggregateOutputNodeModel();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView createNodeView(
+            final int viewIndex, final NodeModel nodeModel) {
+        return null;
     }
 
     /**
@@ -68,12 +76,4 @@ public class AggregateOutputNodeFactory extends
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<AggregateOutputNodeModel> createNodeView(final int index,
-            final AggregateOutputNodeModel model) {
-        return null;
-    }
 }

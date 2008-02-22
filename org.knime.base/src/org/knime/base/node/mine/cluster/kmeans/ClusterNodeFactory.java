@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -21,20 +21,22 @@
  */
 package org.knime.base.node.mine.cluster.kmeans;
 
-import org.knime.core.node.GenericNodeFactory;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeView;
 
 /**
  * Create classes for k-means Clustering NodeModel, NodeView and NodeDialogPane.
  * 
  * @author Michael Berthold, University of Konstanz
  */
-public class ClusterNodeFactory extends GenericNodeFactory<ClusterNodeModel> {
+public class ClusterNodeFactory extends NodeFactory {
     /**
      * {@inheritDoc}
      */
     @Override
-    public ClusterNodeModel createNodeModel() {
+    public NodeModel createNodeModel() {
         return new ClusterNodeModel();
     }
 
@@ -50,12 +52,11 @@ public class ClusterNodeFactory extends GenericNodeFactory<ClusterNodeModel> {
      * {@inheritDoc}
      */
     @Override
-    public ClusterNodeView createNodeView(final int i,
-            final ClusterNodeModel nodeModel) {
+    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
         if (i != 0) {
             throw new IllegalStateException();
         }
-        return new ClusterNodeView(nodeModel);
+        return new ClusterNodeView((ClusterNodeModel)nodeModel);
     }
 
     /**

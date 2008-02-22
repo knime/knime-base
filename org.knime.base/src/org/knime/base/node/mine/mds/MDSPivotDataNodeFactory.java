@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany.
  * Chair for Bioinformatics and Information Mining
  * Prof. Dr. Michael R. Berthold
@@ -41,7 +41,7 @@ public class MDSPivotDataNodeFactory extends NodeFactory {
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new MDSPivotDataNodeDialogPane();
+        return new MDSPivotNodeDialogPane();
     }
 
     /**

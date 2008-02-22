@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -153,8 +153,7 @@ class DBReaderNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         String query = settings.getString(DBConnection.CFG_STATEMENT);
-        if (query != null 
-                && query.contains(DBQueryConnection.TABLE_PLACEHOLDER)) {
+        if (query != null && query.contains("<table>")) {
             throw new InvalidSettingsException(
                     "Database table place holder not replaced.");
         }

@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -126,6 +126,7 @@ public class DefaultDataArray implements DataArray {
     private void init(final DataTable dTable, final int firstRow,
             final int numOfRows, final ExecutionMonitor execMon)
             throws CanceledExecutionException {
+
         if (dTable == null) {
             throw new NullPointerException("Must provide non-null data table"
                     + " for DataArray");
@@ -158,6 +159,7 @@ public class DefaultDataArray implements DataArray {
                 m_possVals.set(c, new LinkedHashSet<DataCell>());
             }
         }
+
         // now fill our data structures
         RowIterator rIter = dTable.iterator();
         int rowNumber = 0;

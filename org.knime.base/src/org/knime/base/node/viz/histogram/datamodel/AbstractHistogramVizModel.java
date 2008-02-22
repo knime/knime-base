@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -396,7 +396,7 @@ public abstract class AbstractHistogramVizModel {
 
     /**
      * @return all available element colors. This is the color the user has
-     * set for one attribute in the Color Manager node.
+     * set for one attribute in the ColorManager node.
      */
     public SortedSet<Color> getRowColors() {
         return m_rowColors;

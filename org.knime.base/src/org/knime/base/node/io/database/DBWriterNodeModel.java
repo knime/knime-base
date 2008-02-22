@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -130,8 +130,7 @@ class DBWriterNodeModel extends NodeModel {
         String table = settings.getString("table");
         // write settings or skip it
         if (write) {
-            if (table != null && table.contains(
-                    DBQueryConnection.TABLE_PLACEHOLDER)) {
+            if (table != null && table.contains("<table>")) {
                 throw new InvalidSettingsException(
                     "Database table place holder not replaced.");
             }

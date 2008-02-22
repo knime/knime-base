@@ -1,9 +1,9 @@
-/*
+/* 
  * -------------------------------------------------------------------
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -18,7 +18,7 @@
  * website: www.knime.org
  * email: contact@knime.org
  * -------------------------------------------------------------------
- *
+ * 
  * History
  *   Nov 6, 2006 (wiswedel): created
  */
@@ -43,37 +43,33 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnSelectionComboxBox;
 
 /**
- * This dialog lets the user choose the column containing the predicted class
- * values and the column containing the real class values.
- *
+ * Two columns: One for target, one for prediction.
  * @author Bernd Wiswedel, University of Konstanz
- * @author Thorsten Meinl, University of Konstanz
  */
 public class AggregateOutputNodeDialogPane extends NodeDialogPane {
-    @SuppressWarnings("unchecked")
-    private final ColumnSelectionComboxBox m_targetColumn =
-            new ColumnSelectionComboxBox((Border)null, StringValue.class);
-
-    @SuppressWarnings("unchecked")
-    private final ColumnSelectionComboxBox m_predictColumn =
-            new ColumnSelectionComboxBox((Border)null, StringValue.class);
-
-    private final AggregateSettings m_settings = new AggregateSettings();
-
+    
+    private final ColumnSelectionComboxBox m_targetCombo;
+    private final ColumnSelectionComboxBox m_predictCombo;
+    
     /**
-     * Creates a new dialog.
+     * Inits GUI. 
      */
+    @SuppressWarnings("unchecked")
     public AggregateOutputNodeDialogPane() {
         JPanel p = new JPanel(new GridLayout(0, 2));
-        JLabel l1 = new JLabel("Target Column ");
+        JLabel l1 = new JLabel("Target Column: ");
+        m_targetCombo = new ColumnSelectionComboxBox(
+                (Border)null, StringValue.class);
         p.add(getInFlowLayout(l1));
-        p.add(getInFlowLayout(m_targetColumn));
-        JLabel l2 = new JLabel("Prediction Column ");
+        p.add(getInFlowLayout(m_targetCombo));
+        JLabel l2 = new JLabel("Prediction Column: ");
+        m_predictCombo = new ColumnSelectionComboxBox(
+                (Border)null, StringValue.class);
         p.add(getInFlowLayout(l2));
-        p.add(getInFlowLayout(m_predictColumn));
+        p.add(getInFlowLayout(m_predictCombo));
         addTab("Column Selection", p);
     }
-
+    
     private static JPanel getInFlowLayout(final JComponent c) {
         JPanel result = new JPanel(new FlowLayout());
         result.add(c);
@@ -104,17 +100,18 @@ public class AggregateOutputNodeDialogPane extends NodeDialogPane {
             throw new NotConfigurableException(
                     "Invalid input: Need at least two string columns.");
         }
-
-        m_settings.loadSettingsForDialog(settings);
-
-        if (!in.containsName(m_settings.targetColumn())) {
-            m_settings.targetColumn(targetCol);
+        String targetSettingsCol = settings.getString(
+                AggregateOutputNodeModel.CFG_TARGET_COL, targetCol);
+        String predictSettingsCol = settings.getString(
+                AggregateOutputNodeModel.CFG_PREDICT_COL, predictCol);
+        if (!in.containsName(targetSettingsCol)) {
+            targetSettingsCol = targetCol;
         }
-        if (!in.containsName(m_settings.predictionColumn())) {
-            m_settings.predictionColumn(predictCol);
+        if (!in.containsName(predictSettingsCol)) {
+            predictSettingsCol = predictCol;
         }
-        m_targetColumn.update(in, m_settings.targetColumn());
-        m_predictColumn.update(in, m_settings.predictionColumn());
+        m_targetCombo.update(in, targetSettingsCol);
+        m_predictCombo.update(in, predictSettingsCol);
     }
 
     /**
@@ -123,8 +120,10 @@ public class AggregateOutputNodeDialogPane extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
-        m_settings.targetColumn(m_targetColumn.getSelectedColumn());
-        m_settings.predictionColumn(m_predictColumn.getSelectedColumn());
-        m_settings.saveSettings(settings);
+        String targetCol = m_targetCombo.getSelectedColumn();
+        String predCol = m_predictCombo.getSelectedColumn();
+        settings.addString(AggregateOutputNodeModel.CFG_TARGET_COL, targetCol);
+        settings.addString(AggregateOutputNodeModel.CFG_PREDICT_COL, predCol);
     }
+
 }

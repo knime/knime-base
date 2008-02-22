@@ -2,7 +2,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * Universitaet Konstanz, Germany.
  * Lehrstuhl fuer Angewandte Informatik
  * Prof. Dr. Michael R. Berthold
@@ -209,71 +209,50 @@ public class NaiveBayesModel {
         double progress = 0.0;
         //start to proceed row by row
         for (final DataRow row : data) {
-            updateModel(row, tableSpec, classColIdx);
+            final DataCell classCell = row.getCell(classColIdx);
+            if (classCell.isMissing()) {
+                if (m_skipMissingVals) {
+                    continue;
+                }
+                //check if the class value is missing
+                throw new InvalidSettingsException(
+                        "Missing class value found in row " + row.getKey()
+                        + " to skip missing values tick the box in the dialog");
+            }
+            final String classVal = classCell.toString();
+            final int numColumns = tableSpec.getNumColumns();
+            for (int i = 0; i < numColumns; i++) {
+                final AttributeModel model =
+                    m_modelByAttrName.get(tableSpec.getColumnSpec(i).getName());
+                if (model != null) {
+                    final DataCell cell = row.getCell(i);
+                    try {
+                        model.addValue(classVal, cell);
+                    } catch (final TooManyValuesException e) {
+                        if (model instanceof ClassAttributeModel) {
+                            throw new InvalidSettingsException(
+                                "Class attribute has too many unique values. "
+                                    + "To avoid this exception increase the "
+                                    + "maximum number of allowed nominal "
+                                    + "values in the node dialog");
+                        }
+                        //delete the model if it contains to many unique values
+                        m_modelByAttrName.remove(model.getAttributeName());
+                        model.setInvalidCause("To many values");
+                        m_skippedAttributes.add(model);
+                    }
+                }
+            }
             if (exec != null) {
                 exec.setProgress(progress);
                 exec.checkCanceled();
             }
             progress += progressPerRow;
+            m_noOfRecs++;
         }
         if (exec != null) {
             exec.setProgress(1.0, "\'Naive Bayesian\' created ");
         }
-    }
-
-    /**
-     * Updates the current {@link NaiveBayesModel} with the values from the
-     * given {@link DataRow}.
-     * @param row DataRow with values for update
-     * @param tableSpec underlying DataTableSpec
-     * @param classColIdx the index of the class column
-     * @throws InvalidSettingsException if missing values occur in class column
-     * or an attribute has too many values.
-     */
-    public void updateModel(final DataRow row, final DataTableSpec tableSpec,
-            final int classColIdx) throws InvalidSettingsException {
-        if (row == null) {
-            throw new NullPointerException("Row must not be null");
-        }
-        if (tableSpec == null) {
-            throw new NullPointerException("TableSpec must not be null");
-        }
-        final DataCell classCell = row.getCell(classColIdx);
-        if (classCell.isMissing()) {
-            if (m_skipMissingVals) {
-                return;
-            }
-            //check if the class value is missing
-            throw new InvalidSettingsException(
-                    "Missing class value found in row " + row.getKey()
-                    + " to skip missing values tick the box in the dialog");
-        }
-        final String classVal = classCell.toString();
-        final int numColumns = tableSpec.getNumColumns();
-        for (int i = 0; i < numColumns; i++) {
-            final AttributeModel model =
-                m_modelByAttrName.get(tableSpec.getColumnSpec(i).getName());
-            if (model != null) {
-                final DataCell cell = row.getCell(i);
-                try {
-                    model.addValue(classVal, cell);
-                } catch (final TooManyValuesException e) {
-                    if (model instanceof ClassAttributeModel) {
-                        throw new InvalidSettingsException(
-                            "Class attribute has too many unique values. "
-                                + "To avoid this exception increase the "
-                                + "maximum number of allowed nominal "
-                                + "values in the node dialog");
-                    }
-                    //delete the model if it contains to many unique values
-                    m_modelByAttrName.remove(model.getAttributeName());
-                    model.setInvalidCause("To many values");
-                    m_skippedAttributes.add(model);
-                }
-            }
-        }
-
-        m_noOfRecs++;
     }
 
 

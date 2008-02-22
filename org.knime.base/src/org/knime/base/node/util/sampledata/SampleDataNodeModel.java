@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -325,7 +325,7 @@ public class SampleDataNodeModel extends NodeModel {
         for (int u = 0; u < m_clusterCount.length; u++) {
             int dimCountInUniverse = m_uniSize[u];
             Hashtable<String, String> annot = new Hashtable<String, String>();
-            annot.put("universe_name", "Universe_" + u);
+            annot.put("universe.name", "Universe_" + u);
             for (int i = 0; i < dimCountInUniverse; i++) {
                 String n = "Universe_" + u + "_" + i;
                 DataType t = DoubleCell.TYPE;
@@ -336,7 +336,10 @@ public class SampleDataNodeModel extends NodeModel {
         }
         String n = "Cluster Membership";
         DataType t = StringCell.TYPE;
+        Hashtable<String, String> annot = new Hashtable<String, String>();
+        annot.put("universe.contains_class_label", "true");
         DataColumnSpecCreator creator = new DataColumnSpecCreator(n, t);
+        creator.setProperties(new DataColumnProperties(annot));
         colSpecs[currentDim] = creator.createSpec();
 
         DataColumnSpec[] centerColSpec = 

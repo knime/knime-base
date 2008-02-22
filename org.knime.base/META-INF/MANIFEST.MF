@@ -2,9 +2,10 @@ Manifest-Version: 1.0
 Bundle-Name: KNIME Base Nodes
 Bundle-SymbolicName: org.knime.base;singleton:=true
 Bundle-ManifestVersion: 2
-Bundle-Version: 2.0.0.0014633
+Bundle-Version: 1.3.3
 Bundle-ClassPath: knime-base.jar
 Bundle-Vendor: Chair for Bioinformatics and Information Mining, University of Konstanz, Germany
+Bundle-Localization: plugin
 Eclipse-RegisterBuddy: org.knime.core
 Require-Bundle: org.knime.core;visibility:=reexport
 Provide-Package: org.knime.base.data.append.column,
@@ -115,10 +116,9 @@ Export-Package: org.knime.base.data.append.column,
  org.knime.base.node.io.predictor,
  org.knime.base.node.io.table.read,
  org.knime.base.node.io.table.write,
+ org.knime.base.node.meta,
  org.knime.base.node.meta.looper,
  org.knime.base.node.meta.xvalidation,
- org.knime.base.node.mine.bayes.naivebayes.datamodel,
- org.knime.base.node.mine.bayes.naivebayes.predictor,
  org.knime.base.node.mine.bfn,
  org.knime.base.node.mine.bfn.fuzzy,
  org.knime.base.node.mine.bfn.fuzzy.membership,
@@ -131,7 +131,6 @@ Export-Package: org.knime.base.data.append.column,
  org.knime.base.node.mine.decisiontree2.model,
  org.knime.base.node.mine.decisiontree2.predictor,
  org.knime.base.node.mine.knn,
- org.knime.base.node.mine.mds,
  org.knime.base.node.mine.neural.mlp,
  org.knime.base.node.mine.neural.rprop,
  org.knime.base.node.mine.regression.linear,

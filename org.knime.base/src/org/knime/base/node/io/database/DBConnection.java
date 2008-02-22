@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -31,8 +31,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.ModelContent;
-import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
@@ -42,7 +40,7 @@ import org.knime.core.util.KnimeEncryption;
  * 
  * @author Thomas Gabriel, University of Konstanz
  */
-public class DBConnection {
+public final class DBConnection  {
     
     private static final NodeLogger LOGGER =
         NodeLogger.getLogger(DBConnection.class);
@@ -198,15 +196,4 @@ public class DBConnection {
         }
         return null;
     }
-    
-    /**
-     * Create connection model with all settings used to create a database
-     * connection.
-     * @return database connection model
-     */
-    public ModelContentRO createConnectionModel() {
-        ModelContent cont = new ModelContent("database_connection_model");
-        saveConnection(cont);
-        return cont;
-    } 
 }

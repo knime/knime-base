@@ -5,7 +5,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -212,7 +212,7 @@ public class SortedTable implements DataTable {
 
         exec.setMessage("Sorting");
         time = System.currentTimeMillis();
-        Arrays.sort(rows, m_rowComparator);
+        Arrays.sort(rows, new RowComparator());
         LOGGER.debug("Sort time: " + (System.currentTimeMillis() - time));
 
         exec.setMessage("Creating sorted table");

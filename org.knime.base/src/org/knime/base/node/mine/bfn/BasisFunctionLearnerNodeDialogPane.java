@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -30,12 +30,11 @@ import javax.swing.BorderFactory;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.node.GenericNodeDialogPane;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.PortObjectSpec;
 import org.knime.core.node.util.ColumnFilterPanel;
 
 /**
@@ -45,7 +44,7 @@ import org.knime.core.node.util.ColumnFilterPanel;
  * @author Thomas Gabriel, University of Konstanz
  */
 public abstract class BasisFunctionLearnerNodeDialogPane 
-        extends GenericNodeDialogPane {
+        extends NodeDialogPane {
 
     /** Contains the basic settings for this learner. */
     private final BasisFunctionLearnerNodeDialogPanel m_basicsPanel;
@@ -59,7 +58,6 @@ public abstract class BasisFunctionLearnerNodeDialogPane
     /**
      * Creates a new pane with basics and column filter panel.
      */
-    @SuppressWarnings("unchecked")
     protected BasisFunctionLearnerNodeDialogPane() {
         // panel with model specific settings
         m_basicsPanel = new BasisFunctionLearnerNodeDialogPanel();
@@ -83,18 +81,14 @@ public abstract class BasisFunctionLearnerNodeDialogPane
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final PortObjectSpec[] specs) throws NotConfigurableException {
-        DataTableSpec[] inSpecs = new DataTableSpec[specs.length];
-        for (int i = 0; i < inSpecs.length; i++) {
-            inSpecs[i] = (DataTableSpec) specs[i];
-        }
+            final DataTableSpec[] specs) throws NotConfigurableException {
         // update settings of basic tab
-        m_basicsPanel.loadSettingsFrom(settings, inSpecs);
+        m_basicsPanel.loadSettingsFrom(settings, specs);
         // update data columns
-        setDataColumns(inSpecs[0], settings.getStringArray(
+        setDataColumns(specs[0], settings.getStringArray(
                 BasisFunctionLearnerNodeModel.DATA_COLUMNS, new String[0]));
         // update target columns
-        setTargetColumns(inSpecs[0], settings.getStringArray(
+        setTargetColumns(specs[0], settings.getStringArray(
                 BasisFunctionLearnerNodeModel.TARGET_COLUMNS, new String[0]));
     }
 

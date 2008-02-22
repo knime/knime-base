@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -122,8 +122,8 @@ extends PieNodeModel<FixedPieVizModel> {
             throw e;
         } catch (final Exception e) {
             LOGGER.warn("Error while saving saving internals: "
-                    + e.getMessage());
-            throw new IOException(e);
+                    + e.getMessage(), e);
+            throw new IOException(e.getMessage());
         }
     }
 

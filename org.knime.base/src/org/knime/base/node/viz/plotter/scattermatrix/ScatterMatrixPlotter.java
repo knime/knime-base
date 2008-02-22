@@ -3,7 +3,7 @@
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
- * Copyright, 2003 - 2008
+ * Copyright, 2003 - 2007
  * University of Konstanz, Germany
  * Chair for Bioinformatics and Information Mining (Prof. M. Berthold)
  * and KNIME GmbH, Konstanz, Germany
@@ -304,7 +304,7 @@ public class ScatterMatrixPlotter extends ScatterPlotter {
                     DotInfo dot = new DotInfo(x, y, row.getKey(),
                             hilite, data
                                     .getDataTableSpec().getRowColor(row), data
-                                    .getDataTableSpec().getRowSizeFactor(row),
+                                    .getDataTableSpec().getRowSize(row),
                             rowNr);
                     dot.setShape(data.getDataTableSpec().getRowShape(row));
                     dot.setXDomainValue(xValue);
