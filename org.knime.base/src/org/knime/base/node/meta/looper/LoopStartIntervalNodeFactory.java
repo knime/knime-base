@@ -1,5 +1,4 @@
-/*
- * --------------------------------------------------------------------- *
+/* ------------------------------------------------------------------
  * This source code, its documentation and all appendant files
  * are protected by copyright law. All rights reserved.
  *
@@ -17,67 +16,62 @@
  * If you have any questions please contact the copyright holder:
  * website: www.knime.org
  * email: contact@knime.org
- * --------------------------------------------------------------------- *
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   24.02.2009 (meinl): created
  */
-package org.knime.base.node.mine.scorer.hilitescorer;
+package org.knime.base.node.meta.looper;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * The factory for the hilite scorer node.
- * 
- * @author Christoph Sieb, University of Konstanz
+ * This is the factory for the interval loop node.
+ *
+ * @author Thorsten Meinl, University of Konstanz
  */
-public class HiliteScorerNodeFactory 
-        extends NodeFactory<HiliteScorerNodeModel> {
-    
+public class LoopStartIntervalNodeFactory extends
+        NodeFactory<LoopStartIntervalNodeModel> {
     /**
      * {@inheritDoc}
      */
     @Override
-    public HiliteScorerNodeModel createNodeModel() {
-        return new HiliteScorerNodeModel();
+    protected NodeDialogPane createNodeDialogPane() {
+        return new LoopStartIntervalNodeDialog();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 1;
+    public LoopStartIntervalNodeModel createNodeModel() {
+        return new LoopStartIntervalNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<HiliteScorerNodeModel> createNodeView(
-            final int i, final HiliteScorerNodeModel nodeModel) {
-        if (i == 0) {
-            return new HiliteScorerNodeView(nodeModel);
-//        } else if (i == 1) {
-//            return new ROCView((HiliteScorerNodeModel)nodeModel);
-        } else {
-            throw new IllegalArgumentException("No such view");
-        }
+    public NodeView<LoopStartIntervalNodeModel> createNodeView(
+            final int viewIndex, final LoopStartIntervalNodeModel nodeModel) {
+        return null;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() {
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
         return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-
-        return new HiliteScorerNodeDialog();
     }
 }
