@@ -761,12 +761,14 @@ public class HiliteScorerNodeModel extends NodeModel implements DataProvider {
         return m_secondCompareColumn;
     }
     
-    /** Output hilite handler for confusion matrix. */
-    private final HiLiteHandler m_outHiLiteHandler = new HiLiteHandler();
-
-    /** {@inheritDoc} */
+    /** New instance of a HiLiteHandler return on the out-port. */
+    private final HiLiteHandler m_cmHiLiteHandler = new HiLiteHandler();
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
-        return m_outHiLiteHandler;
+        return m_cmHiLiteHandler;
     }
 }
