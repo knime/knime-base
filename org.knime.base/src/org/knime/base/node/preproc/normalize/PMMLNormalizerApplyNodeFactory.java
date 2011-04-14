@@ -1,5 +1,4 @@
 /*
- *
  * ------------------------------------------------------------------------
  *
  *  Copyright (C) 2003 - 2011
@@ -47,55 +46,60 @@
  * -------------------------------------------------------------------
  *
  * History
- *   Mar 16, 2010 (morent): created
+ *   Oct 17, 2006 (wiswedel): created
  */
 package org.knime.base.node.preproc.normalize;
 
-import org.knime.base.data.normalize.PMMLPreprocNormalization;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObject;
-import org.knime.core.node.port.pmml.preproc.PMMLPreprocPortObjectSpec;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Normalizer node that exports a PMML fragment containing its preprocessing
- * operations instead of a NormalizerModel.
  *
- * @see NormalizerNodeModel
- * @author Dominik Morent, KNIME.com, Zurich, Switzerland
+ * @author wiswedel, University of Konstanz
  */
-public class PMMLNormalizerNodeModel extends NormalizerNodeModel {
+public class PMMLNormalizerApplyNodeFactory
+extends NodeFactory<NormalizerApplyNodeModel> {
 
     /**
-     *
+     * {@inheritDoc}
      */
-    public PMMLNormalizerNodeModel() {
-        super(PMMLPreprocPortObject.TYPE);
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
-        PortObjectSpec[] config = super.configure(inSpecs);
-        return new PortObjectSpec[]{config[0],
-                new PMMLPreprocPortObjectSpec(getColumns())};
+    public PMMLNormalizerApplyNodeModel createNodeModel() {
+        return new PMMLNormalizerApplyNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects,
-            final ExecutionContext exec) throws Exception {
-        CalculationResult result = calculate(inObjects, exec);
-        return new PortObject[]{
-                result.getDataTable(),
-                new PMMLPreprocPortObject(new PMMLPreprocNormalization(result
-                        .getConfig()))};
+    public NodeView<NormalizerApplyNodeModel> createNodeView(
+            final int viewIndex, final NormalizerApplyNodeModel nodeModel) {
+        return null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return false;
+    }
+
 }
