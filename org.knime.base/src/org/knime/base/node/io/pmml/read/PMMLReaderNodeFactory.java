@@ -47,9 +47,9 @@
  */
 package org.knime.base.node.io.pmml.read;
 
+import org.knime.core.node.ContextAwareNodeFactory;
 import org.knime.core.node.NodeCreationContext;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
@@ -57,7 +57,7 @@ import org.knime.core.node.NodeView;
  * @author Fabian Dill, University of Konstanz
  */
 public class PMMLReaderNodeFactory
-    extends NodeFactory<PMMLReaderNodeModel> {
+    extends ContextAwareNodeFactory<PMMLReaderNodeModel> {
 
     /**
      * {@inheritDoc}
