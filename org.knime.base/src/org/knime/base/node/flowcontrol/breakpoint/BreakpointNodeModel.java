@@ -46,9 +46,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   13.02.2008 (thor): created
+ *   Sept 17 2008 (mb): created (from wiswedel's TableToVariableNode)
  */
-package org.knime.base.node.meta.looper;
+package org.knime.base.node.flowcontrol.breakpoint;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,29 +61,42 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.workflow.LoopStartNodeTerminator;
+import org.knime.core.node.port.inactive.InactiveBranchConsumer;
+import org.knime.core.node.port.inactive.InactiveBranchPortObject;
+import org.knime.core.node.workflow.FlowVariable;
 
 /**
- * This model is the head node of a for loop.
+ * A simple breakpoint node which allows to halt execution when a certain
+ * condition on the input table is fulfilled (such as is-empty, is-inactive,
+ * is-active, ...).
  *
- * @author Thorsten Meinl, University of Konstanz
+ * @author M. Berthold, University of Konstanz
  */
-public class LoopStartCountNodeModel extends NodeModel
-implements LoopStartNodeTerminator {
+public class BreakpointNodeModel extends NodeModel
+implements InactiveBranchConsumer {
 
-    private int m_iteration;
+//    private static final NodeLogger LOGGER = NodeLogger
+//            .getLogger(PMMLWriterNodeModel.class);
 
-    private final LoopStartCountSettings m_settings = new LoopStartCountSettings();
+    private final SettingsModelString m_choice = BreakpointNodeDialog
+            .createChoiceModel();
+    private final SettingsModelBoolean m_enabled = BreakpointNodeDialog
+            .createEnableModel();
+    private final SettingsModelString m_varname = BreakpointNodeDialog
+            .createVarNameModel();
+    private final SettingsModelString m_varvalue = BreakpointNodeDialog
+            .createVarValueModel();
 
     /**
-     * Creates a new model with one input and one output port.
+     * One input, one output.
      */
-    public LoopStartCountNodeModel() {
-        super(new PortType[] {BufferedDataTable.TYPE},
-                new PortType[] {BufferedDataTable.TYPE});
+    protected BreakpointNodeModel() {
+        super(1, 1);
+        m_choice.setEnabled(m_enabled.getBooleanValue());
     }
 
     /**
@@ -92,12 +105,6 @@ implements LoopStartNodeTerminator {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        if (m_settings.loops() < 1) {
-            throw new InvalidSettingsException("Cannot loop fewer than once");
-        }
-        assert m_iteration == 0;
-        pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
         return inSpecs;
     }
 
@@ -107,30 +114,46 @@ implements LoopStartNodeTerminator {
     @Override
     protected PortObject[] execute(final PortObject[] inData,
             final ExecutionContext exec) throws Exception {
-        // let's see if we have access to the tail: if we do, it's not the
-        // first time we are doing this...
-        if (getLoopEndNode() == null) {
-            // if it's null we know that this is the first time the
-            // loop is being executed.
-            assert m_iteration == 0;
-        } else {
-            assert m_iteration > 0;
-            // otherwise we do this again.
+        if (!m_enabled.getBooleanValue()) {
+            return inData;
         }
-        // let's also put the counts on the stack for someone else:
-        pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
-        // increment counter for next iteration
-        m_iteration++;
+        if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE)) {
+            if (inData[0] instanceof BufferedDataTable) {
+                int rowCount = ((BufferedDataTable)inData[0]).getRowCount();
+                if (rowCount == 0) {
+                    throw new Exception("Breakpoint halted "
+                            + "execution (table is empty)");
+                }
+            }
+        }
+        if (m_choice.getStringValue().equals(
+                              BreakpointNodeDialog.ACTIVEBRANCH)) {
+            if (!(inData[0] instanceof InactiveBranchPortObject)) {
+                throw new Exception("Breakpoint halted "
+                            + "execution (branch is active)");
+            }
+        }
+        if (m_choice.getStringValue().equals(
+                              BreakpointNodeDialog.INACTIVEBRANCH)) {
+            if (inData[0] instanceof InactiveBranchPortObject) {
+                throw new Exception("Breakpoint halted "
+                            + "execution (branch is active)");
+            }
+        }
+        if (m_choice.getStringValue().equals(
+                              BreakpointNodeDialog.VARIABLEMATCH)) {
+            FlowVariable fv
+                 = getAvailableFlowVariables().get(m_varname.getStringValue());
+            if (fv != null) {
+                if (fv.getValueAsString().equals(m_varvalue.getStringValue())) {
+                    throw new Exception("Breakpoint halted execution "
+                             + "(" + m_varname.getStringValue()
+                             + "=" + m_varvalue.getStringValue() + ")");
+                }
+            }
+        }
+        // unrecognized option: assume disabled.
         return inData;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean terminateLoop() {
-        return m_iteration >= m_settings.loops();
     }
 
     /**
@@ -140,7 +163,19 @@ implements LoopStartNodeTerminator {
     protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // empty
+        // ignore
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+        m_enabled.validateSettings(settings);
+        m_choice.validateSettings(settings);
+        m_varname.validateSettings(settings);
+        m_varvalue.validateSettings(settings);
     }
 
     /**
@@ -149,7 +184,10 @@ implements LoopStartNodeTerminator {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_settings.loadSettingsFrom(settings);
+        m_enabled.loadSettingsFrom(settings);
+        m_choice.loadSettingsFrom(settings);
+        m_varname.loadSettingsFrom(settings);
+        m_varvalue.loadSettingsFrom(settings);
     }
 
     /**
@@ -157,7 +195,7 @@ implements LoopStartNodeTerminator {
      */
     @Override
     protected void reset() {
-        m_iteration = 0;
+        // nothing to do
     }
 
     /**
@@ -167,7 +205,7 @@ implements LoopStartNodeTerminator {
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // empty
+        // ignore -> no view
     }
 
     /**
@@ -175,15 +213,10 @@ implements LoopStartNodeTerminator {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
+        m_enabled.saveSettingsTo(settings);
+        m_choice.saveSettingsTo(settings);
+        m_varname.saveSettingsTo(settings);
+        m_varvalue.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        new LoopStartCountSettings().loadSettingsFrom(settings);
-    }
 }

@@ -46,13 +46,14 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   13.02.2008 (thor): created
+ *   Sept 17 2008 (mb): created (from wiswedel's TableToVariableNode)
  */
-package org.knime.base.node.meta.looper;
+package org.knime.base.node.switches.emptytableswitch;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -63,27 +64,20 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.workflow.LoopStartNodeTerminator;
+import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 
 /**
- * This model is the head node of a for loop.
+ * Model to empty table switcher, does the obvious things.
  *
- * @author Thorsten Meinl, University of Konstanz
+ * @author M. Berthold, University of Konstanz
  */
-public class LoopStartCountNodeModel extends NodeModel
-implements LoopStartNodeTerminator {
-
-    private int m_iteration;
-
-    private final LoopStartCountSettings m_settings = new LoopStartCountSettings();
+class EmptyTableSwitchNodeModel extends NodeModel {
 
     /**
-     * Creates a new model with one input and one output port.
+     * One input, two outputs.
      */
-    public LoopStartCountNodeModel() {
-        super(new PortType[] {BufferedDataTable.TYPE},
-                new PortType[] {BufferedDataTable.TYPE});
+    protected EmptyTableSwitchNodeModel() {
+        super(1, 2);
     }
 
     /**
@@ -92,13 +86,9 @@ implements LoopStartNodeTerminator {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        if (m_settings.loops() < 1) {
-            throw new InvalidSettingsException("Cannot loop fewer than once");
-        }
-        assert m_iteration == 0;
-        pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
-        return inSpecs;
+        // nothing done here - we don't know the number of rows yet!
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[0];
+        return new PortObjectSpec[] {inSpec, inSpec};
     }
 
     /**
@@ -107,30 +97,16 @@ implements LoopStartNodeTerminator {
     @Override
     protected PortObject[] execute(final PortObject[] inData,
             final ExecutionContext exec) throws Exception {
-        // let's see if we have access to the tail: if we do, it's not the
-        // first time we are doing this...
-        if (getLoopEndNode() == null) {
-            // if it's null we know that this is the first time the
-            // loop is being executed.
-            assert m_iteration == 0;
+        PortObject[] out = new PortObject[2];
+        final BufferedDataTable inTable = (BufferedDataTable)inData[0];
+        if (inTable.getRowCount() == 0) {
+            out[0] = InactiveBranchPortObject.INSTANCE;
+            out[1] = inTable;
         } else {
-            assert m_iteration > 0;
-            // otherwise we do this again.
+            out[0] = inTable;
+            out[1] = InactiveBranchPortObject.INSTANCE;
         }
-        // let's also put the counts on the stack for someone else:
-        pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
-        // increment counter for next iteration
-        m_iteration++;
-        return inData;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean terminateLoop() {
-        return m_iteration >= m_settings.loops();
+        return out;
     }
 
     /**
@@ -140,7 +116,16 @@ implements LoopStartNodeTerminator {
     protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // empty
+        // ignore
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+        // ignore
     }
 
     /**
@@ -149,7 +134,7 @@ implements LoopStartNodeTerminator {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_settings.loadSettingsFrom(settings);
+        // ignore
     }
 
     /**
@@ -157,7 +142,7 @@ implements LoopStartNodeTerminator {
      */
     @Override
     protected void reset() {
-        m_iteration = 0;
+        // nothing to do
     }
 
     /**
@@ -167,7 +152,7 @@ implements LoopStartNodeTerminator {
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
-        // empty
+        // ignore -> no view
     }
 
     /**
@@ -175,15 +160,7 @@ implements LoopStartNodeTerminator {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
+        // ignore
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        new LoopStartCountSettings().loadSettingsFrom(settings);
-    }
 }

@@ -40,74 +40,63 @@
  *  License, the License does not apply to Nodes, you are not required to
  *  license Nodes under the License, and you are granted a license to
  *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for interoperation with KNIME. The owner of a Node
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   25.11.2009 (Heiko Hofer): created
+ *   Sept 30, 2010 (mb): created
  */
-package org.knime.base.node.preproc.joiner;
+package org.knime.base.node.switches.emptytableswitch;
 
-import java.util.Arrays;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
-import org.knime.core.data.DataCell;
 
 /**
- * Two {@link InputRow} do join when two of there JoinTuples do match.
- *
- * @author Heiko Hofer
+ * Empty Table Switcher node (one input, one output).
+ * @author M. Berthold, University of Konstanz
+ * @since 2.6
  */
-class JoinTuple {
-    /** The cells in the tuple. */
-    private DataCell[] m_cells;
+public final class EmptyTableSwitchNodeFactory
+    extends NodeFactory<EmptyTableSwitchNodeModel> {
 
-    /**
-     * Creates a new JoinTuple.
-     *
-     * @param cells The cells which are used to test for a match.
+    /** Create factory, that instantiates nodes.
      */
-    public JoinTuple(final DataCell[] cells) {
-        m_cells = cells;
+    public EmptyTableSwitchNodeFactory() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public int hashCode() {
-        return Arrays.hashCode(m_cells);
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public boolean equals(final Object obj) {
-        // check for self-comparison
-        if (this == obj) {
-            return true;
-        }
-        // check obj type
-        if (!(obj instanceof JoinTuple)) {
-            return false;
-        }
-        JoinTuple that = (JoinTuple)obj;
-        for (int i = 0; i < this.m_cells.length; i++) {
-            DataCell thisCell = this.m_cells[i];
-            DataCell thatCell = that.m_cells[i];
-            // Missing cells do not match here (see Bug 2625). Note, that
-            // missing cells are viewed to be equal in DataCell::equals().
-            if (thisCell.isMissing() || thatCell.isMissing()) {
-                return false;
-            }
-            // compare the data cells
-            if (!thisCell.equals(thatCell)) {
-                return false;
-            }
-        }
-        return true;
+    public EmptyTableSwitchNodeModel createNodeModel() {
+        return new EmptyTableSwitchNodeModel();
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public NodeView<EmptyTableSwitchNodeModel> createNodeView(
+            final int index, final EmptyTableSwitchNodeModel model) {
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected boolean hasDialog() {
+        return false;
+    }
+
 }
-
