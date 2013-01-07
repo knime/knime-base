@@ -101,11 +101,12 @@ public class HistogramNodeView extends NodeView<HistogramNodeModel> {
                     model.getInHiLiteHandler(0));
             // add the hilite menu to the menu bar of the node view
             getJMenuBar().add(m_plotter.getHiLiteMenu());
+            setComponent(m_plotter);
         }
         m_plotter.setHiLiteHandler(model.getInHiLiteHandler(0));
         m_plotter.setHistogramVizModel(tableSpec, vizModel);
         m_plotter.updatePaintModel();
-        if (getComponent() != m_plotter) {
+        if (getComponent() == null) {
             setComponent(m_plotter);
         }
         if (m_plotter != null) {
