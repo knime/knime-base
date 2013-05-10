@@ -45,73 +45,17 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * Created on 16.04.2013 by Christian Albrecht, KNIME.com AG, Zurich, Switzerland
+ * Created on May 10, 2013 by Berthold
  */
 package org.knime.base.node.preproc.filter.hilite.collector;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.interactive.InteractiveNodeFactoryExtension;
+import org.knime.core.node.interactive.ViewContent;
 
 /**
  *
- * @author Christian Albrecht, KNIME.com AG, Zurich, Switzerland
+ * @author Berthold
  * @since 2.8
  */
-public class InteractiveHiLiteCollectorNodeFactory extends NodeFactory<InteractiveHiLiteCollectorNodeModel> implements
-        InteractiveNodeFactoryExtension<InteractiveHiLiteCollectorNodeModel, InteractiveHiLiteCollectorViewContent> {
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public InteractiveHiLiteCollectorNodeView createInteractiveView(final InteractiveHiLiteCollectorNodeModel model) {
-        return new InteractiveHiLiteCollectorNodeView(model);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public InteractiveHiLiteCollectorNodeModel createNodeModel() {
-        return new InteractiveHiLiteCollectorNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<InteractiveHiLiteCollectorNodeModel> createNodeView(final int viewIndex,
-                                                         final InteractiveHiLiteCollectorNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return null;
-    }
-
-
+public class InteractiveHiLiteCollectorViewContent extends ViewContent {
 
 }
