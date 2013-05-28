@@ -50,54 +50,22 @@
  */
 package org.knime.base.node.rules;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.data.DataRow;
 
 /**
- * This factory creates all necessary object for the business rule node.
+ * Very simple interface for rule node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated Use the org.knime.jsnippets project's ...rules.engine classes.
  */
-public class RuleEngineNodeFactory extends NodeFactory<RuleEngineNodeModel> {
+@Deprecated
+public interface RuleNode {
     /**
-     * {@inheritDoc}
+     * Evaluates this rule node.
+     *
+     * @param row the row with which the rule should be evaluated
+     * @return <code>true</code> if this node evaluates to <code>true</code>,
+     *         <code>false</code> otherwise
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new RuleEngineNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RuleEngineNodeModel createNodeModel() {
-        return new RuleEngineNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<RuleEngineNodeModel> createNodeView(final int index,
-            final RuleEngineNodeModel model) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+    public boolean evaluate(DataRow row);
 }
