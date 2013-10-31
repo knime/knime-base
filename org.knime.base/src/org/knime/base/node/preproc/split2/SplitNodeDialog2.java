@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *
  *  Copyright (C) 2003 - 2013
@@ -44,7 +44,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.preproc.split2;
 
@@ -60,11 +60,11 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 
 /**
  * Dialog with a column filter which is used to define the split of the columns.
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
  */
 public class SplitNodeDialog2 extends NodeDialogPane {
-    
+
     /**
      * Using {@link DataColumnSpecFilterPanel} as underlying column filter.
      */
@@ -91,7 +91,7 @@ public class SplitNodeDialog2 extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
         final DataTableSpec spec = specs[0];
-        DataColumnSpecFilterConfiguration config = createColFilterConf();
+        DataColumnSpecFilterConfiguration config = SplitNodeModel2.createColFilterConf();
         config.loadConfigurationInDialog(settings, spec);
         m_filterPanel.loadConfiguration(config, spec);
     }
@@ -101,18 +101,10 @@ public class SplitNodeDialog2 extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {        
-        DataColumnSpecFilterConfiguration config = createColFilterConf();
+            throws InvalidSettingsException {
+        DataColumnSpecFilterConfiguration config = SplitNodeModel2.createColFilterConf();
         m_filterPanel.saveConfiguration(config);
         config.saveConfiguration(settings);
     }
-    
-    /**
-     * @return creates and returns configuration instance for column filter 
-     * panel.
-     */
-    private DataColumnSpecFilterConfiguration createColFilterConf() {
-        return new DataColumnSpecFilterConfiguration(
-                SplitNodeModel2.CFG_FILTERCOLS);
-    }    
+
 }
