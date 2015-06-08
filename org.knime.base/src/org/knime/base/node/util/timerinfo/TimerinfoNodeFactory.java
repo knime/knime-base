@@ -41,82 +41,55 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Sept 30, 2010 (mb): created
  */
-package org.knime.base.data.filter.column;
+package org.knime.base.node.util.timerinfo;
 
-import java.util.Iterator;
-
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataRow;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultCellIterator;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 
 /**
- * Filter {@link DataRow} which extracts particular cells (columns) from an
- * underlying row.
- *
- * @author Thomas Gabriel, University of Konstanz
+ * @author Michael Berthold, University of Konstanz
  */
-public final class FilterColumnRow implements DataRow {
+public class TimerinfoNodeFactory extends NodeFactory<TimerinfoNodeModel> {
 
-    /**
-     * Underlying row.
+    /** Create factory, that instantiates nodes.
      */
-    private final DataRow m_row;
-
-    /**
-     * Array of column indices.
-     */
-    private final int[] m_columns;
-
-    /**
-     * Inits a new filter column {@link DataRow} with the underling row and an
-     * array of indices into this row.
-     *
-     * @param row the underlying {@link DataRow}
-     * @param columns the array of column indices to keep
-     */
-    public FilterColumnRow(final DataRow row, final int[] columns) {
-        m_row = CheckUtils.checkArgumentNotNull(row);
-        m_columns = CheckUtils.checkArgumentNotNull(columns);
+    public TimerinfoNodeFactory() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public int getNumCells() {
-        return m_columns.length;
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public RowKey getKey() {
-        return m_row.getKey();
+    public TimerinfoNodeModel createNodeModel() {
+        return new TimerinfoNodeModel();
     }
 
-    /**
-     * Returns the data cell at the given <code>index</code>.
-     *
-     * @param index the column index inside the row
-     * @return the data cell for index
-     * @throws ArrayIndexOutOfBoundsException if the <code>index</code> is out
-     *             of range
-     */
+    /** {@inheritDoc} */
     @Override
-    public DataCell getCell(final int index) {
-        return m_row.getCell(m_columns[index]);
+    public NodeView<TimerinfoNodeModel> createNodeView(final int index, final TimerinfoNodeModel model) {
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public Iterator<DataCell> iterator() {
-        return new DefaultCellIterator(this);
+    protected int getNrNodeViews() {
+        return 0;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    protected boolean hasDialog() {
+        return false;
+    }
+
 }

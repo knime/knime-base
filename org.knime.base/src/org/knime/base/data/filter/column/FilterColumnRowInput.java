@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME GmbH, Konstanz, Germany
  *  Website: http://www.knime.org; Email: contact@knime.org
  *
@@ -41,82 +42,67 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   May 3, 2015 (wiswedel): created
  */
 package org.knime.base.data.filter.column;
 
-import java.util.Iterator;
-
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultCellIterator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.util.CheckUtils;
 
-
 /**
- * Filter {@link DataRow} which extracts particular cells (columns) from an
- * underlying row.
- *
- * @author Thomas Gabriel, University of Konstanz
+ * A {@link RowInput} that wraps another input and hides/re-orders columns according to an int[].
+ * @author Bernd Wiswedel, KNIME.com, Zurich, Switzerland
+ * @since 2.12
  */
-public final class FilterColumnRow implements DataRow {
+public final class FilterColumnRowInput extends RowInput {
+
+    private final RowInput m_input;
+    private final DataTableSpec m_spec;
+    private final int[] m_includes;
 
     /**
-     * Underlying row.
-     */
-    private final DataRow m_row;
-
-    /**
-     * Array of column indices.
-     */
-    private final int[] m_columns;
-
-    /**
-     * Inits a new filter column {@link DataRow} with the underling row and an
-     * array of indices into this row.
+     * New input only containing the columns as per array argument.
      *
-     * @param row the underlying {@link DataRow}
-     * @param columns the array of column indices to keep
+     * @param input The non-null input to wrap.
+     * @param includes An non-null array with unique indices of columns to have in this input.
      */
-    public FilterColumnRow(final DataRow row, final int[] columns) {
-        m_row = CheckUtils.checkArgumentNotNull(row);
-        m_columns = CheckUtils.checkArgumentNotNull(columns);
+    public FilterColumnRowInput(final RowInput input, final int... includes) {
+        m_input = CheckUtils.checkArgumentNotNull(input);
+        m_includes = CheckUtils.checkArgumentNotNull(includes);
+        m_spec = FilterColumnTable.createFilterTableSpec(input.getDataTableSpec(), includes);
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNumCells() {
-        return m_columns.length;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RowKey getKey() {
-        return m_row.getKey();
-    }
-
-    /**
-     * Returns the data cell at the given <code>index</code>.
+     * New input only containing the columns as per array argument.
      *
-     * @param index the column index inside the row
-     * @return the data cell for index
-     * @throws ArrayIndexOutOfBoundsException if the <code>index</code> is out
-     *             of range
+     * @param input The non-null input to wrap.
+     * @param includes An non-null array with unique names of columns to have in this input.
      */
-    @Override
-    public DataCell getCell(final int index) {
-        return m_row.getCell(m_columns[index]);
+    public FilterColumnRowInput(final RowInput input, final String... includes) {
+        this(input, FilterColumnTable.findColumnIndices(input.getDataTableSpec(), includes));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public Iterator<DataCell> iterator() {
-        return new DefaultCellIterator(this);
+    public DataTableSpec getDataTableSpec() {
+        return m_spec;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public DataRow poll() throws InterruptedException {
+        final DataRow reference = m_input.poll();
+        return reference == null ? null : new FilterColumnRow(reference, m_includes);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() {
+        m_input.close();
+    }
+
 }
