@@ -78,14 +78,18 @@ import org.knime.core.util.Pair;
  * The order of colums of this table is determined by the order of the top table
  * (the first array argument in the constructor)
  *
+ * Deprecated: moved to core - use {@link org.knime.core.data.append.AppendedRowsTable} instead.
+ *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class AppendedRowsTable implements DataTable {
 
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(AppendedRowsTable.class);
 
     /** How to deal with duplicate row ids. */
+    @Deprecated
     public enum DuplicatePolicy {
         /** Skip duplicate occurrence. */
         Skip,

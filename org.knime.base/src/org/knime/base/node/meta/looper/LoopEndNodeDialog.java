@@ -58,11 +58,14 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
 
     private final JCheckBox m_tolerateColumnTypes = new JCheckBox("Allow variable column types");
 
+    private final JCheckBox m_tolerateChangingSpecs = new JCheckBox("Tolerate changing table specifications");
+
     /** Create a new dialog.  */
     public LoopEndNodeDialog() {
         super(new LoopEndNodeSettings());
         addComponent(m_ignoreEmptyTables);
         addComponent(m_tolerateColumnTypes);
+        addComponent(m_tolerateChangingSpecs);
     }
 
     /**
@@ -73,6 +76,7 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
     protected void addToSettings(final LoopEndNodeSettings settings) {
         settings.ignoreEmptyTables(m_ignoreEmptyTables.isSelected());
         settings.tolerateColumnTypes(m_tolerateColumnTypes.isSelected());
+        settings.tolerateChangingTableSpecs(m_tolerateChangingSpecs.isSelected());
     }
 
     /**
@@ -83,6 +87,7 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
     protected void loadFromSettings(final LoopEndNodeSettings settings) {
         m_ignoreEmptyTables.setSelected(settings.ignoreEmptyTables());
         m_tolerateColumnTypes.setSelected(settings.tolerateColumnTypes());
+        m_tolerateChangingSpecs.setSelected(settings.tolerateChangingTableSpecs());
     }
 
 

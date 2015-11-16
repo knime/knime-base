@@ -64,9 +64,12 @@ import org.knime.core.util.Pair;
  * Extended {@link RowInput} that pulls its data from an array of argument {@link RowInput}. For duplicate Row-ID
  * handling, column mis-matches etc. see {@link AppendedRowsTable} for details.
  *
+ * Deprecated: moved to core - use {@link org.knime.core.data.append.AppendedRowsRowInput} instead.
+ *
  * @author Bernd Wiswedel, KNIME.com, Zurich, Switzerland
  * @since 2.12
  */
+@Deprecated
 public final class AppendedRowsRowInput extends RowInput {
 
     /** The iterator reading the data. */

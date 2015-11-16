@@ -71,8 +71,11 @@ import org.knime.core.util.Pair;
 /**
  * Iterator over an {@link AppendedRowsTable}.
  *
+ * Deprecated: moved to core - use {@link org.knime.core.data.append.AppendedRowsIterator} instead.
+ *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class AppendedRowsIterator extends CloseableRowIterator {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AppendedRowsIterator.class);

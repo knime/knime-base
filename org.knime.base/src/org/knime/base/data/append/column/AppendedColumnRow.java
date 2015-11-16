@@ -57,8 +57,11 @@ import org.knime.core.data.def.DefaultCellIterator;
  * A {@link org.knime.core.data.DataRow} that is extended by one or more
  * cells.
  *
+ * Deprecated: moved to core - use {@link org.knime.core.data.append.AppendedColumnRow} instead.
+ *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class AppendedColumnRow implements DataRow {
 
     private final DataRow m_baseRow;
@@ -163,6 +166,7 @@ public class AppendedColumnRow implements DataRow {
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getNumCells() {
         return m_baseRow.getNumCells() + m_appendCell.length;
     }
@@ -170,6 +174,7 @@ public class AppendedColumnRow implements DataRow {
     /**
      * {@inheritDoc}
      */
+    @Override
     public RowKey getKey() {
         return m_rowKey;
     }
@@ -177,6 +182,7 @@ public class AppendedColumnRow implements DataRow {
     /**
      * {@inheritDoc}
      */
+    @Override
     public DataCell getCell(final int index) {
         if (index < 0 || index >= getNumCells()) {
             throw new IndexOutOfBoundsException("Index " + index + " out of "
@@ -191,6 +197,7 @@ public class AppendedColumnRow implements DataRow {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterator<DataCell> iterator() {
         return new DefaultCellIterator(this);
     }
