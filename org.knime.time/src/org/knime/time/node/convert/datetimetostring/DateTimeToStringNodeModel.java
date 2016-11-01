@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME GmbH, Konstanz, Germany
  *  Website: http://www.knime.org; Email: contact@knime.org
  *
@@ -40,39 +41,41 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Oct 21, 2016 (simon): created
  */
-package org.knime.time.node.convert.newtoold;
+package org.knime.time.node.convert.datetimetostring;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.LocaleUtils;
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.date.DateAndTimeCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.time.localdate.LocalDateCell;
-import org.knime.core.data.time.localdate.LocalDateValue;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
-import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeCell;
-import org.knime.core.data.time.localtime.LocalTimeValue;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -92,156 +95,30 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.core.node.streamable.StreamableOperatorInternals;
+import org.knime.core.node.util.StringHistory;
 import org.knime.core.util.UniqueNameGenerator;
 
 /**
- * The {@link NodeModel} implementation of the node which converts new to old date&time types.
+ * The node model of the node which converts the new date&time types to strings.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
-final class NewToOldTimeNodeModel extends NodeModel {
+public class DateTimeToStringNodeModel extends NodeModel {
 
-    static final String TIME_ZONE_OPT1 = "Add the offset of the time zone to the time";
+    private final SettingsModelColumnFilter2 m_colSelect = DateTimeToStringNodeDialog.createColSelectModel();
 
-    static final String TIME_ZONE_OPT2 = "Drop time zone information";
+    private final SettingsModelString m_isReplaceOrAppend = DateTimeToStringNodeDialog.createReplaceAppendStringBool();
 
-    private final SettingsModelColumnFilter2 m_colSelect = createColSelectModel();
+    private final SettingsModelString m_suffix = DateTimeToStringNodeDialog.createSuffixModel();
 
-    private final SettingsModelString m_isReplaceOrAppend = createReplaceAppendStringBool();
+    private final SettingsModelString m_format = DateTimeToStringNodeDialog.createFormatModel();
 
-    private final SettingsModelString m_suffix = createSuffixModel();
-
-    private final SettingsModelString m_timeZoneSelect = createStringModel();
-
-    /** @return the column select model, used in both dialog and model. */
-    @SuppressWarnings("unchecked")
-    static SettingsModelColumnFilter2 createColSelectModel() {
-        return new SettingsModelColumnFilter2("col_select", LocalDateTimeValue.class, ZonedDateTimeValue.class,
-            LocalDateValue.class, LocalTimeValue.class);
-    }
-
-    /** @return the string model, used in both dialog and model. */
-    static SettingsModelString createReplaceAppendStringBool() {
-        return new SettingsModelString("replace_or_append", NewToOldTimeNodeDialog.OPTION_REPLACE);
-    }
-
-    /** @return the string model, used in both dialog and model. */
-    static SettingsModelString createSuffixModel() {
-        final SettingsModelString settingsModelString = new SettingsModelString("suffix", "(old Date/Time)");
-        settingsModelString.setEnabled(false);
-        return settingsModelString;
-    }
-
-    /** @return the string model, used in both dialog and model. */
-    static SettingsModelString createStringModel() {
-        return new SettingsModelString("time_zone_select", TIME_ZONE_OPT1);
-    }
-
-    /** One in, one out. */
-    NewToOldTimeNodeModel() {
-        super(1, 1);
-    }
+    private final SettingsModelString m_locale = DateTimeToStringNodeDialog.createLocaleModel();
 
     /**
-     * @param inSpec Current input spec
-     * @return The CR describing the output
      */
-    private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
-        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
-        final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-        final int[] includeIndeces =
-            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
-
-        int i = 0;
-        for (String includedCol : includeList) {
-            if (m_isReplaceOrAppend.getStringValue().equals(NewToOldTimeNodeDialog.OPTION_REPLACE)) {
-                final DataColumnSpecCreator dataColumnSpecCreator =
-                    new DataColumnSpecCreator(includedCol, DateAndTimeCell.TYPE);
-                final ConvertTimeCellFactory cellFac =
-                    new ConvertTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
-                rearranger.replace(cellFac, includedCol);
-            } else {
-                final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec)
-                    .newColumn(includedCol + m_suffix.getStringValue(), DateAndTimeCell.TYPE);
-                final ConvertTimeCellFactory cellFac = new ConvertTimeCellFactory(dataColSpec, includeIndeces[i++]);
-                rearranger.append(cellFac);
-            }
-        }
-        return rearranger;
-    }
-
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inObjects, final ExecutionContext exec)
-        throws Exception {
-        final ColumnRearranger columnRearranger = createColumnRearranger(inObjects[0].getDataTableSpec());
-        final BufferedDataTable out = exec.createColumnRearrangeTable(inObjects[0], columnRearranger, exec);
-        return new BufferedDataTable[]{out};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public InputPortRole[] getInputPortRoles() {
-        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new StreamableOperator() {
-
-            @Override
-            public StreamableOperatorInternals saveInternals() {
-                return null;
-            }
-
-            @Override
-            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
-                throws Exception {
-                final RowInput in = (RowInput)inputs[0];
-                final RowOutput out = (RowOutput)outputs[0];
-
-                final DataTableSpec inSpec = in.getDataTableSpec();
-                String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
-                final int[] includeIndeces =
-                    Arrays.stream(includeList).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
-
-                DataRow row;
-                while ((row = in.poll()) != null) {
-                    exec.checkCanceled();
-                    DataCell[] datacells = new DataCell[includeIndeces.length];
-                    for (int i = 0; i < includeIndeces.length; i++) {
-                        if (m_isReplaceOrAppend.getStringValue().equals(NewToOldTimeNodeDialog.OPTION_REPLACE)) {
-                            final DataColumnSpecCreator dataColumnSpecCreator =
-                                new DataColumnSpecCreator(includeList[i], DateAndTimeCell.TYPE);
-                            final ConvertTimeCellFactory cellFac =
-                                new ConvertTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
-                        } else {
-                            final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec)
-                                .newColumn(includeList[i] + m_suffix.getStringValue(), DateAndTimeCell.TYPE);
-                            final ConvertTimeCellFactory cellFac =
-                                new ConvertTimeCellFactory(dataColSpec, includeIndeces[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
-                        }
-                    }
-                    if (m_isReplaceOrAppend.getStringValue().equals(NewToOldTimeNodeDialog.OPTION_REPLACE)) {
-                        out.push(new ReplacedColumnsDataRow(row, datacells, includeIndeces));
-                    } else {
-                        out.push(new AppendedColumnRow(row, datacells));
-                    }
-                }
-                in.close();
-                out.close();
-            }
-        };
+    protected DateTimeToStringNodeModel() {
+        super(1, 1);
     }
 
     /**
@@ -257,9 +134,110 @@ final class NewToOldTimeNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        final ColumnRearranger columnRearranger = createColumnRearranger(inData[0].getDataTableSpec());
+        final BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], columnRearranger, exec);
+        return new BufferedDataTable[]{out};
+    }
+
+    /**
+     * @param inSpec Current input spec
+     * @return The CR describing the output
+     */
+    private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
+        final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
+        final int[] includeIndeces =
+            Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes()).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+        int i = 0;
+        for (String includedCol : includeList) {
+            if (m_isReplaceOrAppend.getStringValue().equals(DateTimeToStringNodeDialog.OPTION_REPLACE)) {
+                final DataColumnSpecCreator dataColumnSpecCreator =
+                    new DataColumnSpecCreator(includedCol, StringCell.TYPE);
+                final TimeToStringCellFactory cellFac =
+                    new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
+                rearranger.replace(cellFac, includedCol);
+            } else {
+                final DataColumnSpec dataColSpec =
+                    new UniqueNameGenerator(inSpec).newColumn(includedCol + m_suffix.getStringValue(), StringCell.TYPE);
+                final TimeToStringCellFactory cellFac = new TimeToStringCellFactory(dataColSpec, includeIndeces[i++]);
+                rearranger.append(cellFac);
+            }
+        }
+        return rearranger;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new StreamableOperator() {
+
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
+                final RowInput in = (RowInput)inputs[0];
+                final RowOutput out = (RowOutput)outputs[0];
+                final DataTableSpec inSpec = in.getDataTableSpec();
+                final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
+                final int[] includeIndeces = Arrays.stream(m_colSelect.applyTo(inSpec).getIncludes())
+                    .mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
+                final boolean isReplace =
+                    m_isReplaceOrAppend.getStringValue().equals(DateTimeToStringNodeDialog.OPTION_REPLACE);
+
+                DataRow row;
+                while ((row = in.poll()) != null) {
+                    exec.checkCanceled();
+                    DataCell[] datacells = new DataCell[includeIndeces.length];
+                    for (int i = 0; i < includeIndeces.length; i++) {
+                        if (isReplace) {
+                            final DataColumnSpecCreator dataColumnSpecCreator =
+                                new DataColumnSpecCreator(includeList[i], StringCell.TYPE);
+                            final TimeToStringCellFactory cellFac =
+                                new TimeToStringCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i]);
+                            datacells[i] = cellFac.getCell(row);
+                        } else {
+                            final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec)
+                                .newColumn(includeList[i] + m_suffix.getStringValue(), StringCell.TYPE);
+                            final TimeToStringCellFactory cellFac =
+                                new TimeToStringCellFactory(dataColSpec, includeIndeces[i]);
+                            datacells[i] = cellFac.getCell(row);
+                        }
+                    }
+                    if (isReplace) {
+                        out.push(new ReplacedColumnsDataRow(row, datacells, includeIndeces));
+                    } else {
+                        out.push(new AppendedColumnRow(row, datacells));
+                    }
+                }
+                in.close();
+                out.close();
+            }
+        };
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do
+        // no internals
     }
 
     /**
@@ -268,7 +246,7 @@ final class NewToOldTimeNodeModel extends NodeModel {
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do
+        // no internals
     }
 
     /**
@@ -279,7 +257,8 @@ final class NewToOldTimeNodeModel extends NodeModel {
         m_colSelect.saveSettingsTo(settings);
         m_isReplaceOrAppend.saveSettingsTo(settings);
         m_suffix.saveSettingsTo(settings);
-        m_timeZoneSelect.saveSettingsTo(settings);
+        m_format.saveSettingsTo(settings);
+        m_locale.saveSettingsTo(settings);
     }
 
     /**
@@ -290,7 +269,31 @@ final class NewToOldTimeNodeModel extends NodeModel {
         m_colSelect.validateSettings(settings);
         m_isReplaceOrAppend.validateSettings(settings);
         m_suffix.validateSettings(settings);
-        m_timeZoneSelect.validateSettings(settings);
+        m_format.validateSettings(settings);
+        m_locale.validateSettings(settings);
+
+        try {
+            LocaleUtils.toLocale(m_locale.getStringValue());
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidSettingsException(
+                "Unsupported locale in setting (" + m_locale.getStringValue() + "): " + ex.getMessage(), ex);
+        }
+
+        final SettingsModelString formatClone = m_format.createCloneWithValidatedValue(settings);
+        final String format = formatClone.getStringValue();
+        if (format == null || format.length() == 0) {
+            throw new InvalidSettingsException("Format must not be empty!");
+        }
+        try {
+            DateTimeFormatter.ofPattern(formatClone.getStringValue());
+        } catch (Exception e) {
+            String msg = "Invalid date format: \"" + format + "\".";
+            final String errMsg = e.getMessage();
+            if (errMsg != null && !errMsg.isEmpty()) {
+                msg += " Reason: " + errMsg;
+            }
+            throw new InvalidSettingsException(msg, e);
+        }
     }
 
     /**
@@ -301,7 +304,13 @@ final class NewToOldTimeNodeModel extends NodeModel {
         m_colSelect.loadSettingsFrom(settings);
         m_isReplaceOrAppend.loadSettingsFrom(settings);
         m_suffix.loadSettingsFrom(settings);
-        m_timeZoneSelect.loadSettingsFrom(settings);
+        m_format.loadSettingsFrom(settings);
+        m_locale.loadSettingsFrom(settings);
+        final String dateformat = m_format.getStringValue();
+        // if it is not a predefined one -> store it
+        if (!DateTimeToStringNodeDialog.PREDEFINED_FORMATS.contains(dateformat)) {
+            StringHistory.getInstance(DateTimeToStringNodeDialog.FORMAT_HISTORY_KEY).add(dateformat);
+        }
     }
 
     /**
@@ -309,10 +318,10 @@ final class NewToOldTimeNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-        // nothing to do
+        // no internals
     }
 
-    private final class ConvertTimeCellFactory extends SingleCellFactory {
+    final class TimeToStringCellFactory extends SingleCellFactory {
 
         private final int m_colIndex;
 
@@ -320,7 +329,7 @@ final class NewToOldTimeNodeModel extends NodeModel {
          * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
          */
-        public ConvertTimeCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+        public TimeToStringCellFactory(final DataColumnSpec inSpec, final int colIndex) {
             super(inSpec);
             m_colIndex = colIndex;
         }
@@ -334,45 +343,25 @@ final class NewToOldTimeNodeModel extends NodeModel {
             if (cell.isMissing()) {
                 return cell;
             }
-            if (cell instanceof LocalDateTimeValue) {
-                final LocalDateTime ldt = ((LocalDateTimeCell)cell).getLocalDateTime();
-                if (ldt.getNano() == 0) {
-                    return new DateAndTimeCell(ldt.getYear(), ldt.getMonthValue() - 1, ldt.getDayOfMonth(),
-                        ldt.getHour(), ldt.getMinute(), ldt.getSecond());
-                } else {
-                    return new DateAndTimeCell(ldt.getYear(), ldt.getMonthValue() - 1, ldt.getDayOfMonth(),
-                        ldt.getHour(), ldt.getMinute(), ldt.getSecond(),
-                        (int)TimeUnit.NANOSECONDS.toMillis(ldt.getNano()));
+            try {
+                final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(),
+                    LocaleUtils.toLocale(m_locale.getStringValue()));
+                final DataType type = cell.getType();
+                if (type.equals(LocalDateCellFactory.TYPE)) {
+                    final String result = ((LocalDateCell)cell).getLocalDate().format(formatter);
+                    return StringCellFactory.create(result);
+                } else if (type.equals(LocalTimeCellFactory.TYPE)) {
+                    final String result = ((LocalTimeCell)cell).getLocalTime().format(formatter);
+                    return StringCellFactory.create(result);
+                } else if (type.equals(LocalDateTimeCellFactory.TYPE)) {
+                    final String result = ((LocalDateTimeCell)cell).getLocalDateTime().format(formatter);
+                    return StringCellFactory.create(result);
+                } else if (type.equals(ZonedDateTimeCellFactory.TYPE)) {
+                    final String result = ((ZonedDateTimeCell)cell).getZonedDateTime().format(formatter);
+                    return StringCellFactory.create(result);
                 }
-            } else if (cell instanceof ZonedDateTimeValue) {
-                LocalDateTime ldt = null;
-                if (m_timeZoneSelect.getStringValue().equals(TIME_ZONE_OPT1)) {
-                    final ZonedDateTime zdt = ((ZonedDateTimeCell)cell).getZonedDateTime();
-                    final LocalDateTime ldtUTC = LocalDateTime.of(zdt.getYear(), zdt.getMonth(), zdt.getDayOfMonth(),
-                        zdt.getHour(), zdt.getMinute(), zdt.getSecond(), zdt.getNano());
-                    ldt = LocalDateTime.ofInstant(ldtUTC.toInstant(ZoneOffset.UTC), zdt.getZone());
-                } else {
-                    ldt = ((ZonedDateTimeCell)cell).getZonedDateTime().toLocalDateTime();
-                }
-                if (ldt.getNano() == 0) {
-                    return new DateAndTimeCell(ldt.getYear(), ldt.getMonthValue() - 1, ldt.getDayOfMonth(),
-                        ldt.getHour(), ldt.getMinute(), ldt.getSecond());
-                } else {
-                    return new DateAndTimeCell(ldt.getYear(), ldt.getMonthValue() - 1, ldt.getDayOfMonth(),
-                        ldt.getHour(), ldt.getMinute(), ldt.getSecond(),
-                        (int)TimeUnit.NANOSECONDS.toMillis(ldt.getNano()));
-                }
-            } else if (cell instanceof LocalTimeValue) {
-                final LocalTime lt = ((LocalTimeCell)cell).getLocalTime();
-                if (lt.getNano() == 0) {
-                    return new DateAndTimeCell(lt.getHour(), lt.getMinute(), lt.getSecond(), -1);
-                } else {
-                    return new DateAndTimeCell(lt.getHour(), lt.getMinute(), lt.getSecond(),
-                        (int)TimeUnit.NANOSECONDS.toMillis(lt.getNano()));
-                }
-            } else if (cell instanceof LocalDateValue) {
-                final LocalDate ld = ((LocalDateCell)cell).getLocalDate();
-                return new DateAndTimeCell(ld.getYear(), ld.getMonthValue() - 1, ld.getDayOfMonth());
+            } catch (UnsupportedTemporalTypeException e) {
+                return new MissingCell(e.getMessage());
             }
             throw new IllegalStateException("Data type of cell is not compatible.");
         }

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME GmbH, Konstanz, Germany
  *  Website: http://www.knime.org; Email: contact@knime.org
  *
@@ -43,55 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.09.2009 (Fabian Dill): created
+ *   Oct 19, 2016 (simon): created
  */
-package org.knime.core.data.time.zoneddatetime;
+package org.knime.time.node.convert.stringtodatetime;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
-
-import org.knime.core.data.DataCellDataInput;
-import org.knime.core.data.DataCellDataOutput;
-import org.knime.core.data.DataCellSerializer;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Serializes a {@link ZonedDateTimeCell} using two integers (epochDay, nanoOfDay) and a String (zoneId).
+ * The node factory of the node which converts strings to the new date&time types.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
- * @since 3.3
- * @noreference This class is not intended to be referenced by clients.
  */
-public final class ZonedDateTimeCellSerializer implements DataCellSerializer<ZonedDateTimeCell> {
+public class StringToDateTimeNodeFactory extends NodeFactory<StringToDateTimeNodeModel> {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public ZonedDateTimeCell deserialize(final DataCellDataInput input) throws IOException {
-        final long epochDay = input.readLong();
-        final long nanoOfDay = input.readLong();
-        final int offsetTotalSeconds = input.readInt();
-        final String zoneId = input.readLine();
-        final ZonedDateTime zonedDateTime =
-            ZonedDateTime.ofInstant(LocalDateTime.of(LocalDate.ofEpochDay(epochDay), LocalTime.ofNanoOfDay(nanoOfDay)),
-                ZoneOffset.ofTotalSeconds(offsetTotalSeconds), ZoneId.of(zoneId));
-        return new ZonedDateTimeCell(zonedDateTime);
+    public StringToDateTimeNodeModel createNodeModel() {
+        return new StringToDateTimeNodeModel();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void serialize(final ZonedDateTimeCell cell, final DataCellDataOutput output) throws IOException {
-        final ZonedDateTime zonedDateTime = cell.getZonedDateTime();
-        final long epochDay = zonedDateTime.getLong(ChronoField.EPOCH_DAY);
-        final long nanoOfDay = zonedDateTime.getLong(ChronoField.NANO_OF_DAY);
-        final int offsetTotalSeconds = zonedDateTime.getOffset().get(ChronoField.OFFSET_SECONDS);
-        final String zoneId = zonedDateTime.getZone().getId();
-        output.writeLong(epochDay);
-        output.writeLong(nanoOfDay);
-        output.writeInt(offsetTotalSeconds);
-        output.writeBytes(zoneId);
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<StringToDateTimeNodeModel> createNodeView(final int viewIndex,
+        final StringToDateTimeNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new StringToDateTimeNodeDialog();
     }
 
 }

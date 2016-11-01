@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME GmbH, Konstanz, Germany
  *  Website: http://www.knime.org; Email: contact@knime.org
  *
@@ -43,55 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.09.2009 (Fabian Dill): created
+ *   Oct 10, 2016 (simon): created
  */
-package org.knime.core.data.time.zoneddatetime;
+package org.knime.time.node.convert;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
-
-import org.knime.core.data.DataCellDataInput;
-import org.knime.core.data.DataCellDataOutput;
-import org.knime.core.data.DataCellSerializer;
+import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 
 /**
- * Serializes a {@link ZonedDateTimeCell} using two integers (epochDay, nanoOfDay) and a String (zoneId).
+ * An enumeration that contains all different Date&Time Types.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
- * @since 3.3
- * @noreference This class is not intended to be referenced by clients.
  */
-public final class ZonedDateTimeCellSerializer implements DataCellSerializer<ZonedDateTimeCell> {
+public enum DateTimeTypes {
+        LOCAL_DATE("Local date", LocalDateCellFactory.TYPE), LOCAL_TIME("Local time", LocalTimeCellFactory.TYPE),
+        LOCAL_DATE_TIME("Local date&time", LocalDateTimeCellFactory.TYPE),
+        ZONED_DATE_TIME("Zoned date&time", ZonedDateTimeCellFactory.TYPE);
 
-    @Override
-    public ZonedDateTimeCell deserialize(final DataCellDataInput input) throws IOException {
-        final long epochDay = input.readLong();
-        final long nanoOfDay = input.readLong();
-        final int offsetTotalSeconds = input.readInt();
-        final String zoneId = input.readLine();
-        final ZonedDateTime zonedDateTime =
-            ZonedDateTime.ofInstant(LocalDateTime.of(LocalDate.ofEpochDay(epochDay), LocalTime.ofNanoOfDay(nanoOfDay)),
-                ZoneOffset.ofTotalSeconds(offsetTotalSeconds), ZoneId.of(zoneId));
-        return new ZonedDateTimeCell(zonedDateTime);
+    private final String m_name;
+
+    private final DataType m_dataType;
+
+    private DateTimeTypes(final String name, final DataType dataType) {
+        m_name = name;
+        m_dataType = dataType;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void serialize(final ZonedDateTimeCell cell, final DataCellDataOutput output) throws IOException {
-        final ZonedDateTime zonedDateTime = cell.getZonedDateTime();
-        final long epochDay = zonedDateTime.getLong(ChronoField.EPOCH_DAY);
-        final long nanoOfDay = zonedDateTime.getLong(ChronoField.NANO_OF_DAY);
-        final int offsetTotalSeconds = zonedDateTime.getOffset().get(ChronoField.OFFSET_SECONDS);
-        final String zoneId = zonedDateTime.getZone().getId();
-        output.writeLong(epochDay);
-        output.writeLong(nanoOfDay);
-        output.writeInt(offsetTotalSeconds);
-        output.writeBytes(zoneId);
+    public String toString() {
+        return m_name;
     }
 
+    public DataType getDataType() {
+        return m_dataType;
+    }
 }

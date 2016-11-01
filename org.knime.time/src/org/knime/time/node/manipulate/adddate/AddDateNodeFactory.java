@@ -44,44 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 10, 2016 (simon): created
+ *   Oct 28, 2016 (simon): created
  */
-package org.knime.time.node.convert.oldtonew;
+package org.knime.time.node.manipulate.adddate;
 
-import org.knime.core.data.DataType;
-import org.knime.core.data.time.localdate.LocalDateCellFactory;
-import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
-import org.knime.core.data.time.localtime.LocalTimeCellFactory;
-import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * An enumeration that contains all different Date&Time Types.
+ * The node factory of the node which adds a date to a time cell.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
-enum DateTimeTypes {
-        LOCAL_DATE("Local date", LocalDateCellFactory.TYPE), LOCAL_TIME("Local time", LocalTimeCellFactory.TYPE),
-        LOCAL_DATE_TIME("Local date&time", LocalDateTimeCellFactory.TYPE),
-        ZONED_DATE_TIME("Zoned date&time", ZonedDateTimeCellFactory.TYPE);
+public class AddDateNodeFactory extends NodeFactory<AddDateNodeModel> {
 
-    private final String m_name;
-
-    private final DataType m_dataType;
-
-    private DateTimeTypes(final String name, final DataType dataType) {
-        m_name = name;
-        m_dataType = dataType;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AddDateNodeModel createNodeModel() {
+        return new AddDateNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String toString() {
-        return m_name;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
-    public DataType getDataType() {
-        return m_dataType;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<AddDateNodeModel> createNodeView(final int viewIndex, final AddDateNodeModel nodeModel) {
+        return null;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new AddDateNodeDialog();
+    }
+
 }
