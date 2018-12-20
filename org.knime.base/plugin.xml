@@ -478,6 +478,13 @@
             name="Deep Learning"
             path="/labs">
       </category>
+      <category
+            icon="icons/missing.gif"
+            level-id="logreg"
+            locked="true"
+            name="Logistic Regression"
+            path="/analytics/mining/">
+      </category>      
    </extension>
             
      <extension
@@ -1974,6 +1981,15 @@
             category-path="/analytics/mining/bayes"
             deprecated="false"
             factory-class="org.knime.base.node.mine.bayes.naivebayes.predictor4.NaiveBayesPredictorNodeFactory3">
+      </node>
+      <node
+            category-path="/analytics/mining/logreg"
+            factory-class="org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerNodeFactory4">
+      </node>
+      <node
+            category-path="/analytics/mining/logreg"
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.regression.logistic.predictor.LogisticRegressionPredictorNodeFactory">
       </node>
    </extension>
    
