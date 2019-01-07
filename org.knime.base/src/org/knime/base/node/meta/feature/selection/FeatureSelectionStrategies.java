@@ -50,6 +50,7 @@ package org.knime.base.node.meta.feature.selection;
 
 import java.util.List;
 
+import org.knime.base.node.meta.feature.selection.genetic.GeneticStrategy;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -70,25 +71,40 @@ public class FeatureSelectionStrategies {
              * Forward Feature Selection. Starts from an empty set and iteratively adds
              * the feature that provides the best gain
              */
-            ForwardFeatureSelection("Forward Feature Selection", (byte)0),
+            ForwardFeatureSelection("Forward Feature Selection", StrategyType.Sequential, (byte)0),
             /**
              * Backward Feature Elimination. Starts from the full set and iteratively removes
              * the feature whose removal yields the smallest loss.
              */
-            BackwardFeatureElimination("Backward Feature Elimination", (byte)1);
+            BackwardFeatureElimination("Backward Feature Elimination", StrategyType.Sequential, (byte)1),
+            /**
+             * Genetic Algorithm for Feature Selection. Binary chromosomes represent which features to include and which
+             * to exclude.
+             */
+            GeneticAlgorithm("Genetic Algorithm", StrategyType.Genetic, (byte)2);
 
         private final String m_string;
 
+        private final StrategyType m_type;
+
         private final byte m_persistByte;
 
-        private Strategy(final String name, final byte persistByte) {
+        private Strategy(final String name, final StrategyType type, final byte persistByte) {
             m_string = name;
+            m_type = type;
             m_persistByte = persistByte;
         }
 
         @Override
         public String toString() {
             return m_string;
+        }
+
+        /**
+         * @return the type of the strategy
+         */
+        public StrategyType getType() {
+            return m_type;
         }
 
         /**
@@ -115,25 +131,76 @@ public class FeatureSelectionStrategies {
             }
             throw new InvalidSettingsException("The feature selection strategy could not be loaded.");
         }
+
     }
 
     /**
      * Creates a FeatureSelectionStrategy with the provided parameters
      *
-     * @param strategy the strategy (e.g. ForwardFeatureSelection)
-     * @param subsetSize the subset size that should be found (-1 if the search should include all subset sizes)
+     * @param settings the settings
      * @param featureColumns a list containing indices of features that are interpreted by a {@link ColumnHandler}
      * @return the specified feature selection strategy
      */
-    public static FeatureSelectionStrategy createFeatureSelectionStrategy(final Strategy strategy, final int subsetSize,
-        final List<Integer> featureColumns) {
+    public static FeatureSelectionStrategy createFeatureSelectionStrategy(
+        final FeatureSelectionLoopStartSettings settings, final List<Integer> featureColumns) {
+        final Strategy strategy = settings.getStrategy();
         switch (strategy) {
             case ForwardFeatureSelection:
-                return new FFSStrategy(subsetSize, featureColumns);
+                return new FFSStrategy(settings.getNrFeaturesThreshold(), featureColumns);
             case BackwardFeatureElimination:
-                return new FBSStrategy(subsetSize, featureColumns);
+                return new FBSStrategy(settings.getNrFeaturesThreshold(), featureColumns);
+            case GeneticAlgorithm:
+                return new GeneticStrategy(settings.getNrFeaturesLowerBound(), settings.getNrFeaturesUpperBound(),
+                    settings.getPopSize(), settings.getMaxNumGenerations(), settings.isUseRandomSeed(),
+                    settings.getRandomSeed(), settings.getSurvivorsFraction(), settings.getCrossoverRate(),
+                    settings.getMutationRate(), settings.getElitismRate(), settings.getEarlyStopping(),
+                    settings.getSelectionStrategy(), settings.getCrossoverStrategy(), featureColumns);
             default:
                 throw new IllegalArgumentException("The FeatureSelectionStrategy \"" + strategy + "\" is unknown.");
+        }
+    }
+
+    /**
+     * The type of a {@link Strategy}. Each strategy type has to define its dialog pane (in
+     * {@link FeatureSelectionLoopStartNodeDialogPane}) specifying the specific strategy settings.
+     *
+     * @author Simon Schmid, KNIME, Austin, USA
+     */
+    public enum StrategyType {
+
+            /**
+             * FFS and BFE
+             */
+            Sequential("Sequential Algorithm Settings", false),
+            /**
+             * Genetic Algorithm
+             */
+            Genetic("Genetic Algorithm Settings", true);
+
+        private final String m_dialogPanelTitle;
+
+        private final boolean m_hasAdvancedSettings;
+
+        /**
+         *
+         */
+        private StrategyType(final String dialogPanelTitle, final boolean hasAdvancedSettings) {
+            m_dialogPanelTitle = dialogPanelTitle;
+            m_hasAdvancedSettings = hasAdvancedSettings;
+        }
+
+        /**
+         * @return dialog panel title
+         */
+        public String getDialogPanelTitle() {
+            return m_dialogPanelTitle;
+        }
+
+        /**
+         * @return the hasAdvancedSettings
+         */
+        public boolean hasAdvancedSettings() {
+            return m_hasAdvancedSettings;
         }
     }
 

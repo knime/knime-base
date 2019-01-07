@@ -7,21 +7,109 @@
 
 	<fullDescription>
 		<intro>
-			This node is the start of the feature selection loop.  The feature selection loop allows you to select, from all the features in the input data set, the subset of features that is best for model construction.  With this node you determine (i) which features/columns are to be held fixed in the selection process.  These constant or "static" features/columns are included in each loop iteration and are exempt from elimination; (ii) which selection strategy is to be used on the other (variable) features/columns; and (iii) at which threshold number of variable features the selection process is to terminate.
-			This node has two in and out ports. The respective first port is intended for training data and the second port for test data. The same filter is applied to both tables and they will therefore always contain the same columns.
+			This node is the start of the feature selection loop. The
+			feature selection loop allows you to select, from all the features in
+			the input data set, the subset of features that is best for model
+			construction. With this node you determine (i) which features/columns
+			are to be held fixed in the selection process. These constant or
+			"static" features/columns are included in each loop iteration and are
+			exempt from elimination; (ii) which selection strategy is to be used
+			on the other (variable) features/columns and its settings; and (iii)
+			the specific settings of the selected strategy.
+			This node has two in and out ports. The respective
+			first
+			port is intended for training data and the second port for test
+			data.
+			The same filter is applied to both tables and they will
+			therefore
+			always contain the same columns.
 		</intro>
 
-		<option name="Static and Variable Features">Columns can be selected manually or by means of regular expressions.  The columns in the left pane are the static columns, those in the right pane the variable columns.  Since a feature selection process always has a target feature and a set of features to select from, there will always be at least one static column and more than one variable column.  If you leave the left pane empty and run the node, you will get a warning.  Columns can be moved from one pane to the other by clicking on the appropriate button in the middle.
-		</option>
-		<option name="Feature selection strategy">
-			Here you can choose between two selection strategies: Forward Feature Selection and Backward Feature Elimination.
-		</option>
-		<option name="Use threshold for number of features">
-			Check this option if you want to set a bound for the number of selected features. Since Forward Feature Selection adds features while Backward Feature Elimination subtracts them, this will be an upper bound for Forward Feature Selection and a lower bound for Backward Feature Elimination.
-		</option>
-		<option name="Select threshold for number of features">
-			Set the upper or lower bound for the number of selected features.
-		</option>
+		<tab name="Options">
+			<option name="Static and Variable Features">Columns can be selected manually or by means of
+				regular expressions. The columns in the left pane are the static
+				columns, those in the right pane the variable columns. Since a
+				feature selection process always has a target feature and a set of
+				features to select from, there will always be at least one static
+				column and more than one variable column. If you leave the left pane
+				empty and run the node, you will get a warning. Columns can be moved
+				from one pane to the other by clicking on the appropriate button in
+				the middle.
+			</option>
+			<option name="Feature selection strategy">
+				Here you can choose between the selection strategies: Forward
+				Feature Selection, Backward Feature Elimination, and
+				<a href="https://en.wikipedia.org/wiki/Genetic_algorithm">Genetic Algorithm</a>.
+			</option>
+			<option name="Use threshold for number of features">
+				Check this option if you want to set a bound for
+				the number of selected
+				features. Since Forward Feature Selection adds
+				features while
+				Backward Feature Elimination subtracts them, this will
+				be an upper
+				bound for Forward Feature Selection and a lower bound for
+				Backward
+				Feature Elimination.
+			</option>
+			<option name="Select threshold for number of features">
+				Set the upper or lower bound for the number of
+				selected features.
+			</option>
+			<option name="Use lower bound for number of features">
+				If enabled, a lower bound for the number of
+				selected features can be selected.
+			</option>
+			<option name="Use upper bound for number of features">
+				If enabled, an upper bound for the number of
+				selected features can be selected.
+			</option>
+			<option name="Population size">Defines the number of individuals in each
+				population.
+			</option>
+			<option name="Number of generations">
+				Defines the number of generations. The upper bound of number of
+				iterations is
+				<i>Population size * (Number of generations + 1)</i>, but usually less are needed.
+			</option>
+			<option name="Use static random seed"> Choose a seed to get reproducible results.
+			</option>
+		</tab>
+		<tab name="Advanced Options">
+			<option name="Selection strategy">
+				Defines the strategy to use for the
+				<a
+					href="https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)">selection of offspring</a>
+				.
+			</option>
+			<option name="Fraction of survivors"> Defines the fraction of survivors during evaluation of the next generation.
+			<i>1 - fraction of survivors</i> defines the fraction of offspring which is evaluated for the next generation.
+			</option>
+			<option name="Elitism rate"> Defines the rate of how many of the best
+				individuals of a generation are transfered to the next generation
+				without alteration.
+			</option>
+			<option name="Crossover strategy">
+				Defines the strategy to use for
+				<a
+					href="https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)"> crossover</a>
+				.
+			</option>
+			<option name="Crossover rate">
+				Defines the crossover rate used to alter
+				offspring.
+			</option>
+			<option name="Mutation rate">
+				Defines the mutation rate used to alter
+				offspring.
+			</option>
+			<option name="Enable early stopping">
+				If checked, the algorithm stops after a specified number of generations without improvement.
+			</option>
+			<option name="Number of generations without improvement">
+				Defines the number of generations without improvement used for early stopping.
+			</option>
+		</tab>
 	</fullDescription>
 
 	<ports>

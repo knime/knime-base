@@ -124,4 +124,13 @@ public interface FeatureSelectionStrategy {
      */
     public Integer getCurrentFeature();
 
+    /**
+     * That is the last call before a new loop iteration starts. Can be used to wrap up and produce a new feature set for the next iteration.
+     */
+    public void finishRound();
+
+    /**
+     * This is called when the Loop Start node is reset or disposed. Can be used to free any resources or stop any running threads.
+     */
+    public void onDispose();
 }

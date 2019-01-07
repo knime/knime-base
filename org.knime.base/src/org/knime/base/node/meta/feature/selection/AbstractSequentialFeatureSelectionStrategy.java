@@ -182,7 +182,6 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
         return !m_shouldStop;
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -239,4 +238,20 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
      * @return the number of iterations the strategy needs to reach <b>subsetSize</b>
      */
     protected abstract int calcNumIterations(int subsetSize, int numFeatures);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onDispose() {
+        // nothing to do
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void finishRound() {
+        // nothing to do
+    }
 }

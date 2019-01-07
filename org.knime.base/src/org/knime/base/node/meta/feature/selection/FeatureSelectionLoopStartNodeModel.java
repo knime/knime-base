@@ -120,13 +120,16 @@ public class FeatureSelectionLoopStartNodeModel extends NodeModel implements Loo
             }
         }
         if (m_iteration == 0) {
+            // dispose already created feature selectors to cancel possibly started genetic algorithm thread
+            if (m_featureSelector != null) {
+                m_featureSelector.onDispose();
+            }
             // get feature selector
             try {
                 final AbstractColumnHandler columnHandler =
                     new DefaultColumnHandler(Arrays.asList(constantColumns), inSpecs[0]);
-                final FeatureSelectionStrategy strategy =
-                    FeatureSelectionStrategies.createFeatureSelectionStrategy(m_settings.getSelectionStrategy(),
-                        m_settings.getNrFeaturesThreshold(), columnHandler.getAvailableFeatures());
+                final FeatureSelectionStrategy strategy = FeatureSelectionStrategies
+                    .createFeatureSelectionStrategy(m_settings, columnHandler.getAvailableFeatures());
                 m_featureSelector = new FeatureSelector(strategy, columnHandler);
                 // push max iterations flowvariable
                 m_maxIterations = m_featureSelector.getNumberOfIterations();
@@ -226,6 +229,19 @@ public class FeatureSelectionLoopStartNodeModel extends NodeModel implements Loo
     @Override
     protected void reset() {
         m_iteration = 0;
+        if (m_featureSelector != null) {
+            m_featureSelector.onDispose();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDispose() {
+        if (m_featureSelector != null) {
+            m_featureSelector.onDispose();
+        }
     }
 
 }
