@@ -132,7 +132,7 @@ public class FeatureSelectionLoopStartNodeModel extends NodeModel implements Loo
                 m_maxIterations = m_featureSelector.getNumberOfIterations();
                 pushFlowVariableInt("maxIterations", m_maxIterations);
             } catch (Throwable t) {
-                throw new InvalidSettingsException("Exception during feature selector setup", t);
+                throw new InvalidSettingsException("Exception during feature selector setup: " + t.getMessage(), t);
             }
         }
 

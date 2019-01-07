@@ -56,7 +56,7 @@ import java.util.List;
  *
  * @author Adrian Nembach, KNIME.com
  */
-public abstract class AbstractFeatureSelectionStrategy implements FeatureSelectionStrategy {
+public abstract class AbstractSequentialFeatureSelectionStrategy implements FeatureSelectionStrategy {
 
     private final int m_subsetSize;
 
@@ -77,7 +77,7 @@ public abstract class AbstractFeatureSelectionStrategy implements FeatureSelecti
      * @param features ids of the features.
      *
      */
-    public AbstractFeatureSelectionStrategy(final int subSetSize, final List<Integer> features) {
+    public AbstractSequentialFeatureSelectionStrategy(final int subSetSize, final List<Integer> features) {
         m_subsetSize = subSetSize;
         m_featureColumns = features;
     }
@@ -171,15 +171,6 @@ public abstract class AbstractFeatureSelectionStrategy implements FeatureSelecti
         if (newBestScore(score)) {
             m_currentBestFeature = getCurrentFeature();
         }
-
-//        if (reachedEndOfRound()) {
-//            handleBestFeature(m_currentBestFeature);
-//            List<Integer> included = getIncluded();
-//            m_shouldStop = included.size() == m_subsetSize || reachedEndOfSearch();
-//        } else {
-//            nextFeature();
-//        }
-
     }
 
     /**

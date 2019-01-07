@@ -83,8 +83,6 @@ public class FeatureSelector {
 
     private double m_lastScore;
 
-//    private boolean m_shouldAddRowToResultTable;
-
     private final FeatureSelectionModel m_selectionModel;
 
     private BufferedDataContainer m_resultTableContainer;
@@ -204,7 +202,7 @@ public class FeatureSelector {
 
     /**
      * Returns the tables for the next search round.
-     * To be used by the loop start nod.
+     * To be used by the loop start node.
      *
      * @param exec {@link ExecutionContext} of the loop start node.
      * @param inTables The input tables of the loop start node.

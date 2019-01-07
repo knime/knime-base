@@ -57,7 +57,7 @@ import java.util.List;
  *
  * @author Adrian Nembach, KNIME.com
  */
-public class FFSStrategy extends AbstractFeatureSelectionStrategy {
+public class FFSStrategy extends AbstractSequentialFeatureSelectionStrategy {
 
     private static final String COL_NAME = "Added feature";
 

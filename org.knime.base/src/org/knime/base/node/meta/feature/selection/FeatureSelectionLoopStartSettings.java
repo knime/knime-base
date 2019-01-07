@@ -71,7 +71,6 @@ public class FeatureSelectionLoopStartSettings {
     // -1 stands for no threshold!
     private static final int DEF_NR_FEATURES_THRESHOLD = -1;
 
-    //    private String[] m_constantColumns;
 
     private Strategy m_selectionStrategy = DEF_SELECTION_STRATEGY;
 
@@ -134,7 +133,6 @@ public class FeatureSelectionLoopStartSettings {
      */
     public void save(final NodeSettingsWO settings) {
         m_selectionStrategy.save(settings);
-//        settings.addStringArray(CFG_CONSTANT_COLUMNS, m_constantColumns);
         m_constantColumnsFilterConfig.saveConfiguration(settings);
         settings.addInt(CFG_NR_FEATURES_THRESHOLD, m_nrFeaturesThreshold);
     }
@@ -151,7 +149,6 @@ public class FeatureSelectionLoopStartSettings {
         } catch (Exception e) {
             m_selectionStrategy = DEF_SELECTION_STRATEGY;
         }
-//        m_constantColumns = settings.getStringArray(CFG_CONSTANT_COLUMNS, DEF_CONSTANT_COLUMNS);
         m_constantColumnsFilterConfig.loadConfigurationInDialog(settings, spec);
         m_nrFeaturesThreshold = settings.getInt(CFG_NR_FEATURES_THRESHOLD, DEF_NR_FEATURES_THRESHOLD);
     }
@@ -168,7 +165,6 @@ public class FeatureSelectionLoopStartSettings {
         } catch (Exception e) {
             m_selectionStrategy = DEF_SELECTION_STRATEGY;
         }
-//        m_constantColumns = settings.getStringArray(CFG_CONSTANT_COLUMNS);
         m_constantColumnsFilterConfig.loadConfigurationInModel(settings);
         m_nrFeaturesThreshold = settings.getInt(CFG_NR_FEATURES_THRESHOLD);
     }

@@ -57,7 +57,7 @@ import java.util.List;
  *
  * @author Adrian Nembach, KNIME.com
  */
-public class FBSStrategy extends AbstractFeatureSelectionStrategy {
+public class FBSStrategy extends AbstractSequentialFeatureSelectionStrategy {
 
     private static final String COL_NAME = "Removed feature";
 
