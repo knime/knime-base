@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.meta.feature.selection;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -214,8 +215,10 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
      * {@inheritDoc}
      */
     @Override
-    public Integer getLastBestFeature() {
-        return m_lastBestFeature;
+    public List<Integer> getLastChange() {
+        List<Integer> list = new ArrayList<>();
+        list.add(m_lastBestFeature);
+        return list;
     }
 
     /**
