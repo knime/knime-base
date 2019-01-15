@@ -55,57 +55,58 @@
 				selected features.
 			</option>
 			<option name="Use lower bound for number of features">
-				If enabled, a lower bound for the number of
-				selected features can be selected.
+				Check this option if you want to set a lower bound for the number of
+				selected features.
 			</option>
 			<option name="Use upper bound for number of features">
-				If enabled, an upper bound for the number of
-				selected features can be selected.
+				Check this option if you want to set an upper bound for the number of
+				selected features.
 			</option>
-			<option name="Population size">Defines the number of individuals in each
-				population.
+			<option name="Population size">Set the number of individuals in each
+				population. Changing this value directly influences the maximal number of loop 
+				iterations which is	<i>Population size * (Number of generations + 1)</i>. This is just an upper bound,
+				usually less iterations will be necessary.
 			</option>
 			<option name="Number of generations">
-				Defines the number of generations. The upper bound of number of
-				iterations is
-				<i>Population size * (Number of generations + 1)</i>, but usually less are needed.
+				Set the number of generations. Changing this value directly influences the maximal number of loop 
+				iterations which is	<i>Population size * (Number of generations + 1)</i>. This is just an upper bound,
+				usually less iterations will be necessary.
 			</option>
 			<option name="Use static random seed"> Choose a seed to get reproducible results.
 			</option>
 		</tab>
 		<tab name="Advanced Options">
 			<option name="Selection strategy">
-				Defines the strategy to use for the
+				Choose the strategy to use for the
 				<a
-					href="https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)">selection of offspring</a>
-				.
+					href="https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)">selection of offspring</a>.
 			</option>
-			<option name="Fraction of survivors"> Defines the fraction of survivors during evaluation of the next generation.
+			<option name="Fraction of survivors"> Set the fraction of survivors during evaluation of the next generation.
 			<i>1 - fraction of survivors</i> defines the fraction of offspring which is evaluated for the next generation.
 			</option>
-			<option name="Elitism rate"> Defines the rate of how many of the best
-				individuals of a generation are transfered to the next generation
-				without alteration.
+			<option name="Elitism rate"> Set the fraction of the best
+				individuals within a generation that are transfered to the next generation
+				without alternation.
 			</option>
 			<option name="Crossover strategy">
-				Defines the strategy to use for
+				Choose the strategy to use for
 				<a
-					href="https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)"> crossover</a>
-				.
+					href="https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)"> crossover</a>.
 			</option>
 			<option name="Crossover rate">
-				Defines the crossover rate used to alter
+				Set the crossover rate used to alter
 				offspring.
 			</option>
 			<option name="Mutation rate">
-				Defines the mutation rate used to alter
+				Set the mutation rate used to alter
 				offspring.
 			</option>
 			<option name="Enable early stopping">
-				If checked, the algorithm stops after a specified number of generations without improvement.
+				Check this option if you want to enable early stopping which means that the algorithm stops after a 
+				specified number of generations without improvement.
 			</option>
 			<option name="Number of generations without improvement">
-				Defines the number of generations without improvement used for early stopping.
+				Set the number of generations without improvement used for early stopping.
 			</option>
 		</tab>
 		<link

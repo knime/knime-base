@@ -150,11 +150,14 @@ public class FeatureSelectionStrategies {
             case BackwardFeatureElimination:
                 return new FBSStrategy(settings.getNrFeaturesThreshold(), featureColumns);
             case GeneticAlgorithm:
-                return new GeneticStrategy(settings.getNrFeaturesLowerBound(), settings.getNrFeaturesUpperBound(),
-                    settings.getPopSize(), settings.getMaxNumGenerations(), settings.isUseRandomSeed(),
-                    settings.getRandomSeed(), settings.getSurvivorsFraction(), settings.getCrossoverRate(),
-                    settings.getMutationRate(), settings.getElitismRate(), settings.getEarlyStopping(),
-                    settings.getSelectionStrategy(), settings.getCrossoverStrategy(), featureColumns);
+                return new GeneticStrategy.Builder(settings.getPopSize(), settings.getMaxNumGenerations(),
+                    featureColumns.size()).nrFeaturesLowerBound(settings.getNrFeaturesLowerBound())
+                        .nrFeaturesUpperBound(settings.getNrFeaturesUpperBound())
+                        .seed(settings.isUseRandomSeed() ? settings.getRandomSeed() : System.currentTimeMillis())
+                        .survivorsFraction(settings.getSurvivorsFraction()).crossoverRate(settings.getCrossoverRate())
+                        .mutationRate(settings.getMutationRate()).elitismRate(settings.getElitismRate())
+                        .earlyStopping(settings.getEarlyStopping()).selectionStrategy(settings.getSelectionStrategy())
+                        .crossoverStrategy(settings.getCrossoverStrategy()).build();
             default:
                 throw new IllegalArgumentException("The FeatureSelectionStrategy \"" + strategy + "\" is unknown.");
         }
@@ -166,7 +169,7 @@ public class FeatureSelectionStrategies {
      *
      * @author Simon Schmid, KNIME, Austin, USA
      */
-    public enum StrategyType {
+    enum StrategyType {
 
             /**
              * FFS and BFE

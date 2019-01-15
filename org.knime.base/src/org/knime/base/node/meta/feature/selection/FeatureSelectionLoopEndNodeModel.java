@@ -119,7 +119,7 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
         if (m_iteration == 0) {
             LoopStartNode loopStartNode = getLoopStartNode();
             if (!(loopStartNode instanceof FeatureSelectionLoopStartNodeModel)) {
-                throw new InvalidSettingsException("Corresponding 'Feature Selection Loop Start' node is missing!");
+                throw new InvalidSettingsException("Corresponding 'Feature Selection Loop Start' node is missing.");
             }
             FeatureSelectionLoopStartNodeModel featureSelectionStartNode = (FeatureSelectionLoopStartNodeModel)loopStartNode;
             m_featureSelector = featureSelectionStartNode.getFeatureSelector();
@@ -156,7 +156,10 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
             return null;
         }
         m_resultTable.close();
-        return new PortObject[]{m_resultTable.getTable(), m_featureSelector.getFeatureSelectionModel()};
+        final FeatureSelectionModel featureSelectionModel = m_featureSelector.getFeatureSelectionModel();
+        final BufferedDataTable table = m_resultTable.getTable();
+        clear();
+        return new PortObject[]{table, featureSelectionModel};
     }
 
     /**
@@ -202,13 +205,32 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
     }
 
     /**
+     * Clears all members and closes the table.
+     */
+    private void clear() {
+        m_iteration = 0;
+        if (m_resultTable != null) {
+            m_resultTable.close();
+            m_resultTable = null;
+        }
+        m_featureSelector = null;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     protected void reset() {
-        m_iteration = 0;
-        m_resultTable = null;
-        m_featureSelector = null;
+        clear();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDispose() {
+        clear();
     }
 
 }

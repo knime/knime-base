@@ -61,10 +61,12 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Serves as interface for the loop node models and manages the communication between column handler and
@@ -79,6 +81,8 @@ public class FeatureSelector {
     private static final DataColumnSpec NUM_FEATURES = new DataColumnSpecCreator("Nr. of features", IntCell.TYPE).createSpec();
 
     private final FeatureSelectionStrategy m_strategy;
+
+    private final boolean m_isSequentialStrategy;
 
     private final AbstractColumnHandler m_colHandler;
 
@@ -96,6 +100,7 @@ public class FeatureSelector {
      */
     public FeatureSelector(final FeatureSelectionStrategy strategy, final AbstractColumnHandler columnHandler) {
         m_strategy = strategy;
+        m_isSequentialStrategy = m_strategy instanceof AbstractSequentialFeatureSelectionStrategy;
         m_colHandler = columnHandler;
         m_selectionModel = new FeatureSelectionModel(columnHandler);
         m_rowIdx = 0;
@@ -196,17 +201,19 @@ public class FeatureSelector {
         final int featureLevelSize = m_strategy.getFeatureLevel().size();
         cells[0] = new IntCell(featureLevelSize);
         cells[1] = new DoubleCell(m_lastScore);
-        final List<Integer> changedFeature = m_strategy.getLastChange();
+        final List<Integer> changedFeature = m_strategy.getLastChangedFeatures();
+        CheckUtils.checkState(!changedFeature.contains(-1) || changedFeature.size() == 1,
+            "The index list of changed features contains, among others, a negative index. This is an implementation error.");
         if (changedFeature.contains(-1) || changedFeature.isEmpty()) {
-            cells[2] = new StringCell("");
+            cells[2] = StringCellFactory.create("");
         } else {
-            cells[2] = new StringCell(String.join(",", m_colHandler.getColumnNamesFor(changedFeature)));
+            cells[2] = StringCellFactory.create(String.join(",", m_colHandler.getColumnNamesFor(changedFeature)));
         }
 
         final RowKey rowKey;
-        if (m_strategy instanceof AbstractSequentialFeatureSelectionStrategy) {
+        if (m_isSequentialStrategy) {
             final String rowId =
-                    featureLevelSize == m_colHandler.getAvailableFeatures().size() ? "All" : "" + featureLevelSize;
+                featureLevelSize == m_colHandler.getAvailableFeatures().size() ? "All" : "" + featureLevelSize;
             rowKey = new RowKey(rowId);
         } else {
             rowKey = RowKey.createRowKey(m_rowIdx++);

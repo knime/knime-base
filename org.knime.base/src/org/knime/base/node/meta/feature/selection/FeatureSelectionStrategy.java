@@ -112,7 +112,7 @@ public interface FeatureSelectionStrategy {
     /**
      * @return a list of features that were identified as the changed features in the last round
      */
-    public List<Integer> getLastChange();
+    public List<Integer> getLastChangedFeatures();
 
     /**
      * @return the maximal number of iterations this strategy performs for the current configuration.

@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.meta.feature.selection;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -214,10 +214,8 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> getLastChange() {
-        List<Integer> list = new ArrayList<>();
-        list.add(m_lastBestFeature);
-        return list;
+    public List<Integer> getLastChangedFeatures() {
+        return Arrays.asList(m_lastBestFeature);
     }
 
     /**
@@ -243,7 +241,7 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
      * {@inheritDoc}
      */
     @Override
-    public void onDispose() {
+    public final void onDispose() {
         // nothing to do
     }
 
@@ -251,7 +249,7 @@ public abstract class AbstractSequentialFeatureSelectionStrategy implements Feat
      * {@inheritDoc}
      */
     @Override
-    public void finishRound() {
+    public final void finishRound() {
         // nothing to do
     }
 }

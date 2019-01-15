@@ -178,7 +178,8 @@ public class FeatureSelectionLoopStartNodeModel extends NodeModel implements Loo
      */
     @Override
     public boolean terminateLoop() {
-        return false;
+        // this function is actually never called since the loop end node retrieves this information directly from the feature selector
+        return !m_featureSelector.continueLoop();
     }
 
     /**

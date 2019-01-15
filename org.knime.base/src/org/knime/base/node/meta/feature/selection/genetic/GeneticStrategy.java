@@ -62,12 +62,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.knime.base.node.meta.feature.selection.FeatureSelectionStrategy;
 import org.knime.core.node.util.CheckUtils;
 
 import io.jenetics.BitChromosome;
 import io.jenetics.BitGene;
+import io.jenetics.Chromosome;
 import io.jenetics.EliteSelector;
 import io.jenetics.Genotype;
 import io.jenetics.Mutator;
@@ -113,36 +116,185 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
     private final BlockingQueue<Integer> m_queueScoreReceived;
 
     /**
+     * Builder class for a GeneticStrategy object.
+     */
+    public static class Builder {
+
+        //Required parameters
+
+        private final int m_popSize;
+
+        private final int m_numGenerations;
+
+        private final int m_numFeatures;
+
+        // Optional parameters
+
+        private boolean m_useSeed = false;
+
+        private long m_seed = 0;
+
+        private int m_nrFeaturesLowerBound = -1;
+
+        private int m_nrFeaturesUpperBound = -1;
+
+        private int m_earlyStopping = -1;
+
+        private double m_survivorsFraction = 0.4;
+
+        private double m_crossoverRate = 0.6;
+
+        private double m_mutationRate = 0.1;
+
+        private double m_elitismRate = 0.1;
+
+        private SelectionStrategy m_selectionStrategy = SelectionStrategy.TOURNAMENT_SELECTION;
+
+        private CrossoverStrategy m_crossoverStrategy = CrossoverStrategy.UNIFORM_CROSSOVER;
+
+        /**
+         * @param popSize population size
+         * @param numGenerations max number of generations
+         * @param numFeatures the number of features/genes
+         */
+        public Builder(final int popSize, final int numGenerations, final int numFeatures) {
+            m_popSize = popSize;
+            m_numGenerations = numGenerations;
+            m_numFeatures = numFeatures;
+        }
+
+        /**
+         * @param seed the seed
+         * @return the updated Builder object
+         */
+        public Builder seed(final long seed) {
+            m_useSeed = true;
+            m_seed = seed;
+            return this;
+        }
+
+        /**
+         * @param nrFeaturesLowerBound the minimum number of selected features, is <= 0 if undefined
+         * @return the updated Builder object
+         */
+        public Builder nrFeaturesLowerBound(final int nrFeaturesLowerBound) {
+            m_nrFeaturesLowerBound = nrFeaturesLowerBound;
+            return this;
+        }
+
+        /**
+         * @param nrFeaturesUpperBound the maximum number of selected features, is <= 0 if undefined
+         * @return the updated Builder object
+         */
+        public Builder nrFeaturesUpperBound(final int nrFeaturesUpperBound) {
+            m_nrFeaturesUpperBound = nrFeaturesUpperBound;
+            return this;
+        }
+
+        /**
+         * @param stoppingRounds the number of generations for early stopping, is <= 0 if disabled
+         * @return the updated Builder object
+         */
+        public Builder earlyStopping(final int stoppingRounds) {
+            m_earlyStopping = stoppingRounds;
+            return this;
+        }
+
+        /**
+         * @param survivorsFraction the survivors fraction
+         * @return the updated Builder object
+         */
+        public Builder survivorsFraction(final double survivorsFraction) {
+            m_survivorsFraction = survivorsFraction;
+            return this;
+        }
+
+        /**
+         * @param crossoverRate the crossover rate
+         * @return the updated Builder object
+         */
+        public Builder crossoverRate(final double crossoverRate) {
+            m_crossoverRate = crossoverRate;
+            return this;
+        }
+
+        /**
+         * @param mutationRate the mutation rate
+         * @return the updated Builder object
+         */
+        public Builder mutationRate(final double mutationRate) {
+            m_mutationRate = mutationRate;
+            return this;
+        }
+
+        /**
+         * @param elitismRate the elitism rate
+         * @return the updated Builder object
+         */
+        public Builder elitismRate(final double elitismRate) {
+            m_elitismRate = elitismRate;
+            return this;
+        }
+
+        /**
+         * @param selectionStrategy the selection strategy
+         * @return the updated Builder object
+         */
+        public Builder selectionStrategy(final SelectionStrategy selectionStrategy) {
+            m_selectionStrategy = selectionStrategy;
+            return this;
+        }
+
+        /**
+         * @param crossoverStrategy the crossover strategy
+         * @return the updated Builder object
+         */
+        public Builder crossoverStrategy(final CrossoverStrategy crossoverStrategy) {
+            m_crossoverStrategy = crossoverStrategy;
+            return this;
+        }
+
+        /**
+         * Constructs a new {@link GeneticStrategy} object with the configured settings. Starts the thread for the
+         * genetic algorithm to be able to give an output of the first selected feature set during configure.
+         *
+         * @return a GeneticStrategy object with the set parameters
+         */
+        public GeneticStrategy build() {
+            return new GeneticStrategy(this);
+        }
+    }
+
+    /**
      * Constructor. Starts the thread for the genetic algorithm to be able to give an output of the first selected
      * feature set during configure.
      *
-     * @param subsetLowerBound the minimum number of selected features, is <= 0 if undefined
-     * @param subsetUpperBound the maximum number of selected features, is <= 0 if undefined
-     * @param popSize population size
-     * @param numGenerations max number of generations
-     * @param useSeed if seed should be used
-     * @param seed the seed
-     * @param survivorsFraction the survivors fraction
-     * @param crossoverRate the crossover rate
-     * @param mutationRate the mutation rate
-     * @param elitismRate the elitism rate
-     * @param earlyStopping the number of generations for early stopping, is <= 0 if disabled
-     * @param selectionStrategy the selection strategy
-     * @param crossoverStrategy the crossover strategy
-     * @param features ids of the features
-     *
+     * @param builder the builder
+     * @throws IllegalArgumentException if the passed arguments are invalid
      */
-    public GeneticStrategy(final int subsetLowerBound, final int subsetUpperBound, final int popSize,
-        final int numGenerations, final boolean useSeed, final long seed, final double survivorsFraction,
-        final double crossoverRate, final double mutationRate, final double elitismRate, final int earlyStopping,
-        final SelectionStrategy selectionStrategy, final CrossoverStrategy crossoverStrategy,
-        final List<Integer> features) {
-        CheckUtils.checkArgument(!(subsetLowerBound > 0 && subsetUpperBound > 0 && subsetLowerBound > subsetUpperBound),
-            "The lower bound of number of features must not be greater than the upper bound!");
-        CheckUtils.checkArgument(subsetLowerBound <= features.size(),
-            "The lower bound of number of features must not be greater than the actual number of features!");
-        CheckUtils.checkArgument(numGenerations > 0, "The number of generations must be at least 1!");
-        CheckUtils.checkArgument(popSize >= 2, "The population size must be at least 2!");
+    private GeneticStrategy(final Builder builder) {
+        final int numGenerations = builder.m_numGenerations;
+        final int popSize = builder.m_popSize;
+        final int numFeatures = builder.m_numFeatures;
+        final int nrFeaturesLowerBound = builder.m_nrFeaturesLowerBound;
+        final int nrFeaturesUpperBound = builder.m_nrFeaturesUpperBound;
+        final boolean useSeed = builder.m_useSeed;
+        final long seed = useSeed ? builder.m_seed : System.currentTimeMillis();
+        final double survivorsFraction = builder.m_survivorsFraction;
+        final double crossoverRate = builder.m_crossoverRate;
+        final double mutationRate = builder.m_mutationRate;
+        final double elitismRate = builder.m_elitismRate;
+        final int earlyStopping = builder.m_earlyStopping;
+        final SelectionStrategy selectionStrategy = builder.m_selectionStrategy;
+        final CrossoverStrategy crossoverStrategy = builder.m_crossoverStrategy;
+
+        CheckUtils.checkArgument(
+            !(nrFeaturesLowerBound > 0 && nrFeaturesUpperBound > 0 && nrFeaturesLowerBound > nrFeaturesUpperBound),
+            "The lower bound of number of features must be less than or equal the upper bound.");
+        CheckUtils.checkArgument(nrFeaturesLowerBound <= numFeatures,
+            "The lower bound of number of features must less than or equal the actual number of features.");
+        CheckUtils.checkArgument(numGenerations > 0, "The number of generations must be at least 1.");
+        CheckUtils.checkArgument(popSize >= 2, "The population size must be at least 2.");
         // probably it's going to be less, this is just an upper bound (+1, because initial generation is generation 0)
         m_numIterations = (numGenerations + 1) * popSize;
 
@@ -153,7 +305,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
             // request the first genotype
             m_queueGenotypeRequested.put(0);
         } catch (InterruptedException e1) {
-            throw new IllegalStateException("The genetic algorithm thread has been interrupted!", e1);
+            throw new IllegalStateException("The genetic algorithm thread has been interrupted.", e1);
         }
 
         final Random random;
@@ -164,23 +316,23 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
         }
 
         // 1.) Define the genotype (factory) suitable for the problem.
-        final double probOfTrues = initializationProbability(subsetLowerBound, subsetUpperBound, features.size());
-        final Factory<Genotype<BitGene>> gtf = Genotype.of(BitChromosome.of(features.size(), probOfTrues));
+        final double probOfTrues = initializationProbability(nrFeaturesLowerBound, nrFeaturesUpperBound, numFeatures);
+        final Factory<Genotype<BitGene>> gtf = Genotype.of(BitChromosome.of(numFeatures, probOfTrues));
 
         // 2.) Define a validator for the genotype which ensures the maximal number of selected features.
         final Predicate<? super Genotype<BitGene>> validator = gt -> {
             final int bitCount = gt.get(0).as(BitChromosome.class).bitCount();
-            if (subsetLowerBound <= 0 && subsetUpperBound <= 0) {
+            if (nrFeaturesLowerBound <= 0 && nrFeaturesUpperBound <= 0) {
                 return bitCount > 1;
             }
-            if (subsetLowerBound > 0 && subsetUpperBound > 0) {
-                return bitCount >= subsetLowerBound && bitCount <= subsetUpperBound;
+            if (nrFeaturesLowerBound > 0 && nrFeaturesUpperBound > 0) {
+                return bitCount >= nrFeaturesLowerBound && bitCount <= nrFeaturesUpperBound;
             }
-            if (subsetLowerBound > 0) {
-                return bitCount >= subsetLowerBound;
+            if (nrFeaturesLowerBound > 0) {
+                return bitCount >= nrFeaturesLowerBound;
             }
             // if subsetUpperBound > 0
-            return bitCount > 0 && bitCount <= subsetUpperBound;
+            return bitCount > 0 && bitCount <= nrFeaturesUpperBound;
         };
 
         // 3.) Create the execution environment.
@@ -195,7 +347,10 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
                 .survivorsSelector(selector(selectionStrategy, (int)(elitismRate * popSize + 0.5)))
                 .offspringSelector(selector(selectionStrategy, 0))
                 // after 100 retries, the feature subset boundaries will be ignored
-                .genotypeValidator(validator).individualCreationRetries(100).build();
+                .genotypeValidator(validator)//
+                .individualCreationRetries(100)
+                // build it
+                .build();
         });
 
         /*
@@ -230,7 +385,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
                 } catch (InterruptedException e) {
                     // dispose the streaming thread, throw the exception
                     onDispose();
-                    throw new IllegalStateException("The genetic algorithm thread has been interrupted!", e);
+                    throw new IllegalStateException("The genetic algorithm thread has been interrupted.", e);
                 }
             }
         };
@@ -250,13 +405,10 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
      */
     private static Selector<BitGene, Double> selector(final SelectionStrategy selectionStrategy, final int eliteCount) {
         final Selector<BitGene, Double> nonElitistSelector = SelectionStrategy.getSelector(selectionStrategy);
-        final Selector<BitGene, Double> selector;
         if (eliteCount > 0) {
-            selector = new EliteSelector<BitGene, Double>(eliteCount, nonElitistSelector);
-        } else {
-            selector = nonElitistSelector;
+            return new EliteSelector<BitGene, Double>(eliteCount, nonElitistSelector);
         }
-        return selector;
+        return nonElitistSelector;
     }
 
     /**
@@ -272,13 +424,13 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
             final double meanSize;
             if (subsetLowerBound <= 0 && subsetUpperBound > 0) {
                 // if just an upper bound is set, the mean is in the middle of 0 and the upper bound
-                meanSize = (double)subsetUpperBound / 2;
+                meanSize = subsetUpperBound / 2.0;
             } else if (subsetLowerBound > 0 && subsetUpperBound <= 0) {
                 // if just a lower bound is defined, the mean is the middle of the lower bound the number of features
-                meanSize = (double)(numFeatures + subsetLowerBound) / 2;
+                meanSize = (numFeatures + subsetLowerBound) / 2.0;
             } else {
                 // if lower and upper bound is defined, the mean is in the middle of those bounds
-                meanSize = (double)(subsetLowerBound + subsetUpperBound) / 2;
+                meanSize = (subsetLowerBound + subsetUpperBound) / 2.0;
             }
             // return a probability which leads to subsets of approximately mean size
             return meanSize / numFeatures;
@@ -314,7 +466,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
             // a new score has been added
             m_queueScoreReceived.put(0);
         } catch (InterruptedException e) {
-            throw new IllegalStateException("The genetic algorithm thread has been interrupted!", e);
+            throw new IllegalStateException("The genetic algorithm thread has been interrupted.", e);
         }
     }
 
@@ -386,7 +538,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> getLastChange() {
+    public List<Integer> getLastChangedFeatures() {
         return m_evaluator.getCurrent();
     }
 
@@ -444,7 +596,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
         // caches the scores of already scored feature subsets
         private final HashMap<Integer, Double> m_scoreLookUpMap = new HashMap<>();
 
-        private final List<Integer> m_currentGenotype = new ArrayList<>();
+        private List<Integer> m_currentGenotype = new ArrayList<>();
 
         private boolean m_isInitialized = false;
 
@@ -497,12 +649,10 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
         }
 
         private void setCurrent(final Genotype<BitGene> genotype) {
-            m_currentGenotype.clear();
-            for (int i = 0; i < genotype.getChromosome(0).length(); i++) {
-                if (genotype.getChromosome(0).getGene(i).booleanValue()) {
-                    m_currentGenotype.add(i);
-                }
-            }
+            final Chromosome<BitGene> chromosome = genotype.getChromosome(0);
+            // collect indices of positive genes
+            m_currentGenotype = IntStream.range(0, chromosome.length())
+                .filter(i ->  chromosome.getGene(i).booleanValue()).boxed().collect(Collectors.toList());
         }
 
         /**

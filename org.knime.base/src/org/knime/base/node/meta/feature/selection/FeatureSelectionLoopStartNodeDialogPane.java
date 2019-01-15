@@ -393,9 +393,14 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
                 panel.add(new JLabel("Select threshold for number of features"), gbc);
                 gbc.gridx = 1;
                 panel.add(m_nrFeaturesThresholdSpinner, gbc);
-                gbc.weighty = 1;
+
+                // add two dummy labels to keep components on top left
+                gbc.gridx++;
+                gbc.weightx = 1;
+                panel.add(new JLabel(), gbc);
                 gbc.gridy++;
-                panel.add(new JLabel(""));
+                gbc.weighty = 1;
+                panel.add(new JLabel(), gbc);
                 return panel;
             default:
                 throw new IllegalStateException("Unexpected strategy: " + strategyType.toString());
