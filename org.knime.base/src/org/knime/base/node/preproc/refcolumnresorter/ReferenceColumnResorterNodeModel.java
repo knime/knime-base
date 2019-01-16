@@ -51,15 +51,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -93,12 +92,6 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
 
     static final int ORDER_INPORT = 1;
 
-    /**
-     * The default place holder for any new previously unknown columns.
-     */
-    static final DataColumnSpec UNKNOWN_COL_DUMMY = new DataColumnSpecCreator("<any unknown new column>",
-                StringCell.TYPE).createSpec();
-
     static final String CFGKEY_STRATEGY = "Strategy";
 
     static final String CFGKEY_ORDERCOL = "OrderCol";
@@ -127,35 +120,29 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        CheckUtils.checkSetting(Arrays.stream(AVAILABLE_STRATEGIES).anyMatch(
-            s -> s.equals(m_strategy.getStringValue())), "Strategy not support: " + m_strategy.getStringValue());
+        CheckUtils.checkSetting(
+            Arrays.stream(AVAILABLE_STRATEGIES).anyMatch(s -> s.equals(m_strategy.getStringValue())),
+            "Unknown strategy: " + m_strategy.getStringValue());
         final String orderColName = m_orderCol.getStringValue();
         DataColumnSpec orderCol = inSpecs[1].getColumnSpec(orderColName);
-        CheckUtils.checkSetting(orderCol != null, "Order column \"%s\" not present in 2nd input table",
-                orderColName);
-        CheckUtils.checkSetting(orderCol.getType().isCompatible(StringValue.class), "Order column \"%s\" "
-            + "not string compatible (type \"%s\")", orderColName, orderCol.getType().getName());
+        CheckUtils.checkSettingNotNull(orderCol, "Order column \"%s\" not present in 2nd input table", orderColName);
+        CheckUtils.checkSetting(orderCol.getType().isCompatible(StringValue.class),
+            "Order column \"%s\" " + "not string compatible (type \"%s\"), i.e. does not contain column names",
+            orderColName, orderCol.getType().getName());
         return new DataTableSpec[1];
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @throws CanceledExecutionException
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
-        BufferedDataTable in = inData[0];
-        DataTableSpec original = in.getDataTableSpec();
-
-        BufferedDataTable order_input = inData[1];
-        String[] order = readOrderFromTable(order_input);
-
-        // if node has not been configured, just pass input data table through
-        if (order.length <= 0) {
-            return new BufferedDataTable[]{in};
-        }
-        ColumnRearranger rearranger = createColumnRearranger(original, order);
-        return new BufferedDataTable[]{exec.createColumnRearrangeTable(in, rearranger, exec)};
+        throws CanceledExecutionException {
+        final String[] order = readOrderFromTable(inData[1]);
+        ColumnRearranger rearranger = createColumnRearranger(inData[0].getDataTableSpec(), order);
+        return new BufferedDataTable[]{exec.createColumnRearrangeTable(inData[0], rearranger, exec)};
     }
 
     /**
@@ -163,25 +150,14 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
      * @return
      */
     private String[] readOrderFromTable(final BufferedDataTable orderTable) {
-        int orderCol = orderTable.getSpec().findColumnIndex(m_orderCol.getStringValue());
+        final int orderCol = orderTable.getSpec().findColumnIndex(m_orderCol.getStringValue());
 
         //get order from input[1]
-        CloseableRowIterator rows = orderTable.iterator();
         List<String> orderList = new ArrayList<String>();
-        while (rows.hasNext()) {
-            orderList.add(rows.next().getCell(orderCol).toString());
-        }
-        switch (m_strategy.getStringValue()) {
-            case "Last":
-                orderList.add(UNKNOWN_COL_DUMMY.getName());
-                break;
-            case "First":
-                orderList.add(0, UNKNOWN_COL_DUMMY.getName());
-                break;
-            case "Drop":
-                break;
-            default:
-                throw new IllegalStateException("Node should have failed during configuration");
+        try (CloseableRowIterator rows = orderTable.iterator()) {
+            while (rows.hasNext()) {
+                orderList.add(rows.next().getCell(orderCol).toString());
+            }
         }
         String[] order = orderList.toArray(new String[orderList.size()]);
         return order;
@@ -197,11 +173,11 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
      */
     private ColumnRearranger createColumnRearranger(final DataTableSpec original, final String[] order) {
         ColumnRearranger rearranger = new ColumnRearranger(original);
-        String[] newColOder = getNewOrder(original, order);
+        String[] newColOder = getNewOrder(Arrays.asList(original.getColumnNames()), Arrays.asList(order));
         rearranger.permute(newColOder);
         switch (m_strategy.getStringValue()) {
             case "Drop":
-                rearranger.keepOnly(order);
+                rearranger.keepOnly(newColOder);
                 break;
             default:
                 break;
@@ -209,16 +185,20 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
         return rearranger;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        return new InputPortRole[] {InputPortRole.DISTRIBUTED_STREAMABLE, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[] {OutputPortRole.DISTRIBUTED};
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
     /** {@inheritDoc} */
@@ -236,12 +216,6 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
         SimpleStreamableOperatorInternals i = (SimpleStreamableOperatorInternals)internals;
         String[] order = i.getConfig().getStringArray("order", (String[])null);
         return order;
-    }
-
-    private SimpleStreamableOperatorInternals createStreamableOperatorInternalsFromOrder(final String[] order) {
-        SimpleStreamableOperatorInternals i = new SimpleStreamableOperatorInternals();
-        i.getConfig().addStringArray("order", order);
-        return i;
     }
 
     /** {@inheritDoc} */
@@ -283,14 +257,15 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
     @Override
     public PortObjectSpec[] computeFinalOutputSpecs(final StreamableOperatorInternals internals,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new PortObjectSpec[] {createColumnRearranger(
-            (DataTableSpec)inSpecs[0], readOrderFromStreamableOperatorInternals(internals)).createSpec()};
+        return new PortObjectSpec[]{
+            createColumnRearranger((DataTableSpec)inSpecs[0], readOrderFromStreamableOperatorInternals(internals))
+                .createSpec()};
     }
 
     /** {@inheritDoc} */
     @Override
-    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo, final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new StreamableOperator() {
 
             private String[] m_streamableOperatorOrder;
@@ -303,18 +278,21 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
             }
 
             @Override
-            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec) throws Exception {
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
                 RowInput dataInput = (RowInput)inputs[0];
                 DataTableSpec dataInputSpec = dataInput.getDataTableSpec();
                 ColumnRearranger rearranger = createColumnRearranger(dataInputSpec, m_streamableOperatorOrder);
                 StreamableFunction streamableFunction = rearranger.createStreamableFunction();
-                streamableFunction.runFinal(new PortInput[] {dataInput}, outputs, exec);
+                streamableFunction.runFinal(new PortInput[]{dataInput}, outputs, exec);
             }
 
             /** {@inheritDoc} */
             @Override
             public StreamableOperatorInternals saveInternals() {
-                return createStreamableOperatorInternalsFromOrder(m_streamableOperatorOrder);
+                SimpleStreamableOperatorInternals i = new SimpleStreamableOperatorInternals();
+                i.getConfig().addStringArray("order", m_streamableOperatorOrder);
+                return i;
             }
 
             /** {@inheritDoc} */
@@ -335,71 +313,61 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
     /**
      * Creates and returns arrays of column names in new order, based on the dialog settings.
      *
-     * @param orig The original table spec.
+     * @param input the columns to be sorted
      * @param order ordered col names
      * @return Array of column names in new order.
      */
-    private String[] getNewOrder(final DataTableSpec orig, final String[] order) {
-        String[] newOrder;
+    private String[] getNewOrder(final List<String> input, final List<String> order) {
+
+        ArrayList<String> newOrder = new ArrayList<String>(input);
+
+        final boolean appendNew;
         switch (m_strategy.getStringValue()) {
             case "First":
-                newOrder = new String[orig.getNumColumns()];
+                appendNew = false;
                 break;
             case "Last":
-                newOrder = new String[orig.getNumColumns()];
+                appendNew = true;
                 break;
             case "Drop":
-                newOrder = new String[order.length];
+                appendNew = false;
+                newOrder.retainAll(order);
                 break;
             default:
                 throw new IllegalStateException("Unknown strategy");
         }
 
-        // collect unknown columns which are not in order settings so far
-        List<String> unknownNewColumns = new ArrayList<String>();
-        for (int i = 0; i < orig.getNumColumns(); i++) {
-            DataColumnSpec col = orig.getColumnSpec(i);
-            if (!Arrays.stream(order).anyMatch(s -> s.equals(col.getName()))) {
-                unknownNewColumns.add(col.getName());
-            }
-        }
-        int delta = unknownNewColumns.size();
+        newOrder.sort(new Comparator<String>() {
 
-        // walk through cols and (re)define order
-        int j = 0;
-        for (int i = 0; i < newOrder.length; i++) {
-            // get next column from dialog to order
-            String colName = order[j];
-            j++;
-
-            // if col exists in orig spec, put it at index i
-            if (orig.containsName(colName)) {
-                newOrder[i] = colName;
-
-                // if col to resort is the dummy place holder
-            } else if (UNKNOWN_COL_DUMMY.getName().equals(colName)) {
-                // only add new cols to place holder place if there are any
-                if (delta > 0) {
-                    for (int x = 0; x < delta; x++) {
-                        newOrder[i] = unknownNewColumns.get(x);
-                        // for more then one column to add at place holder
-                        // increment counter
-                        if (x < delta - 1) {
-                            i++;
-                        }
+            @Override
+            public int compare(final String col1, final String col2) {
+                if (order.contains(col1) && order.contains(col2)) {
+                    //the order of the two columns is defined by the reference table
+                    return Integer.compare(order.indexOf(col1), order.indexOf(col2));
+                } else if (order.contains(col1)) {
+                    //col2 is unknown, but col1 has a place according to reference
+                    if (appendNew) {
+                        //unknown columns shall be appended -> col1 definitely comes before col2
+                        return -1;
+                    } else {
+                        //unknown columns shall be prepended -> col1 definitely comes after col2
+                        return 1;
                     }
-                    // if no columns to insert for place holder decrease insert
-                    // index
+                } else if (order.contains(col2)) {
+                    //col1 is unknown but col2 has a place according to reference
+                    if (appendNew) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
                 } else {
-                    i--;
+                    //both columns are unknown, order them according to the input (i.e. leave order as is)
+                    return Integer.compare(input.indexOf(col1), input.indexOf(col2));
                 }
-                // if column does not exist and is not the place holder decrease
-                // insert index
-            } else {
-                i--;
             }
-        }
-        return newOrder;
+        });
+
+        return newOrder.toArray(new String[newOrder.size()]);
     }
 
     /**
