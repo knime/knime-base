@@ -115,6 +115,14 @@ public class EigenValue implements Comparable<EigenValue> {
     }
 
     /**
+     * @return The Eigenvector as a double array.
+     * @since 3.8
+     */
+    public double[] getEigenVector() {
+        return m_vector.getRowPackedCopy();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
