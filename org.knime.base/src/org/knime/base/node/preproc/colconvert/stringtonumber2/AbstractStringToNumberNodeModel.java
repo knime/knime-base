@@ -45,11 +45,10 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.colconvert.stringtonumber;
+package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -73,16 +72,17 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInternalsNodeModel;
 import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
 
 /**
  * The NodeModel for the String to Number Node that converts strings to numbers.
  *
- * @author cebron, University of Konstanz
+ * @author Johannes Schweig
+ * @since 3.8
  */
-public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
+public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
 
     /**
      * The possible types that the string can be converted to.
@@ -92,7 +92,7 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
 
     /* Node Logger of this class. */
     private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(StringToNumberNodeModel.class);
+            NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
 
     /*
      * Config key for the operator internals to propagate error messages.
@@ -143,11 +143,8 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
     /** For compatibility reasons accept type suffices. */
     static final boolean COMPAT_GENERIC_PARSE = true;
 
-    /*
-     * The included columns.
-     */
-    private SettingsModelFilterString m_inclCols =
-            new SettingsModelFilterString(CFG_INCLUDED_COLUMNS);
+    /** The included columns component. */
+    protected final T m_inclCols;
 
     /*
      * The decimal separator
@@ -165,9 +162,11 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
 
     /**
      * Constructor with one inport and one outport.
+     * @param inclCols
      */
-    public StringToNumberNodeModel() {
+    public AbstractStringToNumberNodeModel(final T inclCols) {
         super(SimpleStreamableOperatorInternals.class);
+        m_inclCols = inclCols;
     }
 
     /**
@@ -188,8 +187,8 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
         DataTableSpec inspec = inData[0].getDataTableSpec();
-        List<String> inclcols = m_inclCols.getIncludeList();
-        if (inclcols.size() == 0) {
+        String[] inclcols = getStoredInclCols(inspec);
+        if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected,"
                     + " returning input DataTable.");
@@ -206,6 +205,66 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
 
         return new BufferedDataTable[]{resultTable};
     }
+
+    /**
+     * @param spec the current DataTableSpec
+     * @return an integer array with the column indices
+     * @throws InvalidSettingsException
+     *
+     */
+    public int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
+		String[] inclCols = getStoredInclCols(spec);
+		StringBuilder warnings = new StringBuilder();
+		if (inclCols.length == 0) {
+			warnings.append("No columns selected");
+		}
+		Vector<Integer> indicesvec = new Vector<Integer>();
+		if (isKeepAllSelected()) {
+			for (DataColumnSpec cspec : spec) {
+				if (cspec.getType().isCompatible(StringValue.class)) {
+					indicesvec.add(spec.findColumnIndex(cspec.getName()));
+				}
+			}
+		} else {
+			for (int i = 0; i < inclCols.length; i++) {
+				int colIndex = spec.findColumnIndex(inclCols[i]);
+				if (colIndex >= 0) {
+					DataType type = spec.getColumnSpec(colIndex).getType();
+					if (type.isCompatible(StringValue.class)) {
+						indicesvec.add(colIndex);
+					} else {
+						warnings.append("Ignoring column \""
+								+ spec.getColumnSpec(colIndex).getName()
+								+ "\"\n");
+					}
+				} else {
+					throw new InvalidSettingsException("Column \""
+							+ inclCols[i] + "\" not found.");
+				}
+			}
+		}
+		if (warnings.length() > 0) {
+			setWarningMessage(warnings.toString());
+		}
+		int[] indices = new int[indicesvec.size()];
+		for (int i = 0; i < indices.length; i++) {
+			indices[i] = indicesvec.get(i);
+		}
+		return indices;
+    }
+
+    /**
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * @param inSpec the current DataTableSpec
+     * @return a String array with the included columns
+     */
+    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+
+    /**
+     * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present
+     */
+    protected abstract boolean isKeepAllSelected();
+
 
     private void warningMessage(final SimpleStreamableOperatorInternals internals) {
         String errorMessage;
@@ -235,8 +294,8 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
         int[] indices = findColumnIndices(spec);
         ConverterFactory converterFac = new ConverterFactory(indices, spec, m_parseType, emptyInternals);
         ColumnRearranger colre = new ColumnRearranger(spec);
-        List<String> inclcols = m_inclCols.getIncludeList();
-        if (inclcols.size() == 0) {
+        String[] inclcols = getStoredInclCols(spec);
+        if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
             emptyInternals.getConfig().addString(CFG_KEY_ERROR_MESSAGES,
                 "No columns selected, returning input DataTable.");
@@ -246,47 +305,6 @@ public class StringToNumberNodeModel extends SimpleStreamableFunctionWithInterna
         return colre;
     }
 
-	private int[] findColumnIndices(final DataTableSpec spec)
-			throws InvalidSettingsException {
-		List<String> inclcols = m_inclCols.getIncludeList();
-		StringBuilder warnings = new StringBuilder();
-		if (inclcols.size() == 0) {
-			warnings.append("No columns selected");
-		}
-		Vector<Integer> indicesvec = new Vector<Integer>();
-		if (m_inclCols.isKeepAllSelected()) {
-			for (DataColumnSpec cspec : spec) {
-				if (cspec.getType().isCompatible(StringValue.class)) {
-					indicesvec.add(spec.findColumnIndex(cspec.getName()));
-				}
-			}
-		} else {
-			for (int i = 0; i < inclcols.size(); i++) {
-				int colIndex = spec.findColumnIndex(inclcols.get(i));
-				if (colIndex >= 0) {
-					DataType type = spec.getColumnSpec(colIndex).getType();
-					if (type.isCompatible(StringValue.class)) {
-						indicesvec.add(colIndex);
-					} else {
-						warnings.append("Ignoring column \""
-								+ spec.getColumnSpec(colIndex).getName()
-								+ "\"\n");
-					}
-				} else {
-					throw new InvalidSettingsException("Column \""
-							+ inclcols.get(i) + "\" not found.");
-				}
-			}
-		}
-		if (warnings.length() > 0) {
-			setWarningMessage(warnings.toString());
-		}
-		int[] indices = new int[indicesvec.size()];
-		for (int i = 0; i < indices.length; i++) {
-			indices[i] = indicesvec.get(i);
-		}
-		return indices;
-	}
 
 	/**
      * {@inheritDoc}

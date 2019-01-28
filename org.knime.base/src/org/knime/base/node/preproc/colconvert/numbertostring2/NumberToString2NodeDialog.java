@@ -45,30 +45,25 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.colconvert.numbertostring;
+package org.knime.base.node.preproc.colconvert.numbertostring2;
 
-import org.knime.core.data.DoubleValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 
 /**
- * Dialog for the Number to String Node.
- * Lets the user choose the columns to use.
+ * Dialog for the Number to String Node. Lets the user choose the columns to use.
  *
- * @author cebron, University of Konstanz
+ * @author Johannes Schweig
+ * @since 3.8
  */
-public class NumberToStringNodeDialog extends DefaultNodeSettingsPane {
+public class NumberToString2NodeDialog extends DefaultNodeSettingsPane {
 
     /**
      * Constructor.
      *
      */
     @SuppressWarnings("unchecked")
-    public NumberToStringNodeDialog() {
-        addDialogComponent(new DialogComponentColumnFilter(
-                new SettingsModelFilterString(
-                        NumberToStringNodeModel.CFG_INCLUDED_COLUMNS), 0, true,
-                new Class[]{DoubleValue.class}));
+    public NumberToString2NodeDialog() {
+        addDialogComponent(new DialogComponentColumnFilter2(NumberToString2NodeModel.createInclModel(), 0));
     }
 }

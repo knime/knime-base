@@ -59,6 +59,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
+import org.knime.base.node.preproc.colconvert.stringtonumber2.AbstractStringToNumberNodeModel;
+import org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeDialog;
+import org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
@@ -69,7 +72,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.util.DataTypeListCellRenderer;
 import org.knime.core.node.util.ViewUtils;
 
@@ -78,12 +80,13 @@ import org.knime.core.node.util.ViewUtils;
  * use.
  *
  * @author cebron, University of Konstanz
+ * @deprecated Use {@link StringToNumber2NodeDialog} instead
  */
+@Deprecated
 public class StringToNumberNodeDialog extends NodeDialogPane {
     @SuppressWarnings("unchecked")
     private DialogComponentColumnFilter m_filtercomp =
-            new DialogComponentColumnFilter(new SettingsModelFilterString(
-                    StringToNumberNodeModel.CFG_INCLUDED_COLUMNS), 0, true,
+            new DialogComponentColumnFilter(StringToNumberNodeModel.createInclModel(), 0, true,
                     new Class[]{StringValue.class});
 
     private JTextField m_decimalSeparator = new JTextField(".", 3);
@@ -91,7 +94,7 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
     private JTextField m_thousandsSeparator = new JTextField(",", 3);
 
     private JComboBox<DataType> m_typeChooser =
-            new JComboBox<>(StringToNumberNodeModel.POSSIBLETYPES);
+            new JComboBox<>(StringToNumber2NodeModel.POSSIBLETYPES);
 
     private JCheckBox m_genericParse = new JCheckBox("Accept type suffix, e.g. 'd', 'D', 'f', 'F'");
 
@@ -131,21 +134,21 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
             final DataTableSpec[] specs) throws NotConfigurableException {
         m_filtercomp.loadSettingsFrom(settings, specs);
         String decimalsep =
-                settings.getString(StringToNumberNodeModel.CFG_DECIMALSEP,
-                        StringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
+                settings.getString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
+                        AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
         m_decimalSeparator.setText(decimalsep);
         String thousandssep =
-                settings.getString(StringToNumberNodeModel.CFG_THOUSANDSSEP,
-                        StringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
+                settings.getString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
+                        AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
         m_thousandsSeparator.setText(thousandssep);
         // this was added in 2.12. No need for backward compatibility handling as this is done
         // in the NodeModel class.
-        boolean genericParse = settings.getBoolean(StringToNumberNodeModel.CFG_GENERIC_PARSE,
-            StringToNumberNodeModel.DEFAULT_GENERIC_PARSE);
+        boolean genericParse = settings.getBoolean(AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE,
+            AbstractStringToNumberNodeModel.DEFAULT_GENERIC_PARSE);
         m_genericParse.setSelected(genericParse);
-        if (settings.containsKey(StringToNumberNodeModel.CFG_PARSETYPE)) {
+        if (settings.containsKey(AbstractStringToNumberNodeModel.CFG_PARSETYPE)) {
             m_typeChooser.setSelectedItem(settings.getDataType(
-                    StringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
+                    AbstractStringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
         }
     }
 
@@ -156,12 +159,12 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         m_filtercomp.saveSettingsTo(settings);
-        settings.addString(StringToNumberNodeModel.CFG_DECIMALSEP,
+        settings.addString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
                 m_decimalSeparator.getText());
-        settings.addString(StringToNumberNodeModel.CFG_THOUSANDSSEP,
+        settings.addString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
                 m_thousandsSeparator.getText());
-        settings.addDataType(StringToNumberNodeModel.CFG_PARSETYPE,
+        settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE,
                 (DataType)m_typeChooser.getSelectedItem());
-        settings.addBoolean(StringToNumberNodeModel.CFG_GENERIC_PARSE, m_genericParse.isSelected());
+        settings.addBoolean(AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE, m_genericParse.isSelected());
     }
 }

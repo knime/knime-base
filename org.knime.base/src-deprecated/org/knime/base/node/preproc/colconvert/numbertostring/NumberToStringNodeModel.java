@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,64 +41,55 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * --------------------------------------------------------------------
- * 
+ *
  * History
  *   03.07.2007 (cebron): created
  */
 package org.knime.base.node.preproc.colconvert.numbertostring;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.base.node.preproc.colconvert.numbertostring2.AbstractNumberToStringNodeModel;
+import org.knime.base.node.preproc.colconvert.numbertostring2.NumberToString2NodeModel;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 
 /**
- * NodeFactory for the Number to String Node that converts numbers
- * to String values.
- * 
+ * The NodeModel for the Number to String Node that converts numbers to StringValues.
+ *
  * @author cebron, University of Konstanz
+ * @deprecated Use {@link NumberToString2NodeModel} instead
  */
-public class NumberToStringNodeFactory extends NodeFactory {
+@Deprecated
+public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<SettingsModelFilterString> {
 
     /**
-     * {@inheritDoc}
+     * @return a SettingsModelFilterString for the included columns
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NumberToStringNodeDialog();
+    static SettingsModelFilterString createInclModel() {
+        return new SettingsModelFilterString(CFG_INCLUDED_COLUMNS);
+    }
+
+    /**
+     * Constructor
+     */
+    public NumberToStringNodeModel() {
+        super(createInclModel());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeModel createNodeModel() {
-        return new NumberToStringNodeModel();
+    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+        // casting List<String> to String[] array
+        return m_inclCols.getIncludeList().toArray(new String[0]);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    protected boolean isKeepAllSelected() {
+        return m_inclCols.isKeepAllSelected();
     }
 
 }

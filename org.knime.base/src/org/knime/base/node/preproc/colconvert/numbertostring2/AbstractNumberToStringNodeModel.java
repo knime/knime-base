@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,16 +41,15 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * --------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   03.07.2007 (cebron): created
+ *   Jan 28, 2019 (Johannes Schweig): created
  */
-package org.knime.base.node.preproc.colconvert.numbertostring;
+package org.knime.base.node.preproc.colconvert.numbertostring2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Vector;
 
 import org.knime.core.data.DataCell;
@@ -73,33 +73,31 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 
 /**
- * The NodeModel for the Number to String Node that converts numbers
- * to StringValues.
- *
- * @author cebron, University of Konstanz
+ * @author Johannes Schweig
+ * @since 3.8
  */
-public class NumberToStringNodeModel extends NodeModel {
-
+public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> extends NodeModel{
     /**
      * Key for the included columns in the NodeSettings.
      */
     public static final String CFG_INCLUDED_COLUMNS = "include";
 
-    /** The included columns. */
-    private final SettingsModelFilterString m_inclCols =
-            new SettingsModelFilterString(CFG_INCLUDED_COLUMNS);
+    /** The included columns component. */
+    protected final T m_inclCols;
 
     /**
      * Constructor with one inport and one outport.
+     * @param inclCols
      */
-    public NumberToStringNodeModel() {
+    public AbstractNumberToStringNodeModel(final T inclCols) {
         super(1, 1);
+        m_inclCols = inclCols;
     }
 
-    /**
+/**
      * {@inheritDoc}
      */
     @Override
@@ -124,8 +122,7 @@ public class NumberToStringNodeModel extends NodeModel {
         StringBuilder warnings = new StringBuilder();
         // find indices to work on.
         DataTableSpec inspec = inData[0].getDataTableSpec();
-        List<String> inclcols = m_inclCols.getIncludeList();
-        if (inclcols.size() == 0) {
+        if (getStoredInclCols(inspec).length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected,"
                     + " returning input DataTable.");
@@ -150,35 +147,41 @@ public class NumberToStringNodeModel extends NodeModel {
         return new BufferedDataTable[]{resultTable};
     }
 
-    private int[] findColumnIndices(final DataTableSpec spec)
-            throws InvalidSettingsException {
-        List<String> inclcols = m_inclCols.getIncludeList();
+
+    /**
+     * @param spec the current DataTableSpec
+     * @return an integer array with the column indices
+     * @throws InvalidSettingsException
+     *
+     */
+    public int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
+        String[] inclCols = getStoredInclCols(spec);
         StringBuilder warnings = new StringBuilder();
-        if (inclcols.size() == 0) {
+        if (inclCols.length == 0) {
             warnings.append("No columns selected");
         }
         Vector<Integer> indicesvec = new Vector<Integer>();
-        if (m_inclCols.isKeepAllSelected()) {
+        if (isKeepAllSelected()) {
             for (DataColumnSpec cspec : spec) {
                 if (cspec.getType().isCompatible(DoubleValue.class)) {
                     indicesvec.add(spec.findColumnIndex(cspec.getName()));
                 }
             }
         } else {
-            for (int i = 0; i < inclcols.size(); i++) {
-                int colIndex = spec.findColumnIndex(inclcols.get(i));
+            for (int i = 0; i < inclCols.length; i++) {
+                int colIndex = spec.findColumnIndex(inclCols[i]);
                 if (colIndex >= 0) {
                     DataType type = spec.getColumnSpec(colIndex).getType();
                     if (type.isCompatible(DoubleValue.class)) {
                         indicesvec.add(colIndex);
                     } else {
                         warnings.append("Ignoring column \""
-                                        + spec.getColumnSpec(colIndex).getName()
-                                        + "\"\n");
+                                + spec.getColumnSpec(colIndex).getName()
+                                + "\"\n");
                     }
                 } else {
                     throw new InvalidSettingsException("Column \""
-                            + inclcols.get(i) + "\" not found.");
+                            + inclCols[i] + "\" not found.");
                 }
             }
         }
@@ -193,6 +196,18 @@ public class NumberToStringNodeModel extends NodeModel {
     }
 
     /**
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * @param inSpec the current DataTableSpec
+     * @return a String array with the included columns
+     */
+    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+
+    /**
+     * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present
+     */
+    protected abstract boolean isKeepAllSelected();
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -203,8 +218,7 @@ public class NumberToStringNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.loadSettingsFrom(settings);
     }
 
@@ -220,8 +234,7 @@ public class NumberToStringNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.validateSettings(settings);
     }
 
@@ -229,18 +242,16 @@ public class NumberToStringNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
     }
 
     /**
@@ -306,15 +317,12 @@ public class NumberToStringNodeModel extends NodeModel {
          */
         @Override
         public DataColumnSpec[] getColumnSpecs() {
-            DataColumnSpec[] newcolspecs =
-                    new DataColumnSpec[m_colindices.length];
+            DataColumnSpec[] newcolspecs = new DataColumnSpec[m_colindices.length];
             for (int i = 0; i < newcolspecs.length; i++) {
                 DataColumnSpec colspec = m_spec.getColumnSpec(m_colindices[i]);
                 DataColumnSpecCreator colspeccreator = null;
                 // change DataType to StringCell
-                colspeccreator =
-                        new DataColumnSpecCreator(colspec.getName(),
-                                StringCell.TYPE);
+                colspeccreator = new DataColumnSpecCreator(colspec.getName(), StringCell.TYPE);
                 newcolspecs[i] = colspeccreator.createSpec();
             }
             return newcolspecs;
@@ -324,14 +332,13 @@ public class NumberToStringNodeModel extends NodeModel {
          * {@inheritDoc}
          */
         @Override
-        public void setProgress(final int curRowNr, final int rowCount,
-                final RowKey lastKey, final ExecutionMonitor exec) {
+        public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey,
+            final ExecutionMonitor exec) {
             exec.setProgress((double)curRowNr / (double)rowCount, "Converting");
         }
 
         /**
-         * Error messages that occur during execution , i.e.
-         * NumberFormatException.
+         * Error messages that occur during execution , i.e. NumberFormatException.
          *
          * @return error message
          */

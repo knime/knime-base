@@ -923,13 +923,15 @@
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.cellsplit2.CellSplitter2NodeFactory"/>
       <node
+            after="org.knime.base.node.preproc.colconvert.numbertocategory.NumberToCategoryApplyNodeFactory"
             category-path="/manipulation/column/column-convert+replace"
-            factory-class="org.knime.base.node.preproc.colconvert.numbertostring.NumberToStringNodeFactory"/>
-      <node  
-            after="org.knime.base.node.preproc.colconvert.numbertostring.NumberToStringNodeFactory"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.colconvert.numbertostring2.NumberToString2NodeFactory"/>
+      <node
+            after="org.knime.base.node.preproc.colconvert.numbertostring2.NumberToString2NodeFactory"
             category-path="/manipulation/column/column-convert+replace"
-            factory-class="org.knime.base.node.preproc.colconvert.stringtonumber.StringToNumberNodeFactory"
-            />
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeFactory"/>
       <node
             category-path="/manipulation/column/column-transform"
             factory-class="org.knime.base.node.preproc.columntrans2.One2ManyCol2NodeFactory"
@@ -1990,6 +1992,16 @@
             category-path="/analytics/mining/logreg"
             deprecated="false"
             factory-class="org.knime.base.node.mine.regression.logistic.predictor.LogisticRegressionPredictorNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.colconvert.numbertostring.NumberToStringNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.colconvert.stringtonumber.StringToNumberNodeFactory">
       </node>
    </extension>
    

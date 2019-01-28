@@ -45,7 +45,7 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.colconvert.stringtonumber;
+package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -56,32 +56,33 @@ import org.knime.core.node.NodeView;
  * values.
  *
  * @author cebron, University of Konstanz
+ * @since 3.8
  */
-public class StringToNumberNodeFactory extends
-        NodeFactory<StringToNumberNodeModel> {
+public class StringToNumber2NodeFactory extends
+        NodeFactory<StringToNumber2NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new StringToNumberNodeDialog();
+        return new StringToNumber2NodeDialog();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public StringToNumberNodeModel createNodeModel() {
-        return new StringToNumberNodeModel();
+    public StringToNumber2NodeModel createNodeModel() {
+        return new StringToNumber2NodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<StringToNumberNodeModel> createNodeView(
-            final int viewIndex, final StringToNumberNodeModel nodeModel) {
+    public NodeView<StringToNumber2NodeModel> createNodeView(
+            final int viewIndex, final StringToNumber2NodeModel nodeModel) {
         return null;
     }
 
