@@ -124,7 +124,7 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
             Arrays.stream(AVAILABLE_STRATEGIES).anyMatch(s -> s.equals(m_strategy.getStringValue())),
             "Unknown strategy: " + m_strategy.getStringValue());
         final String orderColName = m_orderCol.getStringValue();
-        DataColumnSpec orderCol = inSpecs[1].getColumnSpec(orderColName);
+        final DataColumnSpec orderCol = inSpecs[1].getColumnSpec(orderColName);
         CheckUtils.checkSettingNotNull(orderCol, "Order column \"%s\" not present in 2nd input table", orderColName);
         CheckUtils.checkSetting(orderCol.getType().isCompatible(StringValue.class),
             "Order column \"%s\" " + "not string compatible (type \"%s\"), i.e. does not contain column names",
@@ -141,7 +141,7 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws CanceledExecutionException {
         final String[] order = readOrderFromTable(inData[1]);
-        ColumnRearranger rearranger = createColumnRearranger(inData[0].getDataTableSpec(), order);
+        final ColumnRearranger rearranger = createColumnRearranger(inData[0].getDataTableSpec(), order);
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(inData[0], rearranger, exec)};
     }
 
@@ -153,14 +153,13 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
         final int orderCol = orderTable.getSpec().findColumnIndex(m_orderCol.getStringValue());
 
         //get order from input[1]
-        List<String> orderList = new ArrayList<String>();
+        final List<String> orderList = new ArrayList<>();
         try (CloseableRowIterator rows = orderTable.iterator()) {
             while (rows.hasNext()) {
                 orderList.add(rows.next().getCell(orderCol).toString());
             }
         }
-        String[] order = orderList.toArray(new String[orderList.size()]);
-        return order;
+        return orderList.toArray(new String[orderList.size()]);
     }
 
     /**
@@ -173,14 +172,10 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
      */
     private ColumnRearranger createColumnRearranger(final DataTableSpec original, final String[] order) {
         ColumnRearranger rearranger = new ColumnRearranger(original);
-        String[] newColOder = getNewOrder(Arrays.asList(original.getColumnNames()), Arrays.asList(order));
+        final String[] newColOder = getNewOrder(Arrays.asList(original.getColumnNames()), Arrays.asList(order));
         rearranger.permute(newColOder);
-        switch (m_strategy.getStringValue()) {
-            case "Drop":
-                rearranger.keepOnly(newColOder);
-                break;
-            default:
-                break;
+        if (m_strategy.getStringValue().equals("Drop")) {
+            rearranger.keepOnly(newColOder);
         }
         return rearranger;
     }
@@ -290,7 +285,7 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
             /** {@inheritDoc} */
             @Override
             public StreamableOperatorInternals saveInternals() {
-                SimpleStreamableOperatorInternals i = new SimpleStreamableOperatorInternals();
+                final SimpleStreamableOperatorInternals i = new SimpleStreamableOperatorInternals();
                 i.getConfig().addStringArray("order", m_streamableOperatorOrder);
                 return i;
             }
@@ -319,7 +314,7 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
      */
     private String[] getNewOrder(final List<String> input, final List<String> order) {
 
-        ArrayList<String> newOrder = new ArrayList<String>(input);
+        final List<String> newOrder = new ArrayList<>(input);
 
         final boolean appendNew;
         switch (m_strategy.getStringValue()) {
