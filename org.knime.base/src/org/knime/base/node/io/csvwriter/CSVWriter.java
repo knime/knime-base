@@ -51,6 +51,7 @@ package org.knime.base.node.io.csvwriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DecimalFormat;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -75,6 +76,12 @@ public class CSVWriter extends BufferedWriter {
     private String m_lastWarning;
 
     private String m_newLine;
+
+    private static final DecimalFormat fullPrecision = new DecimalFormat();
+
+    static {
+        fullPrecision.setMaximumFractionDigits(16);
+    }
 
     /**
      * Creates a new writer with default settings.
@@ -248,6 +255,9 @@ public class CSVWriter extends BufferedWriter {
 
                     if (type.isCompatible(DoubleValue.class)) {
                         isNumerical = true;
+                        if(!m_settings.scientificForExtrema()) {
+                            strVal = fullPrecision.format(((DoubleValue) colValue).getDoubleValue());
+                        }
                     }
                     if (isNumerical
                             && (m_settings.getDecimalSeparator() != '.')) {

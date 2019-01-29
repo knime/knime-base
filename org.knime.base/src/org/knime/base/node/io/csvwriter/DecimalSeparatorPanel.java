@@ -54,6 +54,7 @@ import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -69,6 +70,9 @@ public class DecimalSeparatorPanel extends JPanel {
 
     private final JTextField m_decSeparator = new JTextField();
 
+    private final JCheckBox m_scientificExtrema =
+        new JCheckBox("Use scientific notation for very large and very small values");
+
     private final JLabel m_warning = new JLabel();
 
     /**
@@ -77,15 +81,44 @@ public class DecimalSeparatorPanel extends JPanel {
     public DecimalSeparatorPanel() {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createTitledBorder(BorderFactory
-                .createEtchedBorder(), "Decimal Separator:"));
-        add(Box.createVerticalStrut(20));
-        add(createTextPanel());
-        add(Box.createVerticalStrut(10));
-        add(createEditPanel());
-        add(createWarningPanel());
-        add(Box.createVerticalGlue());
-        add(Box.createVerticalGlue());
+        add(createSeparatorPanel());
+        add(createScientificPanel());
+    }
+
+    private JPanel createScientificPanel() {
+        JPanel scientificPanel = new JPanel();
+        scientificPanel.setLayout(new BoxLayout(scientificPanel, BoxLayout.Y_AXIS));
+        scientificPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Scientific Notation:"));
+        scientificPanel.add(Box.createVerticalStrut(20));
+
+        JPanel editPanel = new JPanel();
+        editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.Y_AXIS));
+
+        Box editBox = Box.createHorizontalBox();
+        editBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        editBox.add(m_scientificExtrema);
+        editBox.add(Box.createHorizontalGlue());
+
+        editPanel.add(editBox);
+        scientificPanel.add(editPanel);
+        scientificPanel.add(Box.createVerticalGlue());
+        scientificPanel.add(Box.createVerticalGlue());
+
+        return scientificPanel;
+    }
+
+    private JPanel createSeparatorPanel() {
+        JPanel separatorPanel = new JPanel();
+        separatorPanel.setLayout(new BoxLayout(separatorPanel, BoxLayout.Y_AXIS));
+        separatorPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Decimal Separator:"));
+        separatorPanel.add(Box.createVerticalStrut(20));
+        separatorPanel.add(createTextPanel());
+        separatorPanel.add(Box.createVerticalStrut(10));
+        separatorPanel.add(createEditPanel());
+        separatorPanel.add(createWarningPanel());
+        return separatorPanel;
     }
 
     private JPanel createTextPanel() {
@@ -178,6 +211,7 @@ public class DecimalSeparatorPanel extends JPanel {
         m_decSeparator.setText("" + settings.getDecimalSeparator());
         // update warning label
         decSepChanged();
+        m_scientificExtrema.setSelected(settings.scientificForExtrema());
     }
 
     /**
@@ -192,6 +226,7 @@ public class DecimalSeparatorPanel extends JPanel {
         } else {
             settings.setDecimalSeparator(decSep.charAt(0));
         }
+        settings.setScientificForExtrema(m_scientificExtrema.isSelected());
     }
 
     private void decSepChanged() {

@@ -122,6 +122,8 @@ public class FileWriterSettings {
 
     private static final String CFGKEY_CHARENCODING = "charSet";
 
+    private static final String CFGKEY_SCIENTIFIC_EXTREMA = "scientificExtrema";
+
     private String m_colSeparator;
 
     private String m_missValuePattern;
@@ -149,6 +151,8 @@ public class FileWriterSettings {
 
     private String m_encoding; // if null, default encoding is used
 
+    private boolean m_scientificForExtrema;
+
     /**
      * Creates a settings object with default settings (backward compatible to
      * the old CSV writer). I. e. Comma as separator, always quote with double
@@ -171,6 +175,8 @@ public class FileWriterSettings {
 
         m_lineEnding = LineEnding.SYST;
         m_encoding = null; // uses the default
+
+        m_scientificForExtrema = false;
     }
 
     /**
@@ -194,6 +200,8 @@ public class FileWriterSettings {
         m_decimalSeparator = settings.m_decimalSeparator;
         m_lineEnding = settings.m_lineEnding;
         m_encoding = settings.m_encoding;
+
+        m_scientificForExtrema = settings.m_scientificForExtrema;
     }
 
     /**
@@ -240,6 +248,9 @@ public class FileWriterSettings {
         }
         // since 3.1
         m_encoding = settings.getString(CFGKEY_CHARENCODING, null);
+
+        // since 3.8
+        m_scientificForExtrema = settings.getBoolean(CFGKEY_SCIENTIFIC_EXTREMA, true);
     }
 
     /**
@@ -266,6 +277,8 @@ public class FileWriterSettings {
         settings.addChar(CFGKEY_DEC_SEPARATOR, m_decimalSeparator);
         settings.addString(CFGKEY_LINEENDING, m_lineEnding.name());
         settings.addString(CFGKEY_CHARENCODING, m_encoding);
+
+        settings.addBoolean(CFGKEY_SCIENTIFIC_EXTREMA, m_scientificForExtrema);
     }
 
     /*
@@ -466,6 +479,22 @@ public class FileWriterSettings {
      */
     public void setCharacterEncoding(final String charSet) {
         m_encoding = charSet;
+    }
+
+    /**
+     * @return true if very large and very small numeric values should be written in scientific notation
+     * @since 3.8
+     */
+    public boolean scientificForExtrema() {
+        return m_scientificForExtrema;
+    }
+
+    /**
+     * Whether very large and very small numeric values are written in scientific notation
+     * @param scientificForExtrema
+     */
+    public void setScientificForExtrema(final boolean scientificForExtrema) {
+        m_scientificForExtrema = scientificForExtrema;
     }
 
     /**
