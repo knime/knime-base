@@ -50,6 +50,7 @@ package org.knime.base.node.meta.feature.selection;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -376,6 +377,17 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
 
                 gbc.gridx = 0;
                 gbc.gridy++;
+                gbc.gridwidth = 2;
+                final JLabel labelMaxIterationsNote = new JLabel(
+                    "Note, the loop will stop after at most 'Pop. size * (Max. num. of generations + 1)' iterations.");
+                final Font italicFont = new Font(labelMaxIterationsNote.getFont().getName(), Font.ITALIC,
+                    labelMaxIterationsNote.getFont().getSize());
+                labelMaxIterationsNote.setFont(italicFont);
+                panel.add(labelMaxIterationsNote, gbc);
+
+                gbc.gridx = 0;
+                gbc.gridy++;
+                gbc.gridwidth = 1;
                 m_useRandomSeedCheckBox
                     .setPreferredSize(new Dimension((int)m_useRandomSeedCheckBox.getPreferredSize().getWidth() + 83,
                         (int)m_useRandomSeedCheckBox.getPreferredSize().getHeight()));
