@@ -209,16 +209,15 @@ public class CSVWriter extends BufferedWriter {
         while ((row = input.poll()) != null) {
 
             String rowKey = row.getKey().toString();
-            String msg;
 
+            final int finalI = i;
             // set the progress
             if (rowCnt <= 0) {
-                msg = "Writing row " + (i + 1) + " (\"" + rowKey + "\")";
+                exec.setMessage(() -> "Writing row " + (finalI + 1) + " (\"" + rowKey + "\")");
             } else {
-                msg =
-                        "Writing row " + (i + 1) + " (\"" + rowKey + "\") of "
-                                + rowCnt;
-                exec.setProgress(i / (double)rowCnt, msg);
+                final long finalRowCnt = rowCnt;
+                exec.setProgress(i / (double)rowCnt, () -> "Writing row " + (finalI + 1) + " (\"" + rowKey + "\") of "
+                        + finalRowCnt);
             }
             // Check if execution was canceled !
             exec.checkCanceled();
