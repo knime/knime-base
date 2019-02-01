@@ -505,7 +505,7 @@
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"/>
       <node
-	        after="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"
+            after="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory">
       </node>
@@ -750,14 +750,14 @@
              category-path="/analytics/mining/regression"
              deprecated="true"
              factory-class="org.knime.base.node.mine.regression.predict2.RegressionPredictorNodeFactory"/> 
-	    <node
-	          after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
-	          category-path="/io/read"
-	          factory-class="org.knime.base.node.io.table.read.ReadTableNodeFactory"/>
-	    <node
-	          after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
-	          category-path="/io/write"
-	          factory-class="org.knime.base.node.io.table.write.WriteTableNodeFactory"/>
+        <node
+              after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+              category-path="/io/read"
+              factory-class="org.knime.base.node.io.table.read.ReadTableNodeFactory"/>
+        <node
+              after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+              category-path="/io/write"
+              factory-class="org.knime.base.node.io.table.write.WriteTableNodeFactory"/>
      <node
            category-path="/manipulation/column/column-split+combine"
            factory-class="org.knime.base.node.preproc.bitvector.create.CreateBitVectorNodeFactory"/>
@@ -794,11 +794,11 @@
            factory-class="org.knime.base.node.preproc.filter.hilite.HiliteFilterNodeFactory"/>
     <node
          after="org.knime.base.node.preproc.binner.BinnerNodeFactory"
-		 category-path="/manipulation/column/binning"
+         category-path="/manipulation/column/binning"
          factory-class="org.knime.base.node.preproc.discretization.caim2.modelcreator.CAIMDiscretization2NodeFactory"/>
     <node
          after="org.knime.base.node.preproc.discretization.caim2.modelcreator.CAIMDiscretization2NodeFactory"
-   		 category-path="/manipulation/column/binning"
+         category-path="/manipulation/column/binning"
          factory-class="org.knime.base.node.preproc.discretization.caim2.modelapply.Discretization2ApplyNodeFactory"/>
     <node
          factory-class="org.knime.base.node.preproc.rowkey2.RowKeyNodeFactory2"
@@ -997,14 +997,14 @@
             category-path="/database/database-io"
             factory-class="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"
             >
-   	  </node>
-   	  <node
+      </node>
+      <node
             after="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
             category-path="/database/database-io"
             factory-class="org.knime.base.node.io.database.DatabaseLoopingNodeFactory"
              >
       </node>
-   	  <node
+      <node
             after="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
             category-path="/database/database-io"
             factory-class="org.knime.base.node.io.database.parameterizedquery.ParameterizedDBQueryNodeFactory">
@@ -1278,12 +1278,12 @@
             >
       </node>
       <node
-            category-path="manipulation/row/row-filter"
+            category-path="/manipulation/row/row-filter"
             factory-class="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeFactory"
             >
       </node>
       <node
-            category-path="manipulation/row/row-filter"
+            category-path="/manipulation/row/row-filter"
             factory-class="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory"
             >
       </node>
@@ -1708,12 +1708,12 @@
             >
       </node>
       <node
-            category-path="database/database-utility"
+            category-path="/database/database-utility"
             factory-class="org.knime.base.node.io.database.SQLExtractNodeFactory"
             >
       </node>
       <node
-            category-path="database/database-utility"
+            category-path="/database/database-utility"
             factory-class="org.knime.base.node.io.database.drop.DBDropTableNodeFactory"
             >
       </node>
@@ -1758,9 +1758,9 @@
             >
       </node>
       <node 
-      		category-path="/database/database-manipulation" 
-      		factory-class="org.knime.base.node.io.database.columnrename.DBColumnRenameNodeFactory" 
-      		/>
+            category-path="/database/database-manipulation" 
+            factory-class="org.knime.base.node.io.database.columnrename.DBColumnRenameNodeFactory" 
+            />
       <node
             category-path="/manipulation/pmml"
             deprecated="false"
