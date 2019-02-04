@@ -50,12 +50,16 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.List;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -67,6 +71,7 @@ import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.dialogutil.column.AggregationColumnPanel;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregationPanel;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregationPanel;
+import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -142,6 +147,8 @@ public class GroupByNodeDialog extends NodeDialogPane {
     //used to now the implementation version of the node
     private final SettingsModelInteger m_version = GroupByNodeModel.createVersionModel();
 
+    private final JComboBox<TypeMatch> m_typeMatch = new JComboBox<TypeMatch>(TypeMatch.values());
+
     /** Constructor for class GroupByNodeDialog. */
     public GroupByNodeDialog() {
         this(false, false);
@@ -203,10 +210,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
             m_tabs.addTab(PatternAggregationPanel.DEFAULT_TITLE, patternPanel);
         }
         if (showType) {
-            final JPanel typeBasedPanel = new JPanel();
-            typeBasedPanel.setLayout(new BoxLayout(typeBasedPanel, BoxLayout.Y_AXIS));
-            typeBasedPanel.add(m_dataTypeAggrPanel.getComponentPanel());
-            m_tabs.addTab(DataTypeAggregationPanel.DEFAULT_TITLE, typeBasedPanel);
+           m_tabs.addTab(DataTypeAggregationPanel.DEFAULT_TITLE, createTypeBasedPanel());
         }
 
         //calculate the component size
@@ -507,6 +511,40 @@ public class GroupByNodeDialog extends NodeDialogPane {
         m_aggrColPanel.excludeColsChange(columns);
     }
 
+    /**
+     * Creates the type based panel.
+     *
+     * @param p the panel to append the type match check box to
+     */
+    private Component createTypeBasedPanel() {
+        final JPanel typeBasedPanel = new JPanel();
+        typeBasedPanel.setLayout(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridwidth = 3;
+        typeBasedPanel.add(m_dataTypeAggrPanel.getComponentPanel(), gbc);
+        ++gbc.gridy;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        typeBasedPanel.add(Box.createHorizontalBox(), gbc);
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        ++gbc.gridx;
+        // AP-7020: add the exact type match checkbox
+        typeBasedPanel.add(new JLabel("Type matching:"),gbc);
+        ++gbc.gridx;
+        gbc.insets = new Insets(0, 10, 0, 3);
+        typeBasedPanel.add(m_typeMatch,gbc);
+        return typeBasedPanel;
+    }
+
     /** {@inheritDoc} */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
@@ -554,6 +592,13 @@ public class GroupByNodeDialog extends NodeDialogPane {
             m_valueDelimiter.setStringValue(GlobalSettings.STANDARD_DELIMITER);
         }
         m_groupCol.loadSettingsFrom(settings, new DataTableSpec[]{spec});
+
+        try {
+            // AP-7020: the default value false ensures backwards compatibility (KNIME 3.8)
+            m_typeMatch.setSelectedItem(TypeMatch.loadSettingsFrom(settings));
+        } catch (InvalidSettingsException e1) {
+            m_typeMatch.setSelectedItem(TypeMatch.SUB_TYPE);
+        }
         columnsChanged();
         try {
             m_version.loadSettingsFrom(settings);
@@ -580,8 +625,8 @@ public class GroupByNodeDialog extends NodeDialogPane {
         m_dataTypeAggrPanel.saveSettingsTo(settings);
         m_retainOrder.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
-
         m_version.saveSettingsTo(settings);
+        m_typeMatch.getItemAt(m_typeMatch.getSelectedIndex()).saveSettingsTo(settings);
     }
 
     private void validateSettings(final NodeSettingsWO settings) throws InvalidSettingsException {

@@ -99,8 +99,80 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  */
 public class GroupByNodeModel extends NodeModel {
 
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(GroupByNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeModel.class);
+
+    /**
+     * Enum indicating whether type based matching should match strictly columns of the same type or also columns
+     * containing sub types.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    enum TypeMatch {
+
+            /** Strict type matching. */
+            STRICT("Strict", true, (byte)0),
+
+            /** Sub type matching. */
+            SUB_TYPE("Include sub-types", false, (byte)1);
+
+        /** Configuration key for the exact type match flag. */
+        private static final String CFG_TYPE_MATCH = "typeMatch";
+
+        /** The options UI name. */
+        private final String m_name;
+
+        /** The strict type matching flag. */
+        private final boolean m_strictTypeMatch;
+
+        /** The byte used to store the option. */
+        private final byte m_persistByte;
+
+        TypeMatch(final String name, final boolean strictTypeMatch, final byte persistByte) {
+            m_name = name;
+            m_strictTypeMatch = strictTypeMatch;
+            m_persistByte = persistByte;
+        }
+
+        boolean useStrictTypeMatching() {
+            return m_strictTypeMatch;
+        }
+
+        @Override
+        public String toString() {
+            return m_name;
+        }
+
+        /**
+         * Save the selected strategy.
+         *
+         * @param settings the settings to save to
+         */
+        void saveSettingsTo(final NodeSettingsWO settings) {
+            settings.addByte(CFG_TYPE_MATCH, m_persistByte);
+        }
+
+        /**
+         * Loads a strategy.
+         *
+         * @param settings the settings to load the strategy from
+         * @return the loaded strategy
+         * @throws InvalidSettingsException if the selection strategy couldn't be loaded
+         */
+        static TypeMatch loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(CFG_TYPE_MATCH)) {
+                final byte persistByte = settings.getByte(CFG_TYPE_MATCH);
+                for (final TypeMatch strategy : values()) {
+                    if (persistByte == strategy.m_persistByte) {
+                        return strategy;
+                    }
+                }
+                throw new InvalidSettingsException("The selection type matching strategy could not be loaded.");
+
+            } else {
+                return TypeMatch.SUB_TYPE;
+            }
+        }
+    }
 
     /**
      * Old configuration key of the selected aggregation method for numerical
@@ -204,6 +276,9 @@ public class GroupByNodeModel extends NodeModel {
         return new SettingsModelInteger("nodeVersion", 1);
     }
 
+    /** Enum indicating whether type based aggregation should use strict or sub-type matching. */
+    private TypeMatch m_typeMatch = TypeMatch.STRICT;
+
     private final List<ColumnAggregator> m_columnAggregators = new LinkedList<>();
 
     private final Collection<DataTypeAggregator> m_dataTypeAggregators = new LinkedList<>();
@@ -246,6 +321,7 @@ public class GroupByNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("resource")
     @Override
     protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException {
@@ -265,6 +341,7 @@ public class GroupByNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("resource")
     @Override
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException {
@@ -302,6 +379,7 @@ public class GroupByNodeModel extends NodeModel {
         m_inMemory.saveSettingsTo(settings);
         m_valueDelimiter.saveSettingsTo(settings);
         m_version.saveSettingsTo(settings);
+        m_typeMatch.saveSettingsTo(settings);
     }
 
     /**
@@ -448,6 +526,9 @@ public class GroupByNodeModel extends NodeModel {
             //this flag was introduced in 2.10 to mark the implementation version
             m_version.setIntValue(0);
         }
+
+        // AP-7020: the default value false ensures backwards compatibility (KNIME 3.8)
+        m_typeMatch = TypeMatch.loadSettingsFrom(settings);
     }
 
     /**
@@ -527,8 +608,8 @@ public class GroupByNodeModel extends NodeModel {
             throws InvalidSettingsException {
         m_columnAggregators2Use.clear();
         final ArrayList<ColumnAggregator> invalidColAggrs = new ArrayList<>(1);
-        m_columnAggregators2Use.addAll(GroupByNodeModel.getAggregators(origSpec, groupByCols,
-            m_columnAggregators, m_patternAggregators, m_dataTypeAggregators, invalidColAggrs));
+        m_columnAggregators2Use.addAll(GroupByNodeModel.getAggregators(origSpec, groupByCols, m_columnAggregators,
+            m_patternAggregators, m_dataTypeAggregators, invalidColAggrs, m_typeMatch.useStrictTypeMatching()));
         if (m_columnAggregators2Use.isEmpty()) {
             setWarningMessage("No aggregation column defined");
         }
@@ -839,25 +920,56 @@ public class GroupByNodeModel extends NodeModel {
     }
 
     /**
-     * Creates a {@link List} with all {@link ColumnAggregator}s to use based on the given input settings.
-     * Columns are only added once for the different aggregator types in the order they are added to the function
-     * e.g. all column that are handled by one of the given {@link ColumnAggregator} are ignored by the
-     * pattern and data type based aggregator all columns that are handled by one of the pattern based aggregators
-     * is ignored by the data type based aggregators.
+     * Creates a {@link List} with all {@link ColumnAggregator}s to use based on the given input settings. Columns are
+     * only added once for the different aggregator types in the order they are added to the function e.g. all column
+     * that are handled by one of the given {@link ColumnAggregator} are ignored by the pattern and data type based
+     * aggregator all columns that are handled by one of the pattern based aggregators is ignored by the data type based
+     * aggregators.
+     *
      * @param inputSpec the {@link DataTableSpec} of the input table
      * @param groupColumns the columns to group by
      * @param columnAggregators the manually added {@link ColumnAggregator}s
      * @param patternAggregators the {@link PatternAggregator}s
      * @param dataTypeAggregators the {@link DataTypeAggregator}s
      * @param invalidColAggrs empty {@link List} that is filled with the invalid column aggregators can be
-     * <code>null</code>
+     *            <code>null</code>
      * @return the list of all {@link ColumnAggregator}s to use based on the given aggregator
      * @since 2.11
+     * @deprecated use {@link #getAggregators(DataTableSpec, Collection, List, Collection, Collection, List, boolean)}
+     *             instead
      */
+    @Deprecated
     public static List<ColumnAggregator> getAggregators(final DataTableSpec inputSpec,
         final Collection<String> groupColumns, final List<ColumnAggregator> columnAggregators,
         final Collection<PatternAggregator> patternAggregators,
         final Collection<DataTypeAggregator> dataTypeAggregators, final List<ColumnAggregator> invalidColAggrs) {
+        return getAggregators(inputSpec, groupColumns, columnAggregators, patternAggregators, dataTypeAggregators,
+            invalidColAggrs, false);
+    }
+
+    /**
+     * Creates a {@link List} with all {@link ColumnAggregator}s to use based on the given input settings. Columns are
+     * only added once for the different aggregator types in the order they are added to the function e.g. all column
+     * that are handled by one of the given {@link ColumnAggregator} are ignored by the pattern and data type based
+     * aggregator all columns that are handled by one of the pattern based aggregators is ignored by the data type based
+     * aggregators.
+     *
+     * @param inputSpec the {@link DataTableSpec} of the input table
+     * @param groupColumns the columns to group by
+     * @param columnAggregators the manually added {@link ColumnAggregator}s
+     * @param patternAggregators the {@link PatternAggregator}s
+     * @param dataTypeAggregators the {@link DataTypeAggregator}s
+     * @param invalidColAggrs empty {@link List} that is filled with the invalid column aggregators can be
+     *            <code>null</code>
+     * @param strictTypeMatch indicates whether strictly the same types are considered compatible, or also super types
+     * @return the list of all {@link ColumnAggregator}s to use based on the given aggregator
+     * @since 3.8
+     */
+    public static List<ColumnAggregator> getAggregators(final DataTableSpec inputSpec,
+        final Collection<String> groupColumns, final List<ColumnAggregator> columnAggregators,
+        final Collection<PatternAggregator> patternAggregators,
+        final Collection<DataTypeAggregator> dataTypeAggregators, final List<ColumnAggregator> invalidColAggrs,
+        final boolean strictTypeMatch) {
         final List<ColumnAggregator> columnAggregators2Use = new ArrayList<>(columnAggregators.size());
         final Set<String> usedColNames = new HashSet<>(inputSpec.getNumColumns());
         usedColNames.addAll(groupColumns);
@@ -879,7 +991,7 @@ public class GroupByNodeModel extends NodeModel {
                     for (final PatternAggregator patternAggr : patternAggregators) {
                         Pattern pattern = patternAggr.getRegexPattern();
                         if (pattern != null && pattern.matcher(spec.getName()).matches()
-                                && patternAggr.isCompatible(spec)) {
+                            && patternAggr.isCompatible(spec)) {
                             final ColumnAggregator colAggregator = new ColumnAggregator(spec,
                                 patternAggr.getMethodTemplate(), patternAggr.inclMissingCells());
                             columnAggregators2Use.add(colAggregator);
@@ -895,7 +1007,7 @@ public class GroupByNodeModel extends NodeModel {
                 if (!usedColNames.contains(spec.getName())) {
                     final DataType dataType = spec.getType();
                     for (final DataTypeAggregator typeAggregator : dataTypeAggregators) {
-                        if (typeAggregator.isCompatibleType(dataType)) {
+                        if (typeAggregator.isCompatibleType(dataType, strictTypeMatch)) {
                             final ColumnAggregator colAggregator = new ColumnAggregator(spec,
                                 typeAggregator.getMethodTemplate(), typeAggregator.inclMissingCells());
                             columnAggregators2Use.add(colAggregator);

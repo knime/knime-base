@@ -93,6 +93,79 @@ import org.knime.core.node.port.database.reader.DBReader;
 final class DBGroupByNodeModel2 extends DBNodeModel {
 
     /**
+     * Enum indicating whether type based matching should match strictly columns of the same type or also columns
+     * containing sub types.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    enum TypeMatch {
+
+            /** Strict type matching. */
+            STRICT("Strict", true, (byte)0),
+
+            /** Sub type matching. */
+            SUB_TYPE("Include sub-types", false, (byte)1);
+
+        /** Configuration key for the exact type match flag. */
+        private static final String CFG_TYPE_MATCH = "typeMatch";
+
+        /** The options UI name. */
+        private final String m_name;
+
+        /** The strict type matching flag. */
+        private final boolean m_strictTypeMatch;
+
+        /** The byte used to store the option. */
+        private final byte m_persistByte;
+
+        TypeMatch(final String name, final boolean strictTypeMatch, final byte persistByte) {
+            m_name = name;
+            m_strictTypeMatch = strictTypeMatch;
+            m_persistByte = persistByte;
+        }
+
+        boolean useStrictTypeMatching() {
+            return m_strictTypeMatch;
+        }
+
+        @Override
+        public String toString() {
+            return m_name;
+        }
+
+        /**
+         * Save the selected strategy.
+         *
+         * @param settings the settings to save to
+         */
+        void saveSettingsTo(final NodeSettingsWO settings) {
+            settings.addByte(CFG_TYPE_MATCH, m_persistByte);
+        }
+
+        /**
+         * Loads a strategy.
+         *
+         * @param settings the settings to load the strategy from
+         * @return the loaded strategy
+         * @throws InvalidSettingsException if the selection strategy couldn't be loaded
+         */
+        static TypeMatch loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(CFG_TYPE_MATCH)) {
+                final byte persistByte = settings.getByte(CFG_TYPE_MATCH);
+                for (final TypeMatch strategy : values()) {
+                    if (persistByte == strategy.m_persistByte) {
+                        return strategy;
+                    }
+                }
+                throw new InvalidSettingsException("The selection type matching strategy could not be loaded.");
+
+            } else {
+                return TypeMatch.SUB_TYPE;
+            }
+        }
+    }
+
+    /**
      * Config key for the add count star option.
      */
     static final String CFG_ADD_COUNT_STAR = "addCountStar";
@@ -135,6 +208,9 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
         return model;
     }
 
+    /** Enum indicating whether type based aggregation should use strict or sub-type matching. */
+    private TypeMatch m_typeMatch = TypeMatch.STRICT;
+
     private final SettingsModelFilterString m_groupByCols = new SettingsModelFilterString(CFG_GROUP_BY_COLUMNS);
 
     private final SettingsModelString m_columnNamePolicy = new SettingsModelString(CFG_COLUMN_NAME_POLICY,
@@ -165,6 +241,7 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
             m_countStarColName.saveSettingsTo(settings);
             m_groupByCols.saveSettingsTo(settings);
             m_columnNamePolicy.saveSettingsTo(settings);
+            m_typeMatch.saveSettingsTo(settings);
         }
     }
 
@@ -198,6 +275,9 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
         m_countStarColName.loadSettingsFrom(settings);
         m_groupByCols.loadSettingsFrom(settings);
         m_columnNamePolicy.loadSettingsFrom(settings);
+
+        // AP-7020: the default value false ensures backwards compatibility (KNIME 3.8)
+        m_typeMatch = TypeMatch.loadSettingsFrom(settings);
         m_settings = new NodeSettings("copy");
         settings.copyTo(m_settings);
     }
@@ -278,9 +358,9 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
                 if (!usedColNames.contains(spec.getName())) {
                     final DataType dataType = spec.getType();
                     for (final DBDataTypeAggregationFunctionRow typeAggregator : typeFunctions) {
-                        if (typeAggregator.isCompatibleType(dataType)) {
+                        if (typeAggregator.isCompatibleType(dataType, m_typeMatch.useStrictTypeMatching())) {
                             final DBColumnAggregationFunctionRow row =
-                                    new DBColumnAggregationFunctionRow(spec, typeAggregator.getFunction());
+                                new DBColumnAggregationFunctionRow(spec, typeAggregator.getFunction());
                             m_aggregationFunction2Use.add(row);
                             usedColNames.add(spec.getName());
                         }

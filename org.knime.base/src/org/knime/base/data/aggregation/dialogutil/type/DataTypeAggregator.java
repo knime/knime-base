@@ -103,12 +103,28 @@ public class DataTypeAggregator extends AggregationMethodDecorator {
 
     /**
      * @param dataType {@link DataType} to check
-     * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType}
-     * of this aggregator
+     * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType} of
+     *         this aggregator
+     * @deprecated use {@link #isCompatibleType(DataType, boolean)} instead
      */
+    @Deprecated
     public boolean isCompatibleType(final DataType dataType) {
-        return m_type.equals(dataType) || m_type.isASuperTypeOf(dataType);
+        return isCompatibleType(dataType, false);
     }
+
+    /**
+     * Test whether the provided data type is compatible with the aggregator's data type.
+     *
+     * @param dataType {@link DataType} to check
+     * @param strictTypeMatch indicates whether strictly the same types are considered compatible, or also super types
+     * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType} of
+     *         this aggregator
+     * @since 3.8
+     */
+    public boolean isCompatibleType(final DataType dataType, final boolean strictTypeMatch) {
+        return m_type.equals(dataType) || (!strictTypeMatch && m_type.isASuperTypeOf(dataType));
+    }
+
     /**
      * Creates a {@link List} with all {@link DataTypeAggregator}s that were
      * stored in the settings.

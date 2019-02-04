@@ -177,6 +177,16 @@
                 Clicking on the "Edit" button opens the parameter dialog 
                 which allows changing the operator specific settings.
             </option>
+			<option name="Type matching">
+				<ul>
+					<li><b>Strict:</b> the type based aggregation method is only applied to columns of the
+						selected type.              
+					</li>	
+					<li><b>Include sub-types:</b> the type based aggregation method is also applied to columns containing 
+						sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,
+					<i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>
+				</ul> 
+			</option>
         </tab>
 		<link href="https://www.knime.com/knime-introductory-course/chapter3/section2/classic-aggregations-with-groupby-node">
 			KNIME E-Learning Course: Classic Aggregations with GroupBy node

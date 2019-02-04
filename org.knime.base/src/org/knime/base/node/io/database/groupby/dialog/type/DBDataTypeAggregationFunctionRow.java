@@ -92,13 +92,17 @@ public class DBDataTypeAggregationFunctionRow extends AbstractDBAggregationFunct
     }
 
     /**
+     * Test whether the provided data type is compatible with the aggregator's data type.
+     *
      * @param dataType {@link DataType} to check
-     * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType}
-     * of this aggregator
+     * @param strictTypeMatch indicates whether strictly the same types are considered compatible, or also super types
+     * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType} of
+     *         this aggregator
      */
-    public boolean isCompatibleType(final DataType dataType) {
-        return m_type.equals(dataType) || m_type.isASuperTypeOf(dataType);
+    public boolean isCompatibleType(final DataType dataType, final boolean strictTypeMatch) {
+        return m_type.equals(dataType) || (!strictTypeMatch && m_type.isASuperTypeOf(dataType));
     }
+
 
     /**
      * @param settings {@link NodeSettingsWO}
