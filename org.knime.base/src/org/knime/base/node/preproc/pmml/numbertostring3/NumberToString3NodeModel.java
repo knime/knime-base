@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,64 +41,70 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * --------------------------------------------------------------------
- * 
+ *
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.numbertostring;
+package org.knime.base.node.preproc.pmml.numbertostring3;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
- * NodeFactory for the Number to String Node that converts numbers
- * to String values.
- * 
+ * The NodeModel for the Number to String Node that converts numbers
+ * to StringValues.
+ *
  * @author cebron, University of Konstanz
+ * @since 3.8
  */
-public class NumberToStringNodeFactory extends NodeFactory {
+public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<SettingsModelColumnFilter2>{
 
     /**
-     * {@inheritDoc}
+     * @return a SettingsModelColumnFilter2 for the included columns filtered for numerical values
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NumberToStringNodeDialog();
+    static SettingsModelColumnFilter2 createInclModel() {
+        return new SettingsModelColumnFilter2(CFG_INCLUDED_COLUMNS, new Class[]{DoubleValue.class});
+    }
+
+    /**
+     * Constructor with one data inport, one data outport and an optional
+     * PMML inport and outport.
+     * @param pmmlInEnabled true if there should be an optional input port
+     * @since 3.0
+     */
+    public NumberToString3NodeModel(final boolean pmmlInEnabled) {
+        super(pmmlInEnabled, createInclModel());
+    }
+
+
+    /**
+     * Constructor with one data inport, one data outport and an optional
+     * PMML inport and outport.
+     */
+    public NumberToString3NodeModel() {
+        this(true);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeModel createNodeModel() {
-        return new NumberToStringNodeModel();
+    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+        String[] inclCols = m_inclCols.applyTo(inSpec).getIncludes();
+        String[] remInclCols = m_inclCols.applyTo(inSpec).getRemovedFromIncludes();
+        return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
+
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
+    protected boolean isKeepAllSelected() {
+        return false;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

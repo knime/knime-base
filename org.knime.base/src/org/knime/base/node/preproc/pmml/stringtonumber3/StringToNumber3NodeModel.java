@@ -45,61 +45,59 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.stringtonumber;
+package org.knime.base.node.preproc.pmml.stringtonumber3;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.StringValue;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
- * NodeFactory for the String to Number Node that converts strings to double
- * values.
+ * The NodeModel for the String to Number Node that converts strings to numbers.
  *
  * @author cebron, University of Konstanz
- * @since 3.0
+ * @since 3.8
  */
-public class StringToNumberNodeFactory2 extends
-        NodeFactory<StringToNumberNodeModel> {
+public class StringToNumber3NodeModel extends AbstractStringToNumberNodeModel<SettingsModelColumnFilter2>{
+    /**
+     * @return a SettingsModelColumnFilter2 for the included columns filtered for string values
+     */
+    static SettingsModelColumnFilter2 createInclModel() {
+        return new SettingsModelColumnFilter2(CFG_INCLUDED_COLUMNS, new Class[]{StringValue.class});
+    }
 
     /**
-     * {@inheritDoc}
+     * Constructor
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new StringToNumberNodeDialog();
+    public StringToNumber3NodeModel() {
+        this(true);
+    }
+
+    /**
+     * Constructor
+     * @param pmmlInEnabled true if an optional PMML input port should be present
+     */
+    public StringToNumber3NodeModel(final boolean pmmlInEnabled) {
+        super(pmmlInEnabled, createInclModel());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public StringToNumberNodeModel createNodeModel() {
-        return new StringToNumberNodeModel(false);
+    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+        String[] inclCols = m_inclCols.applyTo(inSpec).getIncludes();
+        String[] remInclCols = m_inclCols.applyTo(inSpec).getRemovedFromIncludes();
+        return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<StringToNumberNodeModel> createNodeView(
-            final int viewIndex, final StringToNumberNodeModel nodeModel) {
-        return null;
+    protected boolean isKeepAllSelected() {
+        return false;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

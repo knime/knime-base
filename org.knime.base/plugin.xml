@@ -619,14 +619,6 @@
       <node
             category-path="/manipulation/pmml"
             deprecated="true"
-            factory-class="org.knime.base.node.preproc.pmml.numbertostring.NumberToStringNodeFactory"/>
-      <node
-            category-path="/manipulation/pmml"
-            deprecated="true"
-            factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory"/>
-      <node
-            category-path="/manipulation/pmml"
-            deprecated="true"
             factory-class="org.knime.base.node.preproc.pmml.binner.BinnerNodeFactory"/>
       <node
             category-path="/manipulation/pmml"
@@ -1770,15 +1762,15 @@
             >
       </node>
       <node
+            after="org.knime.base.node.preproc.pmml.normalize.NormalizerPMMLNodeFactory2"
             category-path="/manipulation/pmml"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.pmml.numbertostring.NumberToStringNodeFactory2"
-            >
+            factory-class="org.knime.base.node.preproc.pmml.numbertostring3.NumberToString3NodeFactory">
       </node>
       <node
             category-path="/manipulation/pmml"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory2"
+            factory-class="org.knime.base.node.preproc.pmml.stringtonumber3.StringToNumber3NodeFactory"
             >
       </node>
       <node
@@ -2002,6 +1994,26 @@
             category-path="/manipulation/column/column-convert+replace"
             deprecated="true"
             factory-class="org.knime.base.node.preproc.colconvert.stringtonumber.StringToNumberNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/pmml"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.pmml.numbertostring.NumberToStringNodeFactory2">
+      </node>
+      <node
+            category-path="/manipulation/pmml"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.pmml.numbertostring.NumberToStringNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/pmml"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/pmml"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory2">
       </node>
    </extension>
    

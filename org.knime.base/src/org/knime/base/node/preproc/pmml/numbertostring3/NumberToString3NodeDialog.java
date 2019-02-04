@@ -45,61 +45,26 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.numbertostring;
+package org.knime.base.node.preproc.pmml.numbertostring3;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 
 /**
- * NodeFactory for the Number to String Node that converts numbers
- * to String values.
+ * Dialog for the Number to String Node.
+ * Lets the user choose the columns to use.
  *
  * @author cebron, University of Konstanz
- * @since 3.0
+ * @since 3.8
  */
-public class NumberToStringNodeFactory2 extends NodeFactory {
+public class NumberToString3NodeDialog extends DefaultNodeSettingsPane {
 
     /**
-     * {@inheritDoc}
+     * Constructor.
+     *
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NumberToStringNodeDialog();
+    @SuppressWarnings("unchecked")
+    public NumberToString3NodeDialog() {
+        addDialogComponent(new DialogComponentColumnFilter2(NumberToString3NodeModel.createInclModel(), 0));
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeModel createNodeModel() {
-        return new NumberToStringNodeModel(false);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

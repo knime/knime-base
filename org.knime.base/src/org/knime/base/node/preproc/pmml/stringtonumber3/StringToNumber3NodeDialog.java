@@ -45,7 +45,7 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.stringtonumber;
+package org.knime.base.node.preproc.pmml.stringtonumber3;
 
 import java.awt.FlowLayout;
 
@@ -57,16 +57,15 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
+import org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeModel;
 import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.DataTypeListCellRenderer;
 
@@ -75,13 +74,12 @@ import org.knime.core.node.util.DataTypeListCellRenderer;
  * use.
  *
  * @author cebron, University of Konstanz
+ * @since 3.8
  */
-public class StringToNumberNodeDialog extends NodeDialogPane {
+public class StringToNumber3NodeDialog extends NodeDialogPane {
     @SuppressWarnings("unchecked")
-    private final DialogComponentColumnFilter m_filtercomp =
-            new DialogComponentColumnFilter(new SettingsModelFilterString(
-                    StringToNumberNodeModel.CFG_INCLUDED_COLUMNS), 0, true,
-                    new Class[]{StringValue.class});
+    private final DialogComponentColumnFilter2 m_filtercomp =
+            new DialogComponentColumnFilter2(StringToNumber3NodeModel.createInclModel(), 0);
 
     private final JTextField m_decimalSeparator = new JTextField(".", 3);
 
@@ -95,7 +93,7 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
      * Constructor.
      *
      */
-    public StringToNumberNodeDialog() {
+    public StringToNumber3NodeDialog() {
         JPanel contentpanel = new JPanel();
         contentpanel.setLayout(new BoxLayout(contentpanel, BoxLayout.Y_AXIS));
         JPanel separatorPanel = new JPanel();
@@ -126,16 +124,16 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
             final PortObjectSpec[] specs) throws NotConfigurableException {
         m_filtercomp.loadSettingsFrom(settings, specs);
         String decimalsep =
-                settings.getString(StringToNumberNodeModel.CFG_DECIMALSEP,
-                        StringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
+                settings.getString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
+                        AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
         m_decimalSeparator.setText(decimalsep);
         String thousandssep =
-                settings.getString(StringToNumberNodeModel.CFG_THOUSANDSSEP,
-                        StringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
+                settings.getString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
+                        AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
         m_thousandsSeparator.setText(thousandssep);
-        if (settings.containsKey(StringToNumberNodeModel.CFG_PARSETYPE)) {
+        if (settings.containsKey(AbstractStringToNumberNodeModel.CFG_PARSETYPE)) {
             m_typeChooser.setSelectedItem(settings.getDataType(
-                    StringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
+                    AbstractStringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
         }
     }
 
@@ -146,11 +144,11 @@ public class StringToNumberNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         m_filtercomp.saveSettingsTo(settings);
-        settings.addString(StringToNumberNodeModel.CFG_DECIMALSEP,
+        settings.addString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
                 m_decimalSeparator.getText());
-        settings.addString(StringToNumberNodeModel.CFG_THOUSANDSSEP,
+        settings.addString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
                 m_thousandsSeparator.getText());
-        settings.addDataType(StringToNumberNodeModel.CFG_PARSETYPE,
+        settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE,
                 (DataType)m_typeChooser.getSelectedItem());
     }
 }

@@ -45,43 +45,47 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.stringtonumber;
+package org.knime.base.node.preproc.pmml.numbertostring;
 
+import org.knime.base.node.preproc.pmml.numbertostring3.NumberToString3NodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
- * NodeFactory for the String to Number Node that converts strings to double
- * values.
+ * NodeFactory for the Number to String Node that converts numbers
+ * to String values.
  *
  * @author cebron, University of Konstanz
+ * @since 3.0
+ * @deprecated Use {@link NumberToString3NodeFactory} instead
  */
-public class StringToNumberNodeFactory extends
-        NodeFactory<StringToNumberNodeModel> {
+@Deprecated
+public class NumberToStringNodeFactory2 extends NodeFactory {
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new StringToNumberNodeDialog();
+        return new NumberToStringNodeDialog();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public StringToNumberNodeModel createNodeModel() {
-        return new StringToNumberNodeModel();
+    public NodeModel createNodeModel() {
+        return new NumberToStringNodeModel(false);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<StringToNumberNodeModel> createNodeView(
-            final int viewIndex, final StringToNumberNodeModel nodeModel) {
+    public NodeView createNodeView(final int viewIndex,
+            final NodeModel nodeModel) {
         return null;
     }
 

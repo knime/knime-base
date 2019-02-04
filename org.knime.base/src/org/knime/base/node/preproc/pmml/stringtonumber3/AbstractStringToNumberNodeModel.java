@@ -45,11 +45,11 @@
  * History
  *   03.07.2007 (cebron): created
  */
-package org.knime.base.node.preproc.pmml.stringtonumber;
+package org.knime.base.node.preproc.pmml.stringtonumber3;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -75,7 +75,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -88,8 +88,10 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * The NodeModel for the String to Number Node that converts strings to numbers.
  *
  * @author cebron, University of Konstanz
+ * @since 3.8
  */
-public class StringToNumberNodeModel extends NodeModel {
+
+public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends NodeModel{
 
     /**
      * The possible types that the string can be converted to.
@@ -99,7 +101,7 @@ public class StringToNumberNodeModel extends NodeModel {
 
     /* Node Logger of this class. */
     private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(StringToNumberNodeModel.class);
+            NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
 
     /**
      * Key for the included columns in the NodeSettings.
@@ -134,8 +136,7 @@ public class StringToNumberNodeModel extends NodeModel {
     /*
      * The included columns.
      */
-    private final SettingsModelFilterString m_inclCols =
-            new SettingsModelFilterString(CFG_INCLUDED_COLUMNS);
+    protected final T m_inclCols;
 
     /*
      * The decimal separator
@@ -155,8 +156,8 @@ public class StringToNumberNodeModel extends NodeModel {
      * Constructor with one data inport, one data outport and an optional
      * PMML inport and outport.
      */
-    public StringToNumberNodeModel() {
-        this(true);
+    public AbstractStringToNumberNodeModel(final T inclCols) {
+        this(true, inclCols);
     }
 
     /**
@@ -165,10 +166,11 @@ public class StringToNumberNodeModel extends NodeModel {
      * @param pmmlInEnabled true if an optional PMML input port should be present
      * @since 3.0
      */
-    public StringToNumberNodeModel(final boolean pmmlInEnabled) {
+    public AbstractStringToNumberNodeModel(final boolean pmmlInEnabled, final T inclCols) {
         super(pmmlInEnabled ? new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE_OPTIONAL}
                                                 : new PortType[]{BufferedDataTable.TYPE},
                 new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
+        m_inclCols = inclCols;
         m_pmmlInEnabled = pmmlInEnabled;
     }
 
@@ -205,9 +207,9 @@ public class StringToNumberNodeModel extends NodeModel {
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
         // find indices to work on.
-        List<String> inclcols = m_inclCols.getIncludeList();
+        String[] inclCols = getStoredInclCols(inSpec);
         BufferedDataTable resultTable = null;
-        if (inclcols.size() == 0) {
+        if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             resultTable = inData;
             setWarningMessage("No columns selected,"
@@ -235,7 +237,7 @@ public class StringToNumberNodeModel extends NodeModel {
         PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
         PMMLStringConversionTranslator trans
                 = new PMMLStringConversionTranslator(
-                            m_inclCols.getIncludeList(), m_parseType,
+                            Arrays.asList(getStoredInclCols(inSpec)), m_parseType,
                             new DerivedFieldMapper(inPMMLPort));
 
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(
@@ -249,21 +251,21 @@ public class StringToNumberNodeModel extends NodeModel {
 
     private int[] findColumnIndices(final DataTableSpec spec)
             throws InvalidSettingsException {
-        List<String> inclcols = m_inclCols.getIncludeList();
+        String[] inclCols = getStoredInclCols(spec);
         StringBuilder warnings = new StringBuilder();
-        if (inclcols.size() == 0) {
+        if (inclCols.length == 0) {
             warnings.append("No columns selected");
         }
         Vector<Integer> indicesvec = new Vector<Integer>();
-        if (m_inclCols.isKeepAllSelected()) {
+        if (isKeepAllSelected()) {
             for (DataColumnSpec cspec : spec) {
                 if (cspec.getType().isCompatible(StringValue.class)) {
                     indicesvec.add(spec.findColumnIndex(cspec.getName()));
                 }
             }
         } else {
-            for (int i = 0; i < inclcols.size(); i++) {
-                int colIndex = spec.findColumnIndex(inclcols.get(i));
+            for (int i = 0; i < inclCols.length; i++) {
+                int colIndex = spec.findColumnIndex(inclCols[i]);
                 if (colIndex >= 0) {
                     DataType type = spec.getColumnSpec(colIndex).getType();
                     if (type.isCompatible(StringValue.class)) {
@@ -275,7 +277,7 @@ public class StringToNumberNodeModel extends NodeModel {
                     }
                 } else {
                     throw new InvalidSettingsException("Column \""
-                            + inclcols.get(i) + "\" not found.");
+                            + inclCols[i] + "\" not found.");
                 }
             }
         }
@@ -288,6 +290,18 @@ public class StringToNumberNodeModel extends NodeModel {
         }
         return indices;
     }
+
+    /**
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * @param inSpec the current DataTableSpec
+     * @return a String array with the included columns
+     */
+    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+
+    /**
+     * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present
+     */
+    protected abstract boolean isKeepAllSelected();
 
     /**
      * {@inheritDoc}

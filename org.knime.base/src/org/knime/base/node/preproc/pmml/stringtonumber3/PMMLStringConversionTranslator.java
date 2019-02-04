@@ -42,7 +42,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-package org.knime.base.node.preproc.pmml.stringtonumber;
+package org.knime.base.node.preproc.pmml.stringtonumber3;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,6 +65,9 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.port.pmml.preproc.PMMLPreprocTranslator;
 
 
+/**
+ * @since 3.8
+ */
 public class PMMLStringConversionTranslator implements PMMLPreprocTranslator {
     private final DerivedFieldMapper m_mapper;
     private DataType m_parseType;

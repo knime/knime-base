@@ -1,5 +1,5 @@
-/*
- * ------------------------------------------------------------------------
+<!--
+========================================================================
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,35 +40,8 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * --------------------------------------------------------------------
- *
- * History
- *   03.07.2007 (cebron): created
- */
-package org.knime.base.node.preproc.pmml.numbertostring;
-
-import org.knime.core.data.DoubleValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
-
-/**
- * Dialog for the Number to String Node.
- * Lets the user choose the columns to use.
- *
- * @author cebron, University of Konstanz
- */
-public class NumberToStringNodeDialog extends DefaultNodeSettingsPane {
-
-    /**
-     * Constructor.
-     *
-     */
-    @SuppressWarnings("unchecked")
-    public NumberToStringNodeDialog() {
-        addDialogComponent(new DialogComponentColumnFilter(
-                new SettingsModelFilterString(
-                        NumberToStringNodeModel.CFG_INCLUDED_COLUMNS), 0, true,
-                new Class[]{DoubleValue.class}));
-    }
-}
+ * -------------------------------------------------------------------
+-->
+<body>
+	Node to convert DoubleValue columns to StringValue columns.
+</body>
