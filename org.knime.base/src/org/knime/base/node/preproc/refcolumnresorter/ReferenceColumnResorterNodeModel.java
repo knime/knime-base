@@ -52,7 +52,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -154,9 +156,14 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
 
         //get order from input[1]
         final List<String> orderList = new ArrayList<>();
+        final Set<String> duplicateCheck = new HashSet<>();
         try (CloseableRowIterator rows = orderTable.iterator()) {
             while (rows.hasNext()) {
-                orderList.add(rows.next().getCell(orderCol).toString());
+                final String colName = rows.next().getCell(orderCol).toString();
+                if (!duplicateCheck.add(colName)) {
+                    throw new IllegalArgumentException("Duplicate column names in argument array: " + colName);
+                }
+                orderList.add(colName);
             }
         }
         return orderList.toArray(new String[orderList.size()]);
