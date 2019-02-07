@@ -51,7 +51,6 @@ package org.knime.base.node.meta.feature.selection.genetic;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -65,7 +64,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.knime.base.node.meta.feature.selection.FeatureSelectionStrategy;
+import org.knime.base.node.meta.feature.selection.AbstractNonSequentialFeatureSelectionStrategy;
 import org.knime.core.node.util.CheckUtils;
 
 import io.jenetics.BitChromosome;
@@ -90,11 +89,9 @@ import io.jenetics.util.RandomRegistry;
  *
  * @author Simon Schmid, KNIME, Austin, USA
  */
-public class GeneticStrategy implements FeatureSelectionStrategy {
+public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrategy {
 
     private static final Integer POISON_PILL = -1;
-
-    private final int m_numIterations;
 
     private boolean m_isMinimize;
 
@@ -273,6 +270,7 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
      * @throws IllegalArgumentException if the passed arguments are invalid
      */
     private GeneticStrategy(final Builder builder) {
+        super((builder.m_numGenerations + 1) * builder.m_popSize);
         final int numGenerations = builder.m_numGenerations;
         final int popSize = builder.m_popSize;
         final int numFeatures = builder.m_numFeatures;
@@ -295,8 +293,6 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
             "The lower bound of number of features must less than or equal the actual number of features.");
         CheckUtils.checkArgument(numGenerations > 0, "The number of generations must be at least 1.");
         CheckUtils.checkArgument(popSize >= 2, "The population size must be at least 2.");
-        // probably it's going to be less, this is just an upper bound (+1, because initial generation is generation 0)
-        m_numIterations = (numGenerations + 1) * popSize;
 
         m_queueGenotypeReadyToScore = new ArrayBlockingQueue<>(1);
         m_queueScoreReceived = new ArrayBlockingQueue<>(1);
@@ -441,19 +437,19 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
      * {@inheritDoc}
      */
     @Override
-    public boolean continueLoop() {
-        if (!m_continueLoop) {
-            onDispose();
-        }
-        return m_continueLoop;
+    public List<Integer> getCurrentFeatures() {
+        return m_evaluator.getCurrent();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> getIncludedFeatures() {
-        return m_evaluator.getCurrent();
+    public boolean continueLoop() {
+        if (!m_continueLoop) {
+            onDispose();
+        }
+        return m_continueLoop;
     }
 
     /**
@@ -498,65 +494,8 @@ public class GeneticStrategy implements FeatureSelectionStrategy {
      * {@inheritDoc}
      */
     @Override
-    public boolean shouldAddFeatureLevel() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public double getCurrentlyBestScore() {
         return m_evaluator.getScore();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void prepareNewRound() {
-        // nothing to prepare
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<Integer> getFeatureLevel() {
-        return m_evaluator.getCurrent();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getNameForLastChange() {
-        return "Selected features";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Integer> getLastChangedFeatures() {
-        return m_evaluator.getCurrent();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNumberOfIterations() {
-        return m_numIterations;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Integer getCurrentFeature() {
-        // just needed for flow variables, this strategy does not have a current feature
-        return -1;
     }
 
     /**
