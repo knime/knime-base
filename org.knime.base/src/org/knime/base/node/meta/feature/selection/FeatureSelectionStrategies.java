@@ -68,20 +68,24 @@ public class FeatureSelectionStrategies {
      */
     public enum Strategy {
             /**
-             * Forward Feature Selection. Starts from an empty set and iteratively adds
-             * the feature that provides the best gain
+             * Forward Feature Selection. Starts from an empty set and iteratively adds the feature that provides the
+             * best gain
              */
             ForwardFeatureSelection("Forward Feature Selection", StrategyType.Sequential, (byte)0),
             /**
-             * Backward Feature Elimination. Starts from the full set and iteratively removes
-             * the feature whose removal yields the smallest loss.
+             * Backward Feature Elimination. Starts from the full set and iteratively removes the feature whose removal
+             * yields the smallest loss.
              */
             BackwardFeatureElimination("Backward Feature Elimination", StrategyType.Sequential, (byte)1),
             /**
              * Genetic Algorithm for Feature Selection. Binary chromosomes represent which features to include and which
              * to exclude.
              */
-            GeneticAlgorithm("Genetic Algorithm", StrategyType.Genetic, (byte)2);
+            GeneticAlgorithm("Genetic Algorithm", StrategyType.Genetic, (byte)2),
+            /**
+             * Random strategy. Tries randomly generated feature subsets.
+             */
+            Random("Random", StrategyType.Random, (byte)3);
 
         private final String m_string;
 
@@ -109,6 +113,7 @@ public class FeatureSelectionStrategies {
 
         /**
          * save the selected strategy
+         *
          * @param settings the settings to save to
          */
         public void save(final NodeSettingsWO settings) {
@@ -158,6 +163,12 @@ public class FeatureSelectionStrategies {
                         .mutationRate(settings.getMutationRate()).elitismRate(settings.getElitismRate())
                         .earlyStopping(settings.getEarlyStopping()).selectionStrategy(settings.getSelectionStrategy())
                         .crossoverStrategy(settings.getCrossoverStrategy()).build();
+            case Random:
+                return new RandomStrategy.Builder(settings.getMaxNumIterations(), featureColumns)
+                    .nrFeaturesLowerBound(settings.getNrFeaturesLowerBound())
+                    .nrFeaturesUpperBound(settings.getNrFeaturesUpperBound())
+                    .seed(settings.isUseRandomSeed() ? settings.getRandomSeed() : System.currentTimeMillis())
+                    .earlyStopping(settings.getEarlyStopping()).build();
             default:
                 throw new IllegalArgumentException("The FeatureSelectionStrategy \"" + strategy + "\" is unknown.");
         }
@@ -178,7 +189,11 @@ public class FeatureSelectionStrategies {
             /**
              * Genetic Algorithm
              */
-            Genetic("Genetic Algorithm Settings", true);
+            Genetic("Genetic Algorithm Settings", true),
+            /**
+             * Random
+             */
+            Random("Random Algorithm Settings", true);
 
         private final String m_dialogPanelTitle;
 

@@ -67,10 +67,15 @@
 				iterations which is	<i>Population size * (Number of generations + 1)</i>. This is just an upper bound,
 				usually less iterations will be necessary.
 			</option>
-			<option name="Number of generations">
+			<option name="Max. number of generations">
 				Set the number of generations. Changing this value directly influences the maximal number of loop 
 				iterations which is	<i>Population size * (Number of generations + 1)</i>. This is just an upper bound,
 				usually less iterations will be necessary.
+			</option>
+			<option name="Max. number of iterations">
+				Set the number of iterations. This is an upper bound. If the same feature subset is randomly generated 
+				for a second time, it won't be processed again but will be counted as iteration. Furthermore, if early
+				stopping is enabled, the algorithm may stop before the max. number of iterations is reached.
 			</option>
 			<option name="Use static random seed"> Choose a seed to get reproducible results.
 			</option>
@@ -105,8 +110,8 @@
 				Check this option if you want to enable early stopping which means that the algorithm stops after a 
 				specified number of generations without improvement.
 			</option>
-			<option name="Number of generations without improvement">
-				Set the number of generations without improvement used for early stopping.
+			<option name="Number of generations/iterations without improvement">
+				Set the number of generations/iterations without improvement used for early stopping.
 			</option>
 		</tab>
 		<link

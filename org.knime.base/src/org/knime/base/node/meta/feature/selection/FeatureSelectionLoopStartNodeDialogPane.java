@@ -48,15 +48,19 @@
  */
 package org.knime.base.node.meta.feature.selection;
 
-import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -98,7 +102,7 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
 
     private final JCheckBox m_useNrFeaturesThresholdCheckBox;
 
-    // Components for genetic algorithm
+    // Components for genetic and random algorithms
 
     private final JCheckBox m_useNrFeaturesLowerBoundCheckBox;
 
@@ -109,6 +113,8 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
     private final JSpinner m_nrFeaturesUpperBoundSpinner;
 
     private final JSpinner m_popSizeSpinner;
+
+    private final JSpinner m_maxNumIterationsSpinner;
 
     private final JSpinner m_maxNumGenerationsSpinner;
 
@@ -131,6 +137,14 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
     private final JSpinner m_mutationRateSpinner;
 
     private final JSpinner m_elitismRateSpinner;
+
+    private final Map<StrategyType, List<JComponent>> m_mapStrategyComponents = new HashMap<>();
+
+    private final List<JComponent> m_listRandomComponents = new ArrayList<>();
+
+    private final List<JComponent> m_listGeneticComponents = new ArrayList<>();
+
+    private final List<JComponent> m_listSequentialComponents = new ArrayList<>();
 
     /**
      *
@@ -161,6 +175,7 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         m_nrFeaturesUpperBoundSpinner.setEnabled(m_useNrFeaturesUpperBoundCheckBox.isSelected());
         m_popSizeSpinner = new JSpinner(new SpinnerNumberModel(10, 2, Integer.MAX_VALUE, 1));
         m_maxNumGenerationsSpinner = new JSpinner(new SpinnerNumberModel(10, 1, Integer.MAX_VALUE, 1));
+        m_maxNumIterationsSpinner = new JSpinner(new SpinnerNumberModel(50, 1, Integer.MAX_VALUE, 1));
         m_selectionStrategyComboBox = new JComboBox<>(SelectionStrategy.values());
         m_survivorsFractionSpinner = new JSpinner(new SpinnerNumberModel(0.4, 0.0, 1.0, 0.1));
         m_useRandomSeedCheckBox = new JCheckBox("Use static random seed");
@@ -170,7 +185,7 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         m_useRandomSeedCheckBox
             .addChangeListener(l -> m_randomSeedTextField.setEnabled(m_useRandomSeedCheckBox.isSelected()));
         m_useEarlyStopping = new JCheckBox("Enable early stopping", true);
-        m_earlyStoppingNumGenerations = new JSpinner(new SpinnerNumberModel(3, 1, Integer.MAX_VALUE, 1));
+        m_earlyStoppingNumGenerations = new JSpinner(new SpinnerNumberModel(5, 1, Integer.MAX_VALUE, 1));
         m_crossoverStrategyComboBox = new JComboBox<>(CrossoverStrategy.values());
         m_crossoverRateSpinner = new JSpinner(new SpinnerNumberModel(0.6, 0.0, 1.0, 0.1));
         m_mutationRateSpinner = new JSpinner(new SpinnerNumberModel(0.1, 0.0, 1.0, 0.1));
@@ -211,37 +226,46 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         gbc.fill = GridBagConstraints.NONE;
         panel.add(m_strategyComboBox, gbc);
 
-        final CardLayout cardLayout = new CardLayout();
-        final JPanel panelSettings = new JPanel(cardLayout);
-        for (final StrategyType strategyType : StrategyType.values()) {
-            panelSettings.add(getSettingsPanel(strategyType), strategyType.toString());
-        }
+        m_mapStrategyComponents.put(StrategyType.Random, m_listRandomComponents);
+        m_mapStrategyComponents.put(StrategyType.Genetic, m_listGeneticComponents);
+        m_mapStrategyComponents.put(StrategyType.Sequential, m_listSequentialComponents);
+
         gbc.gridy += 1;
         gbc.gridx = 0;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
+        final JPanel panelSettings = getSettingsPanel();
         panel.add(panelSettings, gbc);
 
         addTab("Options", panel);
 
         // === Advanced Options Tab ===
 
-        final CardLayout cardLayoutAdvanced = new CardLayout();
-        final JPanel panelSettingsAdvanced = new JPanel(cardLayoutAdvanced);
-        for (final StrategyType strategyType : StrategyType.values()) {
-            panelSettingsAdvanced.add(getAdvancedSettingsPanel(strategyType), strategyType.toString());
-        }
+        final JPanel panelSettingsAdvanced = getAdvancedSettingsPanel();
 
         final String tabAdvancedTitle = "Advanced Options";
         addTab(tabAdvancedTitle, panelSettingsAdvanced);
 
         // === Action Listeners ===
         m_strategyComboBox.addActionListener(l -> {
-            cardLayout.show(panelSettings, ((Strategy)m_strategyComboBox.getSelectedItem()).getType().toString());
-            cardLayoutAdvanced.show(panelSettingsAdvanced,
-                ((Strategy)m_strategyComboBox.getSelectedItem()).getType().toString());
-            setEnabled(((Strategy)m_strategyComboBox.getSelectedItem()).getType().hasAdvancedSettings(), tabAdvancedTitle);
+            setEnabled(((Strategy)m_strategyComboBox.getSelectedItem()).getType().hasAdvancedSettings(),
+                tabAdvancedTitle);
+            final StrategyType selectedStrategyType = ((Strategy)m_strategyComboBox.getSelectedItem()).getType();
+            panelSettings.setBorder(
+                new TitledBorder(LineBorder.createGrayLineBorder(), selectedStrategyType.getDialogPanelTitle()));
+            panelSettingsAdvanced.setBorder(new TitledBorder(LineBorder.createGrayLineBorder(),
+                "Advanced " + selectedStrategyType.getDialogPanelTitle()));
+            for (final StrategyType strategyType : StrategyType.values()) {
+                setListVisible(m_mapStrategyComponents.get(strategyType), false);
+            }
+            setListVisible(m_mapStrategyComponents.get(selectedStrategyType), true);
         });
+    }
+
+    private static void setListVisible(final List<JComponent> components, final boolean visible) {
+        for (final JComponent comp : components) {
+            comp.setVisible(visible);
+        }
     }
 
     /**
@@ -258,11 +282,8 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         if (sizeIncludes < 1) {
             throw new InvalidSettingsException("At least one column must be included!");
         }
-        if (m_strategyComboBox.getSelectedItem() == FeatureSelectionStrategies.Strategy.GeneticAlgorithm) {
-            if (sizeIncludes < 1) {
-                throw new InvalidSettingsException(
-                    "In order to use a genetic algorithm, at least one columns must be included!");
-            }
+        if (m_strategyComboBox.getSelectedItem() == FeatureSelectionStrategies.Strategy.GeneticAlgorithm
+            || m_strategyComboBox.getSelectedItem() == FeatureSelectionStrategies.Strategy.Random) {
             if (m_useNrFeaturesLowerBoundCheckBox.isSelected() && m_useNrFeaturesUpperBoundCheckBox.isSelected()
                 && (int)m_nrFeaturesLowerBoundSpinner.getValue() > (int)m_nrFeaturesUpperBoundSpinner.getValue()) {
                 throw new InvalidSettingsException(
@@ -281,6 +302,7 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         cfg.setEarlyStopping(m_useEarlyStopping.isSelected() ? (int)m_earlyStoppingNumGenerations.getValue() : -1);
         cfg.setPopSize((int)m_popSizeSpinner.getValue());
         cfg.setMaxNumGenerations((int)m_maxNumGenerationsSpinner.getValue());
+        cfg.setMaxNumIterations((int)m_maxNumIterationsSpinner.getValue());
         cfg.setUseRandomSeed(m_useRandomSeedCheckBox.isSelected());
         cfg.setRandomSeed(Long.parseLong(m_randomSeedTextField.getText()));
         cfg.setSurvivorsFraction((double)m_survivorsFractionSpinner.getValue());
@@ -329,6 +351,7 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         }
         m_popSizeSpinner.setValue(cfg.getPopSize());
         m_maxNumGenerationsSpinner.setValue(cfg.getMaxNumGenerations());
+        m_maxNumIterationsSpinner.setValue(cfg.getMaxNumIterations());
         m_useRandomSeedCheckBox.setSelected(cfg.isUseRandomSeed());
         m_randomSeedTextField.setText(Long.toString(cfg.getRandomSeed()));
         m_survivorsFractionSpinner.setValue(cfg.getSurvivorsFraction());
@@ -339,9 +362,9 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         m_selectionStrategyComboBox.setSelectedItem(cfg.getSelectionStrategy());
     }
 
-    private JPanel getSettingsPanel(final StrategyType strategyType) {
+    private JPanel getSettingsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new TitledBorder(LineBorder.createGrayLineBorder(), strategyType.getDialogPanelTitle()));
+        panel.setPreferredSize(new Dimension(570, 215));
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -351,81 +374,106 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy = 0;
 
-        switch (strategyType) {
-            case Genetic:
-                panel.add(m_useNrFeaturesLowerBoundCheckBox, gbc);
-                gbc.gridx++;
-                panel.add(m_nrFeaturesLowerBoundSpinner, gbc);
+        // === Genetic and Random Settings ===
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(m_useNrFeaturesUpperBoundCheckBox, gbc);
-                gbc.gridx++;
-                panel.add(m_nrFeaturesUpperBoundSpinner, gbc);
+        panel.add(m_useNrFeaturesLowerBoundCheckBox, gbc);
+        m_listRandomComponents.add(m_useNrFeaturesLowerBoundCheckBox);
+        m_listGeneticComponents.add(m_useNrFeaturesLowerBoundCheckBox);
+        gbc.gridx++;
+        panel.add(m_nrFeaturesLowerBoundSpinner, gbc);
+        m_listRandomComponents.add(m_nrFeaturesLowerBoundSpinner);
+        m_listGeneticComponents.add(m_nrFeaturesLowerBoundSpinner);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Population size"), gbc);
-                gbc.gridx++;
-                panel.add(m_popSizeSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(m_useNrFeaturesUpperBoundCheckBox, gbc);
+        m_listRandomComponents.add(m_useNrFeaturesUpperBoundCheckBox);
+        m_listGeneticComponents.add(m_useNrFeaturesUpperBoundCheckBox);
+        gbc.gridx++;
+        panel.add(m_nrFeaturesUpperBoundSpinner, gbc);
+        m_listRandomComponents.add(m_nrFeaturesUpperBoundSpinner);
+        m_listGeneticComponents.add(m_nrFeaturesUpperBoundSpinner);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Max. number of generations"), gbc);
-                gbc.gridx++;
-                panel.add(m_maxNumGenerationsSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelPopSize = new JLabel("Population size");
+        m_listGeneticComponents.add(labelPopSize);
+        m_listGeneticComponents.add(m_popSizeSpinner);
+        panel.add(labelPopSize, gbc);
+        gbc.gridx++;
+        panel.add(m_popSizeSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                gbc.gridwidth = 2;
-                final JLabel labelMaxIterationsNote = new JLabel(
-                    "Note, the loop will stop after at most 'Pop. size * (Max. num. of generations + 1)' iterations.");
-                final Font italicFont = new Font(labelMaxIterationsNote.getFont().getName(), Font.ITALIC,
-                    labelMaxIterationsNote.getFont().getSize());
-                labelMaxIterationsNote.setFont(italicFont);
-                panel.add(labelMaxIterationsNote, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelNumGenerations = new JLabel("Max. number of generations");
+        m_listGeneticComponents.add(labelNumGenerations);
+        m_listGeneticComponents.add(m_maxNumGenerationsSpinner);
+        panel.add(labelNumGenerations, gbc);
+        gbc.gridx++;
+        panel.add(m_maxNumGenerationsSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                gbc.gridwidth = 1;
-                m_useRandomSeedCheckBox
-                    .setPreferredSize(new Dimension((int)m_useRandomSeedCheckBox.getPreferredSize().getWidth() + 83,
-                        (int)m_useRandomSeedCheckBox.getPreferredSize().getHeight()));
-                panel.add(m_useRandomSeedCheckBox, gbc);
-                gbc.gridx++;
-                m_randomSeedTextField
-                    .setPreferredSize(new Dimension((int)m_randomSeedTextField.getPreferredSize().getWidth() + 55,
-                        (int)m_randomSeedTextField.getPreferredSize().getHeight()));
-                panel.add(m_randomSeedTextField, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelNumIterations = new JLabel("Max. number of iterations");
+        m_listRandomComponents.add(labelNumIterations);
+        m_listRandomComponents.add(m_maxNumIterationsSpinner);
+        panel.add(labelNumIterations, gbc);
+        gbc.gridx++;
+        panel.add(m_maxNumIterationsSpinner, gbc);
 
-                return panel;
-            case Sequential:
-                panel.add(m_useNrFeaturesThresholdCheckBox, gbc);
-                gbc.gridy++;
-                panel.add(new JLabel("Select threshold for number of features"), gbc);
-                gbc.gridx = 1;
-                panel.add(m_nrFeaturesThresholdSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        final JLabel labelMaxIterationsNote = new JLabel(
+            "Note, the loop will stop after at most 'Pop. size * (Max. num. of generations + 1)' iterations.");
+        m_listGeneticComponents.add(labelMaxIterationsNote);
+        final Font italicFont = new Font(labelMaxIterationsNote.getFont().getName(), Font.ITALIC,
+            labelMaxIterationsNote.getFont().getSize());
+        labelMaxIterationsNote.setFont(italicFont);
+        panel.add(labelMaxIterationsNote, gbc);
 
-                // add two dummy labels to keep components on top left
-                gbc.gridx++;
-                gbc.weightx = 1;
-                panel.add(new JLabel(), gbc);
-                gbc.gridy++;
-                gbc.weighty = 1;
-                panel.add(new JLabel(), gbc);
-                return panel;
-            default:
-                throw new IllegalStateException("Unexpected strategy: " + strategyType.toString());
-        }
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        m_useRandomSeedCheckBox
+            .setPreferredSize(new Dimension((int)m_useRandomSeedCheckBox.getPreferredSize().getWidth() + 83,
+                (int)m_useRandomSeedCheckBox.getPreferredSize().getHeight()));
+        panel.add(m_useRandomSeedCheckBox, gbc);
+        gbc.gridx++;
+        m_randomSeedTextField
+            .setPreferredSize(new Dimension((int)m_randomSeedTextField.getPreferredSize().getWidth() + 55,
+                (int)m_randomSeedTextField.getPreferredSize().getHeight()));
+        m_listRandomComponents.add(m_useRandomSeedCheckBox);
+        m_listRandomComponents.add(m_randomSeedTextField);
+        m_listGeneticComponents.add(m_useRandomSeedCheckBox);
+        m_listGeneticComponents.add(m_randomSeedTextField);
+        panel.add(m_randomSeedTextField, gbc);
+
+        // === Sequential Settings ===
+
+        gbc.gridx = 0;
+        panel.add(m_useNrFeaturesThresholdCheckBox, gbc);
+        gbc.gridy++;
+        final JLabel labelFeatureThreshold = new JLabel("Select threshold for number of features");
+        panel.add(labelFeatureThreshold, gbc);
+        gbc.gridx = 1;
+        panel.add(m_nrFeaturesThresholdSpinner, gbc);
+        m_listSequentialComponents.add(m_useNrFeaturesThresholdCheckBox);
+        m_listSequentialComponents.add(labelFeatureThreshold);
+        m_listSequentialComponents.add(m_nrFeaturesThresholdSpinner);
+
+        // add two dummy labels to keep components on top left
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(new JLabel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        panel.add(new JLabel(), gbc);
+        return panel;
     }
 
-    private JPanel getAdvancedSettingsPanel(final StrategyType strategyType) {
-        if (!strategyType.hasAdvancedSettings()) {
-            return new JPanel();
-        }
+    private JPanel getAdvancedSettingsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(
-            new TitledBorder(LineBorder.createGrayLineBorder(), "Advanced " + strategyType.getDialogPanelTitle()));
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
@@ -435,68 +483,91 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy = 0;
 
-        switch (strategyType) {
-            case Genetic:
-                panel.add(new JLabel("Selection strategy"), gbc);
-                gbc.gridx++;
-                panel.add(m_selectionStrategyComboBox, gbc);
+        final JLabel labelSelectionStrategy = new JLabel("Selection strategy");
+        m_listGeneticComponents.add(labelSelectionStrategy);
+        m_listGeneticComponents.add(m_selectionStrategyComboBox);
+        panel.add(labelSelectionStrategy, gbc);
+        gbc.gridx++;
+        panel.add(m_selectionStrategyComboBox, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Fraction of survivors"), gbc);
-                gbc.gridx++;
-                panel.add(m_survivorsFractionSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelSurvivorsFraction = new JLabel("Fraction of survivors");
+        m_listGeneticComponents.add(labelSurvivorsFraction);
+        m_listGeneticComponents.add(m_survivorsFractionSpinner);
+        panel.add(labelSurvivorsFraction, gbc);
+        gbc.gridx++;
+        panel.add(m_survivorsFractionSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Elitism rate"), gbc);
-                gbc.gridx++;
-                panel.add(m_elitismRateSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelEilitismRate = new JLabel("Elitism rate");
+        m_listGeneticComponents.add(labelEilitismRate);
+        m_listGeneticComponents.add(m_elitismRateSpinner);
+        panel.add(labelEilitismRate, gbc);
+        gbc.gridx++;
+        panel.add(m_elitismRateSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Crossover strategy"), gbc);
-                gbc.gridx++;
-                panel.add(m_crossoverStrategyComboBox, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelCrossoverStrategy = new JLabel("Crossover strategy");
+        m_listGeneticComponents.add(labelCrossoverStrategy);
+        m_listGeneticComponents.add(m_crossoverStrategyComboBox);
+        panel.add(labelCrossoverStrategy, gbc);
+        gbc.gridx++;
+        panel.add(m_crossoverStrategyComboBox, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Crossover rate"), gbc);
-                gbc.gridx++;
-                panel.add(m_crossoverRateSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelCrossoverRate = new JLabel("Crossover rate");
+        m_listGeneticComponents.add(labelCrossoverRate);
+        m_listGeneticComponents.add(m_crossoverRateSpinner);
+        panel.add(labelCrossoverRate, gbc);
+        gbc.gridx++;
+        panel.add(m_crossoverRateSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(new JLabel("Mutation rate"), gbc);
-                gbc.gridx++;
-                panel.add(m_mutationRateSpinner, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelMutationRate = new JLabel("Mutation rate");
+        m_listGeneticComponents.add(labelMutationRate);
+        m_listGeneticComponents.add(m_mutationRateSpinner);
+        panel.add(labelMutationRate, gbc);
+        gbc.gridx++;
+        panel.add(m_mutationRateSpinner, gbc);
 
-                gbc.gridx = 0;
-                gbc.gridy++;
-                panel.add(m_useEarlyStopping, gbc);
-                gbc.gridy++;
-                final JLabel labelEarlyStopping = new JLabel("Number of generations without improvement");
-                panel.add(labelEarlyStopping, gbc);
-                gbc.gridx++;
-                panel.add(m_earlyStoppingNumGenerations, gbc);
-                m_useEarlyStopping.addChangeListener(l -> {
-                    boolean enabled = m_useEarlyStopping.isSelected();
-                    labelEarlyStopping.setEnabled(enabled);
-                    m_earlyStoppingNumGenerations.setEnabled(enabled);
-                });
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(m_useEarlyStopping, gbc);
+        m_listGeneticComponents.add(m_useEarlyStopping);
+        m_listRandomComponents.add(m_useEarlyStopping);
 
-                // add two dummy labels to keep components on top left
-                gbc.gridx++;
-                gbc.weightx = 1;
-                panel.add(new JLabel(), gbc);
-                gbc.gridy++;
-                gbc.weighty = 1;
-                panel.add(new JLabel(), gbc);
+        gbc.gridy++;
+        final JLabel labelEarlyStoppingGenetic = new JLabel("Number of generations without improvement");
+        panel.add(labelEarlyStoppingGenetic, gbc);
+        final JLabel labelEarlyStoppingRandom = new JLabel("Number of iterations without improvement");
+        panel.add(labelEarlyStoppingRandom, gbc);
+        m_listGeneticComponents.add(labelEarlyStoppingGenetic);
+        m_listGeneticComponents.add(m_earlyStoppingNumGenerations);
+        m_listRandomComponents.add(labelEarlyStoppingRandom);
+        m_listRandomComponents.add(m_earlyStoppingNumGenerations);
+        gbc.gridx++;
+        panel.add(m_earlyStoppingNumGenerations, gbc);
+        m_useEarlyStopping.addChangeListener(l -> {
+            boolean enabled = m_useEarlyStopping.isSelected();
+            labelEarlyStoppingGenetic.setEnabled(enabled);
+            labelEarlyStoppingRandom.setEnabled(enabled);
+            m_earlyStoppingNumGenerations.setEnabled(enabled);
+        });
 
-                return panel;
-            default:
-                throw new IllegalStateException("Unexpected strategy: " + strategyType.toString());
-        }
+        // add two dummy labels to keep components on top left
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(new JLabel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        panel.add(new JLabel(), gbc);
+
+        return panel;
     }
 
 }

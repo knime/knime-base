@@ -86,6 +86,8 @@ public class FeatureSelectionLoopStartSettings {
 
     private static final String CFG_MAX_NUM_GENERATIONS = "maxNumGenerations";
 
+    private static final String CFG_MAX_NUM_ITERATIONS = "maxNumIterations";
+
     private static final String CFG_USE_RANDOM_SEED = "useRandomSeed";
 
     private static final String CFG_RANDOM_SEED = "randomSeed";
@@ -104,7 +106,7 @@ public class FeatureSelectionLoopStartSettings {
 
     // General
 
-    private static final Strategy DEF_STRATEGY = Strategy.ForwardFeatureSelection;
+    private static final Strategy DEF_STRATEGY = Strategy.Random;
 
     // Sequential Algorithm
 
@@ -123,6 +125,8 @@ public class FeatureSelectionLoopStartSettings {
 
     private static final int DEF_MAX_NUM_GENERATIONS = 10;
 
+    private static final int DEF_MAX_NUM_ITERATIONS = 50;
+
     private static final long DEF_RANDOM_SEED = System.currentTimeMillis();
 
     private static final boolean DEF_USE_RANODM_SEED = false;
@@ -135,7 +139,7 @@ public class FeatureSelectionLoopStartSettings {
 
     private static final double DEF_ELITISM_RATE = 0.1;
 
-    private static final int DEF_EARLY_STOPPING = 3;
+    private static final int DEF_EARLY_STOPPING = -1;
 
     private static final CrossoverStrategy DEF_CROSSOVER_STRATEGY = CrossoverStrategy.UNIFORM_CROSSOVER;
 
@@ -160,6 +164,8 @@ public class FeatureSelectionLoopStartSettings {
     private int m_popSize = DEF_POP_SIZE;
 
     private int m_maxNumGenerations = DEF_MAX_NUM_GENERATIONS;
+
+    private int m_maxNumIterations = DEF_MAX_NUM_ITERATIONS;
 
     private boolean m_useRandomSeed = DEF_USE_RANODM_SEED;
 
@@ -296,6 +302,20 @@ public class FeatureSelectionLoopStartSettings {
      */
     public void setMaxNumGenerations(final int maxNumGenerations) {
         m_maxNumGenerations = maxNumGenerations;
+    }
+
+    /**
+     * @return the maxNumIterations
+     */
+    public int getMaxNumIterations() {
+        return m_maxNumIterations;
+    }
+
+    /**
+     * @param maxNumIterations the maxNumIterations to set
+     */
+    public void setMaxNumIterations(final int maxNumIterations) {
+        m_maxNumIterations = maxNumIterations;
     }
 
     /**
@@ -453,6 +473,7 @@ public class FeatureSelectionLoopStartSettings {
         settings.addDouble(CFG_MUTATION_RATE, m_mutationRate);
         settings.addDouble(CFG_ELITISM_RATE, m_elitismRate);
         settings.addInt(CFG_EARLY_STOPPING, m_earlyStopping);
+        settings.addInt(CFG_MAX_NUM_ITERATIONS, m_maxNumIterations);
     }
 
     /**
@@ -490,6 +511,7 @@ public class FeatureSelectionLoopStartSettings {
         m_mutationRate = settings.getDouble(CFG_MUTATION_RATE, DEF_MUTATION_RATE);
         m_elitismRate = settings.getDouble(CFG_ELITISM_RATE, DEF_ELITISM_RATE);
         m_earlyStopping = settings.getInt(CFG_EARLY_STOPPING,DEF_EARLY_STOPPING);
+        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS,DEF_MAX_NUM_ITERATIONS);
     }
 
     /**
@@ -526,5 +548,6 @@ public class FeatureSelectionLoopStartSettings {
         m_mutationRate = settings.getDouble(CFG_MUTATION_RATE, DEF_MUTATION_RATE);
         m_elitismRate = settings.getDouble(CFG_ELITISM_RATE, DEF_ELITISM_RATE);
         m_earlyStopping = settings.getInt(CFG_EARLY_STOPPING,DEF_EARLY_STOPPING);
+        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS,DEF_MAX_NUM_ITERATIONS);
     }
 }
