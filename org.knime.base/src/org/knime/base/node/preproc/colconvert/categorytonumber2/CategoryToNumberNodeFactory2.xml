@@ -12,7 +12,7 @@
 		This node takes columns with nominal data and maps every category to
 		an integer. For your convenience, you can process multiple columns with this
 		node. However, these columns are processed separately as if you would
-	    use a single Cateory To Number node for every column.
+	    use a single Category To Number node for every column.
 		</intro>
 			<option name="Columns">
 				Include the columns that should be processed. You can only
