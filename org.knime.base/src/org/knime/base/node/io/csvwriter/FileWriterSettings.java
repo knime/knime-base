@@ -491,7 +491,9 @@ public class FileWriterSettings {
 
     /**
      * Whether very large and very small numeric values are written in scientific notation
+     *
      * @param scientificForExtrema
+     * @since 3.8
      */
     public void setScientificForExtrema(final boolean scientificForExtrema) {
         m_scientificForExtrema = scientificForExtrema;

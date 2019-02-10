@@ -221,7 +221,7 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         addTab("Comment Header", m_commentPanel);
 
         m_decSeparatorPanel = new DecimalSeparatorPanel();
-        addTab("Decimal Separator", m_decSeparatorPanel);
+        addTab("Number Format", m_decSeparatorPanel);
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
         addTab("Encoding", m_encodingPanel);

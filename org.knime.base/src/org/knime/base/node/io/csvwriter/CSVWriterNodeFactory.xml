@@ -61,6 +61,11 @@
  			that will be written out for missing data values. Note, the missing
  			value pattern will never be put into quotes (see below).
 			</option>
+        <option name="Line Ending">
+            In the tab "Advanced" you can select the line endings that are written to the file. Default value is the
+            system default value, which is system dependent (LF on Linux/Unix systems, CR+LF on Windows systems). You 
+            can enforce a certain line ending to generate a file that is readable on a different operating system. 
+        </option>
 		</tab>
 		<tab name="Quotes">
 		<description>In the Quotes tab, you can enter a left
@@ -120,17 +125,20 @@
 		    patterns).
 			</option>
 		</tab>
-		<tab name="Decimal Separator">
+		<tab name="Number Format">
 		<description>
-		    In the tab "decimal separator" you can enter a character that is used as 
-		    decimal separator for floating point numbers. It replaces the default 
-		    character '.' then.
+		    In the tab "Number Format" you can define the decimal separator and
+		    whether scientific notation should be used.
 	    </description>
-        <option name="Line Ending">
-            In the tab "Advanced" you can select the line endings that are written to the file. Default value is the
-            system default value, which is system dependent (LF on Linux/Unix systems, CR+LF on Windows systems). You 
-            can enforce a certain line ending to generate a file that is readable on a different operating system. 
-        </option>
+	    <option name="Decimal Separator">
+	    	Here you can enter a character that is used as decimal separator for
+	    	floating point numbers. It replaces the default character '.' then.
+	    </option>
+	    <option name="Scientific Notation">
+	    	Check this if you want very large and very small floating point
+	    	numbers to be written in scientific notation (e.g., 1.0E9 instead of
+	    	1,000,000,000).
+	    </option>
 		</tab>
 	    <tab name="Encoding">
             <option name="File Encoding">

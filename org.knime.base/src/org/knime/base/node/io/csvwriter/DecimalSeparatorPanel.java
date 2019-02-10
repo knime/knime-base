@@ -79,7 +79,6 @@ public class DecimalSeparatorPanel extends JPanel {
      *
      */
     public DecimalSeparatorPanel() {
-
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(createSeparatorPanel());
         add(createScientificPanel());

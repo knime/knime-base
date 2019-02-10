@@ -255,8 +255,8 @@ public class CSVWriter extends BufferedWriter {
 
                     if (type.isCompatible(DoubleValue.class)) {
                         isNumerical = true;
-                        if(!m_settings.scientificForExtrema()) {
-                            strVal = fullPrecision.format(((DoubleValue) colValue).getDoubleValue());
+                        if (!m_settings.scientificForExtrema()) {
+                            strVal = fullPrecision.format(((DoubleValue)colValue).getDoubleValue());
                         }
                     }
                     if (isNumerical
