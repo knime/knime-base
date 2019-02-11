@@ -180,9 +180,7 @@ public class AggregationSettingsDialog extends JDialog {
             throw new NullPointerException("spec must not be null");
         }
         m_method = method;
-        if (KNIMEConstants.KNIME16X16 != null) {
-            setIconImage(KNIMEConstants.KNIME16X16.getImage());
-        }
+        KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> setIconImage(i.getImage()));
 
         //save the initial settings to restore them on cancel and to initialize the dialog
         final NodeSettings initialSettings = new NodeSettings("tmp");
