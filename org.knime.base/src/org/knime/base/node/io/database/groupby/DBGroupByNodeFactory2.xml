@@ -36,7 +36,7 @@
            </p>
            <p>
             The "Type Based Aggregation" tab allows to select an aggregation method for all columns of a certain 
-            data type e.g. to compute the mean for all numerical columns (DoubleCell). Only columns that have not 
+            data type e.g. to compute the mean for all decimal columns (DoubleCell). Only columns that have not 
             been handled by the other tabs e.g. group, column based and pattern based are considered.
             The data type list to choose from contains basic types e.g String, Double, etc. and all data types 
             the current input table contains.
