@@ -80,7 +80,7 @@ public class CSVWriter extends BufferedWriter {
     private static final DecimalFormat fullPrecision = new DecimalFormat();
 
     static {
-        fullPrecision.setMaximumFractionDigits(16);
+        fullPrecision.setMaximumFractionDigits(340); // DecimalFormat.DOUBLE_FRACTION_DIGITS = 340
     }
 
     /**
