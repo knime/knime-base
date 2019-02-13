@@ -88,6 +88,7 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * The NodeModel for the String to Number Node that converts strings to numbers.
  *
  * @author cebron, University of Konstanz
+ * @param <T> SettingsModel for a ColumnFilter component
  * @since 3.8
  */
 
@@ -133,9 +134,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      */
     public static final String DEFAULT_THOUSANDS_SEPARATOR = "";
 
-    /*
-     * The included columns.
-     */
+    /** The included columns. */
     protected final T m_inclCols;
 
     /*
@@ -155,6 +154,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     /**
      * Constructor with one data inport, one data outport and an optional
      * PMML inport and outport.
+     * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractStringToNumberNodeModel(final T inclCols) {
         this(true, inclCols);
@@ -164,6 +164,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * Constructor with one data inport, one data outport and an optional
      * PMML inport and outport.
      * @param pmmlInEnabled true if an optional PMML input port should be present
+     * @param inclCols SettingsModel for a ColumnFilter component
      * @since 3.0
      */
     public AbstractStringToNumberNodeModel(final boolean pmmlInEnabled, final T inclCols) {
@@ -533,7 +534,9 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
         /**
          * {@inheritDoc}
+         * @deprecated
          */
+        @Deprecated
         @Override
         public void setProgress(final int curRowNr, final int rowCount,
                 final RowKey lastKey, final ExecutionMonitor exec) {

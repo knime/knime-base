@@ -69,7 +69,6 @@ public class NumberToStringNodeDialog extends DefaultNodeSettingsPane {
     @SuppressWarnings("unchecked")
     public NumberToStringNodeDialog() {
         addDialogComponent(new DialogComponentColumnFilter(
-                NumberToStringNodeModel.createInclModel(), 0, true,
-                new Class[]{DoubleValue.class}));
+                NumberToStringNodeModel.createInclModel(), 0, true, DoubleValue.class));
     }
 }

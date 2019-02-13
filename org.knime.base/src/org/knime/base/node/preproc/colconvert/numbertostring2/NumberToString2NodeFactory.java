@@ -49,7 +49,6 @@ package org.knime.base.node.preproc.colconvert.numbertostring2;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
@@ -59,7 +58,7 @@ import org.knime.core.node.NodeView;
  * @author Johannes Schweig
  * @since 3.8
  */
-public class NumberToString2NodeFactory extends NodeFactory {
+public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeModel> {
 
     /**
      * {@inheritDoc}
@@ -73,7 +72,7 @@ public class NumberToString2NodeFactory extends NodeFactory {
      * {@inheritDoc}
      */
     @Override
-    public NodeModel createNodeModel() {
+    public NumberToString2NodeModel createNodeModel() {
         return new NumberToString2NodeModel();
     }
 
@@ -81,8 +80,8 @@ public class NumberToString2NodeFactory extends NodeFactory {
      * {@inheritDoc}
      */
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
+    public NodeView<NumberToString2NodeModel> createNodeView(final int viewIndex,
+            final NumberToString2NodeModel nodeModel) {
         return null;
     }
 

@@ -80,6 +80,7 @@ import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
  * The NodeModel for the String to Number Node that converts strings to numbers.
  *
  * @author Johannes Schweig
+ * @param <T> SettingsModel for a ColumnFilter component
  * @since 3.8
  */
 public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
@@ -162,7 +163,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * Constructor with one inport and one outport.
-     * @param inclCols
+     * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractStringToNumberNodeModel(final T inclCols) {
         super(SimpleStreamableOperatorInternals.class);

@@ -83,8 +83,7 @@ import org.knime.core.node.util.DataTypeListCellRenderer;
 public class StringToNumberNodeDialog extends NodeDialogPane {
     @SuppressWarnings("unchecked")
     private final DialogComponentColumnFilter m_filtercomp =
-            new DialogComponentColumnFilter(StringToNumberNodeModel.createInclModel(), 0, true,
-                    new Class[]{StringValue.class});
+            new DialogComponentColumnFilter(StringToNumberNodeModel.createInclModel(), 0, true, StringValue.class);
 
     private final JTextField m_decimalSeparator = new JTextField(".", 3);
 

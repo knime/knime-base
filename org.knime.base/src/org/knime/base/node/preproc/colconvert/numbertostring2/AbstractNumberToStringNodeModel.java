@@ -76,7 +76,11 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 
 /**
+ * The NodeModel for the Number to String Node that converts numbers
+ * to StringValues.
+ *
  * @author Johannes Schweig
+ * @param <T> SettingsModel for a ColumnFilter component
  * @since 3.8
  */
 public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> extends NodeModel{
@@ -330,7 +334,9 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
 
         /**
          * {@inheritDoc}
+         * @deprecated
          */
+        @Deprecated
         @Override
         public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey,
             final ExecutionMonitor exec) {

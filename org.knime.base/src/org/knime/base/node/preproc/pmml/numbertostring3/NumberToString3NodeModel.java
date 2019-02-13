@@ -66,8 +66,9 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
     /**
      * @return a SettingsModelColumnFilter2 for the included columns filtered for numerical values
      */
+    @SuppressWarnings("unchecked")
     static SettingsModelColumnFilter2 createInclModel() {
-        return new SettingsModelColumnFilter2(CFG_INCLUDED_COLUMNS, new Class[]{DoubleValue.class});
+        return new SettingsModelColumnFilter2(CFG_INCLUDED_COLUMNS, DoubleValue.class);
     }
 
     /**

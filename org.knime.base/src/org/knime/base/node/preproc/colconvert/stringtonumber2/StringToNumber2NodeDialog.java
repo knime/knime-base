@@ -79,7 +79,6 @@ import org.knime.core.node.util.ViewUtils;
  * @since 3.8
  */
 public class StringToNumber2NodeDialog extends NodeDialogPane {
-    @SuppressWarnings("unchecked")
     private DialogComponentColumnFilter2 m_filtercomp =
             new DialogComponentColumnFilter2(StringToNumber2NodeModel.createInclModel(), 0);
 
@@ -88,7 +87,7 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
     private JTextField m_thousandsSeparator = new JTextField(",", 3);
 
     private JComboBox<DataType> m_typeChooser =
-            new JComboBox<>(StringToNumber2NodeModel.POSSIBLETYPES);
+            new JComboBox<>(AbstractStringToNumberNodeModel.POSSIBLETYPES);
 
     private JCheckBox m_genericParse = new JCheckBox("Accept type suffix, e.g. 'd', 'D', 'f', 'F'");
 

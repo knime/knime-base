@@ -43,7 +43,7 @@
  * --------------------------------------------------------------------
  *
  * History
- *   03.07.2007 (cebron): created
+ *   Jan 28, 2019 (Johannes Schweig): created
  */
 package org.knime.base.node.preproc.pmml.numbertostring3;
 
@@ -86,7 +86,8 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * The NodeModel for the Number to String Node that converts numbers
  * to StringValues.
  *
- * @author cebron, University of Konstanz
+ * @author Johannes Schweig
+ * @param <T> SettingsModel for a ColumnFilter component
  * @since 3.8
  */
 
@@ -106,6 +107,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * Constructor with one data inport, one data outport and an optional
      * PMML inport and outport.
      * @param pmmlInEnabled true if there should be an optional input port
+     * @param inclCols SettingsModel for a ColumnFilter component
      * @since 3.0
      */
     public AbstractNumberToStringNodeModel(final boolean pmmlInEnabled, final T inclCols) {
@@ -118,6 +120,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     /**
      * Constructor with one data inport, one data outport and an optional
      * PMML inport and outport.
+     * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractNumberToStringNodeModel(final T inclCols) {
         this(true, inclCols);
@@ -379,7 +382,9 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
 
         /**
          * {@inheritDoc}
+         * @deprecated
          */
+        @Deprecated
         @Override
         public void setProgress(final int curRowNr, final int rowCount,
                 final RowKey lastKey, final ExecutionMonitor exec) {
