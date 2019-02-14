@@ -133,6 +133,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
         m_addTableName = false;
         m_customCommentLine = "";
         m_isGzipOutput = false;
+        setScientificForExtrema(false);
     }
 
     /**

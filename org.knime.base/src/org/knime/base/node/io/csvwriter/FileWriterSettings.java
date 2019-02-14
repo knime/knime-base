@@ -176,7 +176,7 @@ public class FileWriterSettings {
         m_lineEnding = LineEnding.SYST;
         m_encoding = null; // uses the default
 
-        m_scientificForExtrema = false;
+        m_scientificForExtrema = true;
     }
 
     /**

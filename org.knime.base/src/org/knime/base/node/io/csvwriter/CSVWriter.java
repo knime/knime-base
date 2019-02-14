@@ -77,7 +77,7 @@ public class CSVWriter extends BufferedWriter {
 
     private String m_newLine;
 
-    private static final DecimalFormat fullPrecision = new DecimalFormat();
+    private static final DecimalFormat fullPrecision = new DecimalFormat("#.#");
 
     static {
         fullPrecision.setMaximumFractionDigits(340); // DecimalFormat.DOUBLE_FRACTION_DIGITS = 340
@@ -297,7 +297,7 @@ public class CSVWriter extends BufferedWriter {
      * @return a string with the dot replaced by the new separator. Could be the
      *         passed argument itself.
      */
-    private String replaceDecimalSeparator(final String val,
+    private static String replaceDecimalSeparator(final String val,
             final char newSeparator) {
 
         int dotIdx = val.indexOf('.');
