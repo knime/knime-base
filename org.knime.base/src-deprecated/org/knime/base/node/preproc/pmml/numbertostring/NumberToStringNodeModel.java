@@ -47,10 +47,24 @@
  */
 package org.knime.base.node.preproc.pmml.numbertostring;
 
+import java.util.Arrays;
+
+import org.knime.base.node.preproc.pmml.PMMLStringConversionTranslator;
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
 import org.knime.base.node.preproc.pmml.numbertostring3.NumberToString3NodeModel;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
+import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
+import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 
 /**
  * The NodeModel for the Number to String Node that converts numbers
@@ -99,5 +113,80 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
     @Override
     protected boolean isKeepAllSelected() {
         return m_inclCols.isKeepAllSelected();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
+            throws InvalidSettingsException {
+        DataTableSpec dts = (DataTableSpec)inSpecs[0];
+        // find indices to work on
+        int[] indices = findColumnIndices(dts);
+        ConverterFactory converterFac =
+                new ConverterFactory(indices, dts);
+        ColumnRearranger colre = new ColumnRearranger(dts);
+        colre.replace(converterFac, indices);
+        DataTableSpec outDataSpec = colre.createSpec();
+
+        // create the PMML spec based on the optional incoming PMML spec
+        PMMLPortObjectSpec pmmlSpec = m_pmmlInEnabled ? (PMMLPortObjectSpec)inSpecs[1] : null;
+        PMMLPortObjectSpecCreator pmmlSpecCreator
+                = new PMMLPortObjectSpecCreator(pmmlSpec, dts);
+
+        return new PortObjectSpec[]{outDataSpec, pmmlSpecCreator.createSpec()};
+    }
+
+/**
+     * {@inheritDoc}
+     */
+    @Override
+    protected PortObject[] execute(final PortObject[] inObjects,
+            final ExecutionContext exec) throws Exception {
+        StringBuilder warnings = new StringBuilder();
+        BufferedDataTable inData = (BufferedDataTable)inObjects[0];
+        DataTableSpec inSpec = inData.getDataTableSpec();
+        // find indices to work on.
+        String[] inclCols = getStoredInclCols(inSpec);
+        BufferedDataTable resultTable = null;
+        if (inclCols.length == 0) {
+            // nothing to convert, let's return the input table.
+            resultTable = inData;
+            setWarningMessage("No columns selected,"
+                    + " returning input DataTable.");
+        } else {
+            int[] indices = findColumnIndices(inData.getSpec());
+            ConverterFactory converterFac
+                    = new ConverterFactory(indices, inSpec);
+            ColumnRearranger colre = new ColumnRearranger(inSpec);
+            colre.replace(converterFac, indices);
+
+            resultTable = exec.createColumnRearrangeTable(inData, colre, exec);
+            String errorMessage = converterFac.getErrorMessage();
+
+            if (errorMessage.length() > 0) {
+                warnings.append("Problems occurred, see Console messages.\n");
+            }
+            if (warnings.length() > 0) {
+                getLogger().warn(errorMessage);
+                setWarningMessage(warnings.toString());
+            }
+        }
+
+        // the optional PMML in port (can be null)
+        PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
+        PMMLStringConversionTranslator trans
+                = new PMMLStringConversionTranslator(
+                        Arrays.asList(getStoredInclCols(inSpec)), StringCell.TYPE,
+                        new DerivedFieldMapper(inPMMLPort));
+
+        PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(
+                inPMMLPort, inSpec);
+        PMMLPortObject outPMMLPort = new PMMLPortObject(
+               creator.createSpec(), inPMMLPort, inSpec);
+        outPMMLPort.addGlobalTransformations(trans.exportToTransDict());
+
+        return new PortObject[]{resultTable, outPMMLPort};
     }
 }

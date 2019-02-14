@@ -49,10 +49,8 @@ package org.knime.base.node.preproc.pmml.numbertostring3;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Vector;
 
-import org.knime.base.node.preproc.pmml.PMMLStringConversionTranslator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -61,26 +59,20 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
+import org.knime.core.data.LongValue;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
-import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
-import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
-import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 
 /**
  * The NodeModel for the Number to String Node that converts numbers
@@ -101,7 +93,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     /** The included columns. */
     protected final T m_inclCols;
 
-    private boolean m_pmmlInEnabled;
+    protected boolean m_pmmlInEnabled;
 
     /**
      * Constructor with one data inport, one data outport and an optional
@@ -123,85 +115,19 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractNumberToStringNodeModel(final T inclCols) {
-        this(true, inclCols);
+        super(1, 1);
+        m_inclCols = inclCols;
     }
+
+
 
     /**
-     * {@inheritDoc}
+     * Returns the indices of columns that the transformation should be applied to
+     * @param spec the current DataTableSpec
+     * @return an integer array with the column indices
+     * @throws InvalidSettingsException
      */
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
-        DataTableSpec dts = (DataTableSpec)inSpecs[0];
-        // find indices to work on
-        int[] indices = findColumnIndices(dts);
-        ConverterFactory converterFac =
-                new ConverterFactory(indices, dts);
-        ColumnRearranger colre = new ColumnRearranger(dts);
-        colre.replace(converterFac, indices);
-        DataTableSpec outDataSpec = colre.createSpec();
-
-        // create the PMML spec based on the optional incoming PMML spec
-        PMMLPortObjectSpec pmmlSpec = m_pmmlInEnabled ? (PMMLPortObjectSpec)inSpecs[1] : null;
-        PMMLPortObjectSpecCreator pmmlSpecCreator
-                = new PMMLPortObjectSpecCreator(pmmlSpec, dts);
-
-        return new PortObjectSpec[]{outDataSpec, pmmlSpecCreator.createSpec()};
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected PortObject[] execute(final PortObject[] inObjects,
-            final ExecutionContext exec) throws Exception {
-        StringBuilder warnings = new StringBuilder();
-        BufferedDataTable inData = (BufferedDataTable)inObjects[0];
-        DataTableSpec inSpec = inData.getDataTableSpec();
-        // find indices to work on.
-        String[] inclCols = getStoredInclCols(inSpec);
-        BufferedDataTable resultTable = null;
-        if (inclCols.length == 0) {
-            // nothing to convert, let's return the input table.
-            resultTable = inData;
-            setWarningMessage("No columns selected,"
-                    + " returning input DataTable.");
-        } else {
-            int[] indices = findColumnIndices(inData.getSpec());
-            ConverterFactory converterFac
-                    = new ConverterFactory(indices, inSpec);
-            ColumnRearranger colre = new ColumnRearranger(inSpec);
-            colre.replace(converterFac, indices);
-
-            resultTable = exec.createColumnRearrangeTable(inData, colre, exec);
-            String errorMessage = converterFac.getErrorMessage();
-
-            if (errorMessage.length() > 0) {
-                warnings.append("Problems occurred, see Console messages.\n");
-            }
-            if (warnings.length() > 0) {
-                getLogger().warn(errorMessage);
-                setWarningMessage(warnings.toString());
-            }
-        }
-
-        // the optional PMML in port (can be null)
-        PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
-        PMMLStringConversionTranslator trans
-                = new PMMLStringConversionTranslator(
-                        Arrays.asList(getStoredInclCols(inSpec)), StringCell.TYPE,
-                        new DerivedFieldMapper(inPMMLPort));
-
-        PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(
-                inPMMLPort, inSpec);
-        PMMLPortObject outPMMLPort = new PMMLPortObject(
-               creator.createSpec(), inPMMLPort, inSpec);
-        outPMMLPort.addGlobalTransformations(trans.exportToTransDict());
-
-        return new PortObject[]{resultTable, outPMMLPort};
-    }
-
-    private int[] findColumnIndices(final DataTableSpec spec)
+    protected int[] findColumnIndices(final DataTableSpec spec)
             throws InvalidSettingsException {
         String[] inclCols = getStoredInclCols(spec);
         StringBuilder warnings = new StringBuilder();
@@ -311,7 +237,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      *
      * @author cebron, University of Konstanz
      */
-    private static class ConverterFactory implements CellFactory {
+    public static class ConverterFactory implements CellFactory {
 
         /*
          * Column indices to use.
@@ -333,7 +259,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
          * @param colindices the column indices to use.
          * @param spec the original DataTableSpec.
          */
-        ConverterFactory(final int[] colindices, final DataTableSpec spec) {
+        public ConverterFactory(final int[] colindices, final DataTableSpec spec) {
             m_colindices = colindices;
             m_spec = spec;
             m_error = new StringBuilder();
@@ -351,6 +277,9 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
                 if (dc instanceof IntValue) {
                     int iVal = ((IntValue)dc).getIntValue();
                     newcells[i] = new StringCell(Integer.toString(iVal));
+                } else if (dc instanceof LongValue) {
+                    long l = ((LongValue)dc).getLongValue();
+                    newcells[i] = new StringCell(Long.toString(l));
                 } else if (dc instanceof DoubleValue) {
                     double d = ((DoubleValue)dc).getDoubleValue();
                     newcells[i] = new StringCell(Double.toString(d));

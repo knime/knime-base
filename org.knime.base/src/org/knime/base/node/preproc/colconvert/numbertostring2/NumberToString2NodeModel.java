@@ -50,8 +50,13 @@ package org.knime.base.node.preproc.colconvert.numbertostring2;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
@@ -95,5 +100,53 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
+            throws InvalidSettingsException {
+        // find indices to work on
+        int[] indices = findColumnIndices(inSpecs[0]);
+        ConverterFactory converterFac =
+                new ConverterFactory(indices, inSpecs[0]);
+        ColumnRearranger colre = new ColumnRearranger(inSpecs[0]);
+        colre.replace(converterFac, indices);
+        DataTableSpec newspec = colre.createSpec();
+        return new DataTableSpec[]{newspec};
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
+            final ExecutionContext exec) throws Exception {
+        StringBuilder warnings = new StringBuilder();
+        // find indices to work on.
+        DataTableSpec inspec = inData[0].getDataTableSpec();
+        String[] inclCols = getStoredInclCols(inspec);
+        if (inclCols.length == 0) {
+            // nothing to convert, let's return the input table.
+            setWarningMessage("No columns selected,"
+                    + " returning input DataTable.");
+            return new BufferedDataTable[]{inData[0]};
+        }
+        int[] indices = findColumnIndices(inData[0].getSpec());
+        ConverterFactory converterFac = new ConverterFactory(indices, inspec);
+        ColumnRearranger colre = new ColumnRearranger(inspec);
+        colre.replace(converterFac, indices);
 
+        BufferedDataTable resultTable =
+                exec.createColumnRearrangeTable(inData[0], colre, exec);
+        String errorMessage = converterFac.getErrorMessage();
+
+        if (errorMessage.length() > 0) {
+            warnings.append("Problems occurred, see Console messages.\n");
+        }
+        if (warnings.length() > 0) {
+            getLogger().warn(errorMessage);
+            setWarningMessage(warnings.toString());
+        }
+        return new BufferedDataTable[]{resultTable};
+    }
 }
