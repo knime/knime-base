@@ -86,7 +86,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
     @Override
     protected String[] getStoredInclCols(final DataTableSpec inSpec) {
         // casting List<String> to String[] array
-        return m_inclCols.getIncludeList().toArray(new String[0]);
+        return getInclCols().getIncludeList().toArray(new String[0]);
     }
 
     /**
@@ -94,7 +94,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
      */
     @Override
     protected boolean isKeepAllSelected() {
-        return m_inclCols.isKeepAllSelected();
+        return getInclCols().isKeepAllSelected();
     }
 
     /**

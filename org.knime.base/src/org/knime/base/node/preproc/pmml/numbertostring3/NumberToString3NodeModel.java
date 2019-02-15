@@ -75,6 +75,9 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  */
 public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<SettingsModelColumnFilter2>{
 
+    /** if there should be an optional pmml input port. */
+    private boolean m_pmmlInEnabled;
+
     /**
      * @return a SettingsModelColumnFilter2 for the included columns filtered for numerical values
      */
@@ -91,6 +94,7 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
      */
     public NumberToString3NodeModel(final boolean pmmlInEnabled) {
         super(pmmlInEnabled, createInclModel());
+        m_pmmlInEnabled = pmmlInEnabled;
     }
 
 
@@ -107,8 +111,8 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
      */
     @Override
     protected String[] getStoredInclCols(final DataTableSpec inSpec) {
-        String[] inclCols = m_inclCols.applyTo(inSpec).getIncludes();
-        String[] remInclCols = m_inclCols.applyTo(inSpec).getRemovedFromIncludes();
+        String[] inclCols = getInclCols().applyTo(inSpec).getIncludes();
+        String[] remInclCols = getInclCols().applyTo(inSpec).getRemovedFromIncludes();
         return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
 
     }

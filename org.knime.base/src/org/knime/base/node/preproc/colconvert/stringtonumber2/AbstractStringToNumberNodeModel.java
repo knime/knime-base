@@ -145,7 +145,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     static final boolean COMPAT_GENERIC_PARSE = true;
 
     /** The included columns component. */
-    protected final T m_inclCols;
+    private final T m_inclCols;
 
     /*
      * The decimal separator
@@ -432,6 +432,13 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
         // empty.
+    }
+
+    /**
+     * @return the included columns
+     */
+    protected T getInclCols() {
+        return m_inclCols;
     }
 
     /**

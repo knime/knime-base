@@ -89,8 +89,8 @@ public class StringToNumber3NodeModel extends AbstractStringToNumberNodeModel<Se
      */
     @Override
     protected String[] getStoredInclCols(final DataTableSpec inSpec) {
-        String[] inclCols = m_inclCols.applyTo(inSpec).getIncludes();
-        String[] remInclCols = m_inclCols.applyTo(inSpec).getRemovedFromIncludes();
+        String[] inclCols = getInclCols().applyTo(inSpec).getIncludes();
+        String[] remInclCols = getInclCols().applyTo(inSpec).getRemovedFromIncludes();
         return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
     }
 

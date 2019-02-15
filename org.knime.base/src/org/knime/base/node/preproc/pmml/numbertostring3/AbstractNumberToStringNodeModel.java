@@ -91,9 +91,8 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     public static final String CFG_INCLUDED_COLUMNS = "include";
 
     /** The included columns. */
-    protected final T m_inclCols;
+    private final T m_inclCols;
 
-    protected boolean m_pmmlInEnabled;
 
     /**
      * Constructor with one data inport, one data outport and an optional
@@ -105,7 +104,6 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     public AbstractNumberToStringNodeModel(final boolean pmmlInEnabled, final T inclCols) {
         super(pmmlInEnabled ? new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE_OPTIONAL} : new PortType[]{BufferedDataTable.TYPE},
                 new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
-        m_pmmlInEnabled = pmmlInEnabled;
         m_inclCols = inclCols;
     }
 
@@ -230,6 +228,12 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
+    }
+    /**
+     * @return the included columns
+     */
+    protected T getInclCols() {
+        return m_inclCols;
     }
 
     /**

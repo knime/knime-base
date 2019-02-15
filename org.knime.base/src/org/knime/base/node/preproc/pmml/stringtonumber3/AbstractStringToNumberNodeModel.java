@@ -135,7 +135,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     public static final String DEFAULT_THOUSANDS_SEPARATOR = "";
 
     /** The included columns. */
-    protected final T m_inclCols;
+    private final T m_inclCols;
 
     /*
      * The decimal separator
@@ -149,6 +149,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     private DataType m_parseType = POSSIBLETYPES[0];
 
+    /** if there should be an optional pmml input port. */
     private boolean m_pmmlInEnabled;
 
     /**
@@ -393,6 +394,13 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
         // empty.
+    }
+
+    /**
+     * @return the included columns
+     */
+    protected T getInclCols() {
+        return m_inclCols;
     }
 
     /**
