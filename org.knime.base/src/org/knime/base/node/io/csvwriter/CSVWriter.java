@@ -52,6 +52,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -77,7 +79,8 @@ public class CSVWriter extends BufferedWriter {
 
     private String m_newLine;
 
-    private static final DecimalFormat fullPrecision = new DecimalFormat("#.#");
+    private static final DecimalFormat fullPrecision =
+        new DecimalFormat("#.#", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
     static {
         fullPrecision.setMaximumFractionDigits(340); // DecimalFormat.DOUBLE_FRACTION_DIGITS = 340
