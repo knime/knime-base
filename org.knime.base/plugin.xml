@@ -1909,7 +1909,7 @@
             >
       </node>
       <node
-            after="org.knime.base.node.preproc.colconvert.stringtonumber.StringToNumberNodeFactory"
+            after="org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeFactory"
             category-path="/manipulation/column/column-convert+replace"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.double2int2.DoubleToIntNodeFactory">
