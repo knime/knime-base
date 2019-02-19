@@ -3,13 +3,13 @@
 	<name>Table Row to Variable</name>
 	
 	<shortDescription>
-		Defines new flow variables based on a single row of the input table 
+		Defines new flow variables based on the first row of the input table 
 		and exposes them using a variable connection.  
 	</shortDescription>
 	
 	<fullDescription>
 		<intro>
-		  This node uses a single row of a data table to define new
+		  This node uses the first row of a data table to define new
 		  flow variables. The names of the variables are defined 
 		  by the column names and the variable assignments (i.e. the values)
 		  are given by the values in the row. The variables are exposed
@@ -27,7 +27,7 @@
 	</fullDescription>
 	
 	<ports>
-		<inPort index="0" name="Parameters table">The table whose first(!) 
+		<inPort index="0" name="Parameters table">The table whose first 
 		  row will constitute  variables' values.</inPort>
 		<outPort index="0" name="Variables Output">Connection 
 		carrying on the variables.</outPort>
