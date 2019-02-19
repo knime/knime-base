@@ -356,6 +356,15 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/parallel/builder/ThreadedTableBuilderNodeModel.java" type="org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel$Submitter">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="DataContainerSettings"/>
+                <message_argument value="Submitter"/>
+                <message_argument value="getMaxCellsInMemory()"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/autobinner3/AutoBinner.java" type="org.knime.base.node.preproc.autobinner3.AutoBinner">
         <filter id="1110441988">
             <message_arguments>
