@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./db_joiner.png" type="Manipulator">
+<knimeNode icon="./db_joiner.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Database Joiner</name>
 	<shortDescription>Joins two database tables</shortDescription>
 	<fullDescription>
@@ -47,29 +46,23 @@
 			<option name="Column Selection (Top Input ('left' table) and Bottom Input ('right' table))">
 				<br />
 				<b>Exclude:</b>
-				This list contains the column names of the input table that are
-				excluded.
+				This list contains the names of the columns in the input table
+	            that are excluded from the output table.
 				<br />
-				<b>Select:</b>
-				Use these buttons to move columns between the Include and Exclude
-				list.
+				<b>Buttons:</b>
+				Use these buttons to move columns between the Include and Exclude 
+                list. Single-arrow buttons will move all selected columns.
+                Double-arrow buttons will move all columns (filtering is taken into
+                account).
 				<br />
 				<b>Include:</b>
-				This list contains the column names that are included.
+				This list contains the names of the columns in the input table
+            	that are included in the output table.
 				<br />
 				<b>Search:</b>
-				Use one of these fields to search either within the Include
-				or
-				Exclude list for certain column names or name substrings.
-				Repeated
-				clicking of the search button marks the next column that
-				matches the
-				search text. The check box 'Select all search hits' causes
-				all
-				matching columns to be selected making them movable between
-				the two
-				lists.
-				<br />
+				Use one of these fields to filter either the Include or Exclude
+                list for certain column names or name substrings.
+                <br />
 				<b>Always include all columns:</b>
 				If set, all columns are moved to
 				the include list and if input

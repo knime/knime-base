@@ -1,85 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="collectioncreate.png" type="Manipulator">
-	<name>Create Collection Column</name>
-	<shortDescription>
-		Combines multiple columns into a new collection column.
-	</shortDescription>
-	
-	<fullDescription>
-		<intro>
-		  This node aggregates multiple columns in a separate new column, whose
-		  type is a "collection type". The cells in the new column are typed
-		  collections of cells; that is, the content can be safely be split into
-		  the original column content. The reverse operation is available 
-		  in the "Split Collection Column" node. 
-		</intro>
-		
-      <tab name="Column Filter">      
-      
-        <option name="Include">
-            This list contains the column names that are aggregated in a separate
-            new column.
-        </option>
-        
-        <option name="Enforce Inclusion">
-            Select this option to enforce the current inclusion list to stay
-            the same even if the input table specification changes. 
-            New columns will automatically be added to the exclusion list.
-        </option>
-      
-        <option name="Select">
-            Use these buttons to move columns between the Include and Exclude 
-            list.
-        </option>
-        
-        <option name="Search">
-            Use one of these fields to search either within the Include
-            or Exclude list for certain column names or name substrings.
-            Repeated clicking of the search button marks the next column that 
-            matches the search text. The check box 'Mark all search hits' causes
-            all matching columns to be selected making them movable between
-            the two lists.
-        </option>
-        
-        <option name="Exclude">
-            This list contains the column names of the input table that are 
-            not included in the collection cell.
-        </option>
+<knimeNode icon="collectioncreate.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>Create Collection Column</name>
+    <shortDescription>
+        Combines multiple columns into a new collection column.
+    </shortDescription>
 
-        <option name="Enforce Exclusion">
-            Select this option to enforce the current exclusion list to stay
-            the same even if the input table specification changes. 
-            New columns will automatically be added to the inclusion list.
-        </option>
-        
-       </tab>
-       <tab name="Collection type">      
-    
-       <option name="Create a collection of type 'set' (doesn't store duplicate values)">
-         If checked, a collection column of type set is created. Set collections
-         contain only distinct values, duplicates are deleted.
-       </option>
-        <option name="ignore missing values">
-          If checked, missing values are ignored, i.e. not stored in collection
-          cells.
-        </option> 
-        </tab>
-              <tab name="Output table structure">      
-             
+    <fullDescription>
+        <intro>
+            This node aggregates multiple columns in a separate new column, whose
+            type is a "collection type". The cells in the new column are typed
+            collections of cells; that is, the content can be safely be split into
+            the original column content. The reverse operation is available 
+            in the "Split Collection Column" node. 
+        </intro>
 
-        <option name="Remove aggregated columns from table">
-          If checked, aggregated columns are removed from out put table.
-        </option>
-        <option name="Enter the name of the new column">
-          Specifies the name of the new column containing the collection cells.
-        </option>
+        <tab name="Manual Selection">
+            <option name="Include">
+                This list contains the names of the columns in the input table
+                that are included in the output table.
+            </option>
+
+            <option name="Exclude">
+                This list contains the names of the columns in the input table
+                that are excluded from the output table.
+            </option>
+
+            <option name="Filter">
+                Use one of these fields to filter either the Include or Exclude
+                list for certain column names or name substrings.
+            </option>
+
+            <option name="Buttons">
+                Use these buttons to move columns between the Include and Exclude 
+                list. Single-arrow buttons will move all selected columns.
+                Double-arrow buttons will move all columns (filtering is taken into
+                account).
+            </option>
+
+            <option name="Enforce Exclusion">
+                Select this option to enforce the current exclusion list to stay
+                the same even if the input table specification changes. If some
+                of the excluded columns are not available anymore, a warning
+                is displayed. (New columns will automatically be added to the 
+                inclusion list.)
+            </option>
+
+            <option name="Enforce Inclusion">
+                Select this option to enforce the current inclusion list to stay
+                the same even if the input table specification changes. If some
+                of the included columns are not available anymore, a warning
+                is displayed. (New columns will automatically be added to the
+                exclusion list.)
+            </option>
         </tab>
-	</fullDescription>
-	
-	<ports>
-		<inPort index="0" name="Any input data">Any input data</inPort>
-		<outPort index="0" name="Input data with new collection column">
-		The input data along with a newly appended collection column.</outPort>
-	</ports>
+
+        <tab name="Wildcard/Regex Selection">
+            <option name="">
+                Type a search pattern which matches columns to move into the
+                Include list. You can use either Wildcards ('?' matching any
+                        character, '*' matching a sequence of any characters) or Regex.
+                You can specify if your pattern should be case sensitive.
+            </option>
+        </tab>
+
+        <tab name="Type selection">
+            <option name="">
+                Select the column types that you want to include. Column types
+                that are currently not present are depicted in italic.
+            </option>
+        </tab>
+        
+        <tab name="Collection type">      
+            <option name="Create a collection of type 'set' (doesn't store duplicate values)">
+                If checked, a collection column of type set is created. Set collections
+                contain only distinct values, duplicates are deleted.
+            </option>
+            <option name="ignore missing values">
+                If checked, missing values are ignored, i.e. not stored in collection
+                cells.
+            </option> 
+            </tab>
+
+        <tab name="Output table structure">      
+            <option name="Remove aggregated columns from table">
+                If checked, aggregated columns are removed from out put table.
+            </option>
+            <option name="Enter the name of the new column">
+                Specifies the name of the new column containing the collection cells.
+            </option>
+        </tab>
+    </fullDescription>
+
+    <ports>
+        <inPort index="0" name="Any input data">Any input data</inPort>
+        <outPort index="0" name="Input data with new collection column">
+            The input data along with a newly appended collection column.
+        </outPort>
+    </ports>
 </knimeNode>

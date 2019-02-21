@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./ColumnAutoTypeCaster.png" type="Manipulator">
+<knimeNode icon="./ColumnAutoTypeCaster.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Column Auto Type Cast</name>
 
 	<shortDescription>
@@ -15,40 +14,72 @@
             finally string. For dates a custom format can be specified.
 		</intro>
 
-		<option name="Include">This list contains the column names which will get
-			converted if possible.
-		</option>
-		<option name="Enforce Inclusion">Select this option to enforce the current
-			inclusion list to stay the same even if the input table specification
-			changes. If some of the included columns are not available anymore, a
-			warning is displayed. (New columns will automatically be added to the
-			exclusion list.)
-		</option>
-		<option name="Select">Use these buttons to move columns between the
-			Include and Exclude list.
-		</option>
-		<option name="Exclude">
-			This list contains the column names that are
-			included in the output table without modification.
-		</option>
-		<option name="Enforce Exclusion">Select this option to enforce the current
-			exclusion list to stay the same even if the input table specification
-			changes. If some of the excluded columns are not available anymore, a
-			warning is displayed. (New columns will automatically be added to the
-			inclusion list.)
-		</option>
-		<option name="Choose a date format">Choose or enter a date pattern. (y: Year, M: Month
-			in year, d: Day in month, H: Hour in day, m: Minute in hour, s:
-			Second in minute, S: Millisecond)
-		</option>
-		<option name="Missing value pattern">Choose or enter a missing value pattern. &lt;none&gt; is the default pattern 
-			and &lt;empty&gt; represents the empty string. The entered string pattern is applied to all included columns.		
-		</option>
-		<option name="Quickscan">Check this checkbox if you want to speed up the node. The node will determine the 
-			most specific type based on the first 1000 rows. 1000 is the default for the "number of rows to consider" 
-			field. <br/>
-			Note: With quickscan enabled this node could fail during execute. 
-		</option>
+		
+        <tab name="Manual Selection">
+			<option name="Include">
+				This list contains the names of the columns in the input table
+				that are included in the output table.
+			</option>
+			
+			<option name="Exclude">
+				This list contains the names of the columns in the input table
+				that are excluded from the output table.
+			</option>
+
+            <option name="Filter">
+                Use one of these fields to filter either the Include or Exclude
+                list for certain column names or name substrings.
+            </option>
+            
+            <option name="Buttons">
+                Use these buttons to move columns between the Include and Exclude 
+                list. Single-arrow buttons will move all selected columns.
+                Double-arrow buttons will move all columns (filtering is taken into
+                account).
+            </option>
+            
+            <option name="Enforce Inclusion">
+                Select this option to enforce the current inclusion list to stay
+                the same even if the input table specification changes. If some
+                of the included columns are not available anymore, a warning
+                is displayed. (New columns will automatically be added to the
+                exclusion list.)
+            </option>
+
+            <option name="Enforce Exclusion">
+                Select this option to enforce the current exclusion list to stay
+                the same even if the input table specification changes. If some
+                of the excluded columns are not available anymore, a warning
+                is displayed. (New columns will automatically be added to the
+                inclusion list.)
+            </option>
+        </tab>
+
+        <tab name="Wildcard/Regex Selection">
+        	<option name="">
+				Type a search pattern which matches columns to move into the
+				Include list. You can use either Wildcards ('?' matching any
+				character, '*' matching a sequence of any characters) or Regex.
+				You can specify if your pattern should be case sensitive.
+			</option>
+        </tab>
+
+		<tab name="Options">
+			<option name="Choose a date format">Choose or enter a date pattern. (y: Year, M: Month
+				in year, d: Day in month, H: Hour in day, m: Minute in hour, s:
+				Second in minute, S: Millisecond)
+			</option>
+
+			<option name="Missing value pattern">Choose or enter a missing value pattern. &lt;none&gt; is the default pattern 
+				and &lt;empty&gt; represents the empty string. The entered string pattern is applied to all included columns.		
+			</option>
+
+			<option name="Quickscan">Check this checkbox if you want to speed up the node. The node will determine the 
+				most specific type based on the first 1000 rows. 1000 is the default for the "number of rows to consider" 
+				field. <br/>
+				Note: With quickscan enabled this node could fail during execute. 
+			</option>
+		</tab>
 	</fullDescription>
 
 
