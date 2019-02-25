@@ -50,6 +50,7 @@ package org.knime.base.node.meta.feature.selection;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -68,12 +69,16 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
 
     private final int m_nrFeaturesUpperBound;
 
-    private final int m_earlyStopping;
+    private final int m_earlyStoppingRounds;
+
+    private final double m_tolerance;
 
     private final Random m_random;
 
     // caches the scores of already scored feature subsets
     private final HashSet<Integer> m_featureHashSet = new HashSet<>();
+
+    private final LinkedList<Double> m_lastSolutions = new LinkedList<Double>();
 
     private int m_iteration = 0;
 
@@ -82,10 +87,6 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
     private List<Integer> m_currentFeatureColumns;
 
     private boolean m_isMinimize;
-
-    private int m_numIterationsWithoutImprovement = 0;
-
-    private double m_bestScore;
 
     private double m_score;
 
@@ -110,7 +111,9 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
 
         private int m_nrFeaturesUpperBound = -1;
 
-        private int m_earlyStopping = -1;
+        private int m_earlyStoppingRounds = -1;
+
+        private double m_tolerance = 0.0;
 
         /**
          * @param maxIterations the maximal number of iterations
@@ -154,7 +157,16 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
          * @return the updated Builder object
          */
         public Builder earlyStopping(final int stoppingRounds) {
-            m_earlyStopping = stoppingRounds;
+            m_earlyStoppingRounds = stoppingRounds;
+            return this;
+        }
+
+        /**
+         * @param tolerance the tolerance used for early stopping
+         * @return the updated Builder object
+         */
+        public Builder tolerance(final double tolerance) {
+            m_tolerance = tolerance;
             return this;
         }
 
@@ -177,7 +189,8 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
     private RandomStrategy(final Builder builder) {
         super(builder.m_maxIterations);
         m_featureIndices = builder.m_featureIndices;
-        m_earlyStopping = builder.m_earlyStopping;
+        m_earlyStoppingRounds = builder.m_earlyStoppingRounds;
+        m_tolerance = builder.m_tolerance;
         m_random = builder.m_useSeed ? new Random(builder.m_seed) : new Random();
         m_nrFeaturesLowerBound = builder.m_nrFeaturesLowerBound <= 0 ? 1 : builder.m_nrFeaturesLowerBound;
         m_nrFeaturesUpperBound =
@@ -216,17 +229,65 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
         m_score = score;
 
         // if early stopping is enabled, check for stop condition
-        if (m_earlyStopping > 0) {
-            if ((m_isMinimize && score < m_bestScore) || (!m_isMinimize && score > m_bestScore)) {
-                m_numIterationsWithoutImprovement = 0;
-                m_bestScore = score;
+        if (m_earlyStoppingRounds > 0) {
+            if (m_lastSolutions.size() < 2 * m_earlyStoppingRounds) {
+                m_lastSolutions.add(m_isMinimize ? score : -score);
             } else {
-                m_numIterationsWithoutImprovement++;
+                m_lastSolutions.removeFirst();
+                m_lastSolutions.add(m_isMinimize ? score : -score);
             }
-            if (m_numIterationsWithoutImprovement >= m_earlyStopping) {
-                m_continueLoop = false;
+
+            m_continueLoop &= !stopEarly();
+        }
+    }
+
+    /**
+     * Check if the strategy should stop early.
+     *
+     * @return true if strategy should stop, otherwise false
+     */
+    private boolean stopEarly() {
+        // if not enough rounds has been made to check for early stopping, continue
+        if (m_lastSolutions.size() < 2 * m_earlyStoppingRounds) {
+            return false;
+        }
+
+        // the number of rounds defines the size of the reference subset
+        final double referenceAvg =
+            m_lastSolutions.subList(0, m_earlyStoppingRounds).stream().mapToDouble(x -> x).average().getAsDouble();
+
+        // the number of rounds defines the size of the subsets and how many subsets are taken to compare with reference
+        double bestNewAvg = Double.MAX_VALUE;
+        for (int i = 1; i <= m_earlyStoppingRounds; i++) {
+            final double newAvg = m_lastSolutions.subList(i, i + m_earlyStoppingRounds).stream().mapToDouble(x -> x)
+                .average().getAsDouble();
+            if (newAvg < bestNewAvg) {
+                bestNewAvg = newAvg;
             }
         }
+
+        // if best new average is greater than reference, i.e. worse, stop
+        if (bestNewAvg > referenceAvg) {
+            return true;
+        }
+
+        // if zero is crossed, continue to avoid division by zero or unmeaningful ratio calculations
+        if (Math.signum(bestNewAvg) != Math.signum(referenceAvg)) {
+            return false;
+        }
+
+        // in all other cases compute ratio between averages
+        final double ratio = bestNewAvg / referenceAvg;
+        if (Double.isNaN(ratio)) {
+            return true;
+        }
+        // if the averages are negative, we want to have a ratio bigger than 1 + tolerance, otherwise smaller than 1 - tolerance
+        final boolean hasImproved = Math.signum(bestNewAvg) < 0 ? ratio >= 1 + m_tolerance : ratio <= 1 - m_tolerance;
+        if (hasImproved) {
+            return false;
+        }
+        // stop if the improvement was not big enough
+        return true;
     }
 
     /**
@@ -235,11 +296,6 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
     @Override
     public void setIsMinimize(final boolean isMinimize) {
         m_isMinimize = isMinimize;
-        if (isMinimize) {
-            m_bestScore = Integer.MAX_VALUE;
-        } else {
-            m_bestScore = Integer.MIN_VALUE;
-        }
     }
 
     /**

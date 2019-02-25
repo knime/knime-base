@@ -68,6 +68,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeListener;
 
 import org.knime.base.node.meta.feature.selection.FeatureSelectionStrategies.Strategy;
 import org.knime.base.node.meta.feature.selection.FeatureSelectionStrategies.StrategyType;
@@ -122,9 +123,15 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
 
     private final JTextField m_randomSeedTextField;
 
-    private final JCheckBox m_useEarlyStopping;
+    private final JCheckBox m_useEarlyStoppingGenetic;
 
     private final JSpinner m_earlyStoppingNumGenerations;
+
+    private final JCheckBox m_useEarlyStoppingRandom;
+
+    private final JSpinner m_earlyStoppingRoundsRandom;
+
+    private final JSpinner m_earlyStoppingTolerance;
 
     private final JComboBox<CrossoverStrategy> m_crossoverStrategyComboBox;
 
@@ -184,8 +191,13 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         m_randomSeedTextField.setText(Long.toString(System.currentTimeMillis()));
         m_useRandomSeedCheckBox
             .addChangeListener(l -> m_randomSeedTextField.setEnabled(m_useRandomSeedCheckBox.isSelected()));
-        m_useEarlyStopping = new JCheckBox("Enable early stopping", true);
-        m_earlyStoppingNumGenerations = new JSpinner(new SpinnerNumberModel(5, 1, Integer.MAX_VALUE, 1));
+        m_useEarlyStoppingGenetic = new JCheckBox("Enable early stopping", false);
+        m_earlyStoppingNumGenerations = new JSpinner(new SpinnerNumberModel(3, 1, Integer.MAX_VALUE, 1));
+
+        m_useEarlyStoppingRandom = new JCheckBox("Enable early stopping", false);
+        m_earlyStoppingRoundsRandom = new JSpinner(new SpinnerNumberModel(5, 1, Integer.MAX_VALUE, 1));
+        m_earlyStoppingTolerance = new JSpinner(new SpinnerNumberModel(0.01, 0.0, 100, 0.01));
+
         m_crossoverStrategyComboBox = new JComboBox<>(CrossoverStrategy.values());
         m_crossoverRateSpinner = new JSpinner(new SpinnerNumberModel(0.6, 0.0, 1.0, 0.1));
         m_mutationRateSpinner = new JSpinner(new SpinnerNumberModel(0.1, 0.0, 1.0, 0.1));
@@ -299,7 +311,11 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
             m_useNrFeaturesLowerBoundCheckBox.isSelected() ? (int)m_nrFeaturesLowerBoundSpinner.getValue() : -1);
         cfg.setNrFeaturesUpperBound(
             m_useNrFeaturesUpperBoundCheckBox.isSelected() ? (int)m_nrFeaturesUpperBoundSpinner.getValue() : -1);
-        cfg.setEarlyStopping(m_useEarlyStopping.isSelected() ? (int)m_earlyStoppingNumGenerations.getValue() : -1);
+        cfg.setEarlyStoppingGenetic(
+            m_useEarlyStoppingGenetic.isSelected() ? (int)m_earlyStoppingNumGenerations.getValue() : -1);
+        cfg.setEarlyStoppingRandom(
+            m_useEarlyStoppingRandom.isSelected() ? (int)m_earlyStoppingRoundsRandom.getValue() : -1);
+        cfg.setEarlyStoppingTolerance((double)m_earlyStoppingTolerance.getValue());
         cfg.setPopSize((int)m_popSizeSpinner.getValue());
         cfg.setMaxNumGenerations((int)m_maxNumGenerationsSpinner.getValue());
         cfg.setMaxNumIterations((int)m_maxNumIterationsSpinner.getValue());
@@ -343,12 +359,19 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         if (useFeatureUpperBound) {
             m_nrFeaturesUpperBoundSpinner.setValue(cfg.getNrFeaturesUpperBound());
         }
-        final boolean useEarlyStopping = cfg.useEarlyStopping();
-        m_useEarlyStopping.setSelected(useEarlyStopping);
+        final boolean useEarlyStoppingGenetic = cfg.useEarlyStoppingGenetic();
+        m_useEarlyStoppingGenetic.setSelected(useEarlyStoppingGenetic);
         // only set spinner value if the early stopping is enabled
-        if (useEarlyStopping) {
-            m_earlyStoppingNumGenerations.setValue(cfg.getEarlyStopping());
+        if (useEarlyStoppingGenetic) {
+            m_earlyStoppingNumGenerations.setValue(cfg.getEarlyStoppingGenetic());
         }
+        final boolean useEarlyStoppingRandom = cfg.useEarlyStoppingRandom();
+        m_useEarlyStoppingRandom.setSelected(useEarlyStoppingRandom);
+        // only set spinner value if the early stopping is enabled
+        if (useEarlyStoppingRandom) {
+            m_earlyStoppingRoundsRandom.setValue(cfg.getEarlyStoppingRandom());
+        }
+        m_earlyStoppingTolerance.setValue(cfg.getEarlyStoppingTolerance());
         m_popSizeSpinner.setValue(cfg.getPopSize());
         m_maxNumGenerationsSpinner.setValue(cfg.getMaxNumGenerations());
         m_maxNumIterationsSpinner.setValue(cfg.getMaxNumIterations());
@@ -537,27 +560,55 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
 
         gbc.gridx = 0;
         gbc.gridy++;
-        panel.add(m_useEarlyStopping, gbc);
-        m_listGeneticComponents.add(m_useEarlyStopping);
-        m_listRandomComponents.add(m_useEarlyStopping);
+        panel.add(m_useEarlyStoppingGenetic, gbc);
+        m_listGeneticComponents.add(m_useEarlyStoppingGenetic);
 
         gbc.gridy++;
         final JLabel labelEarlyStoppingGenetic = new JLabel("Number of generations without improvement");
         panel.add(labelEarlyStoppingGenetic, gbc);
-        final JLabel labelEarlyStoppingRandom = new JLabel("Number of iterations without improvement");
-        panel.add(labelEarlyStoppingRandom, gbc);
         m_listGeneticComponents.add(labelEarlyStoppingGenetic);
         m_listGeneticComponents.add(m_earlyStoppingNumGenerations);
-        m_listRandomComponents.add(labelEarlyStoppingRandom);
-        m_listRandomComponents.add(m_earlyStoppingNumGenerations);
         gbc.gridx++;
         panel.add(m_earlyStoppingNumGenerations, gbc);
-        m_useEarlyStopping.addChangeListener(l -> {
-            boolean enabled = m_useEarlyStopping.isSelected();
+        ChangeListener clGenetic = l -> {
+            boolean enabled = m_useEarlyStoppingGenetic.isSelected();
             labelEarlyStoppingGenetic.setEnabled(enabled);
-            labelEarlyStoppingRandom.setEnabled(enabled);
             m_earlyStoppingNumGenerations.setEnabled(enabled);
-        });
+        };
+        m_useEarlyStoppingGenetic.addChangeListener(clGenetic);
+        // call once to update enable status of dependent components
+        clGenetic.stateChanged(null);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(m_useEarlyStoppingRandom, gbc);
+        m_listRandomComponents.add(m_useEarlyStoppingRandom);
+
+        gbc.gridy++;
+        final JLabel labelEarlyStoppingRandom = new JLabel("Number of iterations without improvement");
+        panel.add(labelEarlyStoppingRandom, gbc);
+        m_listRandomComponents.add(labelEarlyStoppingRandom);
+        m_listRandomComponents.add(m_earlyStoppingRoundsRandom);
+        gbc.gridx++;
+        panel.add(m_earlyStoppingRoundsRandom, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        final JLabel labelEarlyStoppingTolerance = new JLabel("Tolerance");
+        panel.add(labelEarlyStoppingTolerance, gbc);
+        m_listRandomComponents.add(labelEarlyStoppingTolerance);
+        m_listRandomComponents.add(m_earlyStoppingTolerance);
+        gbc.gridx++;
+        panel.add(m_earlyStoppingTolerance, gbc);
+        final ChangeListener clRandom = l -> {
+            boolean enabled = m_useEarlyStoppingRandom.isSelected();
+            labelEarlyStoppingRandom.setEnabled(enabled);
+            m_earlyStoppingRoundsRandom.setEnabled(enabled);
+            labelEarlyStoppingTolerance.setEnabled(enabled);
+            m_earlyStoppingTolerance.setEnabled(enabled);
+        };
+        m_useEarlyStoppingRandom.addChangeListener(clRandom);
+        // call once to update enable status of dependent components
+        clRandom.stateChanged(null);
 
         // add two dummy labels to keep components on top left
         gbc.gridx++;

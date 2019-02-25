@@ -100,7 +100,11 @@ public class FeatureSelectionLoopStartSettings {
 
     private static final String CFG_ELITISM_RATE = "elitismRate";
 
-    private static final String CFG_EARLY_STOPPING = "earlyStopping";
+    private static final String CFG_EARLY_STOPPING_GENETIC = "earlyStopping";
+
+    private static final String CFG_EARLY_STOPPING_RANDOM = "earlyStoppingRandom";
+
+    private static final String CFG_EARLY_STOPPING_TOLERANCE = "earlyStoppingTolerance";
 
     // ===== Default values =====
 
@@ -139,7 +143,11 @@ public class FeatureSelectionLoopStartSettings {
 
     private static final double DEF_ELITISM_RATE = 0.1;
 
-    private static final int DEF_EARLY_STOPPING = -1;
+    private static final int DEF_EARLY_STOPPING_GENETIC = -1;
+
+    private static final int DEF_EARLY_STOPPING_RANDOM = -1;
+
+    private static final double DEF_EARLY_STOPPING_TOLERANCE = 0.01;
 
     private static final CrossoverStrategy DEF_CROSSOVER_STRATEGY = CrossoverStrategy.UNIFORM_CROSSOVER;
 
@@ -179,7 +187,11 @@ public class FeatureSelectionLoopStartSettings {
 
     private double m_elitismRate = DEF_ELITISM_RATE;
 
-    private int m_earlyStopping = DEF_EARLY_STOPPING;
+    private int m_earlyStoppingGenetic = DEF_EARLY_STOPPING_GENETIC;
+
+    private int m_earlyStoppingRandom = DEF_EARLY_STOPPING_RANDOM;
+
+    private double m_earlyStoppingTolerance = DEF_EARLY_STOPPING_TOLERANCE;
 
     private CrossoverStrategy m_crossoverStrategy = DEF_CROSSOVER_STRATEGY;
 
@@ -405,22 +417,57 @@ public class FeatureSelectionLoopStartSettings {
     /**
      * @return the earlyStopping
      */
-    public int getEarlyStopping() {
-        return m_earlyStopping;
+    public int getEarlyStoppingGenetic() {
+        return m_earlyStoppingGenetic;
     }
 
     /**
      * @param earlyStopping the earlyStopping to set
      */
-    public void setEarlyStopping(final int earlyStopping) {
-        m_earlyStopping = earlyStopping;
+    public void setEarlyStoppingGenetic(final int earlyStopping) {
+        m_earlyStoppingGenetic = earlyStopping;
     }
 
     /**
-     * @return true if a upper bound for the number of features is set
+     * @return true if early stopping for genetic strategy is enabled
      */
-    public boolean useEarlyStopping() {
-        return m_earlyStopping > 0;
+    public boolean useEarlyStoppingGenetic() {
+        return m_earlyStoppingGenetic > 0;
+    }
+
+    /**
+     * @return the earlyStoppingRandom
+     */
+    public int getEarlyStoppingRandom() {
+        return m_earlyStoppingRandom;
+    }
+
+    /**
+     * @param earlyStoppingRandom the earlyStoppingRandom to set
+     */
+    public void setEarlyStoppingRandom(final int earlyStoppingRandom) {
+        m_earlyStoppingRandom = earlyStoppingRandom;
+    }
+
+    /**
+     * @return true if early stopping for random strategy is enabled
+     */
+    public boolean useEarlyStoppingRandom() {
+        return m_earlyStoppingRandom > 0;
+    }
+
+    /**
+     * @return the earlyStoppingTolerance
+     */
+    public double getEarlyStoppingTolerance() {
+        return m_earlyStoppingTolerance;
+    }
+
+    /**
+     * @param earlyStoppingTolerance the earlyStoppingTolerance to set
+     */
+    public void setEarlyStoppingTolerance(final double earlyStoppingTolerance) {
+        m_earlyStoppingTolerance = earlyStoppingTolerance;
     }
 
     /**
@@ -472,8 +519,10 @@ public class FeatureSelectionLoopStartSettings {
         settings.addDouble(CFG_CROSSOVER_RATE, m_crossoverRate);
         settings.addDouble(CFG_MUTATION_RATE, m_mutationRate);
         settings.addDouble(CFG_ELITISM_RATE, m_elitismRate);
-        settings.addInt(CFG_EARLY_STOPPING, m_earlyStopping);
+        settings.addInt(CFG_EARLY_STOPPING_GENETIC, m_earlyStoppingGenetic);
         settings.addInt(CFG_MAX_NUM_ITERATIONS, m_maxNumIterations);
+        settings.addInt(CFG_EARLY_STOPPING_RANDOM, m_earlyStoppingRandom);
+        settings.addDouble(CFG_EARLY_STOPPING_TOLERANCE, m_earlyStoppingTolerance);
     }
 
     /**
@@ -510,8 +559,10 @@ public class FeatureSelectionLoopStartSettings {
         m_crossoverRate = settings.getDouble(CFG_CROSSOVER_RATE, DEF_CROSSOVER_RATE);
         m_mutationRate = settings.getDouble(CFG_MUTATION_RATE, DEF_MUTATION_RATE);
         m_elitismRate = settings.getDouble(CFG_ELITISM_RATE, DEF_ELITISM_RATE);
-        m_earlyStopping = settings.getInt(CFG_EARLY_STOPPING,DEF_EARLY_STOPPING);
-        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS,DEF_MAX_NUM_ITERATIONS);
+        m_earlyStoppingGenetic = settings.getInt(CFG_EARLY_STOPPING_GENETIC, DEF_EARLY_STOPPING_GENETIC);
+        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS, DEF_MAX_NUM_ITERATIONS);
+        m_earlyStoppingRandom = settings.getInt(CFG_EARLY_STOPPING_RANDOM, DEF_EARLY_STOPPING_RANDOM);
+        m_earlyStoppingTolerance = settings.getDouble(CFG_EARLY_STOPPING_TOLERANCE, DEF_EARLY_STOPPING_TOLERANCE);
     }
 
     /**
@@ -547,7 +598,9 @@ public class FeatureSelectionLoopStartSettings {
         m_crossoverRate = settings.getDouble(CFG_CROSSOVER_RATE, DEF_CROSSOVER_RATE);
         m_mutationRate = settings.getDouble(CFG_MUTATION_RATE, DEF_MUTATION_RATE);
         m_elitismRate = settings.getDouble(CFG_ELITISM_RATE, DEF_ELITISM_RATE);
-        m_earlyStopping = settings.getInt(CFG_EARLY_STOPPING,DEF_EARLY_STOPPING);
-        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS,DEF_MAX_NUM_ITERATIONS);
+        m_earlyStoppingGenetic = settings.getInt(CFG_EARLY_STOPPING_GENETIC, DEF_EARLY_STOPPING_GENETIC);
+        m_maxNumIterations = settings.getInt(CFG_MAX_NUM_ITERATIONS, DEF_MAX_NUM_ITERATIONS);
+        m_earlyStoppingRandom = settings.getInt(CFG_EARLY_STOPPING_RANDOM, DEF_EARLY_STOPPING_RANDOM);
+        m_earlyStoppingTolerance = settings.getDouble(CFG_EARLY_STOPPING_TOLERANCE, DEF_EARLY_STOPPING_TOLERANCE);
     }
 }

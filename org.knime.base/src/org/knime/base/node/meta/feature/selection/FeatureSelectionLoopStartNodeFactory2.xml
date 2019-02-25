@@ -38,8 +38,8 @@
 			</option>
 			<option name="Feature selection strategy">
 				Here you can choose between the selection strategies: Forward
-				Feature Selection, Backward Feature Elimination, and
-				<a href="https://en.wikipedia.org/wiki/Genetic_algorithm">Genetic Algorithm</a>.
+				Feature Selection, Backward Feature Elimination, 
+				<a href="https://en.wikipedia.org/wiki/Genetic_algorithm">Genetic Algorithm</a> and Random.
 			</option>
 			<option name="Use threshold for number of features">
 				Check this option if you want to set a bound for
@@ -110,11 +110,19 @@
 			</option>
 			<option name="Enable early stopping">
 				Check this option if you want to enable early stopping which means that the algorithm stops after a 
-				specified number of generations without improvement.
+				specified number of generations/iterations without improvement. If using the random strategy, this is based 
+				on a moving average whereby the size of the moving window is the same number as the specified 
+        		number of iterations. If the ratio of improvement is lower than a specified tolerance, the search stops.
 			</option>
 			<option name="Number of generations/iterations without improvement">
-				Set the number of generations/iterations without improvement used for early stopping.
+				Set the number of generations/iterations without improvement (or with less improvement than the specified 
+				tolerance in case of random strategy) used for early stopping. In case of random strategy it also defines 
+				the size of the moving window. 
 			</option>
+			<option name="Tolerance">
+	        	The tolerance used for early stopping which defines the threshold for the ratio of improvement. If the ratio is
+	        	lower than the threshold, the strategy stops.
+        	</option>
 		</tab>
 	</fullDescription>
 

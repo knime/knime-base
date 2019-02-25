@@ -161,14 +161,14 @@ public class FeatureSelectionStrategies {
                         .seed(settings.isUseRandomSeed() ? settings.getRandomSeed() : System.currentTimeMillis())
                         .survivorsFraction(settings.getSurvivorsFraction()).crossoverRate(settings.getCrossoverRate())
                         .mutationRate(settings.getMutationRate()).elitismRate(settings.getElitismRate())
-                        .earlyStopping(settings.getEarlyStopping()).selectionStrategy(settings.getSelectionStrategy())
+                        .earlyStopping(settings.getEarlyStoppingGenetic()).selectionStrategy(settings.getSelectionStrategy())
                         .crossoverStrategy(settings.getCrossoverStrategy()).build();
             case Random:
                 return new RandomStrategy.Builder(settings.getMaxNumIterations(), featureColumns)
                     .nrFeaturesLowerBound(settings.getNrFeaturesLowerBound())
                     .nrFeaturesUpperBound(settings.getNrFeaturesUpperBound())
                     .seed(settings.isUseRandomSeed() ? settings.getRandomSeed() : System.currentTimeMillis())
-                    .earlyStopping(settings.getEarlyStopping()).build();
+                    .earlyStopping(settings.getEarlyStoppingRandom()).tolerance(settings.getEarlyStoppingTolerance()).build();
             default:
                 throw new IllegalArgumentException("The FeatureSelectionStrategy \"" + strategy + "\" is unknown.");
         }
