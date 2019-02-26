@@ -370,8 +370,8 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
         // only set spinner value if the early stopping is enabled
         if (useEarlyStoppingRandom) {
             m_earlyStoppingRoundsRandom.setValue(cfg.getEarlyStoppingRandom());
+            m_earlyStoppingTolerance.setValue(cfg.getEarlyStoppingTolerance());
         }
-        m_earlyStoppingTolerance.setValue(cfg.getEarlyStoppingTolerance());
         m_popSizeSpinner.setValue(cfg.getPopSize());
         m_maxNumGenerationsSpinner.setValue(cfg.getMaxNumGenerations());
         m_maxNumIterationsSpinner.setValue(cfg.getMaxNumIterations());

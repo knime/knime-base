@@ -78,7 +78,7 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
     // caches the scores of already scored feature subsets
     private final HashSet<Integer> m_featureHashSet = new HashSet<>();
 
-    private final LinkedList<Double> m_lastSolutions = new LinkedList<Double>();
+    private final LinkedList<Double> m_lastSolutions = new LinkedList<>();
 
     private int m_iteration = 0;
 
