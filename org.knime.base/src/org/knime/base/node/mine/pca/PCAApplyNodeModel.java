@@ -160,7 +160,7 @@ public class PCAApplyNodeModel extends NodeModel {
         final DataColumnSpec[] specs =
                 PCANodeModel.createAddTableSpec(
                         (DataTableSpec)inData[DATA_INPORT].getSpec(),
-                        dimensions);
+                        dimensions,model.getSpec().getColPrefix());
         final int dim = dimensions;
 
         final CellFactory fac = new CellFactory() {
@@ -252,8 +252,7 @@ public class PCAApplyNodeModel extends NodeModel {
             }
         }
         final DataColumnSpec[] specs =
-                PCANodeModel.createAddTableSpec(
-                        (DataTableSpec)inSpecs[DATA_INPORT], dimensions);
+            PCANodeModel.createAddTableSpec((DataTableSpec)inSpecs[DATA_INPORT], dimensions, modelPort.getColPrefix());
 
         final DataTableSpec dts =
                 AppendedColumnTable.getTableSpec(
@@ -274,7 +273,7 @@ public class PCAApplyNodeModel extends NodeModel {
     private void changeDimensionsAndWarn(final int dimensions) {
         m_dimSelection.setDimensionsSelected(true);
         m_dimSelection.setDimensions(dimensions);
-        setWarningMessage("dimensions resetted to " + dimensions);
+        setWarningMessage("dimensions reset to " + dimensions);
     }
 
 

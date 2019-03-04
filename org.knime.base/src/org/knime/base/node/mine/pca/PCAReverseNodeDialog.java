@@ -78,7 +78,7 @@ public class PCAReverseNodeDialog extends DefaultNodeSettingsPane {
     }
 
     /**
-     * Creates the panel using the given keys and taks name.
+     * Creates the panel using the given keys and task name.
      *
      * @param colKey the selected columns settings model key
      * @param remColKey the remove columns settings model key
@@ -86,7 +86,7 @@ public class PCAReverseNodeDialog extends DefaultNodeSettingsPane {
      */
     private void createPanel(final String colKey, final String remColKey, final String task) {
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(PCANodeModel.FAIL_MISSING, false),
-            "Fail if missing values are encountered " + "(skipped per default)"));
+            "Fail if missing values are encountered (skipped per default)"));
         addDialogComponent(
             new DialogComponentBoolean(new SettingsModelBoolean(remColKey, false), "Remove " + task + " columns"));
         addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(colKey),

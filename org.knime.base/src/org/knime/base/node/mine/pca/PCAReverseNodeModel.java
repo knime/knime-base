@@ -136,7 +136,7 @@ public class PCAReverseNodeModel extends NodeModel {
      *
      * @param colKey the selected columns settings model key
      * @param remColKey the remove columns settings model key
-     * @param the prefix used to include columns during auto-configure
+     * @param incColPrefix the prefix used to include columns during auto-configure
      * @since 3.8
      */
     protected PCAReverseNodeModel(final String colKey, final String remColKey, final String incColPrefix) {

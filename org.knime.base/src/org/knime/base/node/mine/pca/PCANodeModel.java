@@ -299,26 +299,39 @@ public class PCANodeModel extends NodeModel {
     /**
      * create part of table spec to be added to the input table.
      *
-     * @param inSpecs
-     *            input specs (for unique column names)
-     * @param resultDimensions
-     *            number of dimensions in output
+     * @param inSpecs input specs (for unique column names)
+     * @param resultDimensions number of dimensions in output
      * @return part of table spec to be added to input table
      */
-    public static DataColumnSpec[] createAddTableSpec(
-            final DataTableSpec inSpecs, final int resultDimensions) {
+    public static DataColumnSpec[] createAddTableSpec(final DataTableSpec inSpecs, final int resultDimensions) {
+        return createAddTableSpec(inSpecs, resultDimensions, PCA_COL_PREFIX);
+    }
+
+    /**
+     * create part of table spec to be added to the input table.
+     *
+     * @param inSpecs input specs (for unique column names)
+     * @param resultDimensions number of dimensions in output
+     * @param projectColPrefix the prefix for the projection columns
+     * @return part of table spec to be added to input table
+     */
+    static DataColumnSpec[] createAddTableSpec(
+            final DataTableSpec inSpecs, final int resultDimensions, final String projectColPrefix) {
         // append pca columns
         final DataColumnSpec[] specs = new DataColumnSpec[resultDimensions];
 
         for (int i = 0; i < resultDimensions; i++) {
             final String colName = DataTableSpec.getUniqueColumnName(inSpecs,
-                    PCA_COL_PREFIX + i);
+                projectColPrefix + i);
             final DataColumnSpecCreator specCreator = new DataColumnSpecCreator(
                     colName, DataType.getType(DoubleCell.class));
             specs[i] = specCreator.createSpec();
         }
         return specs;
     }
+
+
+
 
     /**
      * Performs the PCA.
