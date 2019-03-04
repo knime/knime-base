@@ -212,7 +212,7 @@ public class PCAApplyNodeModel extends NodeModel {
                 (PCAModelPortObjectSpec)inSpecs[MODEL_INPORT];
         m_inputColumnNames = modelPort.getColumnNames();
         if (m_inputColumnNames.length == 0) {
-            throw new InvalidSettingsException("no columns for pca chosen");
+            throw new InvalidSettingsException("Linear transformation model has no columns selected");
         }
         m_inputColumnIndices = new int[m_inputColumnNames.length];
         int index = 0;
@@ -240,13 +240,17 @@ public class PCAApplyNodeModel extends NodeModel {
         if (dimensions <= 0) {
             return null;
         }
-        if (dimensions > m_inputColumnIndices.length) {
-            m_dimSelection.setDimensionsSelected(true);
-            dimensions = m_inputColumnIndices.length;
-            m_dimSelection.setDimensions(dimensions);
-            setWarningMessage("dimensions resetted to " + dimensions);
+        if (modelPort.getEigenValues() != null) {
+            if (dimensions > modelPort.getEigenValues().length) {
+                dimensions = modelPort.getEigenValues().length;
+                changeDimensionsAndWarn(dimensions);
+            }
+        } else {
+            if (dimensions > m_inputColumnIndices.length) {
+                dimensions = m_inputColumnIndices.length;
+                changeDimensionsAndWarn(dimensions);
+            }
         }
-
         final DataColumnSpec[] specs =
                 PCANodeModel.createAddTableSpec(
                         (DataTableSpec)inSpecs[DATA_INPORT], dimensions);
@@ -263,6 +267,16 @@ public class PCAApplyNodeModel extends NodeModel {
         return new DataTableSpec[]{dts};
 
     }
+
+    /**
+     * @param dimensions
+     */
+    private void changeDimensionsAndWarn(final int dimensions) {
+        m_dimSelection.setDimensionsSelected(true);
+        m_dimSelection.setDimensions(dimensions);
+        setWarningMessage("dimensions resetted to " + dimensions);
+    }
+
 
     /**
      * {@inheritDoc}

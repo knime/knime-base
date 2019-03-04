@@ -16,7 +16,7 @@
         minimal amount of information to be preserved.
         If selected directly, number of dimensions must be lower or equal than the number of input columns.
         </option>
-        <option name="Replace original data columns">
+        <option name="Remove original data columns">
         If checked, the columns containing the input data are removed in the output table 
         and only the coordinates produces by the projection to the principal components remain.
         </option>

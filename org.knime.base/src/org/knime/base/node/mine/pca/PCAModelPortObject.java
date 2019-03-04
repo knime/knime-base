@@ -57,9 +57,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.port.AbstractSimplePortObject;
-import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortTypeRegistry;
 
 /**
  * Port model object transporting the pca transformation.
@@ -80,6 +80,8 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
     private static final String COLUMN_NAMES_KEY = "columnNames";
 
     private static final String CENTER_KEY = "center";
+
+    private static final String NUM_ROWS_KEY = "numberRows";
 
     /**
      * Define port type of objects of this class when used as PortObjects.
@@ -149,6 +151,8 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
      * @return eigenvectors of pca matrix
      */
     public double[][] getEigenVectors() {
+
+
         return m_eigenVectors;
     }
 
@@ -172,7 +176,7 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
     @Override
     public String getSummary() {
 
-        return m_eigenvalues.length + " principal components";
+        return m_eigenvalues.length + " linearly uncorrelated variables";
     }
 
     /**
@@ -183,7 +187,7 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
         final String description = "<html>" + getSummary() + "</html>";
 
         final JLabel label = new JLabel(description);
-        label.setName("PCA port");
+        label.setName("Linear transformation port");
         return new JComponent[]{label};
     }
 
@@ -197,8 +201,10 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
         m_center = model.getDoubleArray(CENTER_KEY);
         m_inputColumnNames = model.getStringArray(COLUMN_NAMES_KEY);
         m_eigenvalues = model.getDoubleArray(EIGENVALUES_KEY);
-        m_eigenVectors = new double[m_eigenvalues.length][];
-        for (int i = 0; i < m_eigenVectors.length; i++) {
+        final int numRows = model.getInt(NUM_ROWS_KEY, m_eigenvalues.length);
+
+        m_eigenVectors = new double[numRows][];
+        for (int i = 0; i < numRows; i++) {
             m_eigenVectors[i] =
                     model.getDoubleArray(EIGENVECTOR_ROW_KEYPREFIX + i);
         }
@@ -214,6 +220,7 @@ public class PCAModelPortObject extends AbstractSimplePortObject {
         model.addDoubleArray(CENTER_KEY, m_center);
         model.addStringArray(COLUMN_NAMES_KEY, m_inputColumnNames);
         model.addDoubleArray(EIGENVALUES_KEY, m_eigenvalues);
+        model.addInt(NUM_ROWS_KEY, m_eigenVectors.length);
         for (int i = 0; i < m_eigenVectors.length; i++) {
             model.addDoubleArray(EIGENVECTOR_ROW_KEYPREFIX + i,
                     m_eigenVectors[i]);

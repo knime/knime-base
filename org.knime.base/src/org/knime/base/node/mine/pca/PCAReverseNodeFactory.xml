@@ -13,7 +13,7 @@
           If checked, execution fails, when the selected columns contain missing values. 
           By default, rows containing missing values are ignored and not considered in the computation of the principal components.
         </option>
-        <option name="Replace PCA columns">
+        <option name="Remove PCA columns">
         If checked, the PCA columns are removed in the output table.
         </option>
         <option name="Columns">
@@ -21,9 +21,15 @@
         </option>
 		</fullDescription>
 		<ports>
-		<inPort index="0" name="Table to transform">Output data of the PCA</inPort>
-		<inPort index="1" name="Table to transform">Input data for the PCA</inPort>
-		<outPort index="0" name="Data in original space">Model with projection to principal components</outPort>
+			<inPort index="0" name="Model">
+				The Model used to reverse the PCA.
+			</inPort>
+			<inPort index="1" name="Table to transform">
+				Input data containing PCA projected data.
+			</inPort>
+			<outPort index="0" name="Data in original space">
+				The original data (without PCA columns) including the re-constructed data from reverting the PCA projection.
+			</outPort>
 		</ports>
 		</knimeNode>
 

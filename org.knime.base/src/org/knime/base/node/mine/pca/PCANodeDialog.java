@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   04.10.2006 (uwe): created
  */
@@ -56,7 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 
 /**
  * Dialog for the PCA node.
- * 
+ *
  * @author Uwe Nagel, University of Konstanz
  */
 public class PCANodeDialog extends DefaultNodeSettingsPane {
@@ -75,7 +75,7 @@ public class PCANodeDialog extends DefaultNodeSettingsPane {
                         PCANodeModel.DIMENSIONS_SELECTION, 2, 100, false), false));
         addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
                 PCANodeModel.REMOVE_COLUMNS, false),
-                "Replace original data columns"));
+                "Remove original data columns"));
 
         addDialogComponent(new DialogComponentColumnFilter(
                 new SettingsModelFilterString(PCANodeModel.INPUT_COLUMNS),

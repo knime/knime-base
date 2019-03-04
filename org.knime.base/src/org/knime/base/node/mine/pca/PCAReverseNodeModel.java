@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.mine.pca;
 
@@ -80,24 +80,14 @@ import Jama.Matrix;
 
 /**
  * Invert PCA transformation to transform data back to original space.
- * 
+ *
  * @author Uwe Nagel, University of Konstanz
  */
 public class PCAReverseNodeModel extends NodeModel {
     /**
-     * config string determining of columns with pca coordinates shall be
-     * removed.
+     * config string determining of columns with pca coordinates shall be removed.
      */
     static final String REMOVE_PCACOLS = "removePCACOLS";
-
-    /**
-     * create node.
-     */
-    protected PCAReverseNodeModel() {
-        super(new PortType[]{PCAModelPortObject.TYPE, BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE});
-
-    }
 
     /**
      * Config key, for the number of dimensions the original data is reduced to.
@@ -119,12 +109,10 @@ public class PCAReverseNodeModel extends NodeModel {
     public static final String PCA_COLUMNS = "pcaCols";
 
     /** pca columns. */
-    private final SettingsModelFilterString m_pcaColumns =
-        new SettingsModelFilterString(PCA_COLUMNS);
+    private final SettingsModelFilterString m_pcaColumns;
 
     /** determine if pca cols are to be removed. */
-    private final SettingsModelBoolean m_removePCACols =
-        new SettingsModelBoolean(REMOVE_PCACOLS, true);
+    private final SettingsModelBoolean m_removePCACols;
 
     /** fail on missing data? */
     private final SettingsModelBoolean m_failOnMissingValues =
@@ -132,48 +120,64 @@ public class PCAReverseNodeModel extends NodeModel {
 
     private String[] m_inputColumnNames = {};
 
-
     private int[] m_inputColumnIndices;
+
+    private final String m_incColPrefix;
+
+    /**
+     * create node.
+     */
+    protected PCAReverseNodeModel() {
+        this(PCA_COLUMNS, REMOVE_PCACOLS, PCANodeModel.PCA_COL_PREFIX);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param colKey the selected columns settings model key
+     * @param remColKey the remove columns settings model key
+     * @param the prefix used to include columns during auto-configure
+     * @since 3.8
+     */
+    protected PCAReverseNodeModel(final String colKey, final String remColKey, final String incColPrefix) {
+        super(new PortType[]{PCAModelPortObject.TYPE, BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE});
+        m_pcaColumns = new SettingsModelFilterString(colKey);
+        m_removePCACols = new SettingsModelBoolean(remColKey, true);
+        m_incColPrefix = incColPrefix;
+    }
 
     /**
      * Performs the PCA.
-     * 
+     *
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 
-        final PCAModelPortObject model =
-            (PCAModelPortObject)inData[MODEL_INPORT];
-        final Matrix eigenvectors =
-            EigenValue.getSortedEigenVectors(model.getEigenVectors(), model
-                    .getEigenvalues(), m_inputColumnIndices.length);
+        final PCAModelPortObject model = (PCAModelPortObject)inData[MODEL_INPORT];
+        final Matrix eigenvectors = EigenValue.getSortedEigenVectors(model.getEigenVectors(), model.getEigenvalues(),
+            m_inputColumnIndices.length);
         if (m_failOnMissingValues.getBooleanValue()) {
             for (final DataRow row : (DataTable)inData[DATA_INPORT]) {
                 for (int i = 0; i < m_inputColumnIndices.length; i++) {
                     if (row.getCell(m_inputColumnIndices[i]).isMissing()) {
-                        throw new IllegalArgumentException(
-                                "data table contains missing values");
+                        throw new IllegalArgumentException("data table contains missing values");
                     }
                 }
             }
 
         }
         final String[] origColumnNames =
-            ((PCAModelPortObjectSpec)((PCAModelPortObject)inData[MODEL_INPORT])
-                    .getSpec()).getColumnNames();
+            ((PCAModelPortObjectSpec)((PCAModelPortObject)inData[MODEL_INPORT]).getSpec()).getColumnNames();
         final DataColumnSpec[] specs =
-            createAddTableSpec(
-                    (DataTableSpec)inData[DATA_INPORT].getSpec(),
-                    origColumnNames);
+            createAddTableSpec((DataTableSpec)inData[DATA_INPORT].getSpec(), origColumnNames);
 
         final CellFactory fac = new CellFactory() {
 
             @Override
             public DataCell[] getCells(final DataRow row) {
-                return convertInputRow(eigenvectors, row, model.getCenter(),
-                        m_inputColumnIndices, origColumnNames.length);
+                return convertInputRow(eigenvectors, row, model.getCenter(), m_inputColumnIndices,
+                    origColumnNames.length);
             }
 
             @Override
@@ -183,42 +187,37 @@ public class PCAReverseNodeModel extends NodeModel {
             }
 
             @Override
-            public void setProgress(final int curRowNr, final int rowCount,
-                    final RowKey lastKey, final ExecutionMonitor texec) {
+            public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey,
+                final ExecutionMonitor texec) {
                 texec.setProgress((double)curRowNr / rowCount);
 
             }
 
         };
-        final ColumnRearranger cr =
-            new ColumnRearranger((DataTableSpec)inData[DATA_INPORT]
-                                                       .getSpec());
+        final ColumnRearranger cr = new ColumnRearranger((DataTableSpec)inData[DATA_INPORT].getSpec());
         cr.append(fac);
         if (m_removePCACols.getBooleanValue()) {
             cr.remove(m_inputColumnIndices);
         }
         final BufferedDataTable result =
-            exec.createColumnRearrangeTable(
-                    (BufferedDataTable)inData[DATA_INPORT], cr, exec);
+            exec.createColumnRearrangeTable((BufferedDataTable)inData[DATA_INPORT], cr, exec);
         final PortObject[] out = {result};
         return out;
     }
 
     /**
      * reduce a single input row to the principal components.
-     * 
-     * @param eigenvectors transposed matrix of eigenvectors (eigenvectors in
-     *            rows, number of eigenvectors corresponds to dimensions to be
-     *            projected to)
+     *
+     * @param eigenvectors transposed matrix of eigenvectors (eigenvectors in rows, number of eigenvectors corresponds
+     *            to dimensions to be projected to)
      * @param row the row to convert
      * @param means vector with means of columns
      * @param inputColumnIndices indices of input columns
      * @param resultDimensions number of dimensions
      * @return array of data cells to be added to the row
      */
-    protected static DataCell[] convertInputRow(final Matrix eigenvectors,
-            final DataRow row, final double[] means,
-            final int[] inputColumnIndices, final int resultDimensions) {
+    protected static DataCell[] convertInputRow(final Matrix eigenvectors, final DataRow row, final double[] means,
+        final int[] inputColumnIndices, final int resultDimensions) {
         // get row of input values
         boolean missingValues = false;
         for (int i = 0; i < inputColumnIndices.length; i++) {
@@ -240,10 +239,7 @@ public class PCAReverseNodeModel extends NodeModel {
                 for (int i = 0; i < rowVec.length; i++) {
                     for (int j = 0; j < eigenvectors.getColumnDimension(); j++) {
                         rowVec[i] +=
-                            ((DoubleValue)row
-                                    .getCell(inputColumnIndices[j]))
-                                    .getDoubleValue()
-                                    * eigenvectors.get(i, j);
+                            ((DoubleValue)row.getCell(inputColumnIndices[j])).getDoubleValue() * eigenvectors.get(i, j);
                     }
                     rowVec[i] += means[i];
                 }
@@ -259,22 +255,19 @@ public class PCAReverseNodeModel extends NodeModel {
 
     /**
      * create part of table spec to be added to the input table.
-     * 
+     *
      * @param inSpecs input specs (for unique column names)
      * @param colNames names of input columns
      * @return part of table spec to be added to input table
      */
-    public DataColumnSpec[] createAddTableSpec(final DataTableSpec inSpecs,
-            final String[] colNames) {
+    public DataColumnSpec[] createAddTableSpec(final DataTableSpec inSpecs, final String[] colNames) {
         // append pca columns
         final DataColumnSpec[] specs = new DataColumnSpec[colNames.length];
 
         for (int i = 0; i < colNames.length; i++) {
-            final String colName =
-                DataTableSpec.getUniqueColumnName(inSpecs, colNames[i]);
+            final String colName = DataTableSpec.getUniqueColumnName(inSpecs, colNames[i]);
             final DataColumnSpecCreator specCreator =
-                new DataColumnSpecCreator(colName, DataType
-                        .getType(DoubleCell.class));
+                new DataColumnSpecCreator(colName, DataType.getType(DoubleCell.class));
             specs[i] = specCreator.createSpec();
         }
         return specs;
@@ -284,8 +277,7 @@ public class PCAReverseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-    throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         m_inputColumnNames = new String[m_pcaColumns.getIncludeList().size()];
         int index = 0;
         for (final String input : m_pcaColumns.getIncludeList()) {
@@ -306,7 +298,7 @@ public class PCAReverseNodeModel extends NodeModel {
             for (int i = 0; i < dts.getNumColumns(); i++) {
                 final DataColumnSpec dcs = dts.getColumnSpec(i);
 
-                if (dcs.getName().startsWith(PCANodeModel.PCA_COL_PREFIX)) {
+                if (dcs.getName().startsWith(m_incColPrefix)) {
                     include.add(dcs.getName());
                 } else {
                     exclude.add(dcs.getName());
@@ -323,32 +315,23 @@ public class PCAReverseNodeModel extends NodeModel {
         }
         // no pca cols found
         if (m_inputColumnNames.length == 0) {
-            throw new InvalidSettingsException("no columns for pca chosen");
+            throw new InvalidSettingsException("no columns selected");
         }
         m_inputColumnIndices = new int[m_inputColumnNames.length];
         index = 0;
         for (final String colName : m_inputColumnNames) {
-            final DataColumnSpec colspec =
-                ((DataTableSpec)inSpecs[DATA_INPORT])
-                .getColumnSpec(colName);
+            final DataColumnSpec colspec = ((DataTableSpec)inSpecs[DATA_INPORT]).getColumnSpec(colName);
 
             if (!colspec.getType().isCompatible(DoubleValue.class)) {
-                throw new InvalidSettingsException("column \"" + colName
-                        + "\" is not compatible with double");
+                throw new InvalidSettingsException("column \"" + colName + "\" is not compatible with double");
             }
-            m_inputColumnIndices[index++] =
-                ((DataTableSpec)inSpecs[DATA_INPORT])
-                .findColumnIndex(colName);
+            m_inputColumnIndices[index++] = ((DataTableSpec)inSpecs[DATA_INPORT]).findColumnIndex(colName);
         }
 
-        final DataColumnSpec[] specs =
-            createAddTableSpec((DataTableSpec)inSpecs[DATA_INPORT],
-                    ((PCAModelPortObjectSpec)inSpecs[MODEL_INPORT])
-                    .getColumnNames());
+        final DataColumnSpec[] specs = createAddTableSpec((DataTableSpec)inSpecs[DATA_INPORT],
+            ((PCAModelPortObjectSpec)inSpecs[MODEL_INPORT]).getColumnNames());
 
-        final DataTableSpec dts =
-            AppendedColumnTable.getTableSpec(
-                    (DataTableSpec)inSpecs[DATA_INPORT], specs);
+        final DataTableSpec dts = AppendedColumnTable.getTableSpec((DataTableSpec)inSpecs[DATA_INPORT], specs);
         if (m_removePCACols.getBooleanValue()) {
             final ColumnRearranger columnRearranger = new ColumnRearranger(dts);
             columnRearranger.remove(m_inputColumnIndices);
@@ -363,9 +346,8 @@ public class PCAReverseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
@@ -373,9 +355,8 @@ public class PCAReverseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
@@ -383,8 +364,7 @@ public class PCAReverseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-    throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_removePCACols.loadSettingsFrom(settings);
         m_pcaColumns.loadSettingsFrom(settings);
         m_failOnMissingValues.loadSettingsFrom(settings);
@@ -415,8 +395,7 @@ public class PCAReverseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-    throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_removePCACols.validateSettings(settings);
         m_pcaColumns.validateSettings(settings);
         m_failOnMissingValues.validateSettings(settings);

@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.mine.pca;
 
@@ -54,7 +54,7 @@ import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Node dialog for PCA predictor node.
- * 
+ *
  * @author uwe, University of Konstanz
  */
 public class PCAApplyNodeDialog extends DefaultNodeSettingsPane {
@@ -78,7 +78,7 @@ public class PCAApplyNodeDialog extends DefaultNodeSettingsPane {
 		addDialogComponent(m_pcaConfig);
 		addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
 				PCAApplyNodeModel.REMOVE_COLUMNS, false),
-				"Replace original data columns"));
+				"Remove original data columns"));
 	}
 
 	/**
