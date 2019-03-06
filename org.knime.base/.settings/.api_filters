@@ -20,6 +20,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.node.tableview.AsyncDataTable">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.node.tableview.AsyncDataTable"/>
+                <message_argument value="org.knime.base_3.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src-deprecated/org/knime/base/node/mine/bayes/naivebayes/datamodel2/AttributeModel.java" type="org.knime.base.node.mine.bayes.naivebayes.datamodel2.AttributeModel">
         <filter id="305365105">
             <message_arguments>
