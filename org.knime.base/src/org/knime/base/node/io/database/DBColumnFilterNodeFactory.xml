@@ -17,13 +17,13 @@
         </intro>
 
 		<option name="Include">
-			This list contains the names of the columns in the input table
-            that are included in the output table.
+			This list contains the names of those columns in the input table
+            to be included in the output table.
 		</option>
 		
 		<option name="Exclude">
-			This list contains the names of the columns in the input table
-            that are excluded from the output table.
+			This list contains the names of those columns in the input table
+            to be excluded from the output table.
 		</option>
 
 		<option name="Filter">

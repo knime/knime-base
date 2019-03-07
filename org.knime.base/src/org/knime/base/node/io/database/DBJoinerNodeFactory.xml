@@ -45,24 +45,24 @@
 		<tab name="Column selection">
 			<option name="Column Selection (Top Input ('left' table) and Bottom Input ('right' table))">
 				<br />
-				<b>Exclude:</b>
-				This list contains the names of the columns in the input table
-	            that are excluded from the output table.
+				<b>Include:</b>
+				This list contains the names of those columns in the input table
+            	to be included in the output table.
 				<br />
+				<b>Exclude:</b>
+				This list contains the names of those columns in the input table
+	            to be excluded from the output table.
+				<br />
+				<b>Filter:</b>
+				Use one of these fields to filter either the Include or Exclude
+                list for certain column names or name substrings.
+                <br />
 				<b>Buttons:</b>
 				Use these buttons to move columns between the Include and Exclude 
                 list. Single-arrow buttons will move all selected columns.
                 Double-arrow buttons will move all columns (filtering is taken into
                 account).
 				<br />
-				<b>Include:</b>
-				This list contains the names of the columns in the input table
-            	that are included in the output table.
-				<br />
-				<b>Search:</b>
-				Use one of these fields to filter either the Include or Exclude
-                list for certain column names or name substrings.
-                <br />
 				<b>Always include all columns:</b>
 				If set, all columns are moved to
 				the include list and if input
@@ -70,7 +70,7 @@
 				include list, too.
 			</option>
 			<option name="Duplicate column handling">
-				The option allows you to change the behaviour if the include
+				The option allows you to change the behavior if the include
 				lists of
 				both input tables contain columns with the same name.
 				<br />
