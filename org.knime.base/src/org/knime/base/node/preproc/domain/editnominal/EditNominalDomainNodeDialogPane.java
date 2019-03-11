@@ -759,4 +759,13 @@ final class EditNominalDomainNodeDialogPane extends NodeDialogPane {
         return toReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onClose() {
+        // AP-11443: Clear state to trigger update in ConfigurationRequestListener of
+        // m_searchableListPanel on re-open of dialog.
+        m_currentColSpec = null;
+    }
 }
