@@ -142,7 +142,6 @@ public final class MissingCellHandlerDescriptionFactory {
         Document subDescriptionNode;
         if (SUB_DESCRIPTION.get() == null) {
             List<MissingCellHandlerFactory> factories = MissingCellHandlerFactoryManager.getInstance().getFactories();
-            factories.sort((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()));
             subDescriptionNode = createShortDescription(factories);
             SUB_DESCRIPTION = new SoftReference<Document>(subDescriptionNode);
         } else {

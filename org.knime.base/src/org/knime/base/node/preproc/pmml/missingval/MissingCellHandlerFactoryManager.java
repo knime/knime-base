@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.pmml.missingval;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -84,12 +85,10 @@ public class MissingCellHandlerFactoryManager {
     private static MissingCellHandlerFactoryManager instance;
 
     /** List of registered factories. **/
-    private List<MissingCellHandlerFactory> m_factories
-                = new ArrayList<MissingCellHandlerFactory>();
+    private List<MissingCellHandlerFactory> m_factories = new ArrayList<MissingCellHandlerFactory>();
 
     /** Map for resolving registered factories by id. **/
-    private Map<String, MissingCellHandlerFactory> m_factoryNameMap
-                = new HashMap<String, MissingCellHandlerFactory>();
+    private Map<String, MissingCellHandlerFactory> m_factoryNameMap = new HashMap<String, MissingCellHandlerFactory>();
 
     /**
      * protected constructor because this class is a singleton.
@@ -115,16 +114,7 @@ public class MissingCellHandlerFactoryManager {
      * @return all factories managed by this class.
      */
     public List<MissingCellHandlerFactory> getFactories() {
-        return m_factories;
-    }
-
-    /**
-     * Registers a handler factory.
-     * @param factory the factory to register
-     */
-    private void addMissingCellHandlerFactory(final MissingCellHandlerFactory factory) {
-        m_factories.add(factory);
-        m_factoryNameMap.put(factory.getID(), factory);
+        return Collections.unmodifiableList(m_factories);
     }
 
     /**
@@ -154,7 +144,8 @@ public class MissingCellHandlerFactoryManager {
                 try {
                     final MissingCellHandlerFactory factory =
                         (MissingCellHandlerFactory)elem.createExecutableExtension(extPointAttrDf);
-                    addMissingCellHandlerFactory(factory);
+                    m_factories.add(factory);
+                    m_factoryNameMap.put(factory.getID(), factory);
                 } catch (final Exception t) {
                     LOGGER.error("Problems during initialization of missing value handler factory (with id '"
                                 + operator + "'.)");
@@ -163,6 +154,7 @@ public class MissingCellHandlerFactoryManager {
                     }
                 }
             }
+            m_factories.sort((a, b) -> a.getDisplayName().compareTo(b.getDisplayName()));
         } catch (final Exception e) {
             LOGGER.error("Exception while registering MissingCellHandler extensions");
         }

@@ -127,7 +127,6 @@ public final class MissingValueNodeDescriptionHelper {
                 MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription);
             } else {
                 List<MissingCellHandlerFactory> factories = manager.getFactories();
-                factories.sort((a,b) ->  a.getDisplayName().compareTo(b.getDisplayName()));
                 MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription, factories);
             }
             //a deep copy is created and returned as there exist some trouble
