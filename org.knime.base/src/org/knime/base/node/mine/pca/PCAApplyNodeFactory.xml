@@ -34,8 +34,11 @@
         </option>
 		</fullDescription>
 		<ports>
-		<inPort index="0" name="PCA model">Principal Components of training data</inPort>
-		<inPort index="1" name="Table to transform">Input data for the PCA</inPort>
-		<outPort index="0" name="Projected data">Data projected to its principal components</outPort>
+		<inPort index="0" name="Model">The Model used to reduce the data's dimensionality.
+		</inPort>
+		<inPort index="1" name="Table to transform">The data whose dimensionality shall be reduced.
+		</inPort>
+		<outPort index="0" name="Projected data">The original data (if not excluded)
+			plus columns for the projected dimensions.</outPort>
 		</ports>
 		</knimeNode>

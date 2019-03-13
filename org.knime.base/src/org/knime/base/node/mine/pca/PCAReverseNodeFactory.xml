@@ -28,7 +28,7 @@
 				Input data containing PCA projected data.
 			</inPort>
 			<outPort index="0" name="Data in original space">
-				The original data (without PCA columns) including the re-constructed data from reverting the PCA projection.
+				The original data (without PCA columns) including the reconstructed data from reverting the PCA projection.
 			</outPort>
 		</ports>
 		</knimeNode>
