@@ -73,21 +73,29 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 public abstract class AbstractNormalizerPMMLNodeModel extends Normalizer2NodeModel {
 
     private boolean m_hasModelIn = false;
+    private boolean m_addExtensions = false;
 
     /**
      * @param modelPortType the type of the optional model input port
+     * @param addExtensions whether the PMML document should contain extensions
+     *                      for more precise z-score and min-max normalization
      */
-    public AbstractNormalizerPMMLNodeModel(final PortType modelPortType) {
+    public AbstractNormalizerPMMLNodeModel(final PortType modelPortType, final boolean addExtensions) {
         super(modelPortType);
         m_hasModelIn = true;
+        m_addExtensions = addExtensions;
     }
 
     /**
-     * @param modelPortType the type of the optional model input port
+     * @param inModelPortType the type of the input port
+     * @param outModelPortType the type of the output port
+     * @param addExtensions whether the PMML document should contain extensions for z-score normalization
      */
-    public AbstractNormalizerPMMLNodeModel(final PortType inModelPortType, final PortType outModelPortType) {
+    public AbstractNormalizerPMMLNodeModel(final PortType inModelPortType, final PortType outModelPortType,
+        final boolean addExtensions) {
         super(inModelPortType, outModelPortType);
         m_hasModelIn = inModelPortType != null;
+        m_addExtensions = addExtensions;
     }
 
     /**
@@ -149,7 +157,7 @@ public abstract class AbstractNormalizerPMMLNodeModel extends Normalizer2NodeMod
         // the optional PMML in port (can be null)
         PMMLPortObject inPMMLPort = m_hasModelIn ? (PMMLPortObject)inObjects[1] : null;
         PMMLNormalizeTranslator trans = new PMMLNormalizeTranslator(
-                result.getConfig(), new DerivedFieldMapper(inPMMLPort));
+                result.getConfig(), new DerivedFieldMapper(inPMMLPort), m_addExtensions);
 
         DataTableSpec dataTableSpec = (DataTableSpec)inObjects[0].getSpec();
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(

@@ -1757,8 +1757,14 @@
             />
       <node
             category-path="/manipulation/pmml"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.pmml.normalize.NormalizerPMMLNodeFactory2"
+            >
+      </node>
+      <node
+            category-path="/manipulation/pmml"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.pmml.normalize.NormalizerPMMLNodeFactory3"
             >
       </node>
       <node

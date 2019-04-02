@@ -71,6 +71,9 @@ import org.knime.core.node.port.pmml.preproc.PMMLPreprocTranslator;
  *
  */
 public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
+
+    private static final String SCALE = "scale";
+    private static final String TRANSLATION = "translation";
     private final List<String> m_fields;
     private final List<Double> m_scales;
     private final List<Double> m_translations;
@@ -78,6 +81,7 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
     private String m_summary;
     private AffineTransConfiguration m_affineTrans;
     private DerivedFieldMapper m_mapper;
+    private boolean m_insertValueExtensions = false;
 
     private static final int MAX_NUM_SEGMENTS = 2;
 
@@ -92,10 +96,10 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
     }
 
     /**
-     * Creates an initialized translator that can export its configuration.
+     * Creates an initialized translator that can export its configuration
+     * and does not insert extensions with values for better z-score and min-max normalization.
      *
-     * @param trans the affine trans configuration * @param mapper mapping data
-     *            column names to PMML derived field names and vice versa
+     * @param trans the affine trans configuration
      * @param mapper mapping data column names to PMML derived field names and
      *      vice versa
      */
@@ -104,6 +108,22 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
         this();
         m_affineTrans = trans;
         m_mapper = mapper;
+    }
+
+    /**
+     * Creates an initialized translator that can export its configuration.
+     *
+     * @param trans the affine trans configuration
+     * @param mapper mapping data column names to PMML derived field names and vice versa
+     * @param insertValueExtensions whether extensions with values for better z-score and min-max normalization should
+     *            be inserted
+     */
+    public PMMLNormalizeTranslator(final AffineTransConfiguration trans,
+            final DerivedFieldMapper mapper, final boolean insertValueExtensions) {
+        this();
+        m_affineTrans = trans;
+        m_mapper = mapper;
+        m_insertValueExtensions = insertValueExtensions;
     }
 
     /**
@@ -138,15 +158,23 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
         return dictionary;
     }
 
-    private Extension[] createSummaryExtension() {
+    private Extension createSummaryExtension() {
         Extension extension = Extension.Factory.newInstance();
         extension.setName(SUMMARY);
         extension.setExtender(PMMLPortObjectSpec.KNIME);
         extension.setValue(m_affineTrans.getSummary());
-        return new Extension[] {extension};
+        return extension;
     }
 
-    private void parseExtensionArray(final Extension ... extensions) {
+    private static Extension createDoubleValueExtension(final String name, final double value) {
+        Extension extension = Extension.Factory.newInstance();
+        extension.setName(name);
+        extension.setExtender(PMMLPortObjectSpec.KNIME);
+        extension.setValue(Double.toString(value));
+        return extension;
+    }
+
+    private void extractSummary(final List<Extension> extensions) {
         if (extensions == null) {
             return;
         }
@@ -168,7 +196,16 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
 
         for (int i = 0; i < num; i++) {
             DerivedField df = DerivedField.Factory.newInstance();
-            df.setExtensionArray(createSummaryExtension());
+            if (m_insertValueExtensions) {
+                // Add translation and scale for more precise z-score normalization
+                df.setExtensionArray(new Extension[] {
+                    createSummaryExtension(),
+                    createDoubleValueExtension(SCALE, m_affineTrans.getScales()[i]),
+                    createDoubleValueExtension(TRANSLATION, m_affineTrans.getTranslations()[i])
+                });
+            } else {
+                df.setExtensionArray(new Extension[] {createSummaryExtension()});
+            }
             String name = m_affineTrans.getNames()[i];
             df.setDisplayName(name);
             /* The field name must be retrieved before creating a new derived
@@ -206,20 +243,63 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
         return localtrans;
     }
 
+    private static double[] calculateTranslationAndScale(final DerivedField df) {
+        NormContinuous normContinuous = df.getNormContinuous();
+        double[] orig = new double[MAX_NUM_SEGMENTS];
+        double[] norm = new double[MAX_NUM_SEGMENTS];
+
+        List<LinearNorm> norms = normContinuous.getLinearNormList();
+        for (int j = 0; j < norms.size(); j++) {
+            orig[j] = norms.get(j).getOrig();
+            norm[j] = norms.get(j).getNorm();
+        }
+        double scale = (norm[1] - norm[0]) / (orig[1] - orig[0]);
+        double translation = norm[0] - scale * orig[0];
+        return new double[] {scale, translation};
+    }
+
+    private static double[] extractTranslationAndScale(final DerivedField df) {
+        List<Extension> extensions = df.getExtensionList();
+        if (extensions == null || extensions.size() == 0) {
+            return calculateTranslationAndScale(df);
+        }
+
+        int found = 0;
+        double[] values = new double[2];
+        for (Extension ext : extensions) {
+            if (!PMMLPortObjectSpec.KNIME.equals(ext.getExtender())) {
+                continue; // skip non KNIME extensions
+            }
+            // Find scale and translation extensions
+            if (SCALE.equals(ext.getName())) {
+                values[0] = Double.parseDouble(ext.getValue());
+                found++;
+            } else if (TRANSLATION.equals(ext.getName())) {
+                values[1] = Double.parseDouble(ext.getValue());
+                found++;
+            }
+        }
+        // If either scale or translation or both could not be found, fall back to calculation
+        if (found != 2) {
+            return calculateTranslationAndScale(df);
+        }
+        return values;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public List<Integer> initializeFrom(final DerivedField[] derivedFields) {
         if (derivedFields == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         m_mapper = new DerivedFieldMapper(derivedFields);
         int num = derivedFields.length;
         List<Integer> consumed = new ArrayList<Integer>(num);
 
         if (num > 0) {
-            parseExtensionArray(derivedFields[0].getExtensionArray());
+            extractSummary(derivedFields[0].getExtensionList());
         }
 
         for (int i = 0; i < derivedFields.length; i++) {
@@ -238,22 +318,15 @@ public class PMMLNormalizeTranslator implements PMMLPreprocTranslator {
             }
             consumed.add(i);
             NormContinuous normContinuous = df.getNormContinuous();
-            if (normContinuous.getLinearNormArray().length > 2) {
+            if (normContinuous.getLinearNormList().size() > 2) {
                 throw new IllegalArgumentException("Only two LinearNorm "
                         + "elements are supported per NormContinuous");
             }
-            //String field = normContinuous.getField();
-            double[] orig = new double[MAX_NUM_SEGMENTS];
-            double[] norm = new double[MAX_NUM_SEGMENTS];
 
-            LinearNorm[] norms = normContinuous.getLinearNormArray();
-            for (int j = 0; j < norms.length; j++) {
-                orig[j] = norms[j].getOrig();
-                norm[j] = norms[j].getNorm();
-            }
-            double scale = (norm[1] - norm[0]) / (orig[1] - orig[0]);
-            m_scales.add(scale);
-            m_translations.add(norm[0] - scale * orig[0]);
+            double[] transScale = extractTranslationAndScale(df);
+
+            m_scales.add(transScale[0]);
+            m_translations.add(transScale[1]);
             if (displayName != null) {
                 m_fields.add(displayName);
             } else {

@@ -58,8 +58,18 @@ import org.knime.core.node.port.pmml.PMMLPortObject;
 public class NormalizerPMMLNodeModelNoOptIn extends AbstractNormalizerPMMLNodeModel {
     /**
      * Creates a new normalizer node without an optional PMML inport.
+     * @param addExtensions whether the PMML document should contain extensions
+     *                      for more precise z-score and min-max normalization
+     */
+    public NormalizerPMMLNodeModelNoOptIn(final boolean addExtensions) {
+        super(null, PMMLPortObject.TYPE, addExtensions);
+    }
+
+    /**
+     * Creates a new normalizer node without an optional PMML inport
+     * that does not add extensions for more precise z-score and min-max normalization.
      */
     public NormalizerPMMLNodeModelNoOptIn() {
-        super(null, PMMLPortObject.TYPE);
+        super(null, PMMLPortObject.TYPE, false);
     }
 }
