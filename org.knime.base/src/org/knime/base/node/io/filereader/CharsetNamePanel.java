@@ -55,6 +55,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
+import java.util.Optional;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -89,6 +90,8 @@ public class CharsetNamePanel extends JPanel {
 
     private JRadioButton m_default;
 
+    private JRadioButton m_usASCII;
+
     private JRadioButton m_iso8859;
 
     private JRadioButton m_utf8;
@@ -103,6 +106,13 @@ public class CharsetNamePanel extends JPanel {
 
     private JTextField m_customName;
 
+    /** Init UI. */
+    private CharsetNamePanel() {
+        this.setSize(520, 375);
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        add(getSelectionPanel());
+    }
+
     /**
      * Creates a panel to select the character set name and initializes it from the passed object.
      *
@@ -110,10 +120,19 @@ public class CharsetNamePanel extends JPanel {
      * @since 3.1
      */
     public CharsetNamePanel(final FileReaderSettings settings) {
-        this.setSize(520, 375);
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        add(getSelectionPanel());
+        this();
         loadSettings(settings);
+    }
+
+    /**
+     * Creates a panel to select the character set name and initializes it from the passed object.
+     *
+     * @param charsetName the name of the charset, possibly null, see {@link #setCharsetName(String)}.
+     * @since 3.8
+     */
+    public CharsetNamePanel(final String charsetName) {
+        this();
+        setCharsetName(charsetName);
     }
 
     private Container getSelectionPanel() {
@@ -132,6 +151,16 @@ public class CharsetNamePanel extends JPanel {
             }
         });
         m_group.add(m_default);
+
+        m_usASCII = new JRadioButton("US-ASCII");
+        m_usASCII.setToolTipText("Seven-bit ASCII, also referred to as US-ASCII");
+        m_usASCII.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(final ChangeEvent e) {
+                buttonsChanged();
+            }
+        });
+        m_group.add(m_usASCII);
 
         m_iso8859 = new JRadioButton("ISO-8859-1");
         m_iso8859.setToolTipText("ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1");
@@ -224,6 +253,8 @@ public class CharsetNamePanel extends JPanel {
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         result.add(m_default, gbc);
         gbc.gridy++;
+        result.add(m_usASCII, gbc);
+        gbc.gridy++;
         result.add(m_iso8859, gbc);
         gbc.gridy++;
         result.add(m_utf8, gbc);
@@ -285,8 +316,15 @@ public class CharsetNamePanel extends JPanel {
      */
     public void loadSettings(final FileReaderSettings settings) {
         String csName = settings.getCharsetName();
+        setCharsetName(csName);
+    }
 
-        if (csName == null) {
+    /** Sets the new charset name. Null will choose the 'default' value.
+     * @param charsetName Name of charset or null
+     * @since 3.8
+     */
+    public final void setCharsetName(final String charsetName) {
+        if (charsetName == null) {
             // the default
             m_default.setSelected(true);
         } else {
@@ -294,7 +332,7 @@ public class CharsetNamePanel extends JPanel {
             Enumeration<AbstractButton> buttons = m_group.getElements();
             while (buttons.hasMoreElements()) {
                 AbstractButton b = buttons.nextElement();
-                if (csName.equals(b.getActionCommand())) {
+                if (charsetName.equals(b.getActionCommand())) {
                     foundIt = true;
                     b.setSelected(true);
                     break;
@@ -302,7 +340,7 @@ public class CharsetNamePanel extends JPanel {
             }
             if (!foundIt) {
                 m_custom.setSelected(true);
-                m_customName.setText(csName);
+                m_customName.setText(charsetName);
             }
         }
 
@@ -349,24 +387,8 @@ public class CharsetNamePanel extends JPanel {
      */
     public boolean overrideSettings(final FileReaderNodeSettings settings) {
         String oldCSN = settings.getCharsetName();
-        String newCSN = null;
-
-        Enumeration<AbstractButton> buttons = m_group.getElements();
-        while (buttons.hasMoreElements()) {
-            AbstractButton b = buttons.nextElement();
-            if (b.isSelected()) {
-
-                newCSN = b.getActionCommand();
-
-                if (CUSTOM_LABEL.equals(newCSN)) {
-                    newCSN = m_customName.getText();
-                } else if (DEFAULT_LABEL.equals(newCSN)) {
-                    newCSN = null;
-                }
-                settings.setCharsetName(newCSN);
-                break;
-            }
-        }
+        String newCSN = getSelectedCharsetName().orElse(null);
+        settings.setCharsetName(newCSN);
 
         boolean changed;
         if (oldCSN == null) {
@@ -379,5 +401,27 @@ public class CharsetNamePanel extends JPanel {
         }
         return changed;
 
+    }
+
+    /** Get the name of the selected charset or an empty optional if 'default' was chosen.
+     * @return that value
+     * @since 3.8
+     */
+    public final Optional<String> getSelectedCharsetName() {
+        Enumeration<AbstractButton> buttons = m_group.getElements();
+        while (buttons.hasMoreElements()) {
+            AbstractButton b = buttons.nextElement();
+            if (b.isSelected()) {
+                String newCSN = b.getActionCommand();
+                if (CUSTOM_LABEL.equals(newCSN)) {
+                    return Optional.of(m_customName.getText());
+                } else if (DEFAULT_LABEL.equals(newCSN)) {
+                    return Optional.empty();
+                } else {
+                    return Optional.of(newCSN);
+                }
+            }
+        }
+        return Optional.empty();
     }
 }
