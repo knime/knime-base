@@ -484,6 +484,13 @@
             locked="true"
             name="Logistic Regression"
             path="/analytics/mining/">
+      </category>
+      <category
+            description="Contains nodes that allow to explain machine learning models"
+            icon="icons/missing.gif"
+            level-id="xai"
+            name="Model Explanation"
+            path="labs/">
       </category>      
    </extension>
             
@@ -2014,6 +2021,16 @@
             category-path="/manipulation/pmml"
             deprecated="true"
             factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory2">
+      </node>
+      <node
+            category-path="/labs/xai"
+            deprecated="false"
+            factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopStartNodeFactory">
+      </node>
+      <node
+            category-path="/labs/xai"
+            deprecated="false"
+            factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopEndNodeFactory">
       </node>
    </extension>
    
