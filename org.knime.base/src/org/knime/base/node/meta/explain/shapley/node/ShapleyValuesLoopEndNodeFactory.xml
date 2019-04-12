@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="explainer_icon.png" type="LoopStart"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Shapley Values Loop End</name>
+
+	<shortDescription>End node for a Shapley Values loop
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Aggregates the predictions per row to explain and calculates the Shapley Values for each feature-prediction combination.
+			Has nothing to configure because it receives its configuration from the loop start node.
+		</intro>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Table containing the rows to explain.">
+			Table containing predictions for the perturbed rows produced by the Shapley Values Loop Start node
+		</inPort>
+		<outPort index="0" name="Table containing the Shapley Values.">Table containing the Shapley Values for each feature-prediction combination</outPort>
+	</ports>
+</knimeNode>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="explainer_icon.png" type="LoopStart"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Shapley Values Loop Start</name>
+
+	<shortDescription>Start node for a Shapley Values loop
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+		<p>
+			Shapley Values originate in game theory and in the context of machine learning they recently became a popular
+			tool for the explanation of model predictions.
+			The Shapley Value of a feature for a certain row and prediction indicates how much the feature contributed to
+			the deviation of the prediction from the base prediction (i.e. the mean prediction over the full sampling data).
+			In theory the Shapley Values of all features add up to the difference between the mean prediction and the actual prediction
+			but this loop only produces approximations because it is typically infeasible to calculate the exact Shapley Values.
+		</p>
+		<p>	
+			This loop start node produces for each row in the first input table 2 * number of Features * number of iterations per feature rows that have to be predicted
+			by the model you want to explain.
+			Each row is a perturbed version of the input row, where some of the features are replaced with a row sampled from the sampling data provided
+			via the sampling input table. For the exact details of the algorithm see algorithm 1 in <i>Explaining prediction models and individual predictions with feature contributions</i>
+			by Strumbelj and Kononenko.
+		</p>
+		<p>
+			The task of the Shapley Values Loop End node is to aggregate the predictions per input row of the loop start node and calculate the
+			Shapley Values for its features.
+		</p>
+		
+		<p>
+			These nodes support collection and vector columns such as List columns, Bit Vector and Byte Vector columns, in case of which each element
+			of the position/vector can be treated as individual feature. Note that this requires all collections/vectors in a single column to be of the
+			same length i.e. contain the same number of elements.
+			It is also possible to treat collections and vectors as single feature, in which case the respective option has to be set in the dialog.
+		</p>
+			
+		</intro>
+		
+		<tab name="Options">
+			<option name="Treat all columns as single feature">
+				Check this box if all columns even collection and vector columns represent a single feature i.e. can only be changed as a whole.
+			</option>
+			<option name="Feature columns">
+				The columns that contain features your model requires.
+				Note that it is not allowed to have columns both as feature and prediction column.
+			</option>
+			<option name="Prediction columns">
+				The columns containing the predictions you want to explain.
+				In case of classification tasks these are typically the class probabilities predicted by your model.
+				Note that its not allowed to have columns both as feature and prediction column.
+			</option>
+			<option name="Iterations per feature">
+				How often to sample the Shapley Value for each single feature.
+				This directly affects the runtime of the loop since for each row in the first input table 2 * number of features * number of iterations per feature rows are created
+				and have to be predicted.
+				The higher this number, the better the approximation but the longer the runtime.
+			</option>
+			<option name="Use seed">
+				Using a seed allows to reproduce the results of the loop. If this box is checked the seed displayed in the text box is used, otherwise a new seed is generated for each
+				execution. The new button allows to generate a new random seed.
+			</option>
+			<option name="Don't use element names for collection features">
+				Each collection or vector column can declare names for its contained elements (values).
+				However, oftentimes using these names might be less informative than using the collection name combined with an index.
+				If this box is checked all features from a collection/vector column are named with respect to the collection/vector column name.
+				Note that this happens anyway, if there are no element names available or the number of element names does not match the actual
+				number of values in the collection/vector.
+			</option>
+		</tab>
+		<tab name="Advanced Options">
+			<option name="Chunk size">
+				Since every row in the input may result in a very large number of rows in the output of the loop start node, this option allows
+				to specify how many <b>input</b> rows should be handled per loop iteration.
+				The output of the loop start will have chunk size * number of features * number of iterations per feature rows
+				(unless the number of rows left to process is smaller than chunk size).
+			</option>
+		</tab>
+	</fullDescription>
+	
+	<ports>
+		<inPort index="0" name="Table containing the rows to explain">
+			Table containing the rows to explain.
+		</inPort>
+		<inPort index="1" name="Sampling data">
+			Table containing rows used to perturb rows in the first table.
+		</inPort>
+		<outPort index="0" name="Perturbed rows">Perturbed rows.</outPort>
+	</ports>
+</knimeNode>
