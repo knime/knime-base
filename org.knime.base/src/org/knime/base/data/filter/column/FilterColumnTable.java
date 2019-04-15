@@ -53,6 +53,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.filter.TableFilter;
+import org.knime.core.node.BufferedDataTable;
 
 
 /**
@@ -382,7 +384,12 @@ public final class FilterColumnTable implements DataTable {
      */
     @Override
     public RowIterator iterator() {
-        RowIterator it = m_data.iterator();
+        RowIterator it;
+        if (m_data instanceof BufferedDataTable) {
+            it = ((BufferedDataTable)m_data).filter(TableFilter.materializeCols(m_columns)).iterator();
+        } else {
+            it = m_data.iterator();
+        }
         if (it instanceof CloseableRowIterator) {
             return new CloseableFilterColumnRowIterator(
                     (CloseableRowIterator) it, m_columns);

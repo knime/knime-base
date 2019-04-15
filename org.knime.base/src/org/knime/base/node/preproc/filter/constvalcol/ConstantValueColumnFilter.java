@@ -58,11 +58,12 @@ import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.data.RowIteratorBuilder;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -145,20 +146,22 @@ public class ConstantValueColumnFilter {
             return new String[0];
         }
 
+        final DataTableSpec spec = inputTable.getDataTableSpec();
+
         /*
          * Assemble a map of filter candidates that maps the indices of columns that potentially contain only duplicate
          * values to a column checker object that can be used to check whether further values in that column are
          * specified in the dialog pane and constant (i.e., identical to the first observed value).
          */
         Set<String> colNamesToFilterSet = new HashSet<>(Arrays.asList(colNamesToFilter));
-        String[] allColNames = inputTable.getDataTableSpec().getColumnNames();
+        final String[] allColNames = spec.getColumnNames();
         Map<Integer, ConstantChecker> columnCheckers = new HashMap<>();
         try (CloseableRowIterator rowIt = inputTable.iterator()) {
             DataRow firstRow = rowIt.next();
             for (int i = 0; i < allColNames.length; i++) {
                 if (colNamesToFilterSet.contains(allColNames[i])) {
                     DataCell firstCell = firstRow.getCell(i);
-                    DataType type = inputTable.getDataTableSpec().getColumnSpec(i).getType();
+                    final DataType type = spec.getColumnSpec(i).getType();
                     ConstantChecker checker = createConstantChecker(type, firstCell);
                     if (checker.isCellSpecified(firstCell)) {
                         columnCheckers.put(i, checker);
@@ -167,49 +170,43 @@ public class ConstantValueColumnFilter {
             }
         }
 
-        RowIteratorBuilder<? extends CloseableRowIterator> iteratorBuilder = inputTable.iteratorBuilder();
-        iteratorBuilder.filterColumns(columnCheckers.keySet().stream().mapToInt(i -> i).toArray());
+        final int[] indicesToKeep = columnCheckers.keySet().stream().mapToInt(i -> i).toArray();
+        int index = 0;
+        for (final DataRow currentRow : inputTable.filter(TableFilter.materializeCols(indicesToKeep), exec)) {
+        	// the first row has already been read
+            if (index++ == 0) {
+                continue;
+            }
+            exec.checkCanceled();
 
-        try (CloseableRowIterator rowIt = iteratorBuilder.build()) {
-            // the first row has already been read
-            rowIt.next();
             /*
              * Across all filter candidates, check if there is any cell whose value differs from the first cell's value.
-             * When found, this column is not constant and, thus, should be removed from the filter candidates. This method
-             * has a low memory footprint and operates in linear runtime. When the option to filter only constant columns
-             * with specific values is selected, columns should also be removed when they are found to contain a value other
-             * than any of the specified values.
+             * When found, this column is not constant and, thus, should be removed from the filter candidates. This
+             * method has a low memory footprint and operates in linear runtime. When the option to filter only constant
+             * columns with specific values is selected, columns should also be removed when they are found to contain a
+             * value other than any of the specified values.
              */
-            final long finalSize = inputTable.size();
-            for (long i = 1; i < finalSize; i++) {
-                final long finalI = i;
-                final DataRow currentRow = rowIt.next();
-                exec.checkCanceled();
-                exec.setProgress(i / (double)inputTable.size(),
-                    () -> String.format("Row %,d/%,d (%s)", finalI + 1, finalSize, currentRow.getKey()));
+            for (final Iterator<Entry<Integer, ConstantChecker>> it = columnCheckers.entrySet().iterator(); it
+                .hasNext();) {
+                Entry<Integer, ConstantChecker> entry = it.next();
+                DataCell cell = currentRow.getCell(entry.getKey());
+                ConstantChecker checker = entry.getValue();
 
-                for (Iterator<Entry<Integer, ConstantChecker>> it = columnCheckers.entrySet().iterator(); it
-                    .hasNext();) {
-                    Entry<Integer, ConstantChecker> entry = it.next();
-                    DataCell cell = currentRow.getCell(entry.getKey());
-                    ConstantChecker checker = entry.getValue();
-
-                    /*
-                     * Columns are removed from the filter candidates, when (a) the current cell has a value other than the
-                     * specified / allowed values or (b) it differs from the first cell in this column (i.e., this column is
-                     * not constant).
-                     */
-                    if (!(checker.isCellSpecified(cell) && checker.isCellConstant(cell))) {
-                        it.remove();
-                    }
+                /*
+                 * Columns are removed from the filter candidates, when (a) the current cell has a value other than the
+                 * specified / allowed values or (b) it differs from the first cell in this column (i.e., this column is
+                 * not constant).
+                 */
+                if (!(checker.isCellSpecified(cell) && checker.isCellConstant(cell))) {
+                    it.remove();
                 }
             }
-
-            /*
-             * Obtain the names of to-be-filtered columns from the filter candidates map.
-             */
-            return columnCheckers.keySet().stream().map(i -> allColNames[i]).toArray(String[]::new);
         }
+
+        /*
+         * Obtain the names of to-be-filtered columns from the filter candidates map.
+         */
+        return columnCheckers.keySet().stream().map(i -> allColNames[i]).toArray(String[]::new);
     }
 
     /*
