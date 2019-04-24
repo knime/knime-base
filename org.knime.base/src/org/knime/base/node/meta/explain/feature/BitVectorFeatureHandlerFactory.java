@@ -61,38 +61,38 @@ import org.knime.core.node.util.CheckUtils;
 final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHandlerFactory<BitVectorValue> {
 
     /**
-         * {@inheritDoc}
-         */
-        @Override
-        public FeatureHandler createFeatureHandler() {
-            return new BitVectorFeatureHandler(getCaster());
-        }
+     * {@inheritDoc}
+     */
+    @Override
+    public FeatureHandler createFeatureHandler() {
+        return new BitVectorFeatureHandler(getCaster());
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected int getNumFeatures(final BitVectorValue value) {
-            final long length = value.length();
-            CheckUtils.checkArgument(length <= Integer.MAX_VALUE,
-                "Only bit vectors with a length up to Integer.MAX_VALUE are supported.");
-            return (int)value.length();
-        }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getNumFeatures(final BitVectorValue value) {
+        final long length = value.length();
+        CheckUtils.checkArgument(length <= Integer.MAX_VALUE,
+            "Only bit vectors with a length up to Integer.MAX_VALUE are supported.");
+        return (int)value.length();
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected Class<BitVectorValue> getAcceptValueClass() {
-            return BitVectorValue.class;
-        }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Class<BitVectorValue> getAcceptValueClass() {
+        return BitVectorValue.class;
+    }
 
     /**
      *
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static class BitVectorFeatureHandler extends AbstractCollectionFeatureHandler<BitVectorValue> {
+    static final class BitVectorFeatureHandler extends AbstractCollectionFeatureHandler<BitVectorValue> {
 
         /**
          * @param caster
@@ -133,7 +133,7 @@ final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHand
         void set(int idx, boolean value);
     }
 
-    private static class DenseBVFactory implements BVFactory {
+    private static final class DenseBVFactory implements BVFactory {
         private final DenseBitVectorCellFactory m_factory;
 
         public DenseBVFactory(final DenseBitVectorCell bvCell) {
@@ -182,7 +182,7 @@ final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHand
 
     }
 
-    private static class DefaultBVFactory implements BVFactory {
+    private static final class DefaultBVFactory implements BVFactory {
         private final DenseBitVectorCellFactory m_factory;
 
         public DefaultBVFactory(final BitVectorValue bv) {
