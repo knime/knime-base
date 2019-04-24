@@ -49,6 +49,7 @@
 package org.knime.base.node.meta.explain.feature;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -93,18 +94,18 @@ abstract class AbstractCollectionFeatureHandlerFactory<T extends DataValue>
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public abstract class AbstractCollectionFeatureHandler extends AbstractFeatureHandler {
+    abstract static class AbstractCollectionFeatureHandler <T extends DataValue> extends AbstractFeatureHandler<T> {
 
         /**
          * Holds the indices marked for replacement
          */
-        protected final Set<Integer> m_replacements = new HashSet<>();
+        private final Set<Integer> m_replacements = new HashSet<>();
 
         /**
-         *
+         * @param caster
          */
-        public AbstractCollectionFeatureHandler() {
-            super();
+        public AbstractCollectionFeatureHandler(final Caster<T> caster) {
+            super(caster);
         }
 
         /**
@@ -121,6 +122,14 @@ abstract class AbstractCollectionFeatureHandlerFactory<T extends DataValue>
         @Override
         public void resetReplaceState() {
             m_replacements.clear();
+        }
+
+        protected Iterator<Integer> getReplacedIterator() {
+            return m_replacements.iterator();
+        }
+
+        protected boolean isReplaced(final int idx) {
+            return m_replacements.contains(idx);
         }
 
     }

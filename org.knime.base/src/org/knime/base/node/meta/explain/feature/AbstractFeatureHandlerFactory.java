@@ -54,9 +54,18 @@ import org.knime.core.node.util.CheckUtils;
 
 abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements FeatureHandlerFactory {
 
+    private final Caster<T> m_caster;
+
     protected abstract Class<T> getAcceptValueClass();
 
     protected abstract int getNumFeatures(T value);
+
+    /**
+     *
+     */
+    public AbstractFeatureHandlerFactory() {
+        m_caster = new Caster<>(getAcceptValueClass(), supportsMissingValues());
+    }
 
     /**
      * {@inheritDoc}
@@ -64,25 +73,49 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
      */
     @Override
     public final int numFeatures(final DataCell cell) throws MissingValueException {
-        final T value = getAsT(cell);
+        final T value = m_caster.getAsT(cell);
         return getNumFeatures(value);
     }
 
-    // The compatibility is explicitly checked
-    @SuppressWarnings("unchecked")
-    private T getAsT(final DataCell cell) throws MissingValueException {
-        if (cell.isMissing() && !supportsMissingValues()) {
-            throw new MissingValueException();
-        }
-        CheckUtils.checkArgument(getAcceptValueClass().isInstance(cell),
-            "The provided cell '%s' is not of expected class '%s'", cell, getAcceptValueClass().getCanonicalName());
-        return (T)cell;
+    protected final Caster<T> getCaster() {
+        return m_caster;
     }
 
-    abstract class AbstractFeatureHandler implements FeatureHandler {
+
+
+    protected static class Caster<T extends DataValue> {
+        private final boolean m_supportMissingValues;
+        private final Class<T> m_acceptedValueClass;
+
+        private Caster(final Class<T> acceptedValueClass, final boolean supportMissingValues) {
+            m_supportMissingValues = supportMissingValues;
+            m_acceptedValueClass = acceptedValueClass;
+        }
+
+        // The compatibility is explicitly checked
+        @SuppressWarnings("unchecked")
+        protected T getAsT(final DataCell cell) throws MissingValueException {
+            if (cell.isMissing() && m_supportMissingValues) {
+                throw new MissingValueException();
+            }
+            CheckUtils.checkArgument(m_acceptedValueClass.isInstance(cell),
+                "The provided cell '%s' is not of expected class '%s'", cell, m_acceptedValueClass.getCanonicalName());
+            return (T)cell;
+        }
+
+    }
+
+
+    abstract static class AbstractFeatureHandler <T extends DataValue> implements FeatureHandler {
         protected T m_original;
 
         protected T m_sampled;
+
+        private final Caster<T> m_caster;
+
+        AbstractFeatureHandler(final Caster<T> caster) {
+            m_caster = caster;
+        }
 
         /**
          * {@inheritDoc}
@@ -90,7 +123,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
          */
         @Override
         public final void setOriginal(final DataCell cell) throws MissingValueException {
-            m_original = getAsT(cell);
+            m_original = m_caster.getAsT(cell);
         }
 
         /**
@@ -99,7 +132,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
          */
         @Override
         public final void setSampled(final DataCell cell) throws MissingValueException {
-            m_sampled = getAsT(cell);
+            m_sampled = m_caster.getAsT(cell);
         }
 
         /**

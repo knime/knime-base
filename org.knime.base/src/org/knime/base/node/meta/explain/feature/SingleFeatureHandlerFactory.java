@@ -62,7 +62,7 @@ final class SingleFeatureHandlerFactory extends AbstractFeatureHandlerFactory<Da
      */
     @Override
     public FeatureHandler createFeatureHandler() {
-        return new SingleFeatureHandler();
+        return new SingleFeatureHandler(getCaster());
     }
 
     /**
@@ -106,7 +106,15 @@ final class SingleFeatureHandlerFactory extends AbstractFeatureHandlerFactory<Da
         return 1;
     }
 
-    class SingleFeatureHandler extends AbstractFeatureHandler {
+    class SingleFeatureHandler extends AbstractFeatureHandler<DataCell> {
+
+        /**
+         * @param caster
+         */
+        SingleFeatureHandler(final Caster<DataCell> caster) {
+            super(caster);
+        }
+
         private boolean m_replace = false;
 
         /**

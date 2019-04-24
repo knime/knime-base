@@ -75,6 +75,6 @@ public interface FeatureVector {
     /**
      * @return the {@link DataRow} corresponding to this feature vector
      */
-    DataRow get();
+    public DataRow get();
 
 }

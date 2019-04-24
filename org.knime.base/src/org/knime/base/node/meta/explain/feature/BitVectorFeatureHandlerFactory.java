@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.meta.explain.feature;
 
+import java.util.Iterator;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCell;
@@ -63,7 +65,7 @@ final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHand
          */
         @Override
         public FeatureHandler createFeatureHandler() {
-            return new BitVectorFeatureHandler();
+            return new BitVectorFeatureHandler(getCaster());
         }
 
         /**
@@ -90,7 +92,14 @@ final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHand
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    class BitVectorFeatureHandler extends AbstractCollectionFeatureHandler {
+    static class BitVectorFeatureHandler extends AbstractCollectionFeatureHandler<BitVectorValue> {
+
+        /**
+         * @param caster
+         */
+        public BitVectorFeatureHandler(final Caster<BitVectorValue> caster) {
+            super(caster);
+        }
 
         /**
          * {@inheritDoc}
@@ -98,23 +107,24 @@ final class BitVectorFeatureHandlerFactory extends AbstractCollectionFeatureHand
         @Override
         public DataCell createReplaced() {
             final BVFactory factory = getFactory(m_original);
-            for (Integer replace : m_replacements) {
-                final int idx = replace.intValue();
+            final Iterator<Integer> iter = getReplacedIterator();
+            while (iter.hasNext()) {
+                final int idx = iter.next().intValue();
                 factory.set(idx, m_sampled.get(idx));
             }
             return factory.createDataCell();
         }
 
-    }
-
-    private static BVFactory getFactory(final BitVectorValue val) {
-        if (val instanceof DenseBitVectorCell) {
-            return new DenseBVFactory((DenseBitVectorCell)val);
-        } else if (val instanceof SparseBitVectorCell) {
-            return new SparseBVFactory((SparseBitVectorCell)val);
-        } else {
-            return new DefaultBVFactory(val);
+        private static BVFactory getFactory(final BitVectorValue val) {
+            if (val instanceof DenseBitVectorCell) {
+                return new DenseBVFactory((DenseBitVectorCell)val);
+            } else if (val instanceof SparseBitVectorCell) {
+                return new SparseBVFactory((SparseBitVectorCell)val);
+            } else {
+                return new DefaultBVFactory(val);
+            }
         }
+
     }
 
     private interface BVFactory {

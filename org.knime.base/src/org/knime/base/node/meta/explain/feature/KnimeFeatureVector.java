@@ -94,6 +94,7 @@ public class KnimeFeatureVector implements FeatureVector {
         return m_size;
     }
 
+
     /**
      * {@inheritDoc}
      */

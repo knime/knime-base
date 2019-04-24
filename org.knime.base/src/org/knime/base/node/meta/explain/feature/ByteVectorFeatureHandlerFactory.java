@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.meta.explain.feature;
 
+import java.util.Iterator;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.core.data.vector.bytevector.DenseByteVectorCell;
@@ -61,7 +63,7 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
      */
     @Override
     public ByteVectorFeatureHandler createFeatureHandler() {
-        return new ByteVectorFeatureHandler();
+        return new ByteVectorFeatureHandler(getCaster());
     }
 
     /**
@@ -88,7 +90,14 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    class ByteVectorFeatureHandler extends AbstractCollectionFeatureHandler {
+    static class ByteVectorFeatureHandler extends AbstractCollectionFeatureHandler<ByteVectorValue> {
+
+        /**
+         * @param caster
+         */
+        public ByteVectorFeatureHandler(final Caster<ByteVectorValue> caster) {
+            super(caster);
+        }
 
         /**
          * {@inheritDoc}
@@ -96,8 +105,9 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
         @Override
         public DataCell createReplaced() {
             final BVFactory factory = getFactory();
-            for (Integer replace : m_replacements) {
-                final int idx = replace.intValue();
+            final Iterator<Integer> iter = getReplacedIterator();
+            while (iter.hasNext()) {
+                final int idx = iter.next().intValue();
                 factory.setValue(idx, m_sampled.get(idx));
             }
             return factory.createDataCell();

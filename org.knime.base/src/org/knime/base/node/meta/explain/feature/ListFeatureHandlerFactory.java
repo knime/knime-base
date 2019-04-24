@@ -78,14 +78,21 @@ final class ListFeatureHandlerFactory extends AbstractCollectionFeatureHandlerFa
      */
     @Override
     public FeatureHandler createFeatureHandler() {
-        return new ListFeatureHandler();
+        return new ListFeatureHandler(getCaster());
     }
 
     /**
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    class ListFeatureHandler extends AbstractCollectionFeatureHandler {
+    static class ListFeatureHandler extends AbstractCollectionFeatureHandler<ListDataValue> {
+
+        /**
+         * @param caster
+         */
+        public ListFeatureHandler(final Caster<ListDataValue> caster) {
+            super(caster);
+        }
 
         /**
          * {@inheritDoc}
@@ -94,7 +101,7 @@ final class ListFeatureHandlerFactory extends AbstractCollectionFeatureHandlerFa
         public DataCell createReplaced() {
             final List<DataCell> cells = new ArrayList<>(m_original.size());
             for (int i = 0; i < m_original.size(); i++) {
-                final DataCell cell = m_replacements.contains(i) ? m_sampled.get(i) : m_original.get(i);
+                final DataCell cell = isReplaced(i) ? m_sampled.get(i) : m_original.get(i);
                 cells.add(cell);
             }
             return CollectionCellFactory.createListCell(cells);
