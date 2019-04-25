@@ -187,8 +187,6 @@ public class FeatureManager {
         CheckUtils.checkArgument(m_featureHandlerFactories.size() == row.getNumCells(),
             "The provided row %s has the wrong number of cells. Expected %s cells but row has %s cells.", row,
             m_featureHandlerFactories.size(), row.getNumCells());
-
-        // TODO maybe we can make the FeatureHandlers more efficient by telling them the exact number of features to expect
         return updateNumFeatures(row);
     }
 

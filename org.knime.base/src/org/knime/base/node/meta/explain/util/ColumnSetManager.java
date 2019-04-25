@@ -140,8 +140,8 @@ class ColumnSetManager {
 
     /**
      * @param spec {@link DataTableSpec} of input table
-     * @return a {@link ColumnRearranger} that can transform the table represented by <b>spec</b> into a table containing
-     * only the columns managed by this instance in the correct order
+     * @return a {@link ColumnRearranger} that can transform the table represented by <b>spec</b> into a table
+     *         containing only the columns managed by this instance in the correct order
      * @throws MissingColumnException if any of the columns managed by this instance are missing
      */
     public ColumnRearranger createRearranger(final DataTableSpec spec) throws MissingColumnException {

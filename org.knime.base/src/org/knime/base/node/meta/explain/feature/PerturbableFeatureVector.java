@@ -51,7 +51,7 @@ package org.knime.base.node.meta.explain.feature;
 import org.knime.core.data.DataRow;
 
 /**
- * Allow
+ * A FeatureVector that also allows to mark individual features for perturbation.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -65,18 +65,19 @@ public interface PerturbableFeatureVector extends FeatureVector {
     void perturb(int idx);
 
     /**
-     * Creates a {@link PerturbableFeatureVector} that allows to continue the perturbation of this PerturbableFeatureVector
-     * without continuing to perturb this instance.
+     * Creates a {@link PerturbableFeatureVector} that allows to continue the perturbation of this
+     * PerturbableFeatureVector without continuing to perturb this instance.
+     *
      * @param key allows to identify the created perturbable
      * @return a {@link PerturbableFeatureVector} that contains the perturbations of the called instance
      */
     @Override
-    public PerturbableFeatureVector getPerturbable(String key);
+    PerturbableFeatureVector getPerturbable(String key);
 
     /**
      * @return the perturbed DataRow represented by this feature vector
      */
     @Override
-    public DataRow get();
+    DataRow get();
 
 }

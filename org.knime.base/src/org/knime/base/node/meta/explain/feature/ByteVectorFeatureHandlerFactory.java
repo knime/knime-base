@@ -90,7 +90,7 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    static class ByteVectorFeatureHandler extends AbstractCollectionFeatureHandler<ByteVectorValue> {
+    static final class ByteVectorFeatureHandler extends AbstractCollectionFeatureHandler<ByteVectorValue> {
 
         /**
          * @param caster
@@ -135,7 +135,7 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
         void setValue(final int idx, final int value);
     }
 
-    private static class DenseBVFactory implements BVFactory {
+    private static final class DenseBVFactory implements BVFactory {
 
         private final DenseByteVectorCellFactory m_factory;
 
@@ -161,7 +161,7 @@ final class ByteVectorFeatureHandlerFactory extends AbstractCollectionFeatureHan
 
     }
 
-    private static class DefaultBVFactory implements BVFactory {
+    private static final class DefaultBVFactory implements BVFactory {
 
         private final DenseByteVectorCellFactory m_factory;
 

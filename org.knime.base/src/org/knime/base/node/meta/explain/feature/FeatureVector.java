@@ -63,18 +63,18 @@ public interface FeatureVector {
     /**
      * @return the number of features contained in the vector
      */
-    public int size();
+    int size();
 
     /**
      * Creates a {@link PerturbableFeatureVector} that can be modified by the algorithm.
      * @param key allows to identify the created perturbable
      * @return a {@link PerturbableFeatureVector} that allows to mark features for perturbation
      */
-    public PerturbableFeatureVector getPerturbable(String key);
+    PerturbableFeatureVector getPerturbable(String key);
 
     /**
      * @return the {@link DataRow} corresponding to this feature vector
      */
-    public DataRow get();
+    DataRow get();
 
 }

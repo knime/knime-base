@@ -56,8 +56,8 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.container.CloseableRowIterator;
 
 /**
- * Maps the rows provided by a {@link CloseableRowIterator} into {@link FeatureVector}s that can be consumed by the Shapley
- * Values algorithm.
+ * Maps the rows provided by a {@link CloseableRowIterator} into {@link FeatureVector}s that can be consumed
+ * by an explanation algorithm
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */

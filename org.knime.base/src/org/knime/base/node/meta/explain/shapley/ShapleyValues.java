@@ -86,7 +86,8 @@ final class ShapleyValues {
      * @param keyGenerator creates the keys for the perturbed feature vectors
      * @param sink consumes the prepared rows
      */
-    public void prepare(final FeatureVector x, final int foi, final ShapleyValuesKeyGen keyGenerator, final Consumer<FeatureVector> sink) {
+    public void prepare(final FeatureVector x, final int foi, final ShapleyValuesKeyGen keyGenerator,
+        final Consumer<FeatureVector> sink) {
         keyGenerator.setFoi(foi);
         for (int j = 0; j < m_iterationsPerFeature; j++) {
             keyGenerator.setIteration(j);

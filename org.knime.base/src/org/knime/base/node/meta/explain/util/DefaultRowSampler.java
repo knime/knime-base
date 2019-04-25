@@ -77,6 +77,7 @@ public class DefaultRowSampler implements RowSampler {
         return m_samplingSet[m_indexSampler.nextInt(m_samplingSet.length)];
     }
 
+    @FunctionalInterface
     interface IndexSampler {
 
         int nextInt(int exclusiveUpperBound);

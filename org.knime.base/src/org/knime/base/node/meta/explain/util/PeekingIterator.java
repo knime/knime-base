@@ -77,7 +77,7 @@ public class PeekingIterator <E> implements Iterator<E> {
      * @return the next element but without removing it
      */
     public E peek() {
-        if (m_peek == null && !hasNext()) {
+        if (!hasNext()) {
             throw new NoSuchElementException();
         }
         if (m_peek == null) {
@@ -99,7 +99,10 @@ public class PeekingIterator <E> implements Iterator<E> {
      */
     @Override
     public E next() {
-        E nextElement = m_peek != null ? m_peek : m_source.next();
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        final E nextElement = m_peek != null ? m_peek : m_source.next();
         m_peek = null;
         return nextElement;
     }

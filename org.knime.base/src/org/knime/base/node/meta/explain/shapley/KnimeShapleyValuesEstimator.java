@@ -83,9 +83,8 @@ import org.knime.core.node.util.CheckUtils;
 import com.google.common.collect.Sets;
 
 /**
- * Estimates Shapley Values based on KNIME's {@link BufferedDataTable}s.
- * This class contains the logic for the calculations of both the Shapley Values Loop Start and
- * Loop End nodes, and is passed between the two.
+ * Estimates Shapley Values based on KNIME's {@link BufferedDataTable}s. This class contains the logic for the
+ * calculations of both the Shapley Values Loop Start and Loop End nodes, and is passed between the two.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -243,7 +242,6 @@ public final class KnimeShapleyValuesEstimator {
 
     private void updateFeatureManager(final DataTable roiFeatureTable, final DataTable samplingFeatureTable) {
         final DataRow roiRow = roiFeatureTable.iterator().next();
-        // TODO figure out how to handle the case where configure and execution state don't match
         m_featureManager.updateWithRow(roiRow);
         final DataRow samplingRow = samplingFeatureTable.iterator().next();
         CheckUtils.checkState(m_featureManager.hasSameNumberOfFeatures(samplingRow),
@@ -327,7 +325,8 @@ public final class KnimeShapleyValuesEstimator {
         final double total = totalLong;
         int currentRow = 0;
         while (predictor.hasNext()) {
-            exec.setProgress(currentRow / total, "Calculating Shapley Values for row " + currentRow + " of " + totalLong);
+            exec.setProgress(currentRow / total,
+                "Calculating Shapley Values for row " + currentRow + " of " + totalLong);
             final DataRow nextRow = predictor.next();
             m_loopEndContainer.addRowToTable(nextRow);
             currentRow++;
@@ -336,7 +335,8 @@ public final class KnimeShapleyValuesEstimator {
 
     private long getNumberOfInputRowsFromBatchSize(final long batchSize) {
         final long chunkSize = m_settings.getChunkSize();
-        final long numFeatures = m_featureManager.getNumFeatures().orElseThrow(() -> new IllegalStateException("The number of features must be known in the loop end."));
+        final long numFeatures = m_featureManager.getNumFeatures()
+            .orElseThrow(() -> new IllegalStateException("The number of features must be known in the loop end."));
         final long iterationsPerFeature = m_settings.getIterationsPerFeature();
         final long rowsPerBatch = 2 * chunkSize * numFeatures * iterationsPerFeature;
         return batchSize / rowsPerBatch;

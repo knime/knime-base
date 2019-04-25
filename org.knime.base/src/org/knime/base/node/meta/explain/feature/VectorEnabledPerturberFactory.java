@@ -58,8 +58,8 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 
 /**
- * Supports the perturbation of collections and vectors via {@link PerturberFactory} objects.
- * Use only if collections are contained, otherwise the SimpleReplacingPerturberFactory is more efficient.
+ * Supports the perturbation of collections and vectors via {@link PerturberFactory} objects. Use only if collections
+ * are contained, otherwise the SimpleReplacingPerturberFactory is more efficient.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -78,7 +78,8 @@ public final class VectorEnabledPerturberFactory implements PerturberFactory<Dat
      * @param factories
      * @param featuresPerHandler
      */
-    public VectorEnabledPerturberFactory(final RowSampler rowSampler, final List<FeatureHandlerFactory> factories, final int[] featuresPerHandler) {
+    public VectorEnabledPerturberFactory(final RowSampler rowSampler, final List<FeatureHandlerFactory> factories,
+        final int[] featuresPerHandler) {
         m_rowSampler = rowSampler;
         m_factories = factories;
         m_numFeatures = Arrays.stream(featuresPerHandler).sum();
@@ -102,12 +103,17 @@ public final class VectorEnabledPerturberFactory implements PerturberFactory<Dat
     private static class VectorEnabledPerturber implements Perturber<DataRow, Set<Integer>, DataCell[]> {
 
         private final DataRow m_replacementSource;
+
         private final List<FeatureHandler> m_handlers;
+
         private final int[] m_featureIdx2Handler;
+
         private final int[] m_featureOffsets;
+
         private final int m_numFeatures;
 
-        public VectorEnabledPerturber(final DataRow replacementSource, final List<FeatureHandler> handlers, final int[] featuresPerHandler, final int totalNumFeatures) {
+        public VectorEnabledPerturber(final DataRow replacementSource, final List<FeatureHandler> handlers,
+            final int[] featuresPerHandler, final int totalNumFeatures) {
             m_replacementSource = replacementSource;
             m_handlers = handlers;
             m_numFeatures = totalNumFeatures;
@@ -122,16 +128,17 @@ public final class VectorEnabledPerturberFactory implements PerturberFactory<Dat
                     m_handlers.get(i).setSampled(m_replacementSource.getCell(i));
                 }
             } catch (MissingValueException mve) {
-                throw new IllegalArgumentException("Missing value in row " + m_replacementSource.getKey() + " detected.");
+                throw new IllegalArgumentException(
+                    "Missing value in row " + m_replacementSource.getKey() + " detected.");
             }
         }
 
         private void setOriginal(final DataRow original) {
             assert original.getNumCells() == m_handlers.size();
             try {
-            for (int i = 0; i < original.getNumCells(); i++) {
-                m_handlers.get(i).setOriginal(original.getCell(i));
-            }
+                for (int i = 0; i < original.getNumCells(); i++) {
+                    m_handlers.get(i).setOriginal(original.getCell(i));
+                }
             } catch (MissingValueException mve) {
                 throw new IllegalArgumentException("Missing value in row " + original.getKey() + " detected.");
             }
