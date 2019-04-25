@@ -50,6 +50,8 @@ package org.knime.base.node.meta.explain.feature;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.node.util.CheckUtils;
 
 abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements FeatureHandlerFactory {
@@ -96,7 +98,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
         @SuppressWarnings("unchecked")
         protected T getAsT(final DataCell cell) throws MissingValueException {
             if (cell.isMissing() && m_supportMissingValues) {
-                throw new MissingValueException();
+                throw new MissingValueException((MissingValue)cell);
             }
             CheckUtils.checkArgument(m_acceptedValueClass.isInstance(cell),
                 "The provided cell '%s' is not of expected class '%s'", cell, m_acceptedValueClass.getCanonicalName());

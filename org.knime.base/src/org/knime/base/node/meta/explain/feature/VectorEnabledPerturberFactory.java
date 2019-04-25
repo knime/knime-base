@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import org.knime.base.node.meta.explain.util.RowSampler;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.MissingValueException;
 
 /**
  * Supports the perturbation of collections and vectors via {@link PerturberFactory} objects. Use only if collections

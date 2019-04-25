@@ -49,6 +49,7 @@
 package org.knime.base.node.meta.explain.feature;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.MissingValueException;
 
 /**
  *

@@ -52,6 +52,7 @@ import java.util.List;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.MissingValueException;
 
 /**
  *
