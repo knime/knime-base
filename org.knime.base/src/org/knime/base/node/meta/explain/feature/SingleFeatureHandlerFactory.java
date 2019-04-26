@@ -81,7 +81,6 @@ final class SingleFeatureHandlerFactory extends AbstractFeatureHandlerFactory<Da
         return true;
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -132,7 +131,7 @@ final class SingleFeatureHandlerFactory extends AbstractFeatureHandlerFactory<Da
         @Override
         public DataCell createReplaced() {
             CheckUtils.checkState(m_original != null && m_sampled != null, "The method createReplacement can only be "
-                    + "called after both setOriginal and setSampled have been called at least once since the last reset.");
+                + "called after both setOriginal and setSampled have been called at least once since the last reset.");
             return m_replace ? m_sampled : m_original;
         }
 

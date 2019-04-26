@@ -71,10 +71,10 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
 
     /**
      * {@inheritDoc}
-     * @throws MissingValueException
+     * @throws MissingValueException if a missing value is encountered and missing values are not supported
      */
     @Override
-    public final int numFeatures(final DataCell cell) throws MissingValueException {
+    public final int numFeatures(final DataCell cell) {
         final T value = m_caster.getAsT(cell);
         return getNumFeatures(value);
     }
@@ -85,7 +85,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
 
 
 
-    protected static class Caster<T extends DataValue> {
+    protected static final class Caster<T extends DataValue> {
         private final boolean m_supportMissingValues;
         private final Class<T> m_acceptedValueClass;
 
@@ -96,8 +96,8 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
 
         // The compatibility is explicitly checked
         @SuppressWarnings("unchecked")
-        protected T getAsT(final DataCell cell) throws MissingValueException {
-            if (cell.isMissing() && m_supportMissingValues) {
+        T getAsT(final DataCell cell) {
+            if (cell.isMissing() && !m_supportMissingValues) {
                 throw new MissingValueException((MissingValue)cell);
             }
             CheckUtils.checkArgument(m_acceptedValueClass.isInstance(cell),
@@ -124,7 +124,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
          * @throws MissingValueException
          */
         @Override
-        public final void setOriginal(final DataCell cell) throws MissingValueException {
+        public final void setOriginal(final DataCell cell) {
             m_original = m_caster.getAsT(cell);
         }
 
@@ -133,7 +133,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
          * @throws MissingValueException
          */
         @Override
-        public final void setSampled(final DataCell cell) throws MissingValueException {
+        public final void setSampled(final DataCell cell) {
             m_sampled = m_caster.getAsT(cell);
         }
 
