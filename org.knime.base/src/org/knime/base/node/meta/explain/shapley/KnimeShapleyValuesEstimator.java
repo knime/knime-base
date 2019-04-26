@@ -55,6 +55,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.knime.base.node.meta.explain.Explanation;
+import org.knime.base.node.meta.explain.ExplanationToDataRowConverter;
+import org.knime.base.node.meta.explain.ExplanationToMultiRowConverter;
 import org.knime.base.node.meta.explain.feature.FeatureManager;
 import org.knime.base.node.meta.explain.feature.KnimeFeatureVectorIterator;
 import org.knime.base.node.meta.explain.feature.PerturberFactory;
@@ -65,13 +68,9 @@ import org.knime.base.node.meta.explain.util.DefaultRowSampler;
 import org.knime.base.node.meta.explain.util.RowSampler;
 import org.knime.base.node.meta.explain.util.TablePreparer;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -103,6 +102,8 @@ public final class KnimeShapleyValuesEstimator {
     private RowTransformer m_rowTransformer;
 
     private BufferedDataContainer m_loopEndContainer;
+
+    private ExplanationToDataRowConverter m_explanationConverter;
 
     private int m_numIterations = -1;
 
@@ -140,6 +141,7 @@ public final class KnimeShapleyValuesEstimator {
         final DataTableSpec featureTableSpec = m_featureTablePreparer.getTableSpec();
         m_featureManager.updateWithSpec(featureTableSpec);
         checkPredictionAndFeaturesDisjunct();
+        updateExplanationConverter();
         return featureTableSpec;
     }
 
@@ -219,6 +221,11 @@ public final class KnimeShapleyValuesEstimator {
             m_settings.getChunkSize());
     }
 
+    private void updateExplanationConverter() {
+        final DataTableSpec tableSpec = m_predictionTablePreparer.getTableSpec();
+        m_explanationConverter = new ExplanationToMultiRowConverter(tableSpec.getColumnNames());
+    }
+
     /**
      * Makes sure that all resources are released
      */
@@ -291,7 +298,6 @@ public final class KnimeShapleyValuesEstimator {
      * @throws InvalidSettingsException
      */
     public DataTableSpec configureLoopEnd(final DataTableSpec inSpec) throws InvalidSettingsException {
-        final DataTableSpec predictionTableSpec = m_predictionTablePreparer.getTableSpec();
         Optional<List<String>> optionalFeatureNames = m_featureManager.getFeatureNames();
         if (!optionalFeatureNames.isPresent()) {
             // without feature names, we can't configure
@@ -299,7 +305,7 @@ public final class KnimeShapleyValuesEstimator {
             // and the loop start has not been executed, yet
             return null;
         }
-        return createLoopEndSpec(optionalFeatureNames.get(), predictionTableSpec);
+        return m_explanationConverter.createSpec(optionalFeatureNames.get());
     }
 
     /**
@@ -327,8 +333,8 @@ public final class KnimeShapleyValuesEstimator {
         while (predictor.hasNext()) {
             exec.setProgress(currentRow / total,
                 "Calculating Shapley Values for row " + currentRow + " of " + totalLong);
-            final DataRow nextRow = predictor.next();
-            m_loopEndContainer.addRowToTable(nextRow);
+            final Explanation nextExplanation = predictor.next();
+            m_explanationConverter.convertAndWrite(nextExplanation, m_loopEndContainer::addRowToTable);
             currentRow++;
         }
     }
@@ -359,20 +365,5 @@ public final class KnimeShapleyValuesEstimator {
             "The loop end container is already closed, this indicates a coding error.");
         m_loopEndContainer.close();
         return m_loopEndContainer.getTable();
-    }
-
-    private static DataTableSpec createLoopEndSpec(final List<String> featureNames,
-        final DataTableSpec predictionTableSpec) {
-        final DataTableSpecCreator dtsc = new DataTableSpecCreator();
-        for (DataColumnSpec predictionColSpec : predictionTableSpec) {
-            final String predictionColName = predictionColSpec.getName();
-            for (final String featureName : featureNames) {
-                // TODO make this configurable (similar to GroupBy node)
-                final String name = featureName + " (" + predictionColName + ")";
-                final DataColumnSpecCreator dcsc = new DataColumnSpecCreator(name, DoubleCell.TYPE);
-                dtsc.addColumns(dcsc.createSpec());
-            }
-        }
-        return dtsc.createSpec();
     }
 }

@@ -49,16 +49,18 @@
 package org.knime.base.node.meta.explain.shapley;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
+import org.knime.base.node.meta.explain.DefaultExplanation.DefaultExplanationBuilder;
+import org.knime.base.node.meta.explain.Explanation;
 import org.knime.base.node.meta.explain.shapley.ShapleyValuesKeys.SVKeyParser;
 import org.knime.base.node.meta.explain.util.PeekingIterator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.util.CheckUtils;
 
-final class Predictor implements Iterator<DataRow> {
+final class Predictor implements Iterator<Explanation> {
 
     private final ShapleyValues m_algorithm;
 
@@ -127,11 +129,16 @@ final class Predictor implements Iterator<DataRow> {
     }
 
     @Override
-    public DataRow next() {
+    public Explanation next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException("There are no more rows to explain.");
+        }
         final double[] cellValues = new double[m_numFeatures * m_numTargets];
         int foi = 0;
         m_keyParser.accept(peekKey());
         m_currentKey = m_keyParser.getOriginalKey();
+        final DefaultExplanationBuilder explanationBuilder =
+            new DefaultExplanationBuilder(m_currentKey, m_numTargets, m_numFeatures);
         while (nextIsSameRow()) {
             m_keyParser.accept(peekKey());
             m_currentFoi = m_keyParser.getFoi();
@@ -140,12 +147,13 @@ final class Predictor implements Iterator<DataRow> {
             final Iterator<PredictionVector> foiIterator = createPerFoiIterator();
             final double[] svPerTarget = m_algorithm.consumePredictionsPerFoi(foiIterator);
             for (int i = 0; i < m_numTargets; i++) {
+                explanationBuilder.setExplanationValue(i, foi, svPerTarget[i]);
                 cellValues[foi + i * m_numFeatures] = svPerTarget[i];
             }
             foi++;
         }
 
-        return new DefaultRow(new RowKey(m_currentKey), cellValues);
+        return explanationBuilder.build();
 
     }
 
