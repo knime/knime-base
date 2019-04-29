@@ -74,7 +74,7 @@ interface FeatureHandlerFactory {
      * @throws MissingValueException thrown if a this factory encounters a missing value and can't deal with it
      * @throws IllegalArgumentException if <b>cell</b> is not of the expected type
      */
-    int numFeatures(final DataCell cell) throws MissingValueException;
+    int numFeatures(final DataCell cell);
 
 
     /**

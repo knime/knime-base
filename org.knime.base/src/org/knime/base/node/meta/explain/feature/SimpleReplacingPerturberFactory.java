@@ -53,13 +53,12 @@ import java.util.Set;
 import org.knime.base.node.meta.explain.util.RowSampler;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Assumes that every column represents exactly one feature.
- * In this case the perturbation can be done by simply swapping out
- * individual cells.
- * Simpler and more efficient than VectorEnabledPerturberFactory but can't handle
- * columns that represent multiple features (e.g. vectors or collections).
+ * Assumes that every column represents exactly one feature. In this case the perturbation can be done by simply
+ * swapping out individual cells. Simpler and more efficient than VectorEnabledPerturberFactory but can't handle columns
+ * that represent multiple features (e.g. vectors or collections).
  *
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -100,6 +99,8 @@ public class SimpleReplacingPerturberFactory implements PerturberFactory<DataRow
          */
         @Override
         public DataCell[] perturb(final DataRow perturbee, final Set<Integer> config) {
+            CheckUtils.checkArgument(perturbee.getNumCells() == m_replacementSource.getNumCells(),
+                "The number of cells in perturbee and the replacement source must be the same.");
             final DataCell[] cells = new DataCell[perturbee.getNumCells()];
             for (int i = 0; i < cells.length; i++) {
                 final DataCell cell = config.contains(i) ? m_replacementSource.getCell(i) : perturbee.getCell(i);

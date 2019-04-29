@@ -44,54 +44,74 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   01.04.2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 29, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.meta.explain.feature;
 
+import static org.junit.Assert.assertArrayEquals;
+
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.knime.base.node.meta.explain.util.RowSampler;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.MissingValueException;
+import org.knime.core.data.DataRow;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.collect.Sets;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-interface FeatureHandler {
+@RunWith(MockitoJUnitRunner.class)
+public class SimpleReplacingPerturberFactoryTest {
 
-    /**
-     * @param cell
-     * @throws MissingValueException if this handler can't deal with missing values and <b>cell</b> is missing
-     */
-    void setOriginal(final DataCell cell);
+    @Mock
+    private RowSampler m_rowSampler;
 
-    /**
-     * @param cell
-     * @throws MissingValueException if this handler can't deal with missing values and <b>cell</b> is missing
-     */
-    void setSampled(final DataCell cell);
+    @Mock
+    private DataRow m_samplingRow;
 
-    /**
-     * Note that <b>idx</b> has to be the local, feature idx i.e. if this handler's current original cell represents 3
-     * features and the second should be replaced, idx has to be 1.
-     *
-     * @param idx feature that should be replaced
-     */
-    void markForReplacement(final int idx);
+    @Mock
+    private DataRow m_perturbee;
 
-    /**
-     *
-     */
-    void reset();
+    @Mock
+    private DataCell m_samplingCell;
 
-    /**
-     * Resets the replacement state but keeps the original and sampled cells
-     */
-    void resetReplaceState();
+    @Mock
+    private DataCell m_originalCell;
 
-    /**
-     * Replaces the original cell with the features marked for replacement replaced by their values from the sampled
-     * cell.
-     *
-     * @return the perturbed cell
-     */
-    DataCell createReplaced();
+    private Perturber<DataRow, Set<Integer>, DataCell[]> m_perturber;
+
+    @Before
+    public void init() {
+        Mockito.when(m_rowSampler.sampleRow()).thenReturn(m_samplingRow);
+        Mockito.when(m_samplingRow.getCell(ArgumentMatchers.anyInt())).thenReturn(m_samplingCell);
+        Mockito.when(m_perturbee.getCell(ArgumentMatchers.anyInt())).thenReturn(m_originalCell);
+        Mockito.when(m_samplingRow.getNumCells()).thenReturn(5);
+        Mockito.when(m_perturbee.getNumCells()).thenReturn(5);
+        m_perturber = new SimpleReplacingPerturberFactory(m_rowSampler).createPerturber();
+    }
+
+    private DataCell[] createExpected(final Set<Integer> config, final int numCells) {
+        final DataCell[] cells = new DataCell[numCells];
+        for (int i = 0; i < numCells; i++) {
+            cells[i] = config.contains(i) ? m_samplingCell : m_originalCell;
+        }
+        return cells;
+    }
+
+    @Test
+    public void testPerturber() throws Exception {
+        final Set<Integer> config = Sets.newHashSet(1, 3);
+        final DataCell[] expected = createExpected(config, 5);
+        final DataCell[] actual = m_perturber.perturb(m_perturbee, config);
+        assertArrayEquals(expected, actual);
+    }
 }

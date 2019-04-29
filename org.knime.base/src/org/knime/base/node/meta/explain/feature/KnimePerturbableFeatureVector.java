@@ -106,7 +106,7 @@ final class KnimePerturbableFeatureVector implements PerturbableFeatureVector {
      * @param idx
      */
     private void checkIndex(final int idx) {
-        if (idx > size()) {
+        if (idx >= size()) {
             throw new IndexOutOfBoundsException();
         }
     }
@@ -146,6 +146,8 @@ final class KnimePerturbableFeatureVector implements PerturbableFeatureVector {
      */
     @Override
     public PerturbableFeatureVector getPerturbable(final String key) {
+        CheckUtils.checkArgumentNotNull(key, "The key suffix must not be null.");
+        CheckUtils.checkArgument(!m_keySuffix.equals(key), "Detected duplicate key suffix %s.", key);
         return new KnimePerturbableFeatureVector(this, m_originalKey, key, m_perturber);
     }
 

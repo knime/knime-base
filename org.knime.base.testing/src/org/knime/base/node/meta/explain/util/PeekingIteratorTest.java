@@ -44,54 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   01.04.2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 25, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.feature;
+package org.knime.base.node.meta.explain.util;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.MissingValueException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
+
+import org.junit.Test;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-interface FeatureHandler {
+public class PeekingIteratorTest {
 
-    /**
-     * @param cell
-     * @throws MissingValueException if this handler can't deal with missing values and <b>cell</b> is missing
-     */
-    void setOriginal(final DataCell cell);
+    private static PeekingIterator<Integer> createCountingIterator(final int exclusiveEnd) {
+        assert exclusiveEnd >= 0;
+        final Iterator<Integer> intIterator = IntStream.range(0, exclusiveEnd).boxed().iterator();
+        return new PeekingIterator<>(intIterator);
+    }
 
-    /**
-     * @param cell
-     * @throws MissingValueException if this handler can't deal with missing values and <b>cell</b> is missing
-     */
-    void setSampled(final DataCell cell);
+    @Test
+    public void testPeek() throws Exception {
+        final PeekingIterator<Integer> iter = createCountingIterator(3);
+        Integer peek = iter.peek();
+        assertEquals(0, peek.intValue());
+        peek = iter.peek();
+        assertEquals(0, peek.intValue());
+        iter.next();
+        peek = iter.peek();
+        assertEquals(1, peek.intValue());
+    }
 
-    /**
-     * Note that <b>idx</b> has to be the local, feature idx i.e. if this handler's current original cell represents 3
-     * features and the second should be replaced, idx has to be 1.
-     *
-     * @param idx feature that should be replaced
-     */
-    void markForReplacement(final int idx);
+    @Test (expected = NoSuchElementException.class)
+    public void testPeekNoSuchElement() throws Exception {
+        final PeekingIterator<Integer> iter = createCountingIterator(1);
+        iter.next();
+        iter.peek();
+    }
 
-    /**
-     *
-     */
-    void reset();
+    @Test
+    public void testHasNext() throws Exception {
+        final PeekingIterator<Integer> iter = createCountingIterator(1);
+        assertTrue(iter.hasNext());
+        iter.peek();
+        assertTrue(iter.hasNext());
+        iter.next();
+        assertFalse(iter.hasNext());
+    }
 
-    /**
-     * Resets the replacement state but keeps the original and sampled cells
-     */
-    void resetReplaceState();
+    @Test
+    public void testNext() throws Exception {
+        final PeekingIterator<Integer> iter = createCountingIterator(2);
+        Integer next = iter.next();
+        assertEquals(0, next.intValue());
+        iter.peek();
+        next = iter.next();
+        assertEquals(1, next.intValue());
+    }
 
-    /**
-     * Replaces the original cell with the features marked for replacement replaced by their values from the sampled
-     * cell.
-     *
-     * @return the perturbed cell
-     */
-    DataCell createReplaced();
+    @Test (expected = NoSuchElementException.class)
+    public void testNextNoSuchElement() throws Exception {
+        final PeekingIterator<Integer> iter = createCountingIterator(1);
+        iter.next();
+        iter.next();
+    }
+
 }
