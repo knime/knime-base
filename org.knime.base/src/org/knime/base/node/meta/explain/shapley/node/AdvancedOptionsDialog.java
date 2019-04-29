@@ -52,6 +52,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -70,32 +71,46 @@ class AdvancedOptionsDialog {
     private final JSpinner m_chunkSize =
         new JSpinner(new SpinnerNumberModel(ShapleyValuesSettings.DEF_CHUNK_SIZE, 1, Integer.MAX_VALUE, 100));
 
-    /**
-     *
-     */
-    public AdvancedOptionsDialog() {
+    JPanel getPanel() {
+
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createGbc();
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        final JPanel loopOptionsPanel = createLoopOptionsPanel();
+        panel.add(loopOptionsPanel, gbc);
+
+        return panel;
     }
 
-    JPanel getPanel() {
-        // === Options Tab ===
+    /**
+     * @return
+     */
+    private JPanel createLoopOptionsPanel() {
+        GridBagConstraints gbc = createGbc();
+        final JPanel loopOptionsPanel = new JPanel(new GridBagLayout());
+        loopOptionsPanel.setBorder(BorderFactory.createTitledBorder("Loop options"));
+        loopOptionsPanel.add(new JLabel("Chunk size"), gbc);
+        gbc.gridx++;
+        gbc.weightx = 1;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        loopOptionsPanel.add(m_chunkSize, gbc);
+        return loopOptionsPanel;
+    }
 
-        JPanel panel = new JPanel(new GridBagLayout());
+    /**
+     * @return
+     */
+    private static GridBagConstraints createGbc() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 1;
-        gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
         gbc.gridx = 0;
         gbc.gridy = 0;
-
-        panel.add(new JLabel("Chunk size"), gbc);
-        gbc.gridx++;
-        gbc.weightx = 1;
-        panel.add(m_chunkSize, gbc);
-
-        return panel;
+        return gbc;
     }
 
     void saveSettingsTo(final ShapleyValuesSettings cfg) throws InvalidSettingsException {

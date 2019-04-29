@@ -55,6 +55,7 @@ import java.awt.Insets;
 import java.util.Random;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -90,7 +91,8 @@ class OptionsDialog {
 
     private final JCheckBox m_useSeed = new JCheckBox("Use seed");
 
-    private final JCheckBox m_treatCollectionsAsSingleFeature = new JCheckBox("Treat all columns as single feature");
+    private final JCheckBox m_treatCollectionsAsSingleFeature =
+        new JCheckBox("Every collection column represents a single feature");
 
     private final JCheckBox m_dontUseElementNames = new JCheckBox("Don't use element names for collection features");
 
@@ -116,36 +118,33 @@ class OptionsDialog {
         // === Options Tab ===
 
         JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        GridBagConstraints gbc = createGbc();
         gbc.weightx = 1;
-        gbc.weighty = 0;
+        gbc.weighty = 1;
         gbc.fill = GridBagConstraints.BOTH;
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        panel.add(m_treatCollectionsAsSingleFeature, gbc);
-        panel.add(new JLabel("Feature columns"), gbc);
-        gbc.gridy += 1;
-        gbc.gridy += 1;
-        gbc.weighty = 1;
-        panel.add(m_featureColumns, gbc);
-        gbc.weighty = 0;
-        gbc.weightx = 0;
+        panel.add(createFeaturePanel(), gbc);
 
-        gbc.gridwidth = 1;
-        gbc.gridy += 1;
-        panel.add(new JLabel("Prediction columns"), gbc);
         gbc.gridy++;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weighty = 1;
+        m_predictionColumns.setBorder(BorderFactory.createTitledBorder("Target columns"));
         panel.add(m_predictionColumns, gbc);
 
-        addComponent(panel, gbc, "Iterations per feature", m_iterationsPerFeature);
+        gbc.gridy++;
 
+        panel.add(createSamplingOptionsPanel(), gbc);
+
+        gbc.gridy++;
+        panel.add(createOutputOptionsPanel(), gbc);
+
+        return panel;
+    }
+
+    private JPanel createSamplingOptionsPanel() {
+        final GridBagConstraints gbc = createGbc();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Sampling Options"));
+        addComponent(panel, gbc, "Iterations per feature", m_iterationsPerFeature);
         gbc.gridy++;
         gbc.gridwidth = 1;
         gbc.weighty = 0;
@@ -157,12 +156,39 @@ class OptionsDialog {
         gbc.gridx++;
         gbc.weightx = 0;
         panel.add(m_newSeedBtn, gbc);
+        return panel;
+    }
 
+    private JPanel createOutputOptionsPanel() {
+        final JPanel panel = new JPanel();
+        panel.setBorder(BorderFactory.createTitledBorder("Output options"));
+        panel.add(m_dontUseElementNames);
+        return panel;
+    }
+
+    private static GridBagConstraints createGbc() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
         gbc.gridx = 0;
-        gbc.gridy ++;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        panel.add(m_dontUseElementNames, gbc);
+        gbc.gridy = 0;
+        return gbc;
+    }
 
+    private JPanel createFeaturePanel() {
+        final GridBagConstraints gbc = createGbc();
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Feature columns"));
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        panel.add(m_featureColumns, gbc);
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        panel.add(m_treatCollectionsAsSingleFeature, gbc);
         return panel;
     }
 
