@@ -147,8 +147,7 @@ public class ShapleyValuesLoopStartNodeModel extends NodeModel implements LoopSt
      */
     @Override
     public boolean terminateLoop() {
-        // currently the estimator pushes through all rows in one iteration
-        return true;
+        return !m_estimator.hasNextIteration();
     }
 
     /**
