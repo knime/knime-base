@@ -53,6 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.knime.base.node.meta.explain.util.Caster;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 

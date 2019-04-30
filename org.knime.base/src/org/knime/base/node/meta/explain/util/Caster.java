@@ -44,70 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 2, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 30, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.feature;
+package org.knime.base.node.meta.explain.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.knime.base.node.meta.explain.util.Caster;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.collection.CollectionCellFactory;
-import org.knime.core.data.collection.ListDataValue;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
+import org.knime.core.node.util.CheckUtils;
 
-final class ListFeatureHandlerFactory extends AbstractCollectionFeatureHandlerFactory<ListDataValue> {
+/**
+ * Helper class that casts {@link DataCell} instances into a particular {@link DataValue} type. Instances also perform
+ * missing value checks and fail with a {@link MissingValueException} should missing values not be supported.
+ *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the {@link DataValue} type to cast to
+ */
+public final class Caster<T extends DataValue> {
+    private final boolean m_supportMissingValues;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected Class<ListDataValue> getAcceptValueClass() {
-        return ListDataValue.class;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNumFeatures(final ListDataValue value) {
-        return value.size();
-    }
+    private final Class<T> m_acceptedValueClass;
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FeatureHandler createFeatureHandler() {
-        return new ListFeatureHandler(getCaster());
-    }
-
-    /**
+     * Constructs a caster that casts {@link DataCell DataCells} to {@link DataValue DataValues} of type
+     * <b>acceptedValueClass</b>.
      *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     * @param acceptedValueClass the {@link Class} of {@link DataValue} this caster should cast to
+     * @param supportMissingValues whether missing values are supported
      */
-    static class ListFeatureHandler extends AbstractCollectionFeatureHandler<ListDataValue> {
+    public Caster(final Class<T> acceptedValueClass, final boolean supportMissingValues) {
+        m_supportMissingValues = supportMissingValues;
+        m_acceptedValueClass = acceptedValueClass;
+    }
 
-        /**
-         * @param caster
-         */
-        public ListFeatureHandler(final Caster<ListDataValue> caster) {
-            super(caster);
+    // The compatibility is explicitly checked
+    /**
+     * Casts {@link DataCell cell} to the {@link DataValue} this caster is typed to.
+     *
+     * @param cell the {@link DataCell} to cast
+     * @return the cell casted to a particular {@link DataValue}
+     * @throws MissingValueException if cell is missing and missing values are not supported
+     */
+    @SuppressWarnings("unchecked")
+    public T getAsT(final DataCell cell) {
+        if (cell.isMissing() && !m_supportMissingValues) {
+            throw new MissingValueException((MissingValue)cell);
         }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DataCell createReplaced() {
-            final List<DataCell> cells = new ArrayList<>(m_original.size());
-            for (int i = 0; i < m_original.size(); i++) {
-                final DataCell cell = isReplaced(i) ? m_sampled.get(i) : m_original.get(i);
-                cells.add(cell);
-            }
-            return CollectionCellFactory.createListCell(cells);
-        }
-
+        CheckUtils.checkArgument(m_acceptedValueClass.isInstance(cell),
+            "The provided cell '%s' is not of expected class '%s'", cell, m_acceptedValueClass.getCanonicalName());
+        return (T)cell;
     }
 
 }

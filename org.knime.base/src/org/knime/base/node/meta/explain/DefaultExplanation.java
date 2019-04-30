@@ -51,8 +51,8 @@ package org.knime.base.node.meta.explain;
 import org.knime.core.node.util.CheckUtils;
 
 /**
- * The default implementation of {@link Explanation}.
- * The class itself is immutable and can only be created via the provided builder class {@link DefaultExplanationBuilder}.
+ * The default implementation of {@link Explanation}. The class itself is immutable and can only be created via the
+ * provided builder class {@link DefaultExplanationBuilder}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -68,6 +68,7 @@ public final class DefaultExplanation implements Explanation {
 
     /**
      * Instances of this class should only be instantiated via {@link DefaultExplanationBuilder}.
+     *
      * @param roiKey the identifier of the instance for which to explain the prediction
      * @param explanationValues
      * @param numTargets
@@ -114,10 +115,9 @@ public final class DefaultExplanation implements Explanation {
     }
 
     /**
-     * Builder class for {@link DefaultExplanation}.
-     * Allows to incrementally add the explanation values for different target feature combinations.
-     * Instances of this class can build only a single DefaultExplanation and will throw exceptions if
-     * any of their methods are called after the build has occurred.
+     * Builder class for {@link DefaultExplanation}. Allows to incrementally add the explanation values for different
+     * target feature combinations. Instances of this class can build only a single DefaultExplanation and will throw
+     * exceptions if any of their methods are called after the build has occurred.
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
@@ -134,7 +134,8 @@ public final class DefaultExplanation implements Explanation {
         private boolean m_built = false;
 
         /**
-         * Creates a mutable {@link DefaultExplanationBuilder} instance that can be used to create a single {@link DefaultExplanation}.
+         * Creates a mutable {@link DefaultExplanationBuilder} instance that can be used to create a single
+         * {@link DefaultExplanation}.
          *
          * @param roiKey the key of the row of interest
          * @param numTargets the number of targets (e.g. the number of class probabilities) to explain

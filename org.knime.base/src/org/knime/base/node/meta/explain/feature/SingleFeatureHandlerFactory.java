@@ -51,6 +51,7 @@ package org.knime.base.node.meta.explain.feature;
 import java.util.Collections;
 import java.util.List;
 
+import org.knime.base.node.meta.explain.util.Caster;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.util.CheckUtils;

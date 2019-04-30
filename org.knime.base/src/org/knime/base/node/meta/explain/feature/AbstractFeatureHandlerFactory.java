@@ -48,19 +48,18 @@
  */
 package org.knime.base.node.meta.explain.feature;
 
+import org.knime.base.node.meta.explain.util.Caster;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
-import org.knime.core.node.util.CheckUtils;
 
 abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements FeatureHandlerFactory {
 
     private final Caster<T> m_caster;
 
-    protected abstract Class<T> getAcceptValueClass();
+    abstract Class<T> getAcceptValueClass();
 
-    protected abstract int getNumFeatures(T value);
+    abstract int getNumFeatures(T value);
 
     /**
      *
@@ -79,39 +78,16 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
         return getNumFeatures(value);
     }
 
-    protected final Caster<T> getCaster() {
+    final Caster<T> getCaster() {
         return m_caster;
     }
 
 
 
-    protected static final class Caster<T extends DataValue> {
-        private final boolean m_supportMissingValues;
-        private final Class<T> m_acceptedValueClass;
-
-        private Caster(final Class<T> acceptedValueClass, final boolean supportMissingValues) {
-            m_supportMissingValues = supportMissingValues;
-            m_acceptedValueClass = acceptedValueClass;
-        }
-
-        // The compatibility is explicitly checked
-        @SuppressWarnings("unchecked")
-        T getAsT(final DataCell cell) {
-            if (cell.isMissing() && !m_supportMissingValues) {
-                throw new MissingValueException((MissingValue)cell);
-            }
-            CheckUtils.checkArgument(m_acceptedValueClass.isInstance(cell),
-                "The provided cell '%s' is not of expected class '%s'", cell, m_acceptedValueClass.getCanonicalName());
-            return (T)cell;
-        }
-
-    }
-
-
     abstract static class AbstractFeatureHandler <T extends DataValue> implements FeatureHandler {
-        protected T m_original;
+        T m_original;
 
-        protected T m_sampled;
+        T m_sampled;
 
         private final Caster<T> m_caster;
 

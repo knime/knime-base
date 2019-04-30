@@ -50,6 +50,7 @@ package org.knime.base.node.meta.explain.feature;
 
 import java.util.Iterator;
 
+import org.knime.base.node.meta.explain.util.Caster;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bitvector.DenseBitVectorCell;

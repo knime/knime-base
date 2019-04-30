@@ -54,7 +54,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 
 /**
- * Specialization of {@link ExplanationConverter} that focuses on KNIME {@link DataRow}s.
+ * Specialization of {@link ExplanationConverter} that focuses on KNIME {@link DataRow DataRows}.
  * Implementations of this interface also have to provide the DataTableSpec that fits the
  * rows they produce.
  *
