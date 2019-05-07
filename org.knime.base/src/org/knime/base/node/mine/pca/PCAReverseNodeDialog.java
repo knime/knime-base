@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
+ * 
  */
 package org.knime.base.node.mine.pca;
 
@@ -54,7 +54,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 
 /**
  * Dialog for pca inversion.
- *
+ * 
  * @author uwe, University of Konstanz
  */
 public class PCAReverseNodeDialog extends DefaultNodeSettingsPane {
@@ -62,35 +62,15 @@ public class PCAReverseNodeDialog extends DefaultNodeSettingsPane {
      * create dialog.
      */
     public PCAReverseNodeDialog() {
-        createPanel(PCAReverseNodeModel.PCA_COLUMNS, PCAReverseNodeModel.REMOVE_PCACOLS, "PCA");
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
+                PCANodeModel.FAIL_MISSING, false),
+                "Fail if missing values are encountered "
+                        + "(skipped per default)"));
+        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(
+                PCAReverseNodeModel.REMOVE_PCACOLS, false),
+                "Replace PCA columns"));
+        addDialogComponent(new DialogComponentColumnFilter(
+                new SettingsModelFilterString(PCAReverseNodeModel.PCA_COLUMNS),
+                PCAReverseNodeModel.DATA_INPORT, DoubleValue.class));
     }
-
-    /**
-     * Constructor.
-     *
-     * @param colKey the selected columns settings model key
-     * @param remColKey the remove columns settings model key
-     * @param task the task name, e.g., PCA or LDA
-     * @since 3.8
-     */
-    protected PCAReverseNodeDialog(final String colKey, final String remColKey, final String task) {
-        createPanel(colKey, remColKey, task);
-    }
-
-    /**
-     * Creates the panel using the given keys and task name.
-     *
-     * @param colKey the selected columns settings model key
-     * @param remColKey the remove columns settings model key
-     * @param task the task name, e.g., PCA or LDA
-     */
-    private void createPanel(final String colKey, final String remColKey, final String task) {
-        addDialogComponent(new DialogComponentBoolean(new SettingsModelBoolean(PCANodeModel.FAIL_MISSING, false),
-            "Fail if missing values are encountered (skipped per default)"));
-        addDialogComponent(
-            new DialogComponentBoolean(new SettingsModelBoolean(remColKey, false), "Remove " + task + " columns"));
-        addDialogComponent(new DialogComponentColumnFilter(new SettingsModelFilterString(colKey),
-            PCAReverseNodeModel.DATA_INPORT, DoubleValue.class));
-    }
-
 }

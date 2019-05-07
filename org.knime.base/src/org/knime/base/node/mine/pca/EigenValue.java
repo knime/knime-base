@@ -115,14 +115,6 @@ public class EigenValue implements Comparable<EigenValue> {
     }
 
     /**
-     * @return The Eigenvector as a double array.
-     * @since 3.8
-     */
-    public double[] getEigenVector() {
-        return m_vector.getRowPackedCopy();
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -161,10 +153,10 @@ public class EigenValue implements Comparable<EigenValue> {
 
         final List<EigenValue> list = createSortedList(eigenVectors,
 				eigenvalues);
-        final double[][] rm = new double[eigenVectors.length][number];
+        final double[][] rm = new double[eigenvalues.length][number];
         for (int i = 0; i < number; i++) {
             final double[][] t = list.get(i).m_vector.getArray();
-            for (int j = 0; j < eigenVectors.length; j++) {
+            for (int j = 0; j < t.length; j++) {
                 rm[j][i] = t[j][0];
             }
         }
@@ -178,7 +170,7 @@ public class EigenValue implements Comparable<EigenValue> {
      */
 	public static List<EigenValue> createSortedList(
 			final double[][] eigenVectors, final double[] eigenvalues) {
-		final int[] rowindices = new int[eigenVectors.length];
+		final int[] rowindices = new int[eigenvalues.length];
         final Matrix v = new Matrix(eigenVectors);
         for (int i = 0; i < rowindices.length; i++) {
             rowindices[i] = i;

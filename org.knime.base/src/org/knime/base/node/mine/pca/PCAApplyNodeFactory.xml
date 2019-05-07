@@ -29,16 +29,13 @@
         Each of the choices for the minimum fraction of information to be
          preserved corresponds to a possible number of dimensions to reduce to.
         </option>
-        <option name="Remove original data columns">
+        <option name="Replace original data columns">
         If checked, the columns containing the input data are removed in the output table.
         </option>
 		</fullDescription>
 		<ports>
-		<inPort index="0" name="Model">The Model used to reduce the data's dimensionality.
-		</inPort>
-		<inPort index="1" name="Table to transform">The data whose dimensionality shall be reduced.
-		</inPort>
-		<outPort index="0" name="Projected data">The original data (if not excluded)
-			plus columns for the projected dimensions.</outPort>
+		<inPort index="0" name="PCA model">Principal Components of training data</inPort>
+		<inPort index="1" name="Table to transform">Input data for the PCA</inPort>
+		<outPort index="0" name="Projected data">Data projected to its principal components</outPort>
 		</ports>
 		</knimeNode>

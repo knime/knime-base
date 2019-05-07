@@ -48,10 +48,6 @@
 
 package org.knime.base.node.mine.pca;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -69,32 +65,17 @@ import org.knime.core.node.port.PortObjectSpecZipOutputStream;
  * @author uwe, University of Konstanz
  */
 public class PCAModelPortObjectSpec implements PortObjectSpec {
-
     private final String[] m_columnNames;
 
     private double[] m_eigenvalues;
-
-    private final String m_colPrefix;
-
-    /**
-     * Create object spec.
-     *
-     * @param columnNames names of input columns
-     */
-    public PCAModelPortObjectSpec(final String[] columnNames) {
-        this(columnNames, PCANodeModel.PCA_COL_PREFIX);
-    }
 
     /**
      * create object spec.
      *
      * @param columnNames names of input columns
-     * @param colPrefix the column name prefix
-     * @since 3.8
      */
-    public PCAModelPortObjectSpec(final String[] columnNames, final String colPrefix) {
+    public PCAModelPortObjectSpec(final String[] columnNames) {
         m_columnNames = columnNames;
-        m_colPrefix = colPrefix;
 
     }
 
@@ -104,16 +85,6 @@ public class PCAModelPortObjectSpec implements PortObjectSpec {
      */
     public String[] getColumnNames() {
         return m_columnNames;
-    }
-
-    /**
-     * Returns the column prefix.
-     *
-     * @return the type
-     * @since 3.8
-     */
-    public String getColPrefix() {
-        return m_colPrefix;
     }
 
     /**
@@ -137,19 +108,14 @@ public class PCAModelPortObjectSpec implements PortObjectSpec {
      * @since 3.0
      */
     public static final class Serializer extends PortObjectSpecSerializer<PCAModelPortObjectSpec> {
-
         @Override
-        public PCAModelPortObjectSpec loadPortObjectSpec(final PortObjectSpecZipInputStream in) throws IOException {
+        public PCAModelPortObjectSpec loadPortObjectSpec(
+                final PortObjectSpecZipInputStream in) throws IOException {
             in.getNextEntry();
             final ObjectInputStream ois = new ObjectInputStream(in);
             try {
                 final String[] columnNames = (String[])ois.readObject();
-                in.closeEntry();
-                if (in.getNextEntry() != null) {
-                    final String type = new DataInputStream(new BufferedInputStream(in)).readUTF();
-                    return new PCAModelPortObjectSpec(columnNames, type);
-                }
-                return new PCAModelPortObjectSpec(columnNames, PCANodeModel.PCA_COL_PREFIX);
+                return new PCAModelPortObjectSpec(columnNames);
             } catch (final ClassNotFoundException e) {
                 throw new IOException(e.getMessage(), e.getCause());
             }
@@ -157,16 +123,12 @@ public class PCAModelPortObjectSpec implements PortObjectSpec {
         }
 
         @Override
-        public void savePortObjectSpec(final PCAModelPortObjectSpec portObjectSpec,
-            final PortObjectSpecZipOutputStream out) throws IOException {
+        public void savePortObjectSpec(
+                final PCAModelPortObjectSpec portObjectSpec,
+                final PortObjectSpecZipOutputStream out) throws IOException {
             out.putNextEntry(new ZipEntry("content.dat"));
-            new ObjectOutputStream(out).writeObject(portObjectSpec.getColumnNames());
-            out.closeEntry();
-            out.putNextEntry(new ZipEntry("type.dat"));
-            try (final DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(out))) {
-                outStream.writeUTF(portObjectSpec.getColPrefix());
-                outStream.close();
-            }
+            new ObjectOutputStream(out).writeObject(portObjectSpec
+                    .getColumnNames());
         }
     }
 

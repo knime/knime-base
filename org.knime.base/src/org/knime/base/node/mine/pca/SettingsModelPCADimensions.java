@@ -494,10 +494,10 @@ public class SettingsModelPCADimensions extends SettingsModel {
         for (final double t : m_eigenvalues) {
             sum += t;
         }
-        final double[] ev = getSortedCopy(m_eigenvalues);
+
         double frac = 0;
-        for (int i = 1; i <= dim; i++) {
-            frac += ev[ev.length - i];
+        for (int i = 0; i < dim; i++) {
+            frac += m_eigenvalues[m_eigenvalues.length - 1 - i];
         }
         // floor
         return (int) (100d * frac / sum) + "% information preservation";
