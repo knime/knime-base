@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="explainer_icon.png" type="LoopStart"
+<knimeNode icon="explainer_icon.png" type="LoopEnd"
 	xmlns="http://knime.org/node/v3.6"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
