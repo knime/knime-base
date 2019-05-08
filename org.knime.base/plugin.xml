@@ -2032,6 +2032,11 @@
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopEndNodeFactory">
       </node>
+      <node
+            category-path="/labs/xai"
+            deprecated="false"
+            factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
+      </node>
    </extension>
    
       

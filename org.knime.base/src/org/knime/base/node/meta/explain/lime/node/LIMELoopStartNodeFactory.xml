@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="explainer_icon.png" type="LoopStart"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>LIME Loop Start</name>
+
+	<shortDescription>Start node for a LIME loop
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			<p>
+				LIME stands for Local Interpretable Model-agnostic Explanations.
+				It tries to explain individual predictions of a black-box model by training a local surrogate
+				model that is easier to understand (e.g. a linear model).
+				The intuition behind this approach is that a globally non-linear model might actually be
+				linear within a small local region of the feature space.
+				In order to learn such a local surrogate model, LIME creates for a single row of interest a dataset of perturbed rows, predicts it with the black-box model
+				and then learns a local surrogate that approximates the predictions of the black-box model.
+				For more details on the algorithm please see the paper <i>"Why Should I Trust You?" Explaining the Predictions of Any Classifier</i> by Ribeiro et al.
+			</p>
+			
+			<h3>Usage</h3>
+			<p>
+				The top input of this node contains the rows of interest for which the predictions of your model should be explained.
+				Each row in the top table corresponds to one loop iteration, so its size will directly affect the runtime of the loop.
+				The bottom input table is used for sampling which in this case means that column statistics (e.g. mean and standard deviation) are calculated
+				for all of the feature columns. These statistics are later used to sample new values for the feature columns.
+			</p>
+			<p>
+				In each iteration of the loop one row of interest is explained.
+				This node produces two tables used for these explanations.
+				The top table contains rows which are created by sampling according to the
+				statistics of the feature columns in the sampling table.
+				Note that numeric columns (including bit and byte vectors)
+				are assumed to be normally distributed. This table has to be predicted with the Predictor node appropriate
+				for your model at hand.
+				The bottom table is meant for the training of a local surrogate model (e.g. a linear model).
+				It differs from the top table in the following:
+				<ol>
+					<li>Nominal feature columns are replaced by Double columns where a 1.0 indicates that the sampled value matches of the row of interest.</li>
+					<li>Bit and byte vector columns are split up into multiple columns, one for each element.</li>
+					<li>A weight column is appended that indicates how similar the sampled row is two the row of interest.A higher value indicates greater similarity.</li>
+				</ol>
+				
+				The loop body should do the following:
+				<ol>
+					<li>Predict the top table with the black-box model.</li>
+					<li>Append the prediction column(s) to the bottom table.</li>
+					<li>Train a local surrogate model that uses the features from the bottom table, weights each row according to the weight column and approximates the predictions of the black box model.
+					The currently recommended Learner for this task is the H2O Generalized Linear Model Learner (Regression).</li>
+					<li>Extract and collect the local explanations from the local surrogate model (e.g. the linear coefficients) in one of our Loop End nodes.</li>
+				</ol>
+			</p>
+
+			<h3>Note on vector columns</h3>
+			<p>
+				Since the number of elements in a vector column is not known during configuration, the spec for the second table can't be generated if vectors are among the feature columns.
+				In this case down-stream nodes can only be configured once this node has been executed.
+			</p>
+		</intro>
+
+		<tab name="Options">
+			<option name="Feature columns">
+				The columns that contain features your model requires.
+				These columns will be contained in the top table that has to be predicted by your model.
+			</option>
+
+			<option name="Explanation set size">
+				The number of rows to use for learning the local
+				surrogate model for a single incoming row of interest.
+			</option>
+			<option name="Sample around instances">
+				If checked, samples for numerical columns are drawn around the value of the current row of interest.
+				Otherwise samples are drawn around the mean of the feature (which is calculated from the sampling table).
+			</option>
+			<option name="Use seed">
+				Using a seed allows to reproduce the results of
+				the loop. If this box is checked the seed displayed in the text box
+				is used, otherwise a new seed is generated for each
+				execution. The
+				new button allows to generate a new random seed.
+			</option>
+			<option name="Manual kernel width">
+				The default kernel width LIME uses for its exponential kernel is <i>sqrt(number of features) * 0.75</i>.
+				By checking this box, the manually specified kernel width is used instead.
+			</option>
+		</tab>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Table containing the rows to explain">
+			Table containing the rows to explain.
+		</inPort>
+		<inPort index="1" name="Sampling data">
+			Table containing rows used to perturb
+			rows in the first table.
+		</inPort>
+		<outPort index="0" name="Predictable table">This table contains samples that have
+			to be predicted by the predictor node corresponding to your
+			particular model.</outPort>
+		<outPort index="1" name="Local surrogate model table">This table contains data to learn a
+			local surrogate model including a weight column.</outPort>
+	</ports>
+</knimeNode>
