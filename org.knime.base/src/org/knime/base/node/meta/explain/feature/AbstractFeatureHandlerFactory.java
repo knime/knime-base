@@ -65,7 +65,7 @@ abstract class AbstractFeatureHandlerFactory<T extends DataValue> implements Fea
      *
      */
     public AbstractFeatureHandlerFactory() {
-        m_caster = new Caster<>(getAcceptValueClass(), supportsMissingValues());
+        m_caster = new Caster<T>(getAcceptValueClass(), supportsMissingValues());
     }
 
     /**

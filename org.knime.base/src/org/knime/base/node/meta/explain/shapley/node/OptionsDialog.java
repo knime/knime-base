@@ -66,7 +66,6 @@ import javax.swing.SpinnerNumberModel;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 
@@ -223,7 +222,7 @@ class OptionsDialog {
         }
     }
 
-    void loadSettingsFrom(final ShapleyValuesSettings cfg, final DataTableSpec inSpec) throws NotConfigurableException {
+    void loadSettingsFrom(final ShapleyValuesSettings cfg, final DataTableSpec inSpec) {
         m_featureColumns.loadConfiguration(cfg.getFeatureCols(), inSpec);
         m_predictionColumns.loadConfiguration(cfg.getPredictionCols(), inSpec);
         m_iterationsPerFeature.setValue(cfg.getIterationsPerFeature());
