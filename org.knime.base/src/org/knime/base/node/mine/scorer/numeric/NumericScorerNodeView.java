@@ -48,8 +48,8 @@
 package org.knime.base.node.mine.scorer.numeric;
 
 /**
- * <code>NodeView</code> for the "NumericScorer" Node.
- * Computes the distance between the a numeric column's values and predicted values.
+ * <code>NodeView</code> for the "NumericScorer" Node. Computes the distance between the a numeric column's values and
+ * predicted values.
  *
  * @author Ole Ostergaard
  */
@@ -57,6 +57,7 @@ class NumericScorerNodeView extends AbstractNumericScorerNodeView<NumericScorerN
 
     /**
      * Delegates to super class.
+     *
      * @param nodeModel the nodeModel to view
      */
     protected NumericScorerNodeView(final NumericScorerNodeModel nodeModel) {
@@ -69,7 +70,8 @@ class NumericScorerNodeView extends AbstractNumericScorerNodeView<NumericScorerN
     @Override
     protected void modelChanged() {
         NumericScorerNodeModel model = getNodeModel();
-        setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(), model.getMeanSignedDifference());
+        setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(),
+            model.getMeanSignedDifference(), model.getMeanAbsolutePercentageError(),
+            model.getNormalizedMeanAbsolutePercentageError(), model.getWeightedAbsoluteErrorPercentage());
     }
 }
-

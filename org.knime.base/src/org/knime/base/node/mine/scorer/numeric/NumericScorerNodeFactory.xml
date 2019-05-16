@@ -12,10 +12,14 @@
 	values (r<sub>i</sub>) and predicted (p<sub>i</sub>) values. It
 	computes
 	<a href="http://en.wikipedia.org/wiki/Coefficient_of_determination">R&#xb2;</a>=1-SS<sub>res</sub>/SS<sub>tot</sub>=1-&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;/&#x3A3;(r<sub>i</sub>-1/n*&#x3A3;r<sub>i</sub>)&#xb2; (can be negative!),
-	<a href="http://en.wikipedia.org/wiki/Mean_absolute_error">mean absolute error</a> (1/n*&#x3A3;|p<sub>i</sub>-r<sub>i</sub>|),
-	<a href="http://en.wikipedia.org/wiki/Residual_sum_of_squares">mean squared error</a> (1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;),
-	<a href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">root mean squared error</a> (sqrt(1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;)), and
-	<a href="http://en.wikipedia.org/wiki/Mean_signed_difference">mean signed difference</a> (1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)).
+	<a href="http://en.wikipedia.org/wiki/Mean_absolute_error">Mean absolute error</a> (1/n*&#x3A3;|p<sub>i</sub>-r<sub>i</sub>|),
+	<a href="http://en.wikipedia.org/wiki/Residual_sum_of_squares">Mean squared error</a> (1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;),
+	<a href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a> (sqrt(1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;)),
+	<a href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean signed difference</a> (1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)),
+	<a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a>  1/n * &#x3A3;((|r<sub>i</sub> - p<sub>i</sub>|)/r<sub>i</sub>),
+	<a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Normalized mean absolute percentage error</a>  1/n * &#x3A3;((|r<sub>i</sub> - p<sub>i</sub>|)/max(r<sub>i</sub>, p<sub>i</sub>),
+	<a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Weighted mean absolute percentage error</a> (&#x3A3; (|p<sub>i</sub>- r<sub>i</sub>|)) / (&#x3A3; r<sub>i</sub>).
+
 	The computed values can be inspected in the node's view and/or further
 	processed using the output table.
 		</intro>
@@ -37,6 +41,9 @@
 			<li><a href="http://en.wikipedia.org/wiki/Mean_absolute_error">Mean absolute error</a> - 1/n*&#x3A3;|p_i-r_i|</li>
 			<li><a href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a> - Sqrt(1/n*&#x3A3;((p_i-r_i)&#xb2;))</li>
 			<li><a href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean signed difference</a> - 1/n*&#x3A3;(p_i - r_i)</li>
+			<li><a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a> 1/n * &#x3A3;((|r_i - p_i|)/r_i)</li>
+			<li><a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Normalized mean absolute percentage error</a> 1/n * &#x3A3;((|r_i - p_i|)/ max(r_i, p_i)</li>
+			<li><a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Weighted mean absolute percentage error</a> (&#x3A3; (|p_i - r_i|)) / (&#x3A3; r_i)</li>
 			</ul>
 		</outPort>
 	</ports>

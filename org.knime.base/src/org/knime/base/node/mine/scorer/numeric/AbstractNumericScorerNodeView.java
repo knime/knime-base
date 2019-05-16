@@ -62,9 +62,9 @@ import org.knime.core.node.NodeView;
 /**
  * This view displays the numeric scoring results. It needs to be hooked up with a numeric
  * scoring model.
- * 
+ *
  * It extends the {@link NodeView} for numeric scorers.
- * 
+ *
  * @author Gabor Bakos
  * @author Ole Ostergaard
  * @param <M> the extended numeric scorer node model
@@ -77,6 +77,9 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
     private JLabel m_meanSquaredError;
     private JLabel m_rootMeanSquaredError;
     private JLabel m_meanSignedDifference;
+    private JLabel m_meanAbsolutePercentageError;
+    private JLabel m_weightedAbsolutePercentageError;
+    private JLabel m_normalizedMeanAbsolutePercentageError;
 
     /**
      * Creates a new view.
@@ -125,26 +128,53 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
         m_meanSignedDifference = new JLabel("n/a");
         c.gridx = 1;
         summary.add(m_meanSignedDifference, c);
+
+        c.gridx = 0;
+        c.gridy++;
+        summary.add(new JLabel("Mean absolute percentage error: "), c);
+        m_meanAbsolutePercentageError = new JLabel("n/a");
+        c.gridx = 1;
+        summary.add(m_meanAbsolutePercentageError, c);
+
+        c.gridx = 0;
+        c.gridy++;
+        summary.add(new JLabel("Normalized mean absolute percentage error: "), c);
+        m_normalizedMeanAbsolutePercentageError = new JLabel("n/a");
+        c.gridx = 1;
+        summary.add(m_normalizedMeanAbsolutePercentageError, c);
+
+        c.gridx = 0;
+        c.gridy++;
+        summary.add(new JLabel("Weighted absolute percentage error: "), c);
+        m_weightedAbsolutePercentageError = new JLabel("n/a");
+        c.gridx = 1;
+        summary.add(m_weightedAbsolutePercentageError, c);
+
         setComponent(summary);
     }
 
     /**
      * Sets all the labels in the nodeView with the values of the numeric scorers outcome.
-     * 
+     *
      * @param rSquare the rSquared to set
      * @param meanAbsError the meanAbsError to set
      * @param meanSquaredError the meanSquaredError to set
      * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
      * @param meanSignedDifference the meanSignedDifference to set
+     * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
+     * @param weightedAbsoluteErrorPercentage the weightedAbsoluteErrorPercentage to set
      */
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError, final double rootMeanSquaredDeviation,
-        final double meanSignedDifference) {
+        final double meanSignedDifference, final double meanAbsoluteErrorPercentage, final double normalizedMeanAbsolutePercentageError, final double weightedAbsoluteErrorPercentage) {
         NumberFormat nf = NumberFormat.getNumberInstance();
         m_rSquared.setText(nf.format(rSquare));
         m_meanAbsError.setText(nf.format(meanAbsError));
         m_meanSquaredError.setText(nf.format(meanSquaredError));
         m_rootMeanSquaredError.setText(nf.format(rootMeanSquaredDeviation));
         m_meanSignedDifference.setText(nf.format(meanSignedDifference));
+        m_meanAbsolutePercentageError.setText(nf.format(meanAbsoluteErrorPercentage));
+        m_normalizedMeanAbsolutePercentageError.setText(nf.format(normalizedMeanAbsolutePercentageError));
+        m_weightedAbsolutePercentageError.setText(nf.format(weightedAbsoluteErrorPercentage));
     }
 
     /**
