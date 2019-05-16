@@ -67,24 +67,25 @@ import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.workflow.FlowVariable;
 
 /**
- * A simple breakpoint node which allows to halt execution when a certain
- * condition on the input table is fulfilled (such as is-empty, is-inactive,
- * is-active, ...).
+ * A simple breakpoint node which allows to halt execution when a certain condition on the input table is fulfilled
+ * (such as is-empty, is-inactive, is-active, ...).
  *
  * @author M. Berthold, University of Konstanz
  */
-public class BreakpointNodeModel extends NodeModel
-implements InactiveBranchConsumer {
+public class BreakpointNodeModel extends NodeModel implements InactiveBranchConsumer {
 
+    private final SettingsModelString m_choice = BreakpointNodeDialog.createChoiceModel();
 
-    private final SettingsModelString m_choice = BreakpointNodeDialog
-            .createChoiceModel();
-    private final SettingsModelBoolean m_enabled = BreakpointNodeDialog
-            .createEnableModel();
-    private final SettingsModelString m_varname = BreakpointNodeDialog
-            .createVarNameModel();
-    private final SettingsModelString m_varvalue = BreakpointNodeDialog
-            .createVarValueModel();
+    private final SettingsModelBoolean m_enabled = BreakpointNodeDialog.createEnableModel();
+
+    private final SettingsModelString m_varname = BreakpointNodeDialog.createVarNameModel();
+
+    private final SettingsModelString m_varvalue = BreakpointNodeDialog.createVarValueModel();
+
+    // since 3.8
+    private final SettingsModelBoolean m_useCustomMessageModel = BreakpointNodeDialog.createUseCustomMessageModel();
+
+    private final SettingsModelString m_customMessageModel = BreakpointNodeDialog.createCustomMessageModel();
 
     /**
      * One input, one output.
@@ -98,10 +99,9 @@ implements InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.VARIABLEMATCH)
-            && getAvailableFlowVariables().get(m_varname.getStringValue()) == null) {
+                && (getAvailableFlowVariables().get(m_varname.getStringValue()) == null)) {
             throw new InvalidSettingsException(
                 "Selected flow variable: '" + m_varname.getStringValue() + "' not available!");
 
@@ -113,30 +113,45 @@ implements InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         if (!m_enabled.getBooleanValue()) {
             return inData;
         }
-        if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE) && inData[0] instanceof BufferedDataTable
-            && ((BufferedDataTable)inData[0]).size() == 0) {
-            throw new Exception("Breakpoint halted " + "execution (table is empty)");
+
+        String message = null;
+        boolean throwException = false;
+
+        if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE) && (inData[0] instanceof BufferedDataTable)
+                && (((BufferedDataTable)inData[0]).size() == 0)) {
+            message = "Breakpoint halted execution (table is empty)";
+            throwException = true;
         }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.ACTIVEBRANCH)
-            && !(inData[0] instanceof InactiveBranchPortObject)) {
-            throw new Exception("Breakpoint halted " + "execution (branch is active)");
+                && !(inData[0] instanceof InactiveBranchPortObject)) {
+            message = "Breakpoint halted execution (branch is active)";
+            throwException = true;
         }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.INACTIVEBRANCH)
-            && inData[0] instanceof InactiveBranchPortObject) {
-            throw new Exception("Breakpoint halted " + "execution (branch is inactive)");
+                && (inData[0] instanceof InactiveBranchPortObject)) {
+            message = "Breakpoint halted execution (branch is inactive)";
+            throwException = true;
         }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.VARIABLEMATCH)) {
-            FlowVariable fv = getAvailableFlowVariables().get(m_varname.getStringValue());
-            if (fv != null && fv.getValueAsString().equals(m_varvalue.getStringValue())) {
-                throw new Exception("Breakpoint halted execution " + "(" + m_varname.getStringValue() + "="
-                    + m_varvalue.getStringValue() + ")");
+            final FlowVariable fv = getAvailableFlowVariables().get(m_varname.getStringValue());
+            if ((fv != null) && fv.getValueAsString().equals(m_varvalue.getStringValue())) {
+                message = "Breakpoint halted execution (" + m_varname.getStringValue() + "="
+                        + m_varvalue.getStringValue() + ")";
+                throwException = true;
             }
         }
+
+        if (throwException) {
+            if (m_useCustomMessageModel.getBooleanValue()) {
+                message = m_customMessageModel.getStringValue();
+            }
+            throw new Exception(message);
+        }
+
         // unrecognized option: assume disabled.
         return inData;
     }
@@ -145,9 +160,8 @@ implements InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
         // ignore
     }
 
@@ -155,24 +169,33 @@ implements InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_enabled.validateSettings(settings);
         m_choice.validateSettings(settings);
         m_varname.validateSettings(settings);
         m_varvalue.validateSettings(settings);
+        if (settings.containsKey(m_useCustomMessageModel.getConfigName())) {
+            // maintaining backwards comp.
+            m_useCustomMessageModel.validateSettings(settings);
+            m_customMessageModel.validateSettings(settings);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_enabled.loadSettingsFrom(settings);
         m_choice.loadSettingsFrom(settings);
         m_varname.loadSettingsFrom(settings);
         m_varvalue.loadSettingsFrom(settings);
+
+        if (settings.containsKey(m_useCustomMessageModel.getConfigName())) {
+            // maintaining backwards comp.
+            m_useCustomMessageModel.loadSettingsFrom(settings);
+            m_customMessageModel.loadSettingsFrom(settings);
+        }
     }
 
     /**
@@ -187,9 +210,8 @@ implements InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
         // ignore -> no view
     }
 
@@ -202,6 +224,8 @@ implements InactiveBranchConsumer {
         m_choice.saveSettingsTo(settings);
         m_varname.saveSettingsTo(settings);
         m_varvalue.saveSettingsTo(settings);
+        m_useCustomMessageModel.saveSettingsTo(settings);
+        m_customMessageModel.saveSettingsTo(settings);
     }
 
 }

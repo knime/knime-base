@@ -86,6 +86,10 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
 
     private final SettingsModelString m_varValueModel = createVarValueModel();
 
+    private final SettingsModelString m_customMessageModel = createCustomMessageModel();
+
+    private final SettingsModelBoolean m_useCustomMessageModel = createUseCustomMessageModel();
+
     private final DialogComponentStringSelection m_variableName;
 
     private boolean m_varsAvailable;
@@ -117,14 +121,31 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
                 final boolean useVar = m_varsAvailable && VARIABLEMATCH.equals(m_choicesModel.getStringValue());
                 m_varNameModel.setEnabled(useVar);
                 m_varValueModel.setEnabled(useVar);
+                m_useCustomMessageModel.setEnabled(true);
+                m_customMessageModel.setEnabled(m_useCustomMessageModel.getBooleanValue());
             } else {
                 m_choicesModel.setEnabled(false);
                 m_varNameModel.setEnabled(false);
                 m_varValueModel.setEnabled(false);
+                m_useCustomMessageModel.setEnabled(false);
+                m_customMessageModel.setEnabled(false);
             }
         });
         addDialogComponent(m_variableName);
         addDialogComponent(varvalue);
+
+        setHorizontalPlacement(true);
+
+        m_useCustomMessageModel.addChangeListener(c -> m_customMessageModel
+            .setEnabled(m_useCustomMessageModel.getBooleanValue() && m_enableModel.getBooleanValue()));
+
+        final DialogComponentBoolean useCustomMessage =
+                new DialogComponentBoolean(m_useCustomMessageModel, "Custom message");
+
+        final DialogComponentString customMessage = new DialogComponentString(m_customMessageModel, "");
+
+        addDialogComponent(useCustomMessage);
+        addDialogComponent(customMessage);
     }
 
     /**
@@ -142,10 +163,10 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
         } else {
             m_varsAvailable = true;
             try {
-                String var =
+                final String var =
                     ((SettingsModelString)m_varNameModel.createCloneWithValidatedValue(settings)).getStringValue();
                 m_variableName.replaceListItems(availableVars, var);
-            } catch (InvalidSettingsException e) {
+            } catch (final InvalidSettingsException e) {
                 LOGGER.warn("Could not clone settings!", e);
             }
             m_choicesModel.setEnabled(m_enableModel.getBooleanValue());
@@ -154,6 +175,23 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
             m_varNameModel.setEnabled(varsEnabled);
             m_varValueModel.setEnabled(varsEnabled);
         }
+
+        m_useCustomMessageModel.setEnabled(m_enableModel.getBooleanValue());
+        m_customMessageModel.setEnabled(m_enableModel.getBooleanValue() && m_useCustomMessageModel.getBooleanValue());
+    }
+
+    /**
+     * @return settingsmodel for custom error message
+     */
+    static SettingsModelString createCustomMessageModel() {
+        return new SettingsModelString("Custom error message", "Breakpoint halted execution");
+    }
+
+    /**
+     * @return settingsmodel for whether to use a custom error message
+     */
+    static SettingsModelBoolean createUseCustomMessageModel() {
+        return new SettingsModelBoolean("Use custom error message", false);
     }
 
     /**
