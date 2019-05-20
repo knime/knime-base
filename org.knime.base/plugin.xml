@@ -1304,29 +1304,48 @@
             factory-class="org.knime.base.node.preproc.unpivot2.Unpivot2NodeFactory"
             >
       </node>
-
       <node
             category-path="/analytics/mining/pca"
-            factory-class="org.knime.base.node.mine.pca.PCANodeFactory"
-            >
+            deprecated="true"
+            factory-class="org.knime.base.node.mine.pca.PCANodeFactory">
       </node>
       <node
-            after="org.knime.base.node.mine.pca.PCANodeFactory"
             category-path="/analytics/mining/pca"
-            factory-class="org.knime.base.node.mine.pca.PCAComputeNodeFactory"
-            >
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.transformation.pca.perform.PCA2NodeFactory">
       </node>
       <node
-            after="org.knime.base.node.mine.pca.PCAComputeNodeFactory"
             category-path="/analytics/mining/pca"
-            factory-class="org.knime.base.node.mine.pca.PCAApplyNodeFactory"
-            >
+            deprecated="true"
+            factory-class="org.knime.base.node.mine.pca.PCAComputeNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.mine.pca.PCAApplyNodeFactory"
+            after="org.knime.base.node.mine.transformation.pca.perform.PCA2NodeFactory"
             category-path="/analytics/mining/pca"
-            factory-class="org.knime.base.node.mine.pca.PCAReverseNodeFactory"
-            >
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.transformation.pca.compute.PCA2ComputeNodeFactory">
+      </node>
+      <node
+            category-path="/analytics/mining/pca"
+            deprecated="true"
+            factory-class="org.knime.base.node.mine.pca.PCAApplyNodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.mine.transformation.pca.compute.PCA2ComputeNodeFactory"
+            category-path="/analytics/mining/pca"
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.transformation.pca.apply.PCA2ApplyNodeFactory">
+      </node>
+      <node
+            category-path="/analytics/mining/pca"
+            deprecated="true"
+            factory-class="org.knime.base.node.mine.pca.PCAReverseNodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.mine.transformation.pca.apply.PCA2ApplyNodeFactory"
+            category-path="/analytics/mining/pca"
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.transformation.pca.reverse.PCA2ReverseNodeFactory">
       </node>
       <node
             after="org.knime.base.node.preproc.colconvert.stringtonumber.StringToNumberNodeFactory"
@@ -2291,5 +2310,14 @@
             specClass="org.knime.base.node.meta.feature.selection.FeatureSelectionModel"
             specSerializer="org.knime.base.node.meta.feature.selection.FeatureSelectionModel$NewSpecSerializer">
       </portType>
+        <portType
+              color="#1eb9dc"
+              hidden="true"
+              name="Transformation"
+              objectClass="org.knime.base.node.mine.transformation.port.TransformationPortObject"
+              objectSerializer="org.knime.base.node.mine.transformation.port.TransformationPortObject$Serializer"
+              specClass="org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec"
+              specSerializer="org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec$Serializer">
+        </portType>
      </extension>   
 </plugin>

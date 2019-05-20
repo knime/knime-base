@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./../../../pca/pca_inverse.png" type="Manipulator">
+<name>PCA Inversion</name>
+<shortDescription>Inverse the PCA transformation</shortDescription>
+<fullDescription>
+<intro>
+	        This node inverts the transformation applied by the PCA Apply node.
+	        Given data in the space resulting from the <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> reduction are
+	        transformed back to its original space. Information that was lost by the 
+	        <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> transformation cannot be recovered.
+		</intro>
+        <option name="Columns">
+        Select <b>all</b> columns containing the projected data.
+        </option>
+        <option name="Remove selected columns">
+	        If checked, the selected columns are removed in the output table.
+        </option>
+		<option name="Fail if missing values are encountered">
+			If checked, execution fails, when the selected columns contain missing values. 
+			By default, rows containing missing values are ignored and not considered during the computation.
+		</option>
+		</fullDescription>
+		<ports>
+			<inPort index="0" name="Transformation model">
+				The Model used to reverse the PCA.
+			</inPort>
+			<inPort index="1" name="Table to transform">
+				Input data containing PCA transformed data.
+			</inPort>
+			<outPort index="0" name="Data in original space">
+				The original data (without the selected columns) including the reconstructed data from reverting the PCA transformation.
+			</outPort>
+		</ports>
+		</knimeNode>
+
