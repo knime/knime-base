@@ -94,11 +94,11 @@ import org.knime.core.node.util.CheckUtils;
  */
 final class PCA2ReverseNodeModel extends NodeModel {
 
-    /** Index of input data port. */
-    static final int DATA_IN_PORT = 1;
-
     /** Index of model data port. */
     private static final int MODEL_IN_PORT = 0;
+
+    /** Index of input data port. */
+    static final int DATA_IN_PORT = 1;
 
     /** The compute settings. */
     private final TransformationComputeSettings m_computeSettings = new TransformationComputeSettings();

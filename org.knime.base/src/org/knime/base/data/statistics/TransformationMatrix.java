@@ -149,7 +149,7 @@ public final class TransformationMatrix {
         final EigenDecomposition eigenDecomp = new EigenDecomposition(matrix);
         final double[] eVals = eigenDecomp.getRealEigenvalues();
         int[] permutation = IntStream.range(0, eVals.length)//
-            .mapToObj(x -> x)//
+            .boxed()//
             .sorted((i, j) -> Double.compare(eVals[j], eVals[i]))//
             .mapToInt(x -> x)//
             .toArray();
@@ -247,12 +247,12 @@ public final class TransformationMatrix {
             if (failOnMissings) {
                 throw new IllegalArgumentException(TransformationUtils.MISSING_VALUE_EXCEPTION);
             }
-            return Stream.generate(() -> DataType.getMissingCell()).limit(dim).toArray(DataCell[]::new);
+            return Stream.generate(DataType::getMissingCell).limit(dim).toArray(DataCell[]::new);
         }
         return writeCells(calculateProjection(rVec.get()), dim);
     }
 
-    private RealVector calculateProjection(final RealVector rVec) throws InvalidSettingsException {
+    private RealVector calculateProjection(final RealVector rVec) {
         return m_sortedEigenVecs.operate(rVec.combineToSelf(1, -1, m_centers));
     }
 
@@ -279,7 +279,7 @@ public final class TransformationMatrix {
             if (failOnMissings) {
                 throw new IllegalArgumentException(TransformationUtils.MISSING_VALUE_EXCEPTION);
             }
-            return Stream.generate(() -> DataType.getMissingCell()).limit(dim).toArray(DataCell[]::new);
+            return Stream.generate(DataType::getMissingCell).limit(dim).toArray(DataCell[]::new);
         }
         return writeCells(reverseProjection(rVec.get(), dim), dim);
     }
@@ -330,10 +330,10 @@ public final class TransformationMatrix {
             model.getInt(MAX_DIM_KEY));
     }
 
-    private static double[][] loadEigenvectors(final ModelContentRO eigenVecModel, final int int1)
+    private static double[][] loadEigenvectors(final ModelContentRO eigenVecModel, final int numEigenVecs)
         throws InvalidSettingsException {
-        final double[][] eigenVecs = new double[int1][];
-        for (int i = 0; i < int1; i++) {
+        final double[][] eigenVecs = new double[numEigenVecs][];
+        for (int i = 0; i < numEigenVecs; i++) {
             eigenVecs[i] = eigenVecModel.getDoubleArray(EIGENVECTOR_ROW_KEYPREFIX + i);
         }
         return eigenVecs;

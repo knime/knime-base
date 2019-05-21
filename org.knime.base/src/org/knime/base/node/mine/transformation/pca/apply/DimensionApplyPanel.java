@@ -67,10 +67,10 @@ import org.knime.core.node.util.CheckUtils;
 final class DimensionApplyPanel extends DimensionSelectionPanel {
 
     /** The unknown information preservation label. */
-    private static final String UNKNOWN_INFORMATION_PRESERVATION = "unkown information preservation";
+    private static final String UNKNOWN_INFORMATION_PRESERVATION = "unknown information preservation";
 
     /** The unknown target dimensionality label. */
-    private static final String UNKNOWN_TARGET_DIMENSIONALITY = "unkown target dimensionality";
+    private static final String UNKNOWN_TARGET_DIMENSIONALITY = "unknown target dimensionality";
 
     /** The index of the {@link TransformationPortObjectSpec} port. */
     private final int m_transPortIdx;
@@ -148,7 +148,7 @@ final class DimensionApplyPanel extends DimensionSelectionPanel {
         }
         final TransformationPortObjectSpec transSpec = (TransformationPortObjectSpec)specs[m_transPortIdx];
         updateMaxDim(transSpec.getMaxDimToReduceTo());
-        setEigenVals(transSpec.getEigenValues());
+        setEigenVals(transSpec.getEigenValues().orElse(null));
         m_replaceInvalidDimByMax = true;
     }
 

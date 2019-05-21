@@ -52,6 +52,7 @@ import org.knime.base.data.statistics.TransformationMatrix;
 import org.knime.base.data.statistics.calculation.PCA;
 import org.knime.base.node.mine.transformation.pca.AbstractPCA2NodeModel;
 import org.knime.base.node.mine.transformation.pca.settings.PCAApplySettings;
+import org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec.TransformationType;
 import org.knime.base.node.mine.transformation.util.TransformationUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
@@ -81,10 +82,11 @@ final class PCA2NodeModel extends AbstractPCA2NodeModel {
 
     @Override
     protected PortObject[] doExecute(final BufferedDataTable inTable, final ExecutionContext exec)
-        throws IllegalArgumentException, InvalidSettingsException, CanceledExecutionException {
+        throws InvalidSettingsException, CanceledExecutionException {
         final PCA pca = new PCA();
-        final TransformationMatrix transformationMatrix = pca.calcTransformationMatrix(exec, inTable, getColumnNames(),
-            m_computeSettings.getFailOnMissingsModel().getBooleanValue());
+        final TransformationMatrix transformationMatrix =
+            pca.calcTransformationMatrix(exec.createSubExecutionContext(0.7), inTable, getColumnNames(),
+                m_computeSettings.getFailOnMissingsModel().getBooleanValue());
         final int dimToReduceTo;
         if (m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
             dimToReduceTo = m_applySettings.getDimModel().getIntValue();
@@ -94,7 +96,7 @@ final class PCA2NodeModel extends AbstractPCA2NodeModel {
         }
         final ColumnRearranger cr = createColumnRearranger(inTable.getDataTableSpec(), transformationMatrix,
             dimToReduceTo, m_applySettings.getRemoveUsedColsModel().getBooleanValue());
-        final BufferedDataTable out = exec.createColumnRearrangeTable(inTable, cr, exec.createSubProgress(0.5));
+        final BufferedDataTable out = exec.createColumnRearrangeTable(inTable, cr, exec.createSubProgress(0.3));
         return new PortObject[]{out};
 
     }
@@ -119,19 +121,37 @@ final class PCA2NodeModel extends AbstractPCA2NodeModel {
         }
     }
 
+    /**
+     * Create a column rearranger that applies the LDA, if given
+     *
+     * @param inSpec the inspec of the table
+     * @param transMatrix the transformation matrix or null if called from configure
+     * @param k number of dimensions to reduce to (number of rows in w)
+     * @param removeUsedCols whether to remove the input data
+     * @return the column re-arranger
+     *
+     */
+    private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec, final TransformationMatrix transMatrix,
+        final int k, final boolean removeUsedCols) {
+        return TransformationUtils.createColumnRearranger(inSpec, transMatrix, k, removeUsedCols, getColumnNames(),
+            TransformationType.PCA);
+    }
+
     @Override
-    protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
+        super.saveSettingsTo(settings);
         m_applySettings.saveSettingsTo(settings);
     }
 
     @Override
-    protected void loadAdditionalValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.loadValidatedSettingsFrom(settings);
         m_applySettings.loadValidatedSettingsFrom(settings);
-
     }
 
     @Override
-    protected void validateAdditionalSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.validateSettings(settings);
         m_applySettings.validateSettings(settings);
     }
 

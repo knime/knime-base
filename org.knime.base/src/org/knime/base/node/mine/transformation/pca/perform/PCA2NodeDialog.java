@@ -83,7 +83,7 @@ final class PCA2NodeDialog extends NodeDialogPane {
 
     private DataTableSpec[] m_lastSpecs;
 
-    protected final JPanel m_panel;
+    private final JPanel m_panel;
 
     /**
      * Constructor.

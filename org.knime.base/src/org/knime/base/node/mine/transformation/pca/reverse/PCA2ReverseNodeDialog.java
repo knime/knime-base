@@ -58,14 +58,14 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
  * The PCA reverse node dialog.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ *
  */
-public final class PCA2ReverseNodeDialog extends DefaultNodeSettingsPane {
+final class PCA2ReverseNodeDialog extends DefaultNodeSettingsPane {
 
     /**
      * Constructor.
      */
-    public PCA2ReverseNodeDialog() {
+    PCA2ReverseNodeDialog() {
         final TransformationComputeSettings computeSettings = new TransformationComputeSettings();
         final TransformationReverseSettings reverseSettings = new TransformationReverseSettings();
         addDialogComponent(

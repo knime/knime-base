@@ -66,8 +66,6 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -89,14 +87,14 @@ final class PCA2ComputeNodeModel extends AbstractPCA2NodeModel {
 
     @Override
     protected PortObject[] doExecute(final BufferedDataTable inTable, final ExecutionContext exec)
-        throws IllegalArgumentException, InvalidSettingsException, CanceledExecutionException {
+        throws InvalidSettingsException, CanceledExecutionException {
         final PCA pca = new PCA();
         TransformationMatrix transMtx = pca.calcTransformationMatrix(exec.createSubExecutionContext(0.9), inTable,
             getColumnNames(), m_computeSettings.getFailOnMissingsModel().getBooleanValue());
-
+        // the PCA's covariance matrix cannot be null so it's save to call get without further checks
         return new PortObject[]{
-            createCoviranceMatrix(exec.createSubExecutionContext(0.95), pca.getCovMatrix()), TransformationUtils
-                .createEigenDecompositionTable(exec.createSubExecutionContext(1.0), transMtx, getColumnNames()),
+            createCovarianceMatrix(exec.createSubExecutionContext(0.05), pca.getCovMatrix().get()), TransformationUtils
+                .createEigenDecompositionTable(exec.createSubExecutionContext(0.05), transMtx, getColumnNames()),
             new TransformationPortObject(TransformationType.PCA, transMtx, getColumnNames())};
     }
 
@@ -108,7 +106,7 @@ final class PCA2ComputeNodeModel extends AbstractPCA2NodeModel {
         return new DataTableSpec("covariance matrix", getColumnNames(), types);
     }
 
-    private BufferedDataTable createCoviranceMatrix(final ExecutionContext exec, final RealMatrix covMtx) {
+    private BufferedDataTable createCovarianceMatrix(final ExecutionContext exec, final RealMatrix covMtx) {
         final String[] colNames = getColumnNames();
 
         final DataTableSpec covTableSpec = createCovarianceMatrixSpec();
@@ -133,18 +131,6 @@ final class PCA2ComputeNodeModel extends AbstractPCA2NodeModel {
         return new PortObjectSpec[]{createCovarianceMatrixSpec(),
             TransformationUtils.createDecompositionTableSpec(getColumnNames()),
             new TransformationPortObjectSpec(TransformationType.PCA, getColumnNames(), getColumnNames().length)};
-    }
-
-    @Override
-    protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
-    }
-
-    @Override
-    protected void loadAdditionalValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-    }
-
-    @Override
-    protected void validateAdditionalSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
     }
 
 }

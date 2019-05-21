@@ -48,10 +48,13 @@
  */
 package org.knime.base.node.mine.transformation.port;
 
+import java.util.Optional;
+
 import org.apache.commons.math3.linear.RealVector;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
+import org.knime.core.node.Node;
 import org.knime.core.node.port.AbstractSimplePortObjectSpec;
 
 /**
@@ -165,12 +168,13 @@ public final class TransformationPortObjectSpec extends AbstractSimplePortObject
     }
 
     /**
-     * Returns the non-increasingly sorted eigenvalues,
+     * Returns the non-increasingly sorted eigenvalues. Can only return an empty {@link Optional} if this spec is not
+     * associated with a {@link TransformationPortObject}, e.g., after a {@link Node#invokeNodeModelConfigure} call.
      *
      * @return the sorted eigenvalues
      */
-    public RealVector getEigenValues() {
-        return m_eigenValues;
+    public Optional<RealVector> getEigenValues() {
+        return Optional.ofNullable(m_eigenValues);
     }
 
     void setEigenValues(final RealVector eigenValues) {

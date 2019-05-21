@@ -61,7 +61,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
  * The PCA compute node dialog.
@@ -69,8 +68,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class PCA2ComputeNodeDialog extends NodeDialogPane {
-
-    private final SettingsModelColumnFilter2 m_usedColsModel;
 
     private final DialogComponentColumnFilter2 m_usedColsComponent;
 
@@ -80,9 +77,9 @@ final class PCA2ComputeNodeDialog extends NodeDialogPane {
 
     PCA2ComputeNodeDialog() {
         final TransformationComputeSettings s = new TransformationComputeSettings();
-        m_usedColsModel = s.getUsedColsModel();
 
-        m_usedColsComponent = new DialogComponentColumnFilter2(m_usedColsModel, AbstractPCA2NodeModel.DATA_IN_PORT);
+        m_usedColsComponent =
+            new DialogComponentColumnFilter2(s.getUsedColsModel(), AbstractPCA2NodeModel.DATA_IN_PORT);
 
         m_failOnMissingsComp =
             new DialogComponentBoolean(s.getFailOnMissingsModel(), "Fail if missing values are encountered");

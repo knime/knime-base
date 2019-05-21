@@ -79,6 +79,13 @@ public final class PCA {
     private int m_missings;
 
     /**
+     * Constructor.
+     */
+    public PCA() {
+
+    }
+
+    /**
      * Calculates the PCA.
      *
      * @param exec the execution context
@@ -117,7 +124,7 @@ public final class PCA {
         final long nRow = inTable.size();
         final int nCols = colIdx.length;
         double curRow = 0;
-        final Mean[] means = Stream.generate(() -> new Mean()).limit(nCols).toArray(Mean[]::new);
+        final Mean[] means = Stream.generate(Mean::new).limit(nCols).toArray(Mean[]::new);
         // calculate column means
         for (final DataRow row : inTable) {
             exec.checkCanceled();
@@ -183,10 +190,10 @@ public final class PCA {
     /**
      * Returns the covariance matrix.
      *
-     * @return the covariance matrix if it has been computed and {@code null} otherwise
+     * @return the covariance matrix if it has been computed
      */
-    public RealMatrix getCovMatrix() {
-        return m_covMtx;
+    public Optional<RealMatrix> getCovMatrix() {
+        return Optional.ofNullable(m_covMtx);
     }
 
 }

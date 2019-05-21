@@ -94,7 +94,7 @@ public final class TransformationUtils {
      *
      * @param row the data row
      * @param colIdx the column indices
-     * @return An {@code optional<RealVector>}. If any of the cells is missing the {@code Optional} is empty, otherwise
+     * @return An {@code Optional<RealVector>}. If any of the cells is missing the {@code Optional} is empty, otherwise
      *         it contains a {@code RealVector} storing the double values of the specified column indices
      */
     public static Optional<RealVector> rowToRealVector(final DataRow row, final int[] colIdx) {
@@ -178,13 +178,13 @@ public final class TransformationUtils {
      *
      * @param exec the execution context
      * @param transMtx the {@code TransformationMatrix}
-     * @param m_usedColumnNames the used column names
+     * @param usedColumnNames the used column names
      * @return a table storing the eigen decomposition
      * @throws CanceledExecutionException - If the execution got canceled
      */
     public static BufferedDataTable createEigenDecompositionTable(final ExecutionContext exec,
-        final TransformationMatrix transMtx, final String[] m_usedColumnNames) throws CanceledExecutionException {
-        final DataTableSpec outSpec = createDecompositionTableSpec(m_usedColumnNames);
+        final TransformationMatrix transMtx, final String[] usedColumnNames) throws CanceledExecutionException {
+        final DataTableSpec outSpec = createDecompositionTableSpec(usedColumnNames);
         final BufferedDataContainer result = exec.createDataContainer(outSpec);
         final RealVector sortedEigenValues = transMtx.getSortedEigenValues();
         final RealMatrix sortedEigenVectors = transMtx.getSortedEigenVectors();
@@ -233,7 +233,7 @@ public final class TransformationUtils {
      * Calculates the number of required dimension in order to satisfy the given information preservation constraint.
      *
      * @param eigenValues the non-increasingly sorted eigenvalues
-     * @para maxDimToReduceTo the maximum possible number of dimension to reduce to
+     * @param maxDimToReduceTo the maximum possible number of dimension to reduce to
      * @param infPreservation the information preservation value in range [1,100]
      * @return the number of dimension required in order to satisfy the required information preservation constraint
      */

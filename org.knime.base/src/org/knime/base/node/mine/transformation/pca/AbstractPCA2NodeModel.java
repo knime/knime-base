@@ -51,12 +51,8 @@ package org.knime.base.node.mine.transformation.pca;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.base.data.statistics.TransformationMatrix;
-import org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec.TransformationType;
 import org.knime.base.node.mine.transformation.settings.TransformationComputeSettings;
-import org.knime.base.node.mine.transformation.util.TransformationUtils;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -73,7 +69,7 @@ import org.knime.core.node.util.CheckUtils;
 /**
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ *
  */
 public abstract class AbstractPCA2NodeModel extends NodeModel {
 
@@ -108,12 +104,9 @@ public abstract class AbstractPCA2NodeModel extends NodeModel {
         super(inPortTypes, outPortTypes);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
-        // clear members
+        m_columnNames = null;
     }
 
     /**
@@ -153,7 +146,7 @@ public abstract class AbstractPCA2NodeModel extends NodeModel {
      *
      */
     protected abstract PortObject[] doExecute(final BufferedDataTable inTable, final ExecutionContext exec)
-        throws IllegalArgumentException, InvalidSettingsException, CanceledExecutionException;
+        throws InvalidSettingsException, CanceledExecutionException;
 
     /**
      * Tries to find a valid class column and one column that can be projected down from. Also finds the indices of the
@@ -197,86 +190,27 @@ public abstract class AbstractPCA2NodeModel extends NodeModel {
         return m_columnNames;
     }
 
-    /**
-     * Create a column rearranger that applies the LDA, if given
-     *
-     * @param inSpec the inspec of the table
-     * @param lda the transformation or null if called from configure
-     * @param k number of dimensions to reduce to (number of rows in w)
-     * @param removeUsedCols whether to remove the input data
-     * @return the column re-arranger
-     *
-     *         TODO: update doc
-     */
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
-        final TransformationMatrix transMatrix, final int k, final boolean removeUsedCols) {
-        return TransformationUtils.createColumnRearranger(inSpec, transMatrix, k, removeUsedCols, m_columnNames,
-            TransformationType.PCA);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected final void saveSettingsTo(final NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_computeSettings.saveSettingsTo(settings);
-        saveAdditionalSettingsTo(settings);
     }
 
-    /**
-     * Save additional settings, called after {@link #saveSettingsTo(NodeSettingsWO)}.
-     *
-     * @param settings
-     */
-    protected abstract void saveAdditionalSettingsTo(final NodeSettingsWO settings);
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected final void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_computeSettings.loadValidatedSettingsFrom(settings);
-        loadAdditionalValidatedSettingsFrom(settings);
     }
 
-    /**
-     * Load additional settings, called after {@link #loadValidatedSettingsFrom(NodeSettingsRO)}.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    protected abstract void loadAdditionalValidatedSettingsFrom(final NodeSettingsRO settings)
-        throws InvalidSettingsException;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_computeSettings.validateSettings(settings);
-        validateAdditionalSettings(settings);
     }
 
-    /**
-     * Validate additional settings, called after {@link #validateSettings(NodeSettingsRO)}.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    protected abstract void validateAdditionalSettings(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
