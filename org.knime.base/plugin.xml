@@ -419,9 +419,17 @@
             path="/flowcontrol">
       </category>
       <category
+            after="automation"
             icon="icons/16x16/category_quickform.png"
-            level-id="quickforms"
-            name="Quickforms"
+            level-id="configuration"
+            name="Configuration"
+            path="/flowcontrol">
+      </category>
+      <category
+            after="configuration"
+            icon="icons/16x16/category_quickform.png"
+            level-id="widgets"
+            name="Widgets"
             path="/flowcontrol">
       </category>
       <category
@@ -429,7 +437,7 @@
             level-id="variables"
             name="Variables"
             path="/flowcontrol"
-            after="quickforms">
+            after="widgets">
       </category>
       <category
             after="variables"
@@ -460,6 +468,13 @@
             icon="icons/16x16/meta.png"
             level-id="meta"
             name="Meta Nodes"
+            path="/flowcontrol">
+      </category>
+      <category
+            after="meta"
+            icon="icons/16x16/category_quickform.png"
+            level-id="quickforms"
+            name="Quickforms"
             path="/flowcontrol">
       </category>
       <category
