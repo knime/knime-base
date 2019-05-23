@@ -284,11 +284,11 @@ class NumericScorerNodeModel extends NodeModel {
             final String meanAPEName = prefix + "mean absolute percentage error";
             final String normalizedMAPEName = prefix + "normalized mean absolute percentage error";
             final String weightedAPEName = prefix + "weighted absolute percentage error";
-            if ((isConfigureOnly
+            if (isConfigureOnly
                 && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName) || vars.containsKey(meanSquareName)
-                    || vars.containsKey(rootmeanName) || vars.containsKey(meanSignedName)))
+                    || vars.containsKey(rootmeanName) || vars.containsKey(meanSignedName)
                 || vars.containsKey(meanAPEName) || vars.containsKey(normalizedMAPEName)
-                || vars.containsKey(weightedAPEName)) {
+                || vars.containsKey(weightedAPEName))) {
                 addWarning("A flow variable was replaced!");
             }
 
