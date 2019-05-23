@@ -442,6 +442,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric/AbstractNumericScorerNodeView.java" type="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView">
+        <filter comment="We assume that this node code is not used by external developers." id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView"/>
+                <message_argument value="setLabels(double, double, double, double, double)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/parallel/builder/ThreadedTableBuilderNodeModel.java" type="org.knime.base.node.parallel.builder.ThreadedTableBuilderNodeModel$Submitter">
         <filter id="640712815">
             <message_arguments>

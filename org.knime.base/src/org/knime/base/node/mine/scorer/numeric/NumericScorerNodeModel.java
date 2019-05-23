@@ -191,7 +191,7 @@ class NumericScorerNodeModel extends NodeModel {
             } else if ((ref < 0) && (pred == 0)) { // can't calculate nMape
                 skipNMAPE = true;
                 setWarningMessage(
-                    "Can't calculate Normalized Mean Absolute Percentage error: target value is bellow 0 and predicted value is 0! "
+                    "Can't calculate Normalized Mean Absolute Percentage error: target value is below 0 and predicted value is 0! "
                         + row.getKey());
             }
 

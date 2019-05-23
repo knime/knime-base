@@ -60,8 +60,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
- * This view displays the numeric scoring results. It needs to be hooked up with a numeric
- * scoring model.
+ * This view displays the numeric scoring results. It needs to be hooked up with a numeric scoring model.
  *
  * It extends the {@link NodeView} for numeric scorers.
  *
@@ -73,12 +72,19 @@ import org.knime.core.node.NodeView;
 public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends NodeView<M> {
 
     private JLabel m_rSquared;
+
     private JLabel m_meanAbsError;
+
     private JLabel m_meanSquaredError;
+
     private JLabel m_rootMeanSquaredError;
+
     private JLabel m_meanSignedDifference;
+
     private JLabel m_meanAbsolutePercentageError;
+
     private JLabel m_weightedAbsolutePercentageError;
+
     private JLabel m_normalizedMeanAbsolutePercentageError;
 
     /**
@@ -162,10 +168,14 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
      * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
      * @param meanSignedDifference the meanSignedDifference to set
      * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
+     * @param normalizedMeanAbsolutePercentageError the normalized mean absolute percentage error to set
      * @param weightedAbsoluteErrorPercentage the weightedAbsoluteErrorPercentage to set
+     * @since 3.8
      */
-    protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError, final double rootMeanSquaredDeviation,
-        final double meanSignedDifference, final double meanAbsoluteErrorPercentage, final double normalizedMeanAbsolutePercentageError, final double weightedAbsoluteErrorPercentage) {
+    protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
+        final double rootMeanSquaredDeviation, final double meanSignedDifference,
+        final double meanAbsoluteErrorPercentage, final double normalizedMeanAbsolutePercentageError,
+        final double weightedAbsoluteErrorPercentage) {
         NumberFormat nf = NumberFormat.getNumberInstance();
         m_rSquared.setText(nf.format(rSquare));
         m_meanAbsError.setText(nf.format(meanAbsError));
