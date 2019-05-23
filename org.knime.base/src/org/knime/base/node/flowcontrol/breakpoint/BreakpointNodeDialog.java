@@ -45,6 +45,7 @@
 package org.knime.base.node.flowcontrol.breakpoint;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -78,21 +79,22 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
     /** break on variable having given value. */
     static final String VARIABLEMATCH = "variable matches value";
 
-    private final SettingsModelBoolean m_enableModel = createEnableModel();
-
-    private final SettingsModelString m_choicesModel = createChoiceModel();
+    private final AtomicBoolean m_varsAvailable = new AtomicBoolean(false);
 
     private final SettingsModelString m_varNameModel = createVarNameModel();
+
+    private final SettingsModelString m_choicesModel = createChoiceModel(m_varNameModel, m_varsAvailable);
 
     private final SettingsModelString m_varValueModel = createVarValueModel();
 
     private final SettingsModelString m_customMessageModel = createCustomMessageModel();
 
-    private final SettingsModelBoolean m_useCustomMessageModel = createUseCustomMessageModel();
+    private final SettingsModelBoolean m_useCustomMessageModel = createUseCustomMessageModel(m_customMessageModel);
+
+    private final SettingsModelBoolean m_enableModel = createEnableModel(m_choicesModel, m_varNameModel,
+        m_varValueModel, m_useCustomMessageModel, m_customMessageModel, m_varsAvailable);
 
     private final DialogComponentStringSelection m_variableName;
-
-    private boolean m_varsAvailable;
 
     /**
      * Creates the dialog of the Breakpoint node.
@@ -108,39 +110,14 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
         m_varNameModel.setEnabled(false);
         final DialogComponentString varvalue = new DialogComponentString(m_varValueModel, "Enter Variable Value: ");
         // the choice control enable-status of the variable entry fields.
-        m_choicesModel.addChangeListener(e -> {
-            final boolean useVar = VARIABLEMATCH.equals(m_choicesModel.getStringValue());
-            m_varNameModel.setEnabled(useVar && m_varsAvailable);
-            m_varValueModel.setEnabled(useVar && m_varsAvailable);
-        });
-        // the enable button controls enable status of everything!
-        // (but needs to keep in mind the variable choice settings)
-        m_enableModel.addChangeListener(e -> {
-            if (m_enableModel.getBooleanValue()) {
-                m_choicesModel.setEnabled(true);
-                final boolean useVar = m_varsAvailable && VARIABLEMATCH.equals(m_choicesModel.getStringValue());
-                m_varNameModel.setEnabled(useVar);
-                m_varValueModel.setEnabled(useVar);
-                m_useCustomMessageModel.setEnabled(true);
-                m_customMessageModel.setEnabled(m_useCustomMessageModel.getBooleanValue());
-            } else {
-                m_choicesModel.setEnabled(false);
-                m_varNameModel.setEnabled(false);
-                m_varValueModel.setEnabled(false);
-                m_useCustomMessageModel.setEnabled(false);
-                m_customMessageModel.setEnabled(false);
-            }
-        });
+
         addDialogComponent(m_variableName);
         addDialogComponent(varvalue);
 
         setHorizontalPlacement(true);
 
-        m_useCustomMessageModel.addChangeListener(c -> m_customMessageModel
-            .setEnabled(m_useCustomMessageModel.getBooleanValue() && m_enableModel.getBooleanValue()));
-
         final DialogComponentBoolean useCustomMessage =
-                new DialogComponentBoolean(m_useCustomMessageModel, "Custom message");
+            new DialogComponentBoolean(m_useCustomMessageModel, "Custom message");
 
         final DialogComponentString customMessage = new DialogComponentString(m_customMessageModel, "");
 
@@ -157,11 +134,11 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
 
         final Set<String> availableVars = this.getAvailableFlowVariables().keySet();
         if (availableVars.isEmpty()) {
-            m_varsAvailable = false;
+            m_varsAvailable.set(false);
             m_varNameModel.setEnabled(false);
             m_varValueModel.setEnabled(false);
         } else {
-            m_varsAvailable = true;
+            m_varsAvailable.set(true);
             try {
                 final String var =
                     ((SettingsModelString)m_varNameModel.createCloneWithValidatedValue(settings)).getStringValue();
@@ -188,24 +165,63 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
     }
 
     /**
+     * @param customMessageModel
      * @return settingsmodel for whether to use a custom error message
      */
-    static SettingsModelBoolean createUseCustomMessageModel() {
-        return new SettingsModelBoolean("Use custom error message", false);
+    static SettingsModelBoolean createUseCustomMessageModel(final SettingsModelString customMessageModel) {
+        final SettingsModelBoolean useCustomMessageModel = new SettingsModelBoolean("Use custom error message", false);
+        useCustomMessageModel
+            .addChangeListener(c -> customMessageModel.setEnabled(useCustomMessageModel.getBooleanValue()));
+        return useCustomMessageModel;
     }
 
     /**
+     * @param varNameModel
+     * @param e
      * @return settings model (choice) for node and dialog.
      */
-    static SettingsModelString createChoiceModel() {
-        return new SettingsModelString("BreakPoint", EMTPYTABLE);
+    static SettingsModelString createChoiceModel(final SettingsModelString varNameModel,
+        final AtomicBoolean varsAvailable) {
+        final SettingsModelString choiceModel = new SettingsModelString("BreakPoint", EMTPYTABLE);
+
+        choiceModel.addChangeListener(e -> {
+            final boolean useVar = VARIABLEMATCH.equals(choiceModel.getStringValue());
+            varNameModel.setEnabled(useVar && varsAvailable.get());
+            varNameModel.setEnabled(useVar && varsAvailable.get());
+        });
+
+        return choiceModel;
     }
 
     /**
      * @return settings model (enable) for node and dialog.
      */
-    static SettingsModelBoolean createEnableModel() {
-        return new SettingsModelBoolean("Enabled", false);
+    static SettingsModelBoolean createEnableModel(final SettingsModelString choicesModel,
+        final SettingsModelString varNameModel, final SettingsModelString varValueModel,
+        final SettingsModelBoolean useCustomMessageModel, final SettingsModelString customMessageModel,
+        final AtomicBoolean varsAvailable) {
+        final SettingsModelBoolean enableModel = new SettingsModelBoolean("Enabled", false);
+
+        // the enable button controls enable status of everything!
+        // (but needs to keep in mind the variable choice settings)
+        enableModel.addChangeListener(e -> {
+            if (enableModel.getBooleanValue()) {
+                choicesModel.setEnabled(true);
+                final boolean useVar = varsAvailable.get() && VARIABLEMATCH.equals(choicesModel.getStringValue());
+                varNameModel.setEnabled(useVar);
+                varValueModel.setEnabled(useVar);
+                useCustomMessageModel.setEnabled(true);
+                customMessageModel.setEnabled(useCustomMessageModel.getBooleanValue());
+            } else {
+                choicesModel.setEnabled(false);
+                varNameModel.setEnabled(false);
+                varValueModel.setEnabled(false);
+                useCustomMessageModel.setEnabled(false);
+                customMessageModel.setEnabled(false);
+            }
+        });
+
+        return enableModel;
     }
 
     /**

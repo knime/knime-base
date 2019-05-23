@@ -49,6 +49,7 @@ package org.knime.base.node.flowcontrol.breakpoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -74,18 +75,22 @@ import org.knime.core.node.workflow.FlowVariable;
  */
 public class BreakpointNodeModel extends NodeModel implements InactiveBranchConsumer {
 
-    private final SettingsModelString m_choice = BreakpointNodeDialog.createChoiceModel();
-
-    private final SettingsModelBoolean m_enabled = BreakpointNodeDialog.createEnableModel();
-
     private final SettingsModelString m_varname = BreakpointNodeDialog.createVarNameModel();
 
     private final SettingsModelString m_varvalue = BreakpointNodeDialog.createVarValueModel();
 
+    private final SettingsModelString m_choice =
+        BreakpointNodeDialog.createChoiceModel(m_varname, new AtomicBoolean(true));
+
     // since 3.8
-    private final SettingsModelBoolean m_useCustomMessageModel = BreakpointNodeDialog.createUseCustomMessageModel();
 
     private final SettingsModelString m_customMessageModel = BreakpointNodeDialog.createCustomMessageModel();
+
+    private final SettingsModelBoolean m_useCustomMessageModel =
+        BreakpointNodeDialog.createUseCustomMessageModel(m_customMessageModel);
+
+    private final SettingsModelBoolean m_enabled = BreakpointNodeDialog.createEnableModel(m_choice, m_varname,
+        m_varvalue, m_useCustomMessageModel, m_customMessageModel, new AtomicBoolean(true));
 
     /**
      * One input, one output.
@@ -101,7 +106,7 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.VARIABLEMATCH)
-                && (getAvailableFlowVariables().get(m_varname.getStringValue()) == null)) {
+            && (getAvailableFlowVariables().get(m_varname.getStringValue()) == null)) {
             throw new InvalidSettingsException(
                 "Selected flow variable: '" + m_varname.getStringValue() + "' not available!");
 
@@ -121,18 +126,18 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
         String message = null;
         boolean throwException = false;
 
-        if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE) && (inData[0] instanceof BufferedDataTable)
-                && (((BufferedDataTable)inData[0]).size() == 0)) {
+        if (m_choice.getStringValue().equals(BreakpointNodeDialog.EMTPYTABLE)
+            && (inData[0] instanceof BufferedDataTable) && (((BufferedDataTable)inData[0]).size() == 0)) {
             message = "Breakpoint halted execution (table is empty)";
             throwException = true;
         }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.ACTIVEBRANCH)
-                && !(inData[0] instanceof InactiveBranchPortObject)) {
+            && !(inData[0] instanceof InactiveBranchPortObject)) {
             message = "Breakpoint halted execution (branch is active)";
             throwException = true;
         }
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.INACTIVEBRANCH)
-                && (inData[0] instanceof InactiveBranchPortObject)) {
+            && (inData[0] instanceof InactiveBranchPortObject)) {
             message = "Breakpoint halted execution (branch is inactive)";
             throwException = true;
         }
@@ -140,7 +145,7 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
             final FlowVariable fv = getAvailableFlowVariables().get(m_varname.getStringValue());
             if ((fv != null) && fv.getValueAsString().equals(m_varvalue.getStringValue())) {
                 message = "Breakpoint halted execution (" + m_varname.getStringValue() + "="
-                        + m_varvalue.getStringValue() + ")";
+                    + m_varvalue.getStringValue() + ")";
                 throwException = true;
             }
         }
@@ -161,7 +166,7 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
      */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+        throws IOException, CanceledExecutionException {
         // ignore
     }
 
@@ -211,7 +216,7 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
      */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+        throws IOException, CanceledExecutionException {
         // ignore -> no view
     }
 
