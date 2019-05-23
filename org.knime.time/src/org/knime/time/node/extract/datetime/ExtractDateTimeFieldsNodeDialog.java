@@ -102,11 +102,12 @@ final class ExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
             ExtractDateTimeFieldsNodeModel.createColSelectModel(), "Date&Time column", 0, true, LocalDateValue.class,
             LocalTimeValue.class, LocalDateTimeValue.class, ZonedDateTimeValue.class);
 
-        final String[] fieldsDate = new String[]{ExtractDateTimeFieldsNodeModel.YEAR,
-            ExtractDateTimeFieldsNodeModel.QUARTER, ExtractDateTimeFieldsNodeModel.MONTH_NUMBER,
-            ExtractDateTimeFieldsNodeModel.MONTH_NAME, ExtractDateTimeFieldsNodeModel.WEEK,
-            ExtractDateTimeFieldsNodeModel.DAY_OF_YEAR, ExtractDateTimeFieldsNodeModel.DAY_OF_MONTH,
-            ExtractDateTimeFieldsNodeModel.DAY_OF_WEEK_NUMBER, ExtractDateTimeFieldsNodeModel.DAY_OF_WEEK_NAME};
+        final String[] fieldsDate =
+            new String[]{ExtractDateTimeFieldsNodeModel.YEAR, ExtractDateTimeFieldsNodeModel.YEAR_WEEK_BASED,
+                ExtractDateTimeFieldsNodeModel.QUARTER, ExtractDateTimeFieldsNodeModel.MONTH_NUMBER,
+                ExtractDateTimeFieldsNodeModel.MONTH_NAME, ExtractDateTimeFieldsNodeModel.WEEK,
+                ExtractDateTimeFieldsNodeModel.DAY_OF_YEAR, ExtractDateTimeFieldsNodeModel.DAY_OF_MONTH,
+                ExtractDateTimeFieldsNodeModel.DAY_OF_WEEK_NUMBER, ExtractDateTimeFieldsNodeModel.DAY_OF_WEEK_NAME};
 
         m_dialogCompDateFields = new DialogComponentBoolean[fieldsDate.length];
         for (int i = 0; i < fieldsDate.length; i++) {

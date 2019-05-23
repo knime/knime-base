@@ -21,6 +21,23 @@
 			<option name="Year">If checked, the year will be extracted and
 				appended as an integer column.
 			</option>
+			<option name="Year (week-based)">
+				If checked, the year based on the week will be
+				extracted and appended
+				as an integer column. Depending on the
+				selected locale, week 1 of a
+				year may already start in the previous
+				year, or week 52 of a year may
+				last until the next year (e.g.,
+				30th
+				Dec 2010 belongs to week 1 of
+				year 2011 (locale en-US), so the
+				extracted
+				<i>Year (week-based)</i>
+				would be 2011 while the extracted
+				<i>Year</i>
+				would be 2010).
+			</option>
 			<option name="Quarter">If checked, the quarter of year will be extracted
 				as a number in range [1-4] and appended as an integer column.
 			</option>

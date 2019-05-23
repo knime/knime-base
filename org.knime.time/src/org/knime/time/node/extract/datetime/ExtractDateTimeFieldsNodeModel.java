@@ -96,6 +96,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
 
     static final String WEEK = "Week";
 
+    static final String YEAR_WEEK_BASED = "Year (week-based)";
+
     static final String DAY_OF_YEAR = "Day of year";
 
     static final String DAY_OF_MONTH = "Day of month";
@@ -158,6 +160,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
 
     private final SettingsModelBoolean m_yearModel = createFieldBooleanModel(YEAR);
 
+    private final SettingsModelBoolean m_yearWeekBasedModel = createFieldBooleanModel(YEAR_WEEK_BASED);
+
     private final SettingsModelBoolean m_quarterModel = createFieldBooleanModel(QUARTER);
 
     private final SettingsModelBoolean m_monthNumberModel = createFieldBooleanModel(MONTH_NUMBER);
@@ -191,8 +195,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
     private final SettingsModelString m_localeModel = createLocaleModel();
 
     private final SettingsModelBoolean[] m_dateModels =
-        new SettingsModelBoolean[]{m_yearModel, m_quarterModel, m_monthNumberModel, m_monthNameModel, m_weekModel,
-            m_dayYearModel, m_dayMonthModel, m_dayWeekNumberModel, m_dayWeekNameModel};
+        new SettingsModelBoolean[]{m_yearModel, m_yearWeekBasedModel, m_quarterModel, m_monthNumberModel,
+            m_monthNameModel, m_weekModel, m_dayYearModel, m_dayMonthModel, m_dayWeekNumberModel, m_dayWeekNameModel};
 
     private final SettingsModelBoolean[] m_timeModels =
         new SettingsModelBoolean[]{m_hourModel, m_minuteModel, m_secondModel, m_subsecondModel};
@@ -260,6 +264,37 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
                         @Override
                         protected DataCell getCell(final ZonedDateTimeValue value) {
                             return IntCellFactory.create(value.getZonedDateTime().getYear());
+                        }
+                    });
+                }
+            }
+
+            // year (week-based):
+
+            if (m_yearWeekBasedModel.getBooleanValue()) {
+                final DataColumnSpec colSpec = nameGenerator.newColumn(YEAR_WEEK_BASED, IntCell.TYPE);
+                if (isLocalDate) {
+                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                        @Override
+                        protected DataCell getCell(final LocalDateValue value) {
+                            return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).weekBasedYear()));
+                        }
+                    });
+                } else if (isLocalDateTime) {
+                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                        @Override
+                        protected DataCell getCell(final LocalDateTimeValue value) {
+                            return IntCellFactory.create(value.getLocalDateTime().get(WeekFields.of(locale).weekBasedYear()));
+                        }
+                    });
+                } else if (isZonedDateTime) {
+                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                        @Override
+                        protected DataCell getCell(final ZonedDateTimeValue value) {
+                            return IntCellFactory.create(value.getZonedDateTime().get(WeekFields.of(locale).weekBasedYear()));
                         }
                     });
                 }
@@ -791,7 +826,14 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelectModel.validateSettings(settings);
         for (final SettingsModelBoolean sm : m_dateModels) {
-            sm.validateSettings(settings);
+            try {
+                // for sake of backwards compatibility (AP-10139) ignore if load fails for m_yearWeekBasedModel
+                sm.validateSettings(settings);
+            } catch (InvalidSettingsException e) {
+                if (sm != m_yearWeekBasedModel) {
+                    throw e;
+                }
+            }
         }
         for (final SettingsModelBoolean sm : m_timeModels) {
             sm.validateSettings(settings);
@@ -810,7 +852,14 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_colSelectModel.loadSettingsFrom(settings);
         for (final SettingsModelBoolean sm : m_dateModels) {
-            sm.loadSettingsFrom(settings);
+            try {
+                sm.loadSettingsFrom(settings);
+            } catch (InvalidSettingsException e) {
+                // for sake of backwards compatibility (AP-10139) ignore if load fails for m_yearWeekBasedModel
+                if (sm != m_yearWeekBasedModel) {
+                    throw e;
+                }
+            }
         }
         for (final SettingsModelBoolean sm : m_timeModels) {
             sm.loadSettingsFrom(settings);
@@ -838,7 +887,7 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
         }
     }
 
-    private DataColumnSpec createBoundedIntColumn(final DataColumnDomainCreator domainCreator,
+    private static DataColumnSpec createBoundedIntColumn(final DataColumnDomainCreator domainCreator,
         final UniqueNameGenerator nameGenerator, final String suggestedName, final int lower, final int upper) {
         domainCreator.setLowerBound(IntCellFactory.create(lower));
         domainCreator.setUpperBound(IntCellFactory.create(upper));
