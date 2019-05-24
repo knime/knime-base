@@ -12,59 +12,112 @@
 		<intro>
 			<p>
 				LIME stands for Local Interpretable Model-agnostic Explanations.
-				It tries to explain individual predictions of a black-box model by training a local surrogate
-				model that is easier to understand (e.g. a linear model).
-				The intuition behind this approach is that a globally non-linear model might actually be
-				linear within a small local region of the feature space.
-				In order to learn such a local surrogate model, LIME creates for a single row of interest a dataset of perturbed rows, predicts it with the black-box model
-				and then learns a local surrogate that approximates the predictions of the black-box model.
-				For more details on the algorithm please see the paper <i>"Why Should I Trust You?" Explaining the Predictions of Any Classifier</i> by Ribeiro et al.
+				It
+				tries to explain individual predictions of a black-box model by
+				training a local surrogate
+				model that is easier to understand (e.g. a
+				linear model).
+				The intuition behind this approach is that a globally
+				non-linear model might actually be
+				linear within a small local region
+				of the feature space.
+				In order to learn such a local surrogate model,
+				LIME creates for a single row of interest a dataset of perturbed
+				rows, predicts it with the black-box model
+				and then learns a local
+				surrogate that approximates the predictions of the black-box model.
+				For more details on the algorithm please see the paper
+				<i>"Why Should I Trust You?" Explaining the Predictions of Any
+					Classifier
+				</i>
+				by Ribeiro et al.
 			</p>
-			
+
 			<h3>Usage</h3>
 			<p>
-				The top input of this node contains the rows of interest for which the predictions of your model should be explained.
-				Each row in the top table corresponds to one loop iteration, so its size will directly affect the runtime of the loop.
-				The bottom input table is used for sampling which in this case means that column statistics (e.g. mean and standard deviation) are calculated
-				for all of the feature columns. These statistics are later used to sample new values for the feature columns.
+				The top input of this node contains the rows of interest for which
+				the predictions of your model should be explained.
+				Each row in the
+				top table corresponds to one loop iteration, so its size will
+				directly affect the runtime of the loop.
+				The bottom input table is
+				used for sampling which in this case means that column statistics
+				are calculated
+				for all of the feature columns. These statistics are
+				later used to sample new values for the feature columns.
 			</p>
 			<p>
 				In each iteration of the loop one row of interest is explained.
-				This node produces two tables used for these explanations.
-				The top table contains rows which are created by sampling according to the
+				This
+				node produces two tables used for these explanations.
+				The top table
+				contains rows which are created by sampling according to the
 				statistics of the feature columns in the sampling table.
-				Note that numeric columns (including bit and byte vectors)
-				are assumed to be normally distributed. This table has to be predicted with the Predictor node appropriate
+				Note that
+				numeric columns (including bit and byte vectors)
+				are assumed to be
+				normally distributed. This table has to be predicted with the
+				Predictor node appropriate
 				for your model at hand.
-				The bottom table is meant for the training of a local surrogate model (e.g. a linear model).
+				The bottom table is
+				meant for the training of a local surrogate model (e.g. a linear
+				model).
 				It differs from the top table in the following:
 				<ol>
-					<li>Nominal feature columns are replaced by Double columns where a 1.0 indicates that the sampled value matches of the row of interest.</li>
-					<li>Bit and byte vector columns are split up into multiple columns, one for each element.</li>
-					<li>A weight column is appended that indicates how similar the sampled row is two the row of interest.A higher value indicates greater similarity.</li>
+					<li>Nominal feature columns are replaced by Double columns where a
+						1.0 indicates that the sampled value matches that of the row of
+						interest.
+					</li>
+					<li>Bit and byte vector columns are split up into multiple columns,
+						one for each element.
+					</li>
+					<li>A weight column is appended that indicates how similar the
+						sampled row is to the row of interest.A higher value indicates
+						greater similarity.
+					</li>
 				</ol>
-				
+
 				The loop body should do the following:
 				<ol>
-					<li>Predict the top table with the black-box model.</li>
+					<li>Predict the top table with the black-box model (predictions
+						must be numerical i.e. in case of a classification model the class
+						probabilities).
+					</li>
 					<li>Append the prediction column(s) to the bottom table.</li>
-					<li>Train a local surrogate model that uses the features from the bottom table, weights each row according to the weight column and approximates the predictions of the black box model.
-					The currently recommended Learner for this task is the H2O Generalized Linear Model Learner (Regression).</li>
-					<li>Extract and collect the local explanations from the local surrogate model (e.g. the linear coefficients) in one of our Loop End nodes.</li>
+					<li>Train a local surrogate model that uses the features from the
+						bottom table, weights each row according to the weight column and
+						approximates the predictions of the black-box model.
+						The currently
+						recommended Learner for this task is the H2O
+						Generalized Linear
+						Model Learner (Regression).
+					</li>
+					<li>Extract and collect the local explanations from the local
+						surrogate model (e.g. the linear coefficients) in one of our Loop
+						End nodes.
+					</li>
 				</ol>
 			</p>
 
-			<h3>Note on vector columns</h3>
+			<h4>Note on vector columns</h4>
 			<p>
-				Since the number of elements in a vector column is not known during configuration, the spec for the second table can't be generated if vectors are among the feature columns.
-				In this case down-stream nodes can only be configured once this node has been executed.
+				Since the number of elements in a vector column is not known
+				during configuration, the spec for the second table can't be
+				generated if vectors are among the feature columns.
+				In this case
+				down-stream nodes can only be configured once this node has been
+				executed.
 			</p>
 		</intro>
 
 		<tab name="Options">
 			<option name="Feature columns">
-				The columns that contain features your model requires.
-				These columns will be contained in the top table that has to be predicted by your model.
+				The feature columns which are used by your model.
+				These columns will be contained in the top table that has to be
+				predicted by your model.
+				For non-vector columns, the bottom table
+				will also contain one column per feature where nominal columns are
+				replaced by numeric columns.
 			</option>
 
 			<option name="Explanation set size">
@@ -72,19 +125,47 @@
 				surrogate model for a single incoming row of interest.
 			</option>
 			<option name="Sample around instances">
-				If checked, samples for numerical columns are drawn around the value of the current row of interest.
-				Otherwise samples are drawn around the mean of the feature (which is calculated from the sampling table).
+				If checked, samples for numerical columns are
+				drawn around the value of the current row of interest.
+				Otherwise
+				samples are drawn around the mean of the feature (which is
+				calculated from the sampling table).
 			</option>
 			<option name="Use seed">
 				Using a seed allows to reproduce the results of
 				the loop. If this box is checked the seed displayed in the text box
 				is used, otherwise a new seed is generated for each
-				execution. The
-				new button allows to generate a new random seed.
+				execution.
+			</option>
+			<option name="Use element names for vector features">
+				Vector columns like Bit and Byte vectors can
+				contain names for their individual elements.
+				If this option is set,
+				these names are used if possible i.e. if the number of element names
+				matches the element count.
+				If the option is not set or the number of
+				names doesn't match the number of elements, new names based on the
+				vector name are created.
 			</option>
 			<option name="Manual kernel width">
-				The default kernel width LIME uses for its exponential kernel is <i>sqrt(number of features) * 0.75</i>.
-				By checking this box, the manually specified kernel width is used instead.
+				LIME uses an exponential kernel to calculate the similarity of a
+				sampled row to the row explained.
+				The exponential kernel is defined
+				as
+				<i>sqrt(exp(-(d^2) / w^2))</i>
+				where
+				<i>d</i>
+				is the Euclidean distance of two data points and
+				<i>w</i>
+				is the kernel width.
+				Intuitively, the kernel width controls how local
+				the surrogate model is. A larger kernel width means a larger region
+				around the row to explain is considered.
+				By default the kernel width
+				LIME uses for its exponential kernel is
+				<i>sqrt(number of features) * 0.75</i>
+				but by checking this box it is also possible to provide a custom
+				kernel width.
 			</option>
 		</tab>
 	</fullDescription>
@@ -98,9 +179,17 @@
 			rows in the first table.
 		</inPort>
 		<outPort index="0" name="Predictable table">This table contains samples that have
-			to be predicted by the predictor node corresponding to your
-			particular model.</outPort>
-		<outPort index="1" name="Local surrogate model table">This table contains data to learn a
-			local surrogate model including a weight column.</outPort>
+			to be predicted by the Predictor node corresponding to your
+			particular model.
+		</outPort>
+		<outPort index="1" name="Local surrogate model table">
+			This table contains data to learn a
+			local surrogate model including a
+			<b>weight</b>
+			column. (The name of the column holding the weights is output as a
+			flow variable with the name
+			<i>weightColumnName</i>
+			).
+		</outPort>
 	</ports>
 </knimeNode>
