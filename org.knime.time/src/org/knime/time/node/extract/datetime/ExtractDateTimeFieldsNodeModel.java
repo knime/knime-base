@@ -278,7 +278,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
 
                         @Override
                         protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).weekBasedYear()));
+                            return IntCellFactory
+                                .create(value.getLocalDate().get(WeekFields.of(locale).weekBasedYear()));
                         }
                     });
                 } else if (isLocalDateTime) {
@@ -286,7 +287,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
 
                         @Override
                         protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().get(WeekFields.of(locale).weekBasedYear()));
+                            return IntCellFactory
+                                .create(value.getLocalDateTime().get(WeekFields.of(locale).weekBasedYear()));
                         }
                     });
                 } else if (isZonedDateTime) {
@@ -294,7 +296,8 @@ final class ExtractDateTimeFieldsNodeModel extends SimpleStreamableFunctionNodeM
 
                         @Override
                         protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().get(WeekFields.of(locale).weekBasedYear()));
+                            return IntCellFactory
+                                .create(value.getZonedDateTime().get(WeekFields.of(locale).weekBasedYear()));
                         }
                     });
                 }
