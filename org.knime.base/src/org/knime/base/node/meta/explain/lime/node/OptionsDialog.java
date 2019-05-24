@@ -90,6 +90,8 @@ class OptionsDialog {
 
     private final JCheckBox m_useSeed = new JCheckBox("Use seed");
 
+    private final JCheckBox m_useElementNames = new JCheckBox("Use element names for collection features");
+
     /**
      *
      */
@@ -172,6 +174,10 @@ class OptionsDialog {
         gbc.gridx++;
         gbc.weightx = 0;
         panel.add(m_newSeedBtn, gbc);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        panel.add(m_useElementNames, gbc);
         return panel;
     }
 
@@ -203,6 +209,7 @@ class OptionsDialog {
         cfg.setSampleAroundInstance(m_sampleAroundInstance.isSelected());
         cfg.setUseManualKernelWidth(m_manuallySpecifyKernelWidth.isSelected());
         cfg.setKernelWidth((double)m_kernelWidth.getValue());
+        cfg.setUseElementNames(m_useElementNames.isSelected());
     }
 
     private long getSeedAsLong() throws InvalidSettingsException {
@@ -220,6 +227,7 @@ class OptionsDialog {
         m_sampleAroundInstance.setSelected(cfg.isSampleAroundInstance());
         m_seedBox.setText(cfg.getManualSeed() + "");
         m_useSeed.setSelected(cfg.isUseSeed());
+        m_useElementNames.setSelected(cfg.isUseElementNames());
         reactToUseSeedCheckBox();
         reactToUseManualKernelCheckBox();
     }

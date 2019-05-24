@@ -93,7 +93,7 @@ public class LIMESettings {
      */
     private static final String CFG_EXPLANATION_SET_SIZE = "explanationSetSize";
 
-    private static final String CFG_DONT_USE_ELEMENT_NAMES = "dontUseElementNames";
+    private static final String CFG_DONT_USE_ELEMENT_NAMES = "useElementNames";
 
     /**
      *
@@ -108,7 +108,7 @@ public class LIMESettings {
 
     private long m_seed = newSeed();
 
-    private boolean m_dontUseElementNames = false;
+    private boolean m_useElementNames = true;
 
     private boolean m_sampleAroundInstance = false;
 
@@ -123,7 +123,7 @@ public class LIMESettings {
         m_useSeed = settings.getBoolean(CFG_USE_SEED, false);
         m_seed = settings.getLong(CFG_SEED, newSeed());
         m_featureCols.loadConfigurationInDialog(settings, inSpec);
-        m_dontUseElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES, false);
+        m_useElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES, false);
         m_sampleAroundInstance = settings.getBoolean(CFG_SAMPLE_AROUND_INSTANCE, false);
         m_kernelWidthDefined = settings.getBoolean(CFG_KERNEL_WIDTH_DEFINED, false);
         m_kernelWidth = settings.getDouble(CFG_KERNEL_WIDTH, 1.0);
@@ -134,7 +134,7 @@ public class LIMESettings {
         m_useSeed = settings.getBoolean(CFG_USE_SEED);
         m_seed = settings.getLong(CFG_SEED);
         m_featureCols.loadConfigurationInModel(settings);
-        m_dontUseElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES);
+        m_useElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES);
         m_sampleAroundInstance = settings.getBoolean(CFG_SAMPLE_AROUND_INSTANCE);
         m_kernelWidthDefined = settings.getBoolean(CFG_KERNEL_WIDTH_DEFINED);
         m_kernelWidth = settings.getDouble(CFG_KERNEL_WIDTH);
@@ -145,7 +145,7 @@ public class LIMESettings {
         settings.addBoolean(CFG_USE_SEED, m_useSeed);
         settings.addLong(CFG_SEED, m_seed);
         m_featureCols.saveConfiguration(settings);
-        settings.addBoolean(CFG_DONT_USE_ELEMENT_NAMES, m_dontUseElementNames);
+        settings.addBoolean(CFG_DONT_USE_ELEMENT_NAMES, m_useElementNames);
         settings.addBoolean(CFG_SAMPLE_AROUND_INSTANCE, m_sampleAroundInstance);
         settings.addBoolean(CFG_KERNEL_WIDTH_DEFINED, m_kernelWidthDefined);
         settings.addDouble(CFG_KERNEL_WIDTH, m_kernelWidth);
@@ -223,8 +223,12 @@ public class LIMESettings {
     /**
      * @return the dontUseElementNames
      */
-    public boolean isDontUseElementNames() {
-        return m_dontUseElementNames;
+    public boolean isUseElementNames() {
+        return m_useElementNames;
+    }
+
+    void setUseElementNames(final boolean useElementNames) {
+        m_useElementNames = useElementNames;
     }
 
     /**
