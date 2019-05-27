@@ -56,7 +56,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.knime.base.node.io.filereader.ColProperty;
 import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.core.data.DataCell;
