@@ -72,7 +72,7 @@
 						one for each element.
 					</li>
 					<li>A weight column is appended that indicates how similar the
-						sampled row is to the row of interest.A higher value indicates
+						sampled row is to the row of interest. A higher value indicates
 						greater similarity.
 					</li>
 				</ol>
