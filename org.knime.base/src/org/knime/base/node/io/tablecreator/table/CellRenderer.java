@@ -56,6 +56,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.knime.base.node.io.filereader.ColProperty;
 import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.core.data.DataCell;
@@ -122,7 +123,7 @@ class CellRenderer extends DefaultTableCellRenderer {
                 cellFactory.setMissingValuePattern(colProperty.getMissingValuePattern());
                 cellFactory.setFormatParameter(colProperty.getFormatParameter().orElse(null));
                 DataCell dataCell = cellFactory.createDataCellOfType(
-                      colProperty.getColumnSpec().getType(), value.toString());
+                      colProperty.getColumnSpec().getType(), ObjectUtils.defaultIfNull(value, "").toString());
                 if (null == dataCell) {
                     setBackground(reddishBackground());
                     setForeground(table.getForeground());

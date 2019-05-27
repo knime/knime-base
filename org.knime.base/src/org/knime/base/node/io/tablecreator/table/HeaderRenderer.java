@@ -58,6 +58,8 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.TableCellRenderer;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 /**
  * The renderer for the spreadsheets row and column header.
  *
@@ -137,7 +139,7 @@ abstract class HeaderRenderer extends JLabel implements
             }
         }
 
-        setText(value.toString());
+        setText(ObjectUtils.defaultIfNull(value, "").toString());
 
         return this;
     }
