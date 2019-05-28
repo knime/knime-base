@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./icon.png" type="Manipulator">
+	<name>t-SNE</name>
+	<shortDescription>
+		t-SNE is a manifold learning technique that learns a
+		low-dimensional
+		embedding of high-dimensional data.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			t-SNE is a manifold learning technique that learns low-dimensional
+			embeddings for high-dimensional data.
+			It is most often used for
+			visualization purposes because it exploits
+			the local relationships
+			between data points and can
+			hence capture non-linear structures in the
+			data.
+			Unlike other dimension reduction techniques like PCA, a learned
+			t-SNE model
+			can't be applied to new data.
+			The t-SNE algorithm can be
+			roughly summarized as two steps:
+			<ol>
+				<li>Create a probability distribution capturing the relationships
+					between points in the high-dimensional space
+				</li>
+				<li>Find a low-dimensional space that resembles the probability
+					dimension as good as possible
+				</li>
+			</ol>
+			As t-SNE directly utilizes the data points, it is sensitive to the
+			scale of the input features and for best results it is recommended to
+			normalize the features
+			using the Normalizer node.
+			For further details
+			check out this great
+			<a
+				href="mlexplained.com/2018/09/14/paper-dissected-visualizing-data-using-t-sne-explained/">blog post</a>
+			or
+			the original
+			<a
+				href="http://www.jmlr.org/papers/volume9/vandermaaten08a/vandermaaten08a.pdf">paper</a>
+			.
+			The implementation of this node is based on the
+			<a href="http://haifengl.github.io/smile/">Smile - Statistical Machine Intelligence and Learning
+				Engine</a>
+			.
+		</intro>
+
+		<option name="Columns">
+			Select the columns that are included by t-SNE i.e.
+			the original features.
+			Note that currently only numerical columns are
+			supported.
+		</option>
+		<option name="Dimension(s) to reduce to">
+			The number of dimension of the target embedding
+			(for visualization typically 2 or 3).
+		</option>
+		<option name="Iterations">
+			The number of learning iterations to perform. Too
+			few iterations might
+			result in a bad embedding while too many
+			iterations take a long time
+			to train.
+		</option>
+		<option name="Learning rate">
+			The learning rate to use, i.e. how much the
+			embedding changes in one
+			iteration. A too small learning rate means
+			that more iterations are
+			required to reach a good embedding while a
+			too large learning rate
+			can result in unstable embeddings that change
+			strongly between
+			iterations.
+		</option>
+		<option name="Perplexity">
+			Informally, the perplexity is the number of
+			neighbors for each data point.
+			Small perplexities focus more on local
+			structure while larger perplexities take more global relationships
+			into account.
+			Typical values for the perplexity lay between 5 and 50.
+		</option>
+		<option name="Remove original data columns">
+			Check this box if you want to remove the columns
+			used to learn the embedding.
+		</option>
+		<option name="Fail if missing values are encountered">
+			If this box is checked, the node fails if it
+			encounters a missing value in one of the columns used for learning.
+			Otherwise, rows containing missing values in the learning columns
+			will be ignored during learning and the corresponding embedding
+			consists of missing values.
+		</option>
+		<option name="Seed">
+			Allows specifying a static seed to allow for
+			reproducible results.
+			NOTE: The Smile library is reproducible if and
+			only if the VM argument smile.threads is 1.
+			We set this property if it
+			is not set during start up but we don't overwrite existing VM
+			arguments, meaning if you set the smile.threads to anything other
+			than 1 in your knime.ini, we won't overwrite this value and results
+			will thus not be reproducible even if a static seed is provided.
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Data">Input port for the data for which a
+			low-dimensional embedding should be learned
+		</inPort>
+		<outPort index="0" name="Embedded Data">The low-dimensional embedding
+		</outPort>
+	</ports>
+</knimeNode>

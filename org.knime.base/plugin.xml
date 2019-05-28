@@ -491,6 +491,13 @@
             level-id="xai"
             name="Model Explanation"
             path="labs/">
+      </category>
+      <category
+            icon="icons/missing.gif"
+            level-id="manifold"
+            locked="true"
+            name="Manifold"
+            path="/analytics/mining/">
       </category>      
    </extension>
             
@@ -2060,6 +2067,11 @@
             category-path="/labs/xai"
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
+	  </node>
+      <node
+            category-path="/analytics/mining/manifold"
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.manifold.tsne.TsneNodeFactory">
       </node>
       <node
             category-path="/manipulation/row/row-filter"
