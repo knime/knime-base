@@ -47,6 +47,9 @@
  */
 package org.knime.base.node.preproc.pmml.normalize;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.knime.base.data.normalize.Normalizer;
 import org.knime.base.data.normalize.Normalizer2;
 import org.knime.base.data.normalize.PMMLNormalizeTranslator;
@@ -62,6 +65,7 @@ import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
+import org.knime.core.node.util.ConvenienceMethods;
 
 /**
  * The NormalizeNodeModel uses the Normalizer to normalize the input DataTable.
@@ -71,6 +75,8 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * @since 3.0
  */
 public abstract class AbstractNormalizerPMMLNodeModel extends Normalizer2NodeModel {
+
+    private static final double PRECISION_WARNING_THRESHOLD = Integer.MAX_VALUE;
 
     private boolean m_hasModelIn = false;
 
@@ -143,6 +149,26 @@ public abstract class AbstractNormalizerPMMLNodeModel extends Normalizer2NodeMod
     protected PortObject[] execute(final PortObject[] inObjects,
             final ExecutionContext exec) throws Exception {
         CalculationResult result = calculate(inObjects, exec);
+
+        // Check the size of the values written to PMML and show a warning if values are too high.
+        double[] scales = result.getConfig().getScales();
+        double[] translations = result.getConfig().getTranslations();
+
+        List<String> precisionWarningCols = new ArrayList<>();
+        for (int i = 0; i < scales.length; i++) {
+            double scale = scales[i];
+            double translation = translations[i];
+
+            if (scale + translation > PRECISION_WARNING_THRESHOLD
+                || scale + translation < -PRECISION_WARNING_THRESHOLD) {
+                precisionWarningCols.add(result.getConfig().getNames()[i]);
+            }
+        }
+        if (precisionWarningCols.size() > 0) {
+            setWarningMessage("The following columns contain nearly constant values: "
+                + ConvenienceMethods.getShortStringFrom(precisionWarningCols, 5)
+                + ". Applying the resulting PMML may lead to incorrect normalization results.");
+        }
 
         BufferedDataTable outTable = result.getDataTable();
 
