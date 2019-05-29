@@ -196,10 +196,10 @@ class NumericScorerNodeModel extends NodeModel {
             }
 
             if (!skipMAPE) {
-                meanAPE.increment(Math.abs(ref - pred) / ref);
+                meanAPE.increment(Math.abs(ref - pred) / Math.abs(ref));
             }
             if (!skipNMAPE) {
-                nomalizedMAPE.increment(Math.abs(ref - pred) / Math.max(ref, pred));
+                nomalizedMAPE.increment(Math.abs(ref - pred) / Math.abs(Math.max(ref, pred)));
             }
 
             // WAPE
@@ -230,7 +230,7 @@ class NumericScorerNodeModel extends NodeModel {
             setWarningMessage("Can't calculate Weighted Absolute Percentage error: sum of all values is 0!");
             m_weightedAbsolutePercentageError = Double.NaN;
         } else {
-            m_weightedAbsolutePercentageError = totalDiff / total;
+            m_weightedAbsolutePercentageError = totalDiff / Math.abs(total);
         }
 
         container.addRowToTable(new DefaultRow("R^2", m_rSquare));
