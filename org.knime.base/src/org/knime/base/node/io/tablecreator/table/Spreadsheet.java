@@ -83,11 +83,12 @@ import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.core.data.DataCell;
 
 /**
- * The spreadsheet component with an input line in the north a spreadsheet
- * table in the center and further controls in the south.
+ * The spreadsheet component with an input line in the north a spreadsheet table in the center and further controls in
+ * the south.
  *
  * @author Heiko Hofer
  */
+@SuppressWarnings("serial")
 public class Spreadsheet extends JComponent {
     private final SpreadsheetTable m_table;
     private final RowHeaderTable m_rowHeaderTable;
@@ -184,9 +185,8 @@ public class Spreadsheet extends JComponent {
     }
 
     private JPanel createEditingPanel() {
-        JPanel p = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 2, 4, 2);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
@@ -220,9 +220,8 @@ public class Spreadsheet extends JComponent {
         return p;
     }
 
-    private String getOutputTableMessage(final int numRows, final int numCols,
-                final int skipped) {
-        StringBuilder builder = new StringBuilder();
+    private static String getOutputTableMessage(final int numRows, final int numCols, final int skipped) {
+        final StringBuilder builder = new StringBuilder();
         builder.append("The output table has ");
         builder.append(numRows);
         builder.append(" rows and ");
@@ -234,7 +233,6 @@ public class Spreadsheet extends JComponent {
             builder.append(" skipped)");
         }
         builder.append(".");
-
 
         return builder.toString();
     }
@@ -511,6 +509,7 @@ public class Spreadsheet extends JComponent {
      * reset the focused cell.
      */
     public void clearFocusedCell() {
+        m_inputLine.setText("");
         m_table.clearFocusedCell();
     }
 
