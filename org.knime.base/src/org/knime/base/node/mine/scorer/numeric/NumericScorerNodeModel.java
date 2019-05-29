@@ -236,7 +236,7 @@ class NumericScorerNodeModel extends NodeModel {
         container.addRowToTable(new DefaultRow("R^2", m_rSquare));
         container.addRowToTable(new DefaultRow("mean absolute error", m_meanAbsError));
         container.addRowToTable(new DefaultRow("mean squared error", m_meanSquaredError));
-        container.addRowToTable(new DefaultRow("root mean squared deviation", m_rmsd));
+        container.addRowToTable(new DefaultRow("root mean squared error", m_rmsd));
         container.addRowToTable(new DefaultRow("mean signed difference", m_meanSignedDifference));
         container.addRowToTable(new DefaultRow("mean absolute percentage error", m_meanAbsolutePercentageError));
         container.addRowToTable(
@@ -279,7 +279,7 @@ class NumericScorerNodeModel extends NodeModel {
             final String rsquareName = prefix + "R^2";
             final String meanAbsName = prefix + "mean absolute error";
             final String meanSquareName = prefix + "mean squared error";
-            final String rootmeanName = prefix + "root mean squared deviation";
+            final String rootmeanName = prefix + "root mean squared error";
             final String meanSignedName = prefix + "mean signed difference";
             final String meanAPEName = prefix + "mean absolute percentage error";
             final String normalizedMAPEName = prefix + "normalized mean absolute percentage error";
