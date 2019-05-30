@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./db_query.png" type="Source" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Parameterized Database Query</name>
+    <name>Parameterized Database Query (legacy)</name>
     
     <shortDescription>
         This node runs SQL queries in the connected database restricted by the 
@@ -9,11 +9,19 @@
     
     <fullDescription>
 		<intro>
-		This node runs SQL queries in the connected database restricted by the 
-		possible values given by the input table. It establishes and opens a 
-		database access connection from which to read data and restricts 
-		each SQL query so that only rows that match the possible values from
-		the input table are retrieved.
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
+			This node runs SQL queries in the connected database restricted by the 
+			possible values given by the input table. It establishes and opens a 
+			database access connection from which to read data and restricts 
+			each SQL query so that only rows that match the possible values from
+			the input table are retrieved.
+			</p>
 		</intro>
         
         <option name="Database Column List">

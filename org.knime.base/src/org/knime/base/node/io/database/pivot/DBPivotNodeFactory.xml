@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="db_pivot-icon.png" type="Manipulator">
-	<name>Database Pivot</name>
+	<name>Database Pivot (legacy)</name>
 	<shortDescription>
 		The Database Pivot node allows to pivot and group the input table by the 
 		selected columns for pivoting and grouping; enhanced by column aggregations.
@@ -9,6 +9,12 @@
 	
 	<fullDescription>
     	<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
     	   <p>
         	This node creates a SQL statement for pivoting to be executed on the
 			input database using a selected number of 

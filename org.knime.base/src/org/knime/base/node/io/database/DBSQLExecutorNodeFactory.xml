@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./db_sql_executor.png" type="Manipulator">
-	<name>Database SQL Executor</name>
+	<name>Database SQL Executor (legacy)</name>
 
 	<shortDescription>
 		The Database Executor allows to execute any custom
@@ -10,10 +10,18 @@
 
 	<fullDescription>
 		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
 			This node allows custom SQL Statements to be executed on the
 			input database. The output port can be used for flow control, to
 			prevent subsequent nodes from executing if the execution of this
 			Statement fails.
+			</p>
 		</intro>
 
 		<option name="SQL Statement">

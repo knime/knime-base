@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="db_group.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Database GroupBy</name>
+	<name>Database GroupBy (legacy)</name>
 	<shortDescription>
 		The Database GroupBy allows to group by the selected
 		columns and output aggregated data to the generated groups.
 	</shortDescription>
 	<fullDescription>
 		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
            <p>
 			This node allows rows to be grouped by the selected columns from the input database table. 
             Within the dialog, an SQL GROUP BY clause is interactively created by selecting the columns to group by

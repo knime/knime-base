@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10" icon="db_drop.png" type="Manipulator">
-    <name>Database Drop Table</name>
+    <name>Database Drop Table (legacy)</name>
     <shortDescription>Drops a table from the database using the input database JDBC connection.</shortDescription>
     <fullDescription>
         <intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
             This node takes a database connection as input and allows to drop a table within the database described by 
             the incoming database JDBC connection.
+            </p>
         </intro>
         
         <option name="Table name">

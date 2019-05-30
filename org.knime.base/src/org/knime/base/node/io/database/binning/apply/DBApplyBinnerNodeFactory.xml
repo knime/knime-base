@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="../db_binner.png" type="Manipulator">
-	<name>Database Apply-Binner</name>
+	<name>Database Apply-Binner (legacy)</name>
 	
 	<shortDescription>
 	    This node allows to group numeric data in intervals - called bins.
@@ -9,6 +9,12 @@
 	
 	<fullDescription>
 		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
 		  <p>
 		  This node allows to group numeric data in intervals - called bins. 
 		  The bins are defined in the PMML Model.

@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Source" icon="./db_connection_reader.png">
-	<name>Database Connection Table Reader</name>
+	<name>Database Connection Table Reader (legacy)</name>
 	
 	<shortDescription>
 	    Reads the entire data from the input database connection.
 	</shortDescription>
 	
 	<fullDescription>
-		<intro>		
-	     Opens a database connection based on the input settings and reads
-	     the entire data table from the database into KNIME. 
+		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
+	           Opens a database connection based on the input settings and reads
+	           the entire data table from the database into KNIME.
+           </p> 
 		</intro>
 		<option name="Use database row id">If enabled the KNIME row id is based on the row id returned from the database.
 		An internal counter is used to generate the row id if the option is disabled.

@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="./db_joiner.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Database Joiner</name>
+	<name>Database Joiner (legacy)</name>
 	<shortDescription>Joins two database tables</shortDescription>
 	<fullDescription>
 		<intro>
-			This node joins two database tables. The join is based
-			on the
-			joining columns of both tables.
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
+			This node joins two database tables. The join is based on the joining columns of both tables.
+			</p>
 		</intro>
 		<tab name="Joiner settings">
 			<option name="Join mode">

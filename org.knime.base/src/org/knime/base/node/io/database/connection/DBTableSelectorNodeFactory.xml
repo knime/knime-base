@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10" icon="./db_table_selector.png" type="Source">
-    <name>Database Table Selector</name>
+    <name>Database Table Selector (legacy)</name>
     <shortDescription>Selects a table from a database using the input database JDBC connection.</shortDescription>
     <fullDescription>
         <intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
             This node takes a database connection as input and allows selecting a table based on the incoming database 
             JDBC connection. The node outputs the incoming connection together with the query which can later on be used
             in subsequent database manipulation nodes.
+            </p>
         </intro>
         
         <option name="SQL Statement">

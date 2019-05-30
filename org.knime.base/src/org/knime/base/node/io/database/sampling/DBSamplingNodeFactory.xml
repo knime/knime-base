@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="db_sampling-icon.png" type="Manipulator">
-    <name>Database Sampling</name>
+    <name>Database Sampling (legacy)</name>
     
     <shortDescription>
         The Database Sampling creates a SQL statement that allows to sample (a bunch of rows) from a database table
@@ -9,8 +9,16 @@
     
      <fullDescription>
         <intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
             This node extracts a sample (a bunch of rows) from the input data of a database. The dialog enables you to specify the
             sample size. The following options are available in the dialog:
+            </p>
         </intro>
         <option name="Absolute">
             Specify the absolute number of rows in the sample. If there are less rows than specified here, all rows are

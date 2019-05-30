@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="./db_column_filter.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-    <name>Database Column Filter</name>
+    <name>Database Column Filter (legacy)</name>
     
     <shortDescription>
         The Database Column Filter allows columns to be excluded from the input
@@ -9,11 +9,19 @@
     
     <fullDescription>
         <intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
             This node allows columns to be filtered from the input database 
             table while the SQL result will only contain the 
             remaining columns. Within 
             the dialog, columns can be moved between the Include and Exclude 
             list.
+            </p>
         </intro>
 
 		<option name="Include">

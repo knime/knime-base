@@ -1,44 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Sink" icon="./db_delete.png">
-	<name>Database Delete</name>
+	<name>Database Delete (legacy)</name>
 	
 	<shortDescription>
 	    Deletes the selected rows in the database based on the selected columns from the input table. 
 	</shortDescription>
 	
 	<fullDescription>
-		<intro>		
-	     Deletes data rows in the database based on the selected columns from the input table.
-	     All selected column names need to exactly match the column names inside the database. Only the rows matching
-	     the values of the selected column will be deleted. 
-	     <br/>
-	     The output table contains an additional column with the number of rows affected by the DELETE statement.
-         A number greater than or equal to zero -- indicates that the command was processed successfully and is 
-         an update count giving the number of rows in the database that were affected by the command's execution
-         A value of -2 -- indicates that the command was processed successfully but that the number of rows affected 
-         is unknown.    
-         <br/>
-         <br />
-          If the optional input is connected the database connection information is taken from the port, otherwise
-          you need to specify the connection information in the dialog.          
-         <br/>
-         <br />
-         Make sure you have your vendor-specific database driver registered in
-         the KNIME preference page (section Database Driver). By default, the 
-         sun.jdbc.odbc.JdbcOdbcDriver (Windows and Linux) is only available.
+		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
+		     Deletes data rows in the database based on the selected columns from the input table.
+		     All selected column names need to exactly match the column names inside the database. Only the rows matching
+		     the values of the selected column will be deleted.
+		     </p> 
+		     <p>
+		     The output table contains an additional column with the number of rows affected by the DELETE statement.
+	         A number greater than or equal to zero -- indicates that the command was processed successfully and is 
+	         an update count giving the number of rows in the database that were affected by the command's execution
+	         A value of -2 -- indicates that the command was processed successfully but that the number of rows affected 
+	         is unknown.    
+	         </p>
+	         <p>
+	          If the optional input is connected the database connection information is taken from the port, otherwise
+	          you need to specify the connection information in the dialog.          
+	         </p>
+	         <p>
+	         Make sure you have your vendor-specific database driver registered in
+	         the KNIME preference page (section Database Driver).
+	         </p>
 		</intro>
 
     <tab name="Settings">
 	  <option name="Database Driver">
 		Enter the database driver here; it is a Java class (including the
-		package path), for example: sun.jdbc.odbc.JdbcOdbcDriver
+		package path).
 		Additional driver can be registered via KNIME's preference page
         (Database Driver).
 	  </option>
 	  <option name="Database URL">
         Enter the database name here, for example: 
-        jdbc:odbc:database_name or jdbc:mysql://host:port/database_name
+        jdbc:mysql://host:port/database_name
 	  </option>
 	  <option name="Workflow Credentials">
         If checked, the credentials (user and password) are used as defined on 

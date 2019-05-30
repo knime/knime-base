@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="../db_binner.png" type="Manipulator">
-	<name>Database Numeric-Binner</name>
+	<name>Database Numeric-Binner (legacy)</name>
 	
 	<shortDescription>
 	    Group values of numeric columns categorized string type.
 	</shortDescription>
 	
 	<fullDescription>
-		<intro>		
+		<intro>
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
 	    For each column a number of intervals - known as bins - can be defined. 
 	    Each of these bins is given a unique name (for this column), a defined 
 	    range, and open or closed interval borders. They automatically ensure 
@@ -16,9 +23,11 @@
 	    borders are consistent. In addition, each column is either replaced with
 	    the binned, string-type column, or a new binned, string-type column 
 	    is appended.
-	    <br/>
+	    </p>
+	    <p>
 	    <b>Please note, that if the underlying database does not support "CASE" statements,
 				binning of only one column is supported.</b>
+        </p>
 		</intro>
 		
 		<option name="Select Column: ">

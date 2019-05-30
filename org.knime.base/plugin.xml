@@ -330,6 +330,7 @@
             path="/">
       </category>
       <category
+            after="database-connector"
             icon="icons/missing.gif"
             level-id="database-io"
             locked="true"
@@ -349,8 +350,7 @@
             level-id="database-connector"
             locked="true"
             name="Connector (legacy)"
-            path="/db/database_legacy"
-            after="database-io">
+            path="/db/database_legacy">
       </category>
       <category
             icon="icons/missing.gif"

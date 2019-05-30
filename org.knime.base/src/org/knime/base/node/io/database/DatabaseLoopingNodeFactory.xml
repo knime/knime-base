@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode type="Source" icon="db_looper.png" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Database Looping</name>
+	<name>Database Looping (legacy)</name>
 	
 	<shortDescription>
 	    This node runs SQL queries in the connected database restricted by the 
@@ -9,35 +9,43 @@
 	
 	<fullDescription>
 		<intro>
-		  This node runs SQL queries in the connected database restricted by the 
-          possible values given by the input table. It establishes and opens a 
-          database access connection from which to read data and restricts 
-          each SQL query so that only rows that match the possible values from
-          the input table are retrieved.  
-	      <br/>
-	      The place holder in brackets for table name and table column must be
-	      replaced, while the possible value place holder enclosed in hashes must not 
-	      be edit and will be resolved during execution.
-	      <br/>
-          <br />
-          If the optional input is connected the database connection information is taken from the port, otherwise
-          you need to specify the connection information in the dialog. 
-          <br/>
-          <br />
-	      Make sure you have your vendor-specific database driver registered in
-	      the KNIME preference page (section Database Driver). By default, the 
-	      sun.jdbc.odbc.JdbcOdbcDriver (Windows and Linux) is only available.
+            <p>
+            <b>This node is part of the legacy database framework.</b>
+            For more information on how to migrate to the new database framework see the
+            <a href="!@!TOBIS_DB_MIGRATION_DOCUMENTATION_LINK!@!">migration section</a> of the 
+            <a href="!@!TOBIS_DB_DOCUMENTATION_LINK!@!">database documentation</a>.
+            </p>
+            <p>
+			  This node runs SQL queries in the connected database restricted by the 
+	          possible values given by the input table. It establishes and opens a 
+	          database access connection from which to read data and restricts 
+	          each SQL query so that only rows that match the possible values from
+	          the input table are retrieved.
+	        </p>
+	        <p>
+		      The place holder in brackets for table name and table column must be
+		      replaced, while the possible value place holder enclosed in hashes must not 
+		      be edit and will be resolved during execution.
+	      </p>
+          <p>
+	          If the optional input is connected the database connection information is taken from the port, otherwise
+	          you need to specify the connection information in the dialog. 
+	      </p>
+          <p>
+		      Make sure you have your vendor-specific database driver registered in
+		      the KNIME preference page (section Database Driver).
+	      </p>
 	   </intro>
 		
 	<option name="Database Driver">
 		Enter the database driver here; it is a Java class (including the
-		package path), for example: sun.jdbc.odbc.JdbcOdbcDriver
+		package path).
 		Additional driver can be registered via KNIME's preference page
         (Database Driver).
 	</option>
 	<option name="Database Name">
         Enter the database name here, for example 
-        jdbc:odbc:database_name or jdbc:mysql://host:port/database_name
+        jdbc:mysql://host:port/database_name
 	</option>
 	<option name="Workflow Credentials">
 	    If checked, the credentials (user and password) are used as defined on 
