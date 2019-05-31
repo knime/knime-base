@@ -15,9 +15,9 @@ Export-Package: org.knime.base.data.filter.row.dialog,
   org.knime.core.data.time.period,
   org.knime.core.data.time.zoneddatetime,
   org.knime.time.util
-Require-Bundle: org.knime.base;bundle-version="[3.3.0,4.0.0)",
+Require-Bundle: org.knime.base;bundle-version="[4.0.0,5.0.0)",
   org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
   com.toedter.jcalendar;bundle-version="[1.4.0,1.5.0)",
-  org.knime.expressions.core;bundle-version="[3.6.0,4.0.0)"
+  org.knime.expressions.core;bundle-version="[4.0.0,5.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
