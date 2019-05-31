@@ -50,8 +50,8 @@ package org.knime.base.node.mine.manifold.tsne;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -61,10 +61,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.MissingCell;
-import org.knime.core.data.MissingValue;
-import org.knime.core.data.MissingValueException;
 import org.knime.core.data.container.AbstractCellFactory;
-import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataTable;
@@ -79,7 +76,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
 
 import smile.manifold.TSNE;
@@ -95,6 +91,8 @@ final class TsneNodeModel extends NodeModel {
     private static final int DATA_IN_PORT = 0;
 
     private static final boolean SINGLE_SMILE_THREAD = isSingleSmileThread();
+
+    private static final String SMILE_THREADS_PROPERTY = "smile.threads";
 
     static SettingsModelDoubleBounded createLearningRateModel() {
         return new SettingsModelDoubleBounded("learningRate", 200, 1e-5, Double.MAX_VALUE);
@@ -132,7 +130,6 @@ final class TsneNodeModel extends NodeModel {
 
     private static boolean isSingleSmileThread() {
         try {
-            String SMILE_THREADS_PROPERTY = "smile.threads";
             final String smileThreads = System.getProperty(SMILE_THREADS_PROPERTY);
             if (smileThreads == null) {
                 System.setProperty(SMILE_THREADS_PROPERTY, "1");
@@ -162,8 +159,6 @@ final class TsneNodeModel extends NodeModel {
 
     private final SettingsModelSeed m_seed = createSeedModel();
 
-    private final List<Integer> m_missingIndices = new ArrayList<>();
-
     TsneNodeModel() {
         super(1, 1);
     }
@@ -174,22 +169,18 @@ final class TsneNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         // TODO support distance matrices
-        return new DataTableSpec[]{createColumnRearranger(inSpecs[DATA_IN_PORT], null).createSpec()};
+        return new DataTableSpec[]{
+            createColumnRearranger(inSpecs[DATA_IN_PORT], Collections.emptyList(), null).createSpec()};
     }
 
-    /**
-     *
-     * @param inputSpec the spec of the input table
-     * @param embedding the embedding which may be null during configuration
-     * @return a ColumnRearranger that can be used to create the output table
-     */
-    private ColumnRearranger createColumnRearranger(final DataTableSpec inputSpec, final double[][] embedding) {
+    private ColumnRearranger createColumnRearranger(final DataTableSpec inputSpec, final List<Integer> missingIndices,
+        final double[][] embedding) {
         final ColumnRearranger cr = new ColumnRearranger(inputSpec);
         if (m_removeOriginalColumns.getBooleanValue()) {
             cr.remove(m_features.applyTo(inputSpec).getIncludes());
         }
         final UniqueNameGenerator nameGen = new UniqueNameGenerator(cr.createSpec());
-        cr.append(new EmbeddingCellFactory(embedding, createSpecs(nameGen), m_missingIndices));
+        cr.append(new EmbeddingCellFactory(embedding, createSpecs(nameGen), missingIndices));
         return cr;
     }
 
@@ -211,15 +202,25 @@ final class TsneNodeModel extends NodeModel {
         final BufferedDataTable table = inData[DATA_IN_PORT];
         if (table.size() == 0) {
             setWarningMessage("The input table was empty.");
-            return new BufferedDataTable[]{
-                exec.createColumnRearrangeTable(table, createColumnRearranger(table.getDataTableSpec(), null), exec)};
+            return new BufferedDataTable[]{exec.createColumnRearrangeTable(table,
+                createColumnRearranger(table.getDataTableSpec(), Collections.emptyList(), null), exec)};
         }
         final DataTableSpec tableSpec = table.getDataTableSpec();
         final BufferedDataTable filtered = filterTable(table, exec.createSilentSubExecutionContext(0));
-        final double[][] data = readIntoDoubleArray(filtered);
-        final double[][] embedding = learnEmbedding(data, exec);
-        final ColumnRearranger cr = createColumnRearranger(tableSpec, embedding);
-        return new BufferedDataTable[]{exec.createColumnRearrangeTable(table, cr, exec.createSilentSubProgress(0.0))};
+        checkMemory(filtered.size(), filtered.getDataTableSpec().getNumColumns());
+        try {
+            final TsneData data = new TsneData(filtered, m_failOnMissingValues.getBooleanValue());
+            final List<Integer> missingIndices = data.getMissingIndices();
+            if (!missingIndices.isEmpty()) {
+                setWarningMessage(missingIndices.size() + " rows were ignored because they contained missing values.");
+            }
+            final double[][] embedding = learnEmbedding(data.getData(), exec);
+            final ColumnRearranger cr = createColumnRearranger(tableSpec, missingIndices, embedding);
+            return new BufferedDataTable[]{
+                exec.createColumnRearrangeTable(table, cr, exec.createSilentSubProgress(0.0))};
+        } catch (OutOfMemoryError oome) {
+            throw new OutOfMemoryError("Couldn't calculate t-SNE because not enough memory is available.");
+        }
     }
 
     private BufferedDataTable filterTable(final BufferedDataTable table, final ExecutionContext exec)
@@ -247,6 +248,24 @@ final class TsneNodeModel extends NodeModel {
         return tsne.getCoordinates();
     }
 
+    private void checkMemory(final long rows, final int features) {
+        final int outputdims = m_outputDimensions.getIntValue();
+        final long requiredMemory = calculateMemoryRequirements(rows, features, outputdims);
+        final long freeMemory = Runtime.getRuntime().freeMemory();
+        if (requiredMemory > freeMemory) {
+            throw new IllegalStateException("Not enough memory available to perform t-SNE. "
+                + "Use a smaller table or increase the amount of memory KNIME Analytics Platform can use.");
+        }
+    }
+
+    private static long calculateMemoryRequirements(final long rows, final int features, final int outputdims) {
+        final long dataSize = rows * features;
+        final long distanceSize = rows * rows;
+        final long outputSize = rows * outputdims;
+        // dataSize is allocated by us and the rest is allocated by Smile (all arrays are double)
+        return (dataSize + 2 * distanceSize + 2 * outputSize) * 8;
+    }
+
     private void setSeed() {
         if (m_seed.getIsActive()) {
             if (!SINGLE_SMILE_THREAD) {
@@ -254,54 +273,6 @@ final class TsneNodeModel extends NodeModel {
                     "The VM argument smile.threads is not 1 in which case results of SMILE are not reproducible.");
             }
             smile.math.Math.setSeed(m_seed.getLongValue());
-        }
-    }
-
-    private double[][] readIntoDoubleArray(final BufferedDataTable features) {
-        m_missingIndices.clear();
-        final int nCols = features.getDataTableSpec().getNumColumns();
-        CheckUtils.checkArgument(features.size() <= Integer.MAX_VALUE,
-            "The input table can only have up to Integer.MAX_VALUE rows.");
-        final int nRows = (int)features.size();
-        final List<double[]> data = new ArrayList<>();
-        try (final CloseableRowIterator rowIter = features.iterator()) {
-            for (int i = 0; i < nRows; i++) {
-                final DataRow row = rowIter.next();
-                final double[] vector = readRow(nCols, i, row);
-                if (vector != null) {
-                    data.add(vector);
-                }
-            }
-            assert !rowIter.hasNext();
-        }
-        if (data.size() == nCols) {
-            // if the data is square, Smile interprets it as distances, we prevent this by adding a dummy row
-            data.add(new double[nCols]);
-        }
-        return data.toArray(new double[data.size()][]);
-    }
-
-    private double[] readRow(final int nCols, final int i, final DataRow row) {
-        final double[] vector = new double[nCols];
-        for (int j = 0; j < nCols; j++) {
-            final DataCell cell = row.getCell(j);
-            if (cell.isMissing()) {
-                handleMissingValue(row, i, j);
-                // we can't read the row so continue we return null to indicate that something went wrong
-                return null;
-            }
-            // we currently only support DoubleValues as features, hence this cast should be safe
-            vector[j] = ((DoubleValue)row.getCell(j)).getDoubleValue();
-        }
-        return vector;
-    }
-
-    private void handleMissingValue(final DataRow row, final int rowIdx, final int colIdx) {
-        if (m_failOnMissingValues.getBooleanValue()) {
-            throw new MissingValueException((MissingValue)row.getCell(colIdx), "Missing value detected in row " + row);
-        } else {
-            // remember the missing idx
-            m_missingIndices.add(rowIdx);
         }
     }
 

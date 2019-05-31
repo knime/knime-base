@@ -56,7 +56,6 @@ import org.knime.core.node.port.PortObjectSpec;
 
 /**
  *
- * @author Adae, University of Konstanz
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class SettingsModelSeed extends SettingsModelLong {

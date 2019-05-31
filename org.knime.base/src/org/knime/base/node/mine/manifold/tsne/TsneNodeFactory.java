@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.mine.manifold.tsne;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -80,7 +79,7 @@ public final class TsneNodeFactory extends NodeFactory<TsneNodeModel> {
      */
     @Override
     public NodeView<TsneNodeModel> createNodeView(final int viewIndex, final TsneNodeModel nodeModel) {
-        throw new NotImplementedException();
+        return null;
     }
 
     /**

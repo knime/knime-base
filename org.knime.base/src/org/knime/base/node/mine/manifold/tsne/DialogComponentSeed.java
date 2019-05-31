@@ -71,7 +71,6 @@ import org.knime.core.node.port.PortObjectSpec;
  * This Dialog Component offers a editable long field and
  * a checkbox for disabling the use of the checkbox.
  *
- * @author Adae, University of Konstanz
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DialogComponentSeed extends DialogComponent {
