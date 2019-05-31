@@ -54,7 +54,7 @@ import org.knime.core.data.DataType;
  * Operator validation function for the single value operator input.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class SingleOperandValidation implements OperatorValidation {
 

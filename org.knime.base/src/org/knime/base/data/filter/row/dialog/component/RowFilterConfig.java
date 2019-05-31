@@ -70,7 +70,7 @@ import org.knime.core.node.config.ConfigWO;
  * Configuration object for the {@link RowFilterComponent}.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class RowFilterConfig {
 

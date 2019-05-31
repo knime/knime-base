@@ -73,7 +73,7 @@ public class NumberToStringNodeFactory extends NodeFactory {
 
     /**
      * {@inheritDoc}
-     * @since 3.8
+     * @since 4.0
      */
     @Override
     public NumberToStringNodeModel createNodeModel() {

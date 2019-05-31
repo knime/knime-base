@@ -56,7 +56,7 @@ import org.knime.base.data.filter.row.dialog.OperatorValidation;
  *
  * @author Viktor Buria
  * @param <F> the operator function type
- * @since 3.8
+ * @since 4.0
  */
 public final class OperatorValue<F> {
 

@@ -65,7 +65,7 @@ import org.knime.core.node.NodeSettingsWO;
  * The Row Filter component.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class RowFilterComponent {
 

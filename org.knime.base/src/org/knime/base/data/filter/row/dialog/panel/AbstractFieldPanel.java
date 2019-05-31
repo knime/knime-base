@@ -63,7 +63,7 @@ import org.knime.base.data.filter.row.dialog.ValidationResult.OperandError;
  * Abstract panel for n fields for condition filters.
  *
  * @author Sascha Wolke, KNIME GmbH
- * @since 3.8
+ * @since 4.0
  */
 abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
     private static final long serialVersionUID = -178672669602975655L;

@@ -57,7 +57,7 @@ import org.knime.core.data.time.localdate.LocalDateCellFactory;
  * Default panel with two DateTime fields for condition filters.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class TwoDateTimeFieldsPanel extends JPanel implements OperatorPanel {
 

@@ -57,7 +57,7 @@ import org.knime.core.data.DataType;
  * A "key" entity of the {@link OperatorRegistry}.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public final class OperatorKey {
 

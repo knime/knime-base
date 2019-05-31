@@ -53,7 +53,7 @@ import java.util.Objects;
  * Result of the operator parameters validation.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 
 public class ValidationResult {

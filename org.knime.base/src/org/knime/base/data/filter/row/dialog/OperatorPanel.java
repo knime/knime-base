@@ -53,7 +53,7 @@ import javax.swing.JPanel;
  * Common interface for the operator panels.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public interface OperatorPanel {
 

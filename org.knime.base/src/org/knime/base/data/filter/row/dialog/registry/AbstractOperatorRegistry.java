@@ -64,7 +64,7 @@ import org.knime.core.data.DataType;
  *
  * @param <F> the {@link OperatorFunction} subclass to apply on the operator
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class AbstractOperatorRegistry<F extends OperatorFunction<?, ?>> implements OperatorRegistry<F> {
 

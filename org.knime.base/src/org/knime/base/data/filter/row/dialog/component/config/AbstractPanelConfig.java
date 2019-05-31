@@ -52,7 +52,7 @@ import org.knime.core.data.DataTableSpec;
  * Base configuration class for the the {@link EditorPanelConfig} and the {@link TreePanelConfig}.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public abstract class AbstractPanelConfig {
 

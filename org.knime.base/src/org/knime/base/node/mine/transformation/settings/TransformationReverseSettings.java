@@ -56,7 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 /**
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public class TransformationReverseSettings {
 

@@ -55,7 +55,7 @@ import org.knime.base.data.filter.row.dialog.ValidationResult;
  * Default panel with one filed for condition filters.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class SingleFieldPanel extends AbstractFieldPanel {
 

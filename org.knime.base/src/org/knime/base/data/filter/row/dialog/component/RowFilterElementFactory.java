@@ -52,7 +52,7 @@ import org.knime.base.data.filter.row.dialog.model.Group;
  * Factory interface to create groups and conditions for the {@link RowFilterComponent}.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public interface RowFilterElementFactory {
 

@@ -80,7 +80,7 @@ import org.knime.core.node.port.pmml.PMMLPortObject;
  *
  * @author Johannes Schweig
  * @param <T> SettingsModel for a ColumnFilter component
- * @since 3.8
+ * @since 4.0
  */
 
 public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> extends NodeModel{

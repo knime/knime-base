@@ -81,7 +81,7 @@ import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
  *
  * @author Johannes Schweig
  * @param <T> SettingsModel for a ColumnFilter component
- * @since 3.8
+ * @since 4.0
  */
 public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
 

@@ -71,7 +71,7 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * to StringValues.
  *
  * @author cebron, University of Konstanz
- * @since 3.8
+ * @since 4.0
  */
 public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<SettingsModelColumnFilter2>{
 

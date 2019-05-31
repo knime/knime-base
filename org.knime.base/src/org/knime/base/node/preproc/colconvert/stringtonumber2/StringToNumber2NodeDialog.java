@@ -76,7 +76,7 @@ import org.knime.core.node.util.ViewUtils;
  * use.
  *
  * @author cebron, University of Konstanz
- * @since 3.8
+ * @since 4.0
  */
 public class StringToNumber2NodeDialog extends NodeDialogPane {
     private DialogComponentColumnFilter2 m_filtercomp =

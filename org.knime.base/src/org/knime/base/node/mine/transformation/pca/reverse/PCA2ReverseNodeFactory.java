@@ -56,7 +56,7 @@ import org.knime.core.node.NodeView;
  * The PCA reverse node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel> {
 

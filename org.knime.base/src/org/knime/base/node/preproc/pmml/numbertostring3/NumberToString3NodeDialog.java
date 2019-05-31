@@ -55,7 +55,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
  * Lets the user choose the columns to use.
  *
  * @author cebron, University of Konstanz
- * @since 3.8
+ * @since 4.0
  */
 public class NumberToString3NodeDialog extends DefaultNodeSettingsPane {
 

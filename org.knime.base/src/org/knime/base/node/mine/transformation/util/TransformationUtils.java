@@ -78,7 +78,7 @@ import org.knime.core.util.UniqueNameGenerator;
  * Utility class for transformation related operations.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public final class TransformationUtils {
 

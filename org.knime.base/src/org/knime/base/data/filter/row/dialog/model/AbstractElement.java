@@ -51,7 +51,7 @@ import java.util.Objects;
  * An abstract class for conditions and groups.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public abstract class AbstractElement {
 

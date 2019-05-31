@@ -119,7 +119,7 @@ public class DataTypeAggregator extends AggregationMethodDecorator {
      * @param strictTypeMatch indicates whether strictly the same types are considered compatible, or also super types
      * @return <code>true</code> if the given {@link DataType} is compatible to the user selected {@link DataType} of
      *         this aggregator
-     * @since 3.8
+     * @since 4.0
      */
     public boolean isCompatibleType(final DataType dataType, final boolean strictTypeMatch) {
         return m_type.equals(dataType) || (!strictTypeMatch && m_type.isASuperTypeOf(dataType));

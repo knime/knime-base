@@ -74,7 +74,7 @@ import org.knime.core.node.util.DataTypeListCellRenderer;
  * use.
  *
  * @author cebron, University of Konstanz
- * @since 3.8
+ * @since 4.0
  */
 public class StringToNumber3NodeDialog extends NodeDialogPane {
     @SuppressWarnings("unchecked")

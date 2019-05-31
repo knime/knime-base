@@ -963,7 +963,7 @@ public class GroupByNodeModel extends NodeModel {
      *            <code>null</code>
      * @param strictTypeMatch indicates whether strictly the same types are considered compatible, or also super types
      * @return the list of all {@link ColumnAggregator}s to use based on the given aggregator
-     * @since 3.8
+     * @since 4.0
      */
     public static List<ColumnAggregator> getAggregators(final DataTableSpec inputSpec,
         final Collection<String> groupColumns, final List<ColumnAggregator> columnAggregators,

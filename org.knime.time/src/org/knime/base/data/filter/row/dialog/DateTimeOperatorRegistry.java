@@ -62,7 +62,7 @@ import org.knime.core.data.time.localtime.LocalTimeCellFactory;
  *
  * @param <F> the {@link OperatorFunction} subclass to apply on the operator
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public interface DateTimeOperatorRegistry<F extends OperatorFunction<?, ?>> extends OperatorRegistry<F> {
 

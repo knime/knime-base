@@ -63,7 +63,7 @@ import org.knime.core.node.port.PortTypeRegistry;
 /**
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public final class TransformationPortObject extends AbstractSimplePortObject {
 

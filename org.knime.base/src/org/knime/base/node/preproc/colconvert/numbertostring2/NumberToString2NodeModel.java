@@ -63,7 +63,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
  * The NodeModel for the Number to String Node that converts numbers to StringValues.
  *
  * @author Johannes Schweig
- * @since 3.8
+ * @since 4.0
  */
 public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<SettingsModelColumnFilter2> {
 

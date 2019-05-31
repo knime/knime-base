@@ -52,7 +52,7 @@ import org.knime.base.data.filter.row.dialog.model.Operator;
  * Configuration object for operator panels.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class OperatorPanelParameters {
 

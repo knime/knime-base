@@ -68,7 +68,7 @@ import org.knime.core.node.util.CheckUtils;
  * Calculates the principal component analysis (PCA).
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public final class PCA {
 

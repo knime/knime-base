@@ -54,7 +54,7 @@ import javax.swing.event.DocumentListener;
  * Track any changes in a document and trigger provided action.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class TextFieldChangedListener implements DocumentListener {
 

@@ -60,7 +60,7 @@ import org.knime.core.node.port.AbstractSimplePortObjectSpec;
 /**
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public final class TransformationPortObjectSpec extends AbstractSimplePortObjectSpec {
 
@@ -68,7 +68,7 @@ public final class TransformationPortObjectSpec extends AbstractSimplePortObject
      * The transformation type.
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
-     * @since 3.8
+     * @since 4.0
      */
     public enum TransformationType {
             /** PCA */

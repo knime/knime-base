@@ -89,7 +89,7 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  *
  * @author cebron, University of Konstanz
  * @param <T> SettingsModel for a ColumnFilter component
- * @since 3.8
+ * @since 4.0
  */
 
 public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends NodeModel{

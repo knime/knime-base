@@ -58,7 +58,7 @@ import org.apache.commons.lang3.StringUtils;
  * Library of essential operand validations.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public final class OperandValidations {
 

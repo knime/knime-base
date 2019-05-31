@@ -61,7 +61,7 @@ import org.knime.core.data.time.localtime.LocalTimeCellFactory;
  * Operation validation functional interface.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 @FunctionalInterface
 public interface DateTimeOperatorValidation extends OperatorValidation {

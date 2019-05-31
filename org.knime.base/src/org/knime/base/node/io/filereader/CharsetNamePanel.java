@@ -128,7 +128,7 @@ public class CharsetNamePanel extends JPanel {
      * Creates a panel to select the character set name and initializes it from the passed object.
      *
      * @param charsetName the name of the charset, possibly null, see {@link #setCharsetName(String)}.
-     * @since 3.8
+     * @since 4.0
      */
     public CharsetNamePanel(final String charsetName) {
         this();
@@ -321,7 +321,7 @@ public class CharsetNamePanel extends JPanel {
 
     /** Sets the new charset name. Null will choose the 'default' value.
      * @param charsetName Name of charset or null
-     * @since 3.8
+     * @since 4.0
      */
     public final void setCharsetName(final String charsetName) {
         if (charsetName == null) {
@@ -405,7 +405,7 @@ public class CharsetNamePanel extends JPanel {
 
     /** Get the name of the selected charset or an empty optional if 'default' was chosen.
      * @return that value
-     * @since 3.8
+     * @since 4.0
      */
     public final Optional<String> getSelectedCharsetName() {
         Enumeration<AbstractButton> buttons = m_group.getElements();

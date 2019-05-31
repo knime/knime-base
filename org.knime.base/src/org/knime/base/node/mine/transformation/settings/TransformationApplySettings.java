@@ -58,7 +58,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 /**
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @since 3.8
+ * @since 4.0
  */
 public class TransformationApplySettings extends TransformationReverseSettings {
 

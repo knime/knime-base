@@ -170,7 +170,7 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
      * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
      * @param normalizedMeanAbsolutePercentageError the normalized mean absolute percentage error to set
      * @param weightedAbsoluteErrorPercentage the weightedAbsoluteErrorPercentage to set
-     * @since 3.8
+     * @since 4.0
      */
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
         final double rootMeanSquaredDeviation, final double meanSignedDifference,

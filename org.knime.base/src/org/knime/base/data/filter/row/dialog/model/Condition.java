@@ -51,7 +51,7 @@ import java.util.Objects;
  * Represents a condition element.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class Condition extends AbstractElement {
 

@@ -54,7 +54,7 @@ import org.knime.base.data.filter.row.dialog.model.Operator;
  * Parameters object for operators.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class OperatorParameters {
 

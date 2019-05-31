@@ -56,7 +56,7 @@ import org.knime.base.data.filter.row.dialog.ValidationResult;
  * Default panel with two fields for condition filters.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class TwoFieldsPanel extends AbstractFieldPanel {
 

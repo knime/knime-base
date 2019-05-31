@@ -57,7 +57,7 @@ import org.knime.core.node.NodeView;
  * to String values.
  *
  * @author cebron, University of Konstanz
- * @since 3.8
+ * @since 4.0
  */
 public class NumberToString3NodeFactory extends NodeFactory {
 

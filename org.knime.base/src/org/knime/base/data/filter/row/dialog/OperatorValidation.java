@@ -64,7 +64,7 @@ import org.knime.core.data.def.LongCell;
  * Operation validation functional interface.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 @FunctionalInterface
 public interface OperatorValidation extends Function<OperatorParameters, ValidationResult> {

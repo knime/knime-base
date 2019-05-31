@@ -53,7 +53,7 @@ import java.util.function.Function;
  * @param <P> the type of the {@link OperatorParameters}
  * @param <R> the type of the result of the operator function
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 @FunctionalInterface
 public interface OperatorFunction<P extends OperatorParameters, R> extends Function<P, R> {

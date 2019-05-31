@@ -54,7 +54,7 @@ import java.util.Objects;
  * A container object to represent a hierarchical relationships between groups and conditions.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class Node {
 

@@ -51,7 +51,7 @@ import java.util.Objects;
  * An operator object.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class Operator {
 

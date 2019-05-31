@@ -51,7 +51,7 @@ import org.knime.base.data.filter.row.dialog.model.GroupType;
  * Default group types for the databases Row Filter.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public final class DefaultGroupTypes {
 

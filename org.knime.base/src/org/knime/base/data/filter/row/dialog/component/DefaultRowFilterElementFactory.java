@@ -55,7 +55,7 @@ import org.knime.base.data.filter.row.dialog.model.Operation;
  * Default implementation of the {@link RowFilterElementFactory} interface.
  *
  * @author Viktor Buria
- * @since 3.8
+ * @since 4.0
  */
 public class DefaultRowFilterElementFactory implements RowFilterElementFactory {
 
