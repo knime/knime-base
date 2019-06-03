@@ -44,55 +44,19 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 25, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 10, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain;
+package org.knime.base.node.meta.explain.shap;
 
-import org.knime.core.data.RowKey;
+import java.util.Iterator;
 
 /**
- * Provides the explanation for a single row of interest.
- * Instances of this class should only act as immutable containers for explanations.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface Explanation {
+interface MaskFactory {
 
-    /**
-     * @return the {@link RowKey} of the row whose model predictions this instance explains
-     */
-    String getRoiKey();
+    Mask createMask(final int[] indices);
 
-    /**
-     * @return the number of features this Explanation explains
-     */
-    int getNumberOfFeatures();
-
-    /**
-     * @return the number of targets this Explanation explains
-     */
-    int getNumberOfTargets();
-
-    /**
-     * Retrieves the explanation value for the feature at index <b>featureIdx</b> and the model target at index
-     * <b>targetIdx</b>.
-     *
-     * @param target index of the target (e.g. probability of class 1)
-     * @param feature index of the feature
-     * @return a value that indicates how much impact the <b>feature</b> has on the prediction for <b>target</b>
-     */
-    double getExplanationValue(final int target, final int feature);
-
-    /**
-     * @param target
-     * @return the actual prediction of the current <b>roi</b> for <b>target</b>
-     */
-    double getActualPrediction(final int target);
-
-    /**
-     * @param target
-     * @return the difference between the roi prediction and the mean prediction
-     */
-    double getDeviationFromMeanPrediction(final int target);
-
+    Iterator<Mask> allMasks(final int subsetSize);
 }

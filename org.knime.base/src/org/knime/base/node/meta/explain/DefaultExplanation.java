@@ -66,6 +66,10 @@ public final class DefaultExplanation implements Explanation {
 
     private final int m_numFeatures;
 
+    private final double[] m_actualPredictions;
+
+    private final double[] m_deviationFromMeanPredictions;
+
     /**
      * Instances of this class should only be instantiated via {@link DefaultExplanationBuilder}.
      *
@@ -74,12 +78,14 @@ public final class DefaultExplanation implements Explanation {
      * @param numTargets
      * @param numFeatures
      */
-    private DefaultExplanation(final String roiKey, final Matrix explanationValues, final int numTargets,
-        final int numFeatures) {
+    private DefaultExplanation(final String roiKey, final Matrix explanationValues, final double[] actualPredictions,
+        final double[] deviationFromMeanPredictions, final int numTargets, final int numFeatures) {
         m_roiKey = roiKey;
         m_numFeatures = numFeatures;
         m_numTargets = numTargets;
         m_explanationValues = explanationValues;
+        m_actualPredictions = actualPredictions;
+        m_deviationFromMeanPredictions = deviationFromMeanPredictions;
     }
 
     /**
@@ -115,6 +121,22 @@ public final class DefaultExplanation implements Explanation {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getActualPrediction(final int target) {
+        return m_actualPredictions[target];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getDeviationFromMeanPrediction(final int target) {
+        return m_deviationFromMeanPredictions[target];
+    }
+
+    /**
      * Builder class for {@link DefaultExplanation}. Allows to incrementally add the explanation values for different
      * target feature combinations. Instances of this class can build only a single DefaultExplanation and will throw
      * exceptions if any of their methods are called after the build has occurred.
@@ -133,6 +155,10 @@ public final class DefaultExplanation implements Explanation {
 
         private boolean m_built = false;
 
+        private final double[] m_actualPredictions;
+
+        private final double[] m_deviationFromMeanPredictions;
+
         /**
          * Creates a mutable {@link DefaultExplanationBuilder} instance that can be used to create a single
          * {@link DefaultExplanation}.
@@ -145,6 +171,8 @@ public final class DefaultExplanation implements Explanation {
             m_roiKey = roiKey;
             m_numTargets = numTargets;
             m_numFeatures = numFeatures;
+            m_actualPredictions = new double[numTargets];
+            m_deviationFromMeanPredictions = new double[numTargets];
             m_explanationValues = new Matrix(numTargets, numFeatures, "target", "feature");
         }
 
@@ -158,7 +186,8 @@ public final class DefaultExplanation implements Explanation {
         public DefaultExplanation build() {
             CheckUtils.checkState(!m_built, "The build method can be only called once.");
             m_built = true;
-            return new DefaultExplanation(m_roiKey, m_explanationValues, m_numTargets, m_numFeatures);
+            return new DefaultExplanation(m_roiKey, m_explanationValues, m_actualPredictions,
+                m_deviationFromMeanPredictions, m_numTargets, m_numFeatures);
         }
 
         /**
@@ -174,6 +203,17 @@ public final class DefaultExplanation implements Explanation {
             CheckUtils.checkState(!m_built,
                 "The builder can no longer be modified after the build method has been called.");
             m_explanationValues.set(target, feature, explanationValue);
+        }
+
+        /**
+         * @param target the target the predictions correspond to
+         * @param actualPrediction prediction of the current roi
+         * @param meanPrediction the mean prediction over the sampling set
+         */
+        public void setActualPredictionAndDeviation(final int target, final double actualPrediction,
+            final double meanPrediction) {
+            m_actualPredictions[target] = actualPrediction;
+            m_deviationFromMeanPredictions[target] = actualPrediction - meanPrediction;
         }
     }
 

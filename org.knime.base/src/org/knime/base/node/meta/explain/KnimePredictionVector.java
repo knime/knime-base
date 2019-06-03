@@ -44,73 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain;
 
-import java.util.function.Function;
-
-import com.google.common.collect.Iterables;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public final class KnimePredictionVector implements PredictionVector {
+    private final DataRow m_row;
 
-    private IterableUtils() {
-        // static utility class
+    /**
+     * @param row to wrap
+     */
+    public KnimePredictionVector(final DataRow row) {
+        m_row = row;
     }
 
     /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
+     * {@inheritDoc}
      */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    @Override
+    public int size() {
+        return m_row.getNumCells();
     }
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
+     * {@inheritDoc}
      */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+    @Override
+    public double get(final int idx) {
+        final DataCell cell = m_row.getCell(idx);
+        CheckUtils.checkState(!cell.isMissing(), "Missing prediction in row %s encountered.", m_row.getKey());
+        // Such a failure indicates a coding error since at this point care should have been taken that
+        // we only look at DoubleCells
+        CheckUtils.checkState(cell instanceof DoubleValue, "Predictions must implement DoubleValue.");
+        final DoubleValue value = (DoubleValue)cell;
+        return value.getDoubleValue();
     }
 
     /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
+     * {@inheritDoc}
      */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
+    @Override
+    public String getKey() {
+        return m_row.getKey().getString();
     }
 
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
 
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
-    }
 
 }

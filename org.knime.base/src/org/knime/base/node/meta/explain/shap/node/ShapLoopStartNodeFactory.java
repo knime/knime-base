@@ -44,73 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   07.03.2019 (adrian): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.shap.node;
 
-import java.util.function.Function;
-
-import com.google.common.collect.Iterables;
+import org.knime.base.node.meta.explain.node.ExplainerLoopNodeDialogPane;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public class ShapLoopStartNodeFactory extends NodeFactory<ShapLoopStartNodeModel> {
 
-    private IterableUtils() {
-        // static utility class
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ShapLoopStartNodeModel createNodeModel() {
+        return new ShapLoopStartNodeModel();
     }
 
     /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
+     * {@inheritDoc}
      */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
+     * {@inheritDoc}
      */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+    @Override
+    public NodeView<ShapLoopStartNodeModel> createNodeView(final int viewIndex,
+        final ShapLoopStartNodeModel nodeModel) {
+        return null;
     }
 
     /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
+     * {@inheritDoc}
      */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
+    @Override
+    protected boolean hasDialog() {
+        return true;
     }
 
     /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
+     * {@inheritDoc}
      */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ExplainerLoopNodeDialogPane<>(new StartOptionsDialog(),
+            ShapLoopStartSettings::new);
     }
 
 }

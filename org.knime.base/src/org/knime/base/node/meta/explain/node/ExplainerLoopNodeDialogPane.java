@@ -44,73 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   15.03.2016 (adrian): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.node;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
-import com.google.common.collect.Iterables;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <S> the type of settings
  */
-public final class IterableUtils {
+public final class ExplainerLoopNodeDialogPane <S extends Settings> extends NodeDialogPane {
 
-    private IterableUtils() {
-        // static utility class
-    }
+    private final Supplier<S> m_settingsSupplier;
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
-    }
+    private final OptionsDialog<S> m_options;
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
-    }
-
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
+     * @param dialog
+     * @param settingsSupplier
      *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
      */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    public ExplainerLoopNodeDialogPane(final OptionsDialog<S> dialog, final Supplier<S> settingsSupplier) {
+        m_options = dialog;
+        m_settingsSupplier = settingsSupplier;
+        addTab("Options", m_options.getPanel());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        final S cfg = m_settingsSupplier.get();
+        m_options.saveSettingsTo(cfg);
+        cfg.saveSettings(settings);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+        final S cfg = m_settingsSupplier.get();
+        cfg.loadSettingsInDialog(settings, specs);
+        m_options.loadSettingsFrom(cfg, specs);
     }
 
 }

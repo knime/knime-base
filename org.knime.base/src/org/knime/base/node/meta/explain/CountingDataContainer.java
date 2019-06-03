@@ -44,73 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 24, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
-import com.google.common.collect.Iterables;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
+ * Changes the API of a data container so that it doesn't require
+ * complete rows but instead {@link DataCell} arrays.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public final class CountingDataContainer implements Consumer<DataCell[]> {
 
-    private IterableUtils() {
-        // static utility class
-    }
+    private final BufferedDataContainer m_container;
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
-    }
+    private long m_idx = 0;
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
-    }
-
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
+     * @param container container to wrap
      *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
      */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    public CountingDataContainer(final BufferedDataContainer container) {
+        m_container = container;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void accept(final DataCell[] cells) {
+        m_container.addRowToTable(new DefaultRow(RowKey.createRowKey(m_idx), cells));
+        m_idx++;
+    }
+
+    /**
+     * Closes the wrapped {@link BufferedDataContainer}
+     */
+    public void close() {
+        if (m_container.isOpen()) {
+            m_container.close();
+        }
+    }
+
+    /**
+     * @return the BufferedDataTable constructed from the container
+     */
+    public BufferedDataTable getTable() {
+        if (m_container.isOpen()) {
+            m_container.close();
+        }
+        return m_container.getTable();
+    }
+
 
 }

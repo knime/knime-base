@@ -486,9 +486,10 @@
             path="/analytics/mining/">
       </category>
       <category
+            after="modeleval"
             description="Contains nodes that allow to explain machine learning models"
             icon="icons/missing.gif"
-            level-id="xai"
+            level-id="modelexplanation"
             name="Model Explanation"
             path="labs/">
       </category>
@@ -2077,6 +2078,17 @@
             category-path="/manipulation/row/row-filter"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.duplicates.DuplicateFilterNodeFactory">
+      </node>
+      <node
+            category-path="/analytics/mining/modelexplanation"
+            deprecated="false"
+            factory-class="org.knime.base.node.meta.explain.shap.node.ShapLoopStartNodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.meta.explain.shap.node.ShapLoopStartNodeFactory"
+            category-path="/analytics/mining/modelexplanation"
+            deprecated="false"
+            factory-class="org.knime.base.node.meta.explain.shap.node.ShapLoopEndNodeFactory">
       </node>
    </extension>
    

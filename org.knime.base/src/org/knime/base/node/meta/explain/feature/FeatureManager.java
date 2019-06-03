@@ -74,18 +74,23 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class FeatureManager {
+public final class FeatureManager {
 
     /**
      * The current feature spec
      */
     private DataTableSpec m_featureSpec;
 
+    /**
+     * The current row
+     */
+    private DataRow m_row;
+
     private final List<FeatureHandlerFactory> m_featureHandlerFactories = new ArrayList<>();
 
     private final boolean m_treatAllAsSingleFeature;
 
-    private final boolean m_dontUseElementNames;
+    private boolean m_useElementNames;
 
     private boolean m_namesFullyInitialized;
 
@@ -97,12 +102,27 @@ public class FeatureManager {
 
     /**
      * @param treatCollectionsAsSingleFeature set to true if a collection corresponds to a single feature
-     * @param dontUseElementNames set to true if the feature names of collection features should not use the element
+     * @param useElementNames set to true if the feature names of collection features should not use the element
      *            names
      */
-    public FeatureManager(final boolean treatCollectionsAsSingleFeature, final boolean dontUseElementNames) {
+    public FeatureManager(final boolean treatCollectionsAsSingleFeature, final boolean useElementNames) {
         m_treatAllAsSingleFeature = treatCollectionsAsSingleFeature;
-        m_dontUseElementNames = dontUseElementNames;
+        m_useElementNames = useElementNames;
+    }
+
+    /**
+     * @param useElementNames whether to use element names for collections or not
+     */
+    public void setUseElementNames(final boolean useElementNames) {
+
+        if (useElementNames != m_useElementNames && m_featureSpec != null) {
+            // we currently have the wrong feature names so we have to update
+            tryToInitializeFeatureNames(m_featureSpec);
+            if (m_row != null) {
+                updateNumFeatures(m_row);
+            }
+        }
+        m_useElementNames = useElementNames;
     }
 
     /**
@@ -114,12 +134,23 @@ public class FeatureManager {
      * @return an optional list of features
      */
     public Optional<List<String>> getFeatureNames() {
-        checkInitialized();
+        if (m_featureHandlerFactories.isEmpty()) {
+            return Optional.empty();
+        }
         return m_namesFullyInitialized ? Optional.of(flattenNames()) : Optional.empty();
     }
 
+    /**
+     * @return creates a {@link RowHandler} for the current set of features
+     */
+    public RowHandler createRowHandler() {
+        final Iterable<FeatureHandler> handlers = m_featureHandlerFactories.stream()
+            .map(FeatureHandlerFactory::createFeatureHandler).collect(Collectors.toList());
+        return new DefaultRowHandler(handlers, m_numFeaturesPerCol);
+    }
+
     private List<String> flattenNames() {
-        return m_names.stream().flatMap(c -> c.stream()).collect(Collectors.toList());
+        return m_names.stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
     /**
@@ -175,16 +206,15 @@ public class FeatureManager {
     }
 
     /**
-     * Intended for the use during execution.
-     * Updates all information based on the actual from of rows.
-     * This includes the verification and possible update of the feature names and counts for collection
-     * columns.
+     * Intended for the use during execution. Updates all information based on the actual from of rows. This includes
+     * the verification and possible update of the feature names and counts for collection columns.
      *
      * @param row a row from the input table
      * @return true if the configuration matches the execution state (i.e. same number of features)
      */
     public boolean updateWithRow(final DataRow row) {
         checkInitialized();
+        m_row = row;
         CheckUtils.checkArgument(m_featureHandlerFactories.size() == row.getNumCells(),
             "The provided row %s has the wrong number of cells. Expected %s cells but row has %s cells.", row,
             m_featureHandlerFactories.size(), row.getNumCells());
@@ -273,7 +303,7 @@ public class FeatureManager {
             List<String> names = factory.getFeatureNames(colSpec);
             if (names.isEmpty()) {
                 namesFullyInitialized = false;
-            } else if (m_dontUseElementNames && names.size() > 1) {
+            } else if (!m_useElementNames && names.size() > 1) {
                 names = createCollectionNames(colSpec.getName(), names.size());
             }
             m_names.add(names);

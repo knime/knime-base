@@ -44,73 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 23, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.node;
 
-import java.util.function.Function;
+import javax.swing.JPanel;
 
-import com.google.common.collect.Iterables;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NotConfigurableException;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <S> The settings this dialog expects
  */
-public final class IterableUtils {
-
-    private IterableUtils() {
-        // static utility class
-    }
+public interface OptionsDialog<S extends Settings> {
 
     /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
+     * @return The panel of this dialog
      */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
-    }
+    JPanel getPanel();
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
+     * @param settings
+     * @throws InvalidSettingsException
      */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
-    }
+    void saveSettingsTo(final S settings) throws InvalidSettingsException;
 
     /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
+     * @param settings
+     * @param inSpecs
+     * @throws NotConfigurableException
      */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
-    }
-
+    void loadSettingsFrom(final S settings, final DataTableSpec[] inSpecs) throws NotConfigurableException;
 }

@@ -44,73 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 31, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.shap;
 
-import java.util.function.Function;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.Iterables;
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
+import org.apache.commons.math3.random.RandomDataGenerator;
+import org.junit.Test;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public class SubsetSamplerTest {
 
-    private IterableUtils() {
-        // static utility class
+    private static RandomDataGenerator createRDG() {
+        final RandomDataGenerator rdg = new RandomDataGenerator();
+        rdg.reSeed(12345);
+        return rdg;
     }
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    @Test
+    public void testSampleSubsetMultiple() throws Exception {
+        final RandomDataGenerator rdg1 = createRDG();
+        final int[] subsetSizes = new int[]{1, 2};
+        final double[] distribution = new double[]{0.5, 0.5};
+        final SubsetSampler subsetSampler = new SubsetSampler(createRDG(), subsetSizes, distribution, 3);
+        final EnumeratedIntegerDistribution distr =
+            new EnumeratedIntegerDistribution(rdg1.getRandomGenerator(), subsetSizes, distribution);
+        final int expectedSize = distr.sample();
+        final int[] expectedPermutation = rdg1.nextPermutation(3, expectedSize);
+        int[] sample = subsetSampler.sampleSubset();
+        assertEquals(expectedSize, sample.length);
+        assertArrayEquals(expectedPermutation, sample);
     }
 
-    /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+    @Test
+    public void testSampleSubsetSingle() throws Exception {
+        final RandomDataGenerator rdg1 = createRDG();
+        final int[] subsetSizes = new int[]{1};
+        final double[] distribution = new double[]{1.0};
+        final SubsetSampler subsetSampler = new SubsetSampler(createRDG(), subsetSizes, distribution, 3);
+        assertArrayEquals(rdg1.nextPermutation(3, 1), subsetSampler.sampleSubset());
     }
-
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
-    }
-
 }

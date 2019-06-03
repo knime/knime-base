@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.meta.explain.util;
 
-import org.knime.base.node.meta.explain.util.ColumnSetManager.MissingColumnException;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -62,7 +62,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class TablePreparer {
+public final class TablePreparer {
 
     private ColumnSetManager m_colManager;
 
@@ -74,6 +74,17 @@ public class TablePreparer {
      */
     public TablePreparer(final DataColumnSpecFilterConfiguration filter, final String purpose) {
         m_colManager = new ColumnSetManager(filter);
+        m_purpose = purpose;
+    }
+
+    /**
+     * Constructs a TablePreparer that handles the columns in <b>spec</b>.
+     *
+     * @param spec the spec handled by the created instance
+     * @param purpose of this instance (e.g. feature or prediction)
+     */
+    public TablePreparer(final DataTableSpec spec, final String purpose) {
+        m_colManager = new ColumnSetManager(spec);
         m_purpose = purpose;
     }
 
@@ -108,7 +119,7 @@ public class TablePreparer {
             m_colManager.checkColumnsContained(samplingSpec);
         } catch (MissingColumnException e) {
             throw new InvalidSettingsException(
-                "The sampling table misses the " + m_purpose + " column " + e.getMissingCol() + ".", e);
+                "The sampling table misses the " + m_purpose + " column " + e.getMissingColumn() + ".", e);
         }
     }
 
@@ -118,7 +129,7 @@ public class TablePreparer {
             mgr.checkColumnsContained(inSpec);
         } catch (MissingColumnException e) {
             throw new InvalidSettingsException("The input table does not contain all " + mgrPurpose
-                + " columns. Missing column " + e.getMissingCol() + ".");
+                + " columns. Missing column " + e.getMissingColumn() + ".");
         }
     }
 
@@ -137,6 +148,21 @@ public class TablePreparer {
         ensureColumnsAreContained(tableSpec, manager, m_purpose);
         final ColumnRearranger rearranger = manager.createRearranger(tableSpec);
         return exec.createColumnRearrangeTable(inputTable, rearranger, exec);
+    }
+
+    /**
+     * Creates a {@link CloseableRowIterator} that only contains the columns managed by this TablePreparer.
+     *
+     * @param inputTable must contain all managed columns and may also contain additional columns
+     * @param exec {@link ExecutionContext} for creation of the filter table
+     * @return a {@link CloseableRowIterator} over a filtered version of <b>inputTable</b>
+     * @throws InvalidSettingsException
+     * @throws CanceledExecutionException
+     * @throws MissingColumnException
+     */
+    public CloseableRowIterator createIterator(final BufferedDataTable inputTable, final ExecutionContext exec)
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
+        return createTable(inputTable, exec).iterator();
     }
 
     /**

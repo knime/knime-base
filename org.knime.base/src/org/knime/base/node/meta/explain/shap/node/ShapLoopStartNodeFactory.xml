@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="explainer_icon.png" type="LoopStart"
+	xmlns="http://knime.org/node/v3.6"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>SHAP Loop Start</name>
+
+	<shortDescription>Start node for a SHAP loop</shortDescription>
+
+	<fullDescription>
+		<intro>
+			<p>
+				SHAP is an acronym for SHapley Additive exPlanations and
+				represents unified approach to explain the predictions
+				of any machine
+				learning model.
+				For a single output (e.g. probability of the positive
+				class in a binary classification) it assigns to each feature
+				a
+				so-called Shapley Value that quantifies how this particular feature
+				changed the output.
+				If you have multiple outputs, multiple such
+				Shapley Value sets are calculated.
+				The sum of all Shapley Values for
+				a single output adds up to the deviation from the mean prediction
+				(aka null prediction), which is the prediction the model would
+				have
+				made if it wouldn't have had any feature available.
+				The KNIME
+				Analytis Platform also offers a second means to calculate Shapley
+				Values via the Shapley Values loop nodes.
+				In contrast to these, SHAP
+				allows to also find sparse explanations by means of regularization.
+				This has the advantage that you can pick the maximal number of
+				features you want to have in your explanation, which makes the
+				explanations far more understandable in cases with hundreds or
+				thousands of features.
+				If a maximal number of features is specified,
+				SHAP will find for each explainable row those features that have the
+				most impact on its prediction and then
+				only consider those when
+				calculating the Shapley Values.
+			</p>
+
+			<h3>Usage</h3>
+			<p>
+				The first input table of this node contains the rows of interest (ROI), for which an explanation is required.
+				The SHAP algorithm replaces certain subsets of features of a ROI and observes how the model output changes.
+				These replacement features are taken from the second input table.
+				Note that in contrast to the Shapley Values and LIME loops, this sampling table should not be much larger than
+				100 rows to keep the runtime reasonable (don't worry, SHAP usually still is on-par with the other methods).
+				The output of the SHAP Loop Start node contains only those columns specified as feature columns in the dialog.
+				This table has to be predicted by the model whose predictions you want to better understand and then fed into the
+				SHAP Loop End node to calculate the explanations.
+				Note that the SHAP loop has <i>n + 1</i> iterations where <i>n</i> is the number of ROIs (rows of the first input table).
+				The first iteration is special as it doesn't explain a ROI like the other iterations but is used to estimate the mean prediction
+				by letting the model predict the sampling table (second input of the SHAP Loop Start).
+			</p>
+			
+		</intro>
+
+		<tab name="Options">
+			<option name="Feature columns">
+				The columns your model uses for its predictions.
+				The output of this node will only contain the columns specified here.
+			</option>
+			<option name="Every collection column represents a single feature">
+				Typically, collection columns and vectors hold a large number of features (e.g. a bit vector where each position indicates the presence/absence of a word in a document)
+				but it's also possible that a collection/vector only represents a single feature.
+				By checking this box, SHAP will consider the latter case.
+			</option>
+
+			<option name="Explanation set size">
+	The maximum number of samples SHAP is allowed to use for its
+	estimations.
+	Ideally, SHAP can evaluate all possible feature subsets (excluding the empty
+	set and the full set)
+	but there are <i>2^f - 2</i> many of these subsets where <i>f</i> is the number of features your model uses.
+	Hence, if the explanation set size <i>m</i> is smaller than  <i>2^f - 2</i>, SHAP will try to enumerate as many subsets as possible
+	and sample from the remaining subsets until the maximal explanation set size is reached.
+	Note that the size of this node's output table is <i>m * n</i> where <i>n</i> the size of the sampling table.
+			</option>
+			
+			<option name="Sampling weight">
+				Since the size of the output table directly depends on the number of rows in the sampling table, it is recommended to only
+				use up to 100 rows to keep the runtime and table size reasonable.
+				However, 100 rows might not be enough to capture a complex dataset.
+				SHAP proposes to overcome this issue by calculating a k-Means clustering and using the cluster centroids as representatives.
+				Because different clusters might have different sizes, each centroid receives a weight proportional to the number of rows
+				it represents.
+				This weight is then used by SHAP to calculate its estimations of the SHAP values.
+				The weight column must only contain values larger than zero (e.g. number of rows in a cluster).
+				They do not need to sum up to 1 as SHAP will do this normalization internally.
+				If no weight column is specified, SHAP will assign each row in the sampling table the same weight.
+			</option>
+			
+			<option name="Use seed">
+				Using a seed allows to reproduce the results of
+				the loop. If this box is checked the seed displayed in the text box
+				is used, otherwise a new seed is generated for each
+				execution.
+			</option>
+		</tab>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Table containing the rows to explain">
+			Table containing the rows to explain.
+		</inPort>
+		<inPort index="1" name="Sampling data">
+			Table containing rows for sampling.
+		</inPort>
+		<outPort index="0" name="Predictable table">This table contains rows that have
+			to be predicted by the predictor node corresponding to the model whose predictions you want to explain.
+		</outPort>
+	</ports>
+</knimeNode>

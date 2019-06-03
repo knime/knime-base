@@ -44,73 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 29, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.util;
 
-import java.util.function.Function;
+import java.util.function.Predicate;
 
-import com.google.common.collect.Iterables;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public final class TableSpecUtil {
 
-    private IterableUtils() {
+    private TableSpecUtil() {
         // static utility class
     }
 
+
     /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
+     * @param spec1 {@link DataTableSpec}
+     * @param spec2 {@link DataTableSpec}
+     * @return a {@link DataTableSpec} that contains all columns from <b>spec1</b> that are not contained in <b>spec2</b>
      */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    public static DataTableSpec difference(final DataTableSpec spec1, final DataTableSpec spec2) {
+        return keepOnly(spec1, c -> !spec2.containsName(c.getName()));
     }
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
-    }
-
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
+     * Removes those columns from {@link DataTableSpec spec} that don't fulfill {@link Predicate predicate}.
      *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
+     * @param spec the {@link DataTableSpec} to filter
+     * @param predicate the predicate all columns contained in the returned {@link DataTableSpec} must fulfill
+     * @return the filtered {@link DataTableSpec}
      */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    public static DataTableSpec keepOnly(final DataTableSpec spec, final Predicate<DataColumnSpec> predicate) {
+        final ColumnRearranger cr = new ColumnRearranger(spec);
+        for (DataColumnSpec colSpec : spec) {
+            if (!predicate.test(colSpec)) {
+                cr.remove(colSpec.getName());
+            }
+        }
+        return cr.createSpec();
     }
-
 }

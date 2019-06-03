@@ -44,73 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 22, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.shap;
 
-import java.util.function.Function;
+import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.Iterables;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
+import org.junit.Test;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public class ShapMatrixUtilsTest {
 
-    private IterableUtils() {
-        // static utility class
+    @Test
+    public void testSubtractVec() throws Exception {
+        RealMatrix matrix = MatrixUtils.createRealMatrix(3, 2);
+        RealVector vec = MatrixUtils.createRealVector(new double[] {-1, 1, 3});
+        ShapMatrixUtils.subtractVec(matrix, vec);
+        RealVector expected = vec.mapMultiply(-1);
+
+        for (int i = 0; i < 2; i++) {
+            assertEquals(expected, matrix.getColumnVector(i));
+        }
     }
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
-    }
+    @Test
+    public void testScale() throws Exception {
+        RealMatrix matrix = MatrixUtils.createRealMatrix(2, 2);
+        matrix.setEntry(0, 0, 1);
+        matrix.setEntry(1, 0, 2);
+        matrix.setEntry(0, 1, 3);
+        matrix.setEntry(1, 1, 4);
+        double[] vec = new double[] {2, 3};
+        ShapMatrixUtils.scaleVec(matrix, vec);
+        RealMatrix expected = MatrixUtils.createRealMatrix(2, 2);
+        expected.setEntry(0, 0, 2);
+        expected.setEntry(1, 0, 6);
+        expected.setEntry(0, 1, 6);
+        expected.setEntry(1, 1, 12);
 
-    /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+        assertEquals(expected, matrix);
     }
-
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
-
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
-
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
-    }
-
 }

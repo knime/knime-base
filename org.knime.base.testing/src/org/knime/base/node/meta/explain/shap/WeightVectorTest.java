@@ -44,73 +44,73 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 21, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.shap;
 
-import java.util.function.Function;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.Iterables;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+public class WeightVectorTest {
 
-    private IterableUtils() {
-        // static utility class
+    private WeightVector m_testInstance;
+
+    private static final double[] EXPECTED = new double[]{8.0 / 11.0, 3.0 / 11.0};
+
+    private static final double[] EXPECTED_TAIL_DISTRIBUTION = new double[] {4.0 / 7.0, 3.0 / 7.0};
+
+    @Before
+    public void init() {
+        m_testInstance = new WeightVector(4);
     }
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    @Test
+    public void testScaling() throws Exception {
+        assertEquals(EXPECTED[0], m_testInstance.getScaled(1), 1e-5);
+        assertEquals(EXPECTED[1], m_testInstance.getScaled(2), 1e-5);
+        m_testInstance.rescale(2.0);
+        assertEquals(EXPECTED[0] * 2, m_testInstance.getScaled(1), 1e-5);
+        assertEquals(EXPECTED[1] * 2, m_testInstance.getScaled(2), 1e-5);
+        m_testInstance.resetScale();
+        assertEquals(EXPECTED[0], m_testInstance.getScaled(1), 1e-5);
+        assertEquals(EXPECTED[1], m_testInstance.getScaled(2), 1e-5);
     }
 
-    /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+    @Test
+    public void testGet() throws Exception {
+        assertEquals(EXPECTED[0] / 2, m_testInstance.get(1), 1e-5);
+        assertEquals(EXPECTED[1], m_testInstance.get(2), 1e-5);
     }
 
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
+    @Test
+    public void testGetWeightLeft() throws Exception {
+        assertEquals(1.0, m_testInstance.getWeightLeft(0), 1e-5);
+        assertEquals(EXPECTED[1], m_testInstance.getWeightLeft(1), 1e-5);
     }
 
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
+    @Test
+    public void testIsPairedSubsetSize() throws Exception {
+        assertTrue(m_testInstance.isPairedSubsetSize(1));
+        assertFalse(m_testInstance.isPairedSubsetSize(2));
     }
 
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    @Test
+    public void testGetNumSubsetSizes() throws Exception {
+        assertEquals(2, m_testInstance.getNumSubsetSizes());
+    }
+
+    @Test
+    public void testGetTailDistribution() throws Exception {
+        assertArrayEquals(EXPECTED_TAIL_DISTRIBUTION, m_testInstance.getTailDistribution(0), 1e-5);
     }
 
 }

@@ -57,8 +57,6 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.util.CheckUtils;
@@ -69,11 +67,9 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class ExplanationToMultiRowConverter implements ExplanationToDataRowConverter {
+public final class ExplanationToMultiRowConverter implements ExplanationToDataCellsConverter {
 
     private final StringCell[] m_targetNames;
-
-    private long m_rowIdx = 0;
 
     /**
      * @param targetNames the names of the different targets (must match the number of targets)
@@ -93,22 +89,21 @@ public final class ExplanationToMultiRowConverter implements ExplanationToDataRo
      * {@inheritDoc}
      */
     @Override
-    public void convertAndWrite(final Explanation explanation, final Consumer<DataRow> consumer) {
+    public void convertAndWrite(final Explanation explanation, final Consumer<DataCell[]> consumer) {
         final int numTargets = explanation.getNumberOfTargets();
         CheckUtils.checkArgument(numTargets == m_targetNames.length, "Expected %s targets but the explanation has %s.",
             m_targetNames.length, numTargets);
         final int numFeatures = explanation.getNumberOfFeatures();
         for (int i = 0; i < numTargets; i++) {
-            final DataCell[] cells = new DataCell[numFeatures + 2];
+            final DataCell[] cells = new DataCell[numFeatures + 4];
             cells[0] = new StringCell(explanation.getRoiKey());
             cells[1] = m_targetNames[i];
+            cells[2] = new DoubleCell(explanation.getActualPrediction(i));
+            cells[3] = new DoubleCell(explanation.getDeviationFromMeanPrediction(i));
             for (int j = 0; j < numFeatures; j++) {
-                cells[j + 2] = new DoubleCell(explanation.getExplanationValue(i, j));
+                cells[j + 4] = new DoubleCell(explanation.getExplanationValue(i, j));
             }
-            final RowKey rowKey = RowKey.createRowKey(m_rowIdx);
-            m_rowIdx++;
-            final DataRow explanationRow = new DefaultRow(rowKey, cells);
-            consumer.accept(explanationRow);
+            consumer.accept(cells);
         }
     }
 
@@ -120,6 +115,9 @@ public final class ExplanationToMultiRowConverter implements ExplanationToDataRo
         final DataTableSpecCreator specCreator = new DataTableSpecCreator();
         specCreator.addColumns(new DataColumnSpecCreator("RowId", StringCell.TYPE).createSpec());
         specCreator.addColumns(new DataColumnSpecCreator("Target", StringCell.TYPE).createSpec());
+        specCreator.addColumns(new DataColumnSpecCreator("Actual prediction", DoubleCell.TYPE).createSpec());
+        specCreator
+            .addColumns(new DataColumnSpecCreator("Deviation from mean prediction", DoubleCell.TYPE).createSpec());
         for (final String featureName : featureNames) {
             specCreator.addColumns(new DataColumnSpecCreator(featureName, DoubleCell.TYPE).createSpec());
         }

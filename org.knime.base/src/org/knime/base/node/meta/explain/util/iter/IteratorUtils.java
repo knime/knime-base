@@ -80,6 +80,14 @@ public final class IteratorUtils {
     }
 
     /**
+     * @param source array of int values
+     * @return an {@link IntIterator} that iterates over the values in source
+     */
+    public static IntIterator arrayIntIterator(final int[] source) {
+        return new ArrayIntIterator(source);
+    }
+
+    /**
      * Maps the elements in <b>source</b> using the functions provided by <b>mappings</b>.
      * The two inputs <b>source</b> and <b>mappings</b> must have the same number of elements.
      *

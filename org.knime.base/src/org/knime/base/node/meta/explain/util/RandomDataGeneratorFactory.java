@@ -50,7 +50,15 @@ package org.knime.base.node.meta.explain.util;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 
+/**
+ * Factory interface for {@link RandomDataGenerator} objects.
+ *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ */
 @FunctionalInterface
 public interface RandomDataGeneratorFactory {
+    /**
+     * @return a {@link RandomDataGenerator}
+     */
     RandomDataGenerator create();
 }

@@ -44,73 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 9, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
+package org.knime.base.node.meta.explain.feature;
 
-import java.util.function.Function;
+import java.util.List;
 
-import com.google.common.collect.Iterables;
+import org.knime.base.node.meta.explain.util.iter.IntIterator;
+import org.knime.core.data.DataCell;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
+ *
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
-
-    private IterableUtils() {
-        // static utility class
-    }
+public interface RowHandler {
 
     /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
+     * @param original {@link Iterable} of original cells
      */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
-    }
+    void setOriginal(final Iterable<DataCell> original);
 
     /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
+     * @param replacement {@link Iterable} of replaced cells
      */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
-    }
+    void setReplacement(final Iterable<DataCell> replacement);
 
     /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
+     * @param replacementIndices {@link IntIterator} of indices in original that should be replaced
      */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
-    }
+    void setReplacementIndices(final IntIterator replacementIndices);
 
     /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
+     * Resets the replacement indices i.e. if RowHandler#createReplaced is called directly after this method,
+     * the original cells are returned.
      */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
-    }
+    void resetReplacementIndices();
 
     /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
+     * @return the number of cells this {@link RowHandler} expects in a given row
      */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
-    }
+    int getExpectedNumberOfCells();
 
+    /**
+     * @return a {@link List} of {@link DataCell cells} where some cells might be modified
+     */
+    List<DataCell> createReplaced();
 }

@@ -54,6 +54,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
@@ -69,6 +70,18 @@ class ColumnSetManager {
 
     public ColumnSetManager(final DataColumnSpecFilterConfiguration colFilterCfg) {
         m_filterCfg = colFilterCfg;
+    }
+
+    /**
+     * Constructor for a ColumnSetManager that is based on a provided table spec.
+     * All columns in <b>spec</b> are considered to be included and without further configuration
+     * the ColumnSetManager will exclude additional columns encountered in later invocations.
+     * @param spec of columns to be managed
+     */
+    ColumnSetManager(final DataTableSpec spec) {
+        m_filterCfg = new DataColumnSpecFilterConfiguration("dummy");
+        m_filterCfg.loadDefaults(spec.getColumnNames(), null, EnforceOption.EnforceInclusion);
+        m_cols = spec.stream().toArray(DataColumnSpec[]::new);
     }
 
     /**
@@ -166,27 +179,6 @@ class ColumnSetManager {
 
     public int getNumColumns() {
         return m_cols.length;
-    }
-
-    static class MissingColumnException extends Exception {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-        private final DataColumnSpec m_missingCol;
-
-        public MissingColumnException(final DataColumnSpec missingCol) {
-            m_missingCol = missingCol;
-        }
-
-        /**
-         * @return the missingCol
-         */
-        DataColumnSpec getMissingCol() {
-            return m_missingCol;
-        }
-
     }
 
 }

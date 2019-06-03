@@ -46,71 +46,95 @@
  * History
  *   May 8, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.util.iter;
-
-import java.util.function.Function;
-
-import com.google.common.collect.Iterables;
+package org.knime.base.node.meta.explain.shap;
 
 /**
- * Provides different utility functions for {@link Iterable Iterables} that are not provided by {@link Iterables}. Also
- * contains utility functions for {@link DoubleIterable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class IterableUtils {
+final class WeightVector {
 
-    private IterableUtils() {
-        // static utility class
+    private final double[] m_weights;
+
+    private final int m_numPairedSubsetSizes;
+
+    private double m_scaler = 1.0;
+
+
+    WeightVector(final int numFeatures) {
+        final double featuresMinus1 = numFeatures - 1.0;
+        final int numSubsetSizes = (int)Math.ceil(featuresMinus1 / 2.0);
+        m_numPairedSubsetSizes = (int)Math.floor(featuresMinus1 / 2.0);
+        final double[] weights = new double[numSubsetSizes];
+        double weightSum = 0.0;
+        for (int i = 0; i < weights.length; i++) {
+            final int currentSubsetSize = i + 1;
+            double weight = featuresMinus1 / (currentSubsetSize * (numFeatures - currentSubsetSize));
+            if (i < m_numPairedSubsetSizes) {
+                weight *= 2;
+            }
+            weightSum += weight;
+            weights[i] = weight;
+        }
+        assert weightSum > 0.0;
+        for (int i = 0; i < weights.length; i++) {
+            weights[i] /= weightSum;
+        }
+        m_weights = weights;
     }
 
-    /**
-     * @param value singleton value
-     * @return a {@link DoubleIterable} that contains only <b>value</b>
-     */
-    public static DoubleIterable singletonDoubleIterable(final double value) {
-        return () -> new SingletonDoubleIterator(value);
+    double getScaled(final int subsetSize) {
+        return getInternal(subsetSize) * m_scaler;
     }
 
-    /**
-     * @param iterables an Iterable of {@link DoubleIterable}
-     * @return a {@link DoubleIterable} that iterates over all the elements contained in <b>iterables</b>
-     */
-    public static DoubleIterable concatenatedDoubleIterable(final Iterable<? extends DoubleIterable> iterables) {
-        return () -> new ConcatenatedDoubleIterator(iterables.iterator());
+    private double getInternal(final int subsetSize) {
+        final int idx = subsetSize - 1;
+        return m_weights[idx];
     }
 
-    /**
-     * @param value constant value to return
-     * @param size number of times to return <b>value</b>
-     * @return a {@link DoubleIterable} that returns <b>value</b> <b>size</b> times
-     */
-    public static DoubleIterable constantDoubleIterable(final double value, final long size) {
-        return () -> new ConstantDoubleIterator(value, size);
+    double get(final int subsetSize) {
+        final double weight = getInternal(subsetSize);
+        return isPairedSubsetSize(subsetSize) ? weight / 2 : weight;
     }
 
-    /**
-     * @param values the values to iterator over
-     * @param copy true if the <b>values</b> should be cloned
-     * @return a {@link DoubleIterable} that can iterates over <b>values</b>
-     */
-    public static DoubleIterable arrayDoubleIterable(final double[] values, final boolean copy) {
-        final double[] vals = copy ? values.clone() : values;
-        return () -> new ArrayDoubleIterator(vals);
+    double[] getTailDistribution(final int from) {
+        final double[] probs = new double[m_weights.length - from];
+        double sum = 0.0;
+        for (int i = 0; i < probs.length; i++) {
+            final int subsetSize = from + i + 1;
+            final double val = get(subsetSize);
+            sum += val;
+            probs[i] = val;
+        }
+        assert sum > 0.0 : "The sum of the remaining weights is 0 in which case this method should never be invoked.";
+        for (int i = 0; i < probs.length; i++) {
+            probs[i] /= sum;
+        }
+        return probs;
     }
 
-    /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
-     *
-     * @param source {@link Iterable} of source elements
-     * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
-     */
-    public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
-        final Iterable<Function<S, T>> mappings) {
-        return () -> new MappingIterator<>(source.iterator(), mappings.iterator());
+    double getWeightLeft(final int from) {
+        double sum = 0.0;
+        for (int i = from; i < m_weights.length; i++) {
+            sum += m_weights[i];
+        }
+        return sum;
+    }
+
+    boolean isPairedSubsetSize(final int subsetSize) {
+        return subsetSize <= m_numPairedSubsetSizes;
+    }
+
+    int getNumSubsetSizes() {
+        return m_weights.length;
+    }
+
+    void rescale(final double scaler) {
+        m_scaler *= scaler;
+    }
+
+    void resetScale() {
+        m_scaler = 1.0;
     }
 
 }
