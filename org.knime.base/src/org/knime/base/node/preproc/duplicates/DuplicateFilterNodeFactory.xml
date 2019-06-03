@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./duplicate_filter.png" type="Manipulator">
+	<name>Duplicate Filter</name>
+	<shortDescription>
+		Removes or marks duplicate rows.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+		This node identifies duplicate rows. Duplicate rows have
+        identical values in certain columns. The node chooses a single 
+        row for each set of duplicates ("chosen"). You can either remove all duplicate
+        rows from the input table and keep only unique rows and chosen rows or
+        mark the rows with additional information about their duplication status.
+		</intro>
+	<tab name="Options">
+		<option name="Choose columns for duplicates detection">
+            Allows to select those columns that identify the duplicates. Columns
+            not selected are handled under "Row selection" in the "Advanced" tab.
+		</option>
+	</tab>
+	<tab name="Advanced - Duplicate Rows">
+		<option name="Remove duplicates">
+            Removes duplicate rows and keeps only unique and chosen rows.
+		</option>
+		<option name="Keep duplicate rows">
+			Appends columns with additional information to the input table:
+			<ul>
+				<li><b>Add classification column</b>: Appends a column that describes
+					the type of row:
+					<ul>
+						<li><i>unique</i>: There is no other row with the same 
+							values in the selected columns.
+						</li>
+						<li><i>chosen</i>: This row was chosen from a set of duplicate
+                            rows.
+						</li>
+						<li><i>duplicate</i>: This row is a duplicate and represented by
+							another row.
+						</li>
+					</ul>
+				</li>
+				<li><b>Add ROWID column</b>: Appends a column with the
+                    ROWID of the chosen row for duplicate rows. Unique and chosen rows
+                    will not have a ROWID assigned.
+				</li>
+			</ul>
+		</option>
+	</tab>
+	<tab name="Advanced - Row selection">
+		<option name="Select row:">
+			Defines which row for each set of duplicates is selected:
+			<ul>
+				<li><b>First</b>:The first row in sequence is chosen.
+				</li>
+				<li><b>Last</b>:The last row in sequence is chosen.
+				</li>
+                <li><b>Minimum of</b>:The <i>first</i> row with the lowest value in
+                    the selected column is chosen.
+				</li>
+				<li><b>Maximum of</b>:The <i>first</i> row with the largest value in
+					the selected column is chosen.
+				</li>
+			</ul>
+		</option>
+		<option name="Skip missings if possible">
+            If selected, the node tries to skip rows with missing values in the columns
+            that were not used for the detection of duplicates during row selection.
+		</option>
+	</tab>
+    <tab name="Advanced - ">
+		<option name="Retain row order">
+            If selected, rows in the output table are sorted in the same order as in the input
+            table.
+		</option>
+		<option name="In-memory computation">
+            If selected, computation is speed up by utilizing working memory (RAM). The amount
+            of required memory is higher than for a regular computation and also depends
+            on the amount of input data.
+		</option>
+    </tab>
+	</fullDescription>
+	<ports>
+		<inPort name="Input Data" index="0">
+			The data table containing potential duplicates.
+		</inPort>
+		<outPort name="Filtered/Labeled Data" index="0">
+			Either the input data without duplicates or the input data with additional
+			columns identifying duplicates.
+		</outPort>
+	</ports>
+</knimeNode>

@@ -2061,6 +2061,11 @@
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
       </node>
+      <node
+            category-path="/manipulation/row/row-filter"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.duplicates.DuplicateFilterNodeFactory">
+      </node>
    </extension>
    
       
