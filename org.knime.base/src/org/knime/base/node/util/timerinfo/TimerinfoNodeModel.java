@@ -155,7 +155,7 @@ final class TimerinfoNodeModel extends NodeModel implements InactiveBranchConsum
                 public boolean include(final TimerinfoNodeModel nodeModel) {
                     return nodeModel == myThis;
                 }},
-            /*recurse metanodes*/true, /*recurse wrapped metanodes*/true);
+            /*recurse metanodes*/true, /*recurse components*/true);
         // we should always find exactly one such node
         CheckUtils.checkState(m.size() == 1,
                 "Expected to find 'this' node exactly once (result set has size %d)", m.size());
@@ -169,8 +169,8 @@ final class TimerinfoNodeModel extends NodeModel implements InactiveBranchConsum
     }
 
     /** Internal method writing timer info into table for all nodes of a given WFM until
-     * a certain depth in the provided BDT. Wrapped Metanodes are treated normally,
-     * wrapped metanodes are not reported until depth 0.
+     * a certain depth in the provided BDT. Components are treated normally,
+     * components are not reported until depth 0.
      */
     private void reportThisLayer(final WorkflowManager wfm, final BufferedDataContainer result,
         final int depth, final NodeID toplevelprefix) {
