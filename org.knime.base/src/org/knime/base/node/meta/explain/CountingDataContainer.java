@@ -64,7 +64,7 @@ import org.knime.core.node.BufferedDataTable;
  */
 public final class CountingDataContainer implements Consumer<DataCell[]> {
 
-    private final BufferedDataContainer m_container;
+    private BufferedDataContainer m_container;
 
     private long m_idx = 0;
 
@@ -92,6 +92,7 @@ public final class CountingDataContainer implements Consumer<DataCell[]> {
         if (m_container.isOpen()) {
             m_container.close();
         }
+        m_container = null;
     }
 
     /**
