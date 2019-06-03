@@ -147,14 +147,14 @@ final class DuplicateFilterNodeModel extends NodeModel {
         final ExecutionContext sortContext = mainContext.createSubExecutionContext(0.9);
         final ExecutionContext duplicatesContext = mainContext.createSubExecutionContext(0.1);
 
-        final BufferedDataTable sortedTbl = sortTable(data,
-            m_settings.retainOrder() ? sortContext.createSubExecutionContext(0.5) : sortContext, grpCols, orderColName);
+        data = sortTable(data, m_settings.retainOrder() ? sortContext.createSubExecutionContext(0.5) : sortContext,
+            grpCols, orderColName);
 
         // removed / flag duplicates
         if (m_settings.removeDuplicates()) {
-            data = removeDuplicates(duplicatesContext, grpCols, sortedTbl);
+            data = removeDuplicates(duplicatesContext, grpCols, data);
         } else {
-            data = appendColumns(duplicatesContext, grpCols, sortedTbl);
+            data = appendColumns(duplicatesContext, grpCols, data);
         }
 
         // retain the row order
@@ -207,6 +207,7 @@ final class DuplicateFilterNodeModel extends NodeModel {
         // append additional sorting requirements if required
         final RowSelectionType rowSelectionType = m_settings.getRowSelectionType();
         final String[] sortCols;
+
         if (rowSelectionType.supportsRefCol()) {
             sortCols = Arrays.copyOf(grpCols, grpCols.length + 1);
             sortCols[grpCols.length] = m_settings.getReferenceCol();
@@ -226,7 +227,6 @@ final class DuplicateFilterNodeModel extends NodeModel {
 
         final boolean sortMissingToEnd =
             rowSelectionType == RowSelectionType.MAXIMUM || rowSelectionType == RowSelectionType.MINIMUM;
-
 
         // return the sorted table
         BufferedDataTableSorter sorter =
@@ -323,15 +323,16 @@ final class DuplicateFilterNodeModel extends NodeModel {
     }
 
     private DataRow createRow(final DataRow curRow, final StringCell label, final DataCell referenceKey) {
-        if (m_settings.addUniqueLbl() && m_settings.addRowLbl()) {
+        if (m_settings.addUniqueLabel() && m_settings.addRowLabel()) {
             return new DefaultRow(curRow.getKey(), label, referenceKey);
-        } else if (m_settings.addUniqueLbl()) {
+        } else if (m_settings.addUniqueLabel()) {
             return new DefaultRow(curRow.getKey(), label);
         } else {
             return new DefaultRow(curRow.getKey(), referenceKey);
         }
     }
 
+    @SuppressWarnings("null")
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inSpec = inSpecs[DATA_IN_PORT];
@@ -360,10 +361,10 @@ final class DuplicateFilterNodeModel extends NodeModel {
     private DataTableSpec createAdditionalColsSpec(final DataTableSpec inSpec) {
         final UniqueNameGenerator uniqueNameGen = new UniqueNameGenerator(inSpec);
         final List<DataColumnSpec> addCols = new ArrayList<>();
-        if (m_settings.addUniqueLbl()) {
+        if (m_settings.addUniqueLabel()) {
             addCols.add(uniqueNameGen.newColumn("duplicate-type-classifier", StringCell.TYPE));
         }
-        if (m_settings.addRowLbl()) {
+        if (m_settings.addRowLabel()) {
             addCols.add(uniqueNameGen.newColumn("duplicate-row-identifier", StringCell.TYPE));
         }
         return new DataTableSpec(addCols.stream().toArray(DataColumnSpec[]::new));

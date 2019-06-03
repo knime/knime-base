@@ -139,10 +139,10 @@ final class DuplicateFilterSettings {
     private final SettingsModelBoolean m_removeDuplicates = new SettingsModelBoolean(REMOVE_DUPLICATE_ROWS_KEY, true);
 
     /** Settings model storing the add duplicate row identifier flag. */
-    private final SettingsModelBoolean m_addUniqueLbl = new SettingsModelBoolean(ADD_ROW_DUPLICATE_FLAG_KEY, true);
+    private final SettingsModelBoolean m_addUniqueLabel = new SettingsModelBoolean(ADD_ROW_DUPLICATE_FLAG_KEY, true);
 
     /** Settings model storing the add row id flag. */
-    private final SettingsModelBoolean m_addRowLbl = new SettingsModelBoolean(ADD_ROW_ID_FLAG_KEY, false);
+    private final SettingsModelBoolean m_addRowLabel = new SettingsModelBoolean(ADD_ROW_ID_FLAG_KEY, false);
 
     /** Settings model storing the reference column name. */
     private final SettingsModelString m_referenceCol = new SettingsModelString(REFERENCE_COL_KEY, null);
@@ -166,11 +166,11 @@ final class DuplicateFilterSettings {
     }
 
     SettingsModelBoolean getAddUniqueLblModel() {
-        return m_addUniqueLbl;
+        return m_addUniqueLabel;
     }
 
     SettingsModelBoolean getAddRowLblModel() {
-        return m_addRowLbl;
+        return m_addRowLabel;
     }
 
     SettingsModelString getReferenceColModel() {
@@ -197,12 +197,12 @@ final class DuplicateFilterSettings {
         return m_removeDuplicates.getBooleanValue();
     }
 
-    boolean addUniqueLbl() {
-        return m_addUniqueLbl.getBooleanValue();
+    boolean addUniqueLabel() {
+        return m_addUniqueLabel.getBooleanValue();
     }
 
-    boolean addRowLbl() {
-        return m_addRowLbl.getBooleanValue();
+    boolean addRowLabel() {
+        return m_addRowLabel.getBooleanValue();
     }
 
     String getReferenceCol() {
@@ -229,8 +229,8 @@ final class DuplicateFilterSettings {
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_groupCols.saveSettingsTo(settings);
         m_retainOrder.saveSettingsTo(settings);
-        m_addUniqueLbl.saveSettingsTo(settings);
-        m_addRowLbl.saveSettingsTo(settings);
+        m_addUniqueLabel.saveSettingsTo(settings);
+        m_addRowLabel.saveSettingsTo(settings);
         m_referenceCol.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         saveSettingsForDialog(settings);
@@ -250,8 +250,8 @@ final class DuplicateFilterSettings {
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_groupCols.loadSettingsFrom(settings);
         m_retainOrder.loadSettingsFrom(settings);
-        m_addUniqueLbl.loadSettingsFrom(settings);
-        m_addRowLbl.loadSettingsFrom(settings);
+        m_addUniqueLabel.loadSettingsFrom(settings);
+        m_addRowLabel.loadSettingsFrom(settings);
         m_referenceCol.loadSettingsFrom(settings);
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);
@@ -267,8 +267,8 @@ final class DuplicateFilterSettings {
         m_groupCols.validateSettings(settings);
         m_retainOrder.validateSettings(settings);
         m_removeDuplicates.validateSettings(settings);
-        m_addUniqueLbl.validateSettings(settings);
-        m_addRowLbl.validateSettings(settings);
+        m_addUniqueLabel.validateSettings(settings);
+        m_addRowLabel.validateSettings(settings);
         m_referenceCol.validateSettings(settings);
         m_inMemory.validateSettings(settings);
     }

@@ -53,6 +53,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -73,6 +74,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * The duplicates handler node dialog.
@@ -96,6 +98,9 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
 
     private static final String MISSING_SELECTION_EXCEPTION =
         "'Keep duplicate rows' requires that at least one of the two 'Add columns ...' options is checked.";
+
+    private static final String COLUMN_NAME_CLASH_EXCEPTION =
+        "The selected reference column is also used for duplicate detection.";
 
     private final DuplicateFilterSettings m_settings = new DuplicateFilterSettings();
 
@@ -125,6 +130,8 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
     final JRadioButton m_keepDupBtn = new JRadioButton("Keep duplicate rows");
 
     final JComboBox<RowSelectionType> m_rowSelectionType = new JComboBox<>(RowSelectionType.values());
+
+    private DataTableSpec m_curSpec;
 
     /**
      * Constructor.
@@ -301,7 +308,7 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        if (!m_settings.removeDuplicates() && !m_settings.addUniqueLbl() && !m_settings.addRowLbl()) {
+        if (!m_settings.removeDuplicates() && !m_settings.addUniqueLabel() && !m_settings.addRowLabel()) {
             throw new InvalidSettingsException(MISSING_SELECTION_EXCEPTION);
         }
         m_groupCols.saveSettingsTo(settings);
@@ -311,6 +318,14 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         m_referenceCol.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         m_settings.saveSettingsForDialog(settings);
+
+        if (m_settings.getRowSelectionType().supportsRefCol()) {
+            final String refColName = m_settings.getReferenceCol();
+            CheckUtils.checkSetting(refColName != null && !refColName.isEmpty(), "The reference column cannot be null");
+            if (Arrays.stream(m_settings.getGroupCols(m_curSpec).getIncludes()).anyMatch(s -> s.equals(refColName))) {
+                throw new InvalidSettingsException(COLUMN_NAME_CLASH_EXCEPTION);
+            }
+        }
     }
 
     @Override
@@ -327,10 +342,15 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException(e.getMessage(), e);
         }
-        m_remDupBtn.setSelected(m_settings.removeDuplicates());
+        if (m_settings.removeDuplicates()) {
+            m_remDupBtn.doClick();
+        } else {
+            m_keepDupBtn.doClick();
+        }
         m_rowSelectionType.setSelectedItem(m_settings.getRowSelectionType());
         m_referenceCol.getModel().setEnabled(m_settings.getRowSelectionType().supportsRefCol());
         m_addRowLblCol.getModel().setEnabled(!m_remDupBtn.isSelected());
         m_addUniqLblCol.getModel().setEnabled(!m_remDupBtn.isSelected());
+        m_curSpec = specs[DuplicateFilterNodeModel.DATA_IN_PORT];
     }
 }
