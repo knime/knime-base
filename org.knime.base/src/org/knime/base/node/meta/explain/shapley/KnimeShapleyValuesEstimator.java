@@ -49,29 +49,36 @@
 package org.knime.base.node.meta.explain.shapley;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import org.knime.base.node.meta.explain.CountingDataContainer;
 import org.knime.base.node.meta.explain.Explanation;
-import org.knime.base.node.meta.explain.ExplanationToDataRowConverter;
+import org.knime.base.node.meta.explain.ExplanationToDataCellsConverter;
 import org.knime.base.node.meta.explain.ExplanationToMultiRowConverter;
+import org.knime.base.node.meta.explain.KnimePredictionVector;
+import org.knime.base.node.meta.explain.PredictionVector;
 import org.knime.base.node.meta.explain.feature.FeatureManager;
 import org.knime.base.node.meta.explain.feature.KnimeFeatureVectorIterator;
 import org.knime.base.node.meta.explain.feature.PerturberFactory;
 import org.knime.base.node.meta.explain.feature.SimpleReplacingPerturberFactory;
 import org.knime.base.node.meta.explain.feature.VectorEnabledPerturberFactory;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings.PredictionColumnSelectionMode;
 import org.knime.base.node.meta.explain.shapley.node.ShapleyValuesSettings;
 import org.knime.base.node.meta.explain.util.DefaultRowSampler;
+import org.knime.base.node.meta.explain.util.MissingColumnException;
 import org.knime.base.node.meta.explain.util.RowSampler;
 import org.knime.base.node.meta.explain.util.TablePreparer;
+import org.knime.base.node.meta.explain.util.TableSpecUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -79,7 +86,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterators;
 
 /**
  * Estimates Shapley Values based on KNIME's {@link BufferedDataTable}s. This class contains the logic for the
@@ -93,7 +100,7 @@ public final class KnimeShapleyValuesEstimator {
 
     private final TablePreparer m_featureTablePreparer;
 
-    private final TablePreparer m_predictionTablePreparer;
+    private TablePreparer m_predictionTablePreparer;
 
     private final FeatureManager m_featureManager;
 
@@ -101,13 +108,15 @@ public final class KnimeShapleyValuesEstimator {
 
     private RowTransformer m_rowTransformer;
 
-    private BufferedDataContainer m_loopEndContainer;
+    private CountingDataContainer m_loopEndContainer;
 
-    private ExplanationToDataRowConverter m_explanationConverter;
+    private ExplanationToDataCellsConverter m_explanationConverter;
 
     private int m_numIterations = -1;
 
     private int m_currentIteration = -1;
+
+    private double[] m_nullFx;
 
     /**
      * Creates a ShapleyValueEstimator with the provided settings
@@ -118,9 +127,8 @@ public final class KnimeShapleyValuesEstimator {
         m_algorithm = new ShapleyValues(settings.getIterationsPerFeature(), settings.getSeed());
         m_settings = settings;
         m_featureTablePreparer = new TablePreparer(settings.getFeatureCols(), "feature");
-        m_predictionTablePreparer = new TablePreparer(settings.getPredictionCols(), "prediction");
-        m_featureManager =
-            new FeatureManager(m_settings.isTreatAllColumnsAsSingleFeature(), m_settings.isDontUseElementNames());
+        //        m_predictionTablePreparer = new TablePreparer(settings.getPredictionCols(), "prediction");
+        m_featureManager = new FeatureManager(m_settings.isTreatAllColumnsAsSingleFeature(), true);
     }
 
     /**
@@ -136,27 +144,10 @@ public final class KnimeShapleyValuesEstimator {
         final ShapleyValuesSettings settings) throws InvalidSettingsException {
         m_settings = settings;
         m_featureTablePreparer.updateSpecs(roiSpec, settings.getFeatureCols());
-        m_predictionTablePreparer.updateSpecs(roiSpec, settings.getPredictionCols());
         m_featureTablePreparer.checkSpec(samplingSpec);
         final DataTableSpec featureTableSpec = m_featureTablePreparer.getTableSpec();
         m_featureManager.updateWithSpec(featureTableSpec);
-        checkPredictionAndFeaturesDisjunct();
-        updateExplanationConverter();
         return featureTableSpec;
-    }
-
-    private void checkPredictionAndFeaturesDisjunct() throws InvalidSettingsException {
-        final DataTableSpec featureTableSpec = m_featureTablePreparer.getTableSpec();
-        final DataTableSpec predictionTableSpec = m_predictionTablePreparer.getTableSpec();
-        final Set<String> featureColumns = createSet(featureTableSpec.getColumnNames());
-        final Set<String> predictionColumns = createSet(predictionTableSpec.getColumnNames());
-        final Set<String> intersection = Sets.intersection(featureColumns, predictionColumns);
-        CheckUtils.checkSetting(intersection.isEmpty(),
-            "The following feature columns are also set as prediction columns: %s", intersection);
-    }
-
-    private static <E> Set<E> createSet(final E[] array) {
-        return Arrays.stream(array).collect(Collectors.toSet());
     }
 
     /**
@@ -164,21 +155,25 @@ public final class KnimeShapleyValuesEstimator {
      * @param samplingTable table to use for sampling
      * @param exec {@link ExecutionContext} for reporting progress and creating tables
      * @return a table containing perturbed rows
-     * @throws Exception
+     * @throws InvalidSettingsException if the settings are invalid
+     * @throws MissingColumnException if any of the feature columns is missing in one of the tables
+     * @throws CanceledExecutionException if the execution is canceled by the user
      */
     public BufferedDataTable executeLoopStart(final BufferedDataTable roiTable, final BufferedDataTable samplingTable,
-        final ExecutionContext exec) throws Exception {
+        final ExecutionContext exec)
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
         checkForEmptyTables(roiTable, samplingTable);
         m_featureTablePreparer.checkSpec(samplingTable.getDataTableSpec());
-        boolean isFirstIteration = false;
-        if (m_rowTransformer == null) {
-            isFirstIteration = true;
-            m_numIterations = calculateNumberofIterations(roiTable);
-            initializeRowTransformer(roiTable, samplingTable, exec);
-        }
         m_currentIteration++;
+        if (m_rowTransformer == null) {
+            // because the first iteration is on the sampling table
+            m_numIterations = calculateNumberofIterations(roiTable) + 1;
+            initializeRowTransformer(roiTable, samplingTable, exec);
+            // the first iteration is used to estimate the mean prediction
+            return m_featureTablePreparer.createTable(samplingTable, exec);
+        }
 
-        return m_rowTransformer.next(exec.createSubExecutionContext(isFirstIteration ? 0.9 : 1.0));
+        return m_rowTransformer.next(exec);
 
     }
 
@@ -207,7 +202,8 @@ public final class KnimeShapleyValuesEstimator {
     }
 
     private void initializeRowTransformer(final BufferedDataTable roiTable, final BufferedDataTable samplingTable,
-        final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException, Exception {
+        final ExecutionContext exec)
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
         final BufferedDataTable roiFeatureTable = m_featureTablePreparer.createTable(roiTable, exec);
         final BufferedDataTable samplingFeatureTable = m_featureTablePreparer.createTable(samplingTable, exec);
         updateFeatureManager(roiFeatureTable, samplingFeatureTable);
@@ -234,12 +230,13 @@ public final class KnimeShapleyValuesEstimator {
             m_rowTransformer.close();
         }
         m_rowTransformer = null;
-        if (m_loopEndContainer != null && m_loopEndContainer.isOpen()) {
+        if (m_loopEndContainer != null) {
             m_loopEndContainer.close();
         }
         m_loopEndContainer = null;
         m_currentIteration = -1;
         m_currentIteration = -1;
+        m_nullFx = null;
     }
 
     private static void checkForEmptyTables(final BufferedDataTable roiTable, final BufferedDataTable samplingTable) {
@@ -256,7 +253,7 @@ public final class KnimeShapleyValuesEstimator {
     }
 
     private PerturberFactory<DataRow, Set<Integer>, DataCell[]> createPerturberFactory(final DataTable samplingTable,
-        final long numRows, final ExecutionMonitor prog) throws Exception {
+        final long numRows, final ExecutionMonitor prog) throws CanceledExecutionException {
         final DataRow[] samplingSet = createSamplingSet(samplingTable, numRows, prog);
         final RowSampler rowSampler = new DefaultRowSampler(samplingSet);
         if (m_featureManager.containsCollection()) {
@@ -268,15 +265,8 @@ public final class KnimeShapleyValuesEstimator {
 
     }
 
-    /**
-     * @param samplingTable
-     * @return
-     * @throws InvalidSettingsException
-     */
     private static DataRow[] createSamplingSet(final DataTable samplingFeatureTable, final long numRows,
-        final ExecutionMonitor prog) throws Exception {
-        // TODO check if we can implement Sobol (quasi random) sampling
-        // in an efficient way using BufferedDataTables or caching
+        final ExecutionMonitor prog) throws CanceledExecutionException {
         prog.setProgress("Create sampling dataset");
         final List<DataRow> samplingData = new ArrayList<>();
         long current = 0;
@@ -293,11 +283,39 @@ public final class KnimeShapleyValuesEstimator {
     /**
      * Performs the configuration of the loop end node
      *
-     * @param inSpec {@link DataTableSpec} that must contain the prediction columns
+     * @param settings the settings of the loop end
+     * @param inSpec the spec of the table containing the black-box predictions
+     *
      * @return null if we don't know the number of features, otherwise
-     * @throws InvalidSettingsException
      */
-    public DataTableSpec configureLoopEnd(final DataTableSpec inSpec) throws InvalidSettingsException {
+    public DataTableSpec configureLoopEnd(final ExplainerLoopEndSettings settings, final DataTableSpec inSpec) {
+        updateWithLoopEndSettings(settings, inSpec);
+        return getLoopEndSpec();
+    }
+
+    private void updateWithLoopEndSettings(final ExplainerLoopEndSettings settings, final DataTableSpec inSpec) {
+        initializePredictionTablePreparer(settings, inSpec);
+        m_featureManager.setUseElementNames(settings.isUseElementNames());
+        updateExplanationConverter();
+    }
+
+    private void initializePredictionTablePreparer(final ExplainerLoopEndSettings settings,
+        final DataTableSpec inSpec) {
+        if (settings.getPredictionColumnSelectionMode() == PredictionColumnSelectionMode.AUTOMATIC) {
+            final DataTableSpec predictionCols =
+                TableSpecUtil.keepOnly(TableSpecUtil.difference(inSpec, m_featureTablePreparer.getTableSpec()),
+                    c -> c.getType().isCompatible(DoubleValue.class));
+            m_predictionTablePreparer = new TablePreparer(predictionCols, "prediction");
+        } else {
+            m_predictionTablePreparer = new TablePreparer(settings.getPredictionCols(), "prediction");
+            m_predictionTablePreparer.updateSpecs(inSpec, settings.getPredictionCols());
+        }
+    }
+
+    /**
+     * @return
+     */
+    private DataTableSpec getLoopEndSpec() {
         Optional<List<String>> optionalFeatureNames = m_featureManager.getFeatureNames();
         if (!optionalFeatureNames.isPresent()) {
             // without feature names, we can't configure
@@ -313,39 +331,72 @@ public final class KnimeShapleyValuesEstimator {
      *
      * @param predictionTable table containing the prediction for the perturbed rows
      * @param exec {@link ExecutionContext} for reporting progress and creating tables
-     * @throws Exception if something goes wrong or the execution is cancelled
+     * @throws MissingColumnException
+     * @throws CanceledExecutionException
+     * @throws InvalidSettingsException
      */
     public void consumePredictions(final BufferedDataTable predictionTable, final ExecutionContext exec)
-        throws Exception {
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
         exec.setMessage("Calculating Shapley Values.");
-        final DataTable filteredTable = m_predictionTablePreparer.createTable(predictionTable, exec);
-        final Predictor predictor = new Predictor(filteredTable.iterator(), m_algorithm,
-            m_featureManager.getNumFeatures().orElseThrow(() -> new IllegalStateException(
-                "The number of features must be known during the execution of the loop end. This is a coding error.")),
-            m_predictionTablePreparer.getNumColumns());
-        if (m_loopEndContainer == null) {
-            final DataTableSpec outputSpec = configureLoopEnd(predictionTable.getDataTableSpec());
-            m_loopEndContainer = exec.createDataContainer(outputSpec);
+        CheckUtils.checkArgument(predictionTable.size() > 0, "The prediction table must not be empty.");
+        try (final CloseableRowIterator rowIter =
+            m_predictionTablePreparer.createIterator(predictionTable, exec.createSilentSubExecutionContext(0))) {
+            final Iterator<PredictionVector> predictionVectorIterator =
+                Iterators.transform(rowIter, KnimePredictionVector::new);
+            if (m_nullFx == null) {
+                // the first iteration only contains the sampling set to estimate the mean predictions nullFx
+                initializeNullFx(predictionVectorIterator);
+                initializeLoopEndContainer(exec);
+            } else {
+                consumePredictions(exec, predictionVectorIterator);
+            }
         }
-        final long totalLong = getNumberOfInputRowsFromBatchSize(predictionTable.size());
+    }
+
+    private void initializeLoopEndContainer(final ExecutionContext exec) {
+        assert m_loopEndContainer == null;
+        final DataTableSpec outputSpec = getLoopEndSpec();
+        m_loopEndContainer = new CountingDataContainer(exec.createDataContainer(outputSpec));
+    }
+
+    private void consumePredictions(final ExecutionMonitor exec, final Iterator<PredictionVector> rowIter) {
+        final Predictor predictor = new Predictor(rowIter, m_algorithm, m_nullFx, getNumFeaturesInLoopEnd(),
+            m_predictionTablePreparer.getNumColumns());
+        final long totalLong = m_settings.getChunkSize();
         final double total = totalLong;
         int currentRow = 0;
         while (predictor.hasNext()) {
             exec.setProgress(currentRow / total,
                 "Calculating Shapley Values for row " + currentRow + " of " + totalLong);
             final Explanation nextExplanation = predictor.next();
-            m_explanationConverter.convertAndWrite(nextExplanation, m_loopEndContainer::addRowToTable);
+            m_explanationConverter.convertAndWrite(nextExplanation, m_loopEndContainer);
             currentRow++;
         }
     }
 
-    private long getNumberOfInputRowsFromBatchSize(final long batchSize) {
-        final long chunkSize = m_settings.getChunkSize();
-        final long numFeatures = m_featureManager.getNumFeatures()
-            .orElseThrow(() -> new IllegalStateException("The number of features must be known in the loop end."));
-        final long iterationsPerFeature = m_settings.getIterationsPerFeature();
-        final long rowsPerBatch = 2 * chunkSize * numFeatures * iterationsPerFeature;
-        return batchSize / rowsPerBatch;
+    /**
+     * @return
+     */
+    private int getNumFeaturesInLoopEnd() {
+        return m_featureManager.getNumFeatures().orElseThrow(() -> new IllegalStateException(
+            "The number of features must be known during the execution of the loop end."));
+    }
+
+    private void initializeNullFx(final Iterator<PredictionVector> rowIter) {
+        final int nPredictions = m_predictionTablePreparer.getNumColumns();
+        m_nullFx = new double[nPredictions];
+        long nRows = 0;
+        while (rowIter.hasNext()) {
+            nRows++;
+            final PredictionVector predictions = rowIter.next();
+            for (int i = 0; i < nPredictions; i++) {
+                m_nullFx[i] += predictions.get(i);
+            }
+        }
+        assert nRows > 0 : "The prediction iterator may not be empty.";
+        for (int i = 0; i < nPredictions; i++) {
+            m_nullFx[i] /= nRows;
+        }
     }
 
     /**
@@ -361,9 +412,6 @@ public final class KnimeShapleyValuesEstimator {
     public BufferedDataTable getLoopEndTable() {
         CheckUtils.checkState(m_loopEndContainer != null,
             "The loop end container is null, this indicates a coding error.");
-        CheckUtils.checkState(!m_loopEndContainer.isClosed(),
-            "The loop end container is already closed, this indicates a coding error.");
-        m_loopEndContainer.close();
         return m_loopEndContainer.getTable();
     }
 }

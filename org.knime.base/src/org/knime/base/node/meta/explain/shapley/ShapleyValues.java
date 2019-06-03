@@ -52,6 +52,7 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.knime.base.node.meta.explain.PredictionVector;
 import org.knime.base.node.meta.explain.feature.FeatureVector;
 import org.knime.base.node.meta.explain.feature.PerturbableFeatureVector;
 import org.knime.core.node.util.CheckUtils;

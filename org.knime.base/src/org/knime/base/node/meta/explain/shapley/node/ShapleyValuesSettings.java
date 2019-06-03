@@ -51,13 +51,11 @@ package org.knime.base.node.meta.explain.shapley.node;
 import java.util.Random;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
-import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
 
 /**
  *
@@ -69,8 +67,6 @@ public class ShapleyValuesSettings {
 
     private static final String CFG_CHUNK_SIZE = "chunkSize";
 
-    private static final String CFG_DONT_USE_ELEMENT_NAMES = "dontUseElementNames";
-
     private static final String CFG_TREAT_COLLECTIONS_AS_SINGLE_FEATURE = "treatAllColumnsAsSingleFeature";
 
     private static final String CFG_USE_SEED = "useSeed";
@@ -78,8 +74,6 @@ public class ShapleyValuesSettings {
     private static final String CFG_SEED = "seed";
 
     private static final String CFG_FEATURE_COLS = "featureColumns";
-
-    private static final String CFG_PREDICTION_COLS = "predictionColumns";
 
     private static final String CFG_ITERATIONS_PER_FEATURE = "iterationsPerFeature";
 
@@ -93,18 +87,9 @@ public class ShapleyValuesSettings {
 
     private boolean m_treatAllColumnsAsSingleFeature = false;
 
-    private boolean m_dontUseElementNames = false;
-
     private DataColumnSpecFilterConfiguration m_featureCols = createFeatureCols();
 
-    private DataColumnSpecFilterConfiguration m_predictionCols = createPredictionCols();
-
     private int m_chunkSize = DEF_CHUNK_SIZE;
-
-    @SuppressWarnings("unchecked")
-    private static DataColumnSpecFilterConfiguration createPredictionCols() {
-        return new DataColumnSpecFilterConfiguration(CFG_PREDICTION_COLS, new DataTypeColumnFilter(DoubleValue.class));
-    }
 
     private static DataColumnSpecFilterConfiguration createFeatureCols() {
         return new DataColumnSpecFilterConfiguration(CFG_FEATURE_COLS);
@@ -122,12 +107,9 @@ public class ShapleyValuesSettings {
         m_iterationsPerFeature = settings.getInt(CFG_ITERATIONS_PER_FEATURE, DEF_ITERATIONS_PER_FEATURE);
         m_featureCols = createFeatureCols();
         m_featureCols.loadConfigurationInDialog(settings, inSpec);
-        m_predictionCols = createPredictionCols();
-        m_predictionCols.loadConfigurationInDialog(settings, inSpec);
         m_seed = settings.getLong(CFG_SEED, newSeed());
         m_useSeed = settings.getBoolean(CFG_USE_SEED, false);
         m_treatAllColumnsAsSingleFeature = settings.getBoolean(CFG_TREAT_COLLECTIONS_AS_SINGLE_FEATURE, false);
-        m_dontUseElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES, false);
         m_chunkSize = settings.getInt(CFG_CHUNK_SIZE, DEF_CHUNK_SIZE);
     }
 
@@ -140,11 +122,8 @@ public class ShapleyValuesSettings {
         m_featureCols = createFeatureCols();
         m_featureCols.loadConfigurationInModel(settings);
         m_seed = settings.getLong(CFG_SEED);
-        m_predictionCols = createPredictionCols();
-        m_predictionCols.loadConfigurationInModel(settings);
         m_useSeed = settings.getBoolean(CFG_USE_SEED);
         m_treatAllColumnsAsSingleFeature = settings.getBoolean(CFG_TREAT_COLLECTIONS_AS_SINGLE_FEATURE);
-        m_dontUseElementNames = settings.getBoolean(CFG_DONT_USE_ELEMENT_NAMES);
         m_chunkSize = settings.getInt(CFG_CHUNK_SIZE);
     }
 
@@ -156,10 +135,8 @@ public class ShapleyValuesSettings {
         settings.addInt(CFG_ITERATIONS_PER_FEATURE, m_iterationsPerFeature);
         m_featureCols.saveConfiguration(settings);
         settings.addLong(CFG_SEED, m_seed);
-        m_predictionCols.saveConfiguration(settings);
         settings.addBoolean(CFG_USE_SEED, m_useSeed);
         settings.addBoolean(CFG_TREAT_COLLECTIONS_AS_SINGLE_FEATURE, m_treatAllColumnsAsSingleFeature);
-        settings.addBoolean(CFG_DONT_USE_ELEMENT_NAMES, m_dontUseElementNames);
         settings.addInt(CFG_CHUNK_SIZE, m_chunkSize);
     }
 
@@ -191,19 +168,6 @@ public class ShapleyValuesSettings {
         m_featureCols = featureCols;
     }
 
-    /**
-     * @return the predictionCols
-     */
-    public DataColumnSpecFilterConfiguration getPredictionCols() {
-        return m_predictionCols;
-    }
-
-    /**
-     * @param predictionCols the predictionCols to set
-     */
-    void setPredictionCols(final DataColumnSpecFilterConfiguration predictionCols) {
-        m_predictionCols = predictionCols;
-    }
 
     /**
      * @return the seed
@@ -245,20 +209,6 @@ public class ShapleyValuesSettings {
      */
     public void setTreatCollectionsAsSingleFeature(final boolean treatCollectionsAsSingleFeature) {
         m_treatAllColumnsAsSingleFeature = treatCollectionsAsSingleFeature;
-    }
-
-    /**
-     * @return the dontUseElementNames
-     */
-    public boolean isDontUseElementNames() {
-        return m_dontUseElementNames;
-    }
-
-    /**
-     * @param dontUseElementNames the dontUseElementNames to set
-     */
-    void setDontUseElementNames(final boolean dontUseElementNames) {
-        m_dontUseElementNames = dontUseElementNames;
     }
 
     /**

@@ -53,20 +53,20 @@ import java.util.NoSuchElementException;
 
 import org.knime.base.node.meta.explain.DefaultExplanation.DefaultExplanationBuilder;
 import org.knime.base.node.meta.explain.Explanation;
+import org.knime.base.node.meta.explain.PredictionVector;
 import org.knime.base.node.meta.explain.shapley.ShapleyValuesKeys.SVKeyParser;
 import org.knime.base.node.meta.explain.util.PeekingIterator;
-import org.knime.core.data.DataRow;
-import org.knime.core.data.RowIterator;
-import org.knime.core.data.RowKey;
 import org.knime.core.node.util.CheckUtils;
 
 final class Predictor implements Iterator<Explanation> {
 
     private final ShapleyValues m_algorithm;
 
-    private final PeekingIterator<DataRow> m_rowIterator;
+    private final PeekingIterator<PredictionVector> m_predictionVectorIterator;
 
     private final SVKeyParser m_keyParser = ShapleyValuesKeys.createParser();
+
+    private final double[] m_nullFx;
 
     private final int m_numFeatures;
 
@@ -76,24 +76,24 @@ final class Predictor implements Iterator<Explanation> {
 
     private String m_currentKey;
 
-    public Predictor(final RowIterator rowIterator, final ShapleyValues algorithm, final int numFeatures,
-        final int numTargets) {
+    public Predictor(final Iterator<PredictionVector> rowIterator, final ShapleyValues algorithm, final double[] nullFx,
+        final int numFeatures, final int numTargets) {
         m_algorithm = algorithm;
-        m_rowIterator = new PeekingIterator<>(rowIterator);
+        m_predictionVectorIterator = new PeekingIterator<>(rowIterator);
         m_numFeatures = numFeatures;
         m_numTargets = numTargets;
+        m_nullFx = nullFx;
     }
 
     private boolean nextIsSameFoi() {
-        if (!m_rowIterator.hasNext()) {
+        if (!m_predictionVectorIterator.hasNext()) {
             return false;
         }
-        m_keyParser.accept(peekKey());
-        return m_currentFoi == m_keyParser.getFoi();
+        return m_keyParser.accept(peekKey()) && m_currentFoi == m_keyParser.getFoi();
     }
 
-    private RowKey peekKey() {
-        final DataRow peek = m_rowIterator.peek();
+    private String peekKey() {
+        final PredictionVector peek = m_predictionVectorIterator.peek();
         return peek.getKey();
     }
 
@@ -107,17 +107,16 @@ final class Predictor implements Iterator<Explanation> {
 
             @Override
             public PredictionVector next() {
-                return new KnimePredictionVector(m_rowIterator.next());
+                return m_predictionVectorIterator.next();
             }
         };
     }
 
     private boolean nextIsSameRow() {
-        if (!m_rowIterator.hasNext()) {
+        if (!m_predictionVectorIterator.hasNext()) {
             return false;
         }
-        m_keyParser.accept(peekKey());
-        return m_currentKey.equals(m_keyParser.getOriginalKey());
+        return m_keyParser.accept(peekKey()) && m_currentKey.equals(m_keyParser.getOriginalKey());
     }
 
     /**
@@ -125,7 +124,7 @@ final class Predictor implements Iterator<Explanation> {
      */
     @Override
     public boolean hasNext() {
-        return m_rowIterator.hasNext();
+        return m_predictionVectorIterator.hasNext();
     }
 
     @Override
@@ -135,10 +134,9 @@ final class Predictor implements Iterator<Explanation> {
         }
         final double[] cellValues = new double[m_numFeatures * m_numTargets];
         int foi = 0;
+        final DefaultExplanationBuilder explanationBuilder = createExplanationBuilder();
         m_keyParser.accept(peekKey());
         m_currentKey = m_keyParser.getOriginalKey();
-        final DefaultExplanationBuilder explanationBuilder =
-            new DefaultExplanationBuilder(m_currentKey, m_numTargets, m_numFeatures);
         while (nextIsSameRow()) {
             m_keyParser.accept(peekKey());
             m_currentFoi = m_keyParser.getFoi();
@@ -152,9 +150,19 @@ final class Predictor implements Iterator<Explanation> {
             }
             foi++;
         }
-
         return explanationBuilder.build();
+    }
 
+    private DefaultExplanationBuilder createExplanationBuilder() {
+        final PredictionVector actualPredictions = m_predictionVectorIterator.next();
+        final DefaultExplanationBuilder explanationBuilder =
+            new DefaultExplanationBuilder(actualPredictions.getKey(), m_numTargets, m_numFeatures);
+        CheckUtils.checkState(actualPredictions.size() == m_nullFx.length,
+            "The number of predictions differs between the mean predictions and the actual predictions.");
+        for (int i = 0; i < actualPredictions.size(); i++) {
+            explanationBuilder.setActualPredictionAndDeviation(i, actualPredictions.get(i), m_nullFx[i]);
+        }
+        return explanationBuilder;
     }
 
 }

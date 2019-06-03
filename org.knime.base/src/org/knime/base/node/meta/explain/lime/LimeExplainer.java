@@ -105,7 +105,7 @@ public final class LimeExplainer {
         m_featureTablePreparer = new TablePreparer(settings.getFeatureCols(), "feature");
         // we can't sample vectors as a whole therefore all vectors are treated as collection of features
         m_featureManager =
-            new FeatureManager(false, !m_settings.isUseElementNames());
+            new FeatureManager(false, m_settings.isUseElementNames());
     }
 
     /**

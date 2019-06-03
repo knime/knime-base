@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.meta.explain.shapley.node;
 
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndOptionsDialog;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopNodeDialogPane;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -89,7 +92,7 @@ public class ShapleyValuesLoopEndNodeFactory extends NodeFactory<ShapleyValuesLo
      */
     @Override
     protected boolean hasDialog() {
-        return false;
+        return true;
     }
 
     /**
@@ -97,7 +100,8 @@ public class ShapleyValuesLoopEndNodeFactory extends NodeFactory<ShapleyValuesLo
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return null;
+        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(false),
+            () -> new ExplainerLoopEndSettings(false));
     }
 
 }

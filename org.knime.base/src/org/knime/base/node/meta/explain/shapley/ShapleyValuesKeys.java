@@ -52,7 +52,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.knime.base.node.meta.explain.shapley.ShapleyValues.ShapleyValuesKeyGen;
-import org.knime.core.data.RowKey;
 import org.knime.core.node.util.CheckUtils;
 
 /**
@@ -149,16 +148,23 @@ final class ShapleyValuesKeys {
         /**
          *
          * @param key to parse
+         * @return true if the key was created by the corresponding generator
          */
-        public void accept(final RowKey key) {
-            final String[] split = split(key);
-            m_originalKey = recreateOriginalKey(split);
-            m_foi = parseFeatureIdx(split);
-            m_foiIntact = parseFoiIntact(split);
-            m_iteration = parseIteration(split);
+        public boolean accept(final String key) {
+            try {
+                final String[] split = split(key);
+                m_originalKey = recreateOriginalKey(split);
+                m_foi = parseFeatureIdx(split);
+                m_foiIntact = parseFoiIntact(split);
+                m_iteration = parseIteration(split);
+                return true;
+            } catch (Exception e) {
+                // we could not parse the key because it has the wrong structure
+                return false;
+            }
         }
 
-        private static String createErrorString(final RowKey generatedKey) {
+        private static String createErrorString(final String generatedKey) {
             return "The row key '" + generatedKey + "' was not created by an instance of this RowKeyGenerator.";
         }
 
@@ -170,8 +176,8 @@ final class ShapleyValuesKeys {
             return Integer.parseInt(split[split.length - POS_FEATURE_IDX]);
         }
 
-        private static String[] split(final RowKey key) {
-            final String[] split = key.getString().split(DELIMITER);
+        private static String[] split(final String key) {
+            final String[] split = key.split(DELIMITER);
             CheckUtils.checkArgument(split.length >= MIN_COMPONENTS_PER_KEY, createErrorString(key));
             return split;
         }

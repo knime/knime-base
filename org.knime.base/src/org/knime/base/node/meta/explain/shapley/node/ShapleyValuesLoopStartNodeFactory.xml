@@ -50,14 +50,9 @@
 				If checked, collection and vector columns are treated as a whole, i.e. either the whole collection is kept or changed as opposed to changing individual positions
 				within the collections.
 			</option>
-			<option name="Target columns">
-				The columns containing the predictions you want to explain.
-				In case of classification tasks these are typically the class probabilities predicted by your model.
-				Note that its not allowed to have columns both as feature and prediction column.
-			</option>
 			<option name="Iterations per feature">
 				How often to sample the Shapley Value for each single feature.
-				This directly affects the runtime of the loop since for each row in the first input table <i>2 * number of features * number of iterations per feature</i> rows are created
+				This directly affects the runtime of the loop since for each row in the first input table <i>1 + 2 * number of features * number of iterations per feature</i> rows are created
 				and have to be predicted.
 				The higher this number, the better the approximation but the longer the runtime.
 			</option>
@@ -68,19 +63,12 @@
 				The random seed only applies to the permutation of features in algorithm 1 from <i>Explaining prediction models and individual predictions with feature contributions</i>
 				by Strumbelj and Kononenko.
 			</option>
-			<option name="Don't use element names for collection features">
-				Each collection or vector column can declare names for its contained elements (values).
-				However, oftentimes using these names might be less informative than using the collection name combined with an index.
-				If this box is checked all features from a collection/vector column are named with respect to the collection/vector column name.
-				Note that this happens anyway, if there are no element names available or the number of element names does not match the actual
-				number of values in the collection/vector.
-			</option>
 		</tab>
 		<tab name="Advanced Options">
 			<option name="Chunk size">
 				Since every row in the input may result in a very large number of rows in the output of the loop start node, this option allows
 				to specify how many <b>input</b> rows should be handled per loop iteration.
-				The output of the loop start will have <i>chunk size * 2 * number of features * number of iterations per feature</i> rows
+				The output of the loop start will have <i>chunk size * (1 + 2 * number of features * number of iterations per feature)</i> rows
 				(unless the number of rows left to process is smaller than chunk size).
 			</option>
 		</tab>

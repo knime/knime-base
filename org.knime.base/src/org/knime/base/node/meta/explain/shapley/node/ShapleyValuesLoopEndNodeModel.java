@@ -51,6 +51,7 @@ package org.knime.base.node.meta.explain.shapley.node;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
 import org.knime.base.node.meta.explain.shapley.KnimeShapleyValuesEstimator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -72,6 +73,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
 
     private static final String LOOP_NAME = "Shapley Values Loop";
 
+    private ExplainerLoopEndSettings m_settings = new ExplainerLoopEndSettings(false);
+
     /**
      * Constructor
      */
@@ -85,7 +88,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final KnimeShapleyValuesEstimator estimator = getEstimator();
-        return new DataTableSpec[]{estimator.configureLoopEnd(inSpecs[0])};
+        return new DataTableSpec[]{estimator.configureLoopEnd(m_settings, inSpecs[0])};
     }
 
     private ShapleyValuesLoopStartNodeModel getLoopStart() throws InvalidSettingsException {
@@ -142,7 +145,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // currently receives its settings from the loop start node
+        m_settings.saveSettings(settings);
     }
 
     /**
@@ -150,7 +153,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // currently receives its settings from the loop start node
+        new ExplainerLoopEndSettings(false).loadSettingsInModel(settings);
     }
 
     /**
@@ -158,7 +161,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // currently receives its settings from the loop start node
+        m_settings = new ExplainerLoopEndSettings(false);
+        m_settings.loadSettingsInModel(settings);
     }
 
     /**

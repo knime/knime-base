@@ -53,7 +53,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Random;
-import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -66,10 +65,7 @@ import javax.swing.SpinnerNumberModel;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
-
-import com.google.common.collect.Sets;
 
 /**
  *
@@ -78,8 +74,6 @@ import com.google.common.collect.Sets;
 class OptionsDialog {
 
     private final DataColumnSpecFilterPanel m_featureColumns = new DataColumnSpecFilterPanel();
-
-    private final DataColumnSpecFilterPanel m_predictionColumns = new DataColumnSpecFilterPanel();
 
     private final JSpinner m_iterationsPerFeature =
         new JSpinner(new SpinnerNumberModel(1000, 1, Integer.MAX_VALUE, 1000));
@@ -92,8 +86,6 @@ class OptionsDialog {
 
     private final JCheckBox m_treatCollectionsAsSingleFeature =
         new JCheckBox("Every collection column represents a single feature");
-
-    private final JCheckBox m_dontUseElementNames = new JCheckBox("Don't use element names for collection features");
 
     /**
      *
@@ -125,15 +117,8 @@ class OptionsDialog {
         panel.add(createFeaturePanel(), gbc);
 
         gbc.gridy++;
-        m_predictionColumns.setBorder(BorderFactory.createTitledBorder("Target columns"));
-        panel.add(m_predictionColumns, gbc);
-
-        gbc.gridy++;
 
         panel.add(createSamplingOptionsPanel(), gbc);
-
-        gbc.gridy++;
-        panel.add(createOutputOptionsPanel(), gbc);
 
         return panel;
     }
@@ -155,13 +140,6 @@ class OptionsDialog {
         gbc.gridx++;
         gbc.weightx = 0;
         panel.add(m_newSeedBtn, gbc);
-        return panel;
-    }
-
-    private JPanel createOutputOptionsPanel() {
-        final JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createTitledBorder("Output options"));
-        panel.add(m_dontUseElementNames);
         return panel;
     }
 
@@ -203,14 +181,11 @@ class OptionsDialog {
     }
 
     void saveSettingsTo(final ShapleyValuesSettings cfg) throws InvalidSettingsException {
-        checkDisjunctFeatureAndPredictionCols();
         m_featureColumns.saveConfiguration(cfg.getFeatureCols());
-        m_predictionColumns.saveConfiguration(cfg.getPredictionCols());
         cfg.setIterationsPerFeature((int)m_iterationsPerFeature.getValue());
         cfg.setSeed(getSeedAsLong());
         cfg.setUseSeed(m_useSeed.isSelected());
         cfg.setTreatCollectionsAsSingleFeature(m_treatCollectionsAsSingleFeature.isSelected());
-        cfg.setDontUseElementNames(m_dontUseElementNames.isSelected());
     }
 
     private long getSeedAsLong() throws InvalidSettingsException {
@@ -224,21 +199,11 @@ class OptionsDialog {
 
     void loadSettingsFrom(final ShapleyValuesSettings cfg, final DataTableSpec inSpec) {
         m_featureColumns.loadConfiguration(cfg.getFeatureCols(), inSpec);
-        m_predictionColumns.loadConfiguration(cfg.getPredictionCols(), inSpec);
         m_iterationsPerFeature.setValue(cfg.getIterationsPerFeature());
         m_treatCollectionsAsSingleFeature.setSelected(cfg.isTreatAllColumnsAsSingleFeature());
         m_seedBox.setText(cfg.getSeed() + "");
         m_useSeed.setSelected(cfg.getUseSeed());
         reactToUseSeedCheckBox();
-        m_dontUseElementNames.setSelected(cfg.isDontUseElementNames());
     }
 
-    private void checkDisjunctFeatureAndPredictionCols() throws InvalidSettingsException {
-        final Set<String> features = m_featureColumns.getIncludedNamesAsSet();
-        final Set<String> predictions = m_predictionColumns.getIncludedNamesAsSet();
-        final Set<String> intersection = Sets.intersection(features, predictions);
-        CheckUtils.checkSetting(intersection.isEmpty(),
-            "The following column(s) are used as both feature and prediction column which is not allowed: %s",
-            intersection);
-    }
 }

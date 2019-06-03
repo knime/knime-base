@@ -229,6 +229,8 @@ class OptionsDialog {
         m_useSeed.setSelected(cfg.isUseSeed());
         m_useElementNames.setSelected(cfg.isUseElementNames());
         reactToUseSeedCheckBox();
+        m_kernelWidth.setValue(cfg.getKernelWidth());
+        m_manuallySpecifyKernelWidth.setSelected(cfg.isUseManualKernelWidth());
         reactToUseManualKernelCheckBox();
     }
 

@@ -105,6 +105,8 @@ final class RowTransformer {
 
     private void createTransformedRowsForNextInputRow(final BufferedDataContainer container) {
         final FeatureVector x = m_iter.next();
+        // the first row in the batch is the original row in order to get the actual predictions
+        container.addRowToTable(x.get());
         for (int foi = 0; foi < x.size(); foi++) {
             m_algo.prepare(x, foi, m_keyGen, p -> container.addRowToTable(p.get()));
         }

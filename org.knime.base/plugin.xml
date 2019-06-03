@@ -2055,17 +2055,18 @@
             factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory2">
       </node>
       <node
-            category-path="/labs/xai"
+            category-path="/analytics/mining/modelexplanation"
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopStartNodeFactory">
       </node>
       <node
-            category-path="/labs/xai"
+            after="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopStartNodeFactory"
+            category-path="/analytics/mining/modelexplanation"
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopEndNodeFactory">
       </node>
       <node
-            category-path="/labs/xai"
+            category-path="/analytics/mining/modelexplanation"
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
 	  </node>
