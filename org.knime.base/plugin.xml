@@ -974,7 +974,7 @@
             deprecated="true"
             after="org.knime.base.node.mine.scorer.accuracy.AccuracyScorerNodeFactory"/>
       <node
-            after="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"
+            after="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeFactory"
             category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.mine.scorer.entrop.NewEntropyNodeFactory"
             />
