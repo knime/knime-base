@@ -57,7 +57,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class TsneNodeDialog extends DefaultNodeSettingsPane {
+final class TsneNodeDialog extends DefaultNodeSettingsPane {
 
     TsneNodeDialog() {
         final DialogComponentColumnFilter2 featureComp =
@@ -83,7 +83,7 @@ class TsneNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(removeOriginalColumns);
         addDialogComponent(failOnMissingValues);
         addDialogComponent(seed);
-        setDefaultTabTitle("t-SNE Settings");
+        setDefaultTabTitle("Settings");
     }
 
 }
