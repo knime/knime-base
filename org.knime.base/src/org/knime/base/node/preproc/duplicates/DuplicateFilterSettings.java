@@ -115,9 +115,6 @@ final class DuplicateFilterSettings {
     /** The retain order config key. */
     private static final String RETAIN_ROW_ORDER_KEY = "retain_order";
 
-    /** The skip missings config key. */
-    private static final String SKIP_MISSINGS_KEY = "skip_missings";
-
     /** The remove duplicate row keys config key. */
     private static final String REMOVE_DUPLICATE_ROWS_KEY = "remove_duplicates";
 
@@ -137,9 +134,6 @@ final class DuplicateFilterSettings {
 
     /** Settings model storing the retain row order flag. */
     private final SettingsModelBoolean m_retainOrder = new SettingsModelBoolean(RETAIN_ROW_ORDER_KEY, false);
-
-    /** Settings model storing the skip missing if possible flag. */
-    private final SettingsModelBoolean m_skipMissings = new SettingsModelBoolean(SKIP_MISSINGS_KEY, true);
 
     /** Settings model storing the remove duplicate rows flag. */
     private final SettingsModelBoolean m_removeDuplicates = new SettingsModelBoolean(REMOVE_DUPLICATE_ROWS_KEY, true);
@@ -165,10 +159,6 @@ final class DuplicateFilterSettings {
 
     SettingsModelBoolean getRetainOrderModel() {
         return m_retainOrder;
-    }
-
-    SettingsModelBoolean getSkipMissingsModel() {
-        return m_skipMissings;
     }
 
     SettingsModelBoolean getRemoveDuplicatesModel() {
@@ -201,10 +191,6 @@ final class DuplicateFilterSettings {
 
     boolean retainOrder() {
         return m_retainOrder.getBooleanValue();
-    }
-
-    boolean skipMissings() {
-        return m_skipMissings.getBooleanValue();
     }
 
     boolean removeDuplicates() {
@@ -243,7 +229,6 @@ final class DuplicateFilterSettings {
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_groupCols.saveSettingsTo(settings);
         m_retainOrder.saveSettingsTo(settings);
-        m_skipMissings.saveSettingsTo(settings);
         m_addUniqueLbl.saveSettingsTo(settings);
         m_addRowLbl.saveSettingsTo(settings);
         m_referenceCol.saveSettingsTo(settings);
@@ -265,7 +250,6 @@ final class DuplicateFilterSettings {
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_groupCols.loadSettingsFrom(settings);
         m_retainOrder.loadSettingsFrom(settings);
-        m_skipMissings.loadSettingsFrom(settings);
         m_addUniqueLbl.loadSettingsFrom(settings);
         m_addRowLbl.loadSettingsFrom(settings);
         m_referenceCol.loadSettingsFrom(settings);
@@ -282,7 +266,6 @@ final class DuplicateFilterSettings {
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_groupCols.validateSettings(settings);
         m_retainOrder.validateSettings(settings);
-        m_skipMissings.validateSettings(settings);
         m_removeDuplicates.validateSettings(settings);
         m_addUniqueLbl.validateSettings(settings);
         m_addRowLbl.validateSettings(settings);

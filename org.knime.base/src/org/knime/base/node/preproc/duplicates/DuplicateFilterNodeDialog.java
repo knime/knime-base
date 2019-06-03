@@ -120,9 +120,6 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
     private final DialogComponentColumnNameSelection m_referenceCol = new DialogComponentColumnNameSelection(
         m_settings.getReferenceColModel(), null, DuplicateFilterNodeModel.DATA_IN_PORT, false, false, DataValue.class);
 
-    private final DialogComponentBoolean m_skipMissings =
-        new DialogComponentBoolean(m_settings.getSkipMissingsModel(), "Skip missings if possible");
-
     final JRadioButton m_remDupBtn = new JRadioButton("Remove duplicate rows");
 
     final JRadioButton m_keepDupBtn = new JRadioButton("Keep duplicate rows");
@@ -242,9 +239,6 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         ++gbc.gridy;
         p.add(createReferencePanel(), gbc);
 
-        ++gbc.gridy;
-        p.add(m_skipMissings.getComponentPanel(), gbc);
-
         return p;
 
     }
@@ -315,7 +309,6 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         m_addUniqLblCol.saveSettingsTo(settings);
         m_addRowLblCol.saveSettingsTo(settings);
         m_referenceCol.saveSettingsTo(settings);
-        m_skipMissings.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         m_settings.saveSettingsForDialog(settings);
     }
@@ -328,7 +321,6 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         m_addUniqLblCol.loadSettingsFrom(settings, specs);
         m_addRowLblCol.loadSettingsFrom(settings, specs);
         m_referenceCol.loadSettingsFrom(settings, specs);
-        m_skipMissings.loadSettingsFrom(settings, specs);
         m_inMemory.loadSettingsFrom(settings, specs);
         try {
             m_settings.loadSettingsForDialog(settings);

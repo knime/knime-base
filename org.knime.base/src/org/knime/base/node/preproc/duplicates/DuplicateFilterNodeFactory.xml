@@ -56,27 +56,23 @@
 				<li><b>Last</b>:The last row in sequence is chosen.
 				</li>
                 <li><b>Minimum of</b>:The <i>first</i> row with the lowest value in
-                    the selected column is chosen.
+                    the selected column is chosen. Missing values are sorted after the highest value.
 				</li>
 				<li><b>Maximum of</b>:The <i>first</i> row with the largest value in
-					the selected column is chosen.
+					the selected column is chosen. Missing values are sorted before the lowest value.
 				</li>
 			</ul>
 		</option>
-		<option name="Skip missings if possible">
-            If selected, the node tries to skip rows with missing values in the columns
-            that were not used for the detection of duplicates during row selection.
-		</option>
 	</tab>
-    <tab name="Advanced - ">
-		<option name="Retain row order">
-            If selected, rows in the output table are sorted in the same order as in the input
-            table.
-		</option>
+    <tab name="Advanced - Additional options">
 		<option name="In-memory computation">
             If selected, computation is speed up by utilizing working memory (RAM). The amount
             of required memory is higher than for a regular computation and also depends
             on the amount of input data.
+		</option>
+		<option name="Retain row order">
+            If selected, rows in the output table are sorted in the same order as in the input
+            table.
 		</option>
     </tab>
 	</fullDescription>

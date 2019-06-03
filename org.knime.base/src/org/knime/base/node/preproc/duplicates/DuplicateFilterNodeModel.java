@@ -224,9 +224,13 @@ final class DuplicateFilterNodeModel extends NodeModel {
             sortAsc[grpCols.length] = false;
         }
 
+        final boolean sortMissingToEnd =
+            rowSelectionType == RowSelectionType.MAXIMUM || rowSelectionType == RowSelectionType.MINIMUM;
+
+
         // return the sorted table
         BufferedDataTableSorter sorter =
-            new BufferedDataTableSorter(inData, Arrays.asList(sortCols), sortAsc, m_settings.skipMissings());
+            new BufferedDataTableSorter(inData, Arrays.asList(sortCols), sortAsc, sortMissingToEnd);
         sorter.setSortInMemory(m_settings.inMemory());
         final BufferedDataTable sortedTbl = sorter.sort(exec);
         return sortedTbl;
