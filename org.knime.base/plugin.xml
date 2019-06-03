@@ -519,8 +519,9 @@
             description="Contains nodes that allow to explain machine learning models"
             icon="icons/missing.gif"
             level-id="modelexplanation"
+            locked="true"
             name="Model Explanation"
-            path="labs/">
+            path="/analytics/mining/">
       </category>
       <category
             icon="icons/missing.gif"
