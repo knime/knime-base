@@ -278,7 +278,8 @@ final class TsneNodeModel extends NodeModel {
                 setWarningMessage(
                     "The VM argument smile.threads is not 1 in which case results of SMILE are not reproducible.");
             }
-            smile.math.Math.setSeed(m_seed.getLongValue());
+            final long seed = m_seed.getIsActive() ? m_seed.getLongValue() : System.currentTimeMillis();
+            smile.math.Math.setSeed(seed);
         }
     }
 
