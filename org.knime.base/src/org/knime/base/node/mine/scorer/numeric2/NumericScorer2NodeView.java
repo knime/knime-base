@@ -52,6 +52,7 @@ package org.knime.base.node.mine.scorer.numeric2;
  * predicted values.
  *
  * @author Ole Ostergaard
+ * @since 4.0
  */
 class NumericScorer2NodeView extends AbstractNumericScorerNodeView<NumericScorer2NodeModel> {
 

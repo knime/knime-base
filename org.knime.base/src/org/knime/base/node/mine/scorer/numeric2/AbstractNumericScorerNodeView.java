@@ -67,7 +67,7 @@ import org.knime.core.node.NodeView;
  * @author Gabor Bakos
  * @author Ole Ostergaard
  * @param <M> the extended numeric scorer node model
- * @since 3.2
+ * @since 4.0
  */
 public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends NodeView<M> {
 

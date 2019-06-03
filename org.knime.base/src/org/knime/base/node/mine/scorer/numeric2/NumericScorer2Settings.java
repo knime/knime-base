@@ -62,7 +62,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * This class holds the settings for numeric scorers like NumericScorerNodeModel.
  *
  * @author Ole Ostergaard, KNIME.com
- * @since 3.2
+ * @since 4.0
  */
 public class NumericScorer2Settings {
 

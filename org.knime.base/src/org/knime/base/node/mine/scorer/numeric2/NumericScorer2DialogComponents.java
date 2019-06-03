@@ -66,7 +66,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * This class holds the dialog components for the {@link NumericScorer2NodeDialog}.
  *
  * @author Ole Ostergaard, KNIME.com
- * @since 3.2
+ * @since 4.0
  */
 public class NumericScorer2DialogComponents {
 

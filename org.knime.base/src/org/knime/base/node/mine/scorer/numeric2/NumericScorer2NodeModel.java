@@ -85,6 +85,7 @@ import org.knime.core.node.workflow.FlowVariable;
  * predicted values.
  *
  * @author Gabor Bakos
+ * @since 4.0
  */
 class NumericScorer2NodeModel extends NodeModel {
 
