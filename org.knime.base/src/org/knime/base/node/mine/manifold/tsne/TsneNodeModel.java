@@ -236,8 +236,14 @@ final class TsneNodeModel extends NodeModel {
         final int iterations = m_iterations.getIntValue();
         monitor.checkCanceled();
         monitor.setMessage("Start learning");
+        final int n = data.length;
+        // TSNE will reuse this matrix internally (or create it if we don't provide it)
+        final double[][] distances = new double[n][n];
+        // TODO add support for distance matrices and figure out if we can create the distances
+        // in a more memory efficient manner
+        smile.math.Math.pdist(data, distances, true, false);
         setSeed();
-        final TSNE tsne = new TSNE(data, m_outputDimensions.getIntValue(), m_perplexity.getDoubleValue(),
+        final TSNE tsne = new TSNE(distances, m_outputDimensions.getIntValue(), m_perplexity.getDoubleValue(),
             m_learningRate.getDoubleValue(), 1);
         final double progressStep = 1.0 / iterations;
         for (int i = 1; i < iterations; i++) {

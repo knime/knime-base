@@ -102,10 +102,6 @@ final class TsneData {
             }
             assert !rowIter.hasNext();
         }
-        if (data.size() == nCols) {
-            // if the data is square, Smile interprets it as distances, we prevent this by adding a dummy row
-            data.add(new double[nCols]);
-        }
         return data.toArray(new double[data.size()][]);
     }
 
