@@ -419,25 +419,11 @@
             path="/flowcontrol">
       </category>
       <category
-            after="automation"
-            icon="icons/16x16/category_quickform.png"
-            level-id="configuration"
-            name="Configuration"
-            path="/flowcontrol">
-      </category>
-      <category
-            after="configuration"
-            icon="icons/16x16/category_quickform.png"
-            level-id="widgets"
-            name="Widgets"
-            path="/flowcontrol">
-      </category>
-      <category
             icon="icons/16x16/variables.png"
             level-id="variables"
             name="Variables"
             path="/flowcontrol"
-            after="widgets">
+            after="automation">
       </category>
       <category
             after="variables"
@@ -471,11 +457,39 @@
             path="/flowcontrol">
       </category>
       <category
-            after="meta"
+            after="flowcontrol"
+            description="Nodes for automation and configuration of workflows and components"
+            icon="icons/16x16/category_abstraction.png"
+            level-id="flowabstraction"
+            name="Workflow Abstraction"
+            path="/">
+      </category>
+      <category
+            icon="icons/16x16/category_container.png"
+            level-id="container"
+            name="Coordination"
+            path="/flowabstraction">
+      </category>
+      <category
+            after="container"
+            icon="icons/16x16/category_quickform.png"
+            level-id="configuration"
+            name="Configuration"
+            path="/flowabstraction">
+      </category>
+      <category
+            after="configuration"
+            icon="icons/16x16/category_quickform.png"
+            level-id="widgets"
+            name="Widgets"
+            path="/flowabstraction">
+      </category>
+      <category
+            after="widgets"
             icon="icons/16x16/category_quickform.png"
             level-id="quickforms"
             name="Quickforms"
-            path="/flowcontrol">
+            path="/flowabstraction">
       </category>
       <category
             after="_last_"
