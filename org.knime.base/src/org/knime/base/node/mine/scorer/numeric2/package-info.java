@@ -45,60 +45,7 @@
  * History
  *   23.10.2013 (gabor): created
  */
-package org.knime.base.node.mine.scorer.numeric;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-
 /**
- * <code>NodeFactory</code> for the "NumericScorer" Node.
- * Computes the distance between the a numeric column's values and predicted values.
- *
- * @author Gabor Bakos
- * @since 3.2
+ * Home of the Numeric Scorer node.
  */
-public class NumericScorerNodeFactory extends NodeFactory<NumericScorerNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NumericScorerNodeModel createNodeModel() {
-        return new NumericScorerNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 1;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<NumericScorerNodeModel> createNodeView(final int viewIndex,
-            final NumericScorerNodeModel nodeModel) {
-        return new NumericScorerNodeView(nodeModel);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new NumericScorerNodeDialog();
-    }
-
-}
-
+package org.knime.base.node.mine.scorer.numeric2;

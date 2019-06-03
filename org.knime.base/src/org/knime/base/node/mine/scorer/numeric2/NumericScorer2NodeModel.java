@@ -45,7 +45,7 @@
  * History
  *   23.10.2013 (gabor): created
  */
-package org.knime.base.node.mine.scorer.numeric;
+package org.knime.base.node.mine.scorer.numeric2;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -74,7 +74,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -87,13 +86,8 @@ import org.knime.core.node.workflow.FlowVariable;
  *
  * @author Gabor Bakos
  */
-class NumericScorerNodeModel extends NodeModel {
+class NumericScorer2NodeModel extends NodeModel {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(NumericScorerNodeModel.class);
-
-    /**
-     *
-     */
     private static final String MEAN_SIGNED_DIFFERENCE = "meanSignedDifference";
 
     private static final String RMSD = "rmsd";
@@ -112,7 +106,7 @@ class NumericScorerNodeModel extends NodeModel {
 
     private static final String INTERNALS_XML_GZ = "internals.xml.gz";
 
-    private final NumericScorerSettings m_numericScorerSettings = new NumericScorerSettings();
+    private final NumericScorer2Settings m_numericScorerSettings = new NumericScorer2Settings();
 
     private double m_rSquare = Double.NaN;
 
@@ -133,7 +127,7 @@ class NumericScorerNodeModel extends NodeModel {
     /**
      * Constructor for the node model.
      */
-    protected NumericScorerNodeModel() {
+    protected NumericScorer2NodeModel() {
         super(1, 1);
     }
 
@@ -284,11 +278,10 @@ class NumericScorerNodeModel extends NodeModel {
             final String meanAPEName = prefix + "mean absolute percentage error";
             final String normalizedMAPEName = prefix + "normalized mean absolute percentage error";
             final String weightedAPEName = prefix + "weighted absolute percentage error";
-            if (isConfigureOnly
-                && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName) || vars.containsKey(meanSquareName)
-                    || vars.containsKey(rootmeanName) || vars.containsKey(meanSignedName)
-                || vars.containsKey(meanAPEName) || vars.containsKey(normalizedMAPEName)
-                || vars.containsKey(weightedAPEName))) {
+            if (isConfigureOnly && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName)
+                || vars.containsKey(meanSquareName) || vars.containsKey(rootmeanName)
+                || vars.containsKey(meanSignedName) || vars.containsKey(meanAPEName)
+                || vars.containsKey(normalizedMAPEName) || vars.containsKey(weightedAPEName))) {
                 addWarning("A flow variable was replaced!");
             }
 
@@ -340,7 +333,7 @@ class NumericScorerNodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final DataColumnSpec reference = inSpecs[0].getColumnSpec(m_numericScorerSettings.getReferenceColumnName());
         if (reference == null) {
-            if (m_numericScorerSettings.getReferenceColumnName().equals(NumericScorerSettings.DEFAULT_REFERENCE)) {
+            if (m_numericScorerSettings.getReferenceColumnName().equals(NumericScorer2Settings.DEFAULT_REFERENCE)) {
                 throw new InvalidSettingsException("No columns selected for reference");
             }
             throw new InvalidSettingsException(
@@ -352,7 +345,7 @@ class NumericScorerNodeModel extends NodeModel {
         }
         final DataColumnSpec predicted = inSpecs[0].getColumnSpec(m_numericScorerSettings.getPredictionColumnName());
         if (predicted == null) {
-            if (m_numericScorerSettings.getPredictionColumnName().equals(NumericScorerSettings.DEFAULT_PREDICTED)) {
+            if (m_numericScorerSettings.getPredictionColumnName().equals(NumericScorer2Settings.DEFAULT_PREDICTED)) {
                 throw new InvalidSettingsException("No columns selected for prediction");
             }
             throw new InvalidSettingsException(
@@ -405,11 +398,9 @@ class NumericScorerNodeModel extends NodeModel {
             m_rmsd = set.getDouble(RMSD);
             m_meanSignedDifference = set.getDouble(MEAN_SIGNED_DIFFERENCE);
 
-            if (set.containsKey(MEAN_ABSOLUTE_PERCENTAGE_ERROR)) { // new since 3.8
-                m_meanAbsolutePercentageError = set.getDouble(MEAN_ABSOLUTE_PERCENTAGE_ERROR);
-                m_normalizedMeanAbsolutePercentageError = set.getDouble(NORMALIZED_MEAN_ABSOLUTE_PERCENTAGE_ERROR);
-                m_weightedAbsolutePercentageError = set.getDouble(WEIGHTED_ABSOLUTE_PERCENTAGE_ERROR);
-            }
+            m_meanAbsolutePercentageError = set.getDouble(MEAN_ABSOLUTE_PERCENTAGE_ERROR);
+            m_normalizedMeanAbsolutePercentageError = set.getDouble(NORMALIZED_MEAN_ABSOLUTE_PERCENTAGE_ERROR);
+            m_weightedAbsolutePercentageError = set.getDouble(WEIGHTED_ABSOLUTE_PERCENTAGE_ERROR);
         } catch (final InvalidSettingsException ise) {
             throw new IOException("Unable to read internals", ise);
         }

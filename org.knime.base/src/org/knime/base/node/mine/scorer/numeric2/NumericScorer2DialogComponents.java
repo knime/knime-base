@@ -46,7 +46,7 @@
  * History
  *   Jun 15, 2016 (oole): created
  */
-package org.knime.base.node.mine.scorer.numeric;
+package org.knime.base.node.mine.scorer.numeric2;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -63,14 +63,14 @@ import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * This class holds the dialog components for the {@link NumericScorerNodeDialog}.
+ * This class holds the dialog components for the {@link NumericScorer2NodeDialog}.
  *
  * @author Ole Ostergaard, KNIME.com
  * @since 3.2
  */
-public class NumericScorerDialogComponents {
+public class NumericScorer2DialogComponents {
 
-    private final NumericScorerSettings m_numericScorerSettings;
+    private final NumericScorer2Settings m_numericScorerSettings;
 
     private final DialogComponentColumnNameSelection m_referenceComponent;
     private final DialogComponentColumnNameSelection m_predictionComponent;
@@ -83,9 +83,9 @@ public class NumericScorerDialogComponents {
 
     /**
      * Constructor. Initializes the NumericScorer dialog components
-     * @param settings the {@link NumericScorerSettings}
+     * @param settings the {@link NumericScorer2Settings}
      */
-    public NumericScorerDialogComponents(final NumericScorerSettings settings) {
+    public NumericScorer2DialogComponents(final NumericScorer2Settings settings) {
         m_numericScorerSettings = settings;
         m_referenceComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getReferenceModel(), "Reference column",  0, DoubleValue.class);
         m_predictionComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getPredictedModel(), "Predicted column", 0, DoubleValue.class);
@@ -186,11 +186,11 @@ public class NumericScorerDialogComponents {
     }
 
     /**
-     * Return the component's underlying {@link NumericScorerSettings}.
+     * Return the component's underlying {@link NumericScorer2Settings}.
      *
-     * @return the {@link NumericScorerSettings} underlying the components
+     * @return the {@link NumericScorer2Settings} underlying the components
      */
-    public NumericScorerSettings getSettings() {
+    public NumericScorer2Settings getSettings() {
         return m_numericScorerSettings;
     }
 }

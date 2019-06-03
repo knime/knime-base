@@ -47,31 +47,60 @@
  */
 package org.knime.base.node.mine.scorer.numeric;
 
-/**
- * <code>NodeView</code> for the "NumericScorer" Node. Computes the distance between the a numeric column's values and
- * predicted values.
- *
- * @author Ole Ostergaard
- */
-class NumericScorerNodeView extends AbstractNumericScorerNodeView<NumericScorerNodeModel> {
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
+/**
+ * <code>NodeFactory</code> for the "NumericScorer" Node.
+ * Computes the distance between the a numeric column's values and predicted values.
+ *
+ * @author Gabor Bakos
+ * @since 3.2
+ * @deprecated
+ */
+@Deprecated
+public class NumericScorerNodeFactory extends NodeFactory<NumericScorerNodeModel> {
     /**
-     * Delegates to super class.
-     *
-     * @param nodeModel the nodeModel to view
+     * {@inheritDoc}
      */
-    protected NumericScorerNodeView(final NumericScorerNodeModel nodeModel) {
-        super(nodeModel);
+    @Override
+    public NumericScorerNodeModel createNodeModel() {
+        return new NumericScorerNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void modelChanged() {
-        NumericScorerNodeModel model = getNodeModel();
-        setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(),
-            model.getMeanSignedDifference(), model.getMeanAbsolutePercentageError(),
-            model.getNormalizedMeanAbsolutePercentageError(), model.getWeightedAbsoluteErrorPercentage());
+    public int getNrNodeViews() {
+        return 1;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<NumericScorerNodeModel> createNodeView(final int viewIndex,
+            final NumericScorerNodeModel nodeModel) {
+        return new NumericScorerNodeView(nodeModel);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new NumericScorerNodeDialog();
+    }
+
 }
+

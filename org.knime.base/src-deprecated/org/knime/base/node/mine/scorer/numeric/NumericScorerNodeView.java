@@ -47,45 +47,31 @@
  */
 package org.knime.base.node.mine.scorer.numeric;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-
 /**
- * <code>NodeDialog</code> for the "NumericScorer" Node. Computes the distance between the a numeric column's values and
- * predicted values.
+ * <code>NodeView</code> for the "NumericScorer" Node.
+ * Computes the distance between the a numeric column's values and predicted values.
  *
- * This node dialog derives from {@link DefaultNodeSettingsPane} which allows creation of a simple dialog with standard
- * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
- *
- * @author Gabor Bakos
- * @since 3.2
+ * @author Ole Ostergaard
+ * @deprecated
  */
-public class NumericScorerNodeDialog extends DefaultNodeSettingsPane {
-
-    private final NumericScorerSettings m_settings = new NumericScorerSettings();
-    private final NumericScorerDialogComponents m_components = new NumericScorerDialogComponents(m_settings);
+@Deprecated
+class NumericScorerNodeView extends AbstractNumericScorerNodeView<NumericScorerNodeModel> {
 
     /**
-     * New pane for configuring the NumericScorer node.
+     * Delegates to super class.
+     * @param nodeModel the nodeModel to view
      */
-    protected NumericScorerNodeDialog() {
-        addDialogComponent(m_components.getReferenceComponent());
-        addDialogComponent(m_components.getPredictionComponent());
-        createNewGroup("Output column");
-        addDialogComponent(m_components.getOverrideComponent());
-        addDialogComponent(m_components.getOutputComponent());
-
-
-        createNewGroup("Provide scores as flow variables");
-        addDialogComponent(m_components.getUseNamePrefixComponent());
-        addDialogComponent(m_components.getFlowVarComponent());
+    protected NumericScorerNodeView(final NumericScorerNodeModel nodeModel) {
+        super(nodeModel);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void onOpen() {
-        super.onOpen();
-        m_settings.onOpen();
+    protected void modelChanged() {
+        NumericScorerNodeModel model = getNodeModel();
+        setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(), model.getMeanSignedDifference());
     }
 }
+

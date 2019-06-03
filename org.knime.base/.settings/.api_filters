@@ -167,6 +167,46 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/node/mine/scorer/numeric/AbstractNumericScorerNodeView.java" type="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView"/>
+                <message_argument value="org.knime.base_3.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/mine/scorer/numeric/NumericScorerDialogComponents.java" type="org.knime.base.node.mine.scorer.numeric.NumericScorerDialogComponents">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.NumericScorerDialogComponents"/>
+                <message_argument value="org.knime.base_3.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/mine/scorer/numeric/NumericScorerNodeDialog.java" type="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeDialog"/>
+                <message_argument value="org.knime.base_3.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/mine/scorer/numeric/NumericScorerNodeFactory.java" type="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"/>
+                <message_argument value="org.knime.base_3.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/mine/scorer/numeric/NumericScorerSettings.java" type="org.knime.base.node.mine.scorer.numeric.NumericScorerSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric.NumericScorerSettings"/>
+                <message_argument value="org.knime.base_3.8.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src-deprecated/org/knime/base/node/preproc/cellsplit/CellSplitterNodeDialogPane.java" type="org.knime.base.node.preproc.cellsplit.CellSplitterNodeDialogPane">
         <filter comment="This was here before, eclipse cannot detect the src folder move" id="305365105">
             <message_arguments>
@@ -370,6 +410,51 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric2/AbstractNumericScorerNodeView.java" type="org.knime.base.node.mine.scorer.numeric2.AbstractNumericScorerNodeView">
+        <filter id="1108344834">
+            <message_arguments>
+                <message_argument value="3.2"/>
+                <message_argument value="3.8"/>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric2.AbstractNumericScorerNodeView"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric2/NumericScorer2DialogComponents.java" type="org.knime.base.node.mine.scorer.numeric2.NumericScorer2DialogComponents">
+        <filter id="1108344834">
+            <message_arguments>
+                <message_argument value="3.2"/>
+                <message_argument value="3.8"/>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric2.NumericScorer2DialogComponents"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric2/NumericScorer2NodeDialog.java" type="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeDialog">
+        <filter id="1108344834">
+            <message_arguments>
+                <message_argument value="3.2"/>
+                <message_argument value="3.8"/>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeDialog"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric2/NumericScorer2NodeFactory.java" type="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeFactory">
+        <filter id="1108344834">
+            <message_arguments>
+                <message_argument value="3.2"/>
+                <message_argument value="3.8"/>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeFactory"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/mine/scorer/numeric2/NumericScorer2Settings.java" type="org.knime.base.node.mine.scorer.numeric2.NumericScorer2Settings">
+        <filter id="1108344834">
+            <message_arguments>
+                <message_argument value="3.2"/>
+                <message_argument value="3.8"/>
+                <message_argument value="org.knime.base.node.mine.scorer.numeric2.NumericScorer2Settings"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/mine/transformation/pca/apply/PCA2ApplyNodeModel.java" type="org.knime.base.node.mine.transformation.pca.apply.PCA2ApplyNodeModel">
         <filter id="571519004">
             <message_arguments>
@@ -439,14 +524,6 @@
                 <message_argument value="NodeModel"/>
                 <message_argument value="PCA2ReverseNodeModel"/>
                 <message_argument value="getOutputPortRoles()"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/mine/scorer/numeric/AbstractNumericScorerNodeView.java" type="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView">
-        <filter comment="We assume that this node code is not used by external developers." id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.mine.scorer.numeric.AbstractNumericScorerNodeView"/>
-                <message_argument value="setLabels(double, double, double, double, double)"/>
             </message_arguments>
         </filter>
     </resource>

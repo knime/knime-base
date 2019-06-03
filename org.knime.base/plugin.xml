@@ -965,8 +965,13 @@
       </node>
       <node
             category-path="/analytics/mining/modeleval"
-            factory-class="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"
+            factory-class="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeFactory"
             
+            after="org.knime.base.node.mine.scorer.accuracy.AccuracyScorerNodeFactory"/>
+      <node
+            category-path="/analytics/mining/modeleval"
+            factory-class="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"
+            deprecated="true"
             after="org.knime.base.node.mine.scorer.accuracy.AccuracyScorerNodeFactory"/>
       <node
             after="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"

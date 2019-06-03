@@ -63,7 +63,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  *
  * @author Ole Ostergaard, KNIME.com
  * @since 3.2
+ * @deprecated
  */
+@Deprecated
 public class NumericScorerSettings {
 
     static final String CFGKEY_REFERENCE = "reference";
