@@ -133,7 +133,7 @@ final class DuplicateFilterSettings {
     private final SettingsModelBoolean m_inMemory = new SettingsModelBoolean(IN_MEMORY_KEY, false);
 
     /** Settings model storing the retain row order flag. */
-    private final SettingsModelBoolean m_retainOrder = new SettingsModelBoolean(RETAIN_ROW_ORDER_KEY, false);
+    private final SettingsModelBoolean m_retainOrder = new SettingsModelBoolean(RETAIN_ROW_ORDER_KEY, true);
 
     /** Settings model storing the remove duplicate rows flag. */
     private final SettingsModelBoolean m_removeDuplicates = new SettingsModelBoolean(REMOVE_DUPLICATE_ROWS_KEY, true);
@@ -219,6 +219,7 @@ final class DuplicateFilterSettings {
     void saveSettingsForDialog(final NodeSettingsWO settings) {
         m_removeDuplicates.saveSettingsTo(settings);
         m_rowSelectionType.saveSettingsTo(settings);
+        m_referenceCol.saveSettingsTo(settings);
     }
 
     /**
@@ -231,7 +232,6 @@ final class DuplicateFilterSettings {
         m_retainOrder.saveSettingsTo(settings);
         m_addUniqueLabel.saveSettingsTo(settings);
         m_addRowLabel.saveSettingsTo(settings);
-        m_referenceCol.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         saveSettingsForDialog(settings);
     }
@@ -239,6 +239,7 @@ final class DuplicateFilterSettings {
     void loadSettingsForDialog(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_removeDuplicates.loadSettingsFrom(settings);
         m_rowSelectionType = RowSelectionType.loadSettingsFrom(settings);
+        m_referenceCol.loadSettingsFrom(settings);
     }
 
     /**
@@ -252,7 +253,6 @@ final class DuplicateFilterSettings {
         m_retainOrder.loadSettingsFrom(settings);
         m_addUniqueLabel.loadSettingsFrom(settings);
         m_addRowLabel.loadSettingsFrom(settings);
-        m_referenceCol.loadSettingsFrom(settings);
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);
     }
