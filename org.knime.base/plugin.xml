@@ -119,11 +119,29 @@
             path="/view"
             name="Property"/>
       <category
-            icon="icons/16x16/category_javascript.png"
-            level-id="js-views"
+            after="property"
+            description="Utility nodes supporting visualizations in KNIME"
+            icon="icons/16x16/category_view-util.png"
+            level-id="view-util"
+            name="Utility"
+            path="/view">
+      </category>
+      <category
+            after="view-util"
+            icon="icons/missing.gif"
+            level-id="appender"
             locked="true"
-            name="JavaScript"
-            path="/view" />
+            name="Viz Appender"
+            path="/view">
+      </category>
+      <category
+            after="appender"
+            icon="icons/missing.gif"
+            level-id="legacy"
+            locked="true"
+            name="Legacy"
+            path="/view">
+      </category>
       <category
             after="view"
             icon="icons/16x16/category_mining.png"
@@ -290,13 +308,6 @@
             locked="true"
             name="PMML"
             path="/analytics/mining">
-      </category>
-      <category
-            description="Utility nodes supporting visualizations in KNIME"
-            icon="icons/16x16/category_view-util.png"
-            level-id="view-util"
-            name="Utility"
-            path="/view">
       </category>
       <category
             after="toolintegration"
@@ -554,7 +565,7 @@
             factory-class="org.knime.base.node.viz.property.shape.ShapeAppenderNodeFactory">
       </node>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.table.TableNodeFactory">
       </node>
       <node
@@ -787,28 +798,28 @@
            factory-class="org.knime.base.node.preproc.bitvector.expand.ExpandBitVectorNodeFactory"
            after="org.knime.base.node.preproc.bitvector.create.CreateBitVectorNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.histogram.node.HistogramNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.histogram.node.FixedColumnHistogramNodeFactory"/>
      <node
            category-path="/manipulation/column/column-transform"
            factory-class="org.knime.base.node.preproc.normalize.NormalizerApplyNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.plotter.box.BoxPlotNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.plotter.line.LinePlotterNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.plotter.parcoord.ParallelCoordinateNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.plotter.scatter.ScatterPlotterNodeFactory"/>
      <node
-           category-path="/view"
+           category-path="/view/legacy"
            factory-class="org.knime.base.node.viz.plotter.scattermatrix.ScatterMatrixNodeFactory"/>
      <node
            category-path="/manipulation/row/row-filter"
@@ -835,11 +846,11 @@
          category-path="/analytics/mining/clustering"
          factory-class="org.knime.base.node.mine.sota.predictor.SotaPredictorNodeFactory"/>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.pie.node.fixed.FixedPieNodeFactory">
       </node>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.pie.node.interactive.InteractivePieNodeFactory">
       </node>
       <node
@@ -1106,7 +1117,7 @@
             >
       </node>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.condbox.ConditionalBoxPlotNodeFactory"
             />
       <node
@@ -1174,7 +1185,7 @@
             >
       </node>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.liftchart.LiftChartNodeFactory"
             >
       </node>
@@ -1765,7 +1776,7 @@
             >
       </node>
       <node
-            category-path="/view"
+            category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.hilite.AutoHiLiteNodeFactory"
             >
       </node>

@@ -1,6 +1,6 @@
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./highlight_yellow_16.png" type="Visualizer">
-	<name>HiLite Table</name>
+	<name>HiLite Table (legacy)</name>
 	<shortDescription>
 		This node hilites all rows of the incoming data table.
 	</shortDescription>
