@@ -44,76 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   31.03.2019 (Adrian): created
+ *   Jun 4, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.mine.regression.glmnet;
+
+import org.knime.base.node.mine.regression.glmnet.data.Data;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DenseFeature implements Feature, RandomAccessible {
+final class Snapshoter {
 
-    private final double[] m_values;
+    private final Data m_data;
 
-    /**
-     * @param values of this feature
-     * @param copy whether <b>values</b> should be copied
-     */
-    public DenseFeature(final double[] values, final boolean copy) {
-        m_values = copy ? values.clone() : values;
+    Snapshoter(final Data data) {
+        m_data = data;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FeatureIterator getIterator() {
-        return new DenseFeatureIterator();
-    }
-
-    private class DenseFeatureIterator extends AbstractFeatureIterator {
-
-        /**
-         *
-         */
-        public DenseFeatureIterator() {
-            super(m_values.length);
+    LinearModel destandardize(final double[] coefficients) {
+        final double[] denormalizedCoeffs = new double[coefficients.length];
+        double intercept = m_data.getTargetMean();
+        final double targetStdv = m_data.getTargetStdv();
+        for (int i = 0; i < denormalizedCoeffs.length; i++) {
+            final double beta = coefficients[i] / m_data.getStdv(i);
+            denormalizedCoeffs[i] = beta * targetStdv;
+            intercept -= beta * m_data.getMean(i);
         }
 
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getRowIdx() {
-            return m_idx;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public double getValue() {
-            return m_values[m_idx];
-        }
-
+//        double intercept = m_data.getWeightedMeanTarget();
+        return new LinearModel(intercept, denormalizedCoeffs);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double get(final int idx) {
-        return m_values[idx];
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int size() {
-        return m_values.length;
+
+    double[] standardize(final LinearModel model) {
+        double intercept = model.getIntercept();
+        final double targetStdv = m_data.getTargetStdv();
+        double[] coefficients = new double[model.getNumCoefficients()];
+        for (int i = 0; i < coefficients.length; i++) {
+            double stdv = m_data.getStdv(i);
+            final double beta = model.getCoefficient(i) / targetStdv;
+            coefficients[i] = beta * stdv;
+            intercept += beta * m_data.getMean(i);
+        }
+        intercept = intercept - m_data.getTargetMean();
+        System.out.println("Intercept after standardize: " + intercept);
+        return coefficients;
     }
 
 }

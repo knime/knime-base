@@ -44,68 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   31.03.2019 (Adrian): created
+ *   Apr 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.meta.explain;
+
+import java.util.function.IntUnaryOperator;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DenseFeature implements Feature, RandomAccessible {
+public final class KnimeDoubleVector implements DoubleVector {
+    private final DataRow m_row;
 
-    private final double[] m_values;
+    private final IntUnaryOperator m_idxMapper;
 
-    /**
-     * @param values of this feature
-     * @param copy whether <b>values</b> should be copied
-     */
-    public DenseFeature(final double[] values, final boolean copy) {
-        m_values = copy ? values.clone() : values;
-    }
+    private final int m_size;
+
+    private final String m_role;
 
     /**
-     * {@inheritDoc}
+     * @param row to wrap
      */
-    @Override
-    public FeatureIterator getIterator() {
-        return new DenseFeatureIterator();
+    public KnimeDoubleVector(final DataRow row, final String role, final IntUnaryOperator idxMapper, final int size) {
+        m_row = row;
+        m_idxMapper = idxMapper;
+        m_size = size;
+        m_role = role;
     }
 
-    private class DenseFeatureIterator extends AbstractFeatureIterator {
-
-        /**
-         *
-         */
-        public DenseFeatureIterator() {
-            super(m_values.length);
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getRowIdx() {
-            return m_idx;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public double getValue() {
-            return m_values[m_idx];
-        }
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double get(final int idx) {
-        return m_values[idx];
+    public KnimeDoubleVector(final DataRow row) {
+        this(row, "prediction", IntUnaryOperator.identity(), row.getNumCells());
     }
 
     /**
@@ -113,7 +87,31 @@ public final class DenseFeature implements Feature, RandomAccessible {
      */
     @Override
     public int size() {
-        return m_values.length;
+        return m_size;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double get(final int idx) {
+        final DataCell cell = m_row.getCell(m_idxMapper.applyAsInt(idx));
+        CheckUtils.checkState(!cell.isMissing(), "Missing %s in row %s encountered.", m_role, m_row.getKey());
+        // Such a failure indicates a coding error since at this point care should have been taken that
+        // we only look at DoubleCells
+        CheckUtils.checkState(cell instanceof DoubleValue, "%s must implement DoubleValue.", m_role);
+        final DoubleValue value = (DoubleValue)cell;
+        return value.getDoubleValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getKey() {
+        return m_row.getKey().getString();
+    }
+
+
 
 }

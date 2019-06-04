@@ -81,4 +81,20 @@ public final class LinearModel {
         return m_coefficients.length;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("intercept: ").append(m_intercept);
+        sb.append(" coefficients: [");
+        for (double coefficient : m_coefficients) {
+            sb.append(coefficient).append(", ");
+        }
+        sb.delete(sb.length() - 2, sb.length());
+        sb.append("]");
+        return sb.toString();
+    }
+
 }

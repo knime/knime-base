@@ -55,11 +55,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.base.node.meta.explain.CountingDataContainer;
+import org.knime.base.node.meta.explain.DoubleVector;
 import org.knime.base.node.meta.explain.Explanation;
 import org.knime.base.node.meta.explain.ExplanationToDataCellsConverter;
 import org.knime.base.node.meta.explain.ExplanationToMultiRowConverter;
-import org.knime.base.node.meta.explain.KnimePredictionVector;
-import org.knime.base.node.meta.explain.PredictionVector;
+import org.knime.base.node.meta.explain.KnimeDoubleVector;
 import org.knime.base.node.meta.explain.feature.FeatureManager;
 import org.knime.base.node.meta.explain.feature.KnimeFeatureVectorIterator;
 import org.knime.base.node.meta.explain.feature.PerturberFactory;
@@ -127,7 +127,6 @@ public final class KnimeShapleyValuesEstimator {
         m_algorithm = new ShapleyValues(settings.getIterationsPerFeature(), settings.getSeed());
         m_settings = settings;
         m_featureTablePreparer = new TablePreparer(settings.getFeatureCols(), "feature");
-        //        m_predictionTablePreparer = new TablePreparer(settings.getPredictionCols(), "prediction");
         m_featureManager = new FeatureManager(m_settings.isTreatAllColumnsAsSingleFeature(), true);
     }
 
@@ -341,8 +340,8 @@ public final class KnimeShapleyValuesEstimator {
         CheckUtils.checkArgument(predictionTable.size() > 0, "The prediction table must not be empty.");
         try (final CloseableRowIterator rowIter =
             m_predictionTablePreparer.createIterator(predictionTable, exec.createSilentSubExecutionContext(0))) {
-            final Iterator<PredictionVector> predictionVectorIterator =
-                Iterators.transform(rowIter, KnimePredictionVector::new);
+            final Iterator<DoubleVector> predictionVectorIterator =
+                Iterators.transform(rowIter, KnimeDoubleVector::new);
             if (m_nullFx == null) {
                 // the first iteration only contains the sampling set to estimate the mean predictions nullFx
                 initializeNullFx(predictionVectorIterator);
@@ -359,7 +358,7 @@ public final class KnimeShapleyValuesEstimator {
         m_loopEndContainer = new CountingDataContainer(exec.createDataContainer(outputSpec));
     }
 
-    private void consumePredictions(final ExecutionMonitor exec, final Iterator<PredictionVector> rowIter) {
+    private void consumePredictions(final ExecutionMonitor exec, final Iterator<DoubleVector> rowIter) {
         final Predictor predictor = new Predictor(rowIter, m_algorithm, m_nullFx, getNumFeaturesInLoopEnd(),
             m_predictionTablePreparer.getNumColumns());
         final long totalLong = m_settings.getChunkSize();
@@ -382,13 +381,13 @@ public final class KnimeShapleyValuesEstimator {
             "The number of features must be known during the execution of the loop end."));
     }
 
-    private void initializeNullFx(final Iterator<PredictionVector> rowIter) {
+    private void initializeNullFx(final Iterator<DoubleVector> rowIter) {
         final int nPredictions = m_predictionTablePreparer.getNumColumns();
         m_nullFx = new double[nPredictions];
         long nRows = 0;
         while (rowIter.hasNext()) {
             nRows++;
-            final PredictionVector predictions = rowIter.next();
+            final DoubleVector predictions = rowIter.next();
             for (int i = 0; i < nPredictions; i++) {
                 m_nullFx[i] += predictions.get(i);
             }

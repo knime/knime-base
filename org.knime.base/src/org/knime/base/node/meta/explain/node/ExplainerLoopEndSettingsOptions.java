@@ -42,78 +42,13 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   31.03.2019 (Adrian): created
+ *   Jun 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.meta.explain.node;
 
-/**
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- */
-public final class DenseFeature implements Feature, RandomAccessible {
-
-    private final double[] m_values;
-
-    /**
-     * @param values of this feature
-     * @param copy whether <b>values</b> should be copied
-     */
-    public DenseFeature(final double[] values, final boolean copy) {
-        m_values = copy ? values.clone() : values;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FeatureIterator getIterator() {
-        return new DenseFeatureIterator();
-    }
-
-    private class DenseFeatureIterator extends AbstractFeatureIterator {
-
-        /**
-         *
-         */
-        public DenseFeatureIterator() {
-            super(m_values.length);
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getRowIdx() {
-            return m_idx;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public double getValue() {
-            return m_values[m_idx];
-        }
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double get(final int idx) {
-        return m_values[idx];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int size() {
-        return m_values.length;
-    }
-
+public enum ExplainerLoopEndSettingsOptions {
+    Regularization,
+    UseElementNames;
 }

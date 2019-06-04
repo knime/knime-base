@@ -91,7 +91,7 @@ final class ArrayLambdaSequence implements LambdaSequence {
      */
     @Override
     public double interpolate(final double lower, final double upper) {
-        CheckUtils.checkArgument(lower < upper, "Lower (%s) must be smaller than upper (%s).");
+        CheckUtils.checkArgument(lower < upper, "Lower (%s) must be smaller than upper (%s).", lower, upper);
         return m_interpolater.interploate(lower, upper);
     }
 

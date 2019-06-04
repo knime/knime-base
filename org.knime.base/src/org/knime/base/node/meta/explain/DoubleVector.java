@@ -44,76 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   31.03.2019 (Adrian): created
+ *   Apr 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.meta.explain;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DenseFeature implements Feature, RandomAccessible {
-
-    private final double[] m_values;
+public interface DoubleVector {
 
     /**
-     * @param values of this feature
-     * @param copy whether <b>values</b> should be copied
+     * @return the number of predictions contained in this vector
      */
-    public DenseFeature(final double[] values, final boolean copy) {
-        m_values = copy ? values.clone() : values;
-    }
+    int size();
 
     /**
-     * {@inheritDoc}
+     * @param idx
+     * @return the prediction at <b>idx</b>
+     * @throws IndexOutOfBoundsException
      */
-    @Override
-    public FeatureIterator getIterator() {
-        return new DenseFeatureIterator();
-    }
-
-    private class DenseFeatureIterator extends AbstractFeatureIterator {
-
-        /**
-         *
-         */
-        public DenseFeatureIterator() {
-            super(m_values.length);
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getRowIdx() {
-            return m_idx;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public double getValue() {
-            return m_values[m_idx];
-        }
-
-    }
+    double get(final int idx);
 
     /**
-     * {@inheritDoc}
+     * @return the identifier of the prediction vector (typically the row key)
      */
-    @Override
-    public double get(final int idx) {
-        return m_values[idx];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int size() {
-        return m_values.length;
-    }
-
+    String getKey();
 }

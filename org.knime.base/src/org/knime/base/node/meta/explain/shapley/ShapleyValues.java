@@ -52,7 +52,7 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.knime.base.node.meta.explain.PredictionVector;
+import org.knime.base.node.meta.explain.DoubleVector;
 import org.knime.base.node.meta.explain.feature.FeatureVector;
 import org.knime.base.node.meta.explain.feature.PerturbableFeatureVector;
 import org.knime.core.node.util.CheckUtils;
@@ -134,15 +134,15 @@ final class ShapleyValues {
         return m_random.nextPermutation(size, size);
     }
 
-    public double[] consumePredictionsPerFoi(final Iterator<PredictionVector> predictions) {
+    public double[] consumePredictionsPerFoi(final Iterator<DoubleVector> predictions) {
         CheckUtils.checkArgument(predictions.hasNext(), "The iterator must provide at least two predictions.");
-        PredictionVector foiIntact = predictions.next();
+        DoubleVector foiIntact = predictions.next();
         final double[] accumulated = new double[foiIntact.size()];
         int iterations = 0;
         while (true) {
             CheckUtils.checkArgument(predictions.hasNext(),
                 "Missing the prediction where the feature of interest is replaced.");
-            final PredictionVector foiReplaced = predictions.next();
+            final DoubleVector foiReplaced = predictions.next();
             for (int i = 0; i < accumulated.length; i++) {
                 accumulated[i] += foiIntact.get(i) - foiReplaced.get(i);
             }

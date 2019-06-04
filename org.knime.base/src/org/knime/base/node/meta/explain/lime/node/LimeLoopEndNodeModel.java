@@ -44,17 +44,17 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15.03.2016 (adrian): created
+ *   Jun 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.shapley.node;
+package org.knime.base.node.meta.explain.lime.node;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import org.knime.base.node.meta.explain.lime.LimeExplainer;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
-import org.knime.base.node.meta.explain.shapley.KnimeShapleyValuesEstimator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -69,21 +69,35 @@ import org.knime.core.node.workflow.LoopStartNode;
 
 /**
  *
- * @author Adrian Nembach, KNIME.com
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndNode {
+final class LimeLoopEndNodeModel extends NodeModel implements LoopEndNode {
 
-    private static final String LOOP_NAME = "Shapley Values Loop";
+    private static final EnumSet<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS =
+        EnumSet.of(ExplainerLoopEndSettingsOptions.Regularization);
 
-    private static final EnumSet<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS = EnumSet.of(ExplainerLoopEndSettingsOptions.UseElementNames);
+    private static final String LOOP_NAME = "LIME Loop";
 
     private ExplainerLoopEndSettings m_settings = new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
 
     /**
-     * Constructor
      */
-    public ShapleyValuesLoopEndNodeModel() {
-        super(1, 1);
+    protected LimeLoopEndNodeModel() {
+        super(2, 1);
+    }
+
+    private LIMELoopStartNodeModel getLoopStart() throws InvalidSettingsException {
+        final LoopStartNode loopStart = getLoopStartNode();
+        if (loopStart instanceof LIMELoopStartNodeModel) {
+            return (LIMELoopStartNodeModel)loopStart;
+        } else {
+            throw new InvalidSettingsException(
+                "The " + LOOP_NAME + " End node can only be used with the " + LOOP_NAME + " Start node.");
+        }
+    }
+
+    private LimeExplainer getExplainer() throws InvalidSettingsException {
+        return getLoopStart().getExplainer();
     }
 
     /**
@@ -91,18 +105,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        final KnimeShapleyValuesEstimator estimator = getEstimator();
-        return new DataTableSpec[]{estimator.configureLoopEnd(m_settings, inSpecs[0])};
-    }
-
-    private ShapleyValuesLoopStartNodeModel getLoopStart() throws InvalidSettingsException {
-        final LoopStartNode loopStart = getLoopStartNode();
-        if (loopStart instanceof ShapleyValuesLoopStartNodeModel) {
-            return (ShapleyValuesLoopStartNodeModel)loopStart;
-        } else {
-            throw new InvalidSettingsException(
-                "The " + LOOP_NAME + " End node can only be used with the " + LOOP_NAME + " Start node.");
-        }
+        final LimeExplainer explainer = getExplainer();
+        return explainer.configure(inSpecs, m_settings);
     }
 
     /**
@@ -111,19 +115,14 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
-        final BufferedDataTable data = inData[0];
-        final KnimeShapleyValuesEstimator estimator = getEstimator();
-        estimator.consumePredictions(data, exec);
-        if (estimator.hasNextIteration()) {
+        final BufferedDataTable predictionTable = inData[0];
+        final LimeExplainer explainer = getExplainer();
+//        explainer.consumePredictions(predictionTable, inData[1], exec);
+        if (explainer.hasNextIteration()) {
             continueLoop();
             return new BufferedDataTable[1];
         }
-        final BufferedDataTable result = estimator.getLoopEndTable();
-        return new BufferedDataTable[]{result};
-    }
-
-    private KnimeShapleyValuesEstimator getEstimator() throws InvalidSettingsException {
-        return getLoopStart().getEstimator();
+        return new BufferedDataTable[]{null};
     }
 
     /**
@@ -132,7 +131,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do here
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -141,7 +141,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do here
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -174,7 +175,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void reset() {
-        // currently nothing to reset
+        // nothing to reset
     }
 
 }

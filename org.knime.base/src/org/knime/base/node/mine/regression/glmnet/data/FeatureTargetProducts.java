@@ -89,7 +89,7 @@ final class FeatureTargetProducts {
         while (iter.next()) {
             prod += iter.getWeight() * iter.getFeature() * iter.getTarget();
         }
-        prod -= m_data.getWeightedMeanTarget() * iter.getFeatureMean();
+//        prod -= m_data.getWeightedMeanTarget() * iter.getFeatureMean();
         return prod;
     }
 

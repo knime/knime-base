@@ -48,23 +48,13 @@
  */
 package org.knime.base.node.meta.explain;
 
-import org.knime.core.node.util.CheckUtils;
-
 /**
  * The default implementation of {@link Explanation}. The class itself is immutable and can only be created via the
  * provided builder class {@link DefaultExplanationBuilder}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DefaultExplanation implements Explanation {
-
-    private final String m_roiKey;
-
-    private final Matrix m_explanationValues;
-
-    private final int m_numTargets;
-
-    private final int m_numFeatures;
+public final class DefaultExplanation extends AbstractExplanation {
 
     private final double[] m_actualPredictions;
 
@@ -80,44 +70,9 @@ public final class DefaultExplanation implements Explanation {
      */
     private DefaultExplanation(final String roiKey, final Matrix explanationValues, final double[] actualPredictions,
         final double[] deviationFromMeanPredictions, final int numTargets, final int numFeatures) {
-        m_roiKey = roiKey;
-        m_numFeatures = numFeatures;
-        m_numTargets = numTargets;
-        m_explanationValues = explanationValues;
+        super(roiKey, explanationValues, numTargets, numFeatures);
         m_actualPredictions = actualPredictions;
         m_deviationFromMeanPredictions = deviationFromMeanPredictions;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getRoiKey() {
-        return m_roiKey;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNumberOfFeatures() {
-        return m_numFeatures;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNumberOfTargets() {
-        return m_numTargets;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double getExplanationValue(final int target, final int feature) {
-        return m_explanationValues.get(target, feature);
     }
 
     /**
@@ -143,17 +98,7 @@ public final class DefaultExplanation implements Explanation {
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public static final class DefaultExplanationBuilder {
-
-        private final String m_roiKey;
-
-        private final Matrix m_explanationValues;
-
-        private final int m_numTargets;
-
-        private final int m_numFeatures;
-
-        private boolean m_built = false;
+    public static final class DefaultExplanationBuilder extends AbstractExplanationBuilder {
 
         private final double[] m_actualPredictions;
 
@@ -168,12 +113,9 @@ public final class DefaultExplanation implements Explanation {
          * @param numFeatures the number of features the explained model uses
          */
         public DefaultExplanationBuilder(final String roiKey, final int numTargets, final int numFeatures) {
-            m_roiKey = roiKey;
-            m_numTargets = numTargets;
-            m_numFeatures = numFeatures;
+            super(roiKey, numTargets, numFeatures);
             m_actualPredictions = new double[numTargets];
             m_deviationFromMeanPredictions = new double[numTargets];
-            m_explanationValues = new Matrix(numTargets, numFeatures, "target", "feature");
         }
 
         /**
@@ -184,26 +126,11 @@ public final class DefaultExplanation implements Explanation {
          * @throws IllegalStateException if the method is called twice
          */
         public DefaultExplanation build() {
-            CheckUtils.checkState(!m_built, "The build method can be only called once.");
-            m_built = true;
-            return new DefaultExplanation(m_roiKey, m_explanationValues, m_actualPredictions,
-                m_deviationFromMeanPredictions, m_numTargets, m_numFeatures);
+            checkBuilt();
+            return new DefaultExplanation(getRoiKey(), getExplanationValues(), m_actualPredictions,
+                m_deviationFromMeanPredictions, getNumTargets(), getNumFeatures());
         }
 
-        /**
-         * Sets an explanation value for <b>target</b> and <b>feature</b>. Must not be called after the build method has
-         * been called!
-         *
-         * @param target the target for which the explanationValue is meant
-         * @param feature the feature for which the explanationValue is meant
-         * @param explanationValue the actual value of <b>feature</b> for <b>target</b>
-         * @throws IllegalStateException if called after the build method has been called
-         */
-        public void setExplanationValue(final int target, final int feature, final double explanationValue) {
-            CheckUtils.checkState(!m_built,
-                "The builder can no longer be modified after the build method has been called.");
-            m_explanationValues.set(target, feature, explanationValue);
-        }
 
         /**
          * @param target the target the predictions correspond to

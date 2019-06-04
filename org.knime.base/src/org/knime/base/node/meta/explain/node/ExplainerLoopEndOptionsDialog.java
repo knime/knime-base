@@ -51,6 +51,7 @@ package org.knime.base.node.meta.explain.node;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -73,8 +74,6 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  */
 public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<ExplainerLoopEndSettings> {
 
-    private final boolean m_includeRegularizationSettings;
-
     private final JCheckBox m_regularize;
 
     private final JSpinner m_maxActiveFeatures;
@@ -83,19 +82,21 @@ public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<Explai
 
     private final DataColumnSpecFilterPanel m_predictionColumns = new DataColumnSpecFilterPanel();
 
-    private final JCheckBox m_useElementNames = new JCheckBox("Use element names for collection features");
+    private final JCheckBox m_useElementNames;
 
     private final JRadioButton m_automaticColumnSelection =
         new JRadioButton("Automatically detect prediction columns");
 
     private final JRadioButton m_manualColumnSelection = new JRadioButton("Manually select prediction columns");
 
+    private final Set<ExplainerLoopEndSettingsOptions> m_options;
+
     /**
-     * @param includeRegularizationSettings whether components for the configuration of regularization should be shown
+     * @param options
      */
-    public ExplainerLoopEndOptionsDialog(final boolean includeRegularizationSettings) {
-        m_includeRegularizationSettings = includeRegularizationSettings;
-        if (includeRegularizationSettings) {
+    public ExplainerLoopEndOptionsDialog(final Set<ExplainerLoopEndSettingsOptions> options) {
+        m_options = options;
+        if (options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             m_regularize = new JCheckBox("Regularize explanations");
             m_maxActiveFeatures = new JSpinner(new SpinnerNumberModel(10, 1, Integer.MAX_VALUE, 1));
             m_alpha = new JSpinner(new SpinnerNumberModel(0.5, 0.0, 1.0, 0.1));
@@ -104,6 +105,11 @@ public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<Explai
             m_regularize = null;
             m_maxActiveFeatures = null;
             m_alpha = null;
+        }
+        if (options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            m_useElementNames = new JCheckBox("Use element names for collection features");
+        } else {
+            m_useElementNames = null;
         }
 
         ButtonGroup group = new ButtonGroup();
@@ -142,19 +148,20 @@ public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<Explai
 
         gbc.weighty = 0;
         gbc.weightx = 1;
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             gbc.gridy++;
             panel.add(createRegularizationOptionsPanel(), gbc);
         }
 
-        gbc.gridy++;
-        panel.add(createOutputOptionsPanel(), gbc);
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            gbc.gridy++;
+            panel.add(createOutputOptionsPanel(), gbc);
+        }
 
         return panel;
     }
 
     private JPanel createRegularizationOptionsPanel() {
-        assert m_includeRegularizationSettings;
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Regularization options"));
         final GridBagConstraints gbc = createGbc();
@@ -206,10 +213,12 @@ public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<Explai
     @Override
     public void saveSettingsTo(final ExplainerLoopEndSettings cfg) throws InvalidSettingsException {
         m_predictionColumns.saveConfiguration(cfg.getPredictionCols());
-        cfg.setUseElementNames(m_useElementNames.isSelected());
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            cfg.setUseElementNames(m_useElementNames.isSelected());
+        }
         cfg.setPredictionColumnSelectionMode(m_automaticColumnSelection.isSelected()
             ? PredictionColumnSelectionMode.AUTOMATIC : PredictionColumnSelectionMode.MANUAL);
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             cfg.setRegularizeExplanations(m_regularize.isSelected());
             cfg.setMaxActiveFeatures((int)m_maxActiveFeatures.getValue());
             cfg.setAlpha((double)m_alpha.getValue());
@@ -219,11 +228,13 @@ public final class ExplainerLoopEndOptionsDialog implements OptionsDialog<Explai
     @Override
     public void loadSettingsFrom(final ExplainerLoopEndSettings cfg, final DataTableSpec[] inSpecs) {
         m_predictionColumns.loadConfiguration(cfg.getPredictionCols(), inSpecs[0]);
-        m_useElementNames.setSelected(cfg.isUseElementNames());
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            m_useElementNames.setSelected(cfg.isUseElementNames());
+        }
         final boolean isAutomatic = cfg.getPredictionColumnSelectionMode() == PredictionColumnSelectionMode.AUTOMATIC;
         m_automaticColumnSelection.setSelected(isAutomatic);
         reactToModeChange();
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             m_regularize.setSelected(cfg.isRegularizeExplanations());
             m_maxActiveFeatures.setValue(cfg.getMaxActiveFeatures());
             m_alpha.setValue(cfg.getAlpha());

@@ -50,36 +50,58 @@ package org.knime.base.node.meta.explain.lime;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
+import org.knime.base.node.meta.explain.CountingDataContainer;
+import org.knime.base.node.meta.explain.DoubleVector;
+import org.knime.base.node.meta.explain.Explanation;
+import org.knime.base.node.meta.explain.ExplanationToDataCellsConverter;
+import org.knime.base.node.meta.explain.ExplanationToMultiRowConverter;
+import org.knime.base.node.meta.explain.KnimeDoubleVector;
 import org.knime.base.node.meta.explain.feature.FeatureManager;
 import org.knime.base.node.meta.explain.lime.node.LIMESettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings.PredictionColumnSelectionMode;
+import org.knime.base.node.meta.explain.node.ExplanationAggregator;
+import org.knime.base.node.meta.explain.util.MissingColumnException;
 import org.knime.base.node.meta.explain.util.TablePreparer;
+import org.knime.base.node.meta.explain.util.TableSpecUtil;
+import org.knime.base.node.meta.explain.util.iter.DoubleIterable;
+import org.knime.base.node.meta.explain.util.iter.IterableUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.filter.CloseableDataRowIterable;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
- * Explains predictions for individual rows using the LIME apporach (Linear Interpretable Model Explanations)
- * proposed in the paper '"Why Should I trust You?" Explaining the Predictions of Any Classifier'.
- * The algorithm for tabular data implemented here is not directly outlined in the paper but its Python code
- * can be found here: https://github.com/marcotcr/lime/blob/master/lime/lime_tabular.py
+ * Explains predictions for individual rows using the LIME apporach (Linear Interpretable Model Explanations) proposed
+ * in the paper '"Why Should I trust You?" Explaining the Predictions of Any Classifier'. The algorithm for tabular data
+ * implemented here is not directly outlined in the paper but its Python code can be found here:
+ * https://github.com/marcotcr/lime/blob/master/lime/lime_tabular.py
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class LimeExplainer {
+public final class LimeExplainer implements ExplanationAggregator {
 
     private LimeSampler m_sampler;
 
@@ -97,6 +119,16 @@ public final class LimeExplainer {
 
     private int m_currentIteration;
 
+    private ExplainerLoopEndSettings m_endSettings;
+
+    private CountingDataContainer m_endContainer;
+
+    private ExplanationToDataCellsConverter m_explanationConverter;
+
+    private TablePreparer m_predictionTablePreparer;
+
+    private String m_currentRoiKey;
+
     /**
      * @param settings the settings of the node
      */
@@ -104,8 +136,7 @@ public final class LimeExplainer {
         m_settings = settings;
         m_featureTablePreparer = new TablePreparer(settings.getFeatureCols(), "feature");
         // we can't sample vectors as a whole therefore all vectors are treated as collection of features
-        m_featureManager =
-            new FeatureManager(false, m_settings.isUseElementNames());
+        m_featureManager = new FeatureManager(false, m_settings.isUseElementNames());
     }
 
     /**
@@ -230,6 +261,7 @@ public final class LimeExplainer {
     /**
      * @return true if the LIME loop has more iterations i.e. there are more rows to explain
      */
+    @Override
     public boolean hasNextIteration() {
         return m_rowIterator.hasNext();
     }
@@ -257,6 +289,8 @@ public final class LimeExplainer {
     private BufferedDataTable[] doNextIteration(final ExecutionContext exec) {
         CheckUtils.checkState(m_rowIterator.hasNext(),
             "This method must not be called if there are no more rows left to process.");
+        final DataRow roi = m_rowIterator.next();
+        m_currentRoiKey = roi.getKey().getString();
         final Iterator<LimeSample> sampleIterator = m_sampler.createSampleSet(m_rowIterator.next());
         final BufferedDataContainer inverseContainer = exec.createDataContainer(createInverseSpec());
         final BufferedDataContainer dataContainer = exec.createDataContainer(createDataSpec());
@@ -290,6 +324,119 @@ public final class LimeExplainer {
 
     private DataTableSpec createInverseSpec() {
         return m_featureTablePreparer.getTableSpec();
+    }
+
+    @Override
+    public DataTableSpec[] configure(final DataTableSpec[] inSpecs,
+        final ExplainerLoopEndSettings settings) throws InvalidSettingsException {
+        checkSpecs(inSpecs[0], inSpecs[1]);
+        updateWithLoopEndSettings(settings, inSpecs[0]);
+        return new DataTableSpec[] {createLoopEndSpec().orElse(null)};
+    }
+
+    private void checkSpecs(final DataTableSpec predictionSpec, final DataTableSpec explanationSetSpec) throws InvalidSettingsException {
+        // TODO
+    }
+
+    private Optional<DataTableSpec> createLoopEndSpec() {
+        final Optional<List<String>> featureNames = m_featureManager.getFeatureNames();
+        return featureNames.map(m_explanationConverter::createSpec);
+    }
+
+    private void updateWithLoopEndSettings(final ExplainerLoopEndSettings settings,
+        final DataTableSpec predictionSpec) {
+        m_endSettings = settings;
+        m_predictionTablePreparer = createPredictionTablePreparer(settings.getPredictionColumnSelectionMode(),
+            settings.getPredictionCols(), predictionSpec, m_featureTablePreparer.getTableSpec());
+        m_explanationConverter =
+            new ExplanationToMultiRowConverter(m_predictionTablePreparer.getTableSpec().getColumnNames(), false);
+    }
+
+    private static TablePreparer createPredictionTablePreparer(final PredictionColumnSelectionMode mode,
+        final DataColumnSpecFilterConfiguration predictionFilter, final DataTableSpec predictionSpec,
+        final DataTableSpec featureSpec) {
+        switch (mode) {
+            case AUTOMATIC:
+                final DataTableSpec filtered =
+                    TableSpecUtil.keepOnly(TableSpecUtil.difference(predictionSpec, featureSpec),
+                        c -> c.getType().isCompatible(DoubleValue.class));
+                return new TablePreparer(filtered, "prediction");
+            case MANUAL:
+                return new TablePreparer(predictionFilter, "prediction");
+            default:
+                throw new IllegalArgumentException("Unknown PredictionColumnSelectionMode '" + mode + "'.");
+        }
+    }
+
+    @Override
+    public void consumePredictions(final BufferedDataTable[] inData,
+        final ExecutionContext exec)
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
+        final BufferedDataTable predictionTable = inData[0];
+        final BufferedDataTable featureTable = inData[1];
+        CheckUtils.checkArgument(predictionTable.size() == featureTable.size(),
+            "Prediction and feature table have varying number of rows.");
+        if (m_endContainer == null) {
+            // We are in the execution of the loop end if this method is called so we should have
+            // all the feature names since the loop start must have been executed at least once
+            m_endContainer = new CountingDataContainer(
+                exec.createDataContainer(createLoopEndSpec().orElseThrow(IllegalStateException::new)));
+        }
+        final int numRows = (int)predictionTable.size();
+        final int numFeatures = m_featureManager.getNumFeatures().orElseThrow(IllegalStateException::new);
+        final LimePredictionConsumer consumer = new LimePredictionConsumer(numRows, numFeatures,
+            m_predictionTablePreparer.getNumColumns(), m_endSettings.isRegularizeExplanations(),
+            m_endSettings.getMaxActiveFeatures(), m_endSettings.getAlpha());
+        final DoubleIterable weights = createWeightIterable(featureTable);
+        final DoubleIterable[] predictions =
+            createPredictionIterables(predictionTable, exec.createSilentSubExecutionContext(0));
+        final Iterable<DoubleVector> features = createFeatureVectors(featureTable);
+        final Explanation explanation = consumer.evaluatePredictions(predictions, features, weights, m_currentRoiKey);
+        m_explanationConverter.convertAndWrite(explanation, m_endContainer::accept);
+    }
+
+    private Iterable<DoubleVector> createFeatureVectors(final BufferedDataTable featureTable) {
+        final List<String> featureNames = m_featureManager.getFeatureNames().orElseThrow(IllegalStateException::new);
+        final DataTableSpec spec = featureTable.getDataTableSpec();
+        final int[] featureIdxs = spec.columnsToIndices(featureNames.toArray(new String[featureNames.size()]));
+        final CloseableDataRowIterable rowIterable = featureTable.filter(TableFilter.materializeCols(featureIdxs));
+        return Iterables.transform(rowIterable,
+            r -> new KnimeDoubleVector(r, "feature", i -> featureIdxs[i], featureIdxs.length));
+    }
+
+    private DoubleIterable createWeightIterable(final BufferedDataTable featureTable) {
+        final DataTableSpec tableSpec = featureTable.getDataTableSpec();
+        final int weightColIdx = tableSpec.findColumnIndex(m_weightColumnName);
+        return createDoubleIterable(featureTable, weightColIdx);
+    }
+
+    private DoubleIterable[] createPredictionIterables(final BufferedDataTable predictionTable,
+        final ExecutionContext exec)
+        throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
+        final BufferedDataTable filtered = m_predictionTablePreparer.createTable(predictionTable, exec);
+        final DoubleIterable[] iterables = new DoubleIterable[m_predictionTablePreparer.getNumColumns()];
+        for (int i = 0; i < iterables.length; i++) {
+            iterables[i] = createDoubleIterable(filtered, i);
+        }
+        return iterables;
+    }
+
+    private static DoubleIterable createDoubleIterable(final BufferedDataTable table, final int colIdx) {
+        return IterableUtils.toDoubleIterable(table.filter(TableFilter.materializeCols(colIdx)),
+            r -> getAsDouble(r.getCell(colIdx)));
+    }
+
+    private static double getAsDouble(final DataCell cell) {
+        if (cell.isMissing()) {
+            throw new MissingValueException((MissingValue)cell, "Missing values are not allowed.");
+        }
+        CheckUtils.checkArgument(cell instanceof DoubleValue, "Weights must be numeric");
+        return ((DoubleValue)cell).getDoubleValue();
+    }
+
+    @Override
+    public BufferedDataTable[] getTables() {
+        return new BufferedDataTable[] {m_endContainer.getTable()};
     }
 
 }

@@ -51,6 +51,7 @@ package org.knime.base.node.mine.regression.glmnet;
 import org.knime.base.node.mine.regression.glmnet.cycle.FeatureCycle;
 import org.knime.base.node.mine.regression.glmnet.cycle.FeatureCycleFactory;
 import org.knime.base.node.mine.regression.glmnet.data.Data;
+import org.knime.base.node.mine.regression.glmnet.data.DataIterator;
 import org.knime.core.node.util.CheckUtils;
 
 /**
@@ -59,7 +60,7 @@ import org.knime.core.node.util.CheckUtils;
  */
 final class GlmNet {
 
-    private final double[] m_coefficients;
+    private double[] m_coefficients;
 
     private double m_intercept = 0.0f;
 
@@ -72,6 +73,8 @@ final class GlmNet {
     private final double m_epsilon;
 
     private final FeatureCycleFactory m_featureCycleFactory;
+
+    private final Snapshoter m_snapshoter;
 
     private Updater m_updater;
 
@@ -87,7 +90,8 @@ final class GlmNet {
         m_epsilon = epsilon;
         m_featureCycleFactory = featureCycleFactory;
         m_updater = updater;
-        calculateIntercept();
+        m_snapshoter = new Snapshoter(data);
+//        calculateIntercept();
     }
 
     LinearModel fit(final double lambda) {
@@ -105,24 +109,29 @@ final class GlmNet {
         CheckUtils.checkArgument(model.getNumCoefficients() == m_coefficients.length,
             "The linear model has the wrong number of coefficients.");
         // model's coefficient are denormalized, so we need to normalize them
-        double interceptOffset = 0.0;
-        for (int i = 0; i < m_coefficients.length; i++) {
-            final double beta = model.getCoefficient(i);
-            m_coefficients[i] = beta * m_data.getStdv(i);
-            interceptOffset += beta / m_data.getWeightedMean(i);
+        m_coefficients = m_snapshoter.standardize(model);
+        recalculateResiduals();
+    }
+
+    private void recalculateResiduals() {
+        final double[] residual = new double[m_data.getNumRows()];
+        for (int i = 0; i < m_data.getNumFeatures(); i++) {
+            final double beta = m_coefficients[i];
+            final DataIterator iter = m_data.getIterator(i);
+            while (iter.next()) {
+                int rowIdx = iter.getIdx();
+                residual[rowIdx] += iter.getFeature() * beta;
+            }
         }
-        m_intercept = model.getIntercept() + interceptOffset;
+        final DataIterator iter = m_data.getIterator(0);
+        while (iter.next()) {
+            final double res = residual[iter.getIdx()];
+            iter.setResidual(res);
+        }
     }
 
     private LinearModel createSnapshot() {
-        final double[] denormalizedCoeffs = new double[m_coefficients.length];
-        double interceptOffset = 0.0;
-        for (int i = 0; i < denormalizedCoeffs.length; i++) {
-            final double beta = m_coefficients[i];
-            denormalizedCoeffs[i] = beta / m_data.getStdv(i);
-            interceptOffset += beta * m_data.getWeightedMean(i);
-        }
-        return new LinearModel(m_intercept - interceptOffset, denormalizedCoeffs);
+        return m_snapshoter.destandardize(m_coefficients);
     }
 
     private boolean performFeatureIteration(final int featureIdx) {
@@ -139,8 +148,10 @@ final class GlmNet {
 
     private double calculateUpdate(final int featureIdx) {
         final double weightedSquaredMean = m_data.getWeightedSquaredMean(featureIdx);
-        final double grad = m_updater.calculateGradient(m_data.getIterator(featureIdx))
-            + m_coefficients[featureIdx] * weightedSquaredMean;
+        final double residualProduct = m_updater.calculateGradient(m_data.getIterator(featureIdx));
+//        final double grad = m_updater.calculateGradient(m_data.getIterator(featureIdx))
+//            + m_coefficients[featureIdx] * weightedSquaredMean;
+        final double grad = residualProduct + m_coefficients[featureIdx];
         final double thresholded = softThresholding(grad, m_lambda * m_alpha);
         return thresholded / (weightedSquaredMean + m_lambda * (1 - m_alpha));
     }
@@ -158,7 +169,7 @@ final class GlmNet {
     }
 
     private void calculateIntercept() {
-        double meanTarget = m_data.getWeightedMeanTarget();
+        double meanTarget = m_data.getTargetMean();
         final double delta = meanTarget - m_intercept;
         m_intercept = meanTarget;
         m_data.updateResidual(delta);

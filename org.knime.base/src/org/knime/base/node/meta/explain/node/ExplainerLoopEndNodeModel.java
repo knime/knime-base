@@ -44,17 +44,14 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15.03.2016 (adrian): created
+ *   Jun 4, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain.shapley.node;
+package org.knime.base.node.meta.explain.node;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumSet;
+import java.util.function.Supplier;
 
-import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
-import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
-import org.knime.base.node.meta.explain.shapley.KnimeShapleyValuesEstimator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -69,21 +66,41 @@ import org.knime.core.node.workflow.LoopStartNode;
 
 /**
  *
- * @author Adrian Nembach, KNIME.com
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndNode {
+public final class ExplainerLoopEndNodeModel extends NodeModel implements LoopEndNode {
 
-    private static final String LOOP_NAME = "Shapley Values Loop";
+    private final Supplier<ExplainerLoopEndSettings> m_settingsFactory;
 
-    private static final EnumSet<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS = EnumSet.of(ExplainerLoopEndSettingsOptions.UseElementNames);
+    private final String m_loopName;
 
-    private ExplainerLoopEndSettings m_settings = new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
+    private final ExplainerLoopEndSettings m_settings;
+
+    private final int m_outPorts;
 
     /**
-     * Constructor
      */
-    public ShapleyValuesLoopEndNodeModel() {
-        super(1, 1);
+    public ExplainerLoopEndNodeModel(final int inPorts,
+        final int outPorts, final String loopName, final Supplier<ExplainerLoopEndSettings> aggregatorFactory) {
+        super(inPorts, outPorts);
+        m_settingsFactory = aggregatorFactory;
+        m_settings = m_settingsFactory.get();
+        m_loopName = loopName;
+        m_outPorts = outPorts;
+    }
+
+    private ExplainerLoopStart getLoopStart() throws InvalidSettingsException {
+        final LoopStartNode loopStart = getLoopStartNode();
+        if (loopStart instanceof ExplainerLoopStart) {
+            return (ExplainerLoopStart)loopStart;
+        } else {
+            throw new InvalidSettingsException(
+                "The " + m_loopName + " End node can only be used with the " + m_loopName + " Start node.");
+        }
+    }
+
+    private ExplanationAggregator getAggregator() throws InvalidSettingsException {
+        return getLoopStart().getAggregator();
     }
 
     /**
@@ -91,39 +108,23 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        final KnimeShapleyValuesEstimator estimator = getEstimator();
-        return new DataTableSpec[]{estimator.configureLoopEnd(m_settings, inSpecs[0])};
-    }
-
-    private ShapleyValuesLoopStartNodeModel getLoopStart() throws InvalidSettingsException {
-        final LoopStartNode loopStart = getLoopStartNode();
-        if (loopStart instanceof ShapleyValuesLoopStartNodeModel) {
-            return (ShapleyValuesLoopStartNodeModel)loopStart;
-        } else {
-            throw new InvalidSettingsException(
-                "The " + LOOP_NAME + " End node can only be used with the " + LOOP_NAME + " Start node.");
-        }
+        final ExplanationAggregator aggregator = getAggregator();
+        return aggregator.configure(inSpecs, m_settings);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inObjects, final ExecutionContext exec)
         throws Exception {
-        final BufferedDataTable data = inData[0];
-        final KnimeShapleyValuesEstimator estimator = getEstimator();
-        estimator.consumePredictions(data, exec);
-        if (estimator.hasNextIteration()) {
+        final ExplanationAggregator aggregator = getAggregator();
+        aggregator.consumePredictions(inObjects, exec);
+        if (aggregator.hasNextIteration()) {
             continueLoop();
-            return new BufferedDataTable[1];
+            return new BufferedDataTable[m_outPorts];
         }
-        final BufferedDataTable result = estimator.getLoopEndTable();
-        return new BufferedDataTable[]{result};
-    }
-
-    private KnimeShapleyValuesEstimator getEstimator() throws InvalidSettingsException {
-        return getLoopStart().getEstimator();
+        return aggregator.getTables();
     }
 
     /**
@@ -132,7 +133,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do here
+        // nothing to load
+
     }
 
     /**
@@ -141,7 +143,8 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do here
+        // nothing to save
+
     }
 
     /**
@@ -157,7 +160,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        new ExplainerLoopEndSettings(SETTINGS_OPTIONS).loadSettingsInModel(settings);
+        m_settingsFactory.get().loadSettingsInModel(settings);
     }
 
     /**
@@ -165,7 +168,6 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings = new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
         m_settings.loadSettingsInModel(settings);
     }
 
@@ -174,7 +176,7 @@ public class ShapleyValuesLoopEndNodeModel extends NodeModel implements LoopEndN
      */
     @Override
     protected void reset() {
-        // currently nothing to reset
+        // nothing to reset
     }
 
 }

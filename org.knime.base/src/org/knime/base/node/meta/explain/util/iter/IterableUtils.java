@@ -49,6 +49,7 @@
 package org.knime.base.node.meta.explain.util.iter;
 
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 
 import com.google.common.collect.Iterables;
 
@@ -100,13 +101,21 @@ public final class IterableUtils {
     }
 
     /**
-     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for
-     * each element of <b>source</b>.
+     * @param source provides the elements that are mapped to double
+     * @param mapping maps a single element to double
+     * @return a DoubleIterable which applies <b>mapping</b> to the elements of <b>source</b>
+     */
+    public static <T> DoubleIterable toDoubleIterable(final Iterable<T> source, final ToDoubleFunction<T> mapping) {
+        return () -> new MappingDoubleIterator<>(source.iterator(), mapping);
+    }
+
+    /**
+     * Similar ot {@link Iterables#transform(Iterable, com.google.common.base.Function)} but requires a mapping for each
+     * element of <b>source</b>.
      *
      * @param source {@link Iterable} of source elements
      * @param mappings {@link Iterable} of mapping functions
-     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in
-     * <b>mappings</b>
+     * @return an {@link Iterable} where all elements of <b>source</b> are mapped using the functions in <b>mappings</b>
      */
     public static <S, T> Iterable<T> mappingIterable(final Iterable<S> source,
         final Iterable<Function<S, T>> mappings) {

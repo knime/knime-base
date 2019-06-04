@@ -48,8 +48,12 @@
  */
 package org.knime.base.node.meta.explain.shapley.node;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndOptionsDialog;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
 import org.knime.base.node.meta.explain.node.ExplainerLoopNodeDialogPane;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -60,6 +64,9 @@ import org.knime.core.node.NodeView;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class ShapleyValuesLoopEndNodeFactory extends NodeFactory<ShapleyValuesLoopEndNodeModel> {
+
+    private static final Set<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS =
+        EnumSet.of(ExplainerLoopEndSettingsOptions.UseElementNames);
 
     /**
      * {@inheritDoc}
@@ -100,8 +107,8 @@ public class ShapleyValuesLoopEndNodeFactory extends NodeFactory<ShapleyValuesLo
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(false),
-            () -> new ExplainerLoopEndSettings(false));
+        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(SETTINGS_OPTIONS),
+            () -> new ExplainerLoopEndSettings(SETTINGS_OPTIONS));
     }
 
 }

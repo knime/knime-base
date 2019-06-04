@@ -104,7 +104,7 @@ public final class LambdaSequences {
     private static double logInterpolate(final double lower, final double upper) {
         final double logLower = Math.log(lower);
         final double logUpper = Math.log(upper);
-        final double logMidpoint = (logUpper - logLower) / 2;
+        final double logMidpoint = (logUpper + logLower) / 2;
         return Math.exp(logMidpoint);
     }
 

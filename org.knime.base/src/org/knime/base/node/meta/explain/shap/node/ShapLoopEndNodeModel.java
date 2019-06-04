@@ -50,8 +50,10 @@ package org.knime.base.node.meta.explain.shap.node;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
 import org.knime.base.node.meta.explain.shap.ShapExplainer;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -73,7 +75,9 @@ public class ShapLoopEndNodeModel extends NodeModel implements LoopEndNode {
 
     private static final String LOOP_NAME = "SHAP Loop";
 
-    private ExplainerLoopEndSettings m_settings = new ExplainerLoopEndSettings(true);
+    private static final EnumSet<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS = EnumSet.allOf(ExplainerLoopEndSettingsOptions.class);
+
+    private ExplainerLoopEndSettings m_settings = new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
 
 
     /**
@@ -155,7 +159,7 @@ public class ShapLoopEndNodeModel extends NodeModel implements LoopEndNode {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        new ExplainerLoopEndSettings(true).loadSettingsInModel(settings);
+        new ExplainerLoopEndSettings(SETTINGS_OPTIONS).loadSettingsInModel(settings);
     }
 
     /**
@@ -163,7 +167,7 @@ public class ShapLoopEndNodeModel extends NodeModel implements LoopEndNode {
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings = new ExplainerLoopEndSettings(true);
+        m_settings = new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
         m_settings.loadSettingsInModel(settings);
     }
 

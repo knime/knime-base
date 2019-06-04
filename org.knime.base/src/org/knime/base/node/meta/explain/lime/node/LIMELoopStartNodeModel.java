@@ -52,6 +52,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.knime.base.node.meta.explain.lime.LimeExplainer;
+import org.knime.base.node.meta.explain.node.ExplainerLoopStart;
+import org.knime.base.node.meta.explain.node.ExplanationAggregator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -61,7 +63,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -69,7 +70,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class LIMELoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator {
+public class LIMELoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator, ExplainerLoopStart {
 
     /**
      * Port index of the table containing the rows to explain
@@ -88,7 +89,7 @@ public class LIMELoopStartNodeModel extends NodeModel implements LoopStartNodeTe
     /**
      * @return the estimator used to create rows in the loop start node
      */
-    LimeExplainer getEstimator() {
+    LimeExplainer getExplainer() {
         if (m_explainer == null) {
             m_explainer = new LimeExplainer(m_settings);
         }
@@ -115,18 +116,12 @@ public class LIMELoopStartNodeModel extends NodeModel implements LoopStartNodeTe
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec roiSpec = inSpecs[ROI_PORT_IDX];
         final DataTableSpec samplingSpec = inSpecs[SAMPLING_DATA_PORT_IDX];
-        checkCompatibility(roiSpec, samplingSpec);
         if (m_explainer == null) {
             m_explainer = new LimeExplainer(m_settings);
         }
         return m_explainer.configure(roiSpec, samplingSpec, m_settings);
     }
 
-    private static void checkCompatibility(final DataTableSpec roiSpec, final DataTableSpec samplingSpec)
-        throws InvalidSettingsException {
-        CheckUtils.checkNotNull(roiSpec);
-        CheckUtils.checkNotNull(samplingSpec);
-    }
 
     /**
      * {@inheritDoc}
@@ -204,6 +199,14 @@ public class LIMELoopStartNodeModel extends NodeModel implements LoopStartNodeTe
             m_explainer.reset();
         }
         m_explainer = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ExplanationAggregator getAggregator() {
+        return m_explainer;
     }
 
 }

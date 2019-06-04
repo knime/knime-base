@@ -229,18 +229,8 @@ final class ShapWLS {
 
         private final BitSet m_features;
 
-        private double m_scale = 1.0;
-
         AugmentedMaskFeature(final BitSet features) {
             m_features = features;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void scale(final double scale) {
-            m_scale *= scale;
         }
 
         /**
@@ -285,9 +275,9 @@ final class ShapWLS {
             @Override
             public double getValue() {
                 if (m_idx < m_augmentedThreshold) {
-                    return m_features.get(m_idx) ? m_scale : 0.0;
+                    return m_features.get(m_idx) ? 1.0 : 0.0;
                 } else {
-                    return m_features.get(m_idx - m_augmentedThreshold) ? 0.0 : -m_scale;
+                    return m_features.get(m_idx - m_augmentedThreshold) ? 0.0 : -1.0;
                 }
             }
 

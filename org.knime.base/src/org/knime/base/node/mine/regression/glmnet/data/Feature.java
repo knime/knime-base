@@ -52,7 +52,7 @@ package org.knime.base.node.mine.regression.glmnet.data;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface Feature extends Variable {
+public interface Feature {
 
     /**
      * @return an iterator over the feature values

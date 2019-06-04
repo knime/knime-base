@@ -98,13 +98,9 @@ public final class ElasticNet {
             final double lambda = m_lambdas.get(i);
             final LinearModel model = m_glmnet.fit(lambda);
             final long numActive = getNumActiveFeatures(model);
-            if (numActive == m_maxActiveFeatures) {
+            if (numActive >= m_maxActiveFeatures) {
+                // TODO implement backtracking to ensure that exactly maxActiveFeatures are active
                 m_models.add(model);
-                belowMaxActiveFeatures = false;
-            } else if (numActive > m_maxActiveFeatures) {
-                final LinearModel backtracked = backtrack(i);
-                assert getNumActiveFeatures(backtracked) == m_maxActiveFeatures;
-                m_models.add(backtracked);
                 belowMaxActiveFeatures = false;
             } else {
                 m_models.add(model);
@@ -136,8 +132,8 @@ public final class ElasticNet {
         return backtracked;
     }
 
-    private long getNumActiveFeatures(final LinearModel model) {
-        return IntStream.range(0, model.getNumCoefficients()).filter(i -> Math.abs(model.getCoefficient(i)) > m_epsilon)
+    private static long getNumActiveFeatures(final LinearModel model) {
+        return IntStream.range(0, model.getNumCoefficients()).filter(i -> Math.abs(model.getCoefficient(i)) > 0)
             .count();
     }
 

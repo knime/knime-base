@@ -62,13 +62,15 @@ public interface Data {
 
     double getStdv(int featureIdx);
 
+    double getTargetStdv();
+
     double getWeightedSquaredMean(int featureIdx);
 
     DataIterator getIterator(int featureIdx);
 
-    double getWeightedMean(int featureIdx);
+    double getMean(int featureIdx);
 
-    double getWeightedMeanTarget();
+    double getTargetMean();
 
     double getWeightedInnerFeatureTargetProduct(final int featureIdx);
 

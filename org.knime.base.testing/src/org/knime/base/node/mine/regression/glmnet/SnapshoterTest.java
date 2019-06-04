@@ -44,76 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   31.03.2019 (Adrian): created
+ *   Jun 4, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.mine.regression.glmnet;
+
+import static org.junit.Assert.assertArrayEquals;
+
+import org.junit.Test;
+import org.knime.base.node.mine.regression.glmnet.data.Data;
+import org.knime.base.node.mine.regression.glmnet.data.DefaultData;
+import org.knime.base.node.mine.regression.glmnet.data.DenseFeature;
+import org.knime.base.node.mine.regression.glmnet.data.Feature;
+import org.knime.base.node.mine.regression.glmnet.data.VariableWeightContainer;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DenseFeature implements Feature, RandomAccessible {
+public class SnapshoterTest {
 
-    private final double[] m_values;
-
-    /**
-     * @param values of this feature
-     * @param copy whether <b>values</b> should be copied
-     */
-    public DenseFeature(final double[] values, final boolean copy) {
-        m_values = copy ? values.clone() : values;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FeatureIterator getIterator() {
-        return new DenseFeatureIterator();
-    }
-
-    private class DenseFeatureIterator extends AbstractFeatureIterator {
-
-        /**
-         *
-         */
-        public DenseFeatureIterator() {
-            super(m_values.length);
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getRowIdx() {
-            return m_idx;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public double getValue() {
-            return m_values[m_idx];
-        }
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public double get(final int idx) {
-        return m_values[idx];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int size() {
-        return m_values.length;
+    @Test
+    public void testDestandardizeStandardize() throws Exception {
+        final Feature feature1 = new DenseFeature(new double[]{1, 2, 3, 4}, false);
+        final Feature feature2 = new DenseFeature(new double[]{15, 32, 94, 1}, false);
+        final double[] target = new double[]{4, 6, 1, 5};
+        final double[] weights = new double[]{0.1, 0.6, 0.2, 0.1};
+        Data data =
+            new DefaultData(new Feature[]{feature1, feature2}, target, new VariableWeightContainer(weights, false));
+        final Snapshoter snapshoter = new Snapshoter(data);
+        double[] standardizedCoefficients = new double[]{1.2, 8.5};
+        LinearModel model = snapshoter.destandardize(standardizedCoefficients);
+//        System.out.println(model);
+        double[] restandardizedCoefficients = snapshoter.standardize(model);
+//        System.out.println(Arrays.toString(restandardizedCoefficients));
+        assertArrayEquals(standardizedCoefficients, restandardizedCoefficients, 1e-5);
     }
 
 }

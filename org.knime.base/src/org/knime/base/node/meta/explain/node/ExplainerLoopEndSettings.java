@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.meta.explain.node;
 
+import java.util.Set;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -130,23 +132,25 @@ public class ExplainerLoopEndSettings implements Settings {
 
     private double m_alpha = 0.5;
 
-    private final boolean m_includeRegularizationSettings;
+    private final Set<ExplainerLoopEndSettingsOptions> m_options;
 
     /**
-     * @param includeRegularizationSettings whether regularization settings should show up in the node settings
+     * @param options
      *
      */
-    public ExplainerLoopEndSettings(final boolean includeRegularizationSettings) {
-        m_includeRegularizationSettings = includeRegularizationSettings;
+    public ExplainerLoopEndSettings(final Set<ExplainerLoopEndSettingsOptions> options) {
+        m_options = options;
     }
 
     @Override
     public void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec[] inSpecs) {
         m_predictionCols.loadConfigurationInDialog(settings, inSpecs[0]);
-        m_useElementNames = settings.getBoolean(CFG_USE_ELEMENT_NAMES, false);
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            m_useElementNames = settings.getBoolean(CFG_USE_ELEMENT_NAMES, false);
+        }
         m_predictionColumnSelectionMode = PredictionColumnSelectionMode.valueOf(
             settings.getString(CFG_PREDICTION_COLUMN_SELECTION_MODE, PredictionColumnSelectionMode.AUTOMATIC.name()));
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             m_maxActiveFeatures = settings.getInt(CFG_MAX_ACTIVE_FEATURES, DEF_MAX_ACTIVE_FEATURES);
             m_regularizeExplanations = settings.getBoolean(CFG_REGULARIZE_EXPLANATIONS, DEF_LIMIT_ACTIVE_FEATURES);
             m_alpha = settings.getDouble(CFG_ALPHA, DEF_ALPHA);
@@ -156,10 +160,12 @@ public class ExplainerLoopEndSettings implements Settings {
     @Override
     public void loadSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_predictionCols.loadConfigurationInModel(settings);
-        m_useElementNames = settings.getBoolean(CFG_USE_ELEMENT_NAMES);
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            m_useElementNames = settings.getBoolean(CFG_USE_ELEMENT_NAMES);
+        }
         m_predictionColumnSelectionMode =
             PredictionColumnSelectionMode.valueOf(settings.getString(CFG_PREDICTION_COLUMN_SELECTION_MODE));
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             m_maxActiveFeatures = settings.getInt(CFG_MAX_ACTIVE_FEATURES);
             m_regularizeExplanations = settings.getBoolean(CFG_REGULARIZE_EXPLANATIONS);
             m_alpha = settings.getDouble(CFG_ALPHA);
@@ -169,9 +175,11 @@ public class ExplainerLoopEndSettings implements Settings {
     @Override
     public void saveSettings(final NodeSettingsWO settings) {
         m_predictionCols.saveConfiguration(settings);
-        settings.addBoolean(CFG_USE_ELEMENT_NAMES, m_useElementNames);
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.UseElementNames)) {
+            settings.addBoolean(CFG_USE_ELEMENT_NAMES, m_useElementNames);
+        }
         settings.addString(CFG_PREDICTION_COLUMN_SELECTION_MODE, m_predictionColumnSelectionMode.name());
-        if (m_includeRegularizationSettings) {
+        if (m_options.contains(ExplainerLoopEndSettingsOptions.Regularization)) {
             settings.addInt(CFG_MAX_ACTIVE_FEATURES, m_maxActiveFeatures);
             settings.addBoolean(CFG_REGULARIZE_EXPLANATIONS, m_regularizeExplanations);
             settings.addDouble(CFG_ALPHA, m_alpha);

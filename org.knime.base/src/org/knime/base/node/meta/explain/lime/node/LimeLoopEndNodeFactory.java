@@ -44,30 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain;
+package org.knime.base.node.meta.explain.lime.node;
+
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndNodeModel;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndOptionsDialog;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
+import org.knime.base.node.meta.explain.node.ExplainerLoopNodeDialogPane;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface PredictionVector {
+public final class LimeLoopEndNodeFactory extends NodeFactory<ExplainerLoopEndNodeModel> {
+
+    private static final Set<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS =
+        EnumSet.of(ExplainerLoopEndSettingsOptions.Regularization);
+
+    private static final Supplier<ExplainerLoopEndSettings> SETTINGS_SUPPLIER =
+        () -> new ExplainerLoopEndSettings(SETTINGS_OPTIONS);
 
     /**
-     * @return the number of predictions contained in this vector
+     * {@inheritDoc}
      */
-    int size();
+    @Override
+    public ExplainerLoopEndNodeModel createNodeModel() {
+        return new ExplainerLoopEndNodeModel(2, 1, "LIME Loop", SETTINGS_SUPPLIER);
+    }
 
     /**
-     * @param idx
-     * @return the prediction at <b>idx</b>
-     * @throws IndexOutOfBoundsException
+     * {@inheritDoc}
      */
-    double get(final int idx);
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
 
     /**
-     * @return the identifier of the prediction vector (typically the row key)
+     * {@inheritDoc}
      */
-    String getKey();
+    @Override
+    public NodeView<ExplainerLoopEndNodeModel> createNodeView(final int viewIndex,
+        final ExplainerLoopEndNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(SETTINGS_OPTIONS),
+            SETTINGS_SUPPLIER);
+    }
+
 }

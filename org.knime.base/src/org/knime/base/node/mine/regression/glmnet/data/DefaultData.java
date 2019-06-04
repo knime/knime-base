@@ -71,16 +71,17 @@ public final class DefaultData implements Data {
 
     private final double[] m_stdv;
 
-    private final double[] m_scaledMeans;
-
     private final double[] m_weightedSquaredMeans;
 
     private final double[] m_weightedMeanDiffs;
 
+    private final double[] m_means;
+
     private double m_weightedMeanTarget;
 
-    private double m_totalWeightedResidual;
+    private double m_targetStdv;
 
+    private double m_totalWeightedResidual;
 
     private final FeatureTargetProducts m_innerFeatureTargetProducts;
 
@@ -96,16 +97,15 @@ public final class DefaultData implements Data {
         m_features = features.clone();
         final int numFeatures = features.length;
         m_target = target;
-        m_residuals = target.clone();
         m_numFeatures = numFeatures;
         m_stdv = new double[numFeatures];
-        m_scaledMeans = new double[numFeatures];
+        m_means = new double[numFeatures];
         m_weightedSquaredMeans = new double[numFeatures];
         m_weightedMeanDiffs = new double[numFeatures];
         m_weights = weights;
         calculateWeightedFeatureStatistics();
-        calculateWeightedMeanTarget();
-        scaleFeatures();
+        normalizeTarget();
+        m_residuals = target.clone();
         m_innerFeatureTargetProducts = new FeatureTargetProducts(this);
     }
 
@@ -128,12 +128,6 @@ public final class DefaultData implements Data {
         return m_weightedMeanDiffs[featureIdx];
     }
 
-    private void scaleFeatures() {
-        for (int i = 0; i < m_features.length; i++) {
-            m_features[i].scale(1.0 / m_stdv[i]);
-        }
-    }
-
     private void calculateWeightedFeatureStatistics() {
         Arrays.fill(m_stdv, 0);
         for (int f = 0; f < m_numFeatures; f++) {
@@ -144,35 +138,55 @@ public final class DefaultData implements Data {
     private void calculateStats(final int f) {
         final Feature feature = m_features[f];
         double wm = 0;
-        double wsm = 0;
-        double m = 0;
-        double sm = 0;
         final FeatureIterator iter = feature.getIterator();
         while (iter.next()) {
             final double value = iter.getValue();
             final double weight = m_weights.get(iter.getRowIdx());
             wm += weight * value;
-            wsm += weight * value * value;
-            sm += value * value;
-            m += value;
         }
-        final double mean = m / getNumRows();
-        final double squaredMean = sm / getNumRows();
-        final double variance = squaredMean - mean * mean;
-        final double std = Math.sqrt(variance);
+        final double std = calculateWeightedStdv(wm, feature.getIterator());
         assert std > 0 : "Zero standard deviation detected. This can only happen for constant columns.";
-        final double scaledMean = mean / std;
-        m_scaledMeans[f] = mean / std;
-        m_weightedSquaredMeans[f] = wsm / variance - 2 * scaledMean * wm / std + scaledMean * scaledMean;
+        m_weightedSquaredMeans[f] = calculateWeightedSquaredMean(feature.getIterator(), wm, std);
         m_stdv[f] = std;
+        m_means[f] = wm;
     }
 
-    private void calculateWeightedMeanTarget() {
+    private double calculateWeightedStdv(final double weightedMean, final FeatureIterator iter) {
+        double weightedVariance = 0.0;
+        while (iter.next()) {
+            double x = iter.getValue();
+            double w = m_weights.get(iter.getRowIdx());
+            double xm = x - weightedMean;
+            weightedVariance += w * xm * xm;
+        }
+        return Math.sqrt(weightedVariance);
+    }
+
+    private double calculateWeightedSquaredMean(final FeatureIterator iter, final double mean, final double std) {
+        double ret = 0.0;
+        while (iter.next()) {
+            final double w = m_weights.get(iter.getRowIdx());
+            final double x = (iter.getValue() - mean) / std;
+            ret += w * x * x;
+        }
+        return ret;
+    }
+
+    private void normalizeTarget() {
         m_weightedMeanTarget = 0F;
         for (int i = 0; i < getNumRows(); i++) {
             m_weightedMeanTarget += m_target[i] * m_weights.get(i);
         }
         m_weightedMeanTarget /= m_weights.getTotal();
+        double variance = 0.0;
+        for (int i = 0; i < getNumRows(); i++) {
+            double y = m_target[i] - m_weightedMeanTarget;
+            variance += m_weights.get(i) * y * y;
+        }
+        m_targetStdv = Math.sqrt(variance);
+        for (int i = 0; i < getNumRows(); i++) {
+            m_target[i] = (m_target[i] - m_weightedMeanTarget) / m_targetStdv;
+        }
     }
 
     /**
@@ -220,32 +234,37 @@ public final class DefaultData implements Data {
      */
     @Override
     public DataIterator getIterator(final int featureIdx) {
-        return new DefaultDataIterator(m_features[featureIdx].getIterator(), m_scaledMeans[featureIdx]);
+        return new DefaultDataIterator(featureIdx, m_features[featureIdx].getIterator(), m_means[featureIdx]);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public double getWeightedMean(final int featureIdx) {
-        return m_scaledMeans[featureIdx];
+    public double getMean(final int featureIdx) {
+        return m_means[featureIdx];
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public double getWeightedMeanTarget() {
+    public double getTargetMean() {
         return m_weightedMeanTarget;
     }
 
     private class DefaultDataIterator implements DataIterator {
         private final FeatureIterator m_featureIterator;
+
         private final double m_featureMean;
 
-        public DefaultDataIterator(final FeatureIterator featureIterator, final double featureMean) {
+        private final int m_featureIdx;
+
+        public DefaultDataIterator(final int featureIdx, final FeatureIterator featureIterator,
+            final double featureMean) {
             m_featureIterator = featureIterator;
             m_featureMean = featureMean;
+            m_featureIdx = featureIdx;
         }
 
         /**
@@ -269,7 +288,8 @@ public final class DefaultData implements Data {
          */
         @Override
         public double getFeature() {
-            return m_featureIterator.getValue();
+            double x = m_featureIterator.getValue();
+            return (x - m_featureMean) / m_stdv[m_featureIdx];
         }
 
         /**
@@ -277,7 +297,8 @@ public final class DefaultData implements Data {
          */
         @Override
         public double getTarget() {
-            return m_target[m_featureIterator.getRowIdx()];
+            int rowIdx = m_featureIterator.getRowIdx();
+            return m_target[rowIdx];
         }
 
         /**
@@ -324,6 +345,14 @@ public final class DefaultData implements Data {
             return m_totalWeightedResidual;
         }
 
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int getIdx() {
+            return m_featureIterator.getRowIdx();
+        }
+
     }
 
     /**
@@ -332,6 +361,14 @@ public final class DefaultData implements Data {
     @Override
     public double getWeightedInnerFeatureTargetProduct(final int featureIdx) {
         return m_innerFeatureTargetProducts.getFeatureTargetProduct(featureIdx);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getTargetStdv() {
+        return m_targetStdv;
     }
 
 }

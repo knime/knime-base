@@ -67,22 +67,26 @@ enum NaiveUpdater implements Updater {
     }
 
     private static void updateResiduals(final DataIterator iter, final double betaDiff) {
-        final double scaledMean = iter.getFeatureMean();
+//        final double scaledMean = iter.getFeatureMean();
         while (iter.next()) {
             final double oldResidual = iter.getResidual();
-            final double responseDiff = (iter.getFeature() - scaledMean) * betaDiff;
+//            final double responseDiff = (iter.getFeature() - scaledMean) * betaDiff;
+            final double responseDiff = iter.getFeature() * betaDiff;
             final double newResidual = oldResidual - responseDiff;
             iter.setResidual(newResidual);
         }
     }
 
     private static double calculateResidualProduct(final DataIterator iter) {
-        double sum = 0.0F;
+        double sum = 0.0;
         while (iter.next()) {
-            double weight = iter.getWeight();
-            double scaledValue = iter.getFeature();
+//            double weight = iter.getWeight();
+//            double scaledValue = iter.getFeature();
             double residual = iter.getResidual();
-            sum += weight * scaledValue * residual;
+            double x = iter.getFeature();
+            double w = iter.getWeight();
+            sum += w * x * residual;
+//            sum += weight * scaledValue * residual;
         }
 //        sum -= iter.getFeatureMean() * iter.getTotalWeightedResidual();
         // we require that all weights sum up to one therefore sum must not be normalized here

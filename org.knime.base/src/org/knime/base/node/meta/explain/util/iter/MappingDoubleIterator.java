@@ -44,59 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 3, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.meta.explain;
+package org.knime.base.node.meta.explain.util.iter;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataRow;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.node.util.CheckUtils;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.function.ToDoubleFunction;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class KnimePredictionVector implements PredictionVector {
-    private final DataRow m_row;
+final class MappingDoubleIterator<T> implements DoubleIterator {
 
-    /**
-     * @param row to wrap
-     */
-    public KnimePredictionVector(final DataRow row) {
-        m_row = row;
+    private final Iterator<T> m_source;
+
+    private final ToDoubleFunction<T> m_mapping;
+
+    public MappingDoubleIterator(final Iterator<T> source, final ToDoubleFunction<T> mapping) {
+        m_source = source;
+        m_mapping = mapping;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int size() {
-        return m_row.getNumCells();
+    public boolean hasNext() {
+        return m_source.hasNext();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public double get(final int idx) {
-        final DataCell cell = m_row.getCell(idx);
-        CheckUtils.checkState(!cell.isMissing(), "Missing prediction in row %s encountered.", m_row.getKey());
-        // Such a failure indicates a coding error since at this point care should have been taken that
-        // we only look at DoubleCells
-        CheckUtils.checkState(cell instanceof DoubleValue, "Predictions must implement DoubleValue.");
-        final DoubleValue value = (DoubleValue)cell;
-        return value.getDoubleValue();
+    public double next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        return m_mapping.applyAsDouble(m_source.next());
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getKey() {
-        return m_row.getKey().getString();
-    }
-
-
 
 }

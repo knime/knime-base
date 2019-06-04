@@ -48,8 +48,12 @@
  */
 package org.knime.base.node.meta.explain.shap.node;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndOptionsDialog;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
+import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettingsOptions;
 import org.knime.base.node.meta.explain.node.ExplainerLoopNodeDialogPane;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -60,6 +64,9 @@ import org.knime.core.node.NodeView;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class ShapLoopEndNodeFactory extends NodeFactory<ShapLoopEndNodeModel> {
+
+    private static final Set<ExplainerLoopEndSettingsOptions> SETTINGS_OPTIONS =
+        EnumSet.allOf(ExplainerLoopEndSettingsOptions.class);
 
     /**
      * {@inheritDoc}
@@ -99,8 +106,8 @@ public final class ShapLoopEndNodeFactory extends NodeFactory<ShapLoopEndNodeMod
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(true),
-            () -> new ExplainerLoopEndSettings(true));
+        return new ExplainerLoopNodeDialogPane<>(new ExplainerLoopEndOptionsDialog(SETTINGS_OPTIONS),
+            () -> new ExplainerLoopEndSettings(SETTINGS_OPTIONS));
     }
 
 }

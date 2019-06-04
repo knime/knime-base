@@ -44,22 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27.04.2019 (Adrian): created
+ *   Jun 4, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.mine.regression.glmnet.data;
+package org.knime.base.node.meta.explain.node;
 
 /**
- * A variable is anything data dependent the algorithm uses
- * to learn a model i.e. targets, features and weights.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@FunctionalInterface
-public interface Variable {
+public interface ExplainerLoopStart {
 
-    /**
-     * @param scale the value by which to multiply all values of this variable
-     */
-    void scale(final double scale);
-
+    ExplanationAggregator getAggregator();
 }

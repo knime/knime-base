@@ -71,18 +71,36 @@ public final class ExplanationToMultiRowConverter implements ExplanationToDataCe
 
     private final StringCell[] m_targetNames;
 
-    /**
-     * @param targetNames the names of the different targets (must match the number of targets)
-     */
-    public ExplanationToMultiRowConverter(final String[] targetNames) {
-        m_targetNames = Arrays.stream(targetNames).map(StringCell::new).toArray(StringCell[]::new);
-    }
+    private final boolean m_includeActualPredictionAndDeviation;
 
     /**
      * @param targetNames the names of the different targets (must match the number of targets)
      */
-    public ExplanationToMultiRowConverter(final StringCell[] targetNames) {
+    public ExplanationToMultiRowConverter(final String[] targetNames,
+        final boolean includeActualPredictionAndDeviation) {
+        m_targetNames = Arrays.stream(targetNames).map(StringCell::new).toArray(StringCell[]::new);
+        m_includeActualPredictionAndDeviation = includeActualPredictionAndDeviation;
+    }
+
+    public ExplanationToMultiRowConverter(final String[] targetNames) {
+        this(targetNames, true);
+    }
+
+    /**
+     * @param targetNames the names of the different targets (must match the number of targets)
+     * @param includeActualPredictionAndDeviation
+     */
+    public ExplanationToMultiRowConverter(final StringCell[] targetNames,
+        final boolean includeActualPredictionAndDeviation) {
         m_targetNames = targetNames.clone();
+        m_includeActualPredictionAndDeviation = includeActualPredictionAndDeviation;
+    }
+
+    /**
+     * @param targetNames
+     */
+    public ExplanationToMultiRowConverter(final StringCell[] targetNames) {
+        this(targetNames, true);
     }
 
     /**
@@ -93,18 +111,25 @@ public final class ExplanationToMultiRowConverter implements ExplanationToDataCe
         final int numTargets = explanation.getNumberOfTargets();
         CheckUtils.checkArgument(numTargets == m_targetNames.length, "Expected %s targets but the explanation has %s.",
             m_targetNames.length, numTargets);
+        final int specialCols = getNumSpecialCols();
         final int numFeatures = explanation.getNumberOfFeatures();
         for (int i = 0; i < numTargets; i++) {
-            final DataCell[] cells = new DataCell[numFeatures + 4];
+            final DataCell[] cells = new DataCell[numFeatures + specialCols];
             cells[0] = new StringCell(explanation.getRoiKey());
             cells[1] = m_targetNames[i];
-            cells[2] = new DoubleCell(explanation.getActualPrediction(i));
-            cells[3] = new DoubleCell(explanation.getDeviationFromMeanPrediction(i));
+            if (m_includeActualPredictionAndDeviation) {
+                cells[2] = new DoubleCell(explanation.getActualPrediction(i));
+                cells[3] = new DoubleCell(explanation.getDeviationFromMeanPrediction(i));
+            }
             for (int j = 0; j < numFeatures; j++) {
-                cells[j + 4] = new DoubleCell(explanation.getExplanationValue(i, j));
+                cells[j + specialCols] = new DoubleCell(explanation.getExplanationValue(i, j));
             }
             consumer.accept(cells);
         }
+    }
+
+    private int getNumSpecialCols() {
+        return m_includeActualPredictionAndDeviation ? 4 : 2;
     }
 
     /**
@@ -115,9 +140,11 @@ public final class ExplanationToMultiRowConverter implements ExplanationToDataCe
         final DataTableSpecCreator specCreator = new DataTableSpecCreator();
         specCreator.addColumns(new DataColumnSpecCreator("RowId", StringCell.TYPE).createSpec());
         specCreator.addColumns(new DataColumnSpecCreator("Target", StringCell.TYPE).createSpec());
-        specCreator.addColumns(new DataColumnSpecCreator("Actual prediction", DoubleCell.TYPE).createSpec());
-        specCreator
-            .addColumns(new DataColumnSpecCreator("Deviation from mean prediction", DoubleCell.TYPE).createSpec());
+        if (m_includeActualPredictionAndDeviation) {
+            specCreator.addColumns(new DataColumnSpecCreator("Actual prediction", DoubleCell.TYPE).createSpec());
+            specCreator
+                .addColumns(new DataColumnSpecCreator("Deviation from mean prediction", DoubleCell.TYPE).createSpec());
+        }
         for (final String featureName : featureNames) {
             specCreator.addColumns(new DataColumnSpecCreator(featureName, DoubleCell.TYPE).createSpec());
         }

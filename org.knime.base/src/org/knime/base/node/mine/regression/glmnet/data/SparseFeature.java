@@ -70,14 +70,6 @@ final class SparseFeature implements Feature {
      * {@inheritDoc}
      */
     @Override
-    public void scale(final double scale) {
-        m_values.scale(scale);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public FeatureIterator getIterator() {
         return new SparseFeatureIterator();
     }

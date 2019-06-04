@@ -58,4 +58,5 @@ public interface DataIterator {
     double getFeatureMean();
     double getTotalWeightedResidual();
     void setResidual(final double value);
+    int getIdx();
 }

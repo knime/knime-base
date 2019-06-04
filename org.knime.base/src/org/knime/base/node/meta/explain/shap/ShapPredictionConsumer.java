@@ -55,8 +55,8 @@ import org.knime.base.node.meta.explain.CountingDataContainer;
 import org.knime.base.node.meta.explain.DefaultExplanation.DefaultExplanationBuilder;
 import org.knime.base.node.meta.explain.ExplanationToDataCellsConverter;
 import org.knime.base.node.meta.explain.ExplanationToMultiRowConverter;
-import org.knime.base.node.meta.explain.KnimePredictionVector;
-import org.knime.base.node.meta.explain.PredictionVector;
+import org.knime.base.node.meta.explain.KnimeDoubleVector;
+import org.knime.base.node.meta.explain.DoubleVector;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings;
 import org.knime.base.node.meta.explain.node.ExplainerLoopEndSettings.PredictionColumnSelectionMode;
 import org.knime.base.node.meta.explain.util.MissingColumnException;
@@ -111,7 +111,7 @@ final class ShapPredictionConsumer {
         final ExecutionContext exec) throws Exception {
         try (CloseableRowIterator iter =
             m_predictionTablePreparer.createIterator(predictedTable, exec.createSilentSubExecutionContext(0))) {
-            final Iterator<PredictionVector> predictionIterator = Iterators.transform(iter, KnimePredictionVector::new);
+            final Iterator<DoubleVector> predictionIterator = Iterators.transform(iter, KnimeDoubleVector::new);
             if (m_loopEndContainer == null) {
                 // in the first iteration we only predicted the sampling table in order to obtain nullFx
                 m_loopEndContainer = new CountingDataContainer(
@@ -164,9 +164,9 @@ final class ShapPredictionConsumer {
         m_explanationConverter = null;
     }
 
-    private void explainCurrentRoi(final Iterator<PredictionVector> predictionIterator,
+    private void explainCurrentRoi(final Iterator<DoubleVector> predictionIterator,
         final ShapIteration shapIteration, final ExecutionMonitor monitor) {
-        final PredictionVector currentFx = predictionIterator.next();
+        final DoubleVector currentFx = predictionIterator.next();
         monitor.setMessage("Aggregating predictions");
         final double[][] aggregatedPredictions =
             aggregatePredictionsPerSample(predictionIterator, shapIteration.getNumberOfSamples());
@@ -189,7 +189,7 @@ final class ShapPredictionConsumer {
         m_explanationConverter.convertAndWrite(explanationBuilder.build(), m_loopEndContainer);
     }
 
-    private double[][] aggregatePredictionsPerSample(final Iterator<PredictionVector> iter, final int nSamples) {
+    private double[][] aggregatePredictionsPerSample(final Iterator<DoubleVector> iter, final int nSamples) {
         CheckUtils.checkState(m_samplingWeights != null, "No sampling weights set.");
         final int numPredCols = m_predictionTablePreparer.getNumColumns();
         final double[][] aggregatedPredictions = new double[numPredCols][nSamples];
@@ -197,7 +197,7 @@ final class ShapPredictionConsumer {
         int i = 0;
         DoubleIterator weightIter = m_samplingWeights.iterator();
         while (iter.hasNext()) {
-            final PredictionVector row = iter.next();
+            final DoubleVector row = iter.next();
             if (i % m_samplingSetSize == 0) {
                 weightIter = m_samplingWeights.iterator();
                 sampleIdx++;
@@ -233,7 +233,7 @@ final class ShapPredictionConsumer {
         return (int)val;
     }
 
-    private void initializeNullPredictions(final Iterator<PredictionVector> predictionIterator,
+    private void initializeNullPredictions(final Iterator<DoubleVector> predictionIterator,
         final ExecutionContext exec)
         throws InvalidSettingsException, CanceledExecutionException, MissingColumnException {
         final double size = m_samplingSetSize;
@@ -242,7 +242,7 @@ final class ShapPredictionConsumer {
         m_nullFx = new double[m_predictionTablePreparer.getNumColumns()];
         while (predictionIterator.hasNext()) {
             exec.checkCanceled();
-            final PredictionVector row = predictionIterator.next();
+            final DoubleVector row = predictionIterator.next();
             assert weightIter.hasNext();
             final double weight = weightIter.next();
             for (int i = 0; i < m_nullFx.length; i++) {
