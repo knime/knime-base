@@ -139,7 +139,7 @@
             icon="icons/missing.gif"
             level-id="legacy"
             locked="true"
-            name="Legacy"
+            name="Local (Swing)"
             path="/view">
       </category>
       <category
