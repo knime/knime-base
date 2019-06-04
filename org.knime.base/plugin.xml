@@ -523,13 +523,6 @@
             name="Model Explanation"
             path="/analytics/mining/">
       </category>
-      <category
-            icon="icons/missing.gif"
-            level-id="manifold"
-            locked="true"
-            name="Manifold"
-            path="/analytics/mining/">
-      </category>      
    </extension>
             
      <extension
@@ -2099,11 +2092,6 @@
             category-path="/analytics/mining/modelexplanation"
             deprecated="false"
             factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
-	  </node>
-      <node
-            category-path="/analytics/mining/manifold"
-            deprecated="false"
-            factory-class="org.knime.base.node.mine.manifold.tsne.TsneNodeFactory">
       </node>
       <node
             category-path="/manipulation/row/row-filter"
