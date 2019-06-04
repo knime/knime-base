@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.mine.transformation.pca.apply;
 
+import java.text.DecimalFormat;
+
 import org.apache.commons.math3.linear.RealVector;
 import org.knime.base.node.mine.transformation.pca.perform.DimensionSelectionPanel;
 import org.knime.base.node.mine.transformation.pca.settings.PCAApplySettings;
@@ -75,6 +77,9 @@ final class DimensionApplyPanel extends DimensionSelectionPanel {
     /** The index of the {@link TransformationPortObjectSpec} port. */
     private final int m_transPortIdx;
 
+    /** Decimal formatter. */
+    private final DecimalFormat m_formater;
+
     /** The sorted eigenvalues. */
     private RealVector m_eigenVals;
 
@@ -90,6 +95,7 @@ final class DimensionApplyPanel extends DimensionSelectionPanel {
     DimensionApplyPanel(final PCAApplySettings applySettings, final int transPortIdx) {
         super(applySettings);
         CheckUtils.checkArgument(transPortIdx >= 0, "The transformation port index cannot be smaller than 0");
+        m_formater = new DecimalFormat(".0");
         m_transPortIdx = transPortIdx;
         m_replaceInvalidDimByMax = false;
     }
@@ -128,8 +134,7 @@ final class DimensionApplyPanel extends DimensionSelectionPanel {
                 sum = norm;
             }
         }
-        int infPreservation = (int)((sum / norm) * 100);
-        setDimensionLblText(infPreservation + "% information preservation");
+        setDimensionLblText(m_formater.format(100d * sum / norm )+ "% information preservation");
     }
 
     private void updateInfPreservationLbl() {

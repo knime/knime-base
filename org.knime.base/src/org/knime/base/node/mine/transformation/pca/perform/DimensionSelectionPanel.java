@@ -71,6 +71,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -119,7 +120,7 @@ public class DimensionSelectionPanel {
     protected DimensionSelectionPanel(final PCAApplySettings applySettings) {
         m_dimensionComponent = new DialogComponentNumber(applySettings.getDimModel(), "", 1, 5);
         m_dimensionComponent.getModel().addChangeListener(e -> updateErrors());
-        m_infPreservationComponent = new DialogComponentNumber(applySettings.getInfPreservationModel(), "", 1, 5);
+        m_infPreservationComponent = new DialogComponentNumber(applySettings.getInfPreservationModel(), "", 0.1, 5);
         m_infPreservationComponent.getModel().addChangeListener(e -> updateErrors());
         m_dimensionSelectedModel = applySettings.getUseFixedDimensionModel();
         m_dimensionSelection = new JRadioButton("Dimension(s) to reduce to");
@@ -129,10 +130,7 @@ public class DimensionSelectionPanel {
         m_dimensionSelection.addItemListener(e -> {
             final boolean enabled = e.getStateChange() == ItemEvent.SELECTED;
             m_dimensionSelectedModel.setBooleanValue(enabled);
-            m_dimensionComponent.getModel().setEnabled(enabled);
-            m_dimensionLbl.setEnabled(enabled);
-            m_infPreservationComponent.getModel().setEnabled(!enabled);
-            m_infPreservationLbl.setEnabled(!enabled);
+            enableDimComps(enabled);
             updateErrors();
         });
 
@@ -144,6 +142,13 @@ public class DimensionSelectionPanel {
 
         m_mainPanel = createMainPanel();
         m_errorPanel = createErrorPanel();
+    }
+
+    private void enableDimComps(final boolean enabled) {
+        m_dimensionComponent.getModel().setEnabled(enabled);
+        m_dimensionLbl.setEnabled(enabled);
+        m_infPreservationComponent.getModel().setEnabled(!enabled);
+        m_infPreservationLbl.setEnabled(!enabled);
     }
 
     private JPanel createMainPanel() {
@@ -324,8 +329,8 @@ public class DimensionSelectionPanel {
      *
      * @return the information preservation value
      */
-    protected int getInfPreservationValue() {
-        return ((SettingsModelInteger)m_infPreservationComponent.getModel()).getIntValue();
+    protected double getInfPreservationValue() {
+        return ((SettingsModelDouble)m_infPreservationComponent.getModel()).getDoubleValue();
     }
 
     /**
@@ -364,10 +369,12 @@ public class DimensionSelectionPanel {
         m_infPreservationComponent.loadSettingsFrom(settings, specs);
 
         // ensure that only one model is enabled at a time
-        m_dimensionSelection.setSelected(m_dimensionSelectedModel.getBooleanValue());
-        m_qualitySelection.setSelected(!m_dimensionSelection.isSelected());
-        m_dimensionComponent.getModel().setEnabled(m_dimensionSelectedModel.getBooleanValue());
-        m_infPreservationComponent.getModel().setEnabled(!m_dimensionSelection.isSelected());
+        if (m_dimensionSelectedModel.getBooleanValue()) {
+            m_dimensionSelection.doClick();
+        } else {
+            m_qualitySelection.doClick();
+        }
+        enableDimComps(m_dimensionSelection.isSelected());
     }
 
 }

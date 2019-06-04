@@ -92,7 +92,7 @@ final class PCA2NodeModel extends AbstractPCA2NodeModel {
             dimToReduceTo = m_applySettings.getDimModel().getIntValue();
         } else {
             dimToReduceTo = TransformationUtils.calcDimForGivenInfPreservation(transformationMatrix,
-                m_applySettings.getInfPreservationModel().getIntValue());
+                m_applySettings.getInfPreservationModel().getDoubleValue());
         }
         final ColumnRearranger cr = createColumnRearranger(inTable.getDataTableSpec(), transformationMatrix,
             dimToReduceTo, m_applySettings.getRemoveUsedColsModel().getBooleanValue());
@@ -114,9 +114,9 @@ final class PCA2NodeModel extends AbstractPCA2NodeModel {
                     m_applySettings.getRemoveUsedColsModel().getBooleanValue()).createSpec()};
         } else {
             // we don't know the number of resulting dimension if the user selected the information preservation option
-            final int infPerservation = m_applySettings.getInfPreservationModel().getIntValue();
+            final double infPerservation = m_applySettings.getInfPreservationModel().getDoubleValue();
             CheckUtils.checkSetting(infPerservation > 0 && infPerservation <= 100,
-                "The information perservation has to be in range [1,100]");
+                "The information perservation has to be in range [0.01,100]");
             return null;
         }
     }

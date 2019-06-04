@@ -53,7 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 
 /**
  *
@@ -65,8 +65,8 @@ public class PCAApplySettings extends TransformationApplySettings {
 
     private static final String DIMENSION_SELECTED_CFG = "use_fixed_number_dimensions";
 
-    private final SettingsModelIntegerBounded m_infPreservation =
-        new SettingsModelIntegerBounded(INFORMATION_PRESERVATION_CFG, 100, 1, 100);
+    private final SettingsModelDoubleBounded m_infPreservation =
+        new SettingsModelDoubleBounded(INFORMATION_PRESERVATION_CFG, 100, 0.01, 100);
 
     private final SettingsModelBoolean m_useFixedDimensions = new SettingsModelBoolean(DIMENSION_SELECTED_CFG, true);
 
@@ -75,7 +75,7 @@ public class PCAApplySettings extends TransformationApplySettings {
      *
      * @return model storing the information preservation value
      */
-    public SettingsModelIntegerBounded getInfPreservationModel() {
+    public SettingsModelDoubleBounded getInfPreservationModel() {
         return m_infPreservation;
     }
 

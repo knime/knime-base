@@ -224,7 +224,8 @@ public final class TransformationUtils {
      * @param infPreservation the information preservation value in range [1,100]
      * @return the number of dimension required in order to satisfy the required information preservation constraint
      */
-    public static int calcDimForGivenInfPreservation(final TransformationMatrix transMtx, final int infPreservation) {
+    public static int calcDimForGivenInfPreservation(final TransformationMatrix transMtx,
+        final double infPreservation) {
         return calcDimForGivenInfPreservation(transMtx.getSortedEigenValues(), transMtx.getMaxDimToReduceTo(),
             infPreservation);
     }
@@ -234,12 +235,12 @@ public final class TransformationUtils {
      *
      * @param eigenValues the non-increasingly sorted eigenvalues
      * @param maxDimToReduceTo the maximum possible number of dimension to reduce to
-     * @param infPreservation the information preservation value in range [1,100]
+     * @param infPreservation the information preservation value in range [0.01,100]
      * @return the number of dimension required in order to satisfy the required information preservation constraint
      */
     public static int calcDimForGivenInfPreservation(final RealVector eigenValues, final int maxDimToReduceTo,
-        final int infPreservation) {
-        if (infPreservation == 100) {
+        final double infPreservation) {
+        if (infPreservation >= 100.0) {
             return maxDimToReduceTo;
         }
         double norm = 0;

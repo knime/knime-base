@@ -159,7 +159,7 @@ final class PCA2ApplyNodeModel extends NodeModel {
             dimToReduceTo = m_applySettings.getDimModel().getIntValue();
         } else {
             dimToReduceTo = TransformationUtils.calcDimForGivenInfPreservation(inModel.getTransformationMatrix(),
-                m_applySettings.getInfPreservationModel().getIntValue());
+                m_applySettings.getInfPreservationModel().getDoubleValue());
         }
         return TransformationUtils.createColumnRearranger(dataSpec, inModel.getTransformationMatrix(), dimToReduceTo,
             m_applySettings.getRemoveUsedColsModel().getBooleanValue(), usedColumnNames, transType);
