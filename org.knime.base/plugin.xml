@@ -514,15 +514,6 @@
             name="Logistic Regression"
             path="/analytics/mining/">
       </category>
-      <category
-            after="modeleval"
-            description="Contains nodes that allow to explain machine learning models"
-            icon="icons/missing.gif"
-            level-id="modelexplanation"
-            locked="true"
-            name="Model Explanation"
-            path="/analytics/mining/">
-      </category>
    </extension>
             
      <extension
@@ -2078,36 +2069,9 @@
             factory-class="org.knime.base.node.preproc.pmml.stringtonumber.StringToNumberNodeFactory2">
       </node>
       <node
-            category-path="/analytics/mining/modelexplanation"
-            deprecated="false"
-            factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopStartNodeFactory">
-      </node>
-      <node
-            after="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopStartNodeFactory"
-            category-path="/analytics/mining/modelexplanation"
-            deprecated="false"
-            factory-class="org.knime.base.node.meta.explain.shapley.node.ShapleyValuesLoopEndNodeFactory">
-      </node>
-      <node
-            category-path="/analytics/mining/modelexplanation"
-            deprecated="false"
-            factory-class="org.knime.base.node.meta.explain.lime.node.LIMELoopStartNodeFactory">
-      </node>
-      <node
             category-path="/manipulation/row/row-filter"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.duplicates.DuplicateFilterNodeFactory">
-      </node>
-      <node
-            category-path="/analytics/mining/modelexplanation"
-            deprecated="false"
-            factory-class="org.knime.base.node.meta.explain.shap.node.ShapLoopStartNodeFactory">
-      </node>
-      <node
-            after="org.knime.base.node.meta.explain.shap.node.ShapLoopStartNodeFactory"
-            category-path="/analytics/mining/modelexplanation"
-            deprecated="false"
-            factory-class="org.knime.base.node.meta.explain.shap.node.ShapLoopEndNodeFactory">
       </node>
    </extension>
    
