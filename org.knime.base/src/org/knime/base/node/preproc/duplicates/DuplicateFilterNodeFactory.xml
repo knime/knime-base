@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./duplicate_filter.png" type="Manipulator">
+<knimeNode xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10"
+	type="Manipulator" icon="./duplicate_filter.png">
 	<name>Duplicate Filter</name>
 	<shortDescription>
 		Removes or marks duplicate rows.
@@ -10,12 +11,12 @@
 		This node identifies duplicate rows. Duplicate rows have
         identical values in certain columns. The node chooses a single 
         row for each set of duplicates ("chosen"). You can either remove all duplicate
-        rows from the input table and keep only unique rows and chosen rows or
+        rows from the input table and keep only unique and chosen rows or
         mark the rows with additional information about their duplication status.
 		</intro>
 	<tab name="Options">
 		<option name="Choose columns for duplicates detection">
-            Allows to select those columns that identify the duplicates. Columns
+            Allows the selection of columns identifying the duplicates. Columns
             not selected are handled under "Row selection" in the "Advanced" tab.
 		</option>
 	</tab>
@@ -28,17 +29,12 @@
 			<ul>
 				<li><b>Add classification column</b>: Appends a column that describes
 					the type of row:
-					<ul>
-						<li><i>unique</i>: There is no other row with the same 
+						<br/><i>unique</i>: There is no other row with the same 
 							values in the selected columns.
-						</li>
-						<li><i>chosen</i>: This row was chosen from a set of duplicate
+						<br/><i>chosen</i>: This row was chosen from a set of duplicate
                             rows.
-						</li>
-						<li><i>duplicate</i>: This row is a duplicate and represented by
+						<br/><i>duplicate</i>: This row is a duplicate and represented by
 							another row.
-						</li>
-					</ul>
 				</li>
 				<li><b>Add ROWID column</b>: Appends a column with the
                     ROWID of the chosen row for duplicate rows. Unique and chosen rows
@@ -55,11 +51,13 @@
 				</li>
 				<li><b>Last</b>:The last row in sequence is chosen.
 				</li>
-                <li><b>Minimum of</b>:The <i>first</i> row with the lowest value in
-                    the selected column is chosen. Missing values are sorted after the highest value.
+                <li><b>Minimum of</b>:The <i>first</i> row with the minimum value in the selected 
+                	column is chosen. In case of strings, the row will be chosen following lexicographical
+                	order. Missing values are sorted after the maximum value.
 				</li>
-				<li><b>Maximum of</b>:The <i>first</i> row with the largest value in
-					the selected column is chosen. Missing values are sorted before the lowest value.
+				<li><b>Maximum of</b>:The <i>first</i> row with the maximum value in the selected 
+                	column is chosen. In case of strings, the row will be chosen following lexicographical
+                	order. Missing values are sorted before the minimum value.
 				</li>
 			</ul>
 		</option>
