@@ -49,6 +49,7 @@ package org.knime.base.node.meta.looper;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -153,7 +154,7 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
         }
 
         // increment counter for next iteration
-        m_value += m_settings.step();
+        m_value = BigDecimal.valueOf(m_value).add(BigDecimal.valueOf(m_settings.step())).doubleValue();
         return inData;
     }
 
