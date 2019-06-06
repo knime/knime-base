@@ -68,9 +68,7 @@ public class NumericScorer2Settings {
 
     static final String CFGKEY_REFERENCE = "reference";
 
-
     static final String CFGKEY_PREDICTED = "predicted";
-
 
     static final String CFGKEY_OUTPUT = "output column";
 
@@ -90,14 +88,20 @@ public class NumericScorer2Settings {
      */
     public static final String DEFAULT_REFERENCE = "";
 
-    private final SettingsModelColumnName m_referenceModel = new SettingsModelColumnName(CFGKEY_REFERENCE, DEFAULT_REFERENCE);
-    private final SettingsModelColumnName m_predictedModel = new SettingsModelColumnName(CFGKEY_PREDICTED, DEFAULT_PREDICTED);
-    private final SettingsModelBoolean m_overrideModel = new SettingsModelBoolean(CFGKEY_OVERRIDE_OUTPUT, DEFAULT_OVERRIDE_OUTPUT);
+    private final SettingsModelColumnName m_referenceModel =
+        new SettingsModelColumnName(CFGKEY_REFERENCE, DEFAULT_REFERENCE);
+
+    private final SettingsModelColumnName m_predictedModel =
+        new SettingsModelColumnName(CFGKEY_PREDICTED, DEFAULT_PREDICTED);
+
+    private final SettingsModelBoolean m_overrideModel =
+        new SettingsModelBoolean(CFGKEY_OVERRIDE_OUTPUT, DEFAULT_OVERRIDE_OUTPUT);
+
     private final SettingsModelString m_outputModel = new SettingsModelString(CFGKEY_OUTPUT, DEFAULT_OUTPUT);
+
     private final SettingsModelBoolean m_flowVarModel = new SettingsModelBoolean("generate flow variables", false);
+
     private final SettingsModelString m_useNamePrefixModel = createFlowPrefixModel(m_flowVarModel);
-
-
 
     /**
      * Constructor.
@@ -118,21 +122,12 @@ public class NumericScorer2Settings {
      * @param useNamePrefixModel TODO
      * @return A new {@link SettingsModelString} for the flow variable prefix
      */
-    private SettingsModelString createFlowPrefixModel(final SettingsModelBoolean useNamePrefixModel) {
+    private static SettingsModelString createFlowPrefixModel(final SettingsModelBoolean useNamePrefixModel) {
         final SettingsModelString result = new SettingsModelString("name prefix for flowvars", "");
-        useNamePrefixModel.addChangeListener(new ChangeListener() {
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                result.setEnabled(useNamePrefixModel.getBooleanValue());
-            }
-        });
+        useNamePrefixModel.addChangeListener(e -> result.setEnabled(useNamePrefixModel.getBooleanValue()));
         result.setEnabled(useNamePrefixModel.getBooleanValue());
         return result;
     }
-
 
     /**
      * Returns whether flow variables should be pushed.
@@ -196,16 +191,15 @@ public class NumericScorer2Settings {
         return m_referenceModel.getColumnName();
     }
 
-
     /**
-     *  Perform on open action for the components
+     * Perform on open action for the components
      */
     public void onOpen() {
         //force update of the visual state (view model)
-        String columnName = m_predictedModel.getColumnName();
+        final String columnName = m_predictedModel.getColumnName();
         m_predictedModel.setSelection(null, false);
         m_predictedModel.setSelection(columnName, false);
-        boolean b = m_overrideModel.getBooleanValue();
+        final boolean b = m_overrideModel.getBooleanValue();
         m_overrideModel.setBooleanValue(!b);
         m_overrideModel.setBooleanValue(b);
     }
@@ -215,7 +209,7 @@ public class NumericScorer2Settings {
      *
      * @param settings the {@link NodeSettingsWO} to write to
      */
-    public void saveSettingsTo(final NodeSettingsWO settings){
+    public void saveSettingsTo(final NodeSettingsWO settings) {
         m_referenceModel.saveSettingsTo(settings);
         m_predictedModel.saveSettingsTo(settings);
         m_overrideModel.saveSettingsTo(settings);
@@ -224,8 +218,6 @@ public class NumericScorer2Settings {
         m_useNamePrefixModel.saveSettingsTo(settings);
         m_flowVarModel.saveSettingsTo(settings);
     }
-
-
 
     /**
      * Loads all the setting models from from the given {@link NodeSettingsRO}.
@@ -248,7 +240,6 @@ public class NumericScorer2Settings {
         }
     }
 
-
     /**
      * Validates all the setting models from the given {@link NodeSettingsRO}.
      *
@@ -260,17 +251,9 @@ public class NumericScorer2Settings {
         m_predictedModel.validateSettings(settings);
         m_overrideModel.validateSettings(settings);
         m_outputModel.validateSettings(settings);
-
-
-        // new since 3.2
-        if (settings.containsKey(m_useNamePrefixModel.getKey())) {
-            m_useNamePrefixModel.validateSettings(settings);
-        }
-        if (settings.containsKey(m_flowVarModel.getConfigName())) {
-            m_flowVarModel.validateSettings(settings);
-        }
+        m_useNamePrefixModel.validateSettings(settings);
+        m_flowVarModel.validateSettings(settings);
     }
-
 
     /**
      * Get the reference settings model.

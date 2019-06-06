@@ -83,10 +83,6 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
 
     private JLabel m_meanAbsolutePercentageError;
 
-    private JLabel m_weightedAbsolutePercentageError;
-
-    private JLabel m_normalizedMeanAbsolutePercentageError;
-
     /**
      * Creates a new view.
      *
@@ -142,20 +138,6 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
         c.gridx = 1;
         summary.add(m_meanAbsolutePercentageError, c);
 
-        c.gridx = 0;
-        c.gridy++;
-        summary.add(new JLabel("Normalized mean absolute percentage error: "), c);
-        m_normalizedMeanAbsolutePercentageError = new JLabel("n/a");
-        c.gridx = 1;
-        summary.add(m_normalizedMeanAbsolutePercentageError, c);
-
-        c.gridx = 0;
-        c.gridy++;
-        summary.add(new JLabel("Weighted absolute percentage error: "), c);
-        m_weightedAbsolutePercentageError = new JLabel("n/a");
-        c.gridx = 1;
-        summary.add(m_weightedAbsolutePercentageError, c);
-
         setComponent(summary);
     }
 
@@ -168,14 +150,11 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
      * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
      * @param meanSignedDifference the meanSignedDifference to set
      * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
-     * @param normalizedMeanAbsolutePercentageError the normalized mean absolute percentage error to set
-     * @param weightedAbsoluteErrorPercentage the weightedAbsoluteErrorPercentage to set
      * @since 4.0
      */
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
         final double rootMeanSquaredDeviation, final double meanSignedDifference,
-        final double meanAbsoluteErrorPercentage, final double normalizedMeanAbsolutePercentageError,
-        final double weightedAbsoluteErrorPercentage) {
+        final double meanAbsoluteErrorPercentage) {
         NumberFormat nf = NumberFormat.getNumberInstance();
         m_rSquared.setText(nf.format(rSquare));
         m_meanAbsError.setText(nf.format(meanAbsError));
@@ -183,8 +162,6 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
         m_rootMeanSquaredError.setText(nf.format(rootMeanSquaredDeviation));
         m_meanSignedDifference.setText(nf.format(meanSignedDifference));
         m_meanAbsolutePercentageError.setText(nf.format(meanAbsoluteErrorPercentage));
-        m_normalizedMeanAbsolutePercentageError.setText(nf.format(normalizedMeanAbsolutePercentageError));
-        m_weightedAbsolutePercentageError.setText(nf.format(weightedAbsoluteErrorPercentage));
     }
 
     /**

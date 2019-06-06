@@ -101,10 +101,6 @@ class NumericScorer2NodeModel extends NodeModel {
 
     private static final String MEAN_ABSOLUTE_PERCENTAGE_ERROR = "MAPE";
 
-    private static final String NORMALIZED_MEAN_ABSOLUTE_PERCENTAGE_ERROR = "nMAPE";
-
-    private static final String WEIGHTED_ABSOLUTE_PERCENTAGE_ERROR = "WAPE";
-
     private static final String INTERNALS_XML_GZ = "internals.xml.gz";
 
     private final NumericScorer2Settings m_numericScorerSettings = new NumericScorer2Settings();
@@ -121,10 +117,6 @@ class NumericScorer2NodeModel extends NodeModel {
 
     private double m_meanAbsolutePercentageError = Double.NaN;
 
-    private double m_normalizedMeanAbsolutePercentageError = Double.NaN;
-
-    private double m_weightedAbsolutePercentageError = Double.NaN;
-
     /**
      * Constructor for the node model.
      */
@@ -137,7 +129,7 @@ class NumericScorer2NodeModel extends NodeModel {
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
+            throws Exception {
         final DataTableSpec spec = inData[0].getSpec();
         final BufferedDataContainer container = exec.createDataContainer(createOutputSpec(spec));
         final int referenceIdx = spec.findColumnIndex(m_numericScorerSettings.getReferenceColumnName());
@@ -151,13 +143,7 @@ class NumericScorer2NodeModel extends NodeModel {
         final SumOfSquares ssRes = new SumOfSquares();
 
         final Mean meanAPE = new Mean();
-        final Mean nomalizedMAPE = new Mean();
-        // for WAPE
-        double total = 0;
-        double totalDiff = 0;
-
         boolean skipMAPE = false;
-        boolean skipNMAPE = false;
 
         int skippedRowCount = 0;
         for (final DataRow row : inData[0]) {
@@ -180,26 +166,14 @@ class NumericScorer2NodeModel extends NodeModel {
 
             // APE family
             // div by zero prevention:
-            if (ref == 0) { // can't calculate MAPE
+            if (!skipMAPE && (ref == 0)) { // can't calculate MAPE
                 skipMAPE = true;
                 setWarningMessage("Can't calculate Mean Absolute Percentage error: target value is 0! " + row.getKey());
-            } else if ((ref < 0) && (pred == 0)) { // can't calculate nMape
-                skipNMAPE = true;
-                setWarningMessage(
-                    "Can't calculate Normalized Mean Absolute Percentage error: target value is below 0 and predicted value is 0! "
-                        + row.getKey());
             }
 
             if (!skipMAPE) {
                 meanAPE.increment(Math.abs(ref - pred) / Math.abs(ref));
             }
-            if (!skipNMAPE) {
-                nomalizedMAPE.increment(Math.abs(ref - pred) / Math.abs(Math.max(ref, pred)));
-            }
-
-            // WAPE
-            total += ref;
-            totalDiff += Math.abs(ref - pred);
         }
         for (final DataRow row : inData[0]) {
             final DataCell refCell = row.getCell(referenceIdx);
@@ -219,14 +193,6 @@ class NumericScorer2NodeModel extends NodeModel {
         m_rmsd = Math.sqrt(squaredError.getResult());
         m_meanSignedDifference = signedDiff.getResult();
         m_meanAbsolutePercentageError = skipMAPE ? Double.NaN : meanAPE.getResult();
-        m_normalizedMeanAbsolutePercentageError = skipNMAPE ? Double.NaN : nomalizedMAPE.getResult();
-
-        if (total == 0) {
-            setWarningMessage("Can't calculate Weighted Absolute Percentage error: sum of all values is 0!");
-            m_weightedAbsolutePercentageError = Double.NaN;
-        } else {
-            m_weightedAbsolutePercentageError = totalDiff / Math.abs(total);
-        }
 
         container.addRowToTable(new DefaultRow("R^2", m_rSquare));
         container.addRowToTable(new DefaultRow("mean absolute error", m_meanAbsError));
@@ -234,10 +200,6 @@ class NumericScorer2NodeModel extends NodeModel {
         container.addRowToTable(new DefaultRow("root mean squared error", m_rmsd));
         container.addRowToTable(new DefaultRow("mean signed difference", m_meanSignedDifference));
         container.addRowToTable(new DefaultRow("mean absolute percentage error", m_meanAbsolutePercentageError));
-        container.addRowToTable(
-            new DefaultRow("normalized mean absolute percentage error", m_normalizedMeanAbsolutePercentageError));
-        container
-            .addRowToTable(new DefaultRow("weighted absolute percentage error", m_weightedAbsolutePercentageError));
 
         container.close();
         if (skippedRowCount > 0) {
@@ -256,7 +218,7 @@ class NumericScorer2NodeModel extends NodeModel {
     private DataTableSpec createOutputSpec(final DataTableSpec spec) {
         final String o = m_numericScorerSettings.getOutputColumnName();
         final String output =
-            m_numericScorerSettings.doOverride() ? o : m_numericScorerSettings.getPredictionColumnName();
+                m_numericScorerSettings.doOverride() ? o : m_numericScorerSettings.getPredictionColumnName();
         return new DataTableSpec("Scores", new DataColumnSpecCreator(output, DoubleCell.TYPE).createSpec());
     }
 
@@ -277,12 +239,9 @@ class NumericScorer2NodeModel extends NodeModel {
             final String rootmeanName = prefix + "root mean squared error";
             final String meanSignedName = prefix + "mean signed difference";
             final String meanAPEName = prefix + "mean absolute percentage error";
-            final String normalizedMAPEName = prefix + "normalized mean absolute percentage error";
-            final String weightedAPEName = prefix + "weighted absolute percentage error";
             if (isConfigureOnly && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName)
-                || vars.containsKey(meanSquareName) || vars.containsKey(rootmeanName)
-                || vars.containsKey(meanSignedName) || vars.containsKey(meanAPEName)
-                || vars.containsKey(normalizedMAPEName) || vars.containsKey(weightedAPEName))) {
+                    || vars.containsKey(meanSquareName) || vars.containsKey(rootmeanName)
+                    || vars.containsKey(meanSignedName) || vars.containsKey(meanAPEName))) {
                 addWarning("A flow variable was replaced!");
             }
 
@@ -292,16 +251,12 @@ class NumericScorer2NodeModel extends NodeModel {
             final double rootmean = isConfigureOnly ? 0 : m_rmsd;
             final double meanSigned = isConfigureOnly ? 0 : m_meanSignedDifference;
             final double meanAPE = isConfigureOnly ? 0 : m_meanAbsolutePercentageError;
-            final double normalizedMAPE = isConfigureOnly ? 0 : m_normalizedMeanAbsolutePercentageError;
-            final double weightedAPE = isConfigureOnly ? 0 : m_weightedAbsolutePercentageError;
             pushFlowVariableDouble(rsquareName, rsquare);
             pushFlowVariableDouble(meanAbsName, meanAbs);
             pushFlowVariableDouble(meanSquareName, meanSquare);
             pushFlowVariableDouble(rootmeanName, rootmean);
             pushFlowVariableDouble(meanSignedName, meanSigned);
             pushFlowVariableDouble(meanAPEName, meanAPE);
-            pushFlowVariableDouble(normalizedMAPEName, normalizedMAPE);
-            pushFlowVariableDouble(weightedAPEName, weightedAPE);
         }
     }
 
@@ -323,8 +278,7 @@ class NumericScorer2NodeModel extends NodeModel {
     @Override
     protected void reset() {
         m_rSquare = m_meanAbsError = m_meanSquaredError = m_rmsd = m_meanSignedDifference //
-            = m_meanAbsolutePercentageError = m_normalizedMeanAbsolutePercentageError //
-                = m_weightedAbsolutePercentageError = Double.NaN;
+                = m_meanAbsolutePercentageError = Double.NaN;
     }
 
     /**
@@ -342,7 +296,7 @@ class NumericScorer2NodeModel extends NodeModel {
         }
         if (!reference.getType().isCompatible(DoubleValue.class)) {
             throw new InvalidSettingsException("The reference column ("
-                + m_numericScorerSettings.getReferenceColumnName() + ") is not double valued: " + reference.getType());
+                    + m_numericScorerSettings.getReferenceColumnName() + ") is not double valued: " + reference.getType());
         }
         final DataColumnSpec predicted = inSpecs[0].getColumnSpec(m_numericScorerSettings.getPredictionColumnName());
         if (predicted == null) {
@@ -354,7 +308,7 @@ class NumericScorer2NodeModel extends NodeModel {
         }
         if (!predicted.getType().isCompatible(DoubleValue.class)) {
             throw new InvalidSettingsException("The prediction column ("
-                + m_numericScorerSettings.getPredictionColumnName() + ") is not double valued: " + predicted.getType());
+                    + m_numericScorerSettings.getPredictionColumnName() + ") is not double valued: " + predicted.getType());
         }
         pushFlowVars(true);
         return new DataTableSpec[]{createOutputSpec(inSpecs[0])};
@@ -389,7 +343,7 @@ class NumericScorer2NodeModel extends NodeModel {
      */
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+            throws IOException, CanceledExecutionException {
         final File f = new File(internDir, INTERNALS_XML_GZ);
         try (InputStream in = new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))) {
             final NodeSettingsRO set = NodeSettings.loadFromXML(in);
@@ -398,10 +352,7 @@ class NumericScorer2NodeModel extends NodeModel {
             m_meanSquaredError = set.getDouble(MEAN_SQUARED_ERROR);
             m_rmsd = set.getDouble(RMSD);
             m_meanSignedDifference = set.getDouble(MEAN_SIGNED_DIFFERENCE);
-
             m_meanAbsolutePercentageError = set.getDouble(MEAN_ABSOLUTE_PERCENTAGE_ERROR);
-            m_normalizedMeanAbsolutePercentageError = set.getDouble(NORMALIZED_MEAN_ABSOLUTE_PERCENTAGE_ERROR);
-            m_weightedAbsolutePercentageError = set.getDouble(WEIGHTED_ABSOLUTE_PERCENTAGE_ERROR);
         } catch (final InvalidSettingsException ise) {
             throw new IOException("Unable to read internals", ise);
         }
@@ -412,7 +363,7 @@ class NumericScorer2NodeModel extends NodeModel {
      */
     @Override
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+            throws IOException, CanceledExecutionException {
         final NodeSettings set = new NodeSettings("scorer");
         set.addDouble(R2, m_rSquare);
         set.addDouble(MEAN_ABS_ERROR, m_meanAbsError);
@@ -420,8 +371,6 @@ class NumericScorer2NodeModel extends NodeModel {
         set.addDouble(RMSD, m_rmsd);
         set.addDouble(MEAN_SIGNED_DIFFERENCE, m_meanSignedDifference);
         set.addDouble(MEAN_ABSOLUTE_PERCENTAGE_ERROR, m_meanAbsolutePercentageError);
-        set.addDouble(NORMALIZED_MEAN_ABSOLUTE_PERCENTAGE_ERROR, m_normalizedMeanAbsolutePercentageError);
-        set.addDouble(WEIGHTED_ABSOLUTE_PERCENTAGE_ERROR, m_weightedAbsolutePercentageError);
 
         try (GZIPOutputStream os = new GZIPOutputStream(
             new BufferedOutputStream(new FileOutputStream(new File(internDir, INTERNALS_XML_GZ))))) {
@@ -465,24 +414,10 @@ class NumericScorer2NodeModel extends NodeModel {
     }
 
     /**
-     * @return the weighted absolute percentage error
-     */
-    public double getWeightedAbsoluteErrorPercentage() {
-        return m_weightedAbsolutePercentageError;
-    }
-
-    /**
      * @return the mean absolute percentage error
      */
     public double getMeanAbsolutePercentageError() {
         return m_meanAbsolutePercentageError;
-    }
-
-    /**
-     * @return the normalized mean absolute percentage error
-     */
-    public double getNormalizedMeanAbsolutePercentageError() {
-        return m_normalizedMeanAbsolutePercentageError;
     }
 
 }
