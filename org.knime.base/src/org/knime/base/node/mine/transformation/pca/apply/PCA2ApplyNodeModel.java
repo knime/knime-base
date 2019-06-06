@@ -132,17 +132,16 @@ final class PCA2ApplyNodeModel extends NodeModel {
                     "The model is expecting column \"" + columnName + "\" which is missing in the input table.");
             }
         }
+        if (!m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
+            return null;
+        }
 
-        // sanity check for flow variables
         CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() > 0,
             "The number of dimensions to project to must be a positive integer larger than 0, %s is invalid",
             m_applySettings.getDimModel().getIntValue());
         final int maxDim = modelSpec.getMaxDimToReduceTo();
         CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() <= maxDim,
             "The number of dimensions to project to must be less than or equal %s", maxDim);
-        if (!m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
-            return null;
-        }
         return new PortObjectSpec[]{
             createColumnRearranger(null, usedColumnNames, dataSpec, modelSpec.getTransformationType()).createSpec()};
     }
