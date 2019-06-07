@@ -57,7 +57,6 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Calendar;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -82,6 +81,18 @@ import org.knime.core.util.FileUtil;
  * @author M. Berthold, University of Konstanz
  */
 public class SleepNodeModel extends NodeModel {
+
+    static final String DELETION = "Deletion";
+
+    static final String MODIFICATION = "Modification";
+
+    static final String CREATION = "Creation";
+
+    static final int WAIT_FOR_TIME = 0;
+
+    static final int WAIT_UNTIL_TIME = 1;
+
+    static final int WAIT_FILE = 2;
 
     /**
      * Wait for, wait to or wait for file.
@@ -136,7 +147,7 @@ public class SleepNodeModel extends NodeModel {
 
     private long m_waittime = 0;
 
-    private int m_selection;
+    private int m_selection = WAIT_FOR_TIME; // initialized with default value
 
     private String m_fileStatus;
 
@@ -172,61 +183,66 @@ public class SleepNodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 
-        if (m_selection == 0) {
+        if (m_selection == WAIT_FOR_TIME) {
             // wait for
             exec.setMessage("Waiting for " + (m_waittime / 1000) + " seconds");
             waitFor(m_waittime);
-        } else if (m_selection == 1) {
+        } else if (m_selection == WAIT_UNTIL_TIME) {
             // wait to
-            Calendar c = Calendar.getInstance();
+            final Calendar c = Calendar.getInstance();
             c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), m_toHours, m_toMin, m_toSec);
-            if (c.getTimeInMillis() - System.currentTimeMillis() <= 0) {
+            if ((c.getTimeInMillis() - System.currentTimeMillis()) <= 0) {
                 c.add(Calendar.DAY_OF_YEAR, 1);
             }
             exec.setMessage("Waiting until " + c.getTime());
             final long sleepTime = c.getTimeInMillis() - System.currentTimeMillis();
             waitFor(sleepTime);
-        } else if (m_selection == 2) {
-            WatchService w = FileSystems.getDefault().newWatchService();
-            Path p = FileUtil.resolveToPath(FileUtil.toURL(m_filePath));
+        } else if (m_selection == WAIT_FILE) {
+            final Path p = FileUtil.resolveToPath(FileUtil.toURL(m_filePath));
             if (p == null) {
                 throw new IllegalArgumentException("File location '" + m_filePath + "' is not a local file.");
             }
 
-            exec.setMessage("Waiting for file '" + p + "'");
-            Path fileName = p.subpath(p.getNameCount() - 1, p.getNameCount());
-            Path parent = p.getParent();
-            Kind<Path> e = null;
-            if (m_fileStatus.equals("Creation")) {
-                e = StandardWatchEventKinds.ENTRY_CREATE;
-            } else if (m_fileStatus.equals("Modification")) {
-                e = StandardWatchEventKinds.ENTRY_MODIFY;
-            } else if (m_fileStatus.equals("Deletion")) {
-                e = StandardWatchEventKinds.ENTRY_DELETE;
-            } else {
-                throw new RuntimeException("Selected watchservice event is not available. Selected watchservice : "
-                    + m_fileStatus);
-            }
-            parent.register(w, e);
-
-            boolean keepLooking = true;
-
-            while (keepLooking) {
-                // watch file until the event appears
-                WatchKey key;
-                // wait for a key to be available
-                key = w.take();
-
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    if (fileName.equals(event.context())) {
-                        keepLooking = false;
+            // if we check for creation and the file already exists, we can return right away,
+            // else we need to wait
+            if (!(m_fileStatus.equals(CREATION) && p.toFile().exists())) {
+                try (WatchService w = FileSystems.getDefault().newWatchService()) {
+                    exec.setMessage("Waiting for file '" + p + "'");
+                    final Path fileName = p.subpath(p.getNameCount() - 1, p.getNameCount());
+                    final Path parent = p.getParent();
+                    Kind<Path> e = null;
+                    if (m_fileStatus.equals(CREATION)) {
+                        e = StandardWatchEventKinds.ENTRY_CREATE;
+                    } else if (m_fileStatus.equals(MODIFICATION)) {
+                        e = StandardWatchEventKinds.ENTRY_MODIFY;
+                    } else if (m_fileStatus.equals(DELETION)) {
+                        e = StandardWatchEventKinds.ENTRY_DELETE;
+                    } else {
+                        throw new RuntimeException(
+                            "Selected watchservice event is not available. Selected watchservice : " + m_fileStatus);
                     }
-                }
+                    parent.register(w, e);
 
-                // reset key
-                boolean valid = key.reset();
-                if (!valid) {
-                    break;
+                    boolean keepLooking = true;
+
+                    while (keepLooking) {
+                        // watch file until the event appears
+                        WatchKey key;
+                        // wait for a key to be available
+                        key = w.take();
+
+                        for (final WatchEvent<?> event : key.pollEvents()) {
+                            if (fileName.equals(event.context())) {
+                                keepLooking = false;
+                            }
+                        }
+
+                        // reset key
+                        final boolean valid = key.reset();
+                        if (!valid) {
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -239,23 +255,18 @@ public class SleepNodeModel extends NodeModel {
     }
 
     private static void waitFor(final long delay) throws ExecutionException {
-        Callable<Void> c = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                Thread.sleep(delay);
-                return null;
-            }
-        };
-
-        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(c);
+        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
+            Thread.sleep(delay);
+            return null;
+        });
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // ignore
     }
 
@@ -264,34 +275,31 @@ public class SleepNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        int selection = settings.getInt(CFGKEY_WAITOPTION);
-        if (!(0 <= selection && selection <= 2)) {
-            throw new InvalidSettingsException("Selected wait option is not available. Please reconfigure.");
-        }
+        final int selection = settings.getInt(CFGKEY_WAITOPTION);
 
         int h = 0;
         int m = 0;
         int s = 0;
-        if (selection == 0) {
+        if (selection == WAIT_FOR_TIME) {
             h = settings.getInt(CFGKEY_FORHOURS);
             m = settings.getInt(CFGKEY_FORMINUTES);
             s = settings.getInt(CFGKEY_FORSECONDS);
-        } else if (selection == 1) {
+        } else if (selection == WAIT_UNTIL_TIME) {
             h = settings.getInt(CFGKEY_TOHOURS);
             m = settings.getInt(CFGKEY_TOMINUTES);
             s = settings.getInt(CFGKEY_TOSECONDS);
         }
 
-        if (!(0 <= h) && !(h <= 23)) {
+        if (0 > h && h > 23) {
             throw new InvalidSettingsException("Number of hours must be between 0 and 23. Hours = " + h + ".");
-        } else if (!(0 <= m) && !(m <= 59)) {
+        } else if (0 > m && m > 59) {
             throw new InvalidSettingsException("Number of minutes must be between 0 and 59. Minutes = " + m + ".");
-        } else if (!(0 <= s) && !(s <= 59)) {
+        } else if (0 > s && s > 59) {
             throw new InvalidSettingsException("Number of seconds must be between 0 and 59. Secondss = " + s + ".");
         }
 
-        if (selection == 2) {
-            SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
+        if (selection == WAIT_FILE) {
+            final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
         }
 
@@ -304,17 +312,17 @@ public class SleepNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selection = settings.getInt(CFGKEY_WAITOPTION);
 
-        if (m_selection == 0) {
+        if (m_selection == WAIT_FOR_TIME) {
             m_forHours = settings.getInt(CFGKEY_FORHOURS);
             m_forMin = settings.getInt(CFGKEY_FORMINUTES);
             m_forSec = settings.getInt(CFGKEY_FORSECONDS);
-        } else if (m_selection == 1) {
+        } else if (m_selection == WAIT_UNTIL_TIME) {
             m_toHours = settings.getInt(CFGKEY_TOHOURS);
             m_toMin = settings.getInt(CFGKEY_TOMINUTES);
             m_toSec = settings.getInt(CFGKEY_TOSECONDS);
-        } else if (m_selection == 2) {
+        } else if (m_selection == WAIT_FILE) {
             m_filePath = settings.getString(CFGKEY_FILEPATH);
-            SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
+            final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
             m_fileStatus = sms.getStringValue();
         }
@@ -332,8 +340,8 @@ public class SleepNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // ignore -> no view
     }
 
@@ -353,7 +361,7 @@ public class SleepNodeModel extends NodeModel {
         settings.addInt(CFGKEY_TOSECONDS, m_toSec);
 
         settings.addString(CFGKEY_FILEPATH, m_filePath);
-        SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, "Modification");
+        final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, MODIFICATION);
         sms.setStringValue(m_fileStatus);
         sms.saveSettingsTo(settings);
     }

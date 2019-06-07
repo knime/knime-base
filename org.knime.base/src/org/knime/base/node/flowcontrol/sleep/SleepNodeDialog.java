@@ -44,11 +44,13 @@
  */
 package org.knime.base.node.flowcontrol.sleep;
 
+import static org.knime.base.node.flowcontrol.sleep.SleepNodeModel.WAIT_FILE;
+import static org.knime.base.node.flowcontrol.sleep.SleepNodeModel.WAIT_FOR_TIME;
+import static org.knime.base.node.flowcontrol.sleep.SleepNodeModel.WAIT_UNTIL_TIME;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -104,8 +106,8 @@ public class SleepNodeDialog extends NodeDialogPane {
         waitForTimePanel();
         waitToTimePanel();
         waitForFile();
-        JPanel p = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(2, 4, 2, 4);
@@ -146,7 +148,7 @@ public class SleepNodeDialog extends NodeDialogPane {
 
         p.add(m_fileChooser, c);
 
-        ButtonGroup selection = new ButtonGroup();
+        final ButtonGroup selection = new ButtonGroup();
         selection.add(m_forRB);
         selection.add(m_toRB);
         selection.add(m_fileRB);
@@ -162,7 +164,7 @@ public class SleepNodeDialog extends NodeDialogPane {
         m_forSpinner = new JSpinner(m_waitForSpinnerModel);
         m_forSpinner.setEditor(new JSpinner.DateEditor(m_forSpinner, "HH:mm:ss"));
 
-        Calendar cal = Calendar.getInstance();
+        final Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -172,15 +174,11 @@ public class SleepNodeDialog extends NodeDialogPane {
 
         m_forRB = new JRadioButton("Wait for time:");
         m_forRB.doClick();
-        m_forRB.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                if (m_forRB.isSelected()) {
-                    m_selection = 0;
-                }
-                m_forSpinner.setEnabled(m_forRB.isSelected());
+        m_forRB.addItemListener(e -> {
+            if (m_forRB.isSelected()) {
+                m_selection = WAIT_FOR_TIME;
             }
+            m_forSpinner.setEnabled(m_forRB.isSelected());
         });
     }
 
@@ -190,7 +188,7 @@ public class SleepNodeDialog extends NodeDialogPane {
         m_toSpinner = new JSpinner(m_waitToSpinnerModel);
         m_toSpinner.setEditor(new JSpinner.DateEditor(m_toSpinner, "HH:mm:ss"));
 
-        Calendar cal = Calendar.getInstance();
+        final Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -200,38 +198,30 @@ public class SleepNodeDialog extends NodeDialogPane {
 
         m_toRB = new JRadioButton("Wait to time:");
         m_toRB.doClick();
-        m_toRB.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                if (m_toRB.isSelected()) {
-                    m_selection = 1;
-                }
-                m_toSpinner.setEnabled(m_toRB.isSelected());
+        m_toRB.addItemListener(e -> {
+            if (m_toRB.isSelected()) {
+                m_selection = WAIT_UNTIL_TIME;
             }
+            m_toSpinner.setEnabled(m_toRB.isSelected());
         });
     }
 
     private void waitForFile() {
         m_events =
-            new DialogComponentButtonGroup(new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, "Modification"),
-                false, null, "Creation", "Modification", "Deletion");
+                new DialogComponentButtonGroup(new SettingsModelString(SleepNodeModel.CFGKEY_FILESTATUS, "Modification"),
+                    false, null, SleepNodeModel.CREATION, SleepNodeModel.MODIFICATION, SleepNodeModel.DELETION);
 
-        FlowVariableModel fvm = createFlowVariableModel(SleepNodeModel.CFGKEY_FILEPATH, Type.STRING);
+        final FlowVariableModel fvm = createFlowVariableModel(SleepNodeModel.CFGKEY_FILEPATH, Type.STRING);
 
         m_fileChooser = new FilesHistoryPanel(fvm, SleepNodeModel.CFGKEY_FILEPATH, LocationValidation.None);
 
         m_fileRB = new JRadioButton("Wait for file.. ");
-        m_fileRB.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                if (m_fileRB.isSelected()) {
-                    m_selection = 2;
-                }
-                m_fileChooser.setEnabled(m_fileRB.isSelected());
-                m_events.getModel().setEnabled(m_fileRB.isSelected());
+        m_fileRB.addItemListener(e -> {
+            if (m_fileRB.isSelected()) {
+                m_selection = WAIT_FILE;
             }
+            m_fileChooser.setEnabled(m_fileRB.isSelected());
+            m_events.getModel().setEnabled(m_fileRB.isSelected());
         });
 
     }
@@ -241,7 +231,7 @@ public class SleepNodeDialog extends NodeDialogPane {
      */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
-        Calendar c = Calendar.getInstance();
+        final Calendar c = Calendar.getInstance();
         c.set(Calendar.MILLISECOND, 0);
 
         c.set(Calendar.HOUR_OF_DAY, settings.getInt(SleepNodeModel.CFGKEY_FORHOURS, 0));
@@ -261,14 +251,14 @@ public class SleepNodeDialog extends NodeDialogPane {
         try {
             m_events.loadSettingsFrom(settings, specs);
             m_fileRB.doClick();
-        } catch (NotConfigurableException e) {
+        } catch (final NotConfigurableException e) {
             // nothing
         }
 
-        m_selection = settings.getInt(SleepNodeModel.CFGKEY_WAITOPTION, 0);
-        if (m_selection == 0) {
+        m_selection = settings.getInt(SleepNodeModel.CFGKEY_WAITOPTION, WAIT_FOR_TIME);
+        if (m_selection == WAIT_FOR_TIME) {
             m_forRB.doClick();
-        } else if (m_selection == 1) {
+        } else if (m_selection == WAIT_UNTIL_TIME) {
             m_toRB.doClick();
         } else {
             m_fileRB.doClick();
@@ -281,7 +271,7 @@ public class SleepNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
-        Calendar c = Calendar.getInstance();
+        final Calendar c = Calendar.getInstance();
         c.setTime((Date)m_waitForSpinnerModel.getValue());
 
         settings.addInt(SleepNodeModel.CFGKEY_FORHOURS, c.get(Calendar.HOUR_OF_DAY));
