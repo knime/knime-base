@@ -2,21 +2,25 @@
 <knimeNode icon="./validate.png" type="Manipulator" xmlns="http://knime.org/node/v2.10"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
   <name>Table Validator</name>
-  <shortDescription> Validates the input data according to a reference data table specification. </shortDescription>
+  <shortDescription>
+       Validates the input data according to a reference data table specification specified in the
+       dialog of the node.
+  </shortDescription>
   <fullDescription>
     <intro>
-      This node ensures a certain table structure and table content. The base for a configuration is
-      given by a reference specification which must be connected to the input port during
+      This node ensures a certain table structure and table content using a reference data table specification
+      defined by the user in the configuration dialog.
+      The base for the configuration is given by the specification of the input table during
       configuration and provides the basic template for the output table. It is ensured that the
-      result table structure is mostly identical to the reference specification. That is done by
-      resorting of columns, the insertion of missing columns (filled with missing values) and
+      result table structure is mostly identical to the specification defined by the user. That is 
+      done by resorting of columns, the insertion of missing columns (filled with missing values) and
       optional removal of additional columns. You can also choose for each column (or a group of
       them) if it is required and if the data type or the domain should be checked/converted. To
       make use of this second approach, select a column or a list of columns to be handling, drag
       them to the appearing "+" button, and set the parameters. To remove this extra handling (and
       instead use the default handling), click the "Remove" button for this column. If the
       validation succeeds, data gets output to the first port (potentially renamed, sorted according
-      to the reference specification and with converted types). If the validation fails, the first
+      to the user defined specification and with converted types). If the validation fails, the first
       port is inactive and the second port contains a table that lists all conflicts or the node
       fails. All options mentioned below marked with
       <i>Data</i>

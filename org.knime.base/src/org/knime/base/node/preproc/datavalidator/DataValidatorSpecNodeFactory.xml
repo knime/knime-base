@@ -2,19 +2,22 @@
 <knimeNode icon="./validate.png" type="Manipulator" xmlns="http://knime.org/node/v2.10"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
   <name>Table Validator (Reference)</name>
-  <shortDescription> Validates the input data according to a reference data table specification. </shortDescription>
+  <shortDescription> 
+      Validates the input data according to a reference data table specification give as a second
+      input to the node. 
+  </shortDescription>
   <fullDescription>
     <intro>
-      This node ensures a certain table structure and table content. The base for a configuration is
-      given by a reference specification which must be connected to the input port during
-      configuration and provides the basic template for the output table. It is ensured that the
-      result table structure is mostly identical to the reference specification. That is done by
+      This node ensures a certain table structure and table content using the table structure 
+      and table content of a second table as reference. The table to validate should be connected
+      to the first input port and the reference table to the second input port.
+      Contrary to the <i>Table Validator</i> node, the performed validation checks will applied
+      on the bases of all columns of the reference table and can't be adjusted per column.
+      It is ensured that the result table structure is mostly identical to the reference specification.
+      That is done by
       resorting of columns, the insertion of missing columns (filled with missing values) and
-      optional removal of additional columns. You can also choose for each column (or a group of
-      them) if it is required and if the data type or the domain should be checked/converted. To
-      make use of this second approach, select a column or a list of columns to be handling, drag
-      them to the appearing "+" button, and set the parameters. To remove this extra handling (and
-      instead use the default handling), click the "Remove" button for this column. If the
+      optional removal of additional columns. You can also choose if each column is required and if 
+      the data type or the domain should be checked/converted. If the
       validation succeeds, data gets output to the first port (potentially renamed, sorted according
       to the reference specification and with converted types). If the validation fails, the first
       port is inactive and the second port contains a table that lists all conflicts or the node
@@ -132,13 +135,6 @@
             <i>Replace with missing values</i>
           </li>
         </ul>
-      </option>
-      <option name="Set input table as reference"> Sets the input table specification as reference specification.</option>
-    </tab>
-    <tab name="Reference Spec">
-      <option name="Reference Spec"> The reference specification.</option>
-      <option name="Input Spec"> The input specification. Only visible if it differs from the reference
-        specification.
       </option>
     </tab>
   </fullDescription>
