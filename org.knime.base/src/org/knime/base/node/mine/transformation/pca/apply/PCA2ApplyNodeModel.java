@@ -54,7 +54,6 @@ import java.io.IOException;
 import org.knime.base.node.mine.transformation.pca.settings.PCAApplySettings;
 import org.knime.base.node.mine.transformation.port.TransformationPortObject;
 import org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec;
-import org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec.TransformationType;
 import org.knime.base.node.mine.transformation.util.TransformationUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
@@ -108,10 +107,8 @@ final class PCA2ApplyNodeModel extends NodeModel {
 
         final BufferedDataTable inTable = (BufferedDataTable)inData[DATA_IN_PORT];
         final TransformationPortObject inModel = (TransformationPortObject)inData[MODEL_IN_PORT];
-        final TransformationPortObjectSpec inModelSpec = inModel.getSpec();
 
-        final ColumnRearranger cr = createColumnRearranger(inModel, inModelSpec.getInputColumnNames(),
-            inTable.getDataTableSpec(), inModel.getSpec().getTransformationType());
+        final ColumnRearranger cr = createColumnRearranger(inModel, inModel.getSpec(), inTable.getDataTableSpec());
 
         final BufferedDataTable out = exec.createColumnRearrangeTable(inTable, cr, exec);
         return new PortObject[]{out};
@@ -132,37 +129,35 @@ final class PCA2ApplyNodeModel extends NodeModel {
                     "The model is expecting column \"" + columnName + "\" which is missing in the input table.");
             }
         }
-        if (!m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
+        if (m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
+            CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() > 0,
+                "The number of dimensions to project to must be a positive integer larger than 0, %s is invalid",
+                m_applySettings.getDimModel().getIntValue());
+            final int maxDim = modelSpec.getMaxDimToReduceTo();
+            CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() <= maxDim,
+                "The number of dimensions to project to must be less than or equal %s", maxDim);
+        } else if (!modelSpec.getEigenValues().isPresent()) {
             return null;
         }
-
-        CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() > 0,
-            "The number of dimensions to project to must be a positive integer larger than 0, %s is invalid",
-            m_applySettings.getDimModel().getIntValue());
-        final int maxDim = modelSpec.getMaxDimToReduceTo();
-        CheckUtils.checkSetting(m_applySettings.getDimModel().getIntValue() <= maxDim,
-            "The number of dimensions to project to must be less than or equal %s", maxDim);
-        return new PortObjectSpec[]{
-            createColumnRearranger(null, usedColumnNames, dataSpec, modelSpec.getTransformationType()).createSpec()};
+        return new PortObjectSpec[]{createColumnRearranger(null, modelSpec, dataSpec).createSpec()};
     }
 
     private ColumnRearranger createColumnRearranger(final TransformationPortObject inModel,
-        final String[] usedColumnNames, final DataTableSpec dataSpec, final TransformationType transType) {
-        if (inModel == null) {
-            return TransformationUtils.createColumnRearranger(dataSpec, null,
-                m_applySettings.getDimModel().getIntValue(), m_applySettings.getRemoveUsedColsModel().getBooleanValue(),
-                usedColumnNames, transType);
-        }
-        final int dimToReduceTo;
-        if (m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
-            dimToReduceTo = m_applySettings.getDimModel().getIntValue();
-        } else {
-            dimToReduceTo = TransformationUtils.calcDimForGivenInfPreservation(inModel.getTransformationMatrix(),
-                m_applySettings.getInfPreservationModel().getDoubleValue());
-        }
-        return TransformationUtils.createColumnRearranger(dataSpec, inModel.getTransformationMatrix(), dimToReduceTo,
-            m_applySettings.getRemoveUsedColsModel().getBooleanValue(), usedColumnNames, transType);
+        final TransformationPortObjectSpec inModelSpec, final DataTableSpec dataSpec) {
+        return TransformationUtils.createColumnRearranger(dataSpec,
+            inModel != null ? inModel.getTransformationMatrix() : null, getDimToReduceTo(inModelSpec),
+            m_applySettings.getRemoveUsedColsModel().getBooleanValue(), inModelSpec.getInputColumnNames(),
+            inModelSpec.getTransformationType());
 
+    }
+
+    private int getDimToReduceTo(final TransformationPortObjectSpec inModelSpec) {
+        if (m_applySettings.getUseFixedDimensionModel().getBooleanValue()) {
+            return m_applySettings.getDimModel().getIntValue();
+        } else {
+            return TransformationUtils.calcDimForGivenInfPreservation(inModelSpec.getEigenValues().get(),
+                inModelSpec.getMaxDimToReduceTo(), m_applySettings.getInfPreservationModel().getDoubleValue());
+        }
     }
 
     @Override
@@ -178,8 +173,8 @@ final class PCA2ApplyNodeModel extends NodeModel {
 
                 final TransformationPortObjectSpec inModelSpec = inModel.getSpec();
 
-                final ColumnRearranger cr = createColumnRearranger(inModel, inModelSpec.getInputColumnNames(),
-                    (DataTableSpec)inSpecs[DATA_IN_PORT], inModelSpec.getTransformationType());
+                final ColumnRearranger cr =
+                    createColumnRearranger(inModel, inModelSpec, (DataTableSpec)inSpecs[DATA_IN_PORT]);
 
                 final StreamableFunction func = cr.createStreamableFunction(DATA_IN_PORT, 0);
                 func.runFinal(inputs, outputs, exec);
