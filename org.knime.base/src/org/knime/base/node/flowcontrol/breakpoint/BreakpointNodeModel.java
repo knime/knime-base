@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -65,6 +66,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchConsumer;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
+import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 
 /**
@@ -106,7 +108,8 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_choice.getStringValue().equals(BreakpointNodeDialog.VARIABLEMATCH)
-            && (getAvailableFlowVariables().get(m_varname.getStringValue()) == null)) {
+            && (getAvailableFlowVariables().get(m_varname.getStringValue()) == null)
+            && (!ArrayUtils.contains(inSpecs, InactiveBranchPortObjectSpec.INSTANCE))) { // see AP-11667
             throw new InvalidSettingsException(
                 "Selected flow variable: '" + m_varname.getStringValue() + "' not available!");
 
