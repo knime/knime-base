@@ -465,21 +465,21 @@
             path="/">
       </category>
       <category
-            icon="icons/16x16/category_container.png"
+            icon="icons/16x16/category_coordination.png"
             level-id="container"
             name="Coordination"
             path="/flowabstraction">
       </category>
       <category
             after="container"
-            icon="icons/16x16/category_quickform.png"
+            icon="icons/16x16/category_configuration.png"
             level-id="configuration"
             name="Configuration"
             path="/flowabstraction">
       </category>
       <category
             after="configuration"
-            icon="icons/16x16/category_quickform.png"
+            icon="icons/16x16/category_widget.png"
             level-id="widgets"
             name="Widgets"
             path="/flowabstraction">
