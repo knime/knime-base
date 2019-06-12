@@ -113,11 +113,19 @@
             name="Views"
             path="/"/>
       <category
-            level-id="property"
-            icon="icons/16x16/category_properties.png"
+            description="JavaScript based Views"
+            icon="icons/16x16/category_javascript.png"
+            level-id="js-views"
+            name="JavaScript"
+            path="/view">
+      </category>
+      <category
+            after="js-views"
             description="View Properties"
-            path="/view"
-            name="Property"/>
+            icon="icons/16x16/category_properties.png"
+            level-id="property"
+            name="Property"
+            path="/view"/>
       <category
             after="property"
             description="Utility nodes supporting visualizations in KNIME"
@@ -131,7 +139,7 @@
             icon="icons/missing.gif"
             level-id="appender"
             locked="true"
-            name="Viz Appender"
+            name="Visualization Column Appender"
             path="/view">
       </category>
       <category
