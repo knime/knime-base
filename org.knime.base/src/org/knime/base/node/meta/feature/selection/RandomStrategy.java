@@ -193,8 +193,8 @@ public class RandomStrategy extends AbstractNonSequentialFeatureSelectionStrateg
         m_tolerance = builder.m_tolerance;
         m_random = builder.m_useSeed ? new Random(builder.m_seed) : new Random();
         m_nrFeaturesLowerBound = builder.m_nrFeaturesLowerBound <= 0 ? 1 : builder.m_nrFeaturesLowerBound;
-        m_nrFeaturesUpperBound =
-            builder.m_nrFeaturesUpperBound <= 0 ? m_featureIndices.size() : builder.m_nrFeaturesUpperBound;
+        m_nrFeaturesUpperBound = builder.m_nrFeaturesUpperBound <= 0 ? m_featureIndices.size()
+            : Math.min(builder.m_nrFeaturesUpperBound, m_featureIndices.size());
         CheckUtils.checkArgument(
             !(m_nrFeaturesLowerBound > 0 && m_nrFeaturesUpperBound > 0
                 && m_nrFeaturesLowerBound > m_nrFeaturesUpperBound),
