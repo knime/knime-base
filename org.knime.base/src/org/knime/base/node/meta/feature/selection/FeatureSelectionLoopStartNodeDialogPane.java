@@ -286,13 +286,9 @@ public class FeatureSelectionLoopStartNodeDialogPane extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         final FeatureSelectionLoopStartSettings cfg = new FeatureSelectionLoopStartSettings();
-        if (m_constantColumnsFilterPanel.getExcludeList().isEmpty()) {
-            throw new InvalidSettingsException(
-                "All input columns are declared as constant. Please make at least one column non constant.");
-        }
         final int sizeIncludes = m_constantColumnsFilterPanel.getIncludeList().size();
         if (sizeIncludes < 1) {
-            throw new InvalidSettingsException("At least one column must be included!");
+            throw new InvalidSettingsException("At least one column must be included and declared as variable!");
         }
         if (m_strategyComboBox.getSelectedItem() == FeatureSelectionStrategies.Strategy.GeneticAlgorithm
             || m_strategyComboBox.getSelectedItem() == FeatureSelectionStrategies.Strategy.Random) {

@@ -26,12 +26,11 @@
 		<tab name="Options">
 			<option name="Static and Variable Features">Columns can be selected manually or by means of
 				regular expressions. The columns in the left pane are the static
-				columns, those in the right pane the variable columns. Since a
-				feature selection process always has a target feature and a set of
-				features to select from, there will always be at least one static
-				column and more than one variable column. If you leave the left pane
-				empty and run the node, you will get a warning. Columns can be moved
-				from one pane to the other by clicking on the appropriate button in
+				columns, those in the right pane the variable columns. If you want to
+				learn a supervised model (e.g. classification or regression), at least one static
+				column and more than one variable column will be needed. For an unsupervised model
+				(e.g. clustering), no constant column but only variable columns will be needed.
+				Columns can be moved from one pane to the other by clicking on the appropriate button in
 				the middle.
 			</option>
 			<option name="Feature selection strategy">
