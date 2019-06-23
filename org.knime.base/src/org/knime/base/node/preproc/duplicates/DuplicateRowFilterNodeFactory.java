@@ -53,15 +53,15 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * The duplicates handler node factory.
+ * The duplicates row filter node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class DuplicateFilterNodeFactory extends NodeFactory<DuplicateFilterNodeModel> {
+public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRowFilterNodeModel> {
 
     @Override
-    public DuplicateFilterNodeModel createNodeModel() {
-        return new DuplicateFilterNodeModel();
+    public DuplicateRowFilterNodeModel createNodeModel() {
+        return new DuplicateRowFilterNodeModel();
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class DuplicateFilterNodeFactory extends NodeFactory<DuplicateFilte
     }
 
     @Override
-    public NodeView<DuplicateFilterNodeModel> createNodeView(final int viewIndex, final DuplicateFilterNodeModel nodeModel) {
+    public NodeView<DuplicateRowFilterNodeModel> createNodeView(final int viewIndex, final DuplicateRowFilterNodeModel nodeModel) {
         return null;
     }
 
@@ -81,7 +81,7 @@ public final class DuplicateFilterNodeFactory extends NodeFactory<DuplicateFilte
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new DuplicateFilterNodeDialog();
+        return new DuplicateRowFilterNodeDialog();
     }
 
 }

@@ -58,10 +58,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 
 /**
+ * The duplicate row filter node settings.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class DuplicateFilterSettings {
+final class DuplicateRowFilterSettings {
 
     enum RowSelectionType {
 

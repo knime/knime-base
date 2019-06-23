@@ -64,7 +64,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.Border;
 
-import org.knime.base.node.preproc.duplicates.DuplicateFilterSettings.RowSelectionType;
+import org.knime.base.node.preproc.duplicates.DuplicateRowFilterSettings.RowSelectionType;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -79,11 +79,11 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ColumnSelectionPanel;
 
 /**
- * The duplicates handler node dialog.
+ * The duplicates row filter node dialog.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class DuplicateFilterNodeDialog extends NodeDialogPane {
+final class DuplicateRowFilterNodeDialog extends NodeDialogPane {
 
     private static final String OPTIONS_TITLE = "Choose columns for duplicates detection";
 
@@ -104,10 +104,10 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
     private static final String COLUMN_NAME_CLASH_EXCEPTION =
         "The selected reference column is also used for duplicate detection.";
 
-    private final DuplicateFilterSettings m_settings = new DuplicateFilterSettings();
+    private final DuplicateRowFilterSettings m_settings = new DuplicateRowFilterSettings();
 
     private final DialogComponentColumnFilter2 m_groupCols =
-        new DialogComponentColumnFilter2(m_settings.getGroupColsModel(), DuplicateFilterNodeModel.DATA_IN_PORT);
+        new DialogComponentColumnFilter2(m_settings.getGroupColsModel(), DuplicateRowFilterNodeModel.DATA_IN_PORT);
 
     private final DialogComponentBoolean m_retainOrder =
         new DialogComponentBoolean(m_settings.getRetainOrderModel(), "Retain row order");
@@ -116,9 +116,9 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         new DialogComponentBoolean(m_settings.getInMemoryModel(), "In-memory computation");
 
     private final DialogComponentBoolean m_addUniqLblCol = new DialogComponentBoolean(m_settings.getAddUniqueLblModel(),
-        "Add column showing duplicates (\"" + DuplicateFilterNodeModel.UNIQUE_IDENTIFIER + "\", \""
-            + DuplicateFilterNodeModel.CHOSEN_IDENTIFIER + "\", \"" + DuplicateFilterNodeModel.DUPLICATE_IDENTIFIER
-            + "\") to all rows ");
+        "Add column showing duplicates (\"" + DuplicateRowFilterNodeModel.UNIQUE_IDENTIFIER + "\", \""
+            + DuplicateRowFilterNodeModel.CHOSEN_IDENTIFIER + "\", \""
+            + DuplicateRowFilterNodeModel.DUPLICATE_IDENTIFIER + "\") to all rows ");
 
     private final DialogComponentBoolean m_addRowLblCol = new DialogComponentBoolean(m_settings.getAddRowLblModel(),
         "Add column identifying the ROWID of the chosen row for each duplicate row");
@@ -136,7 +136,7 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
     /**
      * Constructor.
      */
-    DuplicateFilterNodeDialog() {
+    DuplicateRowFilterNodeDialog() {
         addTab("Options", createMainPanel());
         addTab("Advanced", createAdvancedPanel());
     }
@@ -355,7 +355,7 @@ final class DuplicateFilterNodeDialog extends NodeDialogPane {
         } else {
             m_keepDupBtn.doClick();
         }
-        m_curSpec = specs[DuplicateFilterNodeModel.DATA_IN_PORT];
+        m_curSpec = specs[DuplicateRowFilterNodeModel.DATA_IN_PORT];
 
         m_referenceCol.update(m_curSpec, m_settings.getReferenceCol(), false, true);
         if (m_settings.getReferenceCol() == null && m_referenceCol.getNrItemsInList() > 0) {

@@ -55,7 +55,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.knime.base.node.preproc.duplicates.DuplicateFilterSettings.RowSelectionType;
+import org.knime.base.node.preproc.duplicates.DuplicateRowFilterSettings.RowSelectionType;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -88,7 +88,7 @@ import org.knime.core.util.UniqueNameGenerator;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class DuplicateFilterNodeModel extends NodeModel {
+final class DuplicateRowFilterNodeModel extends NodeModel {
 
     /** The data inport index. */
     static final int DATA_IN_PORT = 0;
@@ -106,12 +106,12 @@ final class DuplicateFilterNodeModel extends NodeModel {
     private static final String ORDER_COL_NAME_SUGGESTION = "orig-order";
 
     /** The settings. */
-    private final DuplicateFilterSettings m_settings = new DuplicateFilterSettings();
+    private final DuplicateRowFilterSettings m_settings = new DuplicateRowFilterSettings();
 
     /**
      * Constructor.
      */
-    DuplicateFilterNodeModel() {
+    DuplicateRowFilterNodeModel() {
         super(1, 1);
     }
 

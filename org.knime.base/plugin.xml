@@ -2090,7 +2090,7 @@
       <node
             category-path="/manipulation/row/row-filter"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.duplicates.DuplicateFilterNodeFactory">
+            factory-class="org.knime.base.node.preproc.duplicates.DuplicateRowFilterNodeFactory">
       </node>
    </extension>
    
