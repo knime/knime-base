@@ -486,7 +486,7 @@
       <category
             icon="icons/16x16/category_coordination.png"
             level-id="container"
-            name="Coordination"
+            name="Workflow Invocation"
             path="/flowabstraction">
       </category>
       <category
@@ -507,7 +507,7 @@
             after="widgets"
             icon="icons/16x16/category_quickform.png"
             level-id="quickforms"
-            name="Quickforms"
+            name="Quickforms (legacy)"
             path="/flowabstraction">
       </category>
       <category
