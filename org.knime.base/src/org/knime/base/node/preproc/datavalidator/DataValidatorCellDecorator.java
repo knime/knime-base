@@ -49,14 +49,14 @@
 package org.knime.base.node.preproc.datavalidator;
 
 import static org.knime.base.node.preproc.datavalidator.DataValidatorColConflicts.containsMissingValue;
-import static org.knime.base.node.preproc.datavalidator.DataValidatorColConflicts.convertionFailed;
+import static org.knime.base.node.preproc.datavalidator.DataValidatorColConflicts.conversionFailed;
 import static org.knime.base.node.preproc.datavalidator.DataValidatorColConflicts.outOfDomain;
 import static org.knime.core.node.util.CheckUtils.checkArgument;
 import static org.knime.core.node.util.CheckUtils.checkNotNull;
 
 import java.util.Set;
 
-import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.ConvertionType;
+import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.ConversionType;
 import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.DataTypeHandling;
 import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.DomainHandling;
 import org.knime.core.data.DataCell;
@@ -183,8 +183,8 @@ abstract class DataValidatorCellDecorator {
      * @param conflicts the conflicts collection
      * @return a decorator
      */
-    static DataValidatorCellDecorator convertionCellDecorator(final DataValidatorCellDecorator inner,
-        final DataTypeHandling handling, final ConvertionType type, final DataColumnSpec referenceSpec,
+    static DataValidatorCellDecorator conversionCellDecorator(final DataValidatorCellDecorator inner,
+        final DataTypeHandling handling, final ConversionType type, final DataColumnSpec referenceSpec,
         final DataValidatorColConflicts conflicts) {
         checkNotNull(handling);
         checkNotNull(type);
@@ -201,7 +201,7 @@ abstract class DataValidatorCellDecorator {
                 } catch (RuntimeException e) {
                     switch (handling) {
                         case CONVERT_FAIL:
-                            conflicts.addConflict(convertionFailed(getInputColumnName(), rowKey, type.getTargetType()));
+                            conflicts.addConflict(conversionFailed(getInputColumnName(), rowKey, type.getTargetType()));
                             // also return the missing cell
                             return DataType.getMissingCell();
                         default:

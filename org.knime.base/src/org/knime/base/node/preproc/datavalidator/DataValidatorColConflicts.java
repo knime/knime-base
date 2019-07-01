@@ -123,7 +123,7 @@ final class DataValidatorColConflicts implements Iterable<DataValidatorColConfli
      * @param targetType the target type
      * @return a conflict containing the an appropriate validation issue description
      */
-    static DataValidatorColConflict convertionFailed(final String columnName, final RowKey rowKey,
+    static DataValidatorColConflict conversionFailed(final String columnName, final RowKey rowKey,
         final DataType targetType) {
         return new DataValidatorColConflict(columnName, Conflict.CONVERSION_FAILED,
             Conflict.CONVERSION_FAILED.getDescription(columnName, rowKey, targetType));

@@ -361,8 +361,8 @@ final class DataValidatorColConfiguration {
             && isNotEqualType(refColumnSpec, originalColumnSpec)
             ) {
             decorator =
-                DataValidatorCellDecorator.convertionCellDecorator(decorator, m_dataTypeHandling,
-                    getConvertionType(refColumnSpec), refColumnSpec, conflicts);
+                DataValidatorCellDecorator.conversionCellDecorator(decorator, m_dataTypeHandling,
+                    getConversionType(refColumnSpec), refColumnSpec, conflicts);
         }
 
         if (!rejectButDomainCheck && !DomainHandling.NONE.equals(m_domainHandlingMinMax)
@@ -395,27 +395,27 @@ final class DataValidatorColConfiguration {
      * @param refColumnSpec
      * @return
      */
-    private static ConvertionType getConvertionType(final DataColumnSpec refColumnSpec) {
+    private static ConversionType getConversionType(final DataColumnSpec refColumnSpec) {
         DataType type = refColumnSpec.getType();
 
         // NOTE: The sequence here is important as we go from the most smallest general type to the most general one
         if (BooleanCell.TYPE.isASuperTypeOf(type)) {
-            return ConvertionType.BOOLEAN;
+            return ConversionType.BOOLEAN;
         }
         if (IntCell.TYPE.isASuperTypeOf(type)) {
-            return ConvertionType.INT;
+            return ConversionType.INT;
         }
         if (LongCell.TYPE.isASuperTypeOf(type)) {
-            return ConvertionType.LONG;
+            return ConversionType.LONG;
         }
         if (DoubleCell.TYPE.isASuperTypeOf(type)) {
-            return ConvertionType.DOUBLE;
+            return ConversionType.DOUBLE;
         }
         if (StringCell.TYPE.isASuperTypeOf(type)) {
-            return ConvertionType.STRING;
+            return ConversionType.STRING;
         }
         throw new IllegalArgumentException("Type cannot be converted, " + type + " only "
-            + Arrays.toString(ConvertionType.values()) + " are supported types.");
+            + Arrays.toString(ConversionType.values()) + " are supported types.");
 
     }
 
@@ -510,11 +510,11 @@ final class DataValidatorColConfiguration {
     }
 
     /**
-     * Defines the convertion possibilities of this node.
+     * Defines the conversion possibilities of this node.
      *
      * @author Marcel Hanser
      */
-    enum ConvertionType {
+    enum ConversionType {
         /**
          * Boolean type.
          */
@@ -567,7 +567,7 @@ final class DataValidatorColConfiguration {
         /**
          * @param dataType
          */
-        private ConvertionType(final DataType dataType) {
+        private ConversionType(final DataType dataType) {
             m_dataType = dataType;
         }
 

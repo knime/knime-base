@@ -179,7 +179,7 @@ enum TypeCellFactory {
      * @param toConvert the string to convert
      * @param otherArgument an additional argument, semantic definition is done by the concrete {@link TypeCellFactory}
      * @return a new data cell from the given value
-     * @throws TypeParsingException if an error occured during convertion
+     * @throws TypeParsingException if an error occurred during conversion
      */
     final DataCell createCell(final String toConvert, final String otherArgument) throws TypeParsingException {
         try {
