@@ -125,8 +125,8 @@ final class DataValidatorColConflicts implements Iterable<DataValidatorColConfli
      */
     static DataValidatorColConflict convertionFailed(final String columnName, final RowKey rowKey,
         final DataType targetType) {
-        return new DataValidatorColConflict(columnName, Conflict.CONVERTION_FAILED,
-            Conflict.CONVERTION_FAILED.getDescription(columnName, rowKey, targetType));
+        return new DataValidatorColConflict(columnName, Conflict.CONVERSION_FAILED,
+            Conflict.CONVERSION_FAILED.getDescription(columnName, rowKey, targetType));
     }
 
     /**
@@ -165,8 +165,8 @@ final class DataValidatorColConflicts implements Iterable<DataValidatorColConfli
      * @author Marcel Hanser
      */
     private enum Conflict {
-        COLUMN_NOT_CONTAINED("Column '%s' is missing."), CONVERTION_FAILED(
-            "Convertion of cell in column '%s' in row '%s' to type '%s' failed."), INVALID_DATATYPE(
+        COLUMN_NOT_CONTAINED("Column '%s' is missing."), CONVERSION_FAILED(
+            "Conversion of cell in column '%s' in row '%s' to type '%s' failed."), INVALID_DATATYPE(
             "DataType of column '%s' should be of type '%s' but was '%s'."), OUT_OF_DOMAIN(
             "Cell in column '%s' and row '%s' is %s."), CONTAINS_MISSING_VALUE(
             "Column '%s' contains missing value in row '%s'"), UNKNOWN_COLUMN(
