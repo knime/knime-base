@@ -82,7 +82,7 @@ public class BreakpointNodeModel extends NodeModel implements InactiveBranchCons
     private final SettingsModelString m_varvalue = BreakpointNodeDialog.createVarValueModel();
 
     private final SettingsModelString m_choice =
-        BreakpointNodeDialog.createChoiceModel(m_varname, new AtomicBoolean(true));
+        BreakpointNodeDialog.createChoiceModel(m_varname, m_varvalue, new AtomicBoolean(true));
 
     // since 3.8
 
