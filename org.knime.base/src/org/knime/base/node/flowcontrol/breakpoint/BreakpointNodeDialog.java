@@ -85,7 +85,8 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
 
     private final SettingsModelString m_varValueModel = createVarValueModel();
 
-    private final SettingsModelString m_choicesModel = createChoiceModel(m_varNameModel, m_varValueModel, m_varsAvailable);
+    private final SettingsModelString m_choicesModel =
+        createChoiceModel(m_varNameModel, m_varValueModel, m_varsAvailable);
 
     private final SettingsModelString m_customMessageModel = createCustomMessageModel();
 
@@ -180,8 +181,8 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
      * @param e
      * @return settings model (choice) for node and dialog.
      */
-    static SettingsModelString createChoiceModel(final SettingsModelString varNameModel, final SettingsModelString varValueModel,
-        final AtomicBoolean varsAvailable) {
+    static SettingsModelString createChoiceModel(final SettingsModelString varNameModel,
+        final SettingsModelString varValueModel, final AtomicBoolean varsAvailable) {
         final SettingsModelString choiceModel = new SettingsModelString("BreakPoint", EMTPYTABLE);
 
         choiceModel.addChangeListener(e -> {
