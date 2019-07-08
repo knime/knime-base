@@ -111,6 +111,15 @@ public class RowFilterComponent {
     }
 
     /**
+     * Cancels every execution that is currently in progress in this component.
+     *
+     * @since 4.1
+     */
+    public void cancelEveryExecution() {
+        m_editorPanel.cancelEveryExecution();
+    }
+
+    /**
      * Gets the row filter component panel.
      *
      * @return the {@link JPanel}

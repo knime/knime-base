@@ -168,6 +168,21 @@ public class ConditionEditorPanel extends JPanel {
         registerActions();
     }
 
+    /**
+     * Cancels every execution that is currently in progress in this panel.
+     */
+    public void cancelEveryExecution() {
+        m_operatorPanelHolder.getOperatorPanel().ifPresent(panel -> panel.cancelEveryExecution());
+    }
+
+    @Override
+    public void setVisible(final boolean aFlag) {
+        if (!aFlag) {
+            cancelEveryExecution();
+        }
+        super.setVisible(aFlag);
+    }
+
     private void registerActions() {
         m_columnNameComboBox.addActionListener(e -> {
             if (!m_displaying) {
@@ -385,6 +400,10 @@ public class ConditionEditorPanel extends JPanel {
          * Removes all UI components from the operator panel holder.
          */
         public void cleanUp() {
+            final OperatorPanel operatorPanel = m_operatorPanel;
+            if (operatorPanel != null) {
+                operatorPanel.cancelEveryExecution();
+            }
             removeAll();
         }
 

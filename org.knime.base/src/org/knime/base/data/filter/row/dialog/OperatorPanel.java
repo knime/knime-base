@@ -58,6 +58,15 @@ import javax.swing.JPanel;
 public interface OperatorPanel {
 
     /**
+     * Cancels every execution that is currently in progress in this panel.
+     *
+     * @since 4.1
+     */
+    default void cancelEveryExecution() {
+        // Nothing to cancel by default.
+    }
+
+    /**
      * Initialize operator panel by cleaning up previous state additional extra parameters.
      *
      * @param parameters the {@link OperatorPanelParameters}

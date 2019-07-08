@@ -112,6 +112,13 @@ public class EditorPanel extends JPanel {
     }
 
     /**
+     * Cancels every execution that is currently in progress in this panel.
+     */
+    public void cancelEveryExecution() {
+        m_conditionPanel.cancelEveryExecution();
+    }
+
+    /**
      * Shows group editor panel.
      *
      * @param group the {@linkplain TreeGroupHandler group}
