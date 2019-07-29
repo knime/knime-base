@@ -81,6 +81,9 @@ import org.knime.core.node.util.ColumnSelectionComboxBox;
  * @author Bernd Wiswedel, University of Konstanz
  */
 public class SamplingNodeDialogPanel extends JPanel {
+
+    private final SamplingNodeSettings m_settings = new SamplingNodeSettings();
+
     private final JRadioButton m_absoluteButton =
             new JRadioButton("Absolute   ");
 
@@ -254,41 +257,40 @@ public class SamplingNodeDialogPanel extends JPanel {
      */
     public void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec spec) throws NotConfigurableException {
-        SamplingNodeSettings sets = new SamplingNodeSettings();
         try {
-            sets.loadSettingsFrom(settings, true);
+            m_settings.loadSettingsFrom(settings, true);
         } catch (InvalidSettingsException ise) {
             assert false : "The method should not throw an exception.";
         }
 
-        if (sets.countMethod() == SamplingNodeSettings.CountMethods.Relative) {
+        if (m_settings.countMethod() == SamplingNodeSettings.CountMethods.Relative) {
             m_relativeButton.doClick();
         } else {
             m_absoluteButton.doClick();
         }
 
-        m_relativeSpinner.setValue(new Double(sets.fraction() * 100));
-        m_absoluteSpinner.setValue(Integer.valueOf(sets.count()));
-        m_randomSampling.setSelected(sets.samplingMethod().equals(
+        m_relativeSpinner.setValue(new Double(m_settings.fraction() * 100));
+        m_absoluteSpinner.setValue(Integer.valueOf(m_settings.count()));
+        m_randomSampling.setSelected(m_settings.samplingMethod().equals(
                 SamplingMethods.Random));
-        m_stratifiedSampling.setSelected(sets.samplingMethod().equals(
+        m_stratifiedSampling.setSelected(m_settings.samplingMethod().equals(
                 SamplingMethods.Stratified));
-        m_linearSampling.setSelected(sets.samplingMethod().equals(
+        m_linearSampling.setSelected(m_settings.samplingMethod().equals(
                 SamplingMethods.Linear));
-        m_firstSampling.setSelected(sets.samplingMethod().equals(
+        m_firstSampling.setSelected(m_settings.samplingMethod().equals(
                 SamplingMethods.First));
 
-        if (sets.seed() != null) {
+        if (m_settings.seed() != null) {
             m_useSeedChecker.setSelected(true);
-            m_seedField.setText(sets.seed().toString());
+            m_seedField.setText(m_settings.seed().toString());
         } else {
             m_useSeedChecker.setSelected(false);
         }
 
         try {
-            m_classColumn.update(spec, sets.classColumn());
+            m_classColumn.update(spec, m_settings.classColumn());
             m_stratifiedSampling.setEnabled(true);
-            m_classColumn.setEnabled(sets.samplingMethod().equals(
+            m_classColumn.setEnabled(m_settings.samplingMethod().equals(
                     SamplingMethods.Stratified));
         } catch (NotConfigurableException ex) {
             // no nominal value column, so disable stratified sampling
@@ -304,34 +306,41 @@ public class SamplingNodeDialogPanel extends JPanel {
      * @param settings the object to write to
      */
     public void saveSettingsTo(final NodeSettingsWO settings) {
-        SamplingNodeSettings sets = new SamplingNodeSettings();
         if (m_relativeButton.isSelected()) {
-            sets.countMethod(SamplingNodeSettings.CountMethods.Relative);
+            m_settings.countMethod(SamplingNodeSettings.CountMethods.Relative);
         } else {
-            sets.countMethod(SamplingNodeSettings.CountMethods.Absolute);
+            m_settings.countMethod(SamplingNodeSettings.CountMethods.Absolute);
         }
 
-        sets
+        m_settings
                 .fraction(((Double)m_relativeSpinner.getValue()).doubleValue() / 100);
-        sets.count(((Integer)m_absoluteSpinner.getValue()).intValue());
+        m_settings.count(((Integer)m_absoluteSpinner.getValue()).intValue());
         if (m_randomSampling.isSelected()) {
-            sets.samplingMethod(SamplingMethods.Random);
+            m_settings.samplingMethod(SamplingMethods.Random);
         } else if (m_stratifiedSampling.isSelected()) {
-            sets.samplingMethod(SamplingMethods.Stratified);
+            m_settings.samplingMethod(SamplingMethods.Stratified);
         } else if (m_linearSampling.isSelected()) {
-            sets.samplingMethod(SamplingMethods.Linear);
+            m_settings.samplingMethod(SamplingMethods.Linear);
         } else if (m_firstSampling.isSelected()) {
-            sets.samplingMethod(SamplingMethods.First);
+            m_settings.samplingMethod(SamplingMethods.First);
         }
 
         if (m_useSeedChecker.isSelected()) {
-            sets.seed(new Long(m_seedField.getValue().toString()));
+            m_settings.seed(new Long(m_seedField.getValue().toString()));
         } else {
-            sets.seed(null);
+            m_settings.seed(null);
         }
 
-        sets.classColumn(m_classColumn.getSelectedColumn());
+        m_settings.classColumn(m_classColumn.getSelectedColumn());
 
-        sets.saveSettingsTo(settings);
+        m_settings.saveSettingsTo(settings);
+    }
+
+    /**
+     * @return the settings
+     * @since 4.1
+     */
+    public final SamplingNodeSettings getSettings() {
+        return m_settings;
     }
 }

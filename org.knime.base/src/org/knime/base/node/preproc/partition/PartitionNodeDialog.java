@@ -48,6 +48,8 @@ package org.knime.base.node.preproc.partition;
 import javax.swing.BorderFactory;
 
 import org.knime.base.node.preproc.sample.SamplingNodeDialogPanel;
+import org.knime.base.node.preproc.sample.SamplingNodeSettings;
+import org.knime.base.node.preproc.sample.SamplingNodeSettings.CountMethods;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -70,6 +72,9 @@ public class PartitionNodeDialog extends NodeDialogPane {
     public PartitionNodeDialog() {
         super();
         m_panel = new SamplingNodeDialogPanel();
+        final SamplingNodeSettings settings = m_panel.getSettings();
+        settings.setDefaultCountMethod(CountMethods.Relative);
+        settings.setDefaultFraction(0.7);
         m_panel.setBorder(BorderFactory
                 .createTitledBorder("Choose size of first partition"));
         super.addTab("First partition", m_panel);

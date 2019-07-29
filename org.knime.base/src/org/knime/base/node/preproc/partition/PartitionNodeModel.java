@@ -49,6 +49,8 @@ import org.knime.base.node.preproc.filter.row.rowfilter.EndOfTableException;
 import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.IncludeFromNowOn;
 import org.knime.base.node.preproc.sample.AbstractSamplingNodeModel;
+import org.knime.base.node.preproc.sample.SamplingNodeSettings;
+import org.knime.base.node.preproc.sample.SamplingNodeSettings.CountMethods;
 import org.knime.base.node.preproc.sample.StratifiedSamplingRowFilter;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -74,6 +76,9 @@ public class PartitionNodeModel extends AbstractSamplingNodeModel {
      */
     public PartitionNodeModel() {
         super(2);
+        final SamplingNodeSettings settings = super.getSettings();
+        settings.setDefaultCountMethod(CountMethods.Relative);
+        settings.setDefaultFraction(0.7);
     }
 
     /**

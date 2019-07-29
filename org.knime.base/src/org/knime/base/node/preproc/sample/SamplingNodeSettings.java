@@ -76,6 +76,10 @@ public class SamplingNodeSettings {
 
     private static final String CFG_CLASS_COLUMN = "class_column";
 
+    private double m_defaultFraction = 0.1;
+
+    private CountMethods m_defaultCountMethod = CountMethods.Absolute;
+
     /**
      * Enum for the two methods for setting the number of rows in the output
      * table.
@@ -156,7 +160,7 @@ public class SamplingNodeSettings {
         String seed;
         if (guessValues) {
             String method =
-                    settings.getString(CFG_COUNT_METHOD, CountMethods.Absolute
+                    settings.getString(CFG_COUNT_METHOD, m_defaultCountMethod
                             .toString());
             if (method == null) {
                 method = CountMethods.Absolute.toString();
@@ -181,7 +185,7 @@ public class SamplingNodeSettings {
             }
 
             seed = settings.getString(CFG_RANDOM_SEED, null);
-            m_fraction = settings.getDouble(CFG_FRACTION, 0.1);
+            m_fraction = settings.getDouble(CFG_FRACTION, m_defaultFraction);
             m_count = settings.getInt(CFG_COUNT, 100);
         } else {
             String method = settings.getString(CFG_COUNT_METHOD);
@@ -351,5 +355,21 @@ public class SamplingNodeSettings {
      */
     public String classColumn() {
         return m_classColumnName;
+    }
+
+    /**
+     * @param defaultFraction the default fraction to set
+     * @since 4.1
+     */
+    public void setDefaultFraction(final double defaultFraction) {
+        m_defaultFraction = defaultFraction;
+    }
+
+    /**
+     * @param defaultCountMethod the default CountMethod to set
+     * @since 4.1
+     */
+    public void setDefaultCountMethod(final CountMethods defaultCountMethod) {
+        m_defaultCountMethod = defaultCountMethod;
     }
 }
