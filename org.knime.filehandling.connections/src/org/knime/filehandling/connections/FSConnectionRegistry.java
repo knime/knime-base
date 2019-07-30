@@ -9,20 +9,25 @@ import org.apache.commons.lang3.Validate;
 
 /**
  * A registry for file system connections.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
 public class FSConnectionRegistry {
-	
+
 	private static FSConnectionRegistry INSTANCE;
 
 	private final Map<String, FSConnection> m_connections;
-	
+
 	private FSConnectionRegistry() {
 		m_connections = new HashMap<>();
 	}
 
-	static FSConnectionRegistry getInstance() {
+	/**
+	 * Returns the instance of this registry.
+	 *
+	 * @return the instance of this registry
+	 */
+	public static synchronized FSConnectionRegistry getInstance() {
 		if (INSTANCE == null) {
 			INSTANCE = new FSConnectionRegistry();
 		}
@@ -31,25 +36,25 @@ public class FSConnectionRegistry {
 
 	/**
 	 * Registers a connection to the registry and returns its unique key.
-	 * 
+	 *
 	 * @param connection the connection to be registered
 	 * @return a generated key for the registration
 	 */
-	public String register(FSConnection connection) {
+	public synchronized String register(final FSConnection connection) {
 		Validate.notNull(connection, "Connection not allowed to be null");
 		return keyOf(connection).orElse(registerInternal(connection));
 	}
-	
-	private Optional<String> keyOf(FSConnection connection) {
-		return 
+
+	private Optional<String> keyOf(final FSConnection connection) {
+		return
 			m_connections.entrySet() //
 				.stream() //
 				.filter(entry -> entry.getValue() == connection) //
 				.findFirst() //
 				.map(entry -> entry.getKey()); //
 	}
-	
-	private String registerInternal(FSConnection connection) {
+
+	private String registerInternal(final FSConnection connection) {
 		String key = UUID.randomUUID().toString();
 		m_connections.put(key, connection);
 		return key;
@@ -57,31 +62,31 @@ public class FSConnectionRegistry {
 
 	/**
 	 * Retrieve a connection for the given key.
-	 * 
+	 *
 	 * @param key key for the connection to be retrieved
 	 * @return Optional containing the connection, if present
 	 */
-	public Optional<FSConnection> retrieve(String key) {
+	public synchronized Optional<FSConnection> retrieve(final String key) {
 		return Optional.ofNullable(m_connections.get(key));
 	}
-	
+
 	/**
 	 * Deregisters a connection from the registry.
-	 * 
+	 *
 	 * @param key key for the connection to be deregistered
 	 * @return the connection that has been deregistered, null if the key is not in the registry.
 	 */
-	public FSConnection deregister(String key) {
+	public synchronized FSConnection deregister(final String key) {
 		return m_connections.remove(key);
 	}
 
 	/**
 	 * Checks if the provided key has a connection in the registry.
-	 * 
+	 *
 	 * @param key key for the connection
 	 * @return true if the key is in the registry
 	 */
-	public boolean contains(String key) {
+	public synchronized boolean contains(final String key) {
 		return m_connections.containsKey(key);
 	}
 
