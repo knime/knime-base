@@ -1,4 +1,4 @@
-package org.knime.filehandling.connections;
+package org.knime.filehandling.core.connections;
 
 import java.util.HashMap;
 import java.util.Map;

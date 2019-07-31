@@ -46,7 +46,7 @@
  * History
  *   Jul 23, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.connections;
+package org.knime.filehandling.core.connections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,6 +59,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Test;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSConnectionRegistry;
 
 /**
  * Test suite for the {@link FSConnectionRegistry}.

@@ -45,7 +45,7 @@
  * History
  *   20.11.2010 (meinl): created
  */
-package org.knime.filehandling.connections;
+package org.knime.filehandling.core.connections;
 
 import org.knime.testing.core.AbstractTestcaseCollector;
 

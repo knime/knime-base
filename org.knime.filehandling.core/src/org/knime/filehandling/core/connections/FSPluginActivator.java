@@ -2,7 +2,7 @@
  * $Revision$ $Date$ $Author$
  *
  */
-package org.knime.filehandling.connections;
+package org.knime.filehandling.core.connections;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
