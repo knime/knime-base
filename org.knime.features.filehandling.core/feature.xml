@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.knime.features.filehandling.connections"
+      id="org.knime.features.filehandling.core"
       label="KNIME File Handling Nodes"
       version="4.1.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
