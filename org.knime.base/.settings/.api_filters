@@ -19,6 +19,12 @@
                 <message_argument value="3.7.0"/>
             </message_arguments>
         </filter>
+        <filter comment="org.knime.core.util.SWTUtilities moved to org.knime.core.ui" id="923795461">
+            <message_arguments>
+                <message_argument value="4.0.0"/>
+                <message_argument value="4.0.0"/>
+            </message_arguments>
+        </filter>
         <filter id="924844039">
             <message_arguments>
                 <message_argument value="3.3.1"/>
