@@ -56,8 +56,8 @@ import org.knime.core.node.NodeSettingsWO;
  * @author ohl, University of Konstanz
  */
 class FileWriterNodeSettings extends FileWriterSettings {
-    
-    /** Policy how to proceed when output file exists 
+
+    /** Policy how to proceed when output file exists
      * (overwrite, abort, append). */
     enum FileOverwritePolicy {
         /** Fail during configure/execute. */
@@ -74,6 +74,8 @@ class FileWriterNodeSettings extends FileWriterSettings {
 
     private static final String CFGKEY_COMMENT_END = "commentEnd";
 
+    private static final String CFGKEY_COMMENT_INDENT = "commentIndent";
+
     private static final String CFGKEY_ADD_TIME = "addTime";
 
     private static final String CFGKEY_ADD_USER = "addUser";
@@ -85,7 +87,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
     private static final String CFGKEY_COLHEADER_SKIP_ON_APPEND =
             "skipWriteColHeaderOnAppend";
 
-    /** If to append to existing file, replaced with 
+    /** If to append to existing file, replaced with
      * {@link FileOverwritePolicy} since v2.1.
      */
     private static final String CFGKEY_APPEND = "isAppendToFile";
@@ -94,6 +96,12 @@ class FileWriterNodeSettings extends FileWriterSettings {
     private static final String CFGKEY_GZIP = "gzip";
 
     private static final String CFGKEY_OVERWRITE_POLICY = "fileOverwritePolicy";
+
+    /** @since 4.1 */
+    private static final String PRE_4_1_COMMENT_INDENT = "   ";
+
+    /** @since 4.1 */
+    private static final String DEFAULT_COMMENT_INDENT = "\t";
 
     private String m_fileName;
 
@@ -107,6 +115,8 @@ class FileWriterNodeSettings extends FileWriterSettings {
 
     private String m_commentEnd;
 
+    private String m_commentIndent;
+
     private boolean m_addCreationTime;
 
     private boolean m_addCreationUser;
@@ -114,9 +124,9 @@ class FileWriterNodeSettings extends FileWriterSettings {
     private boolean m_addTableName;
 
     private String m_customCommentLine;
-    
+
     private FileOverwritePolicy m_fileOverwritePolicy;
-    
+
     private boolean m_isGzipOutput;
 
     /**
@@ -128,6 +138,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
         m_skipColHeaderIfFileExists = false;
         m_commentBegin = "";
         m_commentEnd = "";
+        m_commentIndent = DEFAULT_COMMENT_INDENT;
         m_addCreationTime = false;
         m_addCreationUser = false;
         m_addTableName = false;
@@ -153,19 +164,19 @@ class FileWriterNodeSettings extends FileWriterSettings {
 
         FileOverwritePolicy fileOverwritePolicy;
         if (settings.containsKey(CFGKEY_OVERWRITE_POLICY)) { // since v2.1
-            String val = settings.getString(CFGKEY_OVERWRITE_POLICY, 
+            String val = settings.getString(CFGKEY_OVERWRITE_POLICY,
                     FileOverwritePolicy.Abort.toString());
             try {
                 fileOverwritePolicy = FileOverwritePolicy.valueOf(val);
             } catch (Exception e) {
-                throw new InvalidSettingsException("Unable to parse 'file " 
+                throw new InvalidSettingsException("Unable to parse 'file "
                         + "overwrite policy' field: " + val, e);
             }
         } else if (settings.containsKey(CFGKEY_APPEND)) { // v1.3 - v2.0
             if (settings.getBoolean(CFGKEY_APPEND)) {
                 fileOverwritePolicy = FileOverwritePolicy.Append;
             } else {
-                // preferably this should default to Abort but that would 
+                // preferably this should default to Abort but that would
                 // break existing flows (change in behavior)
                 fileOverwritePolicy = FileOverwritePolicy.Overwrite;
             }
@@ -181,6 +192,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
         // these options are only available since 1.2.++
         m_commentBegin = settings.getString(CFGKEY_COMMENT_BEGIN, "");
         m_commentEnd = settings.getString(CFGKEY_COMMENT_END, "");
+        m_commentIndent = settings.getString(CFGKEY_COMMENT_INDENT, PRE_4_1_COMMENT_INDENT);
         m_addCreationTime = settings.getBoolean(CFGKEY_ADD_TIME, false);
         m_addCreationUser = settings.getBoolean(CFGKEY_ADD_USER, false);
         m_addTableName = settings.getBoolean(CFGKEY_ADD_TABLENAME, false);
@@ -195,12 +207,13 @@ class FileWriterNodeSettings extends FileWriterSettings {
     public void saveSettingsTo(final NodeSettingsWO settings) {
         super.saveSettingsTo(settings);
         settings.addString(CFGKEY_FILE, m_fileName);
-        settings.addString(CFGKEY_OVERWRITE_POLICY, 
+        settings.addString(CFGKEY_OVERWRITE_POLICY,
                 m_fileOverwritePolicy.toString());
         settings.addBoolean(CFGKEY_COLHEADER_SKIP_ON_APPEND,
                 m_skipColHeaderIfFileExists);
         settings.addString(CFGKEY_COMMENT_BEGIN, m_commentBegin);
         settings.addString(CFGKEY_COMMENT_END, m_commentEnd);
+        settings.addString(CFGKEY_COMMENT_INDENT, m_commentIndent);
         settings.addBoolean(CFGKEY_ADD_TIME, m_addCreationTime);
         settings.addBoolean(CFGKEY_ADD_USER, m_addCreationUser);
         settings.addBoolean(CFGKEY_ADD_TABLENAME, m_addTableName);
@@ -262,7 +275,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
     String getCommentBegin() {
         return m_commentBegin;
     }
-    
+
     /**
      * @param fileOverwritePolicy the fileOverwritePolicy to set
      */
@@ -273,7 +286,7 @@ class FileWriterNodeSettings extends FileWriterSettings {
             m_fileOverwritePolicy = fileOverwritePolicy;
         }
     }
-    
+
     /**
      * @return the fileOverwritePolicy, never null
      */
@@ -300,6 +313,21 @@ class FileWriterNodeSettings extends FileWriterSettings {
      */
     void setCommentEnd(final String commentEnd) {
         m_commentEnd = commentEnd;
+    }
+
+    /**
+     * @return the comment ident string
+     */
+    String getCommentIndent() {
+        return m_commentIndent;
+    }
+
+    /**
+     *
+     * @param commentIndent the comment indentation string to be set
+     */
+    void setCommentIndent(final String commentIndent) {
+        m_commentIndent = commentIndent;
     }
 
     /**
@@ -343,14 +371,14 @@ class FileWriterNodeSettings extends FileWriterSettings {
     void setSkipColHeaderIfFileExists(final boolean skipColHeaderIfFileExists) {
         m_skipColHeaderIfFileExists = skipColHeaderIfFileExists;
     }
-    
+
     /**
 	 * @param isGzipOutput the isGzipOutput to set.
 	 */
 	void setGzipOutput(final boolean isGzipOutput) {
 		m_isGzipOutput = isGzipOutput;
 	}
-	
+
 	/**
 	 * @return the isGzipOutput
 	 */

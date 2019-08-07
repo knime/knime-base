@@ -371,6 +371,8 @@ public class CSVWriterNodeModel extends NodeModel {
             return;
         }
 
+        final String commentIndent = settings.getCommentIndent();
+
         // if we have block comment patterns we write them only once. Otherwise
         // we add the commentBegin to every line.
         boolean blockComment = notEmpty(settings.getCommentEnd());
@@ -386,9 +388,9 @@ public class CSVWriterNodeModel extends NodeModel {
                 file.write(settings.getCommentBegin());
             }
             if (append) {
-                file.write("   The following data was added ");
+                file.write(commentIndent + "The following data was added ");
             } else {
-                file.write("   This file was created ");
+                file.write(commentIndent + "This file was created ");
             }
             if (settings.addCreationTime()) {
                 file.write("on " + new Date() + " ");
@@ -404,7 +406,7 @@ public class CSVWriterNodeModel extends NodeModel {
             if (!blockComment) {
                 file.write(settings.getCommentBegin());
             }
-            file.write("   The data was read from the \""
+            file.write(commentIndent + "The data was read from the \""
                     + tableName + "\" data table.");
             file.newLine();
         }
@@ -416,7 +418,7 @@ public class CSVWriterNodeModel extends NodeModel {
                 if (!blockComment) {
                     file.write(settings.getCommentBegin());
                 }
-                file.write("   " + line);
+                file.write(commentIndent + line);
                 file.newLine();
             }
         }

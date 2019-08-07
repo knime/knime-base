@@ -124,6 +124,10 @@
 		    line comments, in contrast to block comment if you specify both
 		    patterns).
 			</option>
+		<option name="Comment Indentation">
+		    If you have checked at least one of the content options, you can
+		    specify an indentation string, i.e., a prefix for every comment line.
+		</option>
 		</tab>
 		<tab name="Number Format">
 		<description>

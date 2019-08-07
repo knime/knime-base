@@ -41,12 +41,13 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Mar 9, 2007 (ohl): created
  */
 package org.knime.base.node.io.csvwriter;
 
+import java.awt.Component;
 import java.awt.Dimension;
 
 import javax.swing.BorderFactory;
@@ -60,7 +61,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 /**
- * 
+ *
  * @author ohl, University of Konstanz
  */
 class CommentPanel extends JPanel {
@@ -73,6 +74,8 @@ class CommentPanel extends JPanel {
 
     private final JTextField m_commentLine = new JTextField();
 
+    private final JTextField m_commentIndent = new JTextField();
+
     private final JCheckBox m_addDate = new JCheckBox();
 
     private final JCheckBox m_addUser = new JCheckBox();
@@ -82,13 +85,14 @@ class CommentPanel extends JPanel {
     private final JCheckBox m_addCustom = new JCheckBox();
 
     /**
-     * 
+     *
      */
     public CommentPanel() {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(createWhatPanel());
         add(createCommentPanel());
+        add(createCommentIndentationPanel());
     }
 
     private JPanel createCommentPanel() {
@@ -120,35 +124,74 @@ class CommentPanel extends JPanel {
         commentPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory
                 .createEtchedBorder(), "Comment Pattern"));
         commentPanel.add(textBox);
-        commentPanel.add(Box.createVerticalStrut(50));
+        commentPanel.add(Box.createVerticalStrut(35));
         commentPanel.add(patternBox);
         commentPanel.add(Box.createVerticalGlue());
 
         return commentPanel;
     }
 
+    /**
+     * @return
+     */
+    private Component createCommentIndentationPanel() {
+        Box textBox = Box.createHorizontalBox();
+        textBox.add(new JLabel(
+                "Specify the identation for every comment line"));
+        textBox.add(Box.createHorizontalGlue()); // make it left aligned.
+
+        Box patternBox = Box.createHorizontalBox();
+        patternBox.add(Box.createHorizontalStrut(50));
+        patternBox.add(new JLabel("Indentation:"));
+        patternBox.add(Box.createHorizontalStrut(4));
+
+
+        m_commentIndent.setPreferredSize(TEXTFIELDDIM);
+        m_commentIndent.setMaximumSize(TEXTFIELDDIM);
+        m_commentIndent.setToolTipText("\"Use \\t for a tab character");
+        patternBox.add(m_commentIndent);
+        patternBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, TEXTFIELDDIM.height));
+
+        JPanel commentIndentationPanel = new JPanel();
+        commentIndentationPanel.setLayout(new BoxLayout(commentIndentationPanel, BoxLayout.Y_AXIS));
+        commentIndentationPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory
+                .createEtchedBorder(), "Comment Indentation"));
+        commentIndentationPanel.add(textBox);
+        commentIndentationPanel.add(Box.createVerticalStrut(35));
+        commentIndentationPanel.add(patternBox);
+        commentIndentationPanel.add(Box.createVerticalGlue());
+
+        return commentIndentationPanel;
+    }
+
+
+
     private JPanel createWhatPanel() {
 
         m_addDate.setText("the current creation time");
         m_addDate.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
         });
         m_addUser.setText("the user account name");
         m_addUser.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
         });
         m_addTableName.setText("the input table name");
         m_addTableName.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
         });
         m_addCustom.setText("this text:");
         m_addCustom.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
@@ -211,14 +254,14 @@ class CommentPanel extends JPanel {
 
     /**
      * Updates the values in the components from the passed settings object.
-     * 
+     *
      * @param settings the object holding the values to load.
      */
     void loadValuesIntoPanel(final FileWriterNodeSettings settings) {
 
         m_commentBegin.setText(settings.getCommentBegin());
         m_commentEnd.setText(settings.getCommentEnd());
-
+        m_commentIndent.setText(settings.getCommentIndent().replaceAll("\t", "\\\\t"));
         // support \t and \n in the custom comment
         String commLine = settings.getCustomCommentLine();
         commLine = FileWriterSettings.escapeString(commLine);
@@ -239,30 +282,31 @@ class CommentPanel extends JPanel {
      * selected comments to add.
      */
     private void selectionChanged() {
-        
+
         boolean addComment = false;
-        
+
         addComment |= m_addCustom.isSelected();
         addComment |= m_addDate.isSelected();
         addComment |= m_addUser.isSelected();
         addComment |= m_addTableName.isSelected();
-        
+
         m_commentLine.setEnabled(m_addCustom.isSelected());
 
         m_commentBegin.setEnabled(addComment);
         m_commentEnd.setEnabled(addComment);
+        m_commentIndent.setEnabled(addComment);
     }
 
     /**
      * Saves the current values from the panel into the passed object.
-     * 
+     *
      * @param settings the object to write the values into
      */
     void saveValuesFromPanelInto(final FileWriterNodeSettings settings) {
 
         settings.setCommentBegin(m_commentBegin.getText());
         settings.setCommentEnd(m_commentEnd.getText());
-
+        settings.setCommentIndent(m_commentIndent.getText().replaceAll("\\\\t", "\t"));
         if (m_addCustom.isSelected()) {
             // support \t and \n in the custom comment line
             String commLine = m_commentLine.getText();
