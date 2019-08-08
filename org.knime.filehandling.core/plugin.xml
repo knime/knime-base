@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/category_uncategorized.png"
+            level-id="file-handling-prototype"
+            locked="true"
+            name="File Handling (Prototype)"
+            path="/labs/">
+      </category>
+   </extension>
+
+</plugin>
