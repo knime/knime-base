@@ -4,7 +4,7 @@
    <extension
          point="org.knime.workbench.repository.categories">
       <category
-            icon="icons/category_uncategorized.png"
+            icon="icons/cfilehandling16x16.png"
             level-id="file-handling-prototype"
             locked="true"
             name="File Handling (Prototype)"

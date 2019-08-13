@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.knime.features.filehandling.core"
-      label="KNIME File Handling Nodes"
+      label="KNIME File Handling (Prototype)"
       version="4.1.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
+
+   <description>
+      A prototype for the new file handling in KNIME.
+   </description>
 
    <copyright>
       Copyright by KNIME AG, Zurich, Switzerland
