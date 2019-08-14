@@ -57,6 +57,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.Config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  *
  * @author Dominik Morent, KNIME AG, Zurich, Switzerland
@@ -242,6 +244,7 @@ public class PMMLCompoundPredicate extends PMMLPredicate {
     }
 
     /** {@inheritDoc} */
+    @JsonIgnore
     @Override
     public Set<String> getUsedNominalSplitAttributeValues() {
         // KNIME decision tree learner does not learn compound predicates
