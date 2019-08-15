@@ -299,8 +299,7 @@ final class DecTreePredictorGraphView
             m_hiLiteHdl.removeHiLiteListener(this);
             DecisionTree dt = model.getDecisionTree();
             if (dt != null) {
-                m_graph.setColorColumn(
-                        model.getDecisionTree().getColorColumn());
+                m_graph.setColorColumn(dt.getColorColumn());
                 m_graph.setRootNode(dt.getRootNode());
 
                 // retrieve HiLiteHandler from Input port

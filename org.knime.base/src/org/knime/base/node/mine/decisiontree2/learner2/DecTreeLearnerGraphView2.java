@@ -99,11 +99,10 @@ import org.knime.core.node.property.hilite.KeyEvent;
  *
  * @since 2.6
  */
-final class DecTreeLearnerGraphView2 extends
-        NodeView<DecisionTreeLearnerNodeModel2> implements HiLiteListener {
+final class DecTreeLearnerGraphView2 extends NodeView<DecisionTreeLearnerNodeModel2> implements HiLiteListener {
     /** The node logger for this class. */
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(DecTreeLearnerGraphView2.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DecTreeLearnerGraphView2.class);
+
     private DecTreeGraphView m_graph;
 
     private HiLiteHandler m_hiLiteHdl;
@@ -119,12 +118,8 @@ final class DecTreeLearnerGraphView2 extends
      */
     public DecTreeLearnerGraphView2(final DecisionTreeLearnerNodeModel2 model) {
         super(model);
-        DecisionTreeNode root =
-                null != model.getDecisionTree() ? model.getDecisionTree()
-                        .getRootNode() : null;
-        String colorColumn =
-            null != model.getDecisionTree() ? model.getDecisionTree()
-                    .getColorColumn() : null;
+        DecisionTreeNode root = null != model.getDecisionTree() ? model.getDecisionTree().getRootNode() : null;
+        String colorColumn = null != model.getDecisionTree() ? model.getDecisionTree().getColorColumn() : null;
         m_graph = new DecTreeGraphView(root, colorColumn);
         JPanel p = new JPanel(new GridLayout());
         p.setBackground(ColorAttr.BACKGROUND);
@@ -132,8 +127,7 @@ final class DecTreeLearnerGraphView2 extends
         p.setBorder(new EmptyBorder(5, 5, 5, 5));
         JScrollPane treeView = new JScrollPane(p);
         Dimension prefSize = treeView.getPreferredSize();
-        treeView.setPreferredSize(
-                new Dimension(Math.min(prefSize.width, 800), prefSize.height));
+        treeView.setPreferredSize(new Dimension(Math.min(prefSize.width, 800), prefSize.height));
 
         JSplitPane splitPane = new JSplitPane();
         splitPane.setResizeWeight(1.0);
@@ -143,8 +137,7 @@ final class DecTreeLearnerGraphView2 extends
         setComponent(splitPane);
 
         // retrieve HiLiteHandler from Input port
-        m_hiLiteHdl = model.getInHiLiteHandler(
-                DecisionTreeLearnerNodeModel2.DATA_INPORT);
+        m_hiLiteHdl = model.getInHiLiteHandler(DecisionTreeLearnerNodeModel2.DATA_INPORT);
         // and add menu entries for HiLite-ing
         m_hiLiteMenu = this.createHiLiteMenu();
         this.getJMenuBar().add(m_hiLiteMenu);
@@ -236,18 +229,15 @@ final class DecTreeLearnerGraphView2 extends
         c.gridy++;
         p.add(new JLabel("Zoom:"), c);
 
-
         c.gridy++;
-        final Map<Object, Float> scaleFactors =
-                new LinkedHashMap<Object, Float>();
+        final Map<Object, Float> scaleFactors = new LinkedHashMap<Object, Float>();
         scaleFactors.put("140.0%", 140f);
         scaleFactors.put("120.0%", 120f);
         scaleFactors.put("100.0%", 100f);
         scaleFactors.put("80.0%", 80f);
         scaleFactors.put("60.0%", 60f);
 
-        final JComboBox scaleFactorComboBox = new JComboBox(
-                scaleFactors.keySet().toArray());
+        final JComboBox scaleFactorComboBox = new JComboBox(scaleFactors.keySet().toArray());
         scaleFactorComboBox.setEditable(true);
         scaleFactorComboBox.setSelectedItem("100.0%");
         scaleFactorComboBox.addActionListener(new ActionListener() {
@@ -259,20 +249,17 @@ final class DecTreeLearnerGraphView2 extends
                 if (null == scaleFactor) {
                     String str = ((String)selected).trim();
                     if (str.endsWith("%")) {
-                        scaleFactor = Float.parseFloat(
-                                str.substring(0, str.length() - 1));
+                        scaleFactor = Float.parseFloat(str.substring(0, str.length() - 1));
                     } else {
                         scaleFactor = Float.parseFloat(str);
                     }
                 }
                 if (scaleFactor < 10) {
-                    LOGGER.error("A zoom which is lower than 10% "
-                            + "is not supported");
+                    LOGGER.error("A zoom which is lower than 10% " + "is not supported");
                     scaleFactor = 10f;
                 }
                 if (scaleFactor > 500) {
-                    LOGGER.error("A zoom which is greater than 500% "
-                            + "is not supported");
+                    LOGGER.error("A zoom which is greater than 500% " + "is not supported");
                     scaleFactor = 500f;
                 }
                 String sf = Float.toString(scaleFactor) + "%";
@@ -313,13 +300,11 @@ final class DecTreeLearnerGraphView2 extends
             m_hiLiteHdl.removeHiLiteListener(this);
             DecisionTree dt = model.getDecisionTree();
             if (dt != null) {
-                m_graph.setColorColumn(
-                        model.getDecisionTree().getColorColumn());
+                m_graph.setColorColumn(dt.getColorColumn());
                 m_graph.setRootNode(dt.getRootNode());
 
                 // retrieve HiLiteHandler from Input port
-                m_hiLiteHdl = model.getInHiLiteHandler(
-                                DecisionTreeLearnerNodeModel2.DATA_INPORT);
+                m_hiLiteHdl = model.getInHiLiteHandler(DecisionTreeLearnerNodeModel2.DATA_INPORT);
                 // and adjust menu entries for HiLite-ing
                 m_hiLiteMenu.setEnabled(m_hiLiteHdl != null);
                 m_hiLiteHdl.addHiLiteListener(this);
@@ -378,8 +363,7 @@ final class DecTreeLearnerGraphView2 extends
     }
 
     private JMenuItem createHiliteItem() {
-        JMenuItem item =
-            new JMenuItem(HiLiteHandler.HILITE_SELECTED + " Branch");
+        JMenuItem item = new JMenuItem(HiLiteHandler.HILITE_SELECTED + " Branch");
         item.setMnemonic('S');
         item.addActionListener(new ActionListener() {
             @Override
@@ -392,8 +376,7 @@ final class DecTreeLearnerGraphView2 extends
     }
 
     private JMenuItem createUnHiliteItem() {
-        JMenuItem item = new JMenuItem(
-                HiLiteHandler.UNHILITE_SELECTED + " Branch");
+        JMenuItem item = new JMenuItem(HiLiteHandler.UNHILITE_SELECTED + " Branch");
         item.setMnemonic('U');
         item.addActionListener(new ActionListener() {
             @Override

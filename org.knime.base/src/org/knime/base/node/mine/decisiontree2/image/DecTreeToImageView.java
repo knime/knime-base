@@ -284,7 +284,7 @@ final class DecTreeToImageView extends
         if (model != null) {
             DecisionTree dt = model.getDecisionTree();
             if (dt != null) {
-                m_graph.setColorColumn(model.getDecisionTree().getColorColumn());
+                m_graph.setColorColumn(dt.getColorColumn());
                 m_graph.setRootNode(dt.getRootNode());
             } else {
                 m_graph.setColorColumn(null);
