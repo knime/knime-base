@@ -53,6 +53,8 @@ import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.util.Properties;
 
+import org.knime.core.node.util.FileSystemBrowser;
+
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3FileSystemProvider;
 
@@ -77,5 +79,14 @@ public final class S3Connection implements FSConnection {
         }
 
         return fs;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -51,6 +51,9 @@ package org.knime.filehandling.core.connections;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.util.LocalFileSystemBrowser;
+
 /**
  * Creates a local file system.
  *
@@ -64,6 +67,14 @@ public class LocalFSConnection implements FSConnection {
     @Override
     public FileSystem getFileSystem() {
         return FileSystems.getDefault();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return new LocalFileSystemBrowser();
     }
 
 }

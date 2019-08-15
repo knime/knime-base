@@ -13,7 +13,8 @@ Require-Bundle: org.apache.commons.lang3,
  org.apache.commons.logging;bundle-version="1.2.0",
  org.apache.httpcomponents.httpclient;bundle-version="4.5.5",
  org.apache.httpcomponents.httpcore;bundle-version="4.4.9",
- joda-time;bundle-version="2.9.9"
+ joda-time;bundle-version="2.9.9",
+ com.google.guava;bundle-version="19.0.0"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.knime.filehandling.core.connections.FSPluginActivator

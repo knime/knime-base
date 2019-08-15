@@ -59,8 +59,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.junit.Test;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSConnectionRegistry;
+import org.knime.core.node.util.FileSystemBrowser;
 
 /**
  * Test suite for the {@link FSConnectionRegistry}.
@@ -213,6 +212,11 @@ public class FSConnectionRegistryTest {
 
 		@Override
 		public FileSystem getFileSystem() {
+			return null;
+		}
+
+		@Override
+		public FileSystemBrowser getFileSystemBrowser() {
 			return null;
 		}
     	
