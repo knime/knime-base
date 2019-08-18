@@ -44,46 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 6, 2019 (julian): created
+ *   Aug 15, 2019 (julian): created
  */
 package org.knime.filehandling.core.connections;
 
-import java.net.URI;
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.util.Properties;
 
-import com.upplication.s3fs.S3FileSystem;
-import com.upplication.s3fs.S3FileSystemProvider;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileView;
+
+import org.knime.core.node.util.AbstractJFileChooserBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
  *
- * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+ * @author julian
  */
-public final class S3Connection implements FSConnection {
+public class S3FileSystemBrowser extends AbstractJFileChooserBrowser {
 
-    @Override
-    public FileSystem getFileSystem() {
+    final S3Connection m_conn;
 
-        S3FileSystemProvider provider = new S3FileSystemProvider();
-        Properties props = new Properties();
-        props.put(com.upplication.s3fs.AmazonS3Factory.ACCESS_KEY, "AKIA2UFJCI35RVRPOH46");
-        props.put(com.upplication.s3fs.AmazonS3Factory.SECRET_KEY, "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");
-        S3FileSystem fs = null;
-        try {
-            fs = provider.createFileSystem(new URI("s3://s3-eu-west-1.amazonaws.com/"), props);
-        } catch (URISyntaxException ex) {
-            // ...
-        }
-
-        return fs;
+    /**
+     *
+     */
+    public S3FileSystemBrowser(final S3Connection conn) {
+        m_conn = conn;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public S3FileSystemBrowser getFileSystemBrowser() {
-        return new S3FileSystemBrowser(this);
+    public boolean isCompatible() {
+        // Probably not necessary for FileSystemBrowser.
+        return true;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected FileSystemView getFileSystemView() {
+        try {
+            return new NioFileSystemView(m_conn);
+        } catch (URISyntaxException ex) {
+            return null;
+        } catch (IOException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected FileView getFileView() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected File createFileFromPath(final String filePath) {
+        return null;
+    }
+
 }
