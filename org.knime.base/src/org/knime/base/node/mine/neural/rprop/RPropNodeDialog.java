@@ -50,7 +50,10 @@ package org.knime.base.node.mine.neural.rprop;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
@@ -67,6 +70,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Nicolas, University of Konstanz
  */
 public class RPropNodeDialog extends DefaultNodeSettingsPane {
+    private SettingsModelBoolean m_useRandomSeed;
+    private SettingsModelInteger m_randomSeed;
+
     /**
      * Creates a new <code>NodeDialogPane</code> for the RProp neural net in
      * order to set the desired options.
@@ -111,19 +117,25 @@ public class RPropNodeDialog extends DefaultNodeSettingsPane {
         /* default */ false),
         /* label: */"Ignore Missing Values"));
 
-        final SettingsModelBoolean useRandomSeed = new SettingsModelBoolean(RPropNodeModel.USE_SEED_KEY, false);
-        final SettingsModelInteger randomSeed =
-            new SettingsModelInteger(RPropNodeModel.SEED_KEY, (int)(2 * (Math.random() - 0.5) * Integer.MAX_VALUE));
-        randomSeed.setEnabled(useRandomSeed.getBooleanValue());
-
-        useRandomSeed.addChangeListener(new ChangeListener() {
+        m_useRandomSeed = new SettingsModelBoolean(RPropNodeModel.USE_SEED_KEY, false);
+        m_randomSeed = new SettingsModelInteger(RPropNodeModel.SEED_KEY, (int)(2 * (Math.random() - 0.5) * Integer.MAX_VALUE));
+        m_useRandomSeed.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(final ChangeEvent e) {
-                randomSeed.setEnabled(useRandomSeed.getBooleanValue());
+                m_randomSeed.setEnabled(m_useRandomSeed.getBooleanValue());
             }
         });
 
-        this.addDialogComponent(new DialogComponentBoolean(useRandomSeed, "Use seed for random initialization"));
-        this.addDialogComponent(new DialogComponentNumber(randomSeed, "Random seed", 1));
+        this.addDialogComponent(new DialogComponentBoolean(m_useRandomSeed, "Use seed for random initialization"));
+        this.addDialogComponent(new DialogComponentNumber(m_randomSeed, "Random seed", 1));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+        m_randomSeed.setEnabled(m_useRandomSeed.getBooleanValue());
     }
 }
