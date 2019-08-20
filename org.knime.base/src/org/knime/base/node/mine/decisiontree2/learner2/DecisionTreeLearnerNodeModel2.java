@@ -963,8 +963,14 @@ public class DecisionTreeLearnerNodeModel2 extends NodeModel {
                 throw new InvalidSettingsException("The selected column for the root split \""
                         + firstSplitCol + "\" is not in the table.");
             } else if (firstSplitSpec.equals(columnSpec)) {
-                throw new InvalidSettingsException("The class column can not be selected as the"
-                        + " first column to split on.");
+                throw new InvalidSettingsException(
+                    "The class column can not be selected as the first column to split on.");
+            } else if (m_skipColumns.getBooleanValue() && firstSplitSpec.getType().isCompatible(NominalValue.class)
+                && !firstSplitSpec.getDomain().hasValues()) {
+                throw new InvalidSettingsException(
+                    "The selected root split column is nominal but does not have domain information. Either select a "
+                        + "different column or disable the option that nominal columns without domain information are "
+                        + "skipped.");
             }
         }
         return new PortObjectSpec[]{createPMMLPortObjectSpec(modelSpec, inSpec)};
