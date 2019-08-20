@@ -73,7 +73,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.StringHistoryPanel;
-import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooserGen2;
+import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooserGen3;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooserGen2;
 
 /**
@@ -82,7 +82,7 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooserG
  */
 final class LineReaderNodeDialogPane extends NodeDialogPane {
 
-    private final DialogComponentFileChooserGen2 m_fileChooser;
+    private final DialogComponentFileChooserGen3 m_fileChooser;
 
 
     private final JTextField m_columnHeaderField;
@@ -98,7 +98,7 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
     /** Create new dialog, init layout. */
     LineReaderNodeDialogPane() {
         final SettingsModelFileChooserGen2 fileChooserSettingsModel = new SettingsModelFileChooserGen2("filechooser");
-        m_fileChooser = new DialogComponentFileChooserGen2(fileChooserSettingsModel, this, "txt", "log");
+        m_fileChooser = new DialogComponentFileChooserGen3(fileChooserSettingsModel, this, "txt", "log");
 
         int col = 10;
         m_columnHeaderField = new JTextField("Column", col);
