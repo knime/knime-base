@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./elementselector.png" type="Manipulator"
+	xmlns="http://knime.org/node/v3.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v3.1 http://knime.org/node/v3.1.xsd">
+	<name>Top k Selector</name>
+	<shortDescription>Selects the top k rows according to user-defined criteria.</shortDescription>
+	<fullDescription>
+		<intro>
+			The node behaves the same as a combination of the
+			<b>Sorter</b>
+			node followed by a
+			<b>Row Filter</b>
+			that only keeps the first k rows of the table except for the order of the rows which depends on the <i>Output order</i> settings.
+			Note, however, that the implementation of this node is more efficient then the node combination above.
+			In the dialog, select
+			the columns according to which the data should be selected. For each
+			column you can also specify
+			whether a larger or smaller value is considered as superior.
+		</intro>
+		<option name="Add columns">If you want to extend the selection criteria
+			to a higher number of columns as displayed, set the number of columns
+			at
+			the bottom and click 'new columns' to add them to the dialog.
+		</option>
+		<option name="k">The number of rows to select from the input table.
+		</option>
+		<option name="Move Missing Cells to end of sorted list">If selected, missing
+			values are always considered to be inferior to present cells.
+		</option>
+		<option name="Output order">Specifies constraints of the order of the output
+		<ul>
+		<li>No order: No specific order is required for the rows in the output. This is the best option in terms of runtime.</li>
+		<li>Retain order: Ensures that the rows in the output are the same as in the input.</li>
+		<li>Sort output: The rows in the output are sorted according to the specified criteria.</li>
+		</ul></option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Input Table">Table to select rows from.</inPort>
+		<outPort index="0" name="Top k Table">A table containing the top k rows.
+		</outPort>
+	</ports>
+</knimeNode>

@@ -2092,6 +2092,11 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.duplicates.DuplicateRowFilterNodeFactory">
       </node>
+      <node
+            category-path="/manipulation/row/row-transform"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory">
+      </node>
    </extension>
    
       
