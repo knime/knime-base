@@ -40,36 +40,38 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   Feb 17, 2007 (wiswedel): created
+ *   Apr 1, 2007 (wiswedel): created
  */
 package org.knime.base.node.preproc.correlation.compute;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.data.DataTable;
 
 /**
- * Dialog for correlation node. Shows only a column filter.
- * @author Bernd Wiswedel, University of Konstanz
+ * This implements the {@link AbstractCorrelationComputeNodeView} for the CorrelationComputeNodeModel
+ *
+ * @author Ole Ostergaard
+ * @deprecated
  */
-final class CorrelationComputeNodeDialogPane extends DefaultNodeSettingsPane {
+@Deprecated
+final class CorrelationComputeNodeView extends AbstractCorrelationComputeNodeView<CorrelationComputeNodeModel> {
 
-    /** Inits dialog, adds only a column filter. */
-    CorrelationComputeNodeDialogPane() {
-        SettingsModelColumnFilter2 fS = CorrelationComputeNodeModel.createColumnFilterModel();
-        DialogComponentColumnFilter2 cF =
-            new DialogComponentColumnFilter2(fS, 0);
-        addDialogComponent(cF);
+    /**
+     * Creates a new view.
+     *
+     * @param model the underlying model
+     */
+    CorrelationComputeNodeView(final CorrelationComputeNodeModel model) {
+        super(model);
 
-        SettingsModelIntegerBounded sI =
-            CorrelationComputeNodeModel.createNewPossValueCounterModel();
-        DialogComponentNumberEdit cI =
-            new DialogComponentNumberEdit(sI, "Possible Values Count");
-        addDialogComponent(cI);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected void modelChanged() {
+        DataTable table = getNodeModel().getCorrelationTable();
+        tableChanged(table);
     }
 }

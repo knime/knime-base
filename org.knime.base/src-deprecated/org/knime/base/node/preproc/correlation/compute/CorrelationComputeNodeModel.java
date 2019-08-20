@@ -77,7 +77,9 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 /**
  *
  * @author wiswedel, University of Konstanz
+ * @deprecated
  */
+@Deprecated
 final class CorrelationComputeNodeModel extends NodeModel
     implements BufferedDataTableHolder {
 

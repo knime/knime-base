@@ -79,7 +79,9 @@ import org.knime.core.util.Pair;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
  * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
+ * @deprecated
  */
+@Deprecated
 public final class CorrelationComputer {
 
     private final DataTableSpec m_tableSpec;

@@ -103,12 +103,14 @@ import org.knime.core.node.tableview.TableView;
 
 /**
  *  This class implements a {@link NodeView} for correlation compute models.
- *  
+ *
  * @author Bernd Wiswedel, University of Konstanz
  * @author Ole Ostergaard
  * @param <M> The extended correlation node model
  * @since 3.2
+ * @deprecated
  */
+@Deprecated
 public abstract class AbstractCorrelationComputeNodeView<M extends NodeModel> extends NodeView<M>{
 
     private final TableView m_tableView;

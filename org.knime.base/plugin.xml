@@ -889,9 +889,11 @@
             factory-class="org.knime.base.node.mine.bayes.naivebayes.learner2.NaiveBayesLearnerNodeFactory2"/>
       <node
             category-path="/analytics/statistics"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.correlation.compute.CorrelationComputeNodeFactory"/>
       <node
             category-path="/analytics/mining/featureselection"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.correlation.compute.CorrelationComputeNodeFactory"/>
       <node
             after="org.knime.base.node.preproc.correlation.compute.CorrelationComputeNodeFactory"
