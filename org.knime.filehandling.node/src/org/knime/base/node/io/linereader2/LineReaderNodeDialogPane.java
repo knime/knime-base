@@ -98,7 +98,7 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
     /** Create new dialog, init layout. */
     LineReaderNodeDialogPane() {
         final SettingsModelFileChooserGen2 fileChooserSettingsModel = new SettingsModelFileChooserGen2("filechooser");
-        m_fileChooser = new DialogComponentFileChooserGen2(fileChooserSettingsModel, this, "");
+        m_fileChooser = new DialogComponentFileChooserGen2(fileChooserSettingsModel, this, "txt", "log");
 
         int col = 10;
         m_columnHeaderField = new JTextField("Column", col);

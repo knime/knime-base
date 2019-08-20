@@ -48,19 +48,18 @@
  */
 package org.knime.filehandling.core.filefilter;
 
-import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -73,10 +72,6 @@ import org.knime.core.node.NodeSettingsWO;
  */
 public class FileFilterPanel extends JPanel {
 
-    private static final int HORIZONTAL_SPACE = 10;
-
-    private static final int PANEL_WIDTH = 585;
-
     private static final long serialVersionUID = -8386119886528887209L;
 
     private static final String FILE_FILTER_SETTINGS_KEY = "file-filter-settings";
@@ -84,99 +79,98 @@ public class FileFilterPanel extends JPanel {
     private static final String EXTENSIONS_SETTINGS_KEY = "extensions";
     private static final String CASE_SENSITIVE_SETTINGS_KEY = "case-sensitive";
 
-    private JComboBox<String> m_extensionField;
+    private final String[] m_defaultFileSuffixes;
 
-    private JCheckBox m_caseSensitive;
+    private final JComboBox<String> m_filterType;
 
-    private JRadioButton m_noFilterRadio;
+    private final JComboBox<String> m_filterTextField;
 
-    private JRadioButton m_extensionsFilterRadio;
+    private final JCheckBox m_caseSensitive;
 
-    private JRadioButton m_regexFilterRadio;
+    private final JCheckBox m_searchSubfolders;
 
-    private JRadioButton m_wildCardsFilterRadio;
+    private final String m_defaultExtensions;
+
+    private final String m_defaultWildcard;
 
     /**
      * Creates a new File Filter Panel
      */
-    public FileFilterPanel() {
+    public FileFilterPanel(final String[] defaultSuffixes) {
+        m_defaultFileSuffixes = defaultSuffixes;
+
+        m_defaultExtensions =  String.join(",", defaultSuffixes);
+        m_defaultWildcard = "*." + (defaultSuffixes.length > 0 ? defaultSuffixes[0] : "*");
+
         Box outerBox = Box.createVerticalBox();
         outerBox.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Filter:"));
 
-        m_extensionField = new JComboBox<>();
-        m_extensionField.setEditable(true);
+        m_filterType =
+            new JComboBox<>(Arrays.stream(FileFilter.values()).map(FileFilter::getDisplayText).toArray(String[]::new));
+        m_filterType.setSelectedIndex(0);
 
-        Box extensionBox = Box.createHorizontalBox();
-        extensionBox.add(Box.createHorizontalStrut(HORIZONTAL_SPACE));
-        extensionBox.add(new JLabel("Extension(s) / Expression:"));
-        extensionBox.add(Box.createHorizontalStrut(HORIZONTAL_SPACE));
-        extensionBox.add(m_extensionField);
-        extensionBox.add(Box.createHorizontalStrut(HORIZONTAL_SPACE));
+        m_filterTextField = new JComboBox<>();
+        m_filterTextField.setEditable(true);
 
         m_caseSensitive = new JCheckBox();
-        m_caseSensitive.setText("case sensitive");
+        m_caseSensitive.setText("Case sensitive");
 
-        m_noFilterRadio = new JRadioButton();
-        m_noFilterRadio.setText("none");
-        m_noFilterRadio.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent arg0) {
-                m_extensionField.setEnabled(false);
-            }
-        });
+        m_searchSubfolders = new JCheckBox();
+        m_searchSubfolders.setText("Search subfolders");
 
-        m_extensionsFilterRadio = new JRadioButton();
-        m_extensionsFilterRadio.setText("file extension(s)");
-        m_extensionsFilterRadio.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent arg0) {
-                m_extensionField.setEnabled(true);
-            }
-        });
+        m_filterType.addActionListener(this::filterSelectionChanged);
+        filterSelectionChanged(null);
 
-        m_regexFilterRadio = new JRadioButton();
-        m_regexFilterRadio.setText("regular expression");
-        m_regexFilterRadio.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent arg0) {
-                m_extensionField.setEnabled(true);
-            }
-        });
+        setLayout(new GridBagLayout());
 
-        m_wildCardsFilterRadio = new JRadioButton();
-        m_wildCardsFilterRadio.setText("wildcard pattern");
-        m_wildCardsFilterRadio.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent arg0) {
-                m_extensionField.setEnabled(true);
-            }
-        });
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
 
-        ButtonGroup group = new ButtonGroup();
-        group.add(m_noFilterRadio);
-        group.add(m_extensionsFilterRadio);
-        group.add(m_regexFilterRadio);
-        group.add(m_wildCardsFilterRadio);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(25, 5, 0, 0);
+        add(new JLabel("Filter:"), gbc);
 
-        JPanel filterPanel = new JPanel(new GridLayout(2, 3));
-        filterPanel.add(m_noFilterRadio);
-        filterPanel.add(m_extensionsFilterRadio);
-        filterPanel.add(m_caseSensitive);
-        filterPanel.add(m_regexFilterRadio);
-        filterPanel.add(m_wildCardsFilterRadio);
+        gbc.gridx++;
+        add(m_filterType, gbc);
 
-        Box filterBox = Box.createHorizontalBox();
-        filterBox.add(Box.createHorizontalStrut(HORIZONTAL_SPACE));
-        filterBox.add(filterPanel);
-        filterBox.add(Box.createHorizontalStrut(PANEL_WIDTH / 4));
+        gbc.gridx++;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        add(m_filterTextField, gbc);
 
-        outerBox.add(extensionBox);
-        outerBox.add(filterBox);
+        gbc.gridx++;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        add(m_caseSensitive, gbc);
 
-        outerBox.setMaximumSize(new Dimension(PANEL_WIDTH, 120));
-        outerBox.setMinimumSize(new Dimension(PANEL_WIDTH, 120));
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 5, 0, 0);
+        add(m_searchSubfolders, gbc);
 
-        this.add(outerBox);
+
+    }
+
+    private void filterSelectionChanged(final ActionEvent e) {
+        switch (FileFilter.fromDisplayText((String)m_filterType.getSelectedItem())) {
+            case NONE:
+                m_filterTextField.setSelectedItem("");
+                m_filterTextField.setEnabled(false);
+                break;
+            case EXTENSIONS:
+                m_filterTextField.setSelectedItem(m_defaultExtensions);
+                m_filterTextField.setEnabled(true);
+                break;
+            case WILDCARD:
+                m_filterTextField.setSelectedItem(m_defaultWildcard);
+                m_filterTextField.setEnabled(true);
+                break;
+            case REGEX:
+                m_filterTextField.setSelectedItem("");
+                m_filterTextField.setEnabled(true);
+                break;
+        }
     }
 
     /**
@@ -186,35 +180,7 @@ public class FileFilterPanel extends JPanel {
      * @throws InvalidSettingsException
      */
     public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-        if (!settings.containsKey(FILE_FILTER_SETTINGS_KEY)) {
-            // not yet configured, use defaults
-        } else {
-            NodeSettingsRO fileFilterSettings = settings.getNodeSettings(FILE_FILTER_SETTINGS_KEY);
-
-            String filterName = fileFilterSettings.getString(FILTER_SETTINGS_KEY);
-            FileFilter filter = FileFilter.valueOf(filterName);
-            switch (filter) {
-                case NONE:
-                    m_noFilterRadio.setSelected(true);
-                    break;
-                case EXTENSION:
-                    m_extensionsFilterRadio.setSelected(true);
-                    break;
-                case REGEX:
-                    m_regexFilterRadio.setSelected(true);
-                    break;
-                case WILDCARD:
-                    m_wildCardsFilterRadio.setSelected(true);
-                    break;
-            }
-
-            String extensions = fileFilterSettings.getString(EXTENSIONS_SETTINGS_KEY);
-            m_extensionField.setSelectedItem(extensions);
-
-            boolean isCaseSensitive = fileFilterSettings.getBoolean(CASE_SENSITIVE_SETTINGS_KEY);
-            m_caseSensitive.setSelected(isCaseSensitive);
-        }
+        // TODO
     }
 
     /**
@@ -224,25 +190,7 @@ public class FileFilterPanel extends JPanel {
      * @throws InvalidSettingsException
      */
     public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        NodeSettingsWO fileFilterSettings = settings.addNodeSettings(FILE_FILTER_SETTINGS_KEY);
-
-        FileFilter fileFilter = FileFilter.NONE;
-        if (m_noFilterRadio.isSelected()) {
-            fileFilter = FileFilter.NONE;
-        } else if (m_extensionsFilterRadio.isSelected()) {
-            fileFilter = FileFilter.EXTENSION;
-        } else if (m_regexFilterRadio.isSelected()) {
-            fileFilter = FileFilter.REGEX;
-        } else if (m_wildCardsFilterRadio.isSelected()) {
-            fileFilter = FileFilter.WILDCARD;
-        }
-
-        fileFilterSettings.addString(FILTER_SETTINGS_KEY, fileFilter.name());
-
-        String extensions = (String) m_extensionField.getSelectedItem();
-        fileFilterSettings.addString(EXTENSIONS_SETTINGS_KEY, extensions);
-
-        fileFilterSettings.addBoolean(CASE_SENSITIVE_SETTINGS_KEY, m_caseSensitive.isSelected());
+        // TODO
     }
 
 }

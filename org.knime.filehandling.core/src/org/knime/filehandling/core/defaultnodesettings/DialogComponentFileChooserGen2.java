@@ -50,14 +50,23 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.FlowVariableModel;
@@ -65,8 +74,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.FilesHistoryPanel;
@@ -82,11 +89,13 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
 
     private final SettingsModelFileChooserGen2 m_settingsModel;
 
-    private SettingsModelString m_buttonGroupSettings;
-
     private final NodeDialogPane m_dialogPane;
 
     private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
+
+    private final JRadioButton m_readSingleFileRadioButton = new JRadioButton("Read single file");
+
+    private final JRadioButton m_readFolderRadioButton = new JRadioButton("Read files in folder");
 
     private final CardLayout m_modeCardLayout;
 
@@ -97,7 +106,7 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
     private final List<JComboBox<String>> m_connectionCombos = new ArrayList<>();
 
     public DialogComponentFileChooserGen2(final SettingsModelFileChooserGen2 settingsModel,
-        final NodeDialogPane dialogPane, final String suffixes) {
+        final NodeDialogPane dialogPane, final String... suffixes) {
         super(settingsModel);
 
         m_settingsModel = settingsModel;
@@ -106,6 +115,9 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
         getComponentPanel().setLayout(new BoxLayout(getComponentPanel(), BoxLayout.Y_AXIS));
 
         getComponentPanel().add(createModeSelectionButtonGroup());
+
+        getComponentPanel().add(new JSeparator());
+        getComponentPanel().add(Box.createVerticalStrut(5));
 
         m_pathFlowVariableModel = m_dialogPane.createFlowVariableModel(m_settingsModel.getPath().getKey(), Type.STRING);
         m_modeCardLayout = new CardLayout();
@@ -118,30 +130,54 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
 
     }
 
-    private Component createReadFolderModePanel(final String suffixes) {
+    private Component createReadFolderModePanel(final String[] suffixes) {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         panel.add(createConnectionAndPathSelectionPanel(suffixes));
 
-        final FileFilterPanel filterPanel = new FileFilterPanel();
+        final FileFilterPanel filterPanel = new FileFilterPanel(suffixes);
         panel.add(filterPanel);
 
         return panel;
     }
 
-    private Component createReadSingleFileModePanel(final String suffixes) {
-        return createConnectionAndPathSelectionPanel(suffixes);
+    private Component createReadSingleFileModePanel(final String[] suffixes) {
+        final JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        panel.add(createConnectionAndPathSelectionPanel(suffixes), gbc);
+
+        gbc.gridy++;
+        gbc.weighty = 1;
+        panel.add(Box.createVerticalGlue(), gbc);
+
+        return panel;
     }
 
-    private Component createConnectionAndPathSelectionPanel(final String suffixes) {
+    private JPanel createConnectionAndPathSelectionPanel(final String[] suffixes) {
         final JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.setLayout(new GridBagLayout());
 
-        final JComboBox connectionCombo = new JComboBox<String>(new String[0]);
-        panel.add(connectionCombo);
-        m_connectionCombos.add(connectionCombo);
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.weightx = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(createConnectionPanel(), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
         final FilesHistoryPanel fileHistoryPanel =
             new FilesHistoryPanel(m_pathFlowVariableModel, "filechoosergen2", LocationValidation.None, suffixes);
         fileHistoryPanel.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -150,32 +186,51 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
         //FIXME we need to invoke fileHistoryPanel.addToHistory() when saving the dialog settings
         fileHistoryPanel
             .addChangeListener((e) -> m_settingsModel.getPath().setStringValue(fileHistoryPanel.getSelectedFile()));
-        panel.add(fileHistoryPanel);
-
+        panel.add(fileHistoryPanel, gbc);
         return panel;
     }
 
-    private JPanel createModeSelectionButtonGroup() {
-        m_buttonGroupSettings =
-            new SettingsModelString("file_reading_mode", "Read single file");
-        m_buttonGroupSettings.addChangeListener(e -> updateCardLayout());
+    private JPanel createConnectionPanel() {
+        final JPanel connectionPanel = new JPanel();
+        connectionPanel.setLayout(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
 
-        final ButtonGroupEnumInterface[] options = new ButtonGroupEnumInterface[2];
-        options[0] = new FileReadingModeButtonGroup("Read single file", true, "Reads in a single file", "SINGLE");
-        options[1] = new FileReadingModeButtonGroup("Read folder", false, "Reads in a folder", "MULTIPLE");
+        final JCheckBox useConnection = new JCheckBox("Read from: ");
+        connectionPanel.add(useConnection, gbc);
 
-        final DialogComponentButtonGroup buttonGroup =
-            new DialogComponentButtonGroup(m_buttonGroupSettings, "", false, options);
+        gbc.gridx++;
+        final JComboBox<String> connectionCombo = new JComboBox<>(new String[0]);
+        connectionCombo.setEnabled(false);
+        connectionPanel.add(connectionCombo, gbc);
+        useConnection.addChangeListener((e) -> connectionCombo.setEnabled(useConnection.isSelected()));
+        m_connectionCombos.add(connectionCombo);
 
-        return buttonGroup.getComponentPanel();
+        gbc.gridx++;
+        gbc.weightx = 1;
+        connectionPanel.add(Box.createHorizontalGlue(), gbc);
+
+        return connectionPanel;
     }
 
-    private void updateCardLayout() {
-        if (m_buttonGroupSettings.getStringValue().equals("SINGLE")) {
-            m_modeCardLayout.show(m_modePanelsPanel, "single");
-        } else {
-            m_modeCardLayout.show(m_modePanelsPanel, "folder");
-        }
+    private JPanel createModeSelectionButtonGroup() {
+        final JPanel panel = new JPanel(new FlowLayout());
+
+        // FIXME we should be using DialogComponentButtonGroup instead
+        panel.add(m_readSingleFileRadioButton);
+        panel.add(m_readFolderRadioButton);
+
+        final ButtonGroup modeSelectionButtonGroup = new ButtonGroup();
+        modeSelectionButtonGroup.add(m_readSingleFileRadioButton);
+        modeSelectionButtonGroup.add(m_readFolderRadioButton);
+
+        m_readSingleFileRadioButton.addActionListener((e) -> m_modeCardLayout.show(m_modePanelsPanel, "single"));
+        m_readFolderRadioButton.addActionListener((e) -> m_modeCardLayout.show(m_modePanelsPanel, "folder"));
+        m_readSingleFileRadioButton.setSelected(true);
+        return panel;
     }
 
     /**
@@ -217,7 +272,8 @@ public class DialogComponentFileChooserGen2 extends DialogComponent {
      */
     @Override
     protected void setEnabledComponents(final boolean enabled) {
-        m_buttonGroupSettings.setEnabled(enabled);
+        m_readSingleFileRadioButton.setEnabled(enabled);
+        m_readFolderRadioButton.setEnabled(enabled);
         for (Component modePanel : m_modePanelsPanel.getComponents()) {
             for (Component modePanelElement : ((JPanel)modePanel).getComponents()) {
                 modePanelElement.setEnabled(enabled);

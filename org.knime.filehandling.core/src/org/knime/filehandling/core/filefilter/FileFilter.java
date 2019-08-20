@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.filefilter;
 
+import java.util.Arrays;
+
 /**
  * File Filter enumeration.
  *
@@ -56,20 +58,40 @@ package org.knime.filehandling.core.filefilter;
 public enum FileFilter {
 
     /**
-     * All files pass this filter.
+     * All files pass the filter.
      */
-    NONE,
-    /**
-     * Only files with certain extensions pass this filter.
-     */
-    EXTENSION,
-    /**
-     * Only files with names that matches the regex pass this filter.
-     */
-    REGEX,
+    NONE("None"),
     /**
      * Only files with names containing the wildcard pass this filter.
      */
-    WILDCARD;
+    WILDCARD("Wildcard"),
+    /**
+     * Only files with certain extensions pass this filter.
+     */
+    EXTENSIONS("File extension(s)"),
+    /**
+     * Only files with names that matches the regex pass this filter.
+     */
+    REGEX("Regular expression");
 
+    private final String m_displayText;
+
+    private FileFilter(final String displayText) {
+        m_displayText = displayText;
+    }
+
+
+    /**
+     * @return the displayText
+     */
+    public String getDisplayText() {
+        return m_displayText;
+    }
+
+    public static FileFilter fromDisplayText(final String displayText) {
+        return Arrays.stream(FileFilter.values())
+                .filter((f) -> f.getDisplayText().equals(displayText))
+                .findFirst()
+                .get();
+    }
 }
