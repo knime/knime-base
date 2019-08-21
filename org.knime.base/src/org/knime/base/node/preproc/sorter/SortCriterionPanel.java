@@ -180,11 +180,10 @@ public final class SortCriterionPanel {
      * @since 4.1 made public for the use in ElementSelectorNodeDialog
      */
     public void checkValid() throws InvalidSettingsException {
-        for (int i = 0; i < m_components.size(); i++) {
-            SortItem temp = m_components.get(i);
+        for (SortItem temp : m_components) {
             if (!temp.isColumnSelected()) {
                 throw new InvalidSettingsException(
-                    "There are invalid " + "column selections (highlighted with a red border).");
+                    "There are invalid column selections (highlighted with a red border).");
             }
         }
     }
@@ -196,13 +195,21 @@ public final class SortCriterionPanel {
         Box buttonbox = Box.createHorizontalBox();
         Border addColumnBorder = BorderFactory.createTitledBorder("Add columns");
         buttonbox.setBorder(addColumnBorder);
-        int maxCols = m_spec.getNumColumns() - m_components.size() + 1;
-
         m_addSortItemButton = new JButton("new columns");
+        final JSpinner spinner = createSpinner();
+        m_addSortItemButton.addActionListener(ae -> updateOnAddingItem(spinner));
+        buttonbox.add(spinner);
+        buttonbox.add(Box.createHorizontalStrut(10));
+        buttonbox.add(m_addSortItemButton);
+        m_panel.add(buttonbox);
+    }
+
+    private JSpinner createSpinner() {
         final JSpinner spinner = new JSpinner();
+        int maxCols = m_spec.getNumColumns() - m_components.size() + 1;
         SpinnerNumberModel snm;
-        if (maxCols == 0) {
-            snm = new SpinnerNumberModel(0, 0, maxCols, 1);
+        if (maxCols <= 0) {
+            snm = new SpinnerNumberModel(0, 0, 0, 1);
             spinner.setEnabled(false);
             m_addSortItemButton.setEnabled(false);
         } else {
@@ -218,12 +225,7 @@ public final class SortCriterionPanel {
         // when spinner's text field is editable false
         spinnertextfield.setEditable(false);
         spinnertextfield.setBackground(backColor);
-
-        m_addSortItemButton.addActionListener(ae -> updateOnAddingItem(spinner));
-        buttonbox.add(spinner);
-        buttonbox.add(Box.createHorizontalStrut(10));
-        buttonbox.add(m_addSortItemButton);
-        m_panel.add(buttonbox);
+        return spinner;
     }
 
     void addItemsAddedListener(final ActionListener listener) {
