@@ -146,8 +146,8 @@ public final class CorrelationComputer2 {
         }
         m_numericColIndexMap = Arrays.copyOf(numericColIndexMap, numericColCount);
         m_categoricalColIndexMap = Arrays.copyOf(categoricalColIndexMap, categoricalColCount);
-        m_numericsWithConstantValues = new LinkedList<Pair<Integer, Integer>>();
-        m_numericsWithMissings = new LinkedHashSet<Integer>();
+        m_numericsWithConstantValues = new LinkedList<>();
+        m_numericsWithMissings = new LinkedHashSet<>();
     }
 
     /**
@@ -163,58 +163,93 @@ public final class CorrelationComputer2 {
         throws CanceledExecutionException {
         DataTableSpec filterTableSpec = table.getDataTableSpec();
         assert filterTableSpec.equalStructure(m_tableSpec);
+        // Maps the cells to an index for each categorical column
         m_possibleValues = new LinkedHashMap[m_categoricalColIndexMap.length];
         for (int i = 0; i < m_possibleValues.length; i++) {
-            m_possibleValues[i] = new LinkedHashMap<DataCell, Integer>();
+            m_possibleValues[i] = new LinkedHashMap<>();
         }
         final int numericColCount = m_numericColIndexMap.length;
+        // sumMatrix[i][j] contains the sum of all values in column i were the column j cell is not missing
         double[][] sumMatrix = new double[numericColCount][numericColCount];
+        // sumSqMatrix contains the sum of the squared values as sumMatrix
         double[][] sumSqMatrix = new double[numericColCount][numericColCount];
-        HalfIntMatrix validCountMatrix = new HalfIntMatrix(numericColCount, true);
-        final DataCell[] cells = new DataCell[m_tableSpec.getNumColumns()];
+        // validCountMatrix[i][j] contains the number of rows were neither column i nor column j is missing
+        m_numericValidCountMatrix = new HalfIntMatrix(numericColCount, true);
+        // A cell buffer for the numeric cells (They need to be accessed multiple times)
+        final DataCell[] numericCellBuffer = new DataCell[m_numericColIndexMap.length];
+
+        // Loop over the rows and fill the sum/sumSq/validCount matrix and possible categorical values
         long rowIndex = 0;
         final long rowCount = table.size();
         for (DataRow r : table) {
-            // getCell may be an expensive operation and we may access a cell
-            // multiple times, so we buffer it
-            for (int i = 0; i < cells.length; i++) {
-                cells[i] = r.getCell(i);
-            }
-            for (int i = 0; i < m_numericColIndexMap.length; i++) {
-                DataCell c = cells[m_numericColIndexMap[i]];
-                final boolean isMissing = c.isMissing();
-                if (isMissing) {
-                    m_numericsWithMissings.add(m_numericColIndexMap[i]);
-                } else {
-                    final double val = ((DoubleValue)c).getDoubleValue();
-                    final double valSquare = val * val;
-                    for (int j = 0; j < m_numericColIndexMap.length; j++) {
-                        if (!cells[m_numericColIndexMap[j]].isMissing()) {
-                            sumMatrix[i][j] += val;
-                            sumSqMatrix[i][j] += valSquare;
-                            if (j >= i) { // don't count twice
-                                validCountMatrix.add(i, j, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
-                DataCell c = r.getCell(m_categoricalColIndexMap[i]);
-                if (m_possibleValues[i] != null) {
-                    // note: also take missing value as possible value
-                    m_possibleValues[i].put(c, null);
-                    if (m_possibleValues[i].size() > m_maxPossibleValues) {
-                        m_possibleValues[i] = null;
-                    }
-                }
-            }
+
+            addToSumIfValid(r, sumMatrix, sumSqMatrix, m_numericValidCountMatrix, numericCellBuffer);
+            addPossibleValues(r);
+
             exec.checkCanceled();
             exec.setProgress(rowIndex / (double)rowCount,
                 String.format("Calculating statistics - %d/%d (\"%s\")", rowIndex, rowCount, r.getKey()));
             rowIndex += 1;
         }
 
+        assignIndexToCategoricalValues();
+
+        computeMeanAndStdDevMatix(sumMatrix, sumSqMatrix);
+    }
+
+    /**
+     * Adds the given row to the sum matrix and sum square matrix and increases the counts in the valid count matrix if
+     * valid.
+     */
+    private void addToSumIfValid(final DataRow row, final double[][] sumMatrix, final double[][] sumSqMatrix,
+        final HalfIntMatrix validCountMatrix, final DataCell[] cellBuffer) {
+        // getCell may be an expensive operation and we may access a cell
+        // multiple times, so we buffer it
+        for (int i = 0; i < cellBuffer.length; i++) {
+            cellBuffer[i] = row.getCell(m_numericColIndexMap[i]);
+        }
+        // Loop over numeric columns
+        for (int i = 0; i < m_numericColIndexMap.length; i++) {
+            DataCell c = cellBuffer[i];
+            final boolean isMissing = c.isMissing();
+            if (isMissing) {
+                // Remember that there was a missing cell
+                m_numericsWithMissings.add(m_numericColIndexMap[i]);
+            } else {
+                // Add values to the sumMatrix and sumSqMatrix
+                final double val = ((DoubleValue)c).getDoubleValue();
+                final double valSquare = val * val;
+                for (int j = 0; j < m_numericColIndexMap.length; j++) {
+                    if (!cellBuffer[j].isMissing()) {
+                        sumMatrix[i][j] += val;
+                        sumSqMatrix[i][j] += valSquare;
+                        if (j >= i) { // don't count twice
+                            validCountMatrix.add(i, j, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void addPossibleValues(final DataRow row) {
+        // Loop over categorical columns
+        for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
+            // If null: To many possible values
+            if (m_possibleValues[i] != null) {
+                // Add the cell to the possible values
+                DataCell c = row.getCell(m_categoricalColIndexMap[i]);
+                // note: also take missing value as possible value
+                m_possibleValues[i].put(c, null);
+                if (m_possibleValues[i].size() > m_maxPossibleValues) {
+                    m_possibleValues[i] = null;
+                }
+            }
+        }
+    }
+
+    private void assignIndexToCategoricalValues() {
+        // Assign an index to each possible value of each categorical column
         for (LinkedHashMap<DataCell, Integer> map : m_possibleValues) {
             if (map != null) {
                 int index = 0;
@@ -223,12 +258,21 @@ public final class CorrelationComputer2 {
                 }
             }
         }
+    }
 
+    /**
+     * Computes the mean and stddev of the numeric columns with each other.
+     *
+     * Note: The sumMatrix and sumSqMatrix are reused! The values of <code>sumMatrix</code> are replaced with the mean.
+     * The values of sumSqMatrix are replaced with the stddev
+     */
+    private void computeMeanAndStdDevMatix(final double[][] sumMatrix, final double[][] sumSqMatrix) {
         // sumMatrix --> m_numericMeanMatrix
         // sumSqMatrix --> m_numericStdDevMatrix
+        final int numericColCount = m_numericColIndexMap.length;
         for (int i = 0; i < numericColCount; i++) {
             for (int j = 0; j < numericColCount; j++) {
-                final int validCount = validCountMatrix.get(i, j);
+                final int validCount = m_numericValidCountMatrix.get(i, j);
                 if (validCount > 1) {
                     double variance =
                         (sumSqMatrix[i][j] - (sumMatrix[i][j] * sumMatrix[i][j]) / validCount) / (validCount - 1);
@@ -244,7 +288,6 @@ public final class CorrelationComputer2 {
         }
         m_numericMeanMatrix = sumMatrix;
         m_numericStdDevMatrix = sumSqMatrix;
-        m_numericValidCountMatrix = validCountMatrix;
     }
 
     /**
@@ -259,13 +302,47 @@ public final class CorrelationComputer2 {
     public HalfDoubleMatrix calculateOutput(final BufferedDataTable table, final ExecutionMonitor exec)
         throws CanceledExecutionException {
         assert table.getDataTableSpec().equalStructure(m_tableSpec);
-        int catCount = m_categoricalColIndexMap.length;
-        int categoricalPairsCount = (catCount - 1) * catCount / 2;
         // stores all pair-wise contingency tables,
         // contingencyTables[i] == null <--> either column of the corresponding
         // pair has more than m_maxPossibleValues values
         // http://en.wikipedia.org/wiki/Contingency_table
-        int[][][] contingencyTables = new int[categoricalPairsCount][][];
+        int[][][] contingencyTables = initContingencyTables();
+
+        final int numColumns = m_tableSpec.getNumColumns();
+        HalfDoubleMatrix nominatorMatrix = new HalfDoubleMatrix(numColumns, /*includeDiagonal=*/false);
+        nominatorMatrix.fill(Double.NaN);
+
+        handleZeroStdDev(nominatorMatrix);
+
+        // A cell buffer for the numeric cells (They need to be accessed multiple times)
+        final DataCell[] numericCellBuffer = new DataCell[m_numericColIndexMap.length];
+
+        long rowIndex = 0;
+        final long rowCount = table.size();
+        for (DataRow r : table) {
+
+            addRowToNominatorMatrix(r, nominatorMatrix, numericCellBuffer);
+
+            addRowToContigencyTable(r, contingencyTables);
+
+            exec.checkCanceled();
+            exec.setProgress(rowIndex / (double)rowCount,
+                String.format("Calculating statistics - %d/%d (\"%s\")", rowIndex, rowCount, r.getKey()));
+            rowIndex += 1;
+        }
+
+        normalizeNumericCorrelation(nominatorMatrix);
+
+        fillCategoricalCorrelation(contingencyTables, nominatorMatrix);
+
+        return nominatorMatrix;
+    }
+
+    private int[][][] initContingencyTables() {
+        final int catCount = m_categoricalColIndexMap.length;
+        final int categoricalPairsCount = (catCount - 1) * catCount / 2;
+        final int[][][] contingencyTables = new int[categoricalPairsCount][][];
+
         int valIndex = 0;
         for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
             for (int j = i + 1; j < m_categoricalColIndexMap.length; j++) {
@@ -279,12 +356,14 @@ public final class CorrelationComputer2 {
                 valIndex++;
             }
         }
-        final int numColumns = m_tableSpec.getNumColumns();
-        HalfDoubleMatrix nominatorMatrix = new HalfDoubleMatrix(numColumns, /*includeDiagonal=*/false);
-        nominatorMatrix.fill(Double.NaN);
-        long rowIndex = 0;
-        DataCell[] cells = new DataCell[numColumns];
-        final long rowCount = table.size();
+        return contingencyTables;
+    }
+
+    /**
+     * If the stddev of a column is 0.0 the correlation cannot be computed and the value is set to NaN. The columns
+     * where this happens are remembered in {@link #m_numericsWithConstantValues}.
+     */
+    private void handleZeroStdDev(final HalfDoubleMatrix nominatorMatrix) {
         for (int i = 0; i < m_numericColIndexMap.length; i++) {
             final double stdDevI = m_numericStdDevMatrix[i][i];
             if (stdDevI == 0.0) {
@@ -321,78 +400,98 @@ public final class CorrelationComputer2 {
                 }
             }
         }
-        for (DataRow r : table) {
-            for (int i = 0; i < cells.length; i++) {
-                cells[i] = r.getCell(i);
+    }
+
+    /**
+     * Adds the numeric values of the row to the nominator matrix.
+     */
+    private void addRowToNominatorMatrix(final DataRow row, final HalfDoubleMatrix nominatorMatrix,
+        final DataCell[] cellBuffer) {
+        // getCell may be an expensive operation and we may access a cell
+        // multiple times, so we buffer it
+        for (int i = 0; i < cellBuffer.length; i++) {
+            cellBuffer[i] = row.getCell(m_numericColIndexMap[i]);
+        }
+        for (int i = 0; i < m_numericColIndexMap.length; i++) {
+            final DataCell ci = cellBuffer[i];
+
+            // Skip for missing cells and constant columns
+            if (ci.isMissing()) {
+                continue;
             }
-            for (int i = 0; i < m_numericColIndexMap.length; i++) {
-                final DataCell ci = cells[m_numericColIndexMap[i]];
-                if (ci.isMissing()) {
+            if (m_numericStdDevMatrix[i][i] == 0.0) {
+                continue; // constant column, reported above
+            }
+
+            final double di = ((DoubleValue)ci).getDoubleValue();
+
+            for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
+                final DataCell cj = cellBuffer[j];
+                if (cj.isMissing()) {
                     continue;
                 }
-                if (m_numericStdDevMatrix[i][i] == 0.0) {
-                    continue; // constant column, reported above
-                }
-                final double di = ((DoubleValue)ci).getDoubleValue();
-                for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
-                    final DataCell cj = cells[m_numericColIndexMap[j]];
-                    if (cj.isMissing()) {
-                        continue;
-                    }
-                    final double meanI = m_numericMeanMatrix[i][j];
-                    final double stdDevI = m_numericStdDevMatrix[i][j];
-                    final double meanJ = m_numericMeanMatrix[j][i];
-                    final double stdDevJ = m_numericStdDevMatrix[j][i];
+                final double meanI = m_numericMeanMatrix[i][j];
+                final double stdDevI = m_numericStdDevMatrix[i][j];
+                final double meanJ = m_numericMeanMatrix[j][i];
+                final double stdDevJ = m_numericStdDevMatrix[j][i];
 
-                    if (stdDevI == 0.0 || stdDevJ == 0.0) {
-                        continue; // reported above
-                    }
+                if (stdDevI == 0.0 || stdDevJ == 0.0) {
+                    continue; // constant with respect to other column, reported above
+                }
 
-                    final double vi = (di - meanI) / stdDevI;
-                    final double dj = ((DoubleValue)cj).getDoubleValue();
-                    final double vj = (dj - meanJ) / stdDevJ;
-                    nominatorMatrix.add(m_numericColIndexMap[i], m_numericColIndexMap[j], vi * vj);
-                }
+                final double vi = (di - meanI) / stdDevI;
+                final double dj = ((DoubleValue)cj).getDoubleValue();
+                final double vj = (dj - meanJ) / stdDevJ;
+                nominatorMatrix.add(m_numericColIndexMap[i], m_numericColIndexMap[j], vi * vj);
             }
-            valIndex = 0;
-            for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
-                for (int j = i + 1; j < m_categoricalColIndexMap.length; j++, valIndex++) {
-                    LinkedHashMap<DataCell, Integer> possibleValuesI = m_possibleValues[i];
-                    LinkedHashMap<DataCell, Integer> possibleValuesJ = m_possibleValues[j];
-                    if (possibleValuesI == null || possibleValuesJ == null) {
-                        continue;
-                    }
-                    DataCell ci = r.getCell(m_categoricalColIndexMap[i]);
-                    DataCell cj = r.getCell(m_categoricalColIndexMap[j]);
-                    Integer indexI = possibleValuesI.get(ci);
-                    Integer indexJ = possibleValuesJ.get(cj);
-                    assert indexI != null && indexI >= 0 : String.format(
-                        "Value unknown in value list of column \"%s-\": %s",
-                        table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[i]).getName(), ci);
-                    assert indexJ != null && indexJ >= 0 : String.format(
-                        "Value unknown in value list of column \"%s-\": %s",
-                        table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[j]).getName(), ci);
-                    contingencyTables[valIndex][indexI][indexJ]++;
-                }
-            }
-            exec.checkCanceled();
-            exec.setProgress(rowIndex / (double)rowCount,
-                String.format("Calculating statistics - %d/%d (\"%s\")", rowIndex, rowCount, r.getKey()));
-            rowIndex += 1;
         }
+    }
 
+    /**
+     * Adds the categorical values of the given row to the contingency table
+     */
+    private void addRowToContigencyTable(final DataRow row, final int[][][] contingencyTables) {
+        int valIndex = 0;
+        for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
+            for (int j = i + 1; j < m_categoricalColIndexMap.length; j++, valIndex++) {
+                LinkedHashMap<DataCell, Integer> possibleValuesI = m_possibleValues[i];
+                LinkedHashMap<DataCell, Integer> possibleValuesJ = m_possibleValues[j];
+                if (possibleValuesI == null || possibleValuesJ == null) {
+                    continue;
+                }
+                DataCell ci = row.getCell(m_categoricalColIndexMap[i]);
+                DataCell cj = row.getCell(m_categoricalColIndexMap[j]);
+                Integer indexI = possibleValuesI.get(ci);
+                Integer indexJ = possibleValuesJ.get(cj);
+                // TODO(benjamin) check or do not check?
+                //                assert indexI != null && indexI >= 0 : String.format(
+                //                    "Value unknown in value list of column \"%s-\": %s",
+                //                    table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[i]).getName(), ci);
+                //                assert indexJ != null && indexJ >= 0 : String.format(
+                //                    "Value unknown in value list of column \"%s-\": %s",
+                //                    table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[j]).getName(), ci);
+                contingencyTables[valIndex][indexI][indexJ]++;
+            }
+        }
+    }
+
+    /** Divides the nominator for numeric column combinations by (N - 1) */
+    private void normalizeNumericCorrelation(final HalfDoubleMatrix nominatorMatrix) {
         for (int i = 0; i < m_numericColIndexMap.length; i++) {
             for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
-                final int trueI = m_numericColIndexMap[i];
-                final int trueJ = m_numericColIndexMap[j];
-                double t = nominatorMatrix.get(trueI, trueJ);
+                final int tableI = m_numericColIndexMap[i];
+                final int tableJ = m_numericColIndexMap[j];
+                double t = nominatorMatrix.get(tableI, tableJ);
                 if (!Double.isNaN(t)) {
                     int validCount = m_numericValidCountMatrix.get(i, j);
-                    nominatorMatrix.set(trueI, trueJ, t / (validCount - 1));
+                    nominatorMatrix.set(tableI, tableJ, t / (validCount - 1));
                 }
             }
         }
-        valIndex = 0;
+    }
+
+    private void fillCategoricalCorrelation(final int[][][] contingencyTables, final HalfDoubleMatrix nominatorMatrix) {
+        int valIndex = 0;
         for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
             for (int j = i + 1; j < m_categoricalColIndexMap.length; j++) {
                 int[][] contingencyTable = contingencyTables[valIndex];
@@ -406,7 +505,6 @@ public final class CorrelationComputer2 {
                 valIndex++;
             }
         }
-        return nominatorMatrix;
     }
 
     /**
