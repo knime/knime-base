@@ -89,6 +89,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     /** Configuration key to store the setting whether the filter expression is case sensitive or not. */
     private static final String FILTER_CASE_SENSITIVITY = "filter_case_sensitivity";
 
+    /** Configuration key to store the connection host (HTTP connection). */
+    private static final String CONNECTION_HOST_HTTP = "http_connection_host";
+
+    /** Configuration key to store the connection port (HTTP connection). */
+    private static final String CONNECTION_PORT_HTTP = "http_connection_port";
+
+    /** Configuration key to store a custom url. */
+    private static final String CUSTOM_URL = "custom_url";
+
     /** The name of the configuration object. */
     private final String m_configName;
 
@@ -115,6 +124,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
 
     /** True, if expression to filter should work regardless the case of the filenames. */
     private boolean m_filterCaseSensitivity;
+
+    /** The host used to establish a HTTP connection. */
+    private String m_httpConnectionHost;
+
+    /** The port used to establish a HTTP connection. */
+    private String m_httpConnectionPort;
+
+    /** Custom URL used for specific file systems. */
+    private String m_customUrl;
 
     // TODO For what again?
     private final SettingsModelString m_path = new SettingsModelString("path", "");
@@ -292,6 +310,66 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     }
 
     /**
+     * Sets the HTTP connection host.
+     *
+     * @param newValue The HTTP connection host
+     */
+    public void setHttpConnectionHost(final String newValue) {
+        boolean sameValue;
+
+        if (newValue == null) {
+            sameValue = (m_httpConnectionHost == null);
+        } else {
+            sameValue = newValue.equals(m_httpConnectionHost);
+        }
+        m_httpConnectionHost = newValue;
+
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
+     * Sets the HTTP connection port.
+     *
+     * @param newValue The HTTP connection port
+     */
+    public void setHttpConnectionPort(final String newValue) {
+        boolean sameValue;
+
+        if (newValue == null) {
+            sameValue = (m_httpConnectionPort == null);
+        } else {
+            sameValue = newValue.equals(m_httpConnectionPort);
+        }
+        m_httpConnectionPort = newValue;
+
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
+     * Sets a custom URL.
+     *
+     * @param newValue The custom URL.
+     */
+    public void setCustomUrl(final String newValue) {
+        boolean sameValue;
+
+        if (newValue == null) {
+            sameValue = (m_customUrl == null);
+        } else {
+            sameValue = newValue.equals(m_customUrl);
+        }
+        m_customUrl = newValue;
+
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
      * Returns true, if file/folder should be read from a file system other than the local one.
      *
      * @return True, if file/folder should be read from a file system other than the local one
@@ -364,6 +442,33 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     }
 
     /**
+     * Returns the host for HTTP connections.
+     *
+     * @return The host for HTTP connections
+     */
+    public String getHttpConnectionHost() {
+        return m_httpConnectionHost;
+    }
+
+    /**
+     * Returns the port for HTTP connections.
+     *
+     * @return The port for HTTP connections
+     */
+    public String getHttpConnectionPort() {
+        return m_httpConnectionHost;
+    }
+
+    /**
+     * Returns the custom URL if available.
+     *
+     * @return The custom URL if available
+     */
+    public String getCustomUrl() {
+        return m_customUrl;
+    }
+
+    /**
      * @return the path
      */
     public SettingsModelString getPath() {
@@ -400,6 +505,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
             setFilterMode(config.getString(FILTER_MODE, m_filterMode));
             setFilterExpression(config.getString(FILTER_EXPRESSION, m_filterExpression));
             setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY, m_filterCaseSensitivity));
+            setHttpConnectionPort(config.getString(CONNECTION_PORT_HTTP, m_httpConnectionPort));
+            setHttpConnectionHost(config.getString(CONNECTION_HOST_HTTP, m_httpConnectionHost));
+            setCustomUrl(config.getString(CUSTOM_URL, m_customUrl));
         } catch (final InvalidSettingsException ise) {
             throw new NotConfigurableException(ise.getMessage());
         }
@@ -421,6 +529,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
         config.getString(FILTER_MODE);
         config.getString(FILTER_EXPRESSION);
         config.getBoolean(FILTER_CASE_SENSITIVITY);
+        config.getString(CONNECTION_PORT_HTTP);
+        config.getString(CONNECTION_HOST_HTTP);
+        config.getString(CUSTOM_URL);
     }
 
     @Override
@@ -434,6 +545,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
         setFilterMode(config.getString(FILTER_MODE));
         setFilterExpression(config.getString(FILTER_EXPRESSION));
         setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY));
+        setHttpConnectionPort(config.getString(CONNECTION_PORT_HTTP));
+        setHttpConnectionHost(config.getString(CONNECTION_HOST_HTTP));
+        setCustomUrl(config.getString(CUSTOM_URL));
     }
 
     @Override
@@ -447,6 +561,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
         config.addString(FILTER_MODE, getFilterMode());
         config.addString(FILTER_EXPRESSION, getFilterExpression());
         config.addBoolean(FILTER_CASE_SENSITIVITY, getCaseSensitivity());
+        config.addString(CONNECTION_HOST_HTTP, getHttpConnectionHost());
+        config.addString(CONNECTION_PORT_HTTP, getHttpConnectionPort());
+        config.addString(CUSTOM_URL, getCustomUrl());
     }
 
     @Override
