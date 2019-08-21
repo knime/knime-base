@@ -63,16 +63,14 @@ final class HeapTopKSelector implements TopKSelector {
 
     private final Comparator<DataRow> m_comparator;
 
-    private final PriorityQueue<DataRow> m_topElements;
+    private final PriorityQueue<DataRow> m_topRows;
 
-    private final int m_nrElements;
-
-    private DataRow m_kthElement;
+    private final int m_nrRows;
 
     HeapTopKSelector(final Comparator<DataRow> comparator, final int nrElements) {
         m_comparator = comparator;
-        m_nrElements = nrElements;
-        m_topElements = new PriorityQueue<>(m_nrElements + 1, comparator);
+        m_nrRows = nrElements;
+        m_topRows = new PriorityQueue<>(m_nrRows + 1, comparator);
     }
 
     /**
@@ -80,30 +78,14 @@ final class HeapTopKSelector implements TopKSelector {
      */
     @Override
     public void consume(final DataRow row) {
-        if (accept(row)) {
-            m_topElements.add(row);
-            if (m_topElements.size() > m_nrElements) {
-                // remove the smallest element
-                m_topElements.poll();
-            }
-            m_kthElement = m_topElements.element();
+        if (m_topRows.size() < m_nrRows) {
+            m_topRows.add(row);
+        } else if (m_comparator.compare(m_topRows.element(), row) < 0) {
+            m_topRows.poll();
+            m_topRows.add(row);
+        } else {
+            // the row is not among the top k rows
         }
-    }
-
-    /**
-     * A row is accepted in the following cases
-     * <ul>
-     * <li>It is the first row</li>
-     * <li>The queue doesn't contain the specified number of elements yet</li>
-     * <li>The element is larger than the kth smallest element (top of the queue)</li>
-     * </ul>
-     *
-     * @param row the new candidate
-     * @return true if <b>row</b> should be added to the queue
-     */
-    private boolean accept(final DataRow row) {
-        return m_kthElement == null || m_topElements.size() < m_nrElements
-            || m_comparator.compare(m_kthElement, row) < 0;
     }
 
     /**
@@ -111,7 +93,7 @@ final class HeapTopKSelector implements TopKSelector {
      */
     @Override
     public Collection<DataRow> getTopK() {
-        return Collections.unmodifiableCollection(m_topElements);
+        return Collections.unmodifiableCollection(m_topRows);
     }
 
 }

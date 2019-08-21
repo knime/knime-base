@@ -90,11 +90,9 @@ final class TopKSelectorSettings {
     private final SettingsModelString m_outputOrder = createOutputOrderModel();
 
     /**
-     * Array containing information about the sort order for each column. true:
-     * ascending; false: descending
+     * Array containing information about the sort order for each column. true: ascending; false: descending
      */
     private boolean[] m_orders = null;
-
 
     void saveSettingsTo(final NodeSettingsWO settings) {
         m_k.saveSettingsTo(settings);
@@ -110,6 +108,22 @@ final class TopKSelectorSettings {
         m_missingToEnd.validateSettings(settings);
         m_outputOrder.validateSettings(settings);
         settings.getBooleanArray(CFG_ORDER);
+        checkForDuplicateRows(settings);
+    }
+
+    static void checkForDuplicateRows(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final SettingsModelStringArray temp = createColumnsModel();
+        temp.loadSettingsFrom(settings);
+        final String[] columns = temp.getStringArrayValue();
+        for (int i = 0; i < columns.length; i++) {
+            String entry = columns[i];
+            for (int j = i + 1; j < columns.length; j++) {
+                if (entry.equals(columns[j])) {
+                    throw new InvalidSettingsException(
+                        String.format("Dublicate column '%s' at positions %s and %s.", entry, i, j));
+                }
+            }
+        }
     }
 
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {

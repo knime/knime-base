@@ -50,10 +50,12 @@ package org.knime.base.node.preproc.topk;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 
 import org.knime.base.node.preproc.sorter.SorterNodeDialogPanel2;
 import org.knime.core.data.DataRow;
@@ -93,8 +95,7 @@ final class TopKSelectorNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_settings.getColumns() == null) {
-            m_settings.setColumns(new String[]{SorterNodeDialogPanel2.ROWKEY.getName()});
-            m_settings.setOrders(new boolean[]{true});
+            CheckUtils.checkSetting(m_settings.getColumns() != null, "No columns specified to select by.");
         }
         findColumnIndices(inSpecs[IN_DATA]);
         return inSpecs.clone();
@@ -108,6 +109,10 @@ final class TopKSelectorNodeModel extends NodeModel {
         throws Exception {
         final BufferedDataTable table = inData[IN_DATA];
         final DataTableSpec spec = table.getDataTableSpec();
+        if (table.size() < m_settings.getK()) {
+            setWarningMessage(String.format("The input table has fewer rows (%s) than the specified k (%s)",
+                table.size(), m_settings.getK()));
+        }
         final int[] indices = findColumnIndices(spec);
         final Comparator<DataRow> rowComparator =
             new RowComparator(indices, m_settings.getOrders(), m_settings.isMissingToEnd(), spec);
@@ -127,18 +132,36 @@ final class TopKSelectorNodeModel extends NodeModel {
     private int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
         final String[] columns = m_settings.getColumns();
         final int[] indices = new int[columns.length];
+        final List<String> missingColumns = new ArrayList<>();
         for (int i = 0; i < indices.length; i++) {
             final String name = columns[i];
             if (isRowKey(name)) {
                 indices[i] = -1;
             } else {
                 final int idx = spec.findColumnIndex(name);
-                CheckUtils.checkSetting(idx > -1,
-                    "The specified selection column %s is not contained in the input table.", name);
+                if (idx < 0) {
+                    missingColumns.add(name);
+                }
                 indices[i] = idx;
             }
         }
+        CheckUtils.checkSetting(missingColumns.isEmpty(), missingColumnsError(missingColumns));
         return indices;
+    }
+
+    private static String missingColumnsError(final Collection<String> missingColumns) {
+        final StringBuilder sb = new StringBuilder("The input table has changed. Some columns are missing: ");
+        final Iterator<String> iter = missingColumns.iterator();
+        for (int i = 0; i < 3 && iter.hasNext(); i++) {
+            sb.append("\"").append(iter.next()).append("\"");
+            if (iter.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        if (missingColumns.size() > 3) {
+            sb.append("... <").append(missingColumns.size() - 3).append("more>");
+        }
+        return sb.toString();
     }
 
     private static boolean isRowKey(final String colName) {
@@ -148,13 +171,14 @@ final class TopKSelectorNodeModel extends NodeModel {
     private static BufferedDataTable createOutputTable(final Collection<DataRow> topK, final DataTableSpec spec,
         final ExecutionContext exec) throws CanceledExecutionException {
         final BufferedDataContainer container = exec.createDataContainer(spec);
-        final int nrElements = topK.size();
+        final double nrElements = topK.size();
         final Iterator<DataRow> iterator = topK.iterator();
         for (long i = 1; iterator.hasNext(); i++) {
             exec.checkCanceled();
             final DataRow row = iterator.next();
-            exec.setProgress(i / ((double)nrElements),
-                String.format("Writing row %s to output (%s of %s)", row.getKey(), i, nrElements));
+            final long iFinal = i;
+            exec.setProgress(i / nrElements,
+                () -> String.format("Writing row %s to output (%s of %s)", row.getKey(), iFinal, (long)nrElements));
             container.addRowToTable(row);
         }
         container.close();
@@ -163,14 +187,15 @@ final class TopKSelectorNodeModel extends NodeModel {
 
     private static void fillElementSelector(final ExecutionContext exec, final BufferedDataTable table,
         final int[] indices, final TopKSelector elementSelector) throws CanceledExecutionException {
-        final long nrRows = table.size();
+        final double nrRows = table.size();
         try (CloseableRowIterator iterator = table
             .filter(TableFilter.materializeCols(Arrays.stream(indices).filter(i -> i > -1).toArray())).iterator()) {
             for (long i = 1; iterator.hasNext(); i++) {
                 exec.checkCanceled();
                 final DataRow row = iterator.next();
-                exec.setProgress(i / ((double)nrRows),
-                    String.format("Consuming row %s (%s of %s).", row.getKey(), i, nrRows));
+                final long iFinal = i;
+                exec.setProgress(i / nrRows, () ->
+                    String.format("Consuming row %s (%s of %s).", row.getKey(), iFinal, (long)nrRows));
                 elementSelector.consume(row);
             }
         }

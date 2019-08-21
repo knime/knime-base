@@ -121,10 +121,11 @@ final class OrderPostprocessors {
     static <T> Comparator<T> chain(final Comparator<T>... comparators) {
         CheckUtils.checkNotNull(comparators);
         CheckUtils.checkArgument(comparators.length > 1, "At least two comparators are required for chaining.");
+        for (Comparator<T> comparator : comparators) {
+            CheckUtils.checkArgument(comparator != null, "Comparators used in chains must not be null.");
+        }
         return (o1, o2) -> {
             for (Comparator<T> comparator : comparators) {
-                CheckUtils.checkState(comparator != null, "Comparators used in chains must not be null.");
-                @SuppressWarnings("null") // the line above ensures that comparator is not null
                 final int comparison = comparator.compare(o1, o2);
                 if (comparison != 0) {
                     return comparison;
