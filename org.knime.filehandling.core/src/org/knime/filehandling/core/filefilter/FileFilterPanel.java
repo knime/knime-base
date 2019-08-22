@@ -54,8 +54,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -87,8 +85,6 @@ public class FileFilterPanel extends JPanel {
 
     private final JCheckBox m_caseSensitive;
 
-    private final JCheckBox m_searchSubfolders;
-
     private final String m_defaultExtensions;
 
     private final String m_defaultWildcard;
@@ -102,9 +98,6 @@ public class FileFilterPanel extends JPanel {
         m_defaultExtensions =  String.join(",", defaultSuffixes);
         m_defaultWildcard = "*." + (defaultSuffixes.length > 0 ? defaultSuffixes[0] : "*");
 
-        Box outerBox = Box.createVerticalBox();
-        outerBox.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Filter:"));
-
         m_filterType =
             new JComboBox<>(Arrays.stream(FileFilter.values()).map(FileFilter::getDisplayText).toArray(String[]::new));
         m_filterType.setSelectedIndex(0);
@@ -115,12 +108,13 @@ public class FileFilterPanel extends JPanel {
         m_caseSensitive = new JCheckBox();
         m_caseSensitive.setText("Case sensitive");
 
-        m_searchSubfolders = new JCheckBox();
-        m_searchSubfolders.setText("Search subfolders");
+        m_filterType.addActionListener(this::filterTypeSelectionChanged);
+        filterTypeSelectionChanged(null);
 
-        m_filterType.addActionListener(this::filterSelectionChanged);
-        filterSelectionChanged(null);
+        initLayout();
+    }
 
+    private void initLayout() {
         setLayout(new GridBagLayout());
 
         final GridBagConstraints gbc = new GridBagConstraints();
@@ -144,31 +138,18 @@ public class FileFilterPanel extends JPanel {
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         add(m_caseSensitive, gbc);
-
-        gbc.gridy++;
-        gbc.insets = new Insets(0, 5, 0, 0);
-        add(m_searchSubfolders, gbc);
-
-
     }
 
-    private void filterSelectionChanged(final ActionEvent e) {
+    private void filterTypeSelectionChanged(final ActionEvent e) {
         switch (FileFilter.fromDisplayText((String)m_filterType.getSelectedItem())) {
-            case NONE:
-                m_filterTextField.setSelectedItem("");
-                m_filterTextField.setEnabled(false);
-                break;
             case EXTENSIONS:
                 m_filterTextField.setSelectedItem(m_defaultExtensions);
-                m_filterTextField.setEnabled(true);
                 break;
             case WILDCARD:
                 m_filterTextField.setSelectedItem(m_defaultWildcard);
-                m_filterTextField.setEnabled(true);
                 break;
             case REGEX:
                 m_filterTextField.setSelectedItem("");
-                m_filterTextField.setEnabled(true);
                 break;
         }
     }

@@ -44,50 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 15, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Aug 21, 2019 (bjoern): created
  */
-package org.knime.filehandling.core.filefilter;
+package org.knime.filehandling.core.defaultnodesettings;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * File Filter enumeration.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-public enum FileFilter {
+public class KNIMEConnection {
 
-    /**
-     * Only files with certain extensions pass this filter.
-     */
-    EXTENSIONS("File extension(s)"),
-    /**
-     * Only files with names containing the wildcard pass this filter.
-     */
-    WILDCARD("Wildcard"),
-    /**
-     * Only files with names that matches the regex pass this filter.
-     */
-    REGEX("Regular expression");
+    public enum Type {
+            /**
+             * knime://knime.node/
+             */
+            NODE_RELATIVE,
 
-    private final String m_displayText;
+            /**
+             * knime://knime.workflow/
+             */
+            WORKFLOW_RELATIVE,
 
-    private FileFilter(final String displayText) {
-        m_displayText = displayText;
+            /**
+             * knime://knime.mountpoint/
+             */
+            MOUNTPOINT_RELATIVE,
+
+            /**
+             * knime://<mount-ID>>/
+             */
+            MOUNTPOINT_ABSOLUTE;
     }
 
+    public final static KNIMEConnection NODE_RELATIVE =
+        new KNIMEConnection(Type.NODE_RELATIVE, "Node-relative", "knime.node");
 
-    /**
-     * @return the displayText
-     */
-    public String getDisplayText() {
-        return m_displayText;
+    public final static KNIMEConnection WORKFLOW_RELATIVE =
+        new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Workflow-relative", "knime.workflow");
+
+    public final static KNIMEConnection MOUNTPOINT_RELATIVE =
+        new KNIMEConnection(Type.MOUNTPOINT_RELATIVE, "Mountpoint-relative", "knime.mountpoint");
+
+    private final static Map<String, KNIMEConnection> CONNECTIONS = new HashMap<>();
+    static {
+        CONNECTIONS.put(NODE_RELATIVE.getId(), NODE_RELATIVE);
+        CONNECTIONS.put(WORKFLOW_RELATIVE.getId(), WORKFLOW_RELATIVE);
+        CONNECTIONS.put(MOUNTPOINT_RELATIVE.getId(), MOUNTPOINT_RELATIVE);
     }
 
-    public static FileFilter fromDisplayText(final String displayText) {
-        return Arrays.stream(FileFilter.values())
-                .filter((f) -> f.getDisplayText().equals(displayText))
-                .findFirst()
-                .get();
+    private final Type m_type;
+
+    private final String m_displayName;
+
+    private final String m_key;
+
+    private KNIMEConnection(final Type type, final String displayName, final String id) {
+        m_type = type;
+        m_displayName = displayName;
+        m_key = id;
+    }
+
+    public String getId() {
+        return m_key;
+    }
+
+    @Override
+    public String toString() {
+        return m_displayName;
+    }
+
+    public synchronized static KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
+        if (!CONNECTIONS.containsKey(mountId)) {
+            CONNECTIONS.put(mountId, new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
+                String.format("Mountpoint (%s)", mountId), mountId));
+        }
+
+        return CONNECTIONS.get(mountId);
+    }
+
+    public synchronized static KNIMEConnection[] getAll() {
+        return CONNECTIONS.values().stream().toArray(KNIMEConnection[]::new);
     }
 }
