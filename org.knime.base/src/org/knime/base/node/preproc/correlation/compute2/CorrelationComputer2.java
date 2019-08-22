@@ -55,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.BetaDistribution;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
 import org.knime.base.util.HalfDoubleMatrix;
 import org.knime.base.util.HalfIntMatrix;
@@ -77,6 +79,7 @@ import org.knime.core.util.Pair;
  * use="pairwise.complete.obs")" in R.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germnany
  * @since 4.1
  * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
  */
@@ -309,8 +312,11 @@ public final class CorrelationComputer2 {
         int[][][] contingencyTables = initContingencyTables();
 
         final int numColumns = m_tableSpec.getNumColumns();
-        HalfDoubleMatrix nominatorMatrix = new HalfDoubleMatrix(numColumns, /*includeDiagonal=*/false);
+        final HalfDoubleMatrix nominatorMatrix = new HalfDoubleMatrix(numColumns, /*includeDiagonal=*/false);
         nominatorMatrix.fill(Double.NaN);
+
+        final HalfDoubleMatrix pValMatrix = new HalfDoubleMatrix(numColumns, false);
+        pValMatrix.fill(Double.NaN);
 
         handleZeroStdDev(nominatorMatrix);
 
@@ -333,7 +339,9 @@ public final class CorrelationComputer2 {
 
         normalizeNumericCorrelation(nominatorMatrix);
 
-        fillCategoricalCorrelation(contingencyTables, nominatorMatrix);
+        computePValues(nominatorMatrix, pValMatrix);
+
+        fillCategoricalCorrelation(contingencyTables, nominatorMatrix, pValMatrix);
 
         return nominatorMatrix;
     }
@@ -490,18 +498,45 @@ public final class CorrelationComputer2 {
         }
     }
 
-    private void fillCategoricalCorrelation(final int[][][] contingencyTables, final HalfDoubleMatrix nominatorMatrix) {
+    /** Computes the p values of the given correlations. */
+    private void computePValues(final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix) {
+        // TODO(benjamin) add function that runs a consumer on each numeric column?
+        for (int i = 0; i < m_numericColIndexMap.length; i++) {
+            for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
+
+                final int tableI = m_numericColIndexMap[i];
+                final int tableJ = m_numericColIndexMap[j];
+
+                final double r = nominatorMatrix.get(tableI, tableJ);
+                double pval = Double.NaN;
+                if (!Double.isNaN(r)) {
+                    // Compute the p value if we could compute the correlation
+                    final int validCount = m_numericValidCountMatrix.get(i, j);
+                    final double ab = (validCount / 2.0) - 1.0;
+                    pval = 2 * new BetaDistribution(ab, ab).cumulativeProbability(0.5 * (1 - Math.abs(r)));
+                }
+                pValMatrix.set(tableI, tableJ, pval);
+            }
+        }
+    }
+
+    private void fillCategoricalCorrelation(final int[][][] contingencyTables, final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix) {
         int valIndex = 0;
         for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
             for (int j = i + 1; j < m_categoricalColIndexMap.length; j++) {
                 int[][] contingencyTable = contingencyTables[valIndex];
-                double value;
+                double cramersV;
+                double pVal;
                 if (contingencyTable == null) {
-                    value = Double.NaN;
+                    cramersV = Double.NaN;
+                    pVal = Double.NaN;
                 } else {
-                    value = computeCramersV(contingencyTable);
+                    final Pair<Double, Double> stats = computeCramersV(contingencyTable);
+                    cramersV = stats.getFirst();
+                    pVal = stats.getSecond();
                 }
-                nominatorMatrix.set(m_categoricalColIndexMap[i], m_categoricalColIndexMap[j], value);
+                nominatorMatrix.set(m_categoricalColIndexMap[i], m_categoricalColIndexMap[j], cramersV);
+                pValMatrix.set(m_categoricalColIndexMap[i], m_categoricalColIndexMap[j], pVal);
                 valIndex++;
             }
         }
@@ -577,23 +612,25 @@ public final class CorrelationComputer2 {
      * @param contingency the contingency table
      * @return cramer's V
      */
-    public static double computeCramersV(final int[][] contingency) {
-        if (contingency.length <= 1 || contingency[0].length <= 1) {
-            return 0.0;
+    private static Pair<Double, Double> computeCramersV(final int[][] contingency) {
+        final int rows = contingency.length;
+        final int cols = contingency[0].length;
+        if (rows <= 1 || cols <= 1) {
+            return new Pair<>(0.0, 1.0);
         }
-        double[] rowSums = new double[contingency.length];
-        double[] colSums = new double[contingency[0].length];
+        double[] rowSums = new double[rows];
+        double[] colSums = new double[cols];
         double totalSum = 0.0;
-        for (int i = 0; i < contingency.length; i++) {
-            for (int j = 0; j < contingency[0].length; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 rowSums[i] += contingency[i][j];
                 colSums[j] += contingency[i][j];
                 totalSum += contingency[i][j];
             }
         }
         double chisquare = 0.0;
-        for (int i = 0; i < contingency.length; i++) {
-            for (int j = 0; j < contingency[0].length; j++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 double expected = rowSums[i] * colSums[j] / totalSum;
                 // this is asserted as each row/column must contain at least
                 // one value >= 1
@@ -602,8 +639,13 @@ public final class CorrelationComputer2 {
                 chisquare += diff * diff / expected;
             }
         }
-        int minValueCount = Math.min(rowSums.length, colSums.length) - 1;
-        return Math.sqrt(chisquare / (totalSum * minValueCount));
+        final int minValueCount = Math.min(rowSums.length, colSums.length) - 1;
+        final double cramersV = Math.sqrt(chisquare / (totalSum * minValueCount));
+        // TODO(benjamin) This is correct but introduces numerical instabilities:
+        // The value is almost 1 and double cannot represent this as well as something close to zero
+        final double pVal = 1.0 - new ChiSquaredDistribution(rows * cols - (rows + cols) + 1)
+            .cumulativeProbability(chisquare);
+        return new Pair<>(cramersV, pVal);
     }
 
 }
