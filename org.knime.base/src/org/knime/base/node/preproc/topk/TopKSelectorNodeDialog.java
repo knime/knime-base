@@ -112,12 +112,17 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
+        final DataTableSpec spec = specs[TopKSelectorNodeModel.IN_DATA];
+        if (spec == null || spec.getNumColumns() < 1) {
+            throw new NotConfigurableException("No columns to select by.");
+        }
         try {
             m_settings.loadValidatedSettingsFrom(settings);
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException("Couldn't load settings", e);
         }
-        m_criterionPanel.update(specs[TopKSelectorNodeModel.IN_DATA], Arrays.asList(m_settings.getColumns()),
+        final String[] columns = m_settings.getColumns();
+        m_criterionPanel.update(spec, columns == null ? null : Arrays.asList(columns),
             m_settings.getOrders(), 3);
     }
 
