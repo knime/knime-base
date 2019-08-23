@@ -17,6 +17,11 @@
             category-path="/labs/file-handling-prototype"
             factory-class="org.knime.filehandling.core.nodes.localfsconnection.LocalFSConnectionNodeFactory">
       </node>
+      
+      <node
+            category-path="/labs/file-handling-prototype"
+            factory-class="org.knime.filehandling.core.nodes.s3connection.S3ConnectionNodeFactory">
+      </node>
    </extension>
 
 </plugin>

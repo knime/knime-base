@@ -50,14 +50,13 @@ package org.knime.filehandling.core.filechooser;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -75,35 +74,35 @@ public class NioFileSystemView extends FileSystemView {
 
     /**
      * The base root directory. e.g. "/" for Unix. Might also be set to the first directory in the
-     * {@link #rootDirectories} set. *
+     * {@link #m_rootDirectories} set. *
      */
-    final Path base;
+    final Path m_base;
 
     /** Set of all root directories of the given file system */
-    final Set<Path> rootDirectories;
+    final Set<Path> m_rootDirectories;
 
     /** File system */
-    final FileSystem fileSystem;
+    final FileSystem m_fileSystem;
 
     /** File system provider */
-    final FileSystemProvider fsProvider;
+    final FileSystemProvider m_fsProvider;
 
     /**
+     * Constructor for a NIO implementation of the {@link FileSystemView}.
+     *
      * @param conn The connection used to provide the file system to be shown in the {@code JFileChooser} instance.
-     * @throws URISyntaxException
-     * @throws IOException
      */
-    public NioFileSystemView(final FSConnection conn) throws URISyntaxException, IOException {
-        this.fileSystem = conn.getFileSystem();
-        this.base = fileSystem.getRootDirectories().iterator().next();
-        this.fsProvider = fileSystem.provider();
-        this.rootDirectories = new HashSet<>();
-        this.fileSystem.getRootDirectories().forEach(p -> rootDirectories.add(p));
+    public NioFileSystemView(final FSConnection conn) {
+        this.m_fileSystem = conn.getFileSystem();
+        this.m_base = m_fileSystem.getRootDirectories().iterator().next();
+        this.m_fsProvider = m_fileSystem.provider();
+        this.m_rootDirectories = new LinkedHashSet<>();
+        this.m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
     }
 
     @Override
     public String getSystemTypeDescription(final File f) {
-        return fileSystem.getPath(f.getPath()).toString();
+        return m_fileSystem.getPath(f.getPath()).toString();
     }
 
     @Override
@@ -113,13 +112,19 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public File getParentDirectory(final File dir) {
-        Path path = fileSystem.getPath(cutPath(dir.getPath()));
+        if (dir == null) {
+            return null;
+        }
+        final Path path = m_fileSystem.getPath(dir.getPath());
+        if (path.getParent() == null) {
+            return null;
+        }
         return new NioFile(path.getParent());
     }
 
     @Override
     public File[] getFiles(final File dir, final boolean useFileHiding) {
-        return new NioFile(cutPath(dir.getPath())).listFiles();
+        return new NioFile(dir.getPath()).listFiles();
     }
 
     @Override
@@ -131,31 +136,31 @@ public class NioFileSystemView extends FileSystemView {
     public File createFileObject(final File dir, final String filename) {
         Path fileObject;
         if (dir != null) {
-            fileObject = fileSystem.getPath(dir.getPath(), filename);
+            fileObject = m_fileSystem.getPath(dir.getPath(), filename);
         } else {
-            fileObject = fileSystem.getPath(filename);
+            fileObject = m_fileSystem.getPath(filename);
         }
         return new NioFile(fileObject.toString());
     }
 
     @Override
     public File getDefaultDirectory() {
-        return new NioFile(cutPath(base.toString()));
+        return new NioFile(m_base.toString());
     }
 
     @Override
     public File getHomeDirectory() {
-        return new NioFile(cutPath(base.toString()));
+        return new NioFile(m_base.toString());
     }
 
     @Override
     public File[] getRoots() {
-        return rootDirectories.stream().map(p -> new NioFile(cutPath(p.toString()))).toArray(File[]::new);
+        return m_rootDirectories.stream().map(p -> new NioFile(p.toString())).toArray(File[]::new);
     }
 
     @Override
     public boolean isFileSystemRoot(final File dir) {
-        return fileSystem.getPath(cutPath(dir.toString())).getParent() == null;
+        return m_fileSystem.getPath(dir.toString()).getParent() == null;
     }
 
     @Override
@@ -175,8 +180,8 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public boolean isParent(final File folder, final File file) {
-        final Path filePath = fileSystem.getPath(file.getPath());
-        final Path folderPath = fileSystem.getPath(folder.getPath());
+        final Path filePath = m_fileSystem.getPath(file.getPath());
+        final Path folderPath = m_fileSystem.getPath(folder.getPath());
         return filePath.getParent().equals(folderPath);
     }
 
@@ -188,14 +193,14 @@ public class NioFileSystemView extends FileSystemView {
     @Override
     public boolean isRoot(final File f) {
         if (f != null) {
-            return rootDirectories.stream().anyMatch(p -> p.equals(f.toPath()));
+            return m_rootDirectories.stream().anyMatch(p -> p.equals(f.toPath()));
         }
         return false;
     }
 
     @Override
     public File createNewFolder(final File containingDir) throws IOException {
-        Path newFolder = fileSystem.getPath(containingDir.getPath(), "newFolder/");
+        final Path newFolder = m_fileSystem.getPath(containingDir.getPath(), "newFolder/");
         Files.createDirectory(newFolder);
         return newFolder.toFile();
     }
@@ -225,67 +230,82 @@ public class NioFileSystemView extends FileSystemView {
         return UIManager.getIcon(f.isDirectory() ? "FileView.directoryIcon" : "FileView.fileIcon");
     }
 
-    private static final String cutPath(final String string) {
-        return string.replace("s3://AKIA2UFJCI35RVRPOH46@s3-eu-west-1.amazonaws.com", "");
-    }
-
     private final class NioFile extends File {
 
         private static final long serialVersionUID = -5343680976176201255L;
 
-        private final Path path;
+        private final Path m_path;
 
         private NioFile(final Path p) {
             super(p.toString());
-            path = p;
+            m_path = p;
         }
 
         private NioFile(final String pathname) {
             super(pathname);
-            path = fileSystem.getPath(pathname);
+            m_path = m_fileSystem.getPath(pathname);
         }
 
         public NioFile(final File parent, final String child) {
             super(parent, child);
-            path = null;
+            m_path = null;
         }
 
         @Override
         public boolean exists() {
-            return true;
+            return Files.exists(m_path);
         }
 
         @Override
         public boolean isDirectory() {
-            // FIXME: To be replaced by correct check
-//            return Boolean
-//                .valueOf(Files.isDirectory(new S3Path((S3FileSystem)fileSystem, cutPath(this.getPath()), "")));
-            return Boolean.TRUE;
+            return Files.isDirectory(m_path);
         }
 
         @Override
         public File getCanonicalFile() throws IOException {
-            return new NioFile(cutPath(path.toString()));
+            return new NioFile(m_path.toString());
         }
 
         @Override
         public File[] listFiles() {
-            if (Files.isDirectory(path)) {
-                List<File> files = new ArrayList<>();
-                try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
-                    directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(cutPath(p.toString()))));
-                } catch (IOException ex) {
-                    // Log ...
-                }
-                return files.toArray(new NioFile[files.size()]);
+
+            final List<File> files = new ArrayList<>();
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(m_path)) {
+                directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(p.toString())));
+            } catch (final Exception ex) {
+                // Log ...
             }
-            return new File[0];
+            return files.toArray(new NioFile[files.size()]);
         }
 
         @Override
         public String getPath() {
-            return path.toString();
+            return m_path.toString();
         }
+
+        @Override
+        public boolean canWrite() {
+            return Files.isWritable(m_path);
+        }
+
+        @Override
+        public long length() {
+            try {
+                return Files.size(m_path);
+            } catch (final IOException ex) {
+                return 0L;
+            }
+        }
+
+        @Override
+        public long lastModified() {
+            try {
+                return Files.getLastModifiedTime(m_path).toMillis();
+            } catch (final IOException ex) {
+                return 0L;
+            }
+        }
+
     }
 
 }
