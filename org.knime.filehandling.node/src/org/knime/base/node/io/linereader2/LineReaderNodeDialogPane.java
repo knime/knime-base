@@ -100,7 +100,8 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
     /** Create new dialog, init layout. */
     LineReaderNodeDialogPane() {
         m_fileChooserSettingsModel = new SettingsModelFileChooser2("filechooser");
-        m_fileChooser = new DialogComponentFileChooser2(m_fileChooserSettingsModel, this, "txt", "log");
+        m_fileChooser = new DialogComponentFileChooser2(m_fileChooserSettingsModel,
+            LineReaderNodeDialogPane.class.toString(), this, "txt", "log");
 
         int col = 10;
         m_columnHeaderField = new JTextField("Column", col);
@@ -219,11 +220,9 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
+        // FIXME LineReaderConfig might be outdated for future use
         LineReaderConfig config = new LineReaderConfig();
         config.loadConfigurationInDialog(settings);
-        String url = config.getUrlString();
-//        m_filePanel.updateHistory();
-//        m_filePanel.setSelectedFile(url);
         m_columnHeaderField.setText(config.getColumnHeader());
         m_customColHeaderRadio.setSelected(!config.isReadColumnHeader());
         m_readColHeaderRadio.setSelected(config.isReadColumnHeader());
@@ -262,8 +261,6 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         LineReaderConfig config = new LineReaderConfig();
-//        String fileS = m_filePanel.getSelectedFile().trim();
-        config.setUrlString("fnord");
         config.setColumnHeader(m_columnHeaderField.getText());
         config.setReadColumnHeader(m_readColHeaderRadio.isSelected());
         config.setRowPrefix(m_rowHeadPrefixField.getText());
@@ -283,7 +280,6 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
             config.setRegex("");
         }
         config.saveConfiguration(settings);
-//        m_filePanel.addToHistory();
         m_fileChooser.saveSettingsTo(settings);
     }
 

@@ -100,8 +100,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
 
-    private final SettingsModelFileChooser2 m_settingsModel;
-
     private final NodeDialogPane m_dialogPane;
 
     private final FlowVariableModel m_pathFlowVariableModel;
@@ -130,12 +128,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private final JLabel m_statusMessage;
 
-    public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel,
+    public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel, final String historyId,
         final NodeDialogPane dialogPane, final String... suffixes) {
 
         super(settingsModel);
 
-        m_settingsModel = settingsModel;
         m_dialogPane = dialogPane;
         m_pathFlowVariableModel = m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
         m_defaultSuffixes = suffixes;
@@ -143,14 +140,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_useConnection = new JLabel("Read from: ");
 
         m_connections = new JComboBox<>(new String[0]);
-        m_connections.setEnabled(false);
+        m_connections.setEnabled(true);
 
         m_knimeConnections = new JComboBox<>();
 
         m_fileFolderLabel = new JLabel("File/Folder:");
 
-        m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel,
-            "filechoosergen2",
+        m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel, historyId,
             new LocalFileSystemBrowser(),
             FileSelectionMode.FILES_AND_DIRECTORIES, DialogType.OPEN_DIALOG, suffixes);
 
@@ -162,7 +158,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         initEventHandlers();
         initLayout();
-        updateModel();
+        updateComponent();
     }
 
     private void initLayout() {
@@ -218,6 +214,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
         panel.add(m_statusMessage, gbc);
+
+        updateConnectionsCombo();
+        updateKNIMEConnectionsCombo();
     }
 
     private void initConnectionSettingsPanelLayout() {
@@ -248,9 +247,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void initEventHandlers() {
         m_connections.addActionListener(e -> updateModel());
         m_fileHistoryPanel.addChangeListener(e -> updateModel());
-        m_includeSubfolders.addChangeListener(e -> updateModel());
-        m_filterFiles.addChangeListener(e -> updateModel());
-        m_configureFilter.addActionListener((e) -> showFileFilterConfigurationDialog());
+        m_includeSubfolders.addActionListener(e -> updateModel());
+        m_filterFiles.addActionListener(e -> updateModel());
+        m_configureFilter.addActionListener(e -> showFileFilterConfigurationDialog());
     }
 
     private void showFileFilterConfigurationDialog() {
@@ -275,6 +274,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             // KNIME connections are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "KNIME");
 
+            m_knimeConnections.setEnabled(true);
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText("File/Folder:");
             m_fileHistoryPanel.setEnabled(true);
@@ -373,17 +373,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         return new Pair<>(matches.get(), totalVisited.get());
     }
 
-    private String makePathMatcherPattern() {
+    private static String makePathMatcherPattern() {
         return "glob:**/*.{txt,TXT}";
-    }
-
-    /**
-     * @param fileOrFolder
-     * @return
-     */
-    private int countFilterMatches(final Path fileOrFolder) {
-        // TODO Auto-generated method stub
-        return 0;
     }
 
     private void updateFolderFilterEnabledness() {
@@ -401,8 +392,39 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      */
     @Override
     protected void updateComponent() {
-        updateConnectionsCombo();
-        updateKNIMEConnectionsCombo();
+    	// add connections coming from flow variables
+        updateFlowVariableConnectionsCombo();
+
+        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+        // sync connection combo box
+        final String fileSystem = model.getFileSystem();
+        if (fileSystem != null && !fileSystem.equals(m_connections.getSelectedItem())) {
+            m_connections.setSelectedItem(fileSystem);
+        }
+        // sync knime connection checkbox
+        final String knimeFileSystem = model.getKNIMEFileSystem();
+        if (knimeFileSystem != null && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
+            m_knimeConnections.setSelectedItem(knimeFileSystem);
+        }
+        // sync file history panel
+        final String pathOrUrl = model.getPathOrURL();
+        if (pathOrUrl != null && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
+            m_fileHistoryPanel.setSelectedFile(pathOrUrl);
+        }
+        // sync subfolder checkbox
+        final boolean includeSubfolders = model.getIncludeSubfolders();
+        if (includeSubfolders != m_includeSubfolders.isSelected()) {
+            m_includeSubfolders.setSelected(includeSubfolders );
+        }
+        // sync filter files checkbox
+        final boolean filterFiles = model.getFilterFiles();
+        if (filterFiles != m_filterFiles.isSelected()) {
+            m_filterFiles.setSelected(filterFiles);
+        }
+        // TODO: Sync file filtering settings
+
+
+        setEnabledComponents(model.isEnabled());
     }
 
     private void updateConnectionsCombo() {
@@ -410,10 +432,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         connectionsModel.removeAllElements();
         connectionsModel.addElement("KNIME");
         connectionsModel.addElement("Custom URL");
+    }
 
+    private void updateFlowVariableConnectionsCombo() {
+        final DefaultComboBoxModel<String> connectionsModel = (DefaultComboBoxModel<String>)m_connections.getModel();
         m_connectionFlowVariableProvider = new FSConnectionFlowVariableProvider(m_dialogPane);
         for (final String connectionName : m_connectionFlowVariableProvider.allConnectionNames()) {
-            connectionsModel.addElement(connectionName);
+            if (connectionsModel.getIndexOf(connectionName) < 0) {
+                connectionsModel.addElement(connectionName);
+            }
         }
     }
 
@@ -442,6 +469,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      */
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
+        m_fileHistoryPanel.addToHistory();
         updateModel();
     }
 
@@ -450,8 +478,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      */
     @Override
     protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
-        // TODO Auto-generated method stub
-
+        // this 'should' be done during #loadSettingsFrom (which is final) -- this method is called from there
+        m_fileHistoryPanel.updateHistory();
+        // otherwise we are good - independent of the incoming spec
     }
 
     /**
@@ -460,12 +489,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     protected void setEnabledComponents(final boolean enabled) {
         m_useConnection.setEnabled(enabled);
-        m_connections.setEnabled(enabled);
-        m_knimeConnections.setEnabled(enabled);
         m_fileHistoryPanel.setEnabled(enabled);
-        m_includeSubfolders.setEnabled(enabled);
-        m_filterFiles.setEnabled(enabled);
-        m_configureFilter.setEnabled(enabled);
+        if (enabled) {
+            updateEnabledness();
+        } else {
+            // disable
+            m_includeSubfolders.setEnabled(enabled);
+            m_filterFiles.setEnabled(enabled);
+            m_configureFilter.setEnabled(enabled);
+        }
     }
 
     /**

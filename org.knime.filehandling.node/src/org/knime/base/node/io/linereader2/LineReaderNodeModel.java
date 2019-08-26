@@ -47,6 +47,7 @@ package org.knime.base.node.io.linereader2;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.commons.lang.StringUtils;
@@ -92,7 +93,13 @@ final class LineReaderNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        URL url = m_config.getURL();
+        // Mocking, line reader uses LineReaderConfig, which we probably don't need anymore
+        URL url;
+        try {
+            url = new URL("file", "", m_fileChooser.getPathOrURL());
+        } catch (MalformedURLException ex) {
+            throw new InvalidSettingsException(ex);
+        }
         BufferedDataContainer container;
         try (BufferedFileReader fileReader = BufferedFileReader.createNewReader(url)) {
             DataTableSpec spec = createOutputSpec(fileReader);
@@ -140,7 +147,13 @@ final class LineReaderNodeModel extends NodeModel {
 
     private DataTableSpec createOutputSpec(final BufferedFileReader fileReader) throws InvalidSettingsException {
         CheckUtils.checkSettingNotNull(m_config, "No source location provided! Please enter a valid location.");
-        final URL url = m_config.getURL();
+        // Mocking, line reader uses LineReaderConfig, which we probably don't need anymore
+        URL url;
+        try {
+            url = new URL("file", "", m_fileChooser.getPathOrURL());
+        } catch (MalformedURLException ex) {
+            throw new InvalidSettingsException(ex);
+        }
         String warning = CheckUtils.checkSourceFile(url.toString());
         if (warning != null) {
             setWarningMessage(warning);

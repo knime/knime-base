@@ -45,17 +45,12 @@
  */
 package org.knime.base.node.io.linereader2;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.CheckUtils;
 
 /**
  * Configuration for line reader node.
@@ -63,66 +58,14 @@ import org.knime.core.node.util.CheckUtils;
  */
 final class LineReaderConfig {
 
-    /** Config key for URL. */
-    static final String CFG_URL = "url";
+    // REMOVED UNNECESSARY LINE READER CONFIG CONTENT
 
-    private String m_url;
     private String m_rowPrefix;
     private String m_columnHeader;
     private boolean m_readColHeader;
     private boolean m_skipEmptyLines;
     private int m_limitRowCount;
     private String m_regex;
-
-    /** @return the url */
-    String getUrlString() {
-        return m_url;
-    }
-    /** @param url the url to set */
-    void setUrlString(final String url) {
-        m_url = url;
-    }
-    /** Convert url string into URL, fail if invalid or null/empty.
-      * @return The URL
-      * @throws InvalidSettingsException if invalid. */
-    URL getURL() throws InvalidSettingsException {
-        CheckUtils.checkSourceFile(m_url);
-        if (m_url.toLowerCase().matches("^[a-z]+:/.*")) {
-            URL url;
-            try {
-                url = new URL(m_url);
-            } catch (MalformedURLException ex) {
-                throw new InvalidSettingsException("Unable to parse URL \""
-                        + m_url + "\": " + ex.getMessage(), ex);
-            }
-            if ("file".equals(url.getProtocol())) {
-                try {
-                    checkFileAccess(new File(url.toURI()));
-                } catch (URISyntaxException e) {
-                    throw new InvalidSettingsException(
-                            "Can't convert file protocol to URI", e);
-                }
-            }
-            return url;
-        } else {
-            File f = new File(m_url);
-            checkFileAccess(f);
-            try {
-                return f.toURI().toURL();
-            } catch (MalformedURLException e) {
-                throw new InvalidSettingsException("Can't retrieve local URL "
-                        + "to file \"" + m_url + "\"", e);
-            }
-        }
-
-    }
-
-    private void checkFileAccess(final File f) throws InvalidSettingsException {
-        if (!f.isFile()) {
-            throw new InvalidSettingsException("Path \""
-                    + f.getAbsolutePath() + "\" does not denote a file");
-        }
-    }
 
     /** @return the rowPrefix */
     String getRowPrefix() {
@@ -184,7 +127,6 @@ final class LineReaderConfig {
     /** Save current configuration.
      * @param settings to save to. */
     final void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addString(CFG_URL, m_url);
         settings.addString("rowPrefix", m_rowPrefix);
         settings.addString("columnHeader", m_columnHeader);
         settings.addBoolean("readColumnHeader", m_readColHeader);
@@ -198,7 +140,6 @@ final class LineReaderConfig {
      * @throws InvalidSettingsException If invalid. */
     final void loadConfigurationInModel(final NodeSettingsRO settings)
         throws InvalidSettingsException {
-        m_url = settings.getString(CFG_URL);
         m_rowPrefix = settings.getString("rowPrefix");
         if (m_rowPrefix == null) {
             throw new InvalidSettingsException("Invalid (null) row prefix");
@@ -224,7 +165,6 @@ final class LineReaderConfig {
     /** Load configuration in dialog, init defaults if invalid.
      * @param settings To load from. */
     final void loadConfigurationInDialog(final NodeSettingsRO settings) {
-        m_url = settings.getString(CFG_URL, "");
         m_rowPrefix = settings.getString("rowPrefix", "Row");
         m_columnHeader = settings.getString("columnHeader", "Column");
         m_readColHeader = settings.getBoolean("readColumnHeader", false);
