@@ -65,17 +65,20 @@ import org.knime.core.node.port.PortObjectSpec;
  */
 public final class SettingsModelFileChooserGen2 extends SettingsModel {
 
-    /** Configuration key for the option to select a specific file system. */
-    private static final String READ_FROM_FILE_SYSTEM = "read_from_file_system";
+    /** Configuration key for the option to use a connection to a specific file system. */
+    private static final String USE_CONNECTION = "use_connection";
 
     /** Configuration key to store the selected file system. */
     private static final String SELECTED_FILE_SYSTEM = "selected_file_system";
 
+    /** Configuration key to store the selected KNIME connection. */
+    private static final String SELECTED_KNIME_CONNECTION = "selected_knime_connection";
+
     /** Configuration key to store the path of the selected file or folder. */
     private static final String FILE_OR_FOLDER_PATH = "path_of_file_or_folder";
 
-    /** Configuration key for the option to search sub-folders. */
-    private static final String SEARCH_SUB_FOLDERS = "search_subfolders";
+    /** Configuration key for the option to include sub folder. */
+    private static final String INCLUDE_SUBFOLDER = "include_subfolder";
 
     /** Configuration key for the option to filter files in selected folder. */
     private static final String FILTER_FILES_IN_FOLDER = "filter_files_in_folder";
@@ -89,23 +92,17 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     /** Configuration key to store the setting whether the filter expression is case sensitive or not. */
     private static final String FILTER_CASE_SENSITIVITY = "filter_case_sensitivity";
 
-    /** Configuration key to store the connection host (HTTP connection). */
-    private static final String CONNECTION_HOST_HTTP = "http_connection_host";
-
-    /** Configuration key to store the connection port (HTTP connection). */
-    private static final String CONNECTION_PORT_HTTP = "http_connection_port";
-
-    /** Configuration key to store a custom url. */
-    private static final String CUSTOM_URL = "custom_url";
-
     /** The name of the configuration object. */
     private final String m_configName;
 
     /** True, if file/folder should be read from a file system other than local. */
-    private boolean m_readFromFileSystem = false;
+    private boolean m_useConnection;
 
     /** The name of the selected file system. */
-    private String m_fileSystemFlowVarName = "Local File System";
+    private String m_connectionName;
+
+    /** The name of the selected KNIME connection. */
+    private String m_knimeConnection;
 
     /** Path of selected file or folder. */
     private String m_pathOfFileOrFolder;
@@ -125,15 +122,6 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     /** True, if expression to filter should work regardless the case of the filenames. */
     private boolean m_filterCaseSensitivity;
 
-    /** The host used to establish a HTTP connection. */
-    private String m_httpConnectionHost;
-
-    /** The port used to establish a HTTP connection. */
-    private String m_httpConnectionPort;
-
-    /** Custom URL used for specific file systems. */
-    private String m_customUrl;
-
     // TODO For what again?
     private final SettingsModelString m_path = new SettingsModelString("path", "");
 
@@ -143,15 +131,16 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      * @param configName the name of the config.
      */
     public SettingsModelFileChooserGen2(final String configName) {
-        this(configName, false, "", "", false, false, "wildcard", "*", false);
+        this(configName, false, "", "", "", false, false, "wildcard", "*", false);
     }
 
     /**
      * Creates a new instance of {@link SettingsModelFileChooserGen2}.
      *
      * @param configName the name of the configuration object.
-     * @param readFromFileSystem true, if file/folder should be read from a file system other than local
+     * @param useConnection true, if connection to a specific file system should be used
      * @param fileSystemName the name of the selected file system
+     * @param knimeConnection the name of the selected knime connection
      * @param pathOfFileOrFolder the path of the selected file or folder
      * @param searchSubfolder true, if sub-folder should be included
      * @param filterFiles true, if files should be filtered
@@ -159,16 +148,17 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      * @param filterExpression the expression used to filter files
      * @param caseSensitivity true, if expression should be sensitive to case
      */
-    public SettingsModelFileChooserGen2(final String configName, final boolean readFromFileSystem,
-        final String fileSystemName, final String pathOfFileOrFolder, final boolean searchSubfolder,
-        final boolean filterFiles, final String filterMode, final String filterExpression,
-        final boolean caseSensitivity) {
+    public SettingsModelFileChooserGen2(final String configName, final boolean useConnection,
+        final String fileSystemName, final String knimeConnection, final String pathOfFileOrFolder,
+        final boolean searchSubfolder, final boolean filterFiles, final String filterMode,
+        final String filterExpression, final boolean caseSensitivity) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
         m_configName = configName;
-        m_readFromFileSystem = readFromFileSystem;
-        m_fileSystemFlowVarName = fileSystemName;
+        m_useConnection = useConnection;
+        m_connectionName = fileSystemName;
+        m_knimeConnection = knimeConnection;
         m_pathOfFileOrFolder = pathOfFileOrFolder;
         m_searchSubfolder = searchSubfolder;
         m_filterFiles = filterFiles;
@@ -182,9 +172,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue Set true, if file/folder should be read from a specific file system other than the local one
      */
-    public void setReadFromFileSystem(final boolean newValue) {
-        boolean sameValue = (m_readFromFileSystem == newValue);
-        m_readFromFileSystem = newValue;
+    public void setUseConnection(final boolean newValue) {
+        boolean sameValue = (m_useConnection == newValue);
+        m_useConnection = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
@@ -195,15 +185,35 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue the name of the file system to select the file/folder from
      */
-    public void setFileSystemName(final String newValue) {
+    public void setConnectionName(final String newValue) {
         boolean sameValue;
 
         if (newValue == null) {
-            sameValue = (m_fileSystemFlowVarName == null);
+            sameValue = (m_connectionName == null);
         } else {
-            sameValue = newValue.equals(m_fileSystemFlowVarName);
+            sameValue = newValue.equals(m_connectionName);
         }
-        m_fileSystemFlowVarName = newValue;
+        m_connectionName = newValue;
+
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
+     * Sets the name of the KNIME connection.
+     *
+     * @param newValue the name of the KNIME connection
+     */
+    public void setKnimeConnectionName(final String newValue) {
+        boolean sameValue;
+
+        if (newValue == null) {
+            sameValue = (m_knimeConnection == null);
+        } else {
+            sameValue = newValue.equals(m_knimeConnection);
+        }
+        m_knimeConnection = newValue;
 
         if (!sameValue) {
             notifyChangeListeners();
@@ -310,81 +320,30 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     }
 
     /**
-     * Sets the HTTP connection host.
+     * Returns true, if a connection to a specific file system should be used to read file/folder.
      *
-     * @param newValue The HTTP connection host
+     * @return True, if a connection to a specific file system should be used to read file/folder
      */
-    public void setHttpConnectionHost(final String newValue) {
-        boolean sameValue;
-
-        if (newValue == null) {
-            sameValue = (m_httpConnectionHost == null);
-        } else {
-            sameValue = newValue.equals(m_httpConnectionHost);
-        }
-        m_httpConnectionHost = newValue;
-
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
+    public boolean getUseConnection() {
+        return m_useConnection;
     }
 
     /**
-     * Sets the HTTP connection port.
+     * Returns the name of the selected connection.
      *
-     * @param newValue The HTTP connection port
+     * @return The name of the selected connection
      */
-    public void setHttpConnectionPort(final String newValue) {
-        boolean sameValue;
-
-        if (newValue == null) {
-            sameValue = (m_httpConnectionPort == null);
-        } else {
-            sameValue = newValue.equals(m_httpConnectionPort);
-        }
-        m_httpConnectionPort = newValue;
-
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
+    public String getConnectionName() {
+        return m_connectionName;
     }
 
     /**
-     * Sets a custom URL.
+     * Returns the name of the selected KNIME connection.
      *
-     * @param newValue The custom URL.
+     * @return The name of the selected KNIME connection
      */
-    public void setCustomUrl(final String newValue) {
-        boolean sameValue;
-
-        if (newValue == null) {
-            sameValue = (m_customUrl == null);
-        } else {
-            sameValue = newValue.equals(m_customUrl);
-        }
-        m_customUrl = newValue;
-
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
-    }
-
-    /**
-     * Returns true, if file/folder should be read from a file system other than the local one.
-     *
-     * @return True, if file/folder should be read from a file system other than the local one
-     */
-    public boolean getReadFromFileSystem() {
-        return m_readFromFileSystem;
-    }
-
-    /**
-     * Returns the name of the selected file system.
-     *
-     * @return The name of the selected file system
-     */
-    public String getFileSystemName() {
-        return m_fileSystemFlowVarName;
+    public String getKnimeConnection() {
+        return m_connectionName;
     }
 
     /**
@@ -442,33 +401,6 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     }
 
     /**
-     * Returns the host for HTTP connections.
-     *
-     * @return The host for HTTP connections
-     */
-    public String getHttpConnectionHost() {
-        return m_httpConnectionHost;
-    }
-
-    /**
-     * Returns the port for HTTP connections.
-     *
-     * @return The port for HTTP connections
-     */
-    public String getHttpConnectionPort() {
-        return m_httpConnectionHost;
-    }
-
-    /**
-     * Returns the custom URL if available.
-     *
-     * @return The custom URL if available
-     */
-    public String getCustomUrl() {
-        return m_customUrl;
-    }
-
-    /**
      * @return the path
      */
     public SettingsModelString getPath() {
@@ -497,17 +429,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
         final Config config;
         try {
             config = settings.getConfig(m_configName);
-            setReadFromFileSystem(config.getBoolean(READ_FROM_FILE_SYSTEM, m_readFromFileSystem));
-            setFileSystemName(config.getString(SELECTED_FILE_SYSTEM, m_fileSystemFlowVarName));
+            setUseConnection(config.getBoolean(USE_CONNECTION, m_useConnection));
+            setConnectionName(config.getString(SELECTED_FILE_SYSTEM, m_connectionName));
+            setKnimeConnectionName(config.getString(SELECTED_KNIME_CONNECTION, m_knimeConnection));
             setPathOfFileOrFolder(config.getString(FILE_OR_FOLDER_PATH, m_pathOfFileOrFolder));
-            setSearchSubfolder(config.getBoolean(SEARCH_SUB_FOLDERS, m_searchSubfolder));
+            setSearchSubfolder(config.getBoolean(INCLUDE_SUBFOLDER, m_searchSubfolder));
             setFilterFiles(config.getBoolean(FILTER_FILES_IN_FOLDER, m_filterFiles));
             setFilterMode(config.getString(FILTER_MODE, m_filterMode));
             setFilterExpression(config.getString(FILTER_EXPRESSION, m_filterExpression));
             setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY, m_filterCaseSensitivity));
-            setHttpConnectionPort(config.getString(CONNECTION_PORT_HTTP, m_httpConnectionPort));
-            setHttpConnectionHost(config.getString(CONNECTION_HOST_HTTP, m_httpConnectionHost));
-            setCustomUrl(config.getString(CUSTOM_URL, m_customUrl));
         } catch (final InvalidSettingsException ise) {
             throw new NotConfigurableException(ise.getMessage());
         }
@@ -521,49 +451,43 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        config.getBoolean(READ_FROM_FILE_SYSTEM);
+        config.getBoolean(USE_CONNECTION);
         config.getString(SELECTED_FILE_SYSTEM);
+        config.getString(SELECTED_KNIME_CONNECTION);
         config.getString(FILE_OR_FOLDER_PATH);
-        config.getBoolean(SEARCH_SUB_FOLDERS);
+        config.getBoolean(INCLUDE_SUBFOLDER);
         config.getBoolean(FILTER_FILES_IN_FOLDER);
         config.getString(FILTER_MODE);
         config.getString(FILTER_EXPRESSION);
         config.getBoolean(FILTER_CASE_SENSITIVITY);
-        config.getString(CONNECTION_PORT_HTTP);
-        config.getString(CONNECTION_HOST_HTTP);
-        config.getString(CUSTOM_URL);
     }
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        setReadFromFileSystem(config.getBoolean(READ_FROM_FILE_SYSTEM));
-        setFileSystemName(config.getString(SELECTED_FILE_SYSTEM));
+        setUseConnection(config.getBoolean(USE_CONNECTION));
+        setConnectionName(config.getString(SELECTED_FILE_SYSTEM));
+        setKnimeConnectionName(config.getString(SELECTED_KNIME_CONNECTION));
         setPathOfFileOrFolder(config.getString(FILE_OR_FOLDER_PATH));
-        setSearchSubfolder(config.getBoolean(SEARCH_SUB_FOLDERS));
+        setSearchSubfolder(config.getBoolean(INCLUDE_SUBFOLDER));
         setFilterFiles(config.getBoolean(FILTER_FILES_IN_FOLDER));
         setFilterMode(config.getString(FILTER_MODE));
         setFilterExpression(config.getString(FILTER_EXPRESSION));
         setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY));
-        setHttpConnectionPort(config.getString(CONNECTION_PORT_HTTP));
-        setHttpConnectionHost(config.getString(CONNECTION_HOST_HTTP));
-        setCustomUrl(config.getString(CUSTOM_URL));
     }
 
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
         final Config config = settings.addConfig(m_configName);
-        config.addBoolean(READ_FROM_FILE_SYSTEM, getReadFromFileSystem());
-        config.addString(SELECTED_FILE_SYSTEM, getFileSystemName());
+        config.addBoolean(USE_CONNECTION, getUseConnection());
+        config.addString(SELECTED_FILE_SYSTEM, getConnectionName());
+        config.addString(SELECTED_KNIME_CONNECTION, getKnimeConnection());
         config.addString(FILE_OR_FOLDER_PATH, getPathOfFileOrFolder());
-        config.addBoolean(SEARCH_SUB_FOLDERS, getSearchSubfolder());
+        config.addBoolean(INCLUDE_SUBFOLDER, getSearchSubfolder());
         config.addBoolean(FILTER_FILES_IN_FOLDER, getFilterFiles());
         config.addString(FILTER_MODE, getFilterMode());
         config.addString(FILTER_EXPRESSION, getFilterExpression());
         config.addBoolean(FILTER_CASE_SENSITIVITY, getCaseSensitivity());
-        config.addString(CONNECTION_HOST_HTTP, getHttpConnectionHost());
-        config.addString(CONNECTION_PORT_HTTP, getHttpConnectionPort());
-        config.addString(CUSTOM_URL, getCustomUrl());
     }
 
     @Override

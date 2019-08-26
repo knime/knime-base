@@ -162,7 +162,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
 
         initEventHandlers();
         initLayout();
-        updateEnabledness(null);
+        updateModel();
     }
 
     private void initLayout() {
@@ -246,11 +246,11 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
     }
 
     private void initEventHandlers() {
-        m_useConnection.addChangeListener(this::updateEnabledness);
-        m_connections.addActionListener(this::updateEnabledness);
-        m_fileHistoryPanel.addChangeListener(this::updateEnabledness);
-        m_includeSubfolders.addChangeListener(this::updateEnabledness);
-        m_filterFiles.addChangeListener(this::updateEnabledness);
+        m_useConnection.addActionListener(e -> updateModel());
+        m_connections.addActionListener(e -> updateModel());
+        m_fileHistoryPanel.addChangeListener(e -> updateModel());
+        m_includeSubfolders.addChangeListener(e -> updateModel());
+        m_filterFiles.addChangeListener(e -> updateModel());
         m_configureFilter.addActionListener((e) -> showFileFilterConfigurationDialog());
     }
 
@@ -271,7 +271,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
         updateStatusLine();
     }
 
-    private void updateEnabledness(final Object event) {
+    private void updateEnabledness() {
         m_connections.setEnabled(m_useConnection.isSelected());
 
         if (m_useConnection.isSelected() && m_connections.getSelectedItem().equals("KNIME")) {
@@ -431,12 +431,22 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
         knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE);
     }
 
+    private void updateModel() {
+        final SettingsModelFileChooserGen2 model = (SettingsModelFileChooserGen2)getModel();
+        model.setUseConnection(m_useConnection.isSelected());
+        model.setConnectionName((String)m_connections.getSelectedItem());
+        model.setPathOfFileOrFolder(m_fileHistoryPanel.getSelectedFile());
+        model.setSearchSubfolder(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
+        model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
+        updateEnabledness();
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
-        // TODO Auto-generated method stub
+        updateModel();
     }
 
     /**
@@ -453,6 +463,13 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
      */
     @Override
     protected void setEnabledComponents(final boolean enabled) {
+        m_useConnection.setEnabled(enabled);
+        m_connections.setEnabled(enabled);
+        m_knimeConnections.setEnabled(enabled);
+        m_fileHistoryPanel.setEnabled(enabled);
+        m_includeSubfolders.setEnabled(enabled);
+        m_filterFiles.setEnabled(enabled);
+        m_configureFilter.setEnabled(enabled);
     }
 
     /**

@@ -84,6 +84,8 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
 
     private final DialogComponentFileChooserGen3 m_fileChooser;
 
+    private final SettingsModelFileChooserGen2 m_fileChooserSettingsModel;
+
 
     private final JTextField m_columnHeaderField;
     private final JRadioButton m_customColHeaderRadio;
@@ -97,8 +99,8 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
 
     /** Create new dialog, init layout. */
     LineReaderNodeDialogPane() {
-        final SettingsModelFileChooserGen2 fileChooserSettingsModel = new SettingsModelFileChooserGen2("filechooser");
-        m_fileChooser = new DialogComponentFileChooserGen3(fileChooserSettingsModel, this, "txt", "log");
+        m_fileChooserSettingsModel = new SettingsModelFileChooserGen2("filechooser");
+        m_fileChooser = new DialogComponentFileChooserGen3(m_fileChooserSettingsModel, this, "txt", "log");
 
         int col = 10;
         m_columnHeaderField = new JTextField("Column", col);
@@ -282,6 +284,7 @@ final class LineReaderNodeDialogPane extends NodeDialogPane {
         }
         config.saveConfiguration(settings);
 //        m_filePanel.addToHistory();
+        m_fileChooser.saveSettingsTo(settings);
     }
 
 }

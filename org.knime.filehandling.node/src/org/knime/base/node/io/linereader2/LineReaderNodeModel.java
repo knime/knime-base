@@ -66,12 +66,15 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooserGen2;
 
 /** Model implementation of the line reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 final class LineReaderNodeModel extends NodeModel {
     private LineReaderConfig m_config;
+
+    private SettingsModelFileChooserGen2 m_fileChooser = new SettingsModelFileChooserGen2("filechooser");
 
     /** No input, one output. */
     public LineReaderNodeModel() {
@@ -184,12 +187,14 @@ final class LineReaderNodeModel extends NodeModel {
         if (m_config != null) {
             m_config.saveConfiguration(settings);
         }
+        m_fileChooser.saveSettingsTo(settings);
     }
 
     /** {@inheritDoc} */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+        m_fileChooser.validateSettings(settings);
         new LineReaderConfig().loadConfigurationInModel(settings);
     }
 
@@ -197,6 +202,7 @@ final class LineReaderNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
+        m_fileChooser.loadSettingsFrom(settings);
         LineReaderConfig c = new LineReaderConfig();
         c.loadConfigurationInModel(settings);
         m_config = c;
