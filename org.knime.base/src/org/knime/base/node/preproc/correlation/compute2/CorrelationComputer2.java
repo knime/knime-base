@@ -55,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
@@ -302,7 +304,7 @@ public final class CorrelationComputer2 {
      * @return the output matrix to be turned into the output model
      * @throws CanceledExecutionException
      */
-    public HalfDoubleMatrix calculateOutput(final BufferedDataTable table, final ExecutionMonitor exec)
+    public CorrelationResult calculateOutput(final BufferedDataTable table, final ExecutionMonitor exec)
         throws CanceledExecutionException {
         assert table.getDataTableSpec().equalStructure(m_tableSpec);
         // stores all pair-wise contingency tables,
@@ -317,6 +319,9 @@ public final class CorrelationComputer2 {
 
         final HalfDoubleMatrix pValMatrix = new HalfDoubleMatrix(numColumns, false);
         pValMatrix.fill(Double.NaN);
+
+        final HalfIntMatrix dofMatrix = new HalfIntMatrix(numColumns, false);
+        dofMatrix.fill(0);
 
         handleZeroStdDev(nominatorMatrix);
 
@@ -339,11 +344,11 @@ public final class CorrelationComputer2 {
 
         normalizeNumericCorrelation(nominatorMatrix);
 
-        computePValues(nominatorMatrix, pValMatrix);
+        computeNumericPValues(nominatorMatrix, pValMatrix, dofMatrix);
 
-        fillCategoricalCorrelation(contingencyTables, nominatorMatrix, pValMatrix);
+        fillCategoricalCorrelation(contingencyTables, nominatorMatrix, pValMatrix, dofMatrix);
 
-        return nominatorMatrix;
+        return new CorrelationResult(nominatorMatrix, pValMatrix, dofMatrix);
     }
 
     private int[][][] initContingencyTables() {
@@ -499,7 +504,8 @@ public final class CorrelationComputer2 {
     }
 
     /** Computes the p values of the given correlations. */
-    private void computePValues(final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix) {
+    private void computeNumericPValues(final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix,
+        final HalfIntMatrix dofMatrix) {
         // TODO(benjamin) add function that runs a consumer on each numeric column?
         for (int i = 0; i < m_numericColIndexMap.length; i++) {
             for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
@@ -509,41 +515,52 @@ public final class CorrelationComputer2 {
 
                 final double r = nominatorMatrix.get(tableI, tableJ);
                 double pval = Double.NaN;
+                int dof = 0;
                 if (!Double.isNaN(r)) {
                     // Compute the p value if we could compute the correlation
                     final int validCount = m_numericValidCountMatrix.get(i, j);
                     final double ab = (validCount / 2.0) - 1.0;
                     pval = 2 * new BetaDistribution(ab, ab).cumulativeProbability(0.5 * (1 - Math.abs(r)));
+
+                    // Compute the degrees of freedom
+                    dof = validCount - 2;
                 }
                 pValMatrix.set(tableI, tableJ, pval);
+                dofMatrix.set(tableI, tableJ, dof);
             }
         }
     }
 
-    private void fillCategoricalCorrelation(final int[][][] contingencyTables, final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix) {
+    private void fillCategoricalCorrelation(final int[][][] contingencyTables, final HalfDoubleMatrix nominatorMatrix,
+        final HalfDoubleMatrix pValMatrix, final HalfIntMatrix dofMatrix) {
         int valIndex = 0;
         for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
             for (int j = i + 1; j < m_categoricalColIndexMap.length; j++) {
                 int[][] contingencyTable = contingencyTables[valIndex];
                 double cramersV;
                 double pVal;
+                int dof;
                 if (contingencyTable == null) {
                     cramersV = Double.NaN;
                     pVal = Double.NaN;
+                    dof = 0;
                 } else {
-                    final Pair<Double, Double> stats = computeCramersV(contingencyTable);
-                    cramersV = stats.getFirst();
-                    pVal = stats.getSecond();
+                    final Triple<Double, Double, Integer> stats = computeCramersV(contingencyTable);
+                    cramersV = stats.getLeft();
+                    pVal = stats.getMiddle();
+                    dof = stats.getRight();
                 }
-                nominatorMatrix.set(m_categoricalColIndexMap[i], m_categoricalColIndexMap[j], cramersV);
-                pValMatrix.set(m_categoricalColIndexMap[i], m_categoricalColIndexMap[j], pVal);
+                final int tableI = m_categoricalColIndexMap[i];
+                final int tableJ = m_categoricalColIndexMap[j];
+                nominatorMatrix.set(tableI, tableJ, cramersV);
+                pValMatrix.set(tableI, tableJ, pVal);
+                dofMatrix.set(tableI, tableJ, dof);
                 valIndex++;
             }
         }
     }
 
-    /**
-     * Composes warning message (or null) on which columns contain missings.
+    /** Composes warning message (or null) on which columns contain missings.
      *
      * @param maxColsToReport ...
      * @return the warning or null.
@@ -612,11 +629,12 @@ public final class CorrelationComputer2 {
      * @param contingency the contingency table
      * @return cramer's V
      */
-    private static Pair<Double, Double> computeCramersV(final int[][] contingency) {
+    private static Triple<Double, Double, Integer> computeCramersV(final int[][] contingency) {
         final int rows = contingency.length;
         final int cols = contingency[0].length;
+        final int dof = (rows - 1) * (cols - 1);
         if (rows <= 1 || cols <= 1) {
-            return new Pair<>(0.0, 1.0);
+            return new ImmutableTriple<>(0.0, 1.0, dof);
         }
         double[] rowSums = new double[rows];
         double[] colSums = new double[cols];
@@ -643,9 +661,46 @@ public final class CorrelationComputer2 {
         final double cramersV = Math.sqrt(chisquare / (totalSum * minValueCount));
         // TODO(benjamin) This is correct but introduces numerical instabilities:
         // The value is almost 1 and double cannot represent this as well as something close to zero
-        final double pVal = 1.0 - new ChiSquaredDistribution(rows * cols - (rows + cols) + 1)
-            .cumulativeProbability(chisquare);
-        return new Pair<>(cramersV, pVal);
+        final double pVal = 1.0 - new ChiSquaredDistribution((rows - 1) * (cols - 1)).cumulativeProbability(chisquare);
+        return new ImmutableTriple<>(cramersV, pVal, dof);
     }
 
+    /**
+     * A result of a correlation computation.
+     */
+    public static class CorrelationResult {
+        private final HalfDoubleMatrix m_correlationMatrix;
+
+        private final HalfDoubleMatrix m_pValMatrix;
+
+        private final HalfIntMatrix m_degreesOfFreedomMatrix;
+
+        private CorrelationResult(final HalfDoubleMatrix correlationMatrix, final HalfDoubleMatrix pValMatrix,
+            final HalfIntMatrix degreesOfFreedomMatrix) {
+            m_correlationMatrix = correlationMatrix;
+            m_pValMatrix = pValMatrix;
+            m_degreesOfFreedomMatrix = degreesOfFreedomMatrix;
+        }
+
+        /**
+         * @return the correlation matrix
+         */
+        public HalfDoubleMatrix getCorrelationMatrix() {
+            return m_correlationMatrix;
+        }
+
+        /**
+         * @return the p value matrix
+         */
+        public HalfDoubleMatrix getpValMatrix() {
+            return m_pValMatrix;
+        }
+
+        /**
+         * @return the degrees of freedom matrix
+         */
+        public HalfIntMatrix getDegreesOfFreedomMatrix() {
+            return m_degreesOfFreedomMatrix;
+        }
+    }
 }
