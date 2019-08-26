@@ -54,61 +54,54 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * SettingsModel for {@link DialogComponentFileChooserGen2}.
+ * SettingsModel for {@link DialogComponentFileChooser2}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
-public final class SettingsModelFileChooserGen2 extends SettingsModel {
-
-    /** Configuration key for the option to use a connection to a specific file system. */
-    private static final String USE_CONNECTION = "use_connection";
+public final class SettingsModelFileChooser2 extends SettingsModel {
 
     /** Configuration key to store the selected file system. */
-    private static final String SELECTED_FILE_SYSTEM = "selected_file_system";
+    private static final String FILE_SYSTEM_KEY = "filesystem";
 
     /** Configuration key to store the selected KNIME connection. */
-    private static final String SELECTED_KNIME_CONNECTION = "selected_knime_connection";
+    private static final String KNIME_FILESYSTEM_KEY = "knime_filesystem";
 
     /** Configuration key to store the path of the selected file or folder. */
-    private static final String FILE_OR_FOLDER_PATH = "path_of_file_or_folder";
+    public static final String PATH_OR_URL_KEY = "path_or_url";
 
     /** Configuration key for the option to include sub folder. */
-    private static final String INCLUDE_SUBFOLDER = "include_subfolder";
+    private static final String INCLUDE_SUBFOLDERS_KEY = "include_subfolders";
 
     /** Configuration key for the option to filter files in selected folder. */
-    private static final String FILTER_FILES_IN_FOLDER = "filter_files_in_folder";
+    private static final String FILTER_FILES_KEY = "filter_files";
 
     /** Configuration key to store the filter mode. */
-    private static final String FILTER_MODE = "filter_mode";
+    private static final String FILTER_MODE_KEY = "filter_mode";
 
     /** Configuration key to store the filter expression. */
-    private static final String FILTER_EXPRESSION = "filter_expression";
+    private static final String FILTER_EXPRESSION_KEY = "filter_expression";
 
     /** Configuration key to store the setting whether the filter expression is case sensitive or not. */
-    private static final String FILTER_CASE_SENSITIVITY = "filter_case_sensitivity";
+    private static final String FILTER_CASE_SENSITIVE_KEY = "filter_case_sensitive";
 
     /** The name of the configuration object. */
     private final String m_configName;
 
-    /** True, if file/folder should be read from a file system other than local. */
-    private boolean m_useConnection;
-
     /** The name of the selected file system. */
-    private String m_connectionName;
+    private String m_fileSystem;
 
     /** The name of the selected KNIME connection. */
-    private String m_knimeConnection;
+    private String m_knimeFileSystem;
 
     /** Path of selected file or folder. */
-    private String m_pathOfFileOrFolder;
+    private String m_pathOrURL;
 
     /** True, if sub-folders should be included. */
-    private boolean m_searchSubfolder;
+    private boolean m_includeSubfolders;
 
     /** True, if files should be filtered. */
     private boolean m_filterFiles;
@@ -120,64 +113,46 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     private String m_filterExpression;
 
     /** True, if expression to filter should work regardless the case of the filenames. */
-    private boolean m_filterCaseSensitivity;
-
-    // TODO For what again?
-    private final SettingsModelString m_path = new SettingsModelString("path", "");
+    private boolean m_filterCaseSensitive;
 
     /**
-     * Creates a new instance of {@link SettingsModelFileChooserGen2} with default settings.
+     * Creates a new instance of {@link SettingsModelFileChooser2} with default settings.
      *
      * @param configName the name of the config.
      */
-    public SettingsModelFileChooserGen2(final String configName) {
-        this(configName, false, "", "", "", false, false, "wildcard", "*", false);
+    public SettingsModelFileChooser2(final String configName) {
+        this(configName, "", "", "", false, false, "wildcard", "*", false);
     }
 
     /**
-     * Creates a new instance of {@link SettingsModelFileChooserGen2}.
+     * Creates a new instance of {@link SettingsModelFileChooser2}.
      *
      * @param configName the name of the configuration object.
-     * @param useConnection true, if connection to a specific file system should be used
      * @param fileSystemName the name of the selected file system
      * @param knimeConnection the name of the selected knime connection
-     * @param pathOfFileOrFolder the path of the selected file or folder
+     * @param pathOrURL the path of the selected file or folder
      * @param searchSubfolder true, if sub-folder should be included
      * @param filterFiles true, if files should be filtered
      * @param filterMode mode to filter files in case a multiple files should be read
      * @param filterExpression the expression used to filter files
      * @param caseSensitivity true, if expression should be sensitive to case
      */
-    public SettingsModelFileChooserGen2(final String configName, final boolean useConnection,
-        final String fileSystemName, final String knimeConnection, final String pathOfFileOrFolder,
+    public SettingsModelFileChooser2(final String configName,
+        final String fileSystemName, final String knimeConnection, final String pathOrURL,
         final boolean searchSubfolder, final boolean filterFiles, final String filterMode,
         final String filterExpression, final boolean caseSensitivity) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
         m_configName = configName;
-        m_useConnection = useConnection;
-        m_connectionName = fileSystemName;
-        m_knimeConnection = knimeConnection;
-        m_pathOfFileOrFolder = pathOfFileOrFolder;
-        m_searchSubfolder = searchSubfolder;
+        m_fileSystem = fileSystemName;
+        m_knimeFileSystem = knimeConnection;
+        m_pathOrURL = pathOrURL;
+        m_includeSubfolders = searchSubfolder;
         m_filterFiles = filterFiles;
         m_filterMode = filterMode;
         m_filterExpression = filterExpression;
-        m_filterCaseSensitivity = caseSensitivity;
-    }
-
-    /**
-     * Sets a new value for the option to read from a specific file system other than the local one.
-     *
-     * @param newValue Set true, if file/folder should be read from a specific file system other than the local one
-     */
-    public void setUseConnection(final boolean newValue) {
-        boolean sameValue = (m_useConnection == newValue);
-        m_useConnection = newValue;
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
+        m_filterCaseSensitive = caseSensitivity;
     }
 
     /**
@@ -185,15 +160,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue the name of the file system to select the file/folder from
      */
-    public void setConnectionName(final String newValue) {
+    public void setFileSystem(final String newValue) {
         boolean sameValue;
 
         if (newValue == null) {
-            sameValue = (m_connectionName == null);
+            sameValue = (m_fileSystem == null);
         } else {
-            sameValue = newValue.equals(m_connectionName);
+            sameValue = newValue.equals(m_fileSystem);
         }
-        m_connectionName = newValue;
+        m_fileSystem = newValue;
 
         if (!sameValue) {
             notifyChangeListeners();
@@ -205,15 +180,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue the name of the KNIME connection
      */
-    public void setKnimeConnectionName(final String newValue) {
+    public void setKNIMEFileSystem(final String newValue) {
         boolean sameValue;
 
         if (newValue == null) {
-            sameValue = (m_knimeConnection == null);
+            sameValue = (m_knimeFileSystem == null);
         } else {
-            sameValue = newValue.equals(m_knimeConnection);
+            sameValue = newValue.equals(m_knimeFileSystem);
         }
-        m_knimeConnection = newValue;
+        m_knimeFileSystem = newValue;
 
         if (!sameValue) {
             notifyChangeListeners();
@@ -225,15 +200,15 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue The path of the file/folder
      */
-    public void setPathOfFileOrFolder(final String newValue) {
+    public void setPathOrURL(final String newValue) {
         boolean sameValue;
 
         if (newValue == null) {
-            sameValue = (m_pathOfFileOrFolder == null);
+            sameValue = (m_pathOrURL == null);
         } else {
-            sameValue = newValue.equals(m_pathOfFileOrFolder);
+            sameValue = newValue.equals(m_pathOrURL);
         }
-        m_pathOfFileOrFolder = newValue;
+        m_pathOrURL = newValue;
 
         if (!sameValue) {
             notifyChangeListeners();
@@ -245,9 +220,9 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue Set true, if sub folder should be searched for files
      */
-    public void setSearchSubfolder(final boolean newValue) {
-        boolean sameValue = (m_searchSubfolder == newValue);
-        m_searchSubfolder = newValue;
+    public void setIncludeSubfolders(final boolean newValue) {
+        boolean sameValue = (m_includeSubfolders == newValue);
+        m_includeSubfolders = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
@@ -311,21 +286,12 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @param newValue New value for the case sensitivity option
      */
-    public void setCaseSensitivity(final boolean newValue) {
-        boolean sameValue = (m_filterCaseSensitivity == newValue);
-        m_filterCaseSensitivity = newValue;
+    public void setCaseSensitive(final boolean newValue) {
+        boolean sameValue = (m_filterCaseSensitive == newValue);
+        m_filterCaseSensitive = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
-    }
-
-    /**
-     * Returns true, if a connection to a specific file system should be used to read file/folder.
-     *
-     * @return True, if a connection to a specific file system should be used to read file/folder
-     */
-    public boolean getUseConnection() {
-        return m_useConnection;
     }
 
     /**
@@ -333,8 +299,8 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @return The name of the selected connection
      */
-    public String getConnectionName() {
-        return m_connectionName;
+    public String getFileSystem() {
+        return m_fileSystem;
     }
 
     /**
@@ -342,8 +308,8 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @return The name of the selected KNIME connection
      */
-    public String getKnimeConnection() {
-        return m_connectionName;
+    public String getKNIMEFileSystem() {
+        return m_fileSystem;
     }
 
     /**
@@ -351,8 +317,8 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @return The path of the selected file or folder
      */
-    public String getPathOfFileOrFolder() {
-        return m_pathOfFileOrFolder;
+    public String getPathOrURL() {
+        return m_pathOrURL;
     }
 
     /**
@@ -360,8 +326,8 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @return True, if sub folders should be included while searching files
      */
-    public boolean getSearchSubfolder() {
-        return m_searchSubfolder;
+    public boolean getIncludeSubfolders() {
+        return m_includeSubfolders;
     }
 
     /**
@@ -396,21 +362,14 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
      *
      * @return True, if case sensitivity option is selected
      */
-    public boolean getCaseSensitivity() {
-        return m_filterCaseSensitivity;
-    }
-
-    /**
-     * @return the path
-     */
-    public SettingsModelString getPath() {
-        return m_path;
+    public boolean getCaseSensitive() {
+        return m_filterCaseSensitive;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelFileChooserGen2 createClone() {
-        return new SettingsModelFileChooserGen2(m_configName);
+    protected SettingsModelFileChooser2 createClone() {
+        return new SettingsModelFileChooser2(m_configName);
     }
 
     @Override
@@ -429,15 +388,14 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
         final Config config;
         try {
             config = settings.getConfig(m_configName);
-            setUseConnection(config.getBoolean(USE_CONNECTION, m_useConnection));
-            setConnectionName(config.getString(SELECTED_FILE_SYSTEM, m_connectionName));
-            setKnimeConnectionName(config.getString(SELECTED_KNIME_CONNECTION, m_knimeConnection));
-            setPathOfFileOrFolder(config.getString(FILE_OR_FOLDER_PATH, m_pathOfFileOrFolder));
-            setSearchSubfolder(config.getBoolean(INCLUDE_SUBFOLDER, m_searchSubfolder));
-            setFilterFiles(config.getBoolean(FILTER_FILES_IN_FOLDER, m_filterFiles));
-            setFilterMode(config.getString(FILTER_MODE, m_filterMode));
-            setFilterExpression(config.getString(FILTER_EXPRESSION, m_filterExpression));
-            setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY, m_filterCaseSensitivity));
+            setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
+            setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
+            setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
+            setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
+            setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
+            setFilterMode(config.getString(FILTER_MODE_KEY, m_filterMode));
+            setFilterExpression(config.getString(FILTER_EXPRESSION_KEY, m_filterExpression));
+            setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
         } catch (final InvalidSettingsException ise) {
             throw new NotConfigurableException(ise.getMessage());
         }
@@ -451,43 +409,40 @@ public final class SettingsModelFileChooserGen2 extends SettingsModel {
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        config.getBoolean(USE_CONNECTION);
-        config.getString(SELECTED_FILE_SYSTEM);
-        config.getString(SELECTED_KNIME_CONNECTION);
-        config.getString(FILE_OR_FOLDER_PATH);
-        config.getBoolean(INCLUDE_SUBFOLDER);
-        config.getBoolean(FILTER_FILES_IN_FOLDER);
-        config.getString(FILTER_MODE);
-        config.getString(FILTER_EXPRESSION);
-        config.getBoolean(FILTER_CASE_SENSITIVITY);
+        config.getString(FILE_SYSTEM_KEY);
+        config.getString(KNIME_FILESYSTEM_KEY);
+        config.getString(PATH_OR_URL_KEY);
+        config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+        config.getBoolean(FILTER_FILES_KEY);
+        config.getString(FILTER_MODE_KEY);
+        config.getString(FILTER_EXPRESSION_KEY);
+        config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
     }
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        setUseConnection(config.getBoolean(USE_CONNECTION));
-        setConnectionName(config.getString(SELECTED_FILE_SYSTEM));
-        setKnimeConnectionName(config.getString(SELECTED_KNIME_CONNECTION));
-        setPathOfFileOrFolder(config.getString(FILE_OR_FOLDER_PATH));
-        setSearchSubfolder(config.getBoolean(INCLUDE_SUBFOLDER));
-        setFilterFiles(config.getBoolean(FILTER_FILES_IN_FOLDER));
-        setFilterMode(config.getString(FILTER_MODE));
-        setFilterExpression(config.getString(FILTER_EXPRESSION));
-        setCaseSensitivity(config.getBoolean(FILTER_CASE_SENSITIVITY));
+        setFileSystem(config.getString(FILE_SYSTEM_KEY));
+        setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY));
+        setPathOrURL(config.getString(PATH_OR_URL_KEY));
+        setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY));
+        setFilterFiles(config.getBoolean(FILTER_FILES_KEY));
+        setFilterMode(config.getString(FILTER_MODE_KEY));
+        setFilterExpression(config.getString(FILTER_EXPRESSION_KEY));
+        setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY));
     }
 
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
         final Config config = settings.addConfig(m_configName);
-        config.addBoolean(USE_CONNECTION, getUseConnection());
-        config.addString(SELECTED_FILE_SYSTEM, getConnectionName());
-        config.addString(SELECTED_KNIME_CONNECTION, getKnimeConnection());
-        config.addString(FILE_OR_FOLDER_PATH, getPathOfFileOrFolder());
-        config.addBoolean(INCLUDE_SUBFOLDER, getSearchSubfolder());
-        config.addBoolean(FILTER_FILES_IN_FOLDER, getFilterFiles());
-        config.addString(FILTER_MODE, getFilterMode());
-        config.addString(FILTER_EXPRESSION, getFilterExpression());
-        config.addBoolean(FILTER_CASE_SENSITIVITY, getCaseSensitivity());
+        config.addString(FILE_SYSTEM_KEY, getFileSystem());
+        config.addString(KNIME_FILESYSTEM_KEY, getKNIMEFileSystem());
+        config.addString(PATH_OR_URL_KEY, getPathOrURL());
+        config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
+        config.addBoolean(FILTER_FILES_KEY, getFilterFiles());
+        config.addString(FILTER_MODE_KEY, getFilterMode());
+        config.addString(FILTER_EXPRESSION_KEY, getFilterExpression());
+        config.addBoolean(FILTER_CASE_SENSITIVE_KEY, getCaseSensitive());
     }
 
     @Override

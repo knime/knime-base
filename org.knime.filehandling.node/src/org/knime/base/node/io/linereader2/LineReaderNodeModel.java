@@ -66,7 +66,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooserGen2;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /** Model implementation of the line reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
@@ -74,7 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooserG
 final class LineReaderNodeModel extends NodeModel {
     private LineReaderConfig m_config;
 
-    private SettingsModelFileChooserGen2 m_fileChooser = new SettingsModelFileChooserGen2("filechooser");
+    private SettingsModelFileChooser2 m_fileChooser = new SettingsModelFileChooser2("filechooser");
 
     /** No input, one output. */
     public LineReaderNodeModel() {

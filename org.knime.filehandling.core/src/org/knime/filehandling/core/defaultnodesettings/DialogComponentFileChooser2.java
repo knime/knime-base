@@ -94,13 +94,13 @@ import org.knime.filehandling.core.filefilter.FileFilterDialog;
  *
  * @author bjoern
  */
-public class DialogComponentFileChooserGen3 extends DialogComponent {
+public class DialogComponentFileChooser2 extends DialogComponent {
 
-    private static final NodeLogger LOG = NodeLogger.getLogger(DialogComponentFileChooserGen3.class);
+    private static final NodeLogger LOG = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
     private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
 
-    private final SettingsModelFileChooserGen2 m_settingsModel;
+    private final SettingsModelFileChooser2 m_settingsModel;
 
     private final NodeDialogPane m_dialogPane;
 
@@ -108,7 +108,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
 
     private final String[] m_defaultSuffixes;
 
-    private final JCheckBox m_useConnection;
+    private final JLabel m_useConnection;
 
     private final JComboBox<String> m_connections;
 
@@ -130,17 +130,17 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
 
     private final JLabel m_statusMessage;
 
-    public DialogComponentFileChooserGen3(final SettingsModelFileChooserGen2 settingsModel,
+    public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel,
         final NodeDialogPane dialogPane, final String... suffixes) {
 
         super(settingsModel);
 
         m_settingsModel = settingsModel;
         m_dialogPane = dialogPane;
-        m_pathFlowVariableModel = m_dialogPane.createFlowVariableModel(m_settingsModel.getPath().getKey(), Type.STRING);
+        m_pathFlowVariableModel = m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
         m_defaultSuffixes = suffixes;
 
-        m_useConnection = new JCheckBox("Read from: ");
+        m_useConnection = new JLabel("Read from: ");
 
         m_connections = new JComboBox<>(new String[0]);
         m_connections.setEnabled(false);
@@ -246,7 +246,6 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
     }
 
     private void initEventHandlers() {
-        m_useConnection.addActionListener(e -> updateModel());
         m_connections.addActionListener(e -> updateModel());
         m_fileHistoryPanel.addChangeListener(e -> updateModel());
         m_includeSubfolders.addChangeListener(e -> updateModel());
@@ -272,9 +271,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
     }
 
     private void updateEnabledness() {
-        m_connections.setEnabled(m_useConnection.isSelected());
-
-        if (m_useConnection.isSelected() && m_connections.getSelectedItem().equals("KNIME")) {
+        if (m_connections.getSelectedItem().equals("KNIME")) {
             // KNIME connections are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "KNIME");
 
@@ -284,7 +281,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
             m_fileHistoryPanel.setBrowseable(true);
 
             updateFolderFilterEnabledness();
-        } else if (m_useConnection.isSelected() && m_connections.getSelectedItem().equals("Custom URL")) {
+        } else if (m_connections.getSelectedItem().equals("Custom URL")) {
             // Custom URLs are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "empty");
 
@@ -318,7 +315,7 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
         String message = " ";
         Color messageColor = Color.GREEN;
 
-        if (!(m_useConnection.isSelected() && m_connections.getSelectedItem().equals("Custom URL"))) {
+        if (!m_connections.getSelectedItem().equals("Custom URL")) {
             if (!m_fileHistoryPanel.getSelectedFile().isEmpty()) {
                 final Path fileOrFolder = Paths.get(m_fileHistoryPanel.getSelectedFile());
                 if (Files.isDirectory(fileOrFolder)) {
@@ -432,11 +429,10 @@ public class DialogComponentFileChooserGen3 extends DialogComponent {
     }
 
     private void updateModel() {
-        final SettingsModelFileChooserGen2 model = (SettingsModelFileChooserGen2)getModel();
-        model.setUseConnection(m_useConnection.isSelected());
-        model.setConnectionName((String)m_connections.getSelectedItem());
-        model.setPathOfFileOrFolder(m_fileHistoryPanel.getSelectedFile());
-        model.setSearchSubfolder(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
+        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+        model.setFileSystem((String)m_connections.getSelectedItem());
+        model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
+        model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
         updateEnabledness();
     }
