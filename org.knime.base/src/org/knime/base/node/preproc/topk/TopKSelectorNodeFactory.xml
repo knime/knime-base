@@ -23,7 +23,7 @@
 			at
 			the bottom and click 'new columns' to add them to the dialog.
 		</option>
-		<option name="k">The number of rows to select from the input table.
+		<option name="Number of rows">The number of rows to select from the input table.
 		</option>
 		<option name="Move Missing Cells to end of sorted list">If selected, missing
 			values are always considered to be inferior to present cells.

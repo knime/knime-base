@@ -83,7 +83,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(m_criterionPanel.getPanel());
-        final DialogComponentNumber kComp = new DialogComponentNumber(m_settings.getKModel(), "k", 1);
+        final DialogComponentNumber kComp = new DialogComponentNumber(m_settings.getKModel(), "Number of rows", 1);
         panel.add(kComp.getComponentPanel());
         final DialogComponentBoolean missingsToEnd =
             new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
