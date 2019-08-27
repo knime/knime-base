@@ -128,6 +128,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private final JLabel m_statusMessage;
 
+    private FileFilterDialog m_fileFilterDialog;
+
     public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel, final String historyId,
         final NodeDialogPane dialogPane, final String... suffixes) {
 
@@ -263,9 +265,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             c = c.getParent();
         }
 
-        final FileFilterDialog dialog = new FileFilterDialog(f, m_defaultSuffixes);
-        dialog.setLocationRelativeTo(c);
-        dialog.setVisible(true);
+        if (m_fileFilterDialog == null ) {
+            m_fileFilterDialog = new FileFilterDialog(f, m_defaultSuffixes);
+        }
+        m_fileFilterDialog.setLocationRelativeTo(c);
+        m_fileFilterDialog.setVisible(true);
         updateStatusLine();
     }
 
@@ -401,7 +405,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (fileSystem != null && !fileSystem.equals(m_connections.getSelectedItem())) {
             m_connections.setSelectedItem(fileSystem);
         }
-        // sync knime connection checkbox
+        // sync knime connection check box
         final String knimeFileSystem = model.getKNIMEFileSystem();
         if (knimeFileSystem != null && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
             m_knimeConnections.setSelectedItem(knimeFileSystem);
@@ -411,18 +415,34 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (pathOrUrl != null && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
             m_fileHistoryPanel.setSelectedFile(pathOrUrl);
         }
-        // sync subfolder checkbox
+        // sync sub folder check box
         final boolean includeSubfolders = model.getIncludeSubfolders();
         if (includeSubfolders != m_includeSubfolders.isSelected()) {
             m_includeSubfolders.setSelected(includeSubfolders );
         }
-        // sync filter files checkbox
+        // sync filter files check box
         final boolean filterFiles = model.getFilterFiles();
         if (filterFiles != m_filterFiles.isSelected()) {
             m_filterFiles.setSelected(filterFiles);
         }
-        // TODO: Sync file filtering settings
 
+        if (m_fileFilterDialog != null) {
+            // sync filter mode combo box
+            final String filterMode = model.getFilterMode();
+            if (filterMode != null && !filterMode.equals(m_fileFilterDialog.getSelectedFilterType())) {
+                m_fileFilterDialog.setFilterType(filterMode);
+            }
+            // sync filter expression combo box
+            final String filterExpr = model.getFilterExpression();
+            if (filterExpr != null && !filterExpr.equals(m_fileFilterDialog.getSelectedFilterExpression())) {
+                m_fileFilterDialog.setFilterExpression(filterExpr);
+            }
+            // sync case sensitivity check box
+            final boolean caseSensitive = model.getCaseSensitive();
+            if (caseSensitive != m_fileFilterDialog.getCaseSensitive()) {
+                m_fileFilterDialog.setCaseSensitive(caseSensitive);
+            }
+        }
 
         setEnabledComponents(model.isEnabled());
     }
@@ -461,6 +481,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
         model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
+        if (m_fileFilterDialog != null) {
+            model.setFilterMode(m_fileFilterDialog.getSelectedFilterType());
+            model.setFilterExpression(m_fileFilterDialog.getSelectedFilterExpression());
+            model.setCaseSensitive(m_fileFilterDialog.getCaseSensitive());
+        }
         updateEnabledness();
     }
 

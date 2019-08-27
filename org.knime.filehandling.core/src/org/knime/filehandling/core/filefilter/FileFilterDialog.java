@@ -143,4 +143,68 @@ public class FileFilterDialog extends JDialog {
     private void onCancel() {
         closeDialog();
     }
+
+    /**
+     * Sets the filter type to the filter type combo box.
+     *
+     * @param filterType the filter type to set
+     */
+    public void setFilterType(final String filterType) {
+        // TODO Check if type exists
+        m_fileFilterPanel.setFilterType(filterType);
+    }
+
+    /**
+     * Returns the selected filter type.
+     *
+     * @return the filter type
+     */
+    public String getSelectedFilterType() {
+        return m_fileFilterPanel.getSelectedFilterType();
+    }
+
+    /**
+     * Sets the filter expression to the filter type combo box.
+     *
+     * @param filterExpression the filter expression to set
+     */
+    public void setFilterExpression(final String filterExpression) {
+        m_fileFilterPanel.setFilterExpression(filterExpression);
+    }
+
+    /**
+     * Returns the selected filter expression.
+     *
+     * @return the filter expression
+     */
+    public String getSelectedFilterExpression() {
+        return m_fileFilterPanel.getSelectedFilterExpression();
+    }
+
+    /**
+     * Sets case sensitivity of file filter.
+     *
+     * @param caseSensitive case sensitivity
+     */
+    public void setCaseSensitive(final boolean caseSensitive) {
+        m_fileFilterPanel.setCaseSensitive(caseSensitive);
+    }
+
+    /**
+     * Returns if file filter is case sensitive or not.
+     *
+     * @return true, if file filter is case sensitive or not
+     */
+    public boolean getCaseSensitive() {
+        return m_fileFilterPanel.getCaseSensitive();
+    }
+
+    /**
+     * Method to enable/disable the components.
+     *
+     * @param enabled true, if components should be disabled
+     */
+    public void enableComponents(final boolean enabled) {
+        m_fileFilterPanel.enableComponents(enabled);
+    }
 }

@@ -59,10 +59,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-
 /**
  * A file filter panel.
  *
@@ -71,11 +67,6 @@ import org.knime.core.node.NodeSettingsWO;
 public class FileFilterPanel extends JPanel {
 
     private static final long serialVersionUID = -8386119886528887209L;
-
-    private static final String FILE_FILTER_SETTINGS_KEY = "file-filter-settings";
-    private static final String FILTER_SETTINGS_KEY = "filter";
-    private static final String EXTENSIONS_SETTINGS_KEY = "extensions";
-    private static final String CASE_SENSITIVE_SETTINGS_KEY = "case-sensitive";
 
     private final String[] m_defaultFileSuffixes;
 
@@ -91,6 +82,8 @@ public class FileFilterPanel extends JPanel {
 
     /**
      * Creates a new File Filter Panel
+     *
+     * @param defaultSuffixes default file suffixes
      */
     public FileFilterPanel(final String[] defaultSuffixes) {
         m_defaultFileSuffixes = defaultSuffixes;
@@ -155,23 +148,68 @@ public class FileFilterPanel extends JPanel {
     }
 
     /**
-     * Load from settings.
+     * Sets the filter type to the filter type combo box.
      *
-     * @param settings settings to load
-     * @throws InvalidSettingsException
+     * @param filterType the filter type to set
      */
-    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO
+    public void setFilterType(final String filterType) {
+        // TODO Check if type exists
+        m_filterType.setSelectedItem(filterType);
     }
 
     /**
-     * Save to settings.
+     * Returns the selected filter type.
      *
-     * @param settings settings to save to
-     * @throws InvalidSettingsException
+     * @return the filter type
      */
-    public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        // TODO
+    public String getSelectedFilterType() {
+        return (String)m_filterType.getSelectedItem();
     }
 
+    /**
+     * Sets the filter expression to the filter type combo box.
+     *
+     * @param filterExpression the filter expression to set
+     */
+    public void setFilterExpression(final String filterExpression) {
+        m_filterTextField.setSelectedItem(filterExpression);
+    }
+
+    /**
+     * Returns the selected filter expression.
+     *
+     * @return the filter expression
+     */
+    public String getSelectedFilterExpression() {
+        return (String)m_filterTextField.getSelectedItem();
+    }
+
+    /**
+     * Sets case sensitivity of file filter.
+     *
+     * @param caseSensitive case sensitivity
+     */
+    public void setCaseSensitive(final boolean caseSensitive) {
+        m_caseSensitive.setSelected(caseSensitive);
+    }
+
+    /**
+     * Returns if file filter is case sensitive or not.
+     *
+     * @return true, if file filter is case sensitive or not
+     */
+    public boolean getCaseSensitive() {
+        return m_caseSensitive.isSelected();
+    }
+
+    /**
+     * Method to enable/disable the components.
+     *
+     * @param enabled true, if components should be disabled
+     */
+    public void enableComponents(final boolean enabled) {
+        m_filterType.setEnabled(enabled);
+        m_filterTextField.setEnabled(enabled);
+        m_caseSensitive.setEnabled(enabled);
+    }
 }
