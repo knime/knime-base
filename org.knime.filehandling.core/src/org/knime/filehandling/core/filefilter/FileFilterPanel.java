@@ -52,6 +52,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 
 import javax.swing.JCheckBox;
@@ -90,7 +91,7 @@ public class FileFilterPanel extends JPanel {
     public FileFilterPanel(final String[] defaultSuffixes) {
         m_defaultFileSuffixes = defaultSuffixes;
 
-        m_defaultExtensions =  String.join(",", defaultSuffixes);
+        m_defaultExtensions = String.join(",", defaultSuffixes);
         m_defaultWildcard = "*." + (defaultSuffixes.length > 0 ? defaultSuffixes[0] : "*");
 
         m_filterType =
@@ -213,5 +214,11 @@ public class FileFilterPanel extends JPanel {
         m_filterType.setEnabled(enabled);
         m_filterTextField.setEnabled(enabled);
         m_caseSensitive.setEnabled(enabled);
+    }
+
+    public void addActionListener(final ActionListener listener) {
+        m_filterType.addActionListener(listener);
+        m_filterTextField.addActionListener(listener);
+        m_caseSensitive.addActionListener(listener);
     }
 }

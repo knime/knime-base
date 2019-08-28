@@ -52,6 +52,7 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -206,5 +207,9 @@ public class FileFilterDialog extends JDialog {
      */
     public void enableComponents(final boolean enabled) {
         m_fileFilterPanel.enableComponents(enabled);
+    }
+
+    public void addActionListener(final ActionListener listener) {
+        m_fileFilterPanel.addActionListener(listener);
     }
 }

@@ -57,15 +57,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -130,6 +122,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private FileFilterDialog m_fileFilterDialog;
 
+    private FileChooserHelper m_helper;
+
     public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel, final String historyId,
         final NodeDialogPane dialogPane, final String... suffixes) {
 
@@ -158,9 +152,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         m_statusMessage = new JLabel(" ");
 
-        initEventHandlers();
         initLayout();
-        updateComponent();
     }
 
     private void initLayout() {
@@ -264,10 +256,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             }
             c = c.getParent();
         }
-
-        if (m_fileFilterDialog == null ) {
+        if (m_fileFilterDialog == null) {
             m_fileFilterDialog = new FileFilterDialog(f, m_defaultSuffixes);
         }
+        m_fileFilterDialog.addActionListener(e -> updateModel());
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
         updateStatusLine();
@@ -320,72 +312,34 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         Color messageColor = Color.GREEN;
 
         if (!m_connections.getSelectedItem().equals("Custom URL")) {
-            if (!m_fileHistoryPanel.getSelectedFile().isEmpty()) {
-                final Path fileOrFolder = Paths.get(m_fileHistoryPanel.getSelectedFile());
-                if (Files.isDirectory(fileOrFolder)) {
-                    final Pair<Integer,Integer> matchPair = applyFolderFilters(fileOrFolder);
-                    if (matchPair.getFirst() > 0) {
-                        message = String.format("Will read %d files out of %d", matchPair.getFirst(), matchPair.getSecond());
-                    } else {
-                        message = String.format("No files matched the filters", matchPair.getSecond());
-                        messageColor = Color.RED;
-                    }
-                } else if (!Files.isReadable(fileOrFolder)) {
-                    message = "Cannot read file";
+            final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
+            if (!fileOrFolder.isEmpty()
+                    && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder))) {
+                try {
+                    m_helper.scanDirectories(m_fileHistoryPanel.getSelectedFile());
+                } catch (IOException ex) {
+                    // TODO: LOG
+                }
+                final Pair<Integer, Integer> matchPair = m_helper.getCounts();
+                if (matchPair.getFirst() > 0) {
+                    message = String.format("Will read %d files out of %d (%d filtered)", matchPair.getFirst(),
+                        matchPair.getFirst() + matchPair.getSecond(), matchPair.getSecond());
+                } else {
+                    message = String.format("No files matched the filters", matchPair.getSecond());
                     messageColor = Color.RED;
                 }
             }
         }
-
         m_statusMessage.setText(message);
         m_statusMessage.setForeground(messageColor);
-    }
-
-    private Pair<Integer, Integer> applyFolderFilters(final Path folder) {
-        final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(makePathMatcherPattern());
-        final boolean recurse = m_includeSubfolders.isSelected();
-
-        final AtomicInteger matches = new AtomicInteger();
-        final AtomicInteger totalVisited = new AtomicInteger();
-
-        try {
-            Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
-                    throws IOException {
-                    return (recurse || folder.equals(dir)) ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(final Path path, final BasicFileAttributes attrs) throws IOException {
-                    totalVisited.incrementAndGet();
-                    if (Files.isRegularFile(path) && pathMatcher.matches(path)) {
-                        matches.incrementAndGet();
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException ex) {
-            LOG.error(ex.getMessage(), ex);
-        }
-
-        return new Pair<>(matches.get(), totalVisited.get());
-    }
-
-    private static String makePathMatcherPattern() {
-        return "glob:**/*.{txt,TXT}";
     }
 
     private void updateFolderFilterEnabledness() {
         // FIXME: this is a small hack in order to demonstrate when the folder options get
         // activated. We actually need some way to check for file or folder
-        final boolean folderSelected = !m_fileHistoryPanel.getSelectedFile().isEmpty()
-            && Files.isDirectory(Paths.get(m_fileHistoryPanel.getSelectedFile()));
+        final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
+        final boolean folderSelected = !fileOrFolder.isEmpty()
+            && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder));
         m_includeSubfolders.setEnabled(folderSelected);
         m_filterFiles.setEnabled(folderSelected);
         m_configureFilter.setEnabled(folderSelected && m_filterFiles.isSelected());
@@ -444,6 +398,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             }
         }
 
+        m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
+        initEventHandlers();
+        updateModel();
+
         setEnabledComponents(model.isEnabled());
     }
 
@@ -486,6 +444,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             model.setFilterExpression(m_fileFilterDialog.getSelectedFilterExpression());
             model.setCaseSensitive(m_fileFilterDialog.getCaseSensitive());
         }
+        m_helper.setSettings(model.createClone());
         updateEnabledness();
     }
 

@@ -55,6 +55,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 
 /**
  * SettingsModel for {@link DialogComponentFileChooser2}.
@@ -414,9 +415,15 @@ public final class SettingsModelFileChooser2 extends SettingsModel {
         config.getString(PATH_OR_URL_KEY);
         config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
         config.getBoolean(FILTER_FILES_KEY);
-        config.getString(FILTER_MODE_KEY);
         config.getString(FILTER_EXPRESSION_KEY);
         config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+
+        // Validate filter mode
+        final String filterMode = config.getString(FILTER_MODE_KEY);
+        if (!FilterType.contains(filterMode)) {
+            throw new InvalidSettingsException(
+                "\"" + filterMode + "\" is not a valid filter type.");
+        }
     }
 
     @Override

@@ -48,12 +48,12 @@
  */
 package org.knime.filehandling.core.filefilter;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.knime.base.util.WildcardMatcher;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
@@ -107,20 +107,29 @@ public class FileFilter {
          */
         public static final FilterType fromDisplayText(final String displayText) {
             // Throw something else.
-            return Arrays.stream(FilterType.values()).filter((f) -> f.getDisplayText().equals(displayText)).findFirst()
-                .get();
+            return Arrays.stream(values()).filter((f) -> f.getDisplayText().equals(displayText)).findFirst().get();
+        }
+
+        /**
+         * Returns true, if the argument represents a filter type in this enum.
+         *
+         * @param filterType filter type to check
+         * @return true, if the argument represents a filter type in this enum
+         */
+        public static final boolean contains(final String filterType) {
+            return Arrays.stream(values()).anyMatch(f -> f.getDisplayText().equals(filterType));
         }
     }
 
+    private int m_numberOfFilteredFiles;
+
     private final FilterType m_filterType;
-
-    private final String m_filterExpression;
-
-    private final boolean m_caseSensitive;
 
     private final List<String> m_extensions;
 
-    private final Pattern m_regEx;
+    private final Pattern m_regex;
+
+    private final boolean m_caseSensitive;
 
     /**
      * Create a new instance of {@code FileFilter}.
@@ -131,72 +140,115 @@ public class FileFilter {
      */
     public FileFilter(final FilterType filterType, final String filterExpression, final boolean caseSensitive) {
         m_filterType = filterType;
-        m_filterExpression = filterExpression;
-        m_caseSensitive = caseSensitive;
         String regexPattern = null;
-        switch (m_filterType) {
+        switch (filterType) {
             case EXTENSIONS:
-                m_extensions = Arrays.asList(m_filterExpression.split(";"));
+                m_extensions = Arrays.asList(filterExpression.split(";"));
                 break;
             case WILDCARD:
-                regexPattern = WildcardMatcher.wildcardToRegex(m_filterExpression);
+                regexPattern = WildcardMatcher.wildcardToRegex(filterExpression);
                 m_extensions = Collections.emptyList();
                 break;
             case REGEX:
-                regexPattern = m_filterExpression;
+                regexPattern = filterExpression;
                 m_extensions = Collections.emptyList();
                 break;
             default:
-                throw new IllegalStateException("Unknown filter: " + m_filterType);
+                throw new IllegalStateException("Unknown filter: " + filterType);
         }
 
+        m_caseSensitive = caseSensitive;
         if (regexPattern != null) {
-            m_regEx = m_caseSensitive ? Pattern.compile(regexPattern)
+            m_regex = m_caseSensitive ? Pattern.compile(regexPattern)
                 : Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
         } else {
-            m_regEx = null;
+            m_regex = null;
         }
     }
 
     /**
-     * Create a new instance of {@code FileFilter} using a {@link SettingsModelFileChooser2} that contains all
-     * necessary parameters.
+     * Create a new instance of {@code FileFilter} using a {@link SettingsModelFileChooser2} that contains all necessary
+     * parameters.
      *
      * @param settings settings model containing necessary parameters
      */
     public FileFilter(final SettingsModelFileChooser2 settings) {
-        // FIXME: ensure that the filtertype in settingsmodel has been validated
         this(FilterType.fromDisplayText(settings.getFilterMode()), settings.getFilterExpression(),
             settings.getCaseSensitive());
     }
 
     /**
-     * Filters a list of paths according to the settings.
-     *
-     * @param paths List of paths
-     * @return List of filtered paths
+     * @param entry
+     * @param filterType
+     * @param extensions
+     * @param regex
+     * @param caseSensitive
+     * @return
      */
-    public final List<Path> filterFiles(final List<Path> paths) {
-        return paths.stream().filter(this::satisfiesFilter).collect(Collectors.toList());
+    public final boolean isSatisfied(final Path entry) {
+        // toString might not be the correct method
+        final String pathAsString = entry.toString();
+        boolean accept = false;
+        if (Files.isRegularFile(entry)) {
+            switch (m_filterType) {
+                case EXTENSIONS:
+                    if (m_caseSensitive) {
+                        accept = m_extensions.stream().anyMatch(ext -> pathAsString.endsWith(ext));
+                    } else {
+                        accept = m_extensions.stream()//
+                                .anyMatch(ext -> pathAsString.toLowerCase().endsWith(ext.toLowerCase()));
+                    }
+                    break;
+                case WILDCARD:
+                    // no break
+                case REGEX:
+                    accept = m_regex.matcher(pathAsString).matches();
+                    break;
+                default:
+                    accept = false;
+            }
+        }
+        if (!accept) {
+            m_numberOfFilteredFiles++;
+        }
+        return accept;
     }
 
-    private final boolean satisfiesFilter(final Path path) {
-        // toString might not be the correct method
-        final String pathAsString = path.toString();
-        switch (m_filterType) {
-            case EXTENSIONS:
-                if (m_caseSensitive) {
-                    return m_extensions.stream().anyMatch(ext -> pathAsString.endsWith(ext));
-                } else {
-                    return m_extensions.stream()//
-                        .anyMatch(ext -> pathAsString.toLowerCase().endsWith(ext.toLowerCase()));
-                }
-            case WILDCARD:
-                // no break
-            case REGEX:
-                return m_regEx.matcher(pathAsString).matches();
-            default:
-                return false;
-        }
+    public final int getNumberOfFilteredFiles() {
+        return m_numberOfFilteredFiles;
     }
+
+    public final void resetCount() {
+        m_numberOfFilteredFiles = 0;
+    }
+
+//    public final DirectoryStream.Filter<Path> createFilter() {
+//        return new DirectoryStream.Filter<Path>() {
+//
+//            @Override
+//            public boolean accept(final Path entry) throws IOException {
+//                return isSatisfied(entry);
+//            }
+//        };
+//    }
+
+
+//    /**
+//     * @param dir
+//     * @return
+//     * @throws IOException
+//     */
+//    public final List<Path> listAndFilterFiles(final Path dir) throws IOException {
+//        final List<Path> filteredPaths = new ArrayList<>();
+//        if (Files.isDirectory(dir)) {
+//            try (final DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir, createFilter())) {
+//                for (final Path path : dirStream) {
+//                    filteredPaths.add(path);
+//                }
+//            }
+//            return filteredPaths;
+//        } else {
+//            throw new IOException(dir.toString() + " is not a directory.");
+//        }
+//    }
 }
