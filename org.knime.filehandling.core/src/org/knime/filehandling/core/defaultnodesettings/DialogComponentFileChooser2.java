@@ -444,7 +444,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             model.setFilterExpression(m_fileFilterDialog.getSelectedFilterExpression());
             model.setCaseSensitive(m_fileFilterDialog.getCaseSensitive());
         }
-        m_helper.setSettings(model.createClone());
+        m_helper.setSettings(model);
         updateEnabledness();
     }
 

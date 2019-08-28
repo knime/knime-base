@@ -77,7 +77,7 @@ public final class FileChooserHelper {
 
     private SettingsModelFileChooser2 m_settings;
 
-    final FileFilter m_filter;
+    private FileFilter m_filter;
 
     private Pair<Integer, Integer> m_counts;
 
@@ -87,11 +87,7 @@ public final class FileChooserHelper {
      */
     public FileChooserHelper(final FSConnectionFlowVariableProvider provider,
         final SettingsModelFileChooser2 settings) {
-        if (settings.getFilterFiles()) {
-            m_filter = new FileFilter(settings);
-        } else {
-            m_filter = null;
-        }
+        m_filter = initFileFilter(settings);
         m_fsConnectionFlowVarProvider = provider;
         m_settings = settings;
     }
@@ -113,6 +109,14 @@ public final class FileChooserHelper {
         } else {
             // Throw something
             throw new IllegalArgumentException();
+        }
+    }
+
+    private FileFilter initFileFilter(final SettingsModelFileChooser2 settings) {
+        if (settings.getFilterFiles()) {
+            return new FileFilter(settings);
+        } else {
+            return null;
         }
     }
 
@@ -165,7 +169,7 @@ public final class FileChooserHelper {
     public void setSettings(final SettingsModelFileChooser2 settings) {
         m_settings = settings;
         m_fileSystem = setFileSystem(m_fsConnectionFlowVarProvider, settings);
+        m_filter = initFileFilter(settings);
         setCounts(0, 0);
     }
-
 }
