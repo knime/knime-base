@@ -18,6 +18,9 @@
 		<option name="Limit number of rows">
 			Select this option if you want to read only the first few lines.
 		</option>
+		<option name="Connect timeout (ms)">
+			Timeout in milliseconds for connecting and reading remote resources (in case of reading from a remote location).  
+		</option>
 		<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/table-reader-node">
 			KNIME E-Learning Course: Table Reader Node
 		</link>

@@ -81,6 +81,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
@@ -118,6 +119,7 @@ public class ReadTableNodeModel extends NodeModel {
     private final SettingsModelString m_fileName = new SettingsModelString(CFG_FILENAME, null);
     private final SettingsModelBoolean m_limitCheckerModel = createLimitCheckerModel();
     private final SettingsModelInteger m_limitSpinnerModel = createLimitSpinnerModel(m_limitCheckerModel);
+    private final SettingsModelInteger m_timeoutSpinnerModel = createTimeoutModel();
 
     /**
      * Creates new model with no inputs, one output.
@@ -145,6 +147,11 @@ public class ReadTableNodeModel extends NodeModel {
         return new SettingsModelBoolean("limitRows", false);
     }
 
+    /** @return model used to represent the connection and read timeout. */
+    static final SettingsModelIntegerBounded createTimeoutModel() {
+        return new SettingsModelIntegerBounded("timeoutMS", FileUtil.getDefaultURLTimeoutMillis(), 0, Integer.MAX_VALUE);
+    }
+
     /**
      * Called by the node factory if the node is instantiated due to a file
      * drop.
@@ -164,6 +171,7 @@ public class ReadTableNodeModel extends NodeModel {
             m_fileName.saveSettingsTo(settings);
             m_limitCheckerModel.saveSettingsTo(settings);
             m_limitSpinnerModel.saveSettingsTo(settings);
+            m_timeoutSpinnerModel.saveSettingsTo(settings);
     }
 
     /**
@@ -188,6 +196,11 @@ public class ReadTableNodeModel extends NodeModel {
         } catch (InvalidSettingsException ise) {
             m_limitCheckerModel.setBooleanValue(false);
             m_limitSpinnerModel.setIntValue(100000);
+        }
+        try {
+            m_timeoutSpinnerModel.loadSettingsFrom(settings);
+        } catch (InvalidSettingsException ise) {
+            m_timeoutSpinnerModel.setIntValue(FileUtil.getDefaultURLTimeoutMillis());
         }
     }
 
@@ -363,7 +376,7 @@ public class ReadTableNodeModel extends NodeModel {
     private InputStream openInputStream()
         throws IOException, InvalidSettingsException {
         String loc = m_fileName.getStringValue();
-        return FileUtil.openInputStream(loc);
+        return FileUtil.openInputStream(loc, m_timeoutSpinnerModel.getIntValue());
     }
 
     /** {@inheritDoc} */

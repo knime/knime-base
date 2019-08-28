@@ -55,6 +55,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
@@ -77,6 +78,9 @@ public class ReadTableNodeDialogPane extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentBoolean(limitCheckerModel, "Limit number of rows"));
         SettingsModelInteger limitSpinnerModel = ReadTableNodeModel.createLimitSpinnerModel(limitCheckerModel);
         addDialogComponent(new DialogComponentNumber(limitSpinnerModel, "", 1000, null));
+        setHorizontalPlacement(false);
+        SettingsModelIntegerBounded timeoutSpinnerModel = ReadTableNodeModel.createTimeoutModel();
+        addDialogComponent(new DialogComponentNumber(timeoutSpinnerModel, "Connect timeout (ms)", 500, null));
     }
 
 }
