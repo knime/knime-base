@@ -59,6 +59,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
+
 /**
  * A file filter panel.
  *
@@ -92,7 +94,7 @@ public class FileFilterPanel extends JPanel {
         m_defaultWildcard = "*." + (defaultSuffixes.length > 0 ? defaultSuffixes[0] : "*");
 
         m_filterType =
-            new JComboBox<>(Arrays.stream(FileFilter.values()).map(FileFilter::getDisplayText).toArray(String[]::new));
+            new JComboBox<>(Arrays.stream(FilterType.values()).map(FilterType::getDisplayText).toArray(String[]::new));
         m_filterType.setSelectedIndex(0);
 
         m_filterTextField = new JComboBox<>();
@@ -134,7 +136,7 @@ public class FileFilterPanel extends JPanel {
     }
 
     private void filterTypeSelectionChanged(final ActionEvent e) {
-        switch (FileFilter.fromDisplayText((String)m_filterType.getSelectedItem())) {
+        switch (FilterType.fromDisplayText((String)m_filterType.getSelectedItem())) {
             case EXTENSIONS:
                 m_filterTextField.setSelectedItem(m_defaultExtensions);
                 break;

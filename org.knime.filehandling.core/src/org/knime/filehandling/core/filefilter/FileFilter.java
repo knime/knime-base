@@ -48,46 +48,155 @@
  */
 package org.knime.filehandling.core.filefilter;
 
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.knime.base.util.WildcardMatcher;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
- * File Filter enumeration.
+ * File Filter.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public enum FileFilter {
+public class FileFilter {
 
     /**
-     * Only files with certain extensions pass this filter.
+     * FilterType enumeration used for {@link FileFilter}.
+     *
+     * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
      */
-    EXTENSIONS("File extension(s)"),
-    /**
-     * Only files with names containing the wildcard pass this filter.
-     */
-    WILDCARD("Wildcard"),
-    /**
-     * Only files with names that matches the regex pass this filter.
-     */
-    REGEX("Regular expression");
+    public enum FilterType {
+            /**
+             * Only files with certain extensions pass this filter.
+             */
+            EXTENSIONS("File extension(s)"),
+            /**
+             * Only files with names containing the wildcard pass this filter.
+             */
+            WILDCARD("Wildcard"),
+            /**
+             * Only files with names that matches the regex pass this filter.
+             */
+            REGEX("Regular expression");
 
-    private final String m_displayText;
+        private final String m_displayText;
 
-    private FileFilter(final String displayText) {
-        m_displayText = displayText;
-    }
+        private FilterType(final String displayText) {
+            m_displayText = displayText;
+        }
 
+        /**
+         * Returns the display text of an enum type.
+         *
+         * @return the display text of an enum type
+         */
+        public final String getDisplayText() {
+            return m_displayText;
+        }
 
-    /**
-     * @return the displayText
-     */
-    public String getDisplayText() {
-        return m_displayText;
-    }
-
-    public static FileFilter fromDisplayText(final String displayText) {
-        return Arrays.stream(FileFilter.values())
-                .filter((f) -> f.getDisplayText().equals(displayText))
-                .findFirst()
+        /**
+         * Returns the FilterType based on a string.
+         *
+         * @param displayText The display text used to retrieve the FilterType
+         * @return the FilterType
+         */
+        public static final FilterType fromDisplayText(final String displayText) {
+            // Throw something else.
+            return Arrays.stream(FilterType.values()).filter((f) -> f.getDisplayText().equals(displayText)).findFirst()
                 .get();
+        }
+    }
+
+    private final FilterType m_filterType;
+
+    private final String m_filterExpression;
+
+    private final boolean m_caseSensitive;
+
+    private final List<String> m_extensions;
+
+    private final Pattern m_regEx;
+
+    /**
+     * Create a new instance of {@code FileFilter}.
+     *
+     * @param filterType the file filter type
+     * @param filterExpression the file filter expression
+     * @param caseSensitive case sensitive
+     */
+    public FileFilter(final FilterType filterType, final String filterExpression, final boolean caseSensitive) {
+        m_filterType = filterType;
+        m_filterExpression = filterExpression;
+        m_caseSensitive = caseSensitive;
+        String regexPattern = null;
+        switch (m_filterType) {
+            case EXTENSIONS:
+                m_extensions = Arrays.asList(m_filterExpression.split(";"));
+                break;
+            case WILDCARD:
+                regexPattern = WildcardMatcher.wildcardToRegex(m_filterExpression);
+                m_extensions = Collections.emptyList();
+                break;
+            case REGEX:
+                regexPattern = m_filterExpression;
+                m_extensions = Collections.emptyList();
+                break;
+            default:
+                throw new IllegalStateException("Unknown filter: " + m_filterType);
+        }
+
+        if (regexPattern != null) {
+            m_regEx = m_caseSensitive ? Pattern.compile(regexPattern)
+                : Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
+        } else {
+            m_regEx = null;
+        }
+    }
+
+    /**
+     * Create a new instance of {@code FileFilter} using a {@link SettingsModelFileChooser2} that contains all
+     * necessary parameters.
+     *
+     * @param settings settings model containing necessary parameters
+     */
+    public FileFilter(final SettingsModelFileChooser2 settings) {
+        // FIXME: ensure that the filtertype in settingsmodel has been validated
+        this(FilterType.fromDisplayText(settings.getFilterMode()), settings.getFilterExpression(),
+            settings.getCaseSensitive());
+    }
+
+    /**
+     * Filters a list of paths according to the settings.
+     *
+     * @param paths List of paths
+     * @return List of filtered paths
+     */
+    public final List<Path> filterFiles(final List<Path> paths) {
+        return paths.stream().filter(this::satisfiesFilter).collect(Collectors.toList());
+    }
+
+    private final boolean satisfiesFilter(final Path path) {
+        // toString might not be the correct method
+        final String pathAsString = path.toString();
+        switch (m_filterType) {
+            case EXTENSIONS:
+                if (m_caseSensitive) {
+                    return m_extensions.stream().anyMatch(ext -> pathAsString.endsWith(ext));
+                } else {
+                    return m_extensions.stream()//
+                        .anyMatch(ext -> pathAsString.toLowerCase().endsWith(ext.toLowerCase()));
+                }
+            case WILDCARD:
+                // no break
+            case REGEX:
+                return m_regEx.matcher(pathAsString).matches();
+            default:
+                return false;
+        }
     }
 }
