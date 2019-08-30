@@ -49,27 +49,15 @@ package org.knime.base.node.preproc.correlation.compute2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
-import org.knime.base.node.preproc.correlation.compute2.CorrelationComputer2.CorrelationResult;
+import org.knime.base.node.preproc.correlation.CorrelationUtils;
+import org.knime.base.node.preproc.correlation.CorrelationUtils.CorrelationResult;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
-import org.knime.base.util.HalfDoubleMatrix;
-import org.knime.base.util.HalfIntMatrix;
-import org.knime.core.data.DataColumnProperties;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
-import org.knime.core.data.RowKey;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.renderer.DataValueRenderer;
-import org.knime.core.data.renderer.DoubleValueRenderer.FullPrecisionRendererFactory;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.BufferedDataTableHolder;
 import org.knime.core.node.CanceledExecutionException;
@@ -92,15 +80,6 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDataTableHolder {
-
-    private static final String CORRELATION_VALUE_COL_NAME = "Correlation value";
-
-    private static final String P_VALUE_COL_NAME = "p value";
-
-    private static final String DEGREES_OF_FREEDOM_COL_NAME = "Degrees of freedom";
-
-    /** Full precision renderer for double values */
-    private static final String FULL_PRECISION_RENDERER = new FullPrecisionRendererFactory().getDescription();
 
     /** Progress of the first step */
     private static final double PROG_STEP1 = 0.48;
@@ -168,20 +147,8 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         if (includesNames.length == 0) {
             throw new InvalidSettingsException("No columns selected");
         }
-        return new PortObjectSpec[]{createOutputTableSpec(), new PMCCPortObjectAndSpec(includesNames)};
-    }
-
-    private static DataTableSpec createOutputTableSpec() {
-        final DataColumnSpec corrColSpec =
-            new DataColumnSpecCreator(CORRELATION_VALUE_COL_NAME, DoubleCell.TYPE).createSpec();
-        final DataColumnSpecCreator pValColSpecCreator = new DataColumnSpecCreator(P_VALUE_COL_NAME, DoubleCell.TYPE);
-        // Set the full precision renderer for the p value column
-        pValColSpecCreator.setProperties(new DataColumnProperties(
-            Collections.singletonMap(DataValueRenderer.PROPERTY_PREFERRED_RENDERER, FULL_PRECISION_RENDERER)));
-        final DataColumnSpec pValColSpec = pValColSpecCreator.createSpec();
-        final DataColumnSpec dofColSpec =
-            new DataColumnSpecCreator(DEGREES_OF_FREEDOM_COL_NAME, DoubleCell.TYPE).createSpec();
-        return new DataTableSpec(corrColSpec, pValColSpec, dofColSpec);
+        return new PortObjectSpec[]{CorrelationUtils.createCorrelationOutputTableSpec(),
+            new PMCCPortObjectAndSpec(includesNames)};
     }
 
     @Override
@@ -218,8 +185,8 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         ExecutionContext execFinish = exec.createSubExecutionContext(PROG_FINISH);
         PMCCPortObjectAndSpec pmccModel =
             new PMCCPortObjectAndSpec(includeNames, correlationResult.getCorrelationMatrix());
-        BufferedDataTable out =
-            createOutputTable(correlationResult, includeNames, execFinish.createSubExecutionContext(0.5));
+        BufferedDataTable out = CorrelationUtils.createCorrelationOutputTable(correlationResult, includeNames,
+            execFinish.createSubExecutionContext(0.5));
         m_correlationTable = pmccModel.createCorrelationMatrix(execFinish.createSubExecutionContext(0.5));
 
         // Warning handling
@@ -244,39 +211,6 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         }
 
         return new PortObject[]{out, pmccModel};
-    }
-
-    private static BufferedDataTable createOutputTable(final CorrelationResult correlationResult,
-        final String[] includeNames, final ExecutionContext exec) throws CanceledExecutionException {
-        final DataTableSpec outSpec = createOutputTableSpec();
-        final BufferedDataContainer dataContainer = exec.createDataContainer(outSpec);
-
-        final HalfDoubleMatrix corrMatrix = correlationResult.getCorrelationMatrix();
-        final HalfDoubleMatrix pValMatrix = correlationResult.getpValMatrix();
-        final HalfIntMatrix dofMatrix = correlationResult.getDegreesOfFreedomMatrix();
-
-        // Fill the table
-        int numInc = includeNames.length;
-        int rowIndex = 0;
-        final double rowCount = numInc * (numInc - 1) / 2;
-        for (int i = 0; i < numInc; i++) {
-            for (int j = i + 1; j < numInc; j++) {
-                final DoubleCell corr = new DoubleCell(corrMatrix.get(i, j));
-                final DoubleCell pVal = new DoubleCell(pValMatrix.get(i, j));
-                final IntCell dof = new IntCell(dofMatrix.get(i, j));
-                final RowKey rowKey = new RowKey(getRowKey(includeNames[i], includeNames[j]));
-                final DefaultRow row = new DefaultRow(rowKey, corr, pVal, dof);
-                exec.checkCanceled();
-                dataContainer.addRowToTable(row);
-                exec.setProgress(++rowIndex / rowCount);
-            }
-        }
-        dataContainer.close();
-        return dataContainer.getTable();
-    }
-
-    private static String getRowKey(final String columnNameA, final String columnNameB) {
-        return columnNameA + "_" + columnNameB;
     }
 
     @Override

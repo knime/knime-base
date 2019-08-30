@@ -59,6 +59,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.knime.base.node.preproc.correlation.CorrelationUtils.CorrelationResult;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
 import org.knime.base.util.HalfDoubleMatrix;
 import org.knime.base.util.HalfIntMatrix;
@@ -70,7 +71,6 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.util.Pair;
 
@@ -164,7 +164,7 @@ public final class CorrelationComputer2 {
      * @throws CanceledExecutionException
      */
     @SuppressWarnings("unchecked")
-    public void calculateStatistics(final BufferedDataTable table, final ExecutionContext exec)
+    public void calculateStatistics(final BufferedDataTable table, final ExecutionMonitor exec)
         throws CanceledExecutionException {
         DataTableSpec filterTableSpec = table.getDataTableSpec();
         assert filterTableSpec.equalStructure(m_tableSpec);
@@ -560,7 +560,8 @@ public final class CorrelationComputer2 {
         }
     }
 
-    /** Composes warning message (or null) on which columns contain missings.
+    /**
+     * Composes warning message (or null) on which columns contain missings.
      *
      * @param maxColsToReport ...
      * @return the warning or null.
@@ -665,42 +666,4 @@ public final class CorrelationComputer2 {
         return new ImmutableTriple<>(cramersV, pVal, dof);
     }
 
-    /**
-     * A result of a correlation computation.
-     */
-    public static class CorrelationResult {
-        private final HalfDoubleMatrix m_correlationMatrix;
-
-        private final HalfDoubleMatrix m_pValMatrix;
-
-        private final HalfIntMatrix m_degreesOfFreedomMatrix;
-
-        private CorrelationResult(final HalfDoubleMatrix correlationMatrix, final HalfDoubleMatrix pValMatrix,
-            final HalfIntMatrix degreesOfFreedomMatrix) {
-            m_correlationMatrix = correlationMatrix;
-            m_pValMatrix = pValMatrix;
-            m_degreesOfFreedomMatrix = degreesOfFreedomMatrix;
-        }
-
-        /**
-         * @return the correlation matrix
-         */
-        public HalfDoubleMatrix getCorrelationMatrix() {
-            return m_correlationMatrix;
-        }
-
-        /**
-         * @return the p value matrix
-         */
-        public HalfDoubleMatrix getpValMatrix() {
-            return m_pValMatrix;
-        }
-
-        /**
-         * @return the degrees of freedom matrix
-         */
-        public HalfIntMatrix getDegreesOfFreedomMatrix() {
-            return m_degreesOfFreedomMatrix;
-        }
-    }
 }
