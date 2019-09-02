@@ -59,11 +59,10 @@ import org.knime.base.node.mine.regression.logistic.learner4.data.TrainingRow.Fe
  */
 public enum MultinomialLoss implements Loss<ClassificationTrainingRow> {
 
-    /**
-     * The instance of MultinomialLoss.
-     */
-    INSTANCE;
-
+        /**
+         * The instance of MultinomialLoss.
+         */
+        INSTANCE;
 
     /**
      * {@inheritDoc}
@@ -87,14 +86,15 @@ public enum MultinomialLoss implements Loss<ClassificationTrainingRow> {
         double logSumExp = logSumExp(prediction);
         for (int i = 0; i < prediction.length; i++) {
             double p = Math.exp(prediction[i] - logSumExp);
-            assert Double.isFinite(p) && p <= 1.0 && p >= 0.0 ;
+            assert Double.isFinite(p) && p <= 1.0 && p >= 0.0;
             gradient[i] = cat == i ? p - 1.0 : p;
         }
         return gradient;
     }
 
     @Override
-    public double[][] hessian(final TrainingData<ClassificationTrainingRow> data, final WeightMatrix<ClassificationTrainingRow> beta) {
+    public double[][] hessian(final TrainingData<ClassificationTrainingRow> data,
+        final WeightMatrix<ClassificationTrainingRow> beta) {
 
         final int nBetaVecs = data.getTargetDimension();
         final int nFets = data.getFeatureCount();
@@ -137,8 +137,7 @@ public enum MultinomialLoss implements Loss<ClassificationTrainingRow> {
         return hessian;
     }
 
-
-    private void transform2Probabilites(final ClassificationTrainingRow x, final double[] prediction) {
+    private static void transform2Probabilites(final ClassificationTrainingRow x, final double[] prediction) {
         double logSumExp = logSumExp(prediction);
         for (int i = 0; i < prediction.length; i++) {
             prediction[i] = Math.exp(prediction[i] - logSumExp);
