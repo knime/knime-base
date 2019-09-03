@@ -7,17 +7,9 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.defaultnodesettings
 Require-Bundle: org.apache.commons.lang3,
- org.knime.base;bundle-version="[4.0.0,5.0.0)",
  org.knime.workbench.repository;bundle-version="[4.0.0,5.0.0)",
- com.amazonaws.aws-java-sdk-s3,
- com.amazonaws.aws-java-sdk-core,
- org.apache.commons.logging;bundle-version="1.2.0",
- org.apache.httpcomponents.httpclient;bundle-version="4.5.5",
- org.apache.httpcomponents.httpcore;bundle-version="4.4.9",
- joda-time;bundle-version="2.9.9",
- com.google.guava;bundle-version="19.0.0"
+ org.knime.core;bundle-version="[4.1.0,5.0.0)"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.knime.filehandling.core.connections.FSPluginActivator
-Bundle-ClassPath: libs/s3fs-2.2.2.jar,
- .
+Bundle-ClassPath: .

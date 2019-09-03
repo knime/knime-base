@@ -67,9 +67,6 @@ import javax.swing.filechooser.FileSystemView;
 
 import org.knime.filehandling.core.connections.FSConnection;
 
-import com.upplication.s3fs.S3FileSystem;
-import com.upplication.s3fs.S3Path;
-
 /**
  *
  * @author Julian Bunzel, KNIME
@@ -260,8 +257,10 @@ public class NioFileSystemView extends FileSystemView {
 
         @Override
         public boolean isDirectory() {
-            return Boolean
-                .valueOf(Files.isDirectory(new S3Path((S3FileSystem)fileSystem, cutPath(this.getPath()), "")));
+            // FIXME: To be replaced by correct check
+//            return Boolean
+//                .valueOf(Files.isDirectory(new S3Path((S3FileSystem)fileSystem, cutPath(this.getPath()), "")));
+            return Boolean.TRUE;
         }
 
         @Override
