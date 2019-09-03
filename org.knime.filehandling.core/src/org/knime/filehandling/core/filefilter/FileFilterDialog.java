@@ -52,7 +52,6 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -60,8 +59,6 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-
-import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 
 /**
  * Dialog for file filtering options.
@@ -76,18 +73,25 @@ public class FileFilterDialog extends JDialog {
     /** Panel holding the file filtering components */
     private final FileFilterPanel m_fileFilterPanel;
 
+    /** Title for the dialog */
+    private static final String TITLE_STRING = "File filter configuration";
+
+    /** Ok button label */
+    private static final String OK_BUTTON_LABEL = "OK";
+
+    /** Close button label */
+    private static final String CLOSE_BUTTON_LABEL = "Cancel";
+
     /**
      * Creates a new instance of {@code FileFilterDialog}.
      *
      * @param owner the owner frame
-     * @param defaultSuffixes file suffixes used as default
+     * @param panel the file filter panel
      */
-    public FileFilterDialog(final Frame owner, final String[] defaultSuffixes) {
-        super(owner, "File filter configuration", true);
+    public FileFilterDialog(final Frame owner, final FileFilterPanel panel) {
+        super(owner, TITLE_STRING, true);
 
-        m_fileFilterPanel = new FileFilterPanel(defaultSuffixes);
-
-
+        m_fileFilterPanel = panel;
         final JPanel rootPanel = new JPanel();
         rootPanel.setLayout(new GridBagLayout());
 
@@ -113,7 +117,7 @@ public class FileFilterDialog extends JDialog {
         gc.gridx = 0;
         gc.gridy = 1;
         gc.insets = new Insets(0, 10, 10, 0);
-        final JButton okButton = new JButton("OK");
+        final JButton okButton = new JButton(OK_BUTTON_LABEL);
         okButton.addActionListener((e) -> onOk());
         rootPanel.add(okButton, gc);
 
@@ -122,7 +126,7 @@ public class FileFilterDialog extends JDialog {
         gc.ipadx = 10;
         gc.gridx = 1;
         gc.insets = new Insets(0, 5, 10, 10);
-        final JButton cancelButton = new JButton("Cancel");
+        final JButton cancelButton = new JButton(CLOSE_BUTTON_LABEL);
         cancelButton.addActionListener((e) -> onCancel());
         rootPanel.add(cancelButton, gc);
 
@@ -156,79 +160,5 @@ public class FileFilterDialog extends JDialog {
     /** Method that defines what happens when hitting the Close button */
     private void onCancel() {
         closeDialog();
-    }
-
-    /**
-     * Sets the filter type to the filter type combo box.
-     *
-     * @param filterType the filter type to set
-     */
-    public final void setFilterType(final String filterType) {
-        if (FilterType.contains(filterType)) {
-            m_fileFilterPanel.setFilterType(FilterType.fromDisplayText(filterType));
-        }
-    }
-
-    /**
-     * Returns the selected filter type.
-     *
-     * @return the filter type
-     */
-    public final FilterType getSelectedFilterType() {
-        return m_fileFilterPanel.getSelectedFilterType();
-    }
-
-    /**
-     * Sets the filter expression to the filter type combo box.
-     *
-     * @param filterExpression the filter expression to set
-     */
-    public final void setFilterExpression(final String filterExpression) {
-        m_fileFilterPanel.setFilterExpression(filterExpression);
-    }
-
-    /**
-     * Returns the selected filter expression.
-     *
-     * @return the filter expression
-     */
-    public final String getSelectedFilterExpression() {
-        return m_fileFilterPanel.getSelectedFilterExpression();
-    }
-
-    /**
-     * Sets case sensitivity of file filter.
-     *
-     * @param caseSensitive case sensitivity
-     */
-    public final void setCaseSensitive(final boolean caseSensitive) {
-        m_fileFilterPanel.setCaseSensitive(caseSensitive);
-    }
-
-    /**
-     * Returns if file filter is case sensitive or not.
-     *
-     * @return true, if file filter is case sensitive or not
-     */
-    public final boolean getCaseSensitive() {
-        return m_fileFilterPanel.getCaseSensitive();
-    }
-
-    /**
-     * Method to enable/disable the components.
-     *
-     * @param enabled true, if components should be disabled
-     */
-    public final void enableComponents(final boolean enabled) {
-        m_fileFilterPanel.enableComponents(enabled);
-    }
-
-    /**
-     * Adds an ActionListener to the file filter panel.
-     *
-     * @param listener the listener
-     */
-    public final void addActionListener(final ActionListener listener) {
-        m_fileFilterPanel.addActionListener(listener);
     }
 }

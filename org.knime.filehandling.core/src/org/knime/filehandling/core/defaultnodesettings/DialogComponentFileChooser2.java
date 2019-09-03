@@ -82,7 +82,9 @@ import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
+import org.knime.filehandling.core.filefilter.FileFilterPanel;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
@@ -104,9 +106,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Flow variable model */
     private final FlowVariableModel m_pathFlowVariableModel;
-
-    /** File suffixes used as defaults for the file filter dialog */
-    private final String[] m_defaultSuffixes;
 
     /** JPanel holding the file system connection label and combo boxes */
     private final JPanel m_connectionSettingsPanel = new JPanel();
@@ -138,7 +137,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** Button to open the dialog that contains options for file filtering */
     private final JButton m_configureFilter;
 
-    /** Dialog containing options for file filtering */
+    /** Panel containing options for file filtering */
+    private final FileFilterPanel m_fileFilterPanel;
+
+    /** Extra dialog containing the file filter panel */
     private FileFilterDialog m_fileFilterDialog;
 
     /** Label containing status messages */
@@ -183,7 +185,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_dialogPane = dialogPane;
         m_pathFlowVariableModel =
             m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
-        m_defaultSuffixes = suffixes;
 
         m_connectionLabel = new JLabel(CONNECTION_LABEL);
 
@@ -200,6 +201,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_includeSubfolders = new JCheckBox("Include subfolders");
         m_filterFiles = new JCheckBox("Filter files in folder");
         m_configureFilter = new JButton("Configure");
+
+        m_fileFilterPanel = new FileFilterPanel(suffixes);
 
         m_statusMessage = new JLabel(EMPTY_STRING);
 
@@ -302,6 +305,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_includeSubfolders.addActionListener(e -> updateModel());
         m_filterFiles.addActionListener(e -> updateModel());
         m_configureFilter.addActionListener(e -> showFileFilterConfigurationDialog());
+        m_fileFilterPanel.addActionListener(e -> updateModel());
     }
 
     /** Method called if file filter configuration button is clicked */
@@ -316,9 +320,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             c = c.getParent();
         }
         if (m_fileFilterDialog == null) {
-            m_fileFilterDialog = new FileFilterDialog(f, m_defaultSuffixes);
+            m_fileFilterDialog = new FileFilterDialog(f, m_fileFilterPanel);
         }
-        m_fileFilterDialog.addActionListener(e -> updateModel());
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
 
@@ -416,23 +419,20 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_filterFiles.setSelected(filterFiles);
         }
 
-        if (m_fileFilterDialog != null) {
-            // sync filter mode combo box
-            final String filterMode = model.getFilterMode();
-            if ((filterMode != null)
-                && !filterMode.equals(m_fileFilterDialog.getSelectedFilterType().getDisplayText())) {
-                m_fileFilterDialog.setFilterType(filterMode);
-            }
-            // sync filter expression combo box
-            final String filterExpr = model.getFilterExpression();
-            if ((filterExpr != null) && !filterExpr.equals(m_fileFilterDialog.getSelectedFilterExpression())) {
-                m_fileFilterDialog.setFilterExpression(filterExpr);
-            }
-            // sync case sensitivity check box
-            final boolean caseSensitive = model.getCaseSensitive();
-            if (caseSensitive != m_fileFilterDialog.getCaseSensitive()) {
-                m_fileFilterDialog.setCaseSensitive(caseSensitive);
-            }
+        // sync filter mode combo box
+        final String filterMode = model.getFilterMode();
+        if ((filterMode != null) && !filterMode.equals(m_fileFilterPanel.getSelectedFilterType().getDisplayText())) {
+            m_fileFilterPanel.setFilterType(FilterType.fromDisplayText(filterMode));
+        }
+        // sync filter expression combo box
+        final String filterExpr = model.getFilterExpression();
+        if ((filterExpr != null) && !filterExpr.equals(m_fileFilterPanel.getSelectedFilterExpression())) {
+            m_fileFilterPanel.setFilterExpression(filterExpr);
+        }
+        // sync case sensitivity check box
+        final boolean caseSensitive = model.getCaseSensitive();
+        if (caseSensitive != m_fileFilterPanel.getCaseSensitive()) {
+            m_fileFilterPanel.setCaseSensitive(caseSensitive);
         }
 
         m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
@@ -482,11 +482,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
         model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
-        if (m_fileFilterDialog != null) {
-            model.setFilterMode(m_fileFilterDialog.getSelectedFilterType().getDisplayText());
-            model.setFilterExpression(m_fileFilterDialog.getSelectedFilterExpression());
-            model.setCaseSensitive(m_fileFilterDialog.getCaseSensitive());
-        }
+        model.setFilterMode(m_fileFilterPanel.getSelectedFilterType().getDisplayText());
+        model.setFilterExpression(m_fileFilterPanel.getSelectedFilterExpression());
+        model.setCaseSensitive(m_fileFilterPanel.getCaseSensitive());
+
         m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
         updateStatusMessage();
         updateEnabledness();
