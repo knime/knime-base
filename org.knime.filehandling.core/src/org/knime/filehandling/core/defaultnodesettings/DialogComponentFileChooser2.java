@@ -58,6 +58,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -66,6 +67,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.FlowVariableModel;
@@ -83,79 +85,135 @@ import org.knime.core.util.Pair;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 
 /**
+ * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
+ * to different file systems, as well as file filtering based on file extensions, regular expressions or wildcard.
  *
- * @author bjoern
+ * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
+ * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
 public class DialogComponentFileChooser2 extends DialogComponent {
 
-    private static final NodeLogger LOG = NodeLogger.getLogger(DialogComponentFileChooser2.class);
+    /** Node logger */
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
+    /** Flow variable provider used to retrieve connection information to different file systems */
     private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
 
+    /** Node dialog pane */
     private final NodeDialogPane m_dialogPane;
 
+    /** Flow variable model */
     private final FlowVariableModel m_pathFlowVariableModel;
 
+    /** File suffixes used as defaults for the file filter dialog */
     private final String[] m_defaultSuffixes;
 
-    private final JLabel m_useConnection;
-
-    private final JComboBox<String> m_connections;
-
+    /** JPanel holding the file system connection label and combo boxes */
     private final JPanel m_connectionSettingsPanel = new JPanel();
 
+    /** Card layout used to swap between different views (show KNIME file systems or not) */
     private final CardLayout m_connectionSettingsCardLayout = new CardLayout();
 
+    /** Label for the file system connection combo boxes */
+    private final JLabel m_connectionLabel;
+
+    /** Combo box to select the file system */
+    private final JComboBox<FileSystemChoice> m_connections;
+
+    /** Combo box to select the KNIME file system connections */
     private final JComboBox<KNIMEConnection> m_knimeConnections;
 
+    /** Check box to select whether to include sub folders while listing files in folders */
     private final JCheckBox m_includeSubfolders;
 
+    /** Check box to select whether to filter files or not */
     private final JCheckBox m_filterFiles;
 
+    /** Label for the {@code FilesHistoryPanel} */
     private final JLabel m_fileFolderLabel;
 
+    /** FilesHistoryPanel used to select a file or a folder */
     private final FilesHistoryPanel m_fileHistoryPanel;
 
+    /** Button to open the dialog that contains options for file filtering */
     private final JButton m_configureFilter;
 
-    private final JLabel m_statusMessage;
-
+    /** Dialog containing options for file filtering */
     private FileFilterDialog m_fileFilterDialog;
 
+    /** Label containing status messages */
+    private final JLabel m_statusMessage;
+
+    /** Helper class for file filtering */
     private FileChooserHelper m_helper;
 
+    /** Swing worker used to do file scanning in the background */
+    private StatusLineSwingWorker m_statusLineSwingWorker;
+
+    /** String used for file system connection label. */
+    private static final String CONNECTION_LABEL = "Read from: ";
+
+    /** String used for the label next to the {@code FilesHistoryPanel} */
+    private static final String FILE_FOLDER_LABEL = "File/Folder:";
+
+    /** String used for the label next to the {@code FilesHistoryPanel} */
+    private static final String URL_LABEL = "URL:";
+
+    /** Empty string used for the status message label */
+    private static final String EMPTY_STRING = " ";
+
+    /** Identifier for the KNIME file system connection view in the card layout */
+    private static final String KNIME_CARD_VIEW_IDENTIFIER = "KNIME";
+
+    /** Identifier for the default file system connection view in the card layout */
+    private static final String DEFAULT_CARD_VIEW_IDENTIFIER = "DEFAULT";
+
+    /**
+     * Creates a new instance of {@code DialogComponentFileChooser2}.
+     *
+     * @param settingsModel the settings model storing all the necessary information
+     * @param historyId id used to store file history used by {@link FilesHistoryPanel}
+     * @param dialogPane the {@link NodeDialogPane} this component is used for
+     * @param suffixes array of file suffixes used as defaults for file filtering options
+     */
     public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel, final String historyId,
         final NodeDialogPane dialogPane, final String... suffixes) {
-
         super(settingsModel);
 
         m_dialogPane = dialogPane;
-        m_pathFlowVariableModel = m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
+        m_pathFlowVariableModel =
+            m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
         m_defaultSuffixes = suffixes;
 
-        m_useConnection = new JLabel("Read from: ");
+        m_connectionLabel = new JLabel(CONNECTION_LABEL);
 
-        m_connections = new JComboBox<>(new String[0]);
+        m_connections = new JComboBox<>(new FileSystemChoice[0]);
         m_connections.setEnabled(true);
 
         m_knimeConnections = new JComboBox<>();
 
-        m_fileFolderLabel = new JLabel("File/Folder:");
+        m_fileFolderLabel = new JLabel(FILE_FOLDER_LABEL);
 
-        m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel, historyId,
-            new LocalFileSystemBrowser(),
+        m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel, historyId, new LocalFileSystemBrowser(),
             FileSelectionMode.FILES_AND_DIRECTORIES, DialogType.OPEN_DIALOG, suffixes);
 
         m_includeSubfolders = new JCheckBox("Include subfolders");
         m_filterFiles = new JCheckBox("Filter files in folder");
         m_configureFilter = new JButton("Configure");
 
-        m_statusMessage = new JLabel(" ");
+        m_statusMessage = new JLabel(EMPTY_STRING);
+
+        m_statusLineSwingWorker = new StatusLineSwingWorker(m_statusMessage);
 
         initLayout();
+
+        // Fill combo boxes
+        updateConnectionsCombo();
+        updateKNIMEConnectionsCombo();
     }
 
-    private void initLayout() {
+    /** Initialize the layout of the dialog component */
+    private final void initLayout() {
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
 
@@ -166,7 +224,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(5, 0, 5, 5);
-        panel.add(m_useConnection, gbc);
+        panel.add(m_connectionLabel, gbc);
 
         gbc.gridx++;
         panel.add(m_connections, gbc);
@@ -198,7 +256,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         gbc.gridx++;
         gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor= GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(5, 0, 5, 0);
         panel.add(m_configureFilter, gbc);
 
@@ -208,19 +266,18 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
         panel.add(m_statusMessage, gbc);
-
-        updateConnectionsCombo();
-        updateKNIMEConnectionsCombo();
     }
 
-    private void initConnectionSettingsPanelLayout() {
+    /** Initialize the file system connection panel layout */
+    private final void initConnectionSettingsPanelLayout() {
         m_connectionSettingsPanel.setLayout(m_connectionSettingsCardLayout);
 
-        m_connectionSettingsPanel.add(initKNIMEConnectionPanel(), "KNIME");
-        m_connectionSettingsPanel.add(new JPanel(), "empty");
+        m_connectionSettingsPanel.add(initKNIMEConnectionPanel(), KNIME_CARD_VIEW_IDENTIFIER);
+        m_connectionSettingsPanel.add(new JPanel(), DEFAULT_CARD_VIEW_IDENTIFIER);
     }
 
-    private Component initKNIMEConnectionPanel() {
+    /** Initialize the KNIME file system connection component */
+    private final Component initKNIMEConnectionPanel() {
         final JPanel knimeConnectionPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = new GridBagConstraints();
 
@@ -238,6 +295,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         return knimeConnectionPanel;
     }
 
+    /** Initialize event handlers for components */
     private void initEventHandlers() {
         m_connections.addActionListener(e -> updateModel());
         m_fileHistoryPanel.addChangeListener(e -> updateModel());
@@ -246,6 +304,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_configureFilter.addActionListener(e -> showFileFilterConfigurationDialog());
     }
 
+    /** Method called if file filter configuration button is clicked */
     private void showFileFilterConfigurationDialog() {
         Frame f = null;
         Container c = getComponentPanel().getParent();
@@ -262,27 +321,29 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_fileFilterDialog.addActionListener(e -> updateModel());
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
-        updateStatusLine();
+
+        updateStatusMessage();
     }
 
+    /** Method to update enabledness of components */
     private void updateEnabledness() {
-        if (m_connections.getSelectedItem().equals("KNIME")) {
+        if (m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())) {
             // KNIME connections are selected
-            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "KNIME");
+            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, KNIME_CARD_VIEW_IDENTIFIER);
 
             m_knimeConnections.setEnabled(true);
             m_fileFolderLabel.setEnabled(true);
-            m_fileFolderLabel.setText("File/Folder:");
+            m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
             m_fileHistoryPanel.setEnabled(true);
             m_fileHistoryPanel.setBrowseable(true);
 
             updateFolderFilterEnabledness();
-        } else if (m_connections.getSelectedItem().equals("Custom URL")) {
+        } else if (m_connections.getSelectedItem().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             // Custom URLs are selected
-            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "empty");
+            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
 
             m_fileFolderLabel.setEnabled(true);
-            m_fileFolderLabel.setText("URL:");
+            m_fileFolderLabel.setText(URL_LABEL);
             m_fileHistoryPanel.setEnabled(true);
             m_fileHistoryPanel.setBrowseable(false);
 
@@ -291,88 +352,63 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_configureFilter.setEnabled(false);
         } else {
             // some flow variable connection is selected, or we are using the local FS
-            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, "empty");
+            m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
 
             m_fileFolderLabel.setEnabled(true);
-            m_fileFolderLabel.setText("File/Folder:");
+            m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
             m_fileHistoryPanel.setEnabled(true);
             m_fileHistoryPanel.setBrowseable(true);
 
             updateFolderFilterEnabledness();
         }
 
-        updateStatusLine();
         getComponentPanel().repaint();
     }
 
-    private void updateStatusLine() {
-        // FIXME: this is a hack to demonstrate status line functionality. We need to work with an actual remote file system
-        // here. AND THIS NEEDS TO BE PUT INTO A SWINGER WORKER TO RUN IN THE BACKGROUND!
-        String message = " ";
-        Color messageColor = Color.GREEN;
-
-        if (!m_connections.getSelectedItem().equals("Custom URL")) {
-            final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
-            if (!fileOrFolder.isEmpty()
-                    && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder))) {
-                try {
-                    m_helper.scanDirectories(m_fileHistoryPanel.getSelectedFile());
-                } catch (IOException ex) {
-                    // TODO: LOG
-                }
-                final Pair<Integer, Integer> matchPair = m_helper.getCounts();
-                if (matchPair.getFirst() > 0) {
-                    message = String.format("Will read %d files out of %d (%d filtered)", matchPair.getFirst(),
-                        matchPair.getFirst() + matchPair.getSecond(), matchPair.getSecond());
-                } else {
-                    message = String.format("No files matched the filters", matchPair.getSecond());
-                    messageColor = Color.RED;
-                }
-            }
+    /** Method to update the status message */
+    private void updateStatusMessage() {
+        m_statusLineSwingWorker.cancel(true);
+        if (m_statusLineSwingWorker.isDone()) {
+            m_statusLineSwingWorker = new StatusLineSwingWorker(m_statusMessage);
         }
-        m_statusMessage.setText(message);
-        m_statusMessage.setForeground(messageColor);
+        m_statusLineSwingWorker.execute();
     }
 
+    /** Method to updated enabledness of folder and filtering components */
     private void updateFolderFilterEnabledness() {
-        // FIXME: this is a small hack in order to demonstrate when the folder options get
-        // activated. We actually need some way to check for file or folder
         final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
-        final boolean folderSelected = !fileOrFolder.isEmpty()
-            && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder));
+        final boolean folderSelected =
+            !fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder));
         m_includeSubfolders.setEnabled(folderSelected);
         m_filterFiles.setEnabled(folderSelected);
         m_configureFilter.setEnabled(folderSelected && m_filterFiles.isSelected());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void updateComponent() {
-    	// add connections coming from flow variables
+        // add connections coming from flow variables
         updateFlowVariableConnectionsCombo();
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         // sync connection combo box
         final String fileSystem = model.getFileSystem();
-        if (fileSystem != null && !fileSystem.equals(m_connections.getSelectedItem())) {
+        if ((fileSystem != null) && !fileSystem.equals(m_connections.getSelectedItem())) {
             m_connections.setSelectedItem(fileSystem);
         }
         // sync knime connection check box
         final String knimeFileSystem = model.getKNIMEFileSystem();
-        if (knimeFileSystem != null && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
+        if ((knimeFileSystem != null) && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
             m_knimeConnections.setSelectedItem(knimeFileSystem);
         }
         // sync file history panel
         final String pathOrUrl = model.getPathOrURL();
-        if (pathOrUrl != null && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
+        if ((pathOrUrl != null) && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
             m_fileHistoryPanel.setSelectedFile(pathOrUrl);
         }
         // sync sub folder check box
         final boolean includeSubfolders = model.getIncludeSubfolders();
         if (includeSubfolders != m_includeSubfolders.isSelected()) {
-            m_includeSubfolders.setSelected(includeSubfolders );
+            m_includeSubfolders.setSelected(includeSubfolders);
         }
         // sync filter files check box
         final boolean filterFiles = model.getFilterFiles();
@@ -383,12 +419,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (m_fileFilterDialog != null) {
             // sync filter mode combo box
             final String filterMode = model.getFilterMode();
-            if (filterMode != null && !filterMode.equals(m_fileFilterDialog.getSelectedFilterType())) {
+            if ((filterMode != null)
+                && !filterMode.equals(m_fileFilterDialog.getSelectedFilterType().getDisplayText())) {
                 m_fileFilterDialog.setFilterType(filterMode);
             }
             // sync filter expression combo box
             final String filterExpr = model.getFilterExpression();
-            if (filterExpr != null && !filterExpr.equals(m_fileFilterDialog.getSelectedFilterExpression())) {
+            if ((filterExpr != null) && !filterExpr.equals(m_fileFilterDialog.getSelectedFilterExpression())) {
                 m_fileFilterDialog.setFilterExpression(filterExpr);
             }
             // sync case sensitivity check box
@@ -401,65 +438,66 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
         initEventHandlers();
         updateModel();
-
         setEnabledComponents(model.isEnabled());
     }
 
+    /** Method to update and add default file system connections to combo box */
     private void updateConnectionsCombo() {
-        final DefaultComboBoxModel<String> connectionsModel = (DefaultComboBoxModel<String>)m_connections.getModel();
-        connectionsModel.removeAllElements();
-        connectionsModel.addElement("KNIME");
-        connectionsModel.addElement("Custom URL");
+        final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
+            (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
+        FileSystemChoice.getDefaultChoices().stream().forEach(c -> connectionsModel.addElement(c));
     }
 
+    /** Method to update and add flow variable file system connections to combo box */
     private void updateFlowVariableConnectionsCombo() {
-        final DefaultComboBoxModel<String> connectionsModel = (DefaultComboBoxModel<String>)m_connections.getModel();
+        final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
+            (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
         m_connectionFlowVariableProvider = new FSConnectionFlowVariableProvider(m_dialogPane);
         for (final String connectionName : m_connectionFlowVariableProvider.allConnectionNames()) {
             if (connectionsModel.getIndexOf(connectionName) < 0) {
-                connectionsModel.addElement(connectionName);
+                connectionsModel.insertElementAt(FileSystemChoice.createFlowVariableFileSystemChoice(connectionName),
+                    0);
             }
         }
     }
 
+    /** Method to update and add KNIME file system connections to combo box */
     private void updateKNIMEConnectionsCombo() {
-        final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel = (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
+        // FIXME: Mount points need to be added based on mount points available in the preference page
+        final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
+            (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
         knimeConnectionsModel.removeAllElements();
         knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("My-KNIME-Hub"));
         knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("Testflows"));
         knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("LOCAL"));
-        knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE);
-        knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE);
-        knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE);
+        knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
+        knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
+        knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);
     }
 
+    /** Method to update settings model */
     private void updateModel() {
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
-        model.setFileSystem((String)m_connections.getSelectedItem());
+        model.setFileSystem(((FileSystemChoice)m_connections.getSelectedItem()).getId());
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
         model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
         if (m_fileFilterDialog != null) {
-            model.setFilterMode(m_fileFilterDialog.getSelectedFilterType());
+            model.setFilterMode(m_fileFilterDialog.getSelectedFilterType().getDisplayText());
             model.setFilterExpression(m_fileFilterDialog.getSelectedFilterExpression());
             model.setCaseSensitive(m_fileFilterDialog.getCaseSensitive());
         }
-        m_helper.setSettings(model);
+        m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
+        updateStatusMessage();
         updateEnabledness();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
         m_fileHistoryPanel.addToHistory();
         updateModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
         // this 'should' be done during #loadSettingsFrom (which is final) -- this method is called from there
@@ -467,12 +505,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         // otherwise we are good - independent of the incoming spec
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void setEnabledComponents(final boolean enabled) {
-        m_useConnection.setEnabled(enabled);
+        m_connectionLabel.setEnabled(enabled);
         m_fileHistoryPanel.setEnabled(enabled);
         if (enabled) {
             updateEnabledness();
@@ -484,11 +519,102 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setToolTipText(final String text) {
-        // TODO Auto-generated method stub
+        // Nothing to show here ...
+    }
+
+
+    /**
+     * Swing worker used to update the status line in the background.
+     *
+     * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+     */
+    private final class StatusLineSwingWorker extends SwingWorker<Boolean, String> {
+
+        /** String used as placeholder for the label when typing in the file selection component */
+        private static final String SCANNING_MESSAGE = "Scanning...";
+
+        /** String used for the label in case of an IOException while scanning */
+        private static final String EXCEPTION_MESSAGE = "Could not scan directory due to an IOException";
+
+        /** String used for the label in case the selected file does not exist */
+        private static final String FILE_DOES_NOT_EXIST_MESSAGE = "Selected file does not exist";
+
+        /** String used for the label in case no files matched the selected filters */
+        private static final String NO_FILES_MATCHED_FILTER_MESSAGE = "No files matched the filters";
+
+        /** Formatted string used for the label in case the scanning was successful */
+        private static final String SCANNED_FILES_MESSAGE = "Selected %d/%d files for reading (%d filtered)";
+
+        /** Label color */
+        private Color m_messageColor = Color.RED;
+
+        /** Label containing the status message */
+        private final JLabel m_message;
+
+        /**
+         * Creates a new instance of {@code StatusLineSwingWorker}.
+         *
+         * @param the label to update
+         */
+        private StatusLineSwingWorker(final JLabel statusMessage) {
+            m_message = statusMessage;
+        }
+
+        @Override
+        protected Boolean doInBackground() throws Exception {
+            publish(SCANNING_MESSAGE);
+            Thread.sleep(500);
+            if (isCancelled()) {
+                return Boolean.FALSE;
+            }
+            publish(updateStatusLine());
+            return Boolean.TRUE;
+        }
+
+        /**
+         * Returns a String used as status message for the label.
+         *
+         * @return String used as status message for the label
+         */
+        private String updateStatusLine() {
+            if (!m_connections.getSelectedItem().equals(FileSystemChoice.getCustomFsUrlChoice())) {
+                final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
+                if (!fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder))) {
+                    try {
+                        m_helper.scanDirectories(m_fileHistoryPanel.getSelectedFile());
+                    } catch (final IOException ex) {
+                        LOGGER.error(EXCEPTION_MESSAGE, ex);
+                        return EXCEPTION_MESSAGE;
+                    }
+                    final Pair<Integer, Integer> matchPair = m_helper.getCounts();
+                    if (matchPair.getFirst() > 0) {
+                        m_messageColor = Color.GREEN;
+                        return String.format(SCANNED_FILES_MESSAGE, matchPair.getFirst(),
+                            matchPair.getFirst() + matchPair.getSecond(), matchPair.getSecond());
+                    } else {
+                        m_messageColor = Color.RED;
+                        return NO_FILES_MATCHED_FILTER_MESSAGE;
+                    }
+                } else if (!fileOrFolder.isEmpty() && !Files.exists(m_helper.getFileSystem().getPath(fileOrFolder))) {
+                    m_messageColor = Color.RED;
+                    return FILE_DOES_NOT_EXIST_MESSAGE;
+                }
+            }
+            return EMPTY_STRING;
+        }
+
+        @Override
+        protected void process(final List<String> chunks) {
+            final String lastPublished = chunks.get(chunks.size() - 1);
+            m_message.setText(lastPublished);
+            m_message.setForeground(m_messageColor);
+        }
+
+        @Override
+        protected void done() {
+            // FIXME: Think of something that can be done here...
+        }
     }
 }

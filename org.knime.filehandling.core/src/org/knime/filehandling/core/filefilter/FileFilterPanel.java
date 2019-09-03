@@ -53,7 +53,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -69,18 +68,22 @@ import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
  */
 public class FileFilterPanel extends JPanel {
 
+    /** Serial version UID */
     private static final long serialVersionUID = -8386119886528887209L;
 
-    private final String[] m_defaultFileSuffixes;
+    /** Combo box to select the filter type */
+    private final JComboBox<FilterType> m_filterType;
 
-    private final JComboBox<String> m_filterType;
-
+    /** Combo box to define the suffixes, wildcard or regular expression */
     private final JComboBox<String> m_filterTextField;
 
+    /** Check box to enable/disable case sensitive filtering */
     private final JCheckBox m_caseSensitive;
 
+    /** Default file extension */
     private final String m_defaultExtensions;
 
+    /** Default wildcard */
     private final String m_defaultWildcard;
 
     /**
@@ -89,13 +92,10 @@ public class FileFilterPanel extends JPanel {
      * @param defaultSuffixes default file suffixes
      */
     public FileFilterPanel(final String[] defaultSuffixes) {
-        m_defaultFileSuffixes = defaultSuffixes;
-
         m_defaultExtensions = String.join(",", defaultSuffixes);
         m_defaultWildcard = "*." + (defaultSuffixes.length > 0 ? defaultSuffixes[0] : "*");
 
-        m_filterType =
-            new JComboBox<>(Arrays.stream(FilterType.values()).map(FilterType::getDisplayText).toArray(String[]::new));
+        m_filterType = new JComboBox<>(FilterType.values());
         m_filterType.setSelectedIndex(0);
 
         m_filterTextField = new JComboBox<>();
@@ -110,6 +110,7 @@ public class FileFilterPanel extends JPanel {
         initLayout();
     }
 
+    /** Method to initialize the layout of this panel */
     private void initLayout() {
         setLayout(new GridBagLayout());
 
@@ -136,8 +137,9 @@ public class FileFilterPanel extends JPanel {
         add(m_caseSensitive, gbc);
     }
 
+    /** FilterType Action Listener */
     private void filterTypeSelectionChanged(final ActionEvent e) {
-        switch (FilterType.fromDisplayText((String)m_filterType.getSelectedItem())) {
+        switch ((FilterType)m_filterType.getSelectedItem()) {
             case EXTENSIONS:
                 m_filterTextField.setSelectedItem(m_defaultExtensions);
                 break;
@@ -155,7 +157,7 @@ public class FileFilterPanel extends JPanel {
      *
      * @param filterType the filter type to set
      */
-    public void setFilterType(final String filterType) {
+    public void setFilterType(final FilterType filterType) {
         // TODO Check if type exists
         m_filterType.setSelectedItem(filterType);
     }
@@ -165,8 +167,8 @@ public class FileFilterPanel extends JPanel {
      *
      * @return the filter type
      */
-    public String getSelectedFilterType() {
-        return (String)m_filterType.getSelectedItem();
+    public FilterType getSelectedFilterType() {
+        return (FilterType)m_filterType.getSelectedItem();
     }
 
     /**
@@ -216,6 +218,11 @@ public class FileFilterPanel extends JPanel {
         m_caseSensitive.setEnabled(enabled);
     }
 
+    /**
+     * Adds an ActionListener to the components of this panel.
+     *
+     * @param listener the listener
+     */
     public void addActionListener(final ActionListener listener) {
         m_filterType.addActionListener(listener);
         m_filterTextField.addActionListener(listener);

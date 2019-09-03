@@ -61,15 +61,27 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
+
 /**
+ * Dialog for file filtering options.
  *
- * @author bjoern
+ * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  */
 public class FileFilterDialog extends JDialog {
 
+    /** Serial version UID */
+    private static final long serialVersionUID = 1L;
 
+    /** Panel holding the file filtering components */
     private final FileFilterPanel m_fileFilterPanel;
 
+    /**
+     * Creates a new instance of {@code FileFilterDialog}.
+     *
+     * @param owner the owner frame
+     * @param defaultSuffixes file suffixes used as default
+     */
     public FileFilterDialog(final Frame owner, final String[] defaultSuffixes) {
         super(owner, "File filter configuration", true);
 
@@ -129,18 +141,19 @@ public class FileFilterDialog extends JDialog {
         pack();
     }
 
-    /**
-     * @param dialog the dialog to close
-     */
+    /** Closes the dialog */
     private void closeDialog() {
         setVisible(false);
         dispose();
     }
 
+    /** Method that defines what happens when hitting the OK button */
     private void onOk() {
+        // FIXME: We need real saving here
         closeDialog();
     }
 
+    /** Method that defines what happens when hitting the Close button */
     private void onCancel() {
         closeDialog();
     }
@@ -150,9 +163,10 @@ public class FileFilterDialog extends JDialog {
      *
      * @param filterType the filter type to set
      */
-    public void setFilterType(final String filterType) {
-        // TODO Check if type exists
-        m_fileFilterPanel.setFilterType(filterType);
+    public final void setFilterType(final String filterType) {
+        if (FilterType.contains(filterType)) {
+            m_fileFilterPanel.setFilterType(FilterType.fromDisplayText(filterType));
+        }
     }
 
     /**
@@ -160,7 +174,7 @@ public class FileFilterDialog extends JDialog {
      *
      * @return the filter type
      */
-    public String getSelectedFilterType() {
+    public final FilterType getSelectedFilterType() {
         return m_fileFilterPanel.getSelectedFilterType();
     }
 
@@ -169,7 +183,7 @@ public class FileFilterDialog extends JDialog {
      *
      * @param filterExpression the filter expression to set
      */
-    public void setFilterExpression(final String filterExpression) {
+    public final void setFilterExpression(final String filterExpression) {
         m_fileFilterPanel.setFilterExpression(filterExpression);
     }
 
@@ -178,7 +192,7 @@ public class FileFilterDialog extends JDialog {
      *
      * @return the filter expression
      */
-    public String getSelectedFilterExpression() {
+    public final String getSelectedFilterExpression() {
         return m_fileFilterPanel.getSelectedFilterExpression();
     }
 
@@ -187,7 +201,7 @@ public class FileFilterDialog extends JDialog {
      *
      * @param caseSensitive case sensitivity
      */
-    public void setCaseSensitive(final boolean caseSensitive) {
+    public final void setCaseSensitive(final boolean caseSensitive) {
         m_fileFilterPanel.setCaseSensitive(caseSensitive);
     }
 
@@ -196,7 +210,7 @@ public class FileFilterDialog extends JDialog {
      *
      * @return true, if file filter is case sensitive or not
      */
-    public boolean getCaseSensitive() {
+    public final boolean getCaseSensitive() {
         return m_fileFilterPanel.getCaseSensitive();
     }
 
@@ -205,11 +219,16 @@ public class FileFilterDialog extends JDialog {
      *
      * @param enabled true, if components should be disabled
      */
-    public void enableComponents(final boolean enabled) {
+    public final void enableComponents(final boolean enabled) {
         m_fileFilterPanel.enableComponents(enabled);
     }
 
-    public void addActionListener(final ActionListener listener) {
+    /**
+     * Adds an ActionListener to the file filter panel.
+     *
+     * @param listener the listener
+     */
+    public final void addActionListener(final ActionListener listener) {
         m_fileFilterPanel.addActionListener(listener);
     }
 }

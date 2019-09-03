@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -71,66 +72,79 @@ import org.knime.filehandling.core.filefilter.FileFilter;
  */
 public final class FileChooserHelper {
 
-    private final FSConnectionFlowVariableProvider m_fsConnectionFlowVarProvider;
+    /** FileSystem used to resolve the path */
+    private final FileSystem m_fileSystem;
 
-    private FileSystem m_fileSystem;
+    /** Settings object containing necessary information about e.g. file filtering */
+    private final SettingsModelFileChooser2 m_settings;
 
-    private SettingsModelFileChooser2 m_settings;
+    /** Optional containing a {@link FileFilter} if selected */
+    private final Optional<FileFilter> m_filter;
 
-    private FileFilter m_filter;
-
+    /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
 
     /**
-     * @param provider
-     * @param settings
+     * Creates a new instance of {@link FileChooserHelper}.
+     *
+     * @param provider the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
+     *            if necessary
+     * @param settings the settings object containing necessary information about e.g. file filtering
      */
     public FileChooserHelper(final FSConnectionFlowVariableProvider provider,
         final SettingsModelFileChooser2 settings) {
-        m_filter = initFileFilter(settings);
-        m_fsConnectionFlowVarProvider = provider;
+        m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
+        m_fileSystem = setFileSystem(provider, settings);
     }
 
+    /** Method to set the file system */
     private static final FileSystem setFileSystem(final FSConnectionFlowVariableProvider provider,
         final SettingsModelFileChooser2 settings) {
-        final FSConnection connection;
-        // FIXME: Hardcoded "Local File System" for testing... Other FSConnections not implemented yet!
-        // final Optional<String> connectionKey = provider.connectionKeyOf(settings.getFileSystem());
-        final Optional<String> connectionKey = provider.connectionKeyOf("Local File System");
-        if (connectionKey.isPresent()) {
-            final Optional<FSConnection> optConn = FSConnectionRegistry.getInstance().retrieve(connectionKey.get());
-            if (optConn.isPresent()) {
-                return optConn.get().getFileSystem();
+        final FileSystemChoice choice = FileSystemChoice.getChoiceFromId(settings.getFileSystem());
+
+        // Set the file system
+        if (choice.equals(FileSystemChoice.getLocalFsChoice())) {
+            return FileSystems.getDefault();
+        } else if (choice.equals(FileSystemChoice.getCustomFsUrlChoice())) {
+            // FIXME: Return correct FileSystem
+            return FileSystems.getDefault();
+        } else if (choice.equals(FileSystemChoice.getKnimeFsChoice())) {
+            // FIXME: Return correct FileSystem
+            return FileSystems.getDefault();
+        } else {
+            final FSConnection connection;
+            final Optional<String> connectionKey = provider.connectionKeyOf(settings.getFileSystem());
+            if (connectionKey.isPresent()) {
+                final Optional<FSConnection> optConn = FSConnectionRegistry.getInstance().retrieve(connectionKey.get());
+                if (optConn.isPresent()) {
+                    return optConn.get().getFileSystem();
+                } else {
+                    // FIXME: Throw something more fitting
+                    throw new IllegalArgumentException();
+                }
             } else {
-                // Throw something
+                // FIXME: Throw something more fitting
                 throw new IllegalArgumentException();
             }
-        } else {
-            // Throw something
-            throw new IllegalArgumentException();
         }
     }
 
-    private FileFilter initFileFilter(final SettingsModelFileChooser2 settings) {
-        if (settings.getFilterFiles()) {
-            return new FileFilter(settings);
-        } else {
-            return null;
-        }
-    }
-
-    public FileSystem getFileSystem() {
-        if (m_fileSystem == null) {
-            m_fileSystem = setFileSystem(m_fsConnectionFlowVarProvider, m_settings);
-        }
+    /**
+     * Returns the file system.
+     *
+     * @return the file system
+     */
+    public final FileSystem getFileSystem() {
         return m_fileSystem;
     }
 
     /**
-     * @param dir
-     * @return
-     * @throws IOException
+     * Scans the given directory and returns a list of {@link Path Paths}.
+     *
+     * @param dir the directory
+     * @return a list of paths
+     * @throws IOException thrown if directory could not be scanned
      */
     public final List<Path> scanDirectories(final String dir) throws IOException {
         setCounts(0, 0);
@@ -139,10 +153,11 @@ public final class FileChooserHelper {
         List<Path> paths = new ArrayList<>();
         if (Files.isDirectory(dirPath) && Files.isReadable(dirPath)) {
             try (final Stream<Path> stream = includeSubfolders ? Files.walk(dirPath) : Files.list(dirPath)) {
-                if (m_filter != null) {
-                    m_filter.resetCount();
-                    paths = stream.filter(p -> m_filter.isSatisfied(p)).collect(Collectors.toList());
-                    setCounts(paths.size(), m_filter.getNumberOfFilteredFiles());
+                if (m_filter.isPresent()) {
+                    final FileFilter filter = m_filter.get();
+                    filter.resetCount();
+                    paths = stream.filter(p -> filter.isSatisfied(p)).collect(Collectors.toList());
+                    setCounts(paths.size(), filter.getNumberOfFilteredFiles());
                 } else {
                     paths = stream.collect(Collectors.toList());
                     setCounts(paths.size(), 0);
@@ -155,21 +170,21 @@ public final class FileChooserHelper {
     }
 
     /**
-     * @param numberOfRemainingFiles
-     * @param numberOfFilteredFiles
+     * Sets a pair of integers containing the number of listed files and the number of filtered files
+     *
+     * @param numberOfRemainingFiles number of remaining files
+     * @param numberOfFilteredFiles number of filtered files
      */
-    private void setCounts(final int numberOfRemainingFiles, final int numberOfFilteredFiles) {
+    private final void setCounts(final int numberOfRemainingFiles, final int numberOfFilteredFiles) {
         m_counts = new Pair<>(numberOfRemainingFiles, numberOfFilteredFiles);
     }
 
-    public Pair<Integer, Integer> getCounts() {
+    /**
+     * Returns Pair of integer containing the number of listed files and the number of filtered files.
+     *
+     * @return pair of integer containing the number of listed files and the number of filtered files.
+     */
+    public final Pair<Integer, Integer> getCounts() {
         return m_counts;
-    }
-
-    public void setSettings(final SettingsModelFileChooser2 settings) {
-        m_settings = settings;
-        m_fileSystem = setFileSystem(m_fsConnectionFlowVarProvider, settings);
-        m_filter = initFileFilter(settings);
-        setCounts(0, 0);
     }
 }

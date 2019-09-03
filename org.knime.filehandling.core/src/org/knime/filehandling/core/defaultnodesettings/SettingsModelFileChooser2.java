@@ -60,7 +60,7 @@ import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 /**
  * SettingsModel for {@link DialogComponentFileChooser2}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH, Berlin, Germany
+ * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
 public final class SettingsModelFileChooser2 extends SettingsModel {
@@ -116,13 +116,24 @@ public final class SettingsModelFileChooser2 extends SettingsModel {
     /** True, if expression to filter should work regardless the case of the filenames. */
     private boolean m_filterCaseSensitive;
 
+    /** The default path. */
+    private static final String DEFAULT_PATH = "";
+
+    /** The default filter. */
+    private static final String DEFAULT_FILTER = FilterType.WILDCARD.getDisplayText();
+
+    /** The default filter expression. */
+    private static final String DEFAULT_FILTER_EXPRESSION = "*";
+
     /**
      * Creates a new instance of {@link SettingsModelFileChooser2} with default settings.
      *
      * @param configName the name of the config.
      */
     public SettingsModelFileChooser2(final String configName) {
-        this(configName, "", "", "", false, false, "wildcard", "*", false);
+        this(configName, FileSystemChoice.getLocalFsChoice().getId(),
+            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, DEFAULT_FILTER,
+            DEFAULT_FILTER_EXPRESSION, false);
     }
 
     /**

@@ -52,11 +52,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Class encapsulating the different types of KNIME file system connections.
  *
- * @author bjoern
+ * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  */
 public class KNIMEConnection {
 
+    /**
+     * Enum stating the different types of KNIME file system connections
+     *
+     * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
+     */
     public enum Type {
             /**
              * knime://knime.node/
@@ -79,36 +85,64 @@ public class KNIMEConnection {
             MOUNTPOINT_ABSOLUTE;
     }
 
-    public final static KNIMEConnection NODE_RELATIVE =
+    /** KNIME node relative connection */
+    public static final KNIMEConnection NODE_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.NODE_RELATIVE, "Node-relative", "knime.node");
 
-    public final static KNIMEConnection WORKFLOW_RELATIVE =
+    /** KNIME workflow relative connection */
+    public static final KNIMEConnection WORKFLOW_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Workflow-relative", "knime.workflow");
 
-    public final static KNIMEConnection MOUNTPOINT_RELATIVE =
+    /** KNIME mount point relative connection */
+    public static final KNIMEConnection MOUNTPOINT_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.MOUNTPOINT_RELATIVE, "Mountpoint-relative", "knime.mountpoint");
 
-    private final static Map<String, KNIMEConnection> CONNECTIONS = new HashMap<>();
+    /** Map of all available connections */
+    private static final Map<String, KNIMEConnection> CONNECTIONS = new HashMap<>();
     static {
-        CONNECTIONS.put(NODE_RELATIVE.getId(), NODE_RELATIVE);
-        CONNECTIONS.put(WORKFLOW_RELATIVE.getId(), WORKFLOW_RELATIVE);
-        CONNECTIONS.put(MOUNTPOINT_RELATIVE.getId(), MOUNTPOINT_RELATIVE);
+        CONNECTIONS.put(NODE_RELATIVE_CONNECTION.getId(), NODE_RELATIVE_CONNECTION);
+        CONNECTIONS.put(WORKFLOW_RELATIVE_CONNECTION.getId(), WORKFLOW_RELATIVE_CONNECTION);
+        CONNECTIONS.put(MOUNTPOINT_RELATIVE_CONNECTION.getId(), MOUNTPOINT_RELATIVE_CONNECTION);
     }
 
+    /** Type of connection */
     private final Type m_type;
 
+    /** Display name of the connection */
     private final String m_displayName;
 
+    /** Identifier of the connection */
     private final String m_key;
 
+    /**
+     * Creates a new instance of {@code KNIMEConnection}.
+     *
+     * @param type type of connection
+     * @param displayName the display name of the connection
+     * @param id the identifier
+     */
     private KNIMEConnection(final Type type, final String displayName, final String id) {
         m_type = type;
         m_displayName = displayName;
         m_key = id;
     }
 
-    public String getId() {
+    /**
+     * Returns the id of the connection.
+     *
+     * @return the id of the connection
+     */
+    public final String getId() {
         return m_key;
+    }
+
+    /**
+     * Returns the type of the connection.
+     *
+     * @return the type of the connection
+     */
+    public final Type getType() {
+        return m_type;
     }
 
     @Override
@@ -116,7 +150,13 @@ public class KNIMEConnection {
         return m_displayName;
     }
 
-    public synchronized static KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
+    /**
+     * Gets or creates and a new mount point absolute connection based on given mount id.
+     *
+     * @param mountId the mount point identifier
+     * @return a KNIMEConnection instance
+     */
+    public static final synchronized KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
         if (!CONNECTIONS.containsKey(mountId)) {
             CONNECTIONS.put(mountId, new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
                 String.format("Mountpoint (%s)", mountId), mountId));
@@ -125,7 +165,12 @@ public class KNIMEConnection {
         return CONNECTIONS.get(mountId);
     }
 
-    public synchronized static KNIMEConnection[] getAll() {
+    /**
+     * Returns all available KNIMEConnections as an array.
+     *
+     * @return all available KNIMEConnections as an array
+     */
+    public static final synchronized KNIMEConnection[] getAll() {
         return CONNECTIONS.values().stream().toArray(KNIMEConnection[]::new);
     }
 }
