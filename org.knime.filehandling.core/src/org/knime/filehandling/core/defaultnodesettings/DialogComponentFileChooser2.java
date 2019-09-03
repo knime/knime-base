@@ -170,6 +170,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** Identifier for the default file system connection view in the card layout */
     private static final String DEFAULT_CARD_VIEW_IDENTIFIER = "DEFAULT";
 
+    /** String used as label for the include sub folders check box */
+    private static final String INCLUDE_SUBFOLDERS_LABEL = "Include subfolders";
+
+    /** String used as label for the filter files check box */
+    private static final String FILTER_FILES_LABEL = "Filter files in folder";
+
+    /** String used as button label */
+    private static final String CONFIGURE_BUTTON_LABEL = "Configure";
+
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
      *
@@ -198,9 +207,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel, historyId, new LocalFileSystemBrowser(),
             FileSelectionMode.FILES_AND_DIRECTORIES, DialogType.OPEN_DIALOG, suffixes);
 
-        m_includeSubfolders = new JCheckBox("Include subfolders");
-        m_filterFiles = new JCheckBox("Filter files in folder");
-        m_configureFilter = new JButton("Configure");
+        m_includeSubfolders = new JCheckBox(INCLUDE_SUBFOLDERS_LABEL);
+        m_filterFiles = new JCheckBox(FILTER_FILES_LABEL);
+        m_configureFilter = new JButton(CONFIGURE_BUTTON_LABEL);
 
         m_fileFilterPanel = new FileFilterPanel(suffixes);
 

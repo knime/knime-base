@@ -86,6 +86,12 @@ public class FileFilterPanel extends JPanel {
     /** Default wildcard */
     private final String m_defaultWildcard;
 
+    /** Label for the case sensitive check box*/
+    private static final String CASE_SENSITIVE_LABEL = "Case sensitive";
+
+    /** Label for the filter type combo box */
+    private static final String FILTER_TYPE_LABEL = "Filter:";
+
     /**
      * Creates a new File Filter Panel
      *
@@ -102,7 +108,7 @@ public class FileFilterPanel extends JPanel {
         m_filterTextField.setEditable(true);
 
         m_caseSensitive = new JCheckBox();
-        m_caseSensitive.setText("Case sensitive");
+        m_caseSensitive.setText(CASE_SENSITIVE_LABEL);
 
         m_filterType.addActionListener(this::filterTypeSelectionChanged);
         filterTypeSelectionChanged(null);
@@ -121,7 +127,7 @@ public class FileFilterPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(25, 5, 0, 0);
-        add(new JLabel("Filter:"), gbc);
+        add(new JLabel(FILTER_TYPE_LABEL), gbc);
 
         gbc.gridx++;
         add(m_filterType, gbc);
