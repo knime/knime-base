@@ -108,7 +108,6 @@ public class FileSystemChoice {
     private FileSystemChoice(final Choice type, final String id) {
         m_type = type;
         m_id = id;
-        ;
     }
 
     /**

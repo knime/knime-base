@@ -85,6 +85,7 @@ import org.knime.core.util.Pair;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
+import org.knime.workbench.explorer.ExplorerMountTable;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
@@ -472,13 +473,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Method to update and add KNIME file system connections to combo box */
     private void updateKNIMEConnectionsCombo() {
-        // FIXME: Mount points need to be added based on mount points available in the preference page
         final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
             (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
         knimeConnectionsModel.removeAllElements();
-        knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("My-KNIME-Hub"));
-        knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("Testflows"));
-        knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection("LOCAL"));
+        ExplorerMountTable.getAllMountedIDs().stream().forEach(
+            id -> knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(id)));
         knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
         knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
         knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);

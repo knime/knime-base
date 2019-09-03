@@ -113,7 +113,6 @@ public final class FileChooserHelper {
             // FIXME: Return correct FileSystem
             return FileSystems.getDefault();
         } else {
-            final FSConnection connection;
             final Optional<String> connectionKey = provider.connectionKeyOf(settings.getFileSystem());
             if (connectionKey.isPresent()) {
                 final Optional<FSConnection> optConn = FSConnectionRegistry.getInstance().retrieve(connectionKey.get());
