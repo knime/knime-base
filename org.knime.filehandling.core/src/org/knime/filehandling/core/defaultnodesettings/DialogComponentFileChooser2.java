@@ -216,7 +216,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         m_statusMessage = new JLabel(EMPTY_STRING);
 
-        m_statusLineSwingWorker = new StatusLineSwingWorker(m_statusMessage);
+        m_statusLineSwingWorker = new StatusLineSwingWorker((FileSystemChoice)m_connections.getSelectedItem(),
+            m_fileHistoryPanel.getSelectedFile(), m_statusMessage);
 
         initLayout();
 
@@ -382,7 +383,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateStatusMessage() {
         m_statusLineSwingWorker.cancel(true);
         if (m_statusLineSwingWorker.isDone()) {
-            m_statusLineSwingWorker = new StatusLineSwingWorker(m_statusMessage);
+            m_statusLineSwingWorker = new StatusLineSwingWorker((FileSystemChoice)m_connections.getSelectedItem(),
+                m_fileHistoryPanel.getSelectedFile(), m_statusMessage);
         }
         m_statusLineSwingWorker.execute();
     }
@@ -560,13 +562,22 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         /** Label containing the status message */
         private final JLabel m_message;
 
+        /** FileSystemChoice */
+        private final FileSystemChoice m_fileSystemChoice;
+
+        /** String of file or folder path*/
+        private final String m_fileOrFolder;
+
         /**
          * Creates a new instance of {@code StatusLineSwingWorker}.
          *
          * @param the label to update
          */
-        private StatusLineSwingWorker(final JLabel statusMessage) {
+        private StatusLineSwingWorker(final FileSystemChoice fileSystemChoice, final String fileOrFolder,
+            final JLabel statusMessage) {
             m_message = statusMessage;
+            m_fileSystemChoice = fileSystemChoice;
+            m_fileOrFolder = fileOrFolder;
         }
 
         @Override
@@ -586,11 +597,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
          * @return String used as status message for the label
          */
         private String updateStatusLine() {
-            if (!m_connections.getSelectedItem().equals(FileSystemChoice.getCustomFsUrlChoice())) {
-                final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
-                if (!fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder))) {
+            if (!m_fileSystemChoice.equals(FileSystemChoice.getCustomFsUrlChoice())) {
+                if (!m_fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(m_fileOrFolder))) {
                     try {
-                        m_helper.scanDirectories(m_fileHistoryPanel.getSelectedFile());
+                        m_helper.scanDirectories(m_fileOrFolder);
                     } catch (final IOException ex) {
                         LOGGER.error(EXCEPTION_MESSAGE, ex);
                         return EXCEPTION_MESSAGE;
@@ -604,7 +614,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                         m_messageColor = Color.RED;
                         return NO_FILES_MATCHED_FILTER_MESSAGE;
                     }
-                } else if (!fileOrFolder.isEmpty() && !Files.exists(m_helper.getFileSystem().getPath(fileOrFolder))) {
+                } else if (!m_fileOrFolder.isEmpty()
+                    && !Files.exists(m_helper.getFileSystem().getPath(m_fileOrFolder))) {
                     m_messageColor = Color.RED;
                     return FILE_DOES_NOT_EXIST_MESSAGE;
                 }
