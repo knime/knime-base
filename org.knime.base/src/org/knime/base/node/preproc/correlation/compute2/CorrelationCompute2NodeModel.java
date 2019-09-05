@@ -70,6 +70,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -111,9 +112,20 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         return new SettingsModelIntegerBounded("possibleValuesCount", 50, 2, Integer.MAX_VALUE);
     }
 
+    /**
+     * Factory method to create the string model for the p-value alternative.
+     *
+     * @return A new model.
+     */
+    static SettingsModelString createPValAlternativeModel() {
+        return new SettingsModelString("pvalAlternative", PValueAlternative.TWO_SIDED.name());
+    }
+
     private SettingsModelColumnFilter2 m_columnFilterModel;
 
     private final SettingsModelIntegerBounded m_maxPossValueCountModel;
+
+    private final SettingsModelString m_pValAlternativeModel;
 
     private BufferedDataTable m_correlationTable;
 
@@ -124,6 +136,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         super(new PortType[]{BufferedDataTable.TYPE},
             new PortType[]{BufferedDataTable.TYPE, PMCCPortObjectAndSpec.TYPE});
         m_maxPossValueCountModel = createNewPossValueCounterModel();
+        m_pValAlternativeModel = createPValAlternativeModel();
     }
 
     @Override
@@ -177,7 +190,8 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         // Calculate the correlation
         exec.setMessage("Calculating correlation values");
         ExecutionMonitor execStep2 = exec.createSubExecutionContext(PROG_STEP2);
-        CorrelationResult correlationResult = calculator.calculateOutput(filteredTable, execStep2);
+        CorrelationResult correlationResult =
+            calculator.calculateOutput(filteredTable, execStep2, selectedPValAlternative());
         execStep2.setProgress(1.0);
 
         // Create the output
@@ -213,6 +227,10 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         return new PortObject[]{out, pmccModel};
     }
 
+    private PValueAlternative selectedPValAlternative() {
+        return PValueAlternative.valueOf(m_pValAlternativeModel.getStringValue());
+    }
+
     @Override
     protected void reset() {
         // nothing to do
@@ -223,6 +241,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         if (m_columnFilterModel != null) {
             m_columnFilterModel.saveSettingsTo(settings);
             m_maxPossValueCountModel.saveSettingsTo(settings);
+            m_pValAlternativeModel.saveSettingsTo(settings);
         }
     }
 
@@ -230,6 +249,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         createColumnFilterModel().validateSettings(settings);
         m_maxPossValueCountModel.validateSettings(settings);
+        m_pValAlternativeModel.validateSettings(settings);
     }
 
     @Override
@@ -239,6 +259,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         }
         m_columnFilterModel.loadSettingsFrom(settings);
         m_maxPossValueCountModel.loadSettingsFrom(settings);
+        m_pValAlternativeModel.loadSettingsFrom(settings);
     }
 
     /**

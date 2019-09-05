@@ -57,8 +57,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.commons.math3.distribution.BetaDistribution;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.knime.base.node.preproc.correlation.CorrelationUtils.CorrelationResult;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
 import org.knime.base.util.HalfDoubleMatrix;
@@ -301,11 +301,12 @@ public final class CorrelationComputer2 {
      *
      * @param table ...
      * @param exec ...
+     * @param pValueAlternative which p value should be computed
      * @return the output matrix to be turned into the output model
      * @throws CanceledExecutionException
      */
-    public CorrelationResult calculateOutput(final BufferedDataTable table, final ExecutionMonitor exec)
-        throws CanceledExecutionException {
+    public CorrelationResult calculateOutput(final BufferedDataTable table, final ExecutionMonitor exec,
+        final PValueAlternative pValueAlternative) throws CanceledExecutionException {
         assert table.getDataTableSpec().equalStructure(m_tableSpec);
         // stores all pair-wise contingency tables,
         // contingencyTables[i] == null <--> either column of the corresponding
@@ -344,7 +345,7 @@ public final class CorrelationComputer2 {
 
         normalizeNumericCorrelation(nominatorMatrix);
 
-        computeNumericPValues(nominatorMatrix, pValMatrix, dofMatrix);
+        computeNumericPValues(nominatorMatrix, pValMatrix, dofMatrix, pValueAlternative);
 
         fillCategoricalCorrelation(contingencyTables, nominatorMatrix, pValMatrix, dofMatrix);
 
@@ -505,8 +506,7 @@ public final class CorrelationComputer2 {
 
     /** Computes the p values of the given correlations. */
     private void computeNumericPValues(final HalfDoubleMatrix nominatorMatrix, final HalfDoubleMatrix pValMatrix,
-        final HalfIntMatrix dofMatrix) {
-        // TODO(benjamin) add function that runs a consumer on each numeric column?
+        final HalfIntMatrix dofMatrix, final PValueAlternative pValueAlternative) {
         for (int i = 0; i < m_numericColIndexMap.length; i++) {
             for (int j = i + 1; j < m_numericColIndexMap.length; j++) {
 
@@ -519,11 +519,23 @@ public final class CorrelationComputer2 {
                 if (!Double.isNaN(r)) {
                     // Compute the p value if we could compute the correlation
                     final int validCount = m_numericValidCountMatrix.get(i, j);
-                    final double ab = (validCount / 2.0) - 1.0;
-                    pval = 2 * new BetaDistribution(ab, ab).cumulativeProbability(0.5 * (1 - Math.abs(r)));
 
                     // Compute the degrees of freedom
                     dof = validCount - 2;
+                    final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
+                    final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
+
+                    switch (pValueAlternative) {
+                        case LESS:
+                            pval = cp;
+                            break;
+                        case GREATER:
+                            pval = 1 - cp;
+                            break;
+                        case TWO_SIDED:
+                            pval = 2 * Math.min(cp, 1 - cp);
+                            break;
+                    }
                 }
                 pValMatrix.set(tableI, tableJ, pval);
                 dofMatrix.set(tableI, tableJ, dof);

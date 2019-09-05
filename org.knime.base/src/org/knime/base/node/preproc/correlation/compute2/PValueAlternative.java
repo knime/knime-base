@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,41 +41,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   Feb 17, 2007 (wiswedel): created
+ *   Sep 5, 2019 (benjamin): created
  */
 package org.knime.base.node.preproc.correlation.compute2;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import java.util.Arrays;
 
 /**
- * Dialog for correlation node. Shows only a column filter.
- *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
+ * @since 4.1
  */
-final class CorrelationCompute2NodeDialogPane extends DefaultNodeSettingsPane {
+public enum PValueAlternative {
 
-    /** Inits dialog, adds only a column filter. */
-    CorrelationCompute2NodeDialogPane() {
-        final SettingsModelColumnFilter2 fS = CorrelationCompute2NodeModel.createColumnFilterModel();
-        final DialogComponentColumnFilter2 cF = new DialogComponentColumnFilter2(fS, 0);
-        addDialogComponent(cF);
+        /** two sided p-value */
+        TWO_SIDED("two sided"),
 
-        final SettingsModelIntegerBounded sI = CorrelationCompute2NodeModel.createNewPossValueCounterModel();
-        final DialogComponentNumberEdit cI = new DialogComponentNumberEdit(sI, "Possible Values Count");
-        addDialogComponent(cI);
+        /** Positive association */
+        GREATER("greater"),
 
-        final SettingsModelString pA = CorrelationCompute2NodeModel.createPValAlternativeModel();
-        final DialogComponentButtonGroup cP = new DialogComponentButtonGroup(pA, "p-value", true,
-            PValueAlternative.descriptions(), PValueAlternative.names());
-        addDialogComponent(cP);
+        /** Negative association */
+        LESS("less");
+
+    private final String m_desc;
+
+    private PValueAlternative(final String desc) {
+        m_desc = desc;
+    }
+
+    @Override
+    public String toString() {
+        return m_desc;
+    }
+
+    /**
+     * @return the names of all possible values (in the same order as {@link #descriptions()})
+     */
+    public static String[] names() {
+        return Arrays.stream(PValueAlternative.values()).map(PValueAlternative::name).toArray(String[]::new);
+    }
+
+    /**
+     * @return the descriptions of all possible values (in the same order as {@link #names()})
+     */
+    public static String[] descriptions() {
+        return Arrays.stream(PValueAlternative.values()).map(PValueAlternative::toString).toArray(String[]::new);
     }
 }
