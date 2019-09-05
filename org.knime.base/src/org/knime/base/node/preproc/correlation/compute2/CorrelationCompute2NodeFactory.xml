@@ -35,6 +35,10 @@
 				represents no linear correlation (the columns might still be
 				highly dependent on each other, though).
 				<br />
+				The p-value for these columns indicates the probability of an
+				uncorrelated system producing a values with a correlation at least
+				as extreme.
+				<br />
 				<tt>nominal &lt;-&gt; nominal</tt>:
 				<a href="http://en.wikipedia.org/wiki/Pearson%27s_chi-square_test">
 					Pearson's chi square test on the contingency table</a>. 
@@ -46,6 +50,9 @@
 			    If one of the two columns contains more possible values than
 			    specified in the dialog (default 50), the correlation will not
 			    be computed.
+                <br />
+                The p-values for these columns are the p-values of a Chi-square test
+                of independence of variables in a contingency table.
                 <br />
 				Correlation measures for other pairs of columns are not
 				available, they are represented by missing values in the output
@@ -109,6 +116,11 @@
 				column, the column will be ignored (no correlation values will
 				be computed).
 			</option>
+			<option name="p-value">
+				Select which p-value should be computed for Pearson's product-moment
+				coefficient. "greater" corresponds to a positive association, "less"
+				to a negative association.
+			</option>
 		</tab>
 	</fullDescription>
 
@@ -117,7 +129,7 @@
 			Numeric input data to evaluate
 		</inPort>
 		<outPort index="0" name="Correlation measure">
-			Correlation variables in a square matrix
+			Correlation variables, p-values and degrees of freedom.
 		</outPort>
 		<outPort name="Correlation Model" index="1">
 			A model containing the correlation measures. This model is appropriate
