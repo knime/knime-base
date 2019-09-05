@@ -2097,6 +2097,10 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory">
       </node>
+      <node
+            category-path="/labs/file-handling-prototype"
+            factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
+      </node>
    </extension>
    
       
