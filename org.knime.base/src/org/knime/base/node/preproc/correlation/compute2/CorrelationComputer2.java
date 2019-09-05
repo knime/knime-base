@@ -515,27 +515,32 @@ public final class CorrelationComputer2 {
 
                 final double r = nominatorMatrix.get(tableI, tableJ);
                 double pval = Double.NaN;
-                int dof = 0;
-                if (!Double.isNaN(r)) {
-                    // Compute the p value if we could compute the correlation
-                    final int validCount = m_numericValidCountMatrix.get(i, j);
 
-                    // Compute the degrees of freedom
-                    dof = validCount - 2;
-                    final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
-                    final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
+                // Compute the degrees of freedom
+                final int validCount = m_numericValidCountMatrix.get(i, j);
+                final int dof = Math.max(validCount - 2, 0);
+                if (dof > 0) {
+                    if (!Double.isNaN(r)) {
+                        // Compute the p value if we could compute the correlation
+                        final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
+                        final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
 
-                    switch (pValueAlternative) {
-                        case LESS:
-                            pval = cp;
-                            break;
-                        case GREATER:
-                            pval = 1 - cp;
-                            break;
-                        case TWO_SIDED:
-                            pval = 2 * Math.min(cp, 1 - cp);
-                            break;
+                        switch (pValueAlternative) {
+                            case LESS:
+                                pval = cp;
+                                break;
+                            case GREATER:
+                                pval = 1 - cp;
+                                break;
+                            case TWO_SIDED:
+                                pval = 2 * Math.min(cp, 1 - cp);
+                                break;
+                        }
+                    } else {
+                        pval = 1;
                     }
+                } else {
+                    pval = Double.NaN;
                 }
                 pValMatrix.set(tableI, tableJ, pval);
                 dofMatrix.set(tableI, tableJ, dof);
