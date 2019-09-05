@@ -644,10 +644,13 @@ public final class CorrelationComputer2 {
      */
     private static Triple<Double, Double, Integer> computeCramersV(final int[][] contingency) {
         final int rows = contingency.length;
+        if (rows == 0) {
+            return new ImmutableTriple<>(Double.NaN, Double.NaN, 0);
+        }
         final int cols = contingency[0].length;
         final int dof = (rows - 1) * (cols - 1);
         if (rows <= 1 || cols <= 1) {
-            return new ImmutableTriple<>(0.0, 1.0, dof);
+            return new ImmutableTriple<>(Double.NaN, 1.0, dof);
         }
         double[] rowSums = new double[rows];
         double[] colSums = new double[cols];
@@ -672,8 +675,9 @@ public final class CorrelationComputer2 {
         }
         final int minValueCount = Math.min(rowSums.length, colSums.length) - 1;
         final double cramersV = Math.sqrt(chisquare / (totalSum * minValueCount));
-        // TODO(benjamin) This is correct but introduces numerical instabilities:
+        // NOTE: This is correct but introduces numerical instabilities:
         // The value is almost 1 and double cannot represent this as well as something close to zero
+        // scipy uses the survival function but there is no Java implementation for it available
         final double pVal = 1.0 - new ChiSquaredDistribution((rows - 1) * (cols - 1)).cumulativeProbability(chisquare);
         return new ImmutableTriple<>(cramersV, pVal, dof);
     }
