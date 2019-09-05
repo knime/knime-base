@@ -69,14 +69,18 @@ import org.knime.core.node.ExecutionContext;
 /**
  * @since 4.1
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
  */
 public final class CorrelationUtils {
 
-    private static final String CORRELATION_VALUE_COL_NAME = "Correlation value";
+    /** The name of the column containing the correlation statistic */
+    public static final String CORRELATION_VALUE_COL_NAME = "Correlation value";
 
-    private static final String P_VALUE_COL_NAME = "p value";
+    /** The name of the column containing the p-value */
+    public static final String P_VALUE_COL_NAME = "p value";
 
-    private static final String DEGREES_OF_FREEDOM_COL_NAME = "Degrees of freedom";
+    /** The name of the column containing the degrees of freedom */
+    public static final String DEGREES_OF_FREEDOM_COL_NAME = "Degrees of freedom";
 
     /** Full precision renderer for double values */
     private static final String FULL_PRECISION_RENDERER = new FullPrecisionRendererFactory().getDescription();
@@ -85,6 +89,9 @@ public final class CorrelationUtils {
         // Utility class
     }
 
+    /**
+     * @return the specs for a table containing correlation results
+     */
     public static DataTableSpec createCorrelationOutputTableSpec() {
         // Column spec creators
         final DataColumnSpecCreator corrColSpecCreator =
@@ -103,6 +110,15 @@ public final class CorrelationUtils {
             dofColSpecCreator.createSpec());
     }
 
+    /**
+     * Create a table containing the correlation results.
+     *
+     * @param correlationResult the correlation results
+     * @param includeNames the names of the included columns
+     * @param exec a execution context to track the progress
+     * @return the table containing the correlation results
+     * @throws CanceledExecutionException if the execution was canceled
+     */
     public static BufferedDataTable createCorrelationOutputTable(final CorrelationResult correlationResult,
         final String[] includeNames, final ExecutionContext exec) throws CanceledExecutionException {
         final DataTableSpec outSpec = createCorrelationOutputTableSpec();
