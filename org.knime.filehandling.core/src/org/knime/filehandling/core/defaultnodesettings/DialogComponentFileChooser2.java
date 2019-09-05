@@ -224,6 +224,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         // Fill combo boxes
         updateConnectionsCombo();
         updateKNIMEConnectionsCombo();
+        updateComponent();
     }
 
     /** Initialize the layout of the dialog component */

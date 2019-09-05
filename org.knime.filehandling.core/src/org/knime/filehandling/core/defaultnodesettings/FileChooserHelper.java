@@ -54,6 +54,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -165,6 +166,27 @@ public final class FileChooserHelper {
         } else {
             throw new IOException(dirPath + " is not a directory.");
         }
+        return paths;
+    }
+
+    /**
+     * Returns a list of {@link Path} if the input String represents a directory its contents are scanned,
+     * otherwise the list contains the file, if it is readable.
+     *
+     * @param pathString the input file or directory
+     * @return a list of path to read
+     * @throws IOException if an I/O error occurs
+     */
+    public final List<Path> getPaths(final String pathString) throws IOException {
+        final Path path = m_fileSystem.getPath(pathString);
+        List<Path> paths;
+
+        if (Files.isDirectory(path)) {
+            paths = scanDirectories(pathString);
+        } else {
+            paths = Collections.singletonList(path);
+        }
+
         return paths;
     }
 
