@@ -63,7 +63,7 @@ import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
-public final class SettingsModelFileChooser2 extends SettingsModel {
+public final class SettingsModelFileChooser2 extends SettingsModel implements Cloneable {
 
     /** Configuration key to store the selected file system. */
     private static final String FILE_SYSTEM_KEY = "filesystem";
@@ -316,6 +316,13 @@ public final class SettingsModelFileChooser2 extends SettingsModel {
     }
 
     /**
+     * @return the selected connection as a {@link FileSystemChoice}.
+     */
+    public Object getFileSystemChoice() {
+        return FileSystemChoice.getChoiceFromId(m_fileSystem);
+    }
+
+    /**
      * Returns the name of the selected KNIME connection.
      *
      * @return The name of the selected KNIME connection
@@ -381,7 +388,17 @@ public final class SettingsModelFileChooser2 extends SettingsModel {
     @SuppressWarnings("unchecked")
     @Override
     protected SettingsModelFileChooser2 createClone() {
-        return new SettingsModelFileChooser2(m_configName);
+        return clone();
+    }
+
+    @Override
+    public SettingsModelFileChooser2 clone() {
+        try {
+            return (SettingsModelFileChooser2)super.clone();
+        } catch (CloneNotSupportedException ex) {
+            // never happens
+            return null;
+        }
     }
 
     @Override
@@ -440,14 +457,15 @@ public final class SettingsModelFileChooser2 extends SettingsModel {
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        setFileSystem(config.getString(FILE_SYSTEM_KEY));
-        setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY));
-        setPathOrURL(config.getString(PATH_OR_URL_KEY));
-        setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY));
-        setFilterFiles(config.getBoolean(FILTER_FILES_KEY));
-        setFilterMode(config.getString(FILTER_MODE_KEY));
-        setFilterExpression(config.getString(FILTER_EXPRESSION_KEY));
-        setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY));
+        m_fileSystem = config.getString(FILE_SYSTEM_KEY);
+        m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
+        m_pathOrURL = config.getString(PATH_OR_URL_KEY);
+        m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+        m_filterFiles = config.getBoolean(FILTER_FILES_KEY);
+        m_filterMode = config.getString(FILTER_MODE_KEY);
+        m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
+        m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        notifyChangeListeners();
     }
 
     @Override

@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -157,7 +158,7 @@ public class FileFilter {
         String regexPattern = null;
         switch (filterType) {
             case EXTENSIONS:
-                m_extensions = Arrays.asList(filterExpression.split(";"));
+                m_extensions = Arrays.stream(filterExpression.split(";")).map((ex) -> "." + ex).collect(Collectors.toList());
                 break;
             case WILDCARD:
                 regexPattern = wildcardToRegex(filterExpression, false);
@@ -194,16 +195,18 @@ public class FileFilter {
     /**
      * Method to check whether the path satisfies the filter requirements.
      *
-     * @param entry the path to check
+     * @param path the path to check
      * @return true, if the path satisfies the filter requirements
      */
-    public final boolean isSatisfied(final Path entry) {
+    public final boolean isSatisfied(final Path path) {
         // toString might not be the correct method
-        final String pathAsString = entry.toString();
+        final String pathAsString;
+
         boolean accept = false;
-        if (Files.isRegularFile(entry)) {
+        if (Files.isRegularFile(path)) {
             switch (m_filterType) {
                 case EXTENSIONS:
+                    pathAsString = path.getFileName().toString();
                     if (m_caseSensitive) {
                         accept = m_extensions.stream().anyMatch(ext -> pathAsString.endsWith(ext));
                     } else {
@@ -214,14 +217,15 @@ public class FileFilter {
                 case WILDCARD:
                     // no break
                 case REGEX:
+                    pathAsString = path.toString();
                     accept = m_regex.matcher(pathAsString).matches();
                     break;
                 default:
                     accept = false;
             }
-        }
-        if (!accept) {
-            m_numberOfFilteredFiles++;
+            if (!accept) {
+                m_numberOfFilteredFiles++;
+            }
         }
         return accept;
     }

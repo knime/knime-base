@@ -57,6 +57,7 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
@@ -81,6 +82,12 @@ public class FileFilterDialog extends JDialog {
 
     /** Close button label */
     private static final String CLOSE_BUTTON_LABEL = "Cancel";
+
+    /**
+     * This field holds information on how the dialog was closed. Its value is one of {@link JOptionPane#OK_OPTION} or
+     * {@link JOptionPane#CANCEL_OPTION} or -1 if the dialog is not been closed yet.
+     */
+    private int m_resultStatus = -1;
 
     /**
      * Creates a new instance of {@code FileFilterDialog}.
@@ -153,12 +160,24 @@ public class FileFilterDialog extends JDialog {
 
     /** Method that defines what happens when hitting the OK button */
     private void onOk() {
+        m_resultStatus = JOptionPane.OK_OPTION;
         // FIXME: We need real saving here
         closeDialog();
     }
 
     /** Method that defines what happens when hitting the Close button */
     private void onCancel() {
+        m_resultStatus = JOptionPane.CANCEL_OPTION;
         closeDialog();
+    }
+
+    /**
+     * Returns how the dialog was closed by the user.
+     *
+     * @return {@link JOptionPane#OK_OPTION} if the user pressed OK, {@link JOptionPane#CANCEL_OPTION} if the user
+     *         canceled or closed the dialog, or -1 if the dialog is not been closed yet.
+     */
+    public int getResultStatus() {
+        return m_resultStatus;
     }
 }

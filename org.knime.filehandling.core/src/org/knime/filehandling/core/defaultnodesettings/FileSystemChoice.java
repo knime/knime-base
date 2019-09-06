@@ -65,7 +65,7 @@ public class FileSystemChoice {
      *
      * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
      */
-    private enum Choice {
+    public enum Choice {
 
             /** Local file system */
             LOCAL_FS,

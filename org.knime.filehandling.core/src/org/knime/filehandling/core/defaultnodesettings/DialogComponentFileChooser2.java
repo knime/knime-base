@@ -49,16 +49,12 @@
 package org.knime.filehandling.core.defaultnodesettings;
 
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -66,8 +62,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingWorker;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.FlowVariableModel;
@@ -81,7 +77,6 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
-import org.knime.core.util.Pair;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
@@ -97,7 +92,7 @@ import org.knime.workbench.explorer.ExplorerMountTable;
 public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Node logger */
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
+    static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
     /** Flow variable provider used to retrieve connection information to different file systems */
     private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
@@ -147,11 +142,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** Label containing status messages */
     private final JLabel m_statusMessage;
 
-    /** Helper class for file filtering */
-    private FileChooserHelper m_helper;
-
     /** Swing worker used to do file scanning in the background */
-    private StatusLineSwingWorker m_statusLineSwingWorker;
+    private StatusMessageSwingWorker m_statusMessageSwingWorker;
+
+    /** Flag to temporarily disable event processing from Swing components or the settings model */
+    private boolean m_ignoreUpdates;
 
     /** String used for file system connection label. */
     private static final String CONNECTION_LABEL = "Read from: ";
@@ -192,6 +187,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final NodeDialogPane dialogPane, final String... suffixes) {
         super(settingsModel);
 
+        m_ignoreUpdates = false;
+
         m_dialogPane = dialogPane;
         m_pathFlowVariableModel =
             m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
@@ -211,20 +208,22 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_includeSubfolders = new JCheckBox(INCLUDE_SUBFOLDERS_LABEL);
         m_filterFiles = new JCheckBox(FILTER_FILES_LABEL);
         m_configureFilter = new JButton(CONFIGURE_BUTTON_LABEL);
+        m_configureFilter.addActionListener(e -> showFileFilterConfigurationDialog());
 
         m_fileFilterPanel = new FileFilterPanel(suffixes);
 
         m_statusMessage = new JLabel(EMPTY_STRING);
 
-        m_statusLineSwingWorker = new StatusLineSwingWorker((FileSystemChoice)m_connections.getSelectedItem(),
-            m_fileHistoryPanel.getSelectedFile(), m_statusMessage);
+        m_statusMessageSwingWorker = null;
 
         initLayout();
 
         // Fill combo boxes
         updateConnectionsCombo();
         updateKNIMEConnectionsCombo();
+        addEventHandlers();
         updateComponent();
+        getModel().addChangeListener((e) -> updateComponent());
     }
 
     /** Initialize the layout of the dialog component */
@@ -310,14 +309,23 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         return knimeConnectionPanel;
     }
 
-    /** Initialize event handlers for components */
-    private void initEventHandlers() {
-        m_connections.addActionListener(e -> updateModel());
-        m_fileHistoryPanel.addChangeListener(e -> updateModel());
-        m_includeSubfolders.addActionListener(e -> updateModel());
-        m_filterFiles.addActionListener(e -> updateModel());
-        m_configureFilter.addActionListener(e -> showFileFilterConfigurationDialog());
-        m_fileFilterPanel.addActionListener(e -> updateModel());
+    /** Add event handlers for UI components */
+    private void addEventHandlers() {
+        m_connections.addActionListener(e -> handleUIChange());
+        m_knimeConnections.addActionListener(e -> handleUIChange());
+        m_fileHistoryPanel.addChangeListener(e -> handleUIChange());
+        m_includeSubfolders.addActionListener(e -> handleUIChange());
+        m_filterFiles.addActionListener(e -> handleUIChange());
+    }
+
+    /** Method to update settings model */
+    private void handleUIChange() {
+        if (m_ignoreUpdates) {
+            return;
+        }
+        updateSettingsModel();
+        triggerStatusMessageUpdate();
+        updateEnabledness();
     }
 
     /** Method called if file filter configuration button is clicked */
@@ -337,7 +345,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
 
-        updateStatusMessage();
+        if (m_fileFilterDialog.getResultStatus() == JOptionPane.OK_OPTION) {
+            // updates the settings model, which in turn updates the UI
+            updateSettingsModel();
+        } else {
+            // overwrites the values in the file filter panel components with those
+            // from the settings model
+            updateComponent();
+        }
     }
 
     /** Method to update enabledness of components */
@@ -352,7 +367,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_fileHistoryPanel.setEnabled(true);
             m_fileHistoryPanel.setBrowseable(true);
 
-            updateFolderFilterEnabledness();
+            m_includeSubfolders.setEnabled(true);
+            m_filterFiles.setEnabled(true);
+            m_configureFilter.setEnabled(m_filterFiles.isSelected());
+
         } else if (m_connections.getSelectedItem().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             // Custom URLs are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
@@ -374,38 +392,42 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_fileHistoryPanel.setEnabled(true);
             m_fileHistoryPanel.setBrowseable(true);
 
-            updateFolderFilterEnabledness();
+            m_includeSubfolders.setEnabled(true);
+            m_filterFiles.setEnabled(true);
+            m_configureFilter.setEnabled(m_filterFiles.isSelected());
         }
 
         getComponentPanel().repaint();
     }
 
     /** Method to update the status message */
-    private void updateStatusMessage() {
-        m_statusLineSwingWorker.cancel(true);
-        if (m_statusLineSwingWorker.isDone()) {
-            m_statusLineSwingWorker = new StatusLineSwingWorker((FileSystemChoice)m_connections.getSelectedItem(),
-                m_fileHistoryPanel.getSelectedFile(), m_statusMessage);
+    private void triggerStatusMessageUpdate() {
+        if (m_statusMessageSwingWorker != null) {
+            m_statusMessageSwingWorker.cancel(true);
+            m_statusMessageSwingWorker = null;
         }
-        m_statusLineSwingWorker.execute();
-    }
 
-    /** Method to updated enabledness of folder and filtering components */
-    private void updateFolderFilterEnabledness() {
-        final String fileOrFolder = m_fileHistoryPanel.getSelectedFile();
-        final boolean folderSelected =
-            !fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(fileOrFolder));
-        m_includeSubfolders.setEnabled(folderSelected);
-        m_filterFiles.setEnabled(folderSelected);
-        m_configureFilter.setEnabled(folderSelected && m_filterFiles.isSelected());
+        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+        if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
+            m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_connectionFlowVariableProvider,
+                ((SettingsModelFileChooser2)getModel()).clone(), m_statusMessage);
+            m_statusMessageSwingWorker.execute();
+        }
     }
 
     @Override
     protected void updateComponent() {
+        if (m_ignoreUpdates) {
+            return;
+        }
+
+        m_ignoreUpdates = true;
+
         // add connections coming from flow variables
         updateFlowVariableConnectionsCombo();
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+
         // sync connection combo box
         final String fileSystem = model.getFileSystem();
         if ((fileSystem != null) && !fileSystem.equals(m_connections.getSelectedItem())) {
@@ -448,10 +470,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_fileFilterPanel.setCaseSensitive(caseSensitive);
         }
 
-        m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
-        initEventHandlers();
-        updateModel();
+        triggerStatusMessageUpdate();
         setEnabledComponents(model.isEnabled());
+
+        m_ignoreUpdates = false;
     }
 
     /** Method to update and add default file system connections to combo box */
@@ -486,8 +508,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);
     }
 
-    /** Method to update settings model */
-    private void updateModel() {
+    private void updateSettingsModel() {
+        m_ignoreUpdates = true;
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         model.setFileSystem(((FileSystemChoice)m_connections.getSelectedItem()).getId());
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
@@ -496,16 +518,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         model.setFilterMode(m_fileFilterPanel.getSelectedFilterType().getDisplayText());
         model.setFilterExpression(m_fileFilterPanel.getSelectedFilterExpression());
         model.setCaseSensitive(m_fileFilterPanel.getCaseSensitive());
+        m_ignoreUpdates = false;
 
-        m_helper = new FileChooserHelper(m_connectionFlowVariableProvider, model);
-        updateStatusMessage();
-        updateEnabledness();
+        updateComponent();
     }
 
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
+        updateSettingsModel();
         m_fileHistoryPanel.addToHistory();
-        updateModel();
     }
 
     @Override
@@ -532,108 +553,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     public void setToolTipText(final String text) {
         // Nothing to show here ...
-    }
 
-
-    /**
-     * Swing worker used to update the status line in the background.
-     *
-     * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
-     */
-    private final class StatusLineSwingWorker extends SwingWorker<Boolean, String> {
-
-        /** String used as placeholder for the label when typing in the file selection component */
-        private static final String SCANNING_MESSAGE = "Scanning...";
-
-        /** String used for the label in case of an IOException while scanning */
-        private static final String EXCEPTION_MESSAGE = "Could not scan directory due to an IOException";
-
-        /** String used for the label in case the selected file does not exist */
-        private static final String FILE_DOES_NOT_EXIST_MESSAGE = "Selected file does not exist";
-
-        /** String used for the label in case no files matched the selected filters */
-        private static final String NO_FILES_MATCHED_FILTER_MESSAGE = "No files matched the filters";
-
-        /** Formatted string used for the label in case the scanning was successful */
-        private static final String SCANNED_FILES_MESSAGE = "Selected %d/%d files for reading (%d filtered)";
-
-        /** Label color */
-        private Color m_messageColor = Color.RED;
-
-        /** Label containing the status message */
-        private final JLabel m_message;
-
-        /** FileSystemChoice */
-        private final FileSystemChoice m_fileSystemChoice;
-
-        /** String of file or folder path*/
-        private final String m_fileOrFolder;
-
-        /**
-         * Creates a new instance of {@code StatusLineSwingWorker}.
-         *
-         * @param the label to update
-         */
-        private StatusLineSwingWorker(final FileSystemChoice fileSystemChoice, final String fileOrFolder,
-            final JLabel statusMessage) {
-            m_message = statusMessage;
-            m_fileSystemChoice = fileSystemChoice;
-            m_fileOrFolder = fileOrFolder;
-        }
-
-        @Override
-        protected Boolean doInBackground() throws Exception {
-            publish(SCANNING_MESSAGE);
-            Thread.sleep(500);
-            if (isCancelled()) {
-                return Boolean.FALSE;
-            }
-            publish(updateStatusLine());
-            return Boolean.TRUE;
-        }
-
-        /**
-         * Returns a String used as status message for the label.
-         *
-         * @return String used as status message for the label
-         */
-        private String updateStatusLine() {
-            if (!m_fileSystemChoice.equals(FileSystemChoice.getCustomFsUrlChoice())) {
-                if (!m_fileOrFolder.isEmpty() && Files.isDirectory(m_helper.getFileSystem().getPath(m_fileOrFolder))) {
-                    try {
-                        m_helper.scanDirectories(m_fileOrFolder);
-                    } catch (final IOException ex) {
-                        LOGGER.error(EXCEPTION_MESSAGE, ex);
-                        return EXCEPTION_MESSAGE;
-                    }
-                    final Pair<Integer, Integer> matchPair = m_helper.getCounts();
-                    if (matchPair.getFirst() > 0) {
-                        m_messageColor = Color.GREEN;
-                        return String.format(SCANNED_FILES_MESSAGE, matchPair.getFirst(),
-                            matchPair.getFirst() + matchPair.getSecond(), matchPair.getSecond());
-                    } else {
-                        m_messageColor = Color.RED;
-                        return NO_FILES_MATCHED_FILTER_MESSAGE;
-                    }
-                } else if (!m_fileOrFolder.isEmpty()
-                    && !Files.exists(m_helper.getFileSystem().getPath(m_fileOrFolder))) {
-                    m_messageColor = Color.RED;
-                    return FILE_DOES_NOT_EXIST_MESSAGE;
-                }
-            }
-            return EMPTY_STRING;
-        }
-
-        @Override
-        protected void process(final List<String> chunks) {
-            final String lastPublished = chunks.get(chunks.size() - 1);
-            m_message.setText(lastPublished);
-            m_message.setForeground(m_messageColor);
-        }
-
-        @Override
-        protected void done() {
-            // FIXME: Think of something that can be done here...
-        }
     }
 }

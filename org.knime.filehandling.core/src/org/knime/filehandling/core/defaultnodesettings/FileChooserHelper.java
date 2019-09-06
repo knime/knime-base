@@ -50,10 +50,9 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -62,8 +61,6 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.util.Pair;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
@@ -91,43 +88,14 @@ public final class FileChooserHelper {
      * @param provider the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
      *            if necessary
      * @param settings the settings object containing necessary information about e.g. file filtering
+     * @throws IOException thrown when the file system could not be retrieved.
      */
     public FileChooserHelper(final FSConnectionFlowVariableProvider provider,
-        final SettingsModelFileChooser2 settings) {
+        final SettingsModelFileChooser2 settings) throws IOException {
+
         m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
-        m_fileSystem = setFileSystem(provider, settings);
-    }
-
-    /** Method to set the file system */
-    private static final FileSystem setFileSystem(final FSConnectionFlowVariableProvider provider,
-        final SettingsModelFileChooser2 settings) {
-        final FileSystemChoice choice = FileSystemChoice.getChoiceFromId(settings.getFileSystem());
-
-        // Set the file system
-        if (choice.equals(FileSystemChoice.getLocalFsChoice())) {
-            return FileSystems.getDefault();
-        } else if (choice.equals(FileSystemChoice.getCustomFsUrlChoice())) {
-            // FIXME: Return correct FileSystem
-            return FileSystems.getDefault();
-        } else if (choice.equals(FileSystemChoice.getKnimeFsChoice())) {
-            // FIXME: Return correct FileSystem
-            return FileSystems.getDefault();
-        } else {
-            final Optional<String> connectionKey = provider.connectionKeyOf(settings.getFileSystem());
-            if (connectionKey.isPresent()) {
-                final Optional<FSConnection> optConn = FSConnectionRegistry.getInstance().retrieve(connectionKey.get());
-                if (optConn.isPresent()) {
-                    return optConn.get().getFileSystem();
-                } else {
-                    // FIXME: Throw something more fitting
-                    throw new IllegalArgumentException();
-                }
-            } else {
-                // FIXME: Throw something more fitting
-                throw new IllegalArgumentException();
-            }
-        }
+        m_fileSystem = FileSystemHelper.retrieveFileSystem(provider, settings);
     }
 
     /**
@@ -140,31 +108,28 @@ public final class FileChooserHelper {
     }
 
     /**
-     * Scans the given directory and returns a list of {@link Path Paths}.
+     * Assumes that the file specified in the settings model is a folder, scans the folder for files matching the filter
+     * from the settings model, and returns a list of matching {@link Path}s.
      *
-     * @param dir the directory
-     * @return a list of paths
+     * @return a list of paths that matched the filter from the settings model.
      * @throws IOException thrown if directory could not be scanned
      */
-    public final List<Path> scanDirectories(final String dir) throws IOException {
+    public final List<Path> scanDirectoryTree() throws IOException {
         setCounts(0, 0);
-        final Path dirPath = m_fileSystem.getPath(dir);
+        final Path dirPath = m_fileSystem.getPath(m_settings.getPathOrURL());
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
-        List<Path> paths = new ArrayList<>();
-        if (Files.isDirectory(dirPath) && Files.isReadable(dirPath)) {
-            try (final Stream<Path> stream = includeSubfolders ? Files.walk(dirPath) : Files.list(dirPath)) {
-                if (m_filter.isPresent()) {
-                    final FileFilter filter = m_filter.get();
-                    filter.resetCount();
-                    paths = stream.filter(p -> filter.isSatisfied(p)).collect(Collectors.toList());
-                    setCounts(paths.size(), filter.getNumberOfFilteredFiles());
-                } else {
-                    paths = stream.collect(Collectors.toList());
-                    setCounts(paths.size(), 0);
-                }
+
+        final List<Path> paths;
+        try (final Stream<Path> stream = includeSubfolders ? Files.walk(dirPath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS) : Files.list(dirPath)) {
+            if (m_filter.isPresent()) {
+                final FileFilter filter = m_filter.get();
+                filter.resetCount();
+                paths = stream.filter(p -> filter.isSatisfied(p)).collect(Collectors.toList());
+                setCounts(paths.size(), filter.getNumberOfFilteredFiles());
+            } else {
+                paths = stream.collect(Collectors.toList());
+                setCounts(paths.size(), 0);
             }
-        } else {
-            throw new IOException(dirPath + " is not a directory.");
         }
         return paths;
     }
@@ -173,16 +138,15 @@ public final class FileChooserHelper {
      * Returns a list of {@link Path} if the input String represents a directory its contents are scanned,
      * otherwise the list contains the file, if it is readable.
      *
-     * @param pathString the input file or directory
      * @return a list of path to read
      * @throws IOException if an I/O error occurs
      */
-    public final List<Path> getPaths(final String pathString) throws IOException {
-        final Path path = m_fileSystem.getPath(pathString);
+    public final List<Path> getPaths() throws IOException {
+        final Path path = m_fileSystem.getPath(m_settings.getPathOrURL());
         List<Path> paths;
 
         if (Files.isDirectory(path)) {
-            paths = scanDirectories(pathString);
+            paths = scanDirectoryTree();
         } else {
             paths = Collections.singletonList(path);
         }
@@ -201,9 +165,11 @@ public final class FileChooserHelper {
     }
 
     /**
-     * Returns Pair of integer containing the number of listed files and the number of filtered files.
+     * Returns the number of files that matched the filter, and the number of files that did not match the filter. The
+     * sum of the two numbers is the total amount of files that were scanned.
      *
-     * @return pair of integer containing the number of listed files and the number of filtered files.
+     * @return pair of integer containing the number of files that matched the filter, and the number of files that did
+     *         not match the filter.
      */
     public final Pair<Integer, Integer> getCounts() {
         return m_counts;
