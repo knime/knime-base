@@ -134,9 +134,8 @@ public class LineReaderConfig {
      * @throws IOException
      */
     public List<Path> getPaths(final FSConnectionFlowVariableProvider provider) throws IOException {
-
-        FileChooserHelper helper = new FileChooserHelper(provider, getFileChooserModel());
-        return helper.getPaths(getFileChooserModel().getPathOrURL());
+        final FileChooserHelper helper = new FileChooserHelper(provider, getFileChooserModel());
+        return helper.getPaths();
     }
 
     /**
