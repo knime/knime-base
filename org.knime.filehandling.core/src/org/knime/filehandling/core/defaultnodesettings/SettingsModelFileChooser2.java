@@ -318,7 +318,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     /**
      * @return the selected connection as a {@link FileSystemChoice}.
      */
-    public Object getFileSystemChoice() {
+    public FileSystemChoice getFileSystemChoice() {
         return FileSystemChoice.getChoiceFromId(m_fileSystem);
     }
 

@@ -429,7 +429,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
 
         // sync connection combo box
-        final String fileSystem = model.getFileSystem();
+        final FileSystemChoice fileSystem = model.getFileSystemChoice();
         if ((fileSystem != null) && !fileSystem.equals(m_connections.getSelectedItem())) {
             m_connections.setSelectedItem(fileSystem);
         }
