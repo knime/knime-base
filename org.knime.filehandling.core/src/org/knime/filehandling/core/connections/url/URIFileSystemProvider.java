@@ -130,7 +130,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("resource")
     @Override
     public Path getPath(final URI uri) {
-        return new URIFileSystem(uri).getPath(uri.getPath());
+        return new URIPath(new URIFileSystem(uri), uri);
     }
 
     /**

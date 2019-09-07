@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -142,16 +143,24 @@ public final class FileChooserHelper {
      * @throws IOException if an I/O error occurs
      */
     public final List<Path> getPaths() throws IOException {
-        final Path path = m_fileSystem.getPath(m_settings.getPathOrURL());
-        List<Path> paths;
 
-        if (Files.isDirectory(path)) {
-            paths = scanDirectoryTree();
+        final Path pathOrUrl;
+        if (m_settings.getFileSystemChoice() == FileSystemChoice.getCustomFsUrlChoice()) {
+            final URI uri = URI.create(m_settings.getPathOrURL());
+            pathOrUrl = m_fileSystem.provider().getPath(uri);
         } else {
-            paths = Collections.singletonList(path);
+            pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
         }
 
-        return paths;
+        final List<Path> toReturn;
+
+        if (Files.isDirectory(pathOrUrl)) {
+            toReturn = scanDirectoryTree();
+        } else {
+            toReturn = Collections.singletonList(pathOrUrl);
+        }
+
+        return toReturn;
     }
 
     /**

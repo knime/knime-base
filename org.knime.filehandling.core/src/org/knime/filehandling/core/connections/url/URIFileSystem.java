@@ -154,7 +154,7 @@ public class URIFileSystem extends FileSystem {
     @Override
     public Path getPath(final String first, final String... more) {
         String path = first;
-        if (more.length == 0) {
+        if (more.length > 0) {
             path += UnixStylePathUtil.SEPARATOR + String.join(UnixStylePathUtil.SEPARATOR, more);
         }
 
