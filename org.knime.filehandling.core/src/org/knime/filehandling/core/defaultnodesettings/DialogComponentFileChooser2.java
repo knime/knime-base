@@ -505,6 +505,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateConnectionsCombo() {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
+        connectionsModel.removeAllElements();
         FileSystemChoice.getDefaultChoices().stream().forEach(c -> connectionsModel.addElement(c));
     }
 
@@ -514,9 +515,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
         m_connectionFlowVariableProvider = new FSConnectionFlowVariableProvider(m_dialogPane);
         for (final String connectionName : m_connectionFlowVariableProvider.allConnectionNames()) {
-            if (connectionsModel.getIndexOf(connectionName) < 0) {
-                connectionsModel.insertElementAt(FileSystemChoice.createFlowVariableFileSystemChoice(connectionName),
-                    0);
+            final FileSystemChoice choice = FileSystemChoice.createFlowVariableFileSystemChoice(connectionName);
+            if (connectionsModel.getIndexOf(choice) < 0) {
+                connectionsModel.insertElementAt(choice, 0);
             }
         }
     }
