@@ -73,6 +73,7 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
     private final JTextField m_baseNameField;
     private final JTextField m_variableName;
     private final JCheckBox m_deleteOnResetChecker;
+    private final JCheckBox m_relativeTmpPathChecker;
     private final KeyValuePanel m_flowPairPanel;
 
     /**
@@ -83,6 +84,7 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
         m_baseNameField = new JTextField(fieldLength);
         m_variableName = new JTextField(fieldLength);
         m_deleteOnResetChecker = new JCheckBox("Delete directory on reset");
+        m_relativeTmpPathChecker = new JCheckBox("Create temp directory in workflow folder");
         m_flowPairPanel = new KeyValuePanel();
         m_flowPairPanel.setKeyColumnLabel("Variable");
         m_flowPairPanel.setValueColumnLabel("File");
@@ -97,7 +99,7 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 0;
         gbc.weighty = 0;
-        
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         p.add(new JLabel("Directory base name"), gbc);
@@ -119,10 +121,15 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
         p.add(m_deleteOnResetChecker, gbc);
 
         gbc.gridy += 1;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        p.add(m_relativeTmpPathChecker, gbc);
+
+        gbc.gridy += 1;
         p.add(new JSeparator(), gbc);
 
         gbc.gridy += 1;
-        
+
         p.add(new JLabel("Additional path variables"), gbc);
 
         gbc.gridy += 1;
@@ -142,6 +149,7 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
         m_baseNameField.setText(c.getBaseName());
         m_variableName.setText(c.getVariableName());
         m_deleteOnResetChecker.setSelected(c.isDeleteOnReset());
+        m_relativeTmpPathChecker.setSelected(c.isRelativeTmpFolder());
         VarNameFileNamePair[] pairs = c.getPairs();
         String[] varNames = new String[pairs.length];
         String[] fileNames = new String[pairs.length];
@@ -161,6 +169,7 @@ class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
         c.setBaseName(m_baseNameField.getText());
         c.setVariableName(m_variableName.getText());
         c.setDeleteOnReset(m_deleteOnResetChecker.isSelected());
+        c.setRelativeTmpFolder(m_relativeTmpPathChecker.isSelected());
         String[] varNames = m_flowPairPanel.getKeys();
         String[] fileNames = m_flowPairPanel.getValues();
         VarNameFileNamePair[] pairs = new VarNameFileNamePair[varNames.length];

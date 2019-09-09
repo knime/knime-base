@@ -63,6 +63,7 @@ final class CreateTempDirectoryConfiguration {
     private String m_baseName;
     private String m_variableName;
     private boolean m_deleteOnReset;
+    private boolean m_relativeTmpFolder;
     private VarNameFileNamePair[] m_pairs;
 
     /** @return the baseName */
@@ -84,6 +85,25 @@ final class CreateTempDirectoryConfiguration {
     void setDeleteOnReset(final boolean deleteOnReset) {
         m_deleteOnReset = deleteOnReset;
     }
+
+    /**
+     * Returns {@code true} if a relative temp folder is used, {@code false} otherwise
+     *
+     * @return the relativeTmpFolder
+     */
+    boolean isRelativeTmpFolder() {
+        return m_relativeTmpFolder;
+    }
+
+    /**
+     * Sets the relativeTmpFolder
+     *
+     * @param relativeTmpFolder the relativeTmpFolder to set
+     */
+    void setRelativeTmpFolder(final boolean relativeTmpFolder) {
+        m_relativeTmpFolder = relativeTmpFolder;
+    }
+
     /** @return the variableName */
     String getVariableName() {
         return m_variableName;
@@ -108,6 +128,7 @@ final class CreateTempDirectoryConfiguration {
         settings.addString("baseName", m_baseName);
         settings.addString("variableName", m_variableName);
         settings.addBoolean("deleteOnReset", m_deleteOnReset);
+        settings.addBoolean("relativeTmpFolder", m_relativeTmpFolder);
         NodeSettingsWO pairs = settings.addNodeSettings("variable_name_pairs");
         if (m_pairs != null) {
             for (VarNameFileNamePair v : m_pairs) {
@@ -122,6 +143,7 @@ final class CreateTempDirectoryConfiguration {
         m_baseName = settings.getString("baseName", "knime_tc_");
         m_variableName = settings.getString("variableName", "temp_path");
         m_deleteOnReset = settings.getBoolean("deleteOnReset", true);
+        m_relativeTmpFolder = settings.getBoolean("relativeTmpFolder", !settings.containsKey("baseName"));
         NodeSettingsRO pairs;
         try {
             pairs = settings.getNodeSettings("variable_name_pairs");
@@ -159,6 +181,7 @@ final class CreateTempDirectoryConfiguration {
             throw new InvalidSettingsException("Invalid (empty) variable name");
         }
         m_deleteOnReset = settings.getBoolean("deleteOnReset");
+        m_relativeTmpFolder = settings.getBoolean("relativeTmpFolder", false);
 
         NodeSettingsRO pairs = settings.getNodeSettings("variable_name_pairs");
         Set<String> keySet = pairs.keySet();

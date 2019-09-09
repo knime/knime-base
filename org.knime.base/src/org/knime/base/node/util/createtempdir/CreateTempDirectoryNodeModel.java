@@ -51,6 +51,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.knime.base.node.util.createtempdir.CreateTempDirectoryConfiguration.VarNameFileNamePair;
@@ -83,6 +85,12 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateTempDirectoryNodeModel.class);
 
+    private static final String TMP = "tmp";
+
+    private static final String KNIME_PROTOCOL = "knime";
+
+    private static final String KNIME_WORKFLOW = "knime.workflow";
+
     private CreateTempDirectoryConfiguration m_configuration;
     private String m_id;
 
@@ -102,7 +110,11 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
             m_id = RandomStringUtils.randomAlphanumeric(12).toLowerCase();
             f = computeFileName(m_id);
         } while (f.exists());
-        pushVariables(f);
+        try {
+            pushVariables(f);
+        } catch (MalformedURLException e) {
+            throw new InvalidSettingsException("Could not create path variables", e);
+        }
         return new PortObjectSpec[] {FlowVariablePortObjectSpec.INSTANCE};
     }
 
@@ -111,22 +123,28 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
     protected PortObject[] execute(
             final PortObject[] inObjects, final ExecutionContext exec)
             throws Exception {
-        File f = computeFileName(m_id);
+        final File f = computeFileName(m_id);
         if (f.isDirectory()) {
-            LOGGER.debug("Skipping creation of directory \""
-                    + f.getAbsolutePath() + "\" as it already exists");
+            LOGGER.debug("Skipping creation of directory \"" + f.getAbsolutePath() + "\" as it already exists");
         } else {
-            f.mkdir();
+            if (m_configuration.isRelativeTmpFolder() ? !f.getParentFile().mkdir() & !f.mkdir() : !f.mkdir()) {
+                LOGGER.debug("Could not create directory \"" + f.getAbsolutePath() + "\"");
+            }
         }
         return new PortObject[] {FlowVariablePortObject.INSTANCE};
     }
 
-    private void pushVariables(final File f) {
-        String path = f.getAbsolutePath();
-        pushFlowVariableString(m_configuration.getVariableName(), path);
+    private void pushVariables(final File f) throws MalformedURLException  {
+        final String path = f.getAbsolutePath();
+        pushFlowVariableString(m_configuration.getVariableName(), m_configuration.isRelativeTmpFolder()
+            ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW, "/" + TMP + "/" + m_configuration.getBaseName() + m_id).toString()
+            : path);
         for (VarNameFileNamePair p : m_configuration.getPairs()) {
             pushFlowVariableString(p.getVariableName(),
-                    new File(f, p.getFileName()).getAbsolutePath());
+                m_configuration.isRelativeTmpFolder()
+                    ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW,
+                        "/" + TMP + "/" + m_configuration.getBaseName() + m_id + "/" + p.getFileName()).toString()
+                    : new File(f, p.getFileName()).getAbsolutePath());
         }
     }
 
@@ -137,7 +155,8 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
         if (nodeContext != null) {
             WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
             if (workflowContext != null) {
-                rootDir = workflowContext.getTempLocation();
+                rootDir = m_configuration.isRelativeTmpFolder() ? new File(workflowContext.getCurrentLocation(), TMP)
+                    : workflowContext.getTempLocation();
             }
         }
         if (rootDir == null) {
@@ -158,41 +177,45 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
     /** {@inheritDoc} */
     @Override
     protected void onDispose() {
-        /* This node is not deleting the created dir after its disposal. The server requires the temp dir to stay when
-         * the flow is swapped out (which disposes of this node). Trust that the workflow manager or server delete all
-         * temporary directories and files.
+        /* This node is not deleting the created dir after its disposal if the temp dir is not created in the workflow
+         * folder. The server requires the temp dir to stay when the flow is swapped out (which disposes of this node).
+         * Trust that the workflow manager or server delete all temporary directories and files.
         */
+        if (m_configuration.isRelativeTmpFolder()) {
+            deleteTmpFolder();
+        }
         super.onDispose();
+    }
+
+    private void deleteTmpFolder() {
+        if (m_id == null) {
+            return;
+        }
+        final File file = computeFileName(m_id);
+        final StringBuilder debug = new StringBuilder();
+        if (FileUtil.deleteRecursively(file)) {
+            debug.append(m_configuration.isRelativeTmpFolder() && file.getParentFile().delete()
+                ? "Deleted temp directory " + file.getParentFile().getAbsolutePath()
+                : "Deleted temp directory " + file.getAbsolutePath());
+        } else {
+            debug.append("Did not delete temp directory \"");
+            debug.append(file.getAbsolutePath());
+            debug.append("\" ");
+            if (file.exists()) {
+                debug.append("(file/directory exists)");
+            } else {
+                debug.append(" as it does not exist");
+            }
+        }
+        LOGGER.debug(debug);
     }
 
     /** {@inheritDoc} */
     @Override
     protected void reset() {
-        if (m_id == null) {
-            return;
-        }
-        File file = computeFileName(m_id);
-        StringBuilder debug = new StringBuilder();
         if (m_configuration.isDeleteOnReset()) {
-            if (FileUtil.deleteRecursively(file)) {
-                debug.append("Deleted temp directory "
-                        + file.getAbsolutePath());
-            } else {
-                debug.append("Did not delete temp directory \"");
-                debug.append(file.getAbsolutePath());
-                debug.append("\" ");
-                if (file.exists()) {
-                    debug.append("(file/directory exists)");
-                } else {
-                    debug.append(" as it does not exist");
-                }
-            }
-        } else {
-            debug.append("Not deleting temp directory \"");
-            debug.append(file.getAbsolutePath());
-            debug.append("\" according to user setting");
+            deleteTmpFolder();
         }
-        LOGGER.debug(debug);
     }
 
     /** {@inheritDoc} */

@@ -22,7 +22,15 @@
         </option>
         <option name="Delete directory on reset">
           Check this box to delete the directory and all its content when the node
-          is reset or the workflow is closed.
+          is reset.
+        </option>
+        <option name="Create temp directory in workflow directory">
+          Check this box to create the temp directory in the workflow directory
+          (e.g. /path/to/workflow/tmp/base_name). Otherwise, it
+          will be created in the temp directory of the system, which can
+          lead to unwanted behaviour, i.e. missing temp directory due to periodic
+          deletion of the system temp directory or due to swapping a job between
+          systems in a server/executor environment.
         </option>
         <option name="Additional path variables">
           A list of additional variables that will be created by the node. Each variable
