@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Manipulator" icon="default.png">
+	<name>Probability Distribution Splitter</name>
+	<shortDescription>Splits a Probability Distribution Cell into Double
+		cells containing the single probabilities.</shortDescription>
+	<fullDescription>
+		<intro>
+			Splits a column containing a probability distribution into many
+			columns containing its single probabilities.
+		</intro>
+		<tab name="Options">
+			<option name="Probability distribution column">Select the column containing the probability
+				distribution.
+			</option>
+			<option name="Remove selected column">If selected, the selected column will be removed
+				from the output.
+			</option>
+			<option name="Suffix for probability columns">Specify a suffix for the probability columns. By
+				default, no suffix is defined and the columns are named by their class
+				names.
+			</option>
+			<option name="Missing Value Handling">
+				Specify how to treat a missing value in the input column. If
+				<i>Fail</i>
+				is selected, the node will fail. Otherwise, the node just gives a
+				warning and puts missing values
+				in the output for the corresponding
+				rows.
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort name="Probability Distribution" index="0">Data with a
+			column
+			containing a probability distribution.
+		</inPort>
+		<outPort index="0" name="Input Data with Probabilities">Input data with appended columns that
+			contain the single probabilities of the probability distribution.
+		</outPort>
+	</ports>
+</knimeNode>

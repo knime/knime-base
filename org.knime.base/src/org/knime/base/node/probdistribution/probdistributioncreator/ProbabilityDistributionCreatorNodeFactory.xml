@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode type="Manipulator" icon="default.png">
+	<name>Probability Distribution Creator</name>
+	<shortDescription>Creates a Probability Distribution cell out of
+		numeric cells.</shortDescription>
+	<fullDescription>
+		<intro>
+			Creates a column containing a probability distribution of one
+			or more given columns that contain probability values.
+			The probability
+			values must be non-negative and
+			must sum up to
+			1.
+		</intro>
+		<tab name="Options">
+			<option name="Output column name">
+				Specify the name of the created column.
+			</option>
+			<option name="Column Selection">Move the columns that contain the probability
+				values to the "Include" list.
+			</option>
+			<option name="Remove included columns">If selected, the included columns will be removed
+				from the output.
+			</option>
+			<option
+				name="Allow probabilities that sum up to 1 imprecisely">If enabled, the probabilities must not sum up to
+				1 precisely.
+				This might be helpful if there are, e.g., some rounding errors in
+				the probability values. A
+				number of decimal digits can
+				be
+				specified
+				that defines the
+				precision as explained below.
+			</option>
+			<option name="Precision (number of decimal digits)">
+				Defines the precision that the sum of the
+				probabilities must have by
+				restricting the number of decimal digits that must be precise.
+				The
+				sum
+				is accepted if
+				<i>abs(sum - 1) &lt;= 10^(-precision)</i>
+				, e.g., if the sum is 0.999, it is only accepted
+				with a precision of
+				&lt;=2. The lower the specified number, the higher is the tolerance.
+			</option>
+			<option name="Missing Value Handling">
+				Specify how to treat a missing value in one of the input columns. If
+				<i>Fail</i>
+				is selected, the node will fail. If
+				<i>Ignore</i>
+				is selected, the node just gives a warning and puts missing values
+				in the output for the corresponding rows.
+				If
+				<i>Treat as zero</i>
+				is selected, the missing value will be treated as 0.
+			</option>
+			<option name="Invalid Probability Distribution Handling">
+				Specify how to treat invalid probabilities.
+				Invalid means, e.g.,
+				negative probabilities or probabilities that do
+				not sum up to 1 (with
+				respect to the specified precision). If
+				<i>Fail</i>
+				is selected, the node will fail. Otherwise, the node just gives a
+				warning and puts missing values in the output for the corresponding
+				rows.
+			</option>
+		</tab>
+	</fullDescription>
+	<ports>
+		<inPort name="Probability Values" index="0">Data with columns
+			containing probability values.
+		</inPort>
+		<outPort index="0"
+			name="Input Data with Probability Distribution">Input data with an appended column that contains the
+			probability
+			distribution.
+		</outPort>
+	</ports>
+</knimeNode>

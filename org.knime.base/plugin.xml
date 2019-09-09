@@ -2109,6 +2109,16 @@
             category-path="/labs/file-handling-prototype"
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
       </node>
+      <node
+            category-path="/manipulation/column/column-split+combine"
+            deprecated="false"
+            factory-class="org.knime.base.node.probdistribution.probdistributioncreator.ProbabilityDistributionCreatorNodeFactory">
+      </node>
+      <node
+            category-path="/manipulation/column/column-split+combine"
+            deprecated="false"
+            factory-class="org.knime.base.node.probdistribution.probdistributionsplitter.ProbabilityDistributionSplitterNodeFactory">
+      </node>
    </extension>
    
       
