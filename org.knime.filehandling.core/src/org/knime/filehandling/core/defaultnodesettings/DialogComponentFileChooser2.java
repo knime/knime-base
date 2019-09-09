@@ -55,6 +55,7 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Optional;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -77,6 +78,9 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSConnectionRegistry;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
@@ -326,6 +330,27 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         updateSettingsModel();
         triggerStatusMessageUpdate();
         updateEnabledness();
+        //FIXME put that in action listener
+        updateFileHistoryPanel();
+    }
+
+    /**
+     *
+     */
+    private void updateFileHistoryPanel() {
+        final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
+        if (fsChoice.getType() == Choice.FLOW_VARIABLE_FS) {
+            final Optional<String> key = m_connectionFlowVariableProvider.connectionKeyOf(fsChoice.getId());
+            if (key.isPresent()) {
+                final Optional<FSConnection> connection = FSConnectionRegistry.getInstance().retrieve(key.get());
+                if (connection.isPresent()) {
+                    m_fileHistoryPanel.setFileSystemBrowser(connection.get().getFileSystemBrowser());
+                }
+            }
+        } else {
+            m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+        }
+
     }
 
     /** Method called if file filter configuration button is clicked */

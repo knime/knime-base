@@ -123,7 +123,7 @@ public final class FilesHistoryPanel extends JPanel {
     /** See {@link #setAllowSystemPropertySubstitution(boolean)}. */
     private boolean m_allowSystemPropertySubstitution = false;
 
-    private final FileSystemBrowser m_fileSystemBrowser;
+    private FileSystemBrowser m_fileSystemBrowser;
 
     /**
      * Creates new instance, sets properties, for instance renderer, accordingly.
@@ -277,8 +277,8 @@ public final class FilesHistoryPanel extends JPanel {
     private String getOutputFileName() {
         // file chooser triggered by choose button
         FileSystemBrowser browser;
-        if (m_fileSystemBrowser != null) {
-            browser = m_fileSystemBrowser; // Instantiate file system browser based on given FileSystem/FileSystemConnection.
+        if (getFileSystemBrowser() != null) {
+            browser = getFileSystemBrowser(); // Instantiate file system browser based on given FileSystem/FileSystemConnection.
         } else if (NodeContext.getContext().getNodeContainer() != null) {
             //if an ordinary node context is available, use default file system browser
             browser = new LocalFileSystemBrowser();
@@ -485,4 +485,19 @@ public final class FilesHistoryPanel extends JPanel {
         }
         return m_flowVariableButton.getFlowVariableModel().isVariableReplacementEnabled();
     }
+
+    /**
+     * @return the fileSystemBrowser
+     */
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_fileSystemBrowser;
+    }
+
+    /**
+     * @param fileSystemBrowser the fileSystemBrowser to set
+     */
+    public void setFileSystemBrowser(final FileSystemBrowser fileSystemBrowser) {
+        m_fileSystemBrowser = fileSystemBrowser;
+    }
+
 }

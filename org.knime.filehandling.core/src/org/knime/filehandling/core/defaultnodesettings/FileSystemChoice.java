@@ -53,6 +53,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * Class encapsulating the four different types of file system choices.
  *
@@ -194,5 +196,22 @@ public class FileSystemChoice {
             return choice.get();
         }
         return createFlowVariableFileSystemChoice(fileSystem);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        if(!(other instanceof FileSystemChoice)) {
+            return false;
+        }
+        FileSystemChoice otherChoice = (FileSystemChoice) other;
+        return m_id.equals(otherChoice.m_id) && m_type.equals(otherChoice.m_type);
+    }
+
+    @Override
+    public int hashCode() {
+        HashCodeBuilder hashBuiler = new HashCodeBuilder();
+        hashBuiler.append(m_id);
+        hashBuiler.append(m_type);
+        return hashBuiler.build();
     }
 }

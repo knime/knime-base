@@ -241,7 +241,7 @@ public class NioFileSystemView extends FileSystemView {
             m_path = p;
         }
 
-        private NioFile(final String pathname) {
+        NioFile(final String pathname) {
             super(pathname);
             m_path = m_fileSystem.getPath(pathname);
         }
@@ -304,6 +304,20 @@ public class NioFileSystemView extends FileSystemView {
             } catch (final IOException ex) {
                 return 0L;
             }
+        }
+
+        @Override
+        public String getAbsolutePath() {
+            if(m_path.isAbsolute()) {
+                return m_path.toString();
+            } else {
+               return m_path.resolve(m_base).toString();
+            }
+        }
+
+        @Override
+        public String getParent() {
+            return m_path.getParent().toString();
         }
 
     }
