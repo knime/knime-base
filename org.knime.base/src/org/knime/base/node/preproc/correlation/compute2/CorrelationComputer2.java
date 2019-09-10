@@ -478,13 +478,6 @@ public final class CorrelationComputer2 {
                 DataCell cj = row.getCell(m_categoricalColIndexMap[j]);
                 Integer indexI = possibleValuesI.get(ci);
                 Integer indexJ = possibleValuesJ.get(cj);
-                // TODO(benjamin) check or do not check?
-                //                assert indexI != null && indexI >= 0 : String.format(
-                //                    "Value unknown in value list of column \"%s-\": %s",
-                //                    table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[i]).getName(), ci);
-                //                assert indexJ != null && indexJ >= 0 : String.format(
-                //                    "Value unknown in value list of column \"%s-\": %s",
-                //                    table.getDataTableSpec().getColumnSpec(m_categoricalColIndexMap[j]).getName(), ci);
                 contingencyTables[valIndex][indexI][indexJ]++;
             }
         }
