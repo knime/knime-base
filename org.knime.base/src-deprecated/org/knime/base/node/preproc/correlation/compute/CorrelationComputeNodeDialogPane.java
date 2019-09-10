@@ -56,7 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 /**
  * Dialog for correlation node. Shows only a column filter.
  * @author Bernd Wiswedel, University of Konstanz
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by CorrelationCompute2NodeDialog.
  */
 @Deprecated
 final class CorrelationComputeNodeDialogPane extends DefaultNodeSettingsPane {

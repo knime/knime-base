@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.correlation.compute;
 
+import org.knime.base.node.preproc.correlation.compute2.CorrelationCompute2NodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -57,7 +58,7 @@ import org.knime.core.node.NodeView;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noreference This class is not intended to be referenced by clients.
  * @since 2.12
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by {@link CorrelationCompute2NodeFactory}.
  */
 @Deprecated
 public final class CorrelationComputeNodeFactory extends NodeFactory<CorrelationComputeNodeModel> {

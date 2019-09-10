@@ -53,7 +53,7 @@ import org.knime.core.data.DataTable;
  * This implements the {@link AbstractCorrelationComputeNodeView} for the CorrelationComputeNodeModel
  *
  * @author Ole Ostergaard
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by CorrelationCompute2NodeView.
  */
 @Deprecated
 final class CorrelationComputeNodeView extends AbstractCorrelationComputeNodeView<CorrelationComputeNodeModel> {

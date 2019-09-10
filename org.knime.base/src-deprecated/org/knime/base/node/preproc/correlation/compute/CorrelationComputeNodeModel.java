@@ -77,7 +77,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 /**
  *
  * @author wiswedel, University of Konstanz
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by CorrelationCompute2NodeModel.
  */
 @Deprecated
 final class CorrelationComputeNodeModel extends NodeModel

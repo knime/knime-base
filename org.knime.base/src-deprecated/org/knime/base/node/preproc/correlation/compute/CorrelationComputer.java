@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.base.node.preproc.correlation.compute2.CorrelationComputer2;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
 import org.knime.base.util.HalfDoubleMatrix;
 import org.knime.base.util.HalfIntMatrix;
@@ -79,7 +80,7 @@ import org.knime.core.util.Pair;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @since 2.12
  * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by {@link CorrelationComputer2}.
  */
 @Deprecated
 public final class CorrelationComputer {

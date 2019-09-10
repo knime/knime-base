@@ -81,6 +81,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 
+import org.knime.base.node.preproc.correlation.compute2.AbstractCorrelationCompute2NodeView;
 import org.knime.base.node.util.DoubleFormat;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
@@ -108,7 +109,7 @@ import org.knime.core.node.tableview.TableView;
  * @author Ole Ostergaard
  * @param <M> The extended correlation node model
  * @since 3.2
- * @deprecated
+ * @deprecated because the output format of the node changed. Replaced by {@link AbstractCorrelationCompute2NodeView}.
  */
 @Deprecated
 public abstract class AbstractCorrelationComputeNodeView<M extends NodeModel> extends NodeView<M>{
