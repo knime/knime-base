@@ -506,39 +506,54 @@ public final class CorrelationComputer2 {
 
                 final int tableI = m_numericColIndexMap[i];
                 final int tableJ = m_numericColIndexMap[j];
-
                 final double r = nominatorMatrix.get(tableI, tableJ);
-                double pval = Double.NaN;
 
                 // Compute the degrees of freedom
                 final int validCount = m_numericValidCountMatrix.get(i, j);
                 final int dof = Math.max(validCount - 2, 0);
-                if (dof > 0) {
-                    if (!Double.isNaN(r)) {
-                        // Compute the p value if we could compute the correlation
-                        final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
-                        final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
 
-                        switch (pValueAlternative) {
-                            case LESS:
-                                pval = cp;
-                                break;
-                            case GREATER:
-                                pval = 1 - cp;
-                                break;
-                            case TWO_SIDED:
-                                pval = 2 * Math.min(cp, 1 - cp);
-                                break;
-                        }
-                    } else {
-                        pval = 1;
-                    }
-                } else {
-                    pval = Double.NaN;
-                }
+                // Compute the p value
+                final double pval = calculatePearsonPValue(pValueAlternative, r, dof);
+
                 pValMatrix.set(tableI, tableJ, pval);
                 dofMatrix.set(tableI, tableJ, dof);
             }
+        }
+    }
+
+    /** Calculates the requested p-value for a Pearson correlation coefficient */
+    private static double calculatePearsonPValue(final PValueAlternative pValueAlternative, final double r,
+        final int dof) {
+        if (dof > 0) {
+            if (!Double.isNaN(r)) {
+                // Compute the p value if we could compute the correlation
+                final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
+                final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
+
+                return getPearsonPValueForAlternative(pValueAlternative, cp);
+            } else {
+                return 1;
+            }
+        } else {
+            return Double.NaN;
+        }
+    }
+
+    /**
+     * Returns the correct p-value for the chosen alternative (less, greater or two-sided) from the cumulative
+     * probability
+     */
+    private static double getPearsonPValueForAlternative(final PValueAlternative pValueAlternative, final double cp) {
+        switch (pValueAlternative) {
+            case LESS:
+                return cp;
+            case GREATER:
+                return 1 - cp;
+            case TWO_SIDED:
+                return 2 * Math.min(cp, 1 - cp);
+            default:
+                // Cannot happen
+                return Double.NaN;
         }
     }
 
