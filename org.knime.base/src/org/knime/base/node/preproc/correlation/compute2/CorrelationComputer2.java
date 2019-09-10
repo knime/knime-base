@@ -184,7 +184,7 @@ public final class CorrelationComputer2 {
         final DataCell[] numericCellBuffer = new DataCell[m_numericColIndexMap.length];
 
         // Loop over the rows and fill the sum/sumSq/validCount matrix and possible categorical values
-        long rowIndex = 0;
+        long rowIndex = 1;
         final long rowCount = table.size();
         for (DataRow r : table) {
 
@@ -192,8 +192,9 @@ public final class CorrelationComputer2 {
             addPossibleValues(r);
 
             exec.checkCanceled();
-            exec.setProgress(rowIndex / (double)rowCount,
-                String.format("Calculating statistics - %d/%d (\"%s\")", rowIndex, rowCount, r.getKey()));
+            final long currentRow = rowIndex;
+            exec.setProgress(currentRow / (double)rowCount,
+                () -> String.format("Calculating statistics - %d/%d (\"%s\")", currentRow, rowCount, r.getKey()));
             rowIndex += 1;
         }
 
