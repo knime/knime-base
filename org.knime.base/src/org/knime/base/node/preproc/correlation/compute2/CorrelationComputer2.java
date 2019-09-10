@@ -563,19 +563,10 @@ public final class CorrelationComputer2 {
         for (int i = 0; i < m_categoricalColIndexMap.length; i++) {
             for (int j = i + 1; j < m_categoricalColIndexMap.length; j++) {
                 int[][] contingencyTable = contingencyTables[valIndex];
-                double cramersV;
-                double pVal;
-                int dof;
-                if (contingencyTable == null) {
-                    cramersV = Double.NaN;
-                    pVal = Double.NaN;
-                    dof = 0;
-                } else {
-                    final Triple<Double, Double, Integer> stats = computeCramersV(contingencyTable);
-                    cramersV = stats.getLeft();
-                    pVal = stats.getMiddle();
-                    dof = stats.getRight();
-                }
+                final Triple<Double, Double, Integer> stats = computeCramersV(contingencyTable);
+                final double cramersV = stats.getLeft();
+                final double pVal = stats.getMiddle();
+                final int dof = stats.getRight();
                 final int tableI = m_categoricalColIndexMap[i];
                 final int tableJ = m_categoricalColIndexMap[j];
                 nominatorMatrix.set(tableI, tableJ, cramersV);
@@ -657,10 +648,10 @@ public final class CorrelationComputer2 {
      * @return cramer's V
      */
     private static Triple<Double, Double, Integer> computeCramersV(final int[][] contingency) {
-        final int rows = contingency.length;
-        if (rows == 0) {
+        if (contingency == null || contingency.length == 0) {
             return new ImmutableTriple<>(Double.NaN, Double.NaN, 0);
         }
+        final int rows = contingency.length;
         final int cols = contingency[0].length;
         final int dof = (rows - 1) * (cols - 1);
         if (rows <= 1 || cols <= 1) {
