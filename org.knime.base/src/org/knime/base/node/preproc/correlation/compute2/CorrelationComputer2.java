@@ -670,6 +670,9 @@ public final class CorrelationComputer2 {
         double chisquare = 0.0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
+                // The total sum has to be larger than 0 because otherwise there would be no rows in the table and
+                // therefore no rows or columns in the contingency table (We just check it with an assert)
+                assert totalSum > 0;
                 double expected = rowSums[i] * colSums[j] / totalSum;
                 // this is asserted as each row/column must contain at least
                 // one value >= 1
