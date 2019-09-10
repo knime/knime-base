@@ -74,6 +74,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 
 /**
@@ -142,9 +143,9 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec in = (DataTableSpec)inSpecs[0];
-        if (!in.containsCompatibleType(DoubleValue.class) && !in.containsCompatibleType(NominalValue.class)) {
-            throw new InvalidSettingsException("No double or nominal compatible columns in input");
-        }
+        CheckUtils.checkSetting(
+            in.containsCompatibleType(DoubleValue.class) || in.containsCompatibleType(NominalValue.class),
+            "No double or nominal compatible columns in input");
         final String[] includesNames;
         if (m_columnFilterModel == null) {
             m_columnFilterModel = createColumnFilterModel();
