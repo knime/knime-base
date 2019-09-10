@@ -308,16 +308,21 @@ public class NioFileSystemView extends FileSystemView {
 
         @Override
         public String getAbsolutePath() {
-            if(m_path.isAbsolute()) {
+            if (m_path.isAbsolute()) {
                 return m_path.toString();
             } else {
-               return m_path.resolve(m_base).toString();
+                return m_path.resolve(m_base).toString();
             }
         }
 
         @Override
         public String getParent() {
-            return m_path.getParent().toString();
+            return m_path.getParent() == null ? null : m_path.getParent().toString();
+        }
+
+        @Override
+        public File getParentFile() {
+            return getParent() == null ? null : new NioFile(getParent());
         }
 
     }
