@@ -46,13 +46,12 @@
  * History
  *   Sep 5, 2019 (benjamin): created
  */
-package org.knime.base.node.preproc.correlation.compute2;
+package org.knime.base.node.preproc.correlation.pmcc;
 
 import java.util.Arrays;
 
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
- * @noreference This class is not intended to be referenced by clients (except for KNIME core plug-ins).
  * @since 4.1
  */
 public enum PValueAlternative {

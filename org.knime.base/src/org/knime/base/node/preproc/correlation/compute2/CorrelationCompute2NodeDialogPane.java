@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.correlation.compute2;
 
+import org.knime.base.node.preproc.correlation.pmcc.PValueAlternative;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;

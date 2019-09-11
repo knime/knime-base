@@ -53,6 +53,7 @@ import java.io.IOException;
 import org.knime.base.node.preproc.correlation.CorrelationUtils;
 import org.knime.base.node.preproc.correlation.CorrelationUtils.CorrelationResult;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
+import org.knime.base.node.preproc.correlation.pmcc.PValueAlternative;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
