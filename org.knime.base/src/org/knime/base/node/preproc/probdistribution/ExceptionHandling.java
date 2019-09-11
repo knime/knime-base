@@ -46,12 +46,13 @@
  * History
  *   Jul 23, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution;
+package org.knime.base.node.preproc.probdistribution;
 
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 
 /**
- * Enumeration of strategies how to handle exceptions.
+ * Enumeration of strategies how to handle exceptions during the creation or splitting of probability distribution
+ * columns.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */

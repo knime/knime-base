@@ -44,44 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 6, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributionsplitter;
+package org.knime.base.node.preproc.probdistribution.creator;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 
 /**
- * Node factory of the node that splits probability distributions into probability values.
+ * Enumeration of strategies how to handle missing values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ProbabilityDistributionSplitterNodeFactory
-    extends NodeFactory<ProbabilityDistributionSplitterNodeModel> {
+enum MissingValueHandling implements ButtonGroupEnumInterface {
+        /** Fail if an exception occurs. */
+        FAIL("Fail"),
+        /**
+         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
+         * model building.
+         */
+        IGNORE("Ignore"),
+        /**
+         * Don't fail and treat the missing value as 0.
+         */
+        ZERO("Treat as zero");
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ProbabilityDistributionSplitterNodeModel createNodeModel() {
-        return new ProbabilityDistributionSplitterNodeModel();
+    private final String m_text;
+
+    private MissingValueHandling(final String text) {
+        m_text = text;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected int getNrNodeViews() {
-        return 0;
+    public String getText() {
+        return m_text;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ProbabilityDistributionSplitterNodeModel> createNodeView(final int viewIndex,
-        final ProbabilityDistributionSplitterNodeModel nodeModel) {
+    public String getActionCommand() {
+        return name();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getToolTip() {
         return null;
     }
 
@@ -89,16 +102,8 @@ public final class ProbabilityDistributionSplitterNodeFactory
      * {@inheritDoc}
      */
     @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ProbabilityDistributionSplitterNodeDialog();
+    public boolean isDefault() {
+        return this == FAIL;
     }
 
 }

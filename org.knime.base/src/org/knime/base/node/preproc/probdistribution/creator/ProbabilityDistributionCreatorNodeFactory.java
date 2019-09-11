@@ -44,40 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 5, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributionsplitter;
+package org.knime.base.node.preproc.probdistribution.creator;
 
-import org.knime.base.node.probdistribution.ExceptionHandling;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Node dialog of the node that splits probability distributions into probability values.
+ * Node factory of the node that creates probability distributions of probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionSplitterNodeDialog extends DefaultNodeSettingsPane {
+public final class ProbabilityDistributionCreatorNodeFactory
+    extends NodeFactory<ProbabilityDistributionCreatorNodeModel> {
 
-    @SuppressWarnings("unchecked")
-    public ProbabilityDistributionSplitterNodeDialog() {
-        addDialogComponent(new DialogComponentColumnNameSelection(
-            ProbabilityDistributionSplitterNodeModel.createColumnSelectionModel(), "Probability distribution column", 0,
-            true, ProbabilityDistributionValue.class));
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ProbabilityDistributionCreatorNodeModel createNodeModel() {
+        return new ProbabilityDistributionCreatorNodeModel();
+    }
 
-        addDialogComponent(new DialogComponentBoolean(
-            ProbabilityDistributionSplitterNodeModel.createRemoveSelectedColBooleanModel(), "Remove selected column"));
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
 
-        addDialogComponent(new DialogComponentString(ProbabilityDistributionSplitterNodeModel.createSuffixModel(),
-            "Suffix for probability columns"));
-        createNewGroup("Missing Value Handling");
-        addDialogComponent(
-            new DialogComponentButtonGroup(ProbabilityDistributionSplitterNodeModel.createMissingValueHandlingModel(),
-                null, true, ExceptionHandling.values()));
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<ProbabilityDistributionCreatorNodeModel> createNodeView(final int viewIndex,
+        final ProbabilityDistributionCreatorNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ProbabilityDistributionCreatorNodeDialog();
     }
 
 }

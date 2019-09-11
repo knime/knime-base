@@ -44,54 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributioncreator;
+package org.knime.base.node.preproc.probdistribution.splitter;
 
-import org.knime.base.node.probdistribution.ExceptionHandling;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Node dialog of the node that creates probability distributions of probability values.
+ * Node factory of the node that splits probability distributions into probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionCreatorNodeDialog extends DefaultNodeSettingsPane {
+public final class ProbabilityDistributionSplitterNodeFactory
+    extends NodeFactory<ProbabilityDistributionSplitterNodeModel> {
 
-    public ProbabilityDistributionCreatorNodeDialog() {
-        addDialogComponent(new DialogComponentString(ProbabilityDistributionCreatorNodeModel.createColumnNameModel(),
-            "Output column name", true, 20));
-
-        addDialogComponent(
-            new DialogComponentColumnFilter2(ProbabilityDistributionCreatorNodeModel.createColumnFilterModel(), 0));
-
-        addDialogComponent(new DialogComponentBoolean(
-            ProbabilityDistributionCreatorNodeModel.createRemoveIncludedColsBooleanModel(), "Remove included columns"));
-
-        createNewGroup("Precision");
-        final SettingsModelBoolean precisionBooleanModel =
-            ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel();
-        addDialogComponent(
-            new DialogComponentBoolean(precisionBooleanModel, "Allow probabilities that sum up to 1 imprecisely"));
-
-        addDialogComponent(new DialogComponentNumber(
-            ProbabilityDistributionCreatorNodeModel.createPrecisionModel(precisionBooleanModel),
-            "Precision (number of decimal digits)", 1));
-
-        createNewGroup("Missing Value Handling");
-        addDialogComponent(
-            new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createMissingValueHandlingModel(),
-                null, true, MissingValueHandling.values()));
-
-        createNewGroup("Invalid Probability Distribution Handling");
-        addDialogComponent(new DialogComponentButtonGroup(
-            ProbabilityDistributionCreatorNodeModel.createInvalidDistributionHandlingModel(), null, true,
-            ExceptionHandling.values()));
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ProbabilityDistributionSplitterNodeModel createNodeModel() {
+        return new ProbabilityDistributionSplitterNodeModel();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<ProbabilityDistributionSplitterNodeModel> createNodeView(final int viewIndex,
+        final ProbabilityDistributionSplitterNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ProbabilityDistributionSplitterNodeDialog();
+    }
+
 }

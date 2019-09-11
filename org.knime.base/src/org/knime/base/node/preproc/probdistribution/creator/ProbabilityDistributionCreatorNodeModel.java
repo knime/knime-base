@@ -46,9 +46,9 @@
  * History
  *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributioncreator;
+package org.knime.base.node.preproc.probdistribution.creator;
 
-import org.knime.base.node.probdistribution.ExceptionHandling;
+import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;

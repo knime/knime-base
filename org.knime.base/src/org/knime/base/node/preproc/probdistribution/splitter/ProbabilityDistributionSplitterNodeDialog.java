@@ -44,66 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 6, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 5, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributioncreator;
+package org.knime.base.node.preproc.probdistribution.splitter;
 
-import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
+import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 
 /**
- * Enumeration of strategies how to handle missing values.
+ * Node dialog of the node that splits probability distributions into probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-enum MissingValueHandling implements ButtonGroupEnumInterface {
-        /** Fail if an exception occurs. */
-        FAIL("Fail"),
-        /**
-         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
-         * model building.
-         */
-        IGNORE("Ignore"),
-        /**
-         * Don't fail and treat the missing value as 0.
-         */
-        ZERO("Treat as zero");
+final class ProbabilityDistributionSplitterNodeDialog extends DefaultNodeSettingsPane {
 
-    private final String m_text;
+    @SuppressWarnings("unchecked")
+    public ProbabilityDistributionSplitterNodeDialog() {
+        addDialogComponent(new DialogComponentColumnNameSelection(
+            ProbabilityDistributionSplitterNodeModel.createColumnSelectionModel(), "Probability distribution column", 0,
+            true, ProbabilityDistributionValue.class));
 
-    private MissingValueHandling(final String text) {
-        m_text = text;
-    }
+        addDialogComponent(new DialogComponentBoolean(
+            ProbabilityDistributionSplitterNodeModel.createRemoveSelectedColBooleanModel(), "Remove selected column"));
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getText() {
-        return m_text;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getActionCommand() {
-        return name();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getToolTip() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isDefault() {
-        return this == FAIL;
+        addDialogComponent(new DialogComponentString(ProbabilityDistributionSplitterNodeModel.createSuffixModel(),
+            "Suffix for probability columns"));
+        createNewGroup("Missing Value Handling");
+        addDialogComponent(
+            new DialogComponentButtonGroup(ProbabilityDistributionSplitterNodeModel.createMissingValueHandlingModel(),
+                null, true, ExceptionHandling.values()));
     }
 
 }

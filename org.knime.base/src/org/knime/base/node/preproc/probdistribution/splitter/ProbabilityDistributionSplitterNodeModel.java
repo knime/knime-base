@@ -46,11 +46,11 @@
  * History
  *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.probdistribution.probdistributionsplitter;
+package org.knime.base.node.preproc.probdistribution.splitter;
 
 import java.util.List;
 
-import org.knime.base.node.probdistribution.ExceptionHandling;
+import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;

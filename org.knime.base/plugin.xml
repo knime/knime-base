@@ -2112,12 +2112,12 @@
       <node
             category-path="/manipulation/column/column-split+combine"
             deprecated="false"
-            factory-class="org.knime.base.node.probdistribution.probdistributioncreator.ProbabilityDistributionCreatorNodeFactory">
+            factory-class="org.knime.base.node.preproc.probdistribution.creator.ProbabilityDistributionCreatorNodeFactory">
       </node>
       <node
             category-path="/manipulation/column/column-split+combine"
             deprecated="false"
-            factory-class="org.knime.base.node.probdistribution.probdistributionsplitter.ProbabilityDistributionSplitterNodeFactory">
+            factory-class="org.knime.base.node.preproc.probdistribution.splitter.ProbabilityDistributionSplitterNodeFactory">
       </node>
    </extension>
    
