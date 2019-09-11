@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.probdistribution.creator;
 
 import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -157,64 +158,8 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         if (m_removeIncludedColumns.getBooleanValue()) {
             columnRearranger.remove(colIndices);
         }
-        columnRearranger.append(new SingleCellFactory(colSpecCreator.createSpec()) {
-
-            boolean m_hasMissing = false;
-
-            boolean m_hasInvalidDistribution = false;
-
-            @Override
-            public DataCell getCell(final DataRow row) {
-                double[] values = new double[colIndices.length];
-                int i = 0;
-                for (final int idx : colIndices) {
-                    final DataCell cell = row.getCell(idx);
-                    if (cell.isMissing()) {
-                        switch (missingValueHandling) {
-                            case FAIL:
-                                throw new IllegalArgumentException(
-                                    "The row '" + row.getKey().getString() + "' contains missing values.");
-                            case IGNORE:
-                                // set the same warning only once
-                                if (!m_hasMissing) {
-                                    setWarningMessage(
-                                        "At least one row contains a missing value. Missing values will be in the "
-                                            + "output.");
-                                    m_hasMissing = true;
-                                }
-                                return new MissingCell("Input row contains missing values.");
-                            case ZERO:
-                                // set the same warning only once
-                                if (!m_hasMissing) {
-                                    setWarningMessage(
-                                        "At least one row contains a missing value. They have been treated as zeroes.");
-                                    m_hasMissing = true;
-                                }
-                                values[i++] = 0;
-                                continue;
-                        }
-                    }
-                    values[i++] = ((DoubleValue)cell).getDoubleValue();
-                }
-                try {
-                    return ProbabilityDistributionCellFactory.createCell(values, epsilon);
-                } catch (IllegalArgumentException e) {
-                    if (invalidDistributionHandling == ExceptionHandling.FAIL) {
-                        throw new IllegalArgumentException(
-                            "The distribution of row '" + row.getKey().getString() + "' is invalid: " + e.getMessage());
-                    } else {
-                        // set the same warning only once
-                        if (!m_hasInvalidDistribution) {
-                            setWarningMessage(
-                                "The distribution of at least one row is invalid. Missing values will be in the output."
-                                    + " Hovering over the missing values display more details.");
-                            m_hasInvalidDistribution = true;
-                        }
-                        return new MissingCell(e.getMessage());
-                    }
-                }
-            }
-        });
+        columnRearranger.append(new ProbDistributionCellFactory(colSpecCreator.createSpec(), epsilon,
+            invalidDistributionHandling, colIndices, missingValueHandling));
         return columnRearranger;
     }
 
@@ -258,6 +203,87 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         m_missingValueHandling.loadSettingsFrom(settings);
         m_invalidDistributionHandling.loadSettingsFrom(settings);
         m_removeIncludedColumns.loadSettingsFrom(settings);
+    }
+
+    /**
+     * Appends a probability distribution column.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    private final class ProbDistributionCellFactory extends SingleCellFactory {
+
+        private final double m_epsilon;
+
+        private final ExceptionHandling m_invalidHandling;
+
+        private final int[] m_colIndices;
+
+        private final MissingValueHandling m_missingHandling;
+
+        boolean m_hasWarning = false;
+
+        boolean m_hasInvalidDistribution = false;
+
+        private ProbDistributionCellFactory(final DataColumnSpec newColSpec, final double epsilon,
+            final ExceptionHandling invalidDistributionHandling, final int[] colIndices,
+            final MissingValueHandling missingValueHandling) {
+            super(newColSpec);
+            m_epsilon = epsilon;
+            m_invalidHandling = invalidDistributionHandling;
+            m_colIndices = colIndices;
+            m_missingHandling = missingValueHandling;
+        }
+
+        private void setWarningIfNotSet(final String message) {
+            if (!m_hasWarning) {
+                setWarningMessage(message);
+                m_hasWarning = true;
+            }
+        }
+
+        @Override
+        public DataCell getCell(final DataRow row) {
+            double[] values = new double[m_colIndices.length];
+            int i = 0;
+            for (final int idx : m_colIndices) {
+                final DataCell cell = row.getCell(idx);
+                if (cell.isMissing()) {
+                    switch (m_missingHandling) {
+                        case FAIL:
+                            throw new IllegalArgumentException(
+                                "The row '" + row.getKey().getString() + "' contains missing values.");
+                        case IGNORE:
+                            setWarningIfNotSet(
+                                "At least one row contains a missing value. Missing values will be in the "
+                                    + "output.");
+                            return new MissingCell("Input row contains missing values.");
+                        case ZERO:
+                            setWarningIfNotSet(
+                                "At least one row contains a missing value. They have been treated as zeroes.");
+                            values[i++] = 0;
+                            continue;
+                    }
+                }
+                values[i++] = ((DoubleValue)cell).getDoubleValue();
+            }
+            try {
+                return ProbabilityDistributionCellFactory.createCell(values, m_epsilon);
+            } catch (IllegalArgumentException e) {
+                if (m_invalidHandling == ExceptionHandling.FAIL) {
+                    throw new IllegalArgumentException(
+                        "The distribution of row '" + row.getKey().getString() + "' is invalid: " + e.getMessage());
+                } else {
+                    // set the same warning only once
+                    if (!m_hasInvalidDistribution) {
+                        setWarningMessage(
+                            "The distribution of at least one row is invalid. Missing values will be in the output."
+                                + " Hovering over the missing values display more details.");
+                        m_hasInvalidDistribution = true;
+                    }
+                    return new MissingCell(e.getMessage());
+                }
+            }
+        }
     }
 
 }

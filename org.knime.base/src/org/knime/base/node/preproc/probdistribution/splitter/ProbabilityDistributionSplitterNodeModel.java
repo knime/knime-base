@@ -135,41 +135,8 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
         if (m_removeSelectedColModel.getBooleanValue()) {
             columnRearranger.remove(columnIndex);
         }
-        columnRearranger.append(new AbstractCellFactory(newSpecs) {
-
-            boolean m_hasMissing = false;
-
-            @Override
-            public DataCell[] getCells(final DataRow row) {
-                DataCell cell = row.getCell(columnIndex);
-                if (cell.isMissing()) {
-                    if (missingValueHandling == ExceptionHandling.FAIL) {
-                        throw new IllegalArgumentException(
-                            "The row '" + row.getKey().getString() + "' contains a missing value.");
-                    }
-                    if (!m_hasMissing) {
-                        setWarningMessage(
-                            "At least one row contains a missing value. Missing values will be in the " + "output.");
-                        m_hasMissing = true;
-                    }
-                    final DataCell[] newCells = new DataCell[numberClasses];
-                    for (int i = 0; i < newCells.length; i++) {
-                        newCells[i] = new MissingCell("Input row contains a missing value.");
-                    }
-                    return newCells;
-                }
-                final ProbabilityDistributionValue probDistrValue = (ProbabilityDistributionValue)cell;
-                CheckUtils.checkState(probDistrValue.size() == numberClasses,
-                    "Error in row '%s': The number of classes (%d) is not equal the number of probabilities (%d). This "
-                        + "is most likely an implementation error in one of the previous nodes.",
-                    row.getKey().getString(), numberClasses, probDistrValue.size());
-                final DataCell[] newCells = new DataCell[numberClasses];
-                for (int i = 0; i < newCells.length; i++) {
-                    newCells[i] = new DoubleCell(probDistrValue.getProbability(i));
-                }
-                return newCells;
-            }
-        });
+        columnRearranger
+            .append(new SplitProbDistributionCellFactory(newSpecs, missingValueHandling, columnIndex, numberClasses));
         return columnRearranger;
     }
 
@@ -204,6 +171,64 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
         m_removeSelectedColModel.loadSettingsFrom(settings);
         m_suffixModel.loadSettingsFrom(settings);
         m_missingValueHandling.loadSettingsFrom(settings);
+    }
+
+    /**
+     * Appends double columns extracted from a probability distribution column.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    private final class SplitProbDistributionCellFactory extends AbstractCellFactory {
+
+        private final ExceptionHandling m_missingHandling;
+
+        private final int m_columnIndex;
+
+        private final int m_numberClasses;
+
+        boolean m_hasWarning = false;
+
+        private SplitProbDistributionCellFactory(final DataColumnSpec[] colSpecs,
+            final ExceptionHandling missingValueHandling, final int columnIndex, final int numberClasses) {
+            super(colSpecs);
+            m_missingHandling = missingValueHandling;
+            m_columnIndex = columnIndex;
+            m_numberClasses = numberClasses;
+        }
+
+        private void setWarningIfNotSet(final String message) {
+            if (!m_hasWarning) {
+                setWarningMessage(message);
+                m_hasWarning = true;
+            }
+        }
+
+        @Override
+        public DataCell[] getCells(final DataRow row) {
+            DataCell cell = row.getCell(m_columnIndex);
+            if (cell.isMissing()) {
+                if (m_missingHandling == ExceptionHandling.FAIL) {
+                    throw new IllegalArgumentException(
+                        "The row '" + row.getKey().getString() + "' contains a missing value.");
+                }
+                setWarningIfNotSet("At least one row contains a missing value. Missing values will be in the output.");
+                final DataCell[] newCells = new DataCell[m_numberClasses];
+                for (int i = 0; i < newCells.length; i++) {
+                    newCells[i] = new MissingCell("Input row contains a missing value.");
+                }
+                return newCells;
+            }
+            final ProbabilityDistributionValue probDistrValue = (ProbabilityDistributionValue)cell;
+            CheckUtils.checkState(probDistrValue.size() == m_numberClasses,
+                "Error in row '%s': The number of classes (%d) is not equal the number of probabilities (%d). This "
+                    + "is most likely an implementation error in one of the previous nodes.",
+                row.getKey().getString(), m_numberClasses, probDistrValue.size());
+            final DataCell[] newCells = new DataCell[m_numberClasses];
+            for (int i = 0; i < newCells.length; i++) {
+                newCells[i] = new DoubleCell(probDistrValue.getProbability(i));
+            }
+            return newCells;
+        }
     }
 
 }
