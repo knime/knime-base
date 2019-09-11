@@ -199,8 +199,9 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         // Create the output
         exec.setMessage("Assembling output");
         ExecutionContext execFinish = exec.createSubExecutionContext(PROG_FINISH);
-        PMCCPortObjectAndSpec pmccModel =
-            new PMCCPortObjectAndSpec(includeNames, correlationResult.getCorrelationMatrix());
+        PMCCPortObjectAndSpec pmccModel = new PMCCPortObjectAndSpec(includeNames,
+            correlationResult.getCorrelationMatrix(), correlationResult.getpValMatrix(),
+            correlationResult.getDegreesOfFreedomMatrix(), selectedPValAlternative());
         BufferedDataTable out = CorrelationUtils.createCorrelationOutputTable(correlationResult, includeNames,
             execFinish.createSubExecutionContext(0.5));
         m_correlationTable = pmccModel.createCorrelationMatrix(execFinish.createSubExecutionContext(0.5));
