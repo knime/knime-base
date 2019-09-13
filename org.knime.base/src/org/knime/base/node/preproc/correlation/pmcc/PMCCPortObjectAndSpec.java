@@ -260,6 +260,7 @@ public final class PMCCPortObjectAndSpec implements PortObject, PortObjectSpec {
     /**
      * Returns a matrix with the pairwise correlation values. The entries in the
      * matrix match the entries in {@link #getColNames()}.
+     * Note that this can be <code>null</code> if {@link #hasData()} returns false.
      *
      * @return a matrix with correlation values
      */
@@ -270,6 +271,7 @@ public final class PMCCPortObjectAndSpec implements PortObject, PortObjectSpec {
     /**
      * Returns a matrix with the pairwise p-values. The entries in the matrix match the entries in
      * {@link #getColNames()}.
+     * Note that this can be <code>null</code> if {@link #hasPValues()} returns false.
      *
      * @return a matrix with p-values
      * @since 4.1
@@ -281,6 +283,7 @@ public final class PMCCPortObjectAndSpec implements PortObject, PortObjectSpec {
     /**
      * Returns a matrix with the pairwise degrees of freedom. The entries in the matrix match the entries in
      * {@link #getColNames()}.
+     * Note that this can be <code>null</code> if {@link #hasDegreesOfFreedom()} returns false.
      *
      * @return a matrix with degrees of freedom values
      * @since 4.1
