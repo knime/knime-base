@@ -47,8 +47,6 @@
  */
 package org.knime.base.node.mine.regression.logistic.learner4;
 
-import static java.lang.Math.abs;
-
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -139,7 +137,9 @@ final class IrlsLearner implements LogRegLearner {
         for(ClassificationTrainingRow row : data) {
             rowCount++;
             exec.checkCanceled();
-            exec.setProgress(rowCount / (double)totalRowCount, "Row " + rowCount + "/" + totalRowCount);
+            final long finalRowCount = rowCount;
+            exec.setProgress(rowCount / (double)totalRowCount, () -> String.format(
+                "Row %s/%s", finalRowCount, totalRowCount));
 
             for (int k = 0; k < tcC - 1; k++) {
                 double z = 0.0;
@@ -193,7 +193,6 @@ final class IrlsLearner implements LogRegLearner {
             }
 
 
-            int g = row.getCategory();
             // fill matrix xTyu
             for (FeatureIterator iter = row.getFeatureIterator(); iter.next();) {
                 int idx = iter.getFeatureIndex();
@@ -201,7 +200,7 @@ final class IrlsLearner implements LogRegLearner {
                 for (int k = 0; k < tcC - 1; k++) {
                     int o = k * (rC + 1);
                     double v = xTyu.getEntry(o + idx, 0);
-                    double y = k == g ? 1 : 0;
+                    double y = row.getProbability(k);
                     v += (y - pi[k]) * val;
                     xTyu.setEntry(o + idx, 0, v);
                 }
@@ -278,15 +277,29 @@ final class IrlsLearner implements LogRegLearner {
 
             int y = row.getCategory();
             double yBetaTx = 0;
-            if (y < tcC - 1) {
-                yBetaTx = x.multiply(beta.getSubMatrix(0, 0,
-                            y * (rC + 1), (y + 1) * (rC + 1) - 1).transpose()
-                            ).getEntry(0, 0);
+            final double logSumExp = Math.log(1 + sumEBetaTx);
+            if (row.getProbability(y) == 1.0) {
+                if (y < tcC - 1) {
+                    yBetaTx = calculateLogit(beta, rC, x, y);
+                }
+                loglike += yBetaTx - logSumExp;
+            } else {
+                // probabilistic label -> we need to loop over all categories
+                for (int i = 0; i < tcC - 1; i++) {
+                    loglike += row.getProbability(i) * (calculateLogit(beta, rC, x, i) - logSumExp);
+                }
+                loglike += row.getProbability(tcC - 1) * (-logSumExp);
             }
-            loglike += yBetaTx - Math.log(1 + sumEBetaTx);
         }
 
         return loglike;
+    }
+
+
+    private static double calculateLogit(final RealMatrix beta, final int rC, final RealMatrix x, final int y) {
+        return x.multiply(beta.getSubMatrix(0, 0,
+            y * (rC + 1), (y + 1) * (rC + 1) - 1).transpose()
+                ).getEntry(0, 0);
     }
 
     private static void fillXFromRow(final RealMatrix x, final ClassificationTrainingRow row) {
@@ -441,5 +454,10 @@ final class IrlsLearner implements LogRegLearner {
         }
         m_warning = warnBuilder.length() > 0 ? warnBuilder.toString() : null;
         return new LogRegLearnerResult(betaMat, covMat, iter, loglike);
+    }
+
+
+    private static double abs(final double d) {
+        return d < 0 ? -d : d;
     }
 }

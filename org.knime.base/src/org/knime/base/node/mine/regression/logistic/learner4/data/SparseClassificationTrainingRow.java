@@ -76,4 +76,13 @@ final class SparseClassificationTrainingRow extends AbstractSparseTrainingRow im
         return m_category;
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getProbability(final int classIdx) {
+        return classIdx == m_category ? 1.0 : 0.0;
+    }
+
 }

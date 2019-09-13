@@ -73,7 +73,16 @@ public enum MultinomialLoss implements Loss<ClassificationTrainingRow> {
         assert Double.isFinite(logSumExp);
         final int cat = row.getCategory();
         assert cat <= prediction.length;
-        return cat == prediction.length ? logSumExp : logSumExp - prediction[row.getCategory()];
+        if (row.getProbability(cat) == 1.0) {
+            return cat == prediction.length ? logSumExp : logSumExp - prediction[cat];
+        } else {
+            // the last category is the reference which means the model prediction is fixed to 0
+            double loss = row.getProbability(prediction.length) * logSumExp;
+            for (int i = 0; i < prediction.length; i++) {
+                loss += row.getProbability(i) * (logSumExp - prediction[i]);
+            }
+            return loss;
+        }
     }
 
     /**
@@ -81,13 +90,12 @@ public enum MultinomialLoss implements Loss<ClassificationTrainingRow> {
      */
     @Override
     public double[] gradient(final ClassificationTrainingRow row, final double[] prediction) {
-        double[] gradient = new double[prediction.length];
-        final int cat = row.getCategory();
-        double logSumExp = logSumExp(prediction);
+        final double[] gradient = new double[prediction.length];
+        final double logSumExp = logSumExp(prediction);
         for (int i = 0; i < prediction.length; i++) {
-            double p = Math.exp(prediction[i] - logSumExp);
+            final double p = Math.exp(prediction[i] - logSumExp);
             assert Double.isFinite(p) && p <= 1.0 && p >= 0.0;
-            gradient[i] = cat == i ? p - 1.0 : p;
+            gradient[i] = p - row.getProbability(i);
         }
         return gradient;
     }

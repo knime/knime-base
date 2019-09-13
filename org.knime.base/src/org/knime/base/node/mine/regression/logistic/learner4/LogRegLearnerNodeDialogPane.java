@@ -54,8 +54,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
@@ -78,6 +82,8 @@ import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.probability.ProbabilityDistributionValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -114,21 +120,31 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
 
     // new in version 3.4
     private JComboBox<Solver> m_solverComboBox;
+
     private JCheckBox m_lazyCalculationCheckBox;
+
     private JSpinner m_maxEpochSpinner;
+
     private JCheckBox m_calcCovMatrixCheckBox;
+
     private JTextField m_epsilonField;
 
     private JComboBox<LearningRateStrategies> m_learningRateStrategyComboBox;
+
     private JTextField m_initialLearningRateField;
 
     private JComboBox<Prior> m_priorComboBox;
+
     private JSpinner m_priorVarianceSpinner;
 
     private JCheckBox m_inMemoryCheckBox;
+
     private JCheckBox m_useSeedCheckBox;
+
     private JTextField m_seedField;
+
     private JButton m_newSeedButton;
+
     private JSpinner m_chunkSizeSpinner;
 
     /**
@@ -137,25 +153,29 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
     public LogRegLearnerNodeDialogPane() {
         super();
         // instantiate members
-        @SuppressWarnings("unchecked")
         final ColumnSelectionPanel columnSelectionPanel =
-            new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), NominalValue.class);
+            new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), NominalValue.class,
+                ProbabilityDistributionValue.class);
         m_selectionPanel = columnSelectionPanel;
 
         m_targetReferenceCategory = new JComboBox<>();
         m_filterPanel = new DataColumnSpecFilterPanel(false);
         m_notSortTarget =
-                new JCheckBox("Use order from target column domain (only relevant for output representation)");
+            new JCheckBox("Use order from target column domain (only relevant for output representation)");
         m_notSortIncludes = new JCheckBox("Use order from column domain (applies only to nominal columns). "
-                + "First value is chosen as reference for dummy variables.");
+            + "First value is chosen as reference for dummy variables.");
 
-        m_lazyCalculationCheckBox = new JCheckBox("Perform calculations lazily (more memory expensive but often faster)");
+        m_lazyCalculationCheckBox =
+            new JCheckBox("Perform calculations lazily (more memory expensive but often faster)");
         m_calcCovMatrixCheckBox = new JCheckBox("Calculate statistics for coefficients");
-        m_maxEpochSpinner = new JSpinner(new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_MAX_EPOCH, 1, Integer.MAX_VALUE, 1));
-        m_epsilonField= new JTextField(Double.toString(LogRegLearnerSettings.DEFAULT_EPSILON), NUMBER_INPUT_FIELD_COLS);
-        m_initialLearningRateField = new JTextField(Double.toString(LogRegLearnerSettings.DEFAULT_EPSILON), NUMBER_INPUT_FIELD_COLS);
-        m_priorVarianceSpinner = new JSpinner(new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_PRIOR_VARIANCE,
-            Double.MIN_VALUE, 1e3, 0.1));
+        m_maxEpochSpinner =
+            new JSpinner(new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_MAX_EPOCH, 1, Integer.MAX_VALUE, 1));
+        m_epsilonField =
+            new JTextField(Double.toString(LogRegLearnerSettings.DEFAULT_EPSILON), NUMBER_INPUT_FIELD_COLS);
+        m_initialLearningRateField =
+            new JTextField(Double.toString(LogRegLearnerSettings.DEFAULT_EPSILON), NUMBER_INPUT_FIELD_COLS);
+        m_priorVarianceSpinner = new JSpinner(
+            new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_PRIOR_VARIANCE, Double.MIN_VALUE, 1e3, 0.1));
         m_priorComboBox = new JComboBox<>(Prior.values());
         m_learningRateStrategyComboBox = new JComboBox<>(LearningRateStrategies.values());
         m_solverComboBox = new JComboBox<>(Solver.values());
@@ -164,7 +184,8 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
         m_useSeedCheckBox = new JCheckBox("Use seed");
         m_seedField = new JTextField(NUMBER_INPUT_FIELD_COLS);
         m_newSeedButton = new JButton("New");
-        m_chunkSizeSpinner = new JSpinner(new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_CHUNK_SIZE, 1, Integer.MAX_VALUE, 1000));
+        m_chunkSizeSpinner =
+            new JSpinner(new SpinnerNumberModel(LogRegLearnerSettings.DEFAULT_CHUNK_SIZE, 1, Integer.MAX_VALUE, 1000));
 
         // register listeners
         m_selectionPanel.addActionListener(new ActionListener() {
@@ -213,7 +234,8 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
 
             @Override
             public void itemStateChanged(final ItemEvent e) {
-                LearningRateStrategies selected = (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
+                LearningRateStrategies selected =
+                    (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
                 enforceLRSCompatibilities(selected);
             }
 
@@ -263,7 +285,8 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
             ComboBoxModel<Prior> oldPriorModel = m_priorComboBox.getModel();
             EnumSet<Prior> compatiblePriors = solver.getCompatiblePriors();
             Prior oldSelectedPrior = (Prior)oldPriorModel.getSelectedItem();
-            m_priorComboBox.setModel(new DefaultComboBoxModel<>(compatiblePriors.toArray(new Prior[compatiblePriors.size()])));
+            m_priorComboBox
+                .setModel(new DefaultComboBoxModel<>(compatiblePriors.toArray(new Prior[compatiblePriors.size()])));
             Prior newSelectedPrior;
             if (compatiblePriors.contains(oldSelectedPrior)) {
                 m_priorComboBox.setSelectedItem(oldSelectedPrior);
@@ -274,11 +297,13 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
             }
             enforcePriorCompatibilities(newSelectedPrior);
 
-            LearningRateStrategies oldSelectedLRS = (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
+            LearningRateStrategies oldSelectedLRS =
+                (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
             EnumSet<LearningRateStrategies> compatibleLRS = solver.getCompatibleLearningRateStrategies();
-            m_learningRateStrategyComboBox.setModel(new DefaultComboBoxModel<>(
-                    compatibleLRS.toArray(new LearningRateStrategies[compatibleLRS.size()])));
-            LearningRateStrategies newSelectedLRS = (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
+            m_learningRateStrategyComboBox.setModel(
+                new DefaultComboBoxModel<>(compatibleLRS.toArray(new LearningRateStrategies[compatibleLRS.size()])));
+            LearningRateStrategies newSelectedLRS =
+                (LearningRateStrategies)m_learningRateStrategyComboBox.getSelectedItem();
             if (compatibleLRS.contains(oldSelectedLRS)) {
                 m_learningRateStrategyComboBox.setSelectedItem(oldSelectedLRS);
                 newSelectedLRS = oldSelectedLRS;
@@ -518,7 +543,6 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
         c.anchor = GridBagConstraints.BASELINE_LEADING;
         c.insets = new Insets(5, 5, 0, 0);
 
-
         p.add(m_filterPanel, c);
 
         c.gridy++;
@@ -541,9 +565,9 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
                 // select last as default
                 DataCell newSelectedItem = null;
                 DataCell lastItem = null;
-                final DataColumnDomain domain = colSpec.getDomain();
-                if (domain.hasValues()) {
-                    for (DataCell cell : domain.getValues()) {
+                final Collection<DataCell> values = getValues(colSpec);
+                if (!values.isEmpty()) {
+                    for (DataCell cell : values) {
                         m_targetReferenceCategory.addItem(cell);
                         lastItem = cell;
                         if (cell.equals(selectedItem)) {
@@ -558,6 +582,17 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
             }
         }
         m_targetReferenceCategory.setEnabled(m_targetReferenceCategory.getModel().getSize() > 0);
+    }
+
+    private static Collection<DataCell> getValues(final DataColumnSpec targetSpec) {
+        if (targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
+            final List<String> elementNames = targetSpec.getElementNames();
+            return elementNames.isEmpty() ? Collections.emptyList()
+                : elementNames.stream().map(StringCell::new).collect(Collectors.toList());
+        } else {
+            final DataColumnDomain domain = targetSpec.getDomain();
+            return domain.hasValues() ? domain.getValues() : Collections.emptyList();
+        }
     }
 
     /**

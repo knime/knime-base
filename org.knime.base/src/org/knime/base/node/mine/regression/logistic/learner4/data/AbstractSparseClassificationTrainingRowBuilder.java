@@ -44,27 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15.02.2017 (Adrian Nembach): created
+ *   Aug 30, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
+
 /**
- * Represents a row of the training data for classification problems.
  *
- * @author Adrian Nembach, KNIME.com
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface ClassificationTrainingRow extends TrainingRow {
+abstract class AbstractSparseClassificationTrainingRowBuilder <T extends DataValue>
+    extends AbstractTrainingRowBuilder<ClassificationTrainingRow> {
+
+    private final int m_targetIdx;
+
+    private final Class<T> m_expectedType;
+
+    AbstractSparseClassificationTrainingRowBuilder(final BufferedDataTable data,
+        final PMMLPortObjectSpec pmmlSpec, final boolean sortFactorsCategories, final Class<T> expectedType) {
+        super(data, pmmlSpec, sortFactorsCategories);
+        final DataColumnSpec targetSpec = pmmlSpec.getTargetCols().get(0);
+        m_expectedType = expectedType;
+        m_targetIdx = data.getDataTableSpec().findColumnIndex(targetSpec.getName());
+    }
 
     /**
-     * Returns the category of this row.
-     *
-     * @return the category of this row
+     * {@inheritDoc}
      */
-    public int getCategory();
+    @Override
+    protected final ClassificationTrainingRow createTrainingRow(final DataRow row, final int[] nonZeroFeatures,
+        final float[] values, final int id) {
+        final DataCell targetCell = row.getCell(m_targetIdx);
+        final DataType type = targetCell.getType();
+        CheckUtils.checkArgument(type.isCompatible(m_expectedType),
+            "The DataCell %s is not of the expected type %s.", targetCell.toString(),
+            m_expectedType.getSimpleName());
+        @SuppressWarnings("unchecked") // explicitly checked above
+        final T targetValue = (T)targetCell;
 
-    /**
-     * @param classIdx index of the class
-     * @return the probability of this row being of the class at index <b>classIdx</b>
-     */
-    public double getProbability(final int classIdx);
+        CheckUtils.checkState(!targetCell.isMissing(), "The target column contains missing values in row with ID "
+            + "\"%s\"; consider to use \"Missing Value\" node to fix it.", row.getKey().toString());
+        return create(values, nonZeroFeatures, id, targetValue);
+    }
+
+    protected abstract ClassificationTrainingRow create(final float[] values, final int[] nonZeroFeatures, final int id,
+        final T targetCell);
+
 }

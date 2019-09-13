@@ -44,27 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15.02.2017 (Adrian Nembach): created
+ *   Aug 30, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
 /**
- * Represents a row of the training data for classification problems.
  *
- * @author Adrian Nembach, KNIME.com
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface ClassificationTrainingRow extends TrainingRow {
+final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseTrainingRow
+    implements ClassificationTrainingRow {
+
+    private final double[] m_probabilities;
+
+    protected SparseProbabilisticClassificationTrainingRow(final float[] values, final int[] indices, final int id,
+        final double[] probabilities) {
+        super(values, indices, id);
+        m_probabilities = probabilities;
+    }
 
     /**
-     * Returns the category of this row.
-     *
-     * @return the category of this row
+     * {@inheritDoc}
      */
-    public int getCategory();
+    @Override
+    public int getCategory() {
+        double max = Double.NEGATIVE_INFINITY;
+        int category = -1;
+        for (int i = 0; i < m_probabilities.length; i++) {
+            final double p = m_probabilities[i];
+            if (p > max) {
+                max = p;
+                category = i;
+            }
+        }
+        return category;
+    }
 
     /**
-     * @param classIdx index of the class
-     * @return the probability of this row being of the class at index <b>classIdx</b>
+     * {@inheritDoc}
      */
-    public double getProbability(final int classIdx);
+    @Override
+    public double getProbability(final int classIdx) {
+        return m_probabilities[classIdx];
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
  * ------------------------------------------------------------------------
  *
-f *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -44,72 +44,64 @@ f *  Copyright by KNIME AG, Zurich, Switzerland
  * ---------------------------------------------------------------------
  *
  * History
- *   23.05.2017 (Adrian Nembach): created
+ *   Aug 30, 2019 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.NominalValue;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.probability.ProbabilityDistributionValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Builder object that creates sparse {@link ClassificationTrainingRow}s.
  *
- * @author Adrian Nembach, KNIME.com
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class SparseClassificationTrainingRowBuilder
-    extends AbstractSparseClassificationTrainingRowBuilder<NominalValue> {
+public final class SparseProbabilisticTrainingRowBuilder
+    extends AbstractSparseClassificationTrainingRowBuilder<ProbabilityDistributionValue> {
 
-    private final Map<DataCell, Integer> m_targetDomain;
+    private final Map<String, Integer> m_classIdxMap = new HashMap<>();
 
     /**
-     * @param data the {@link BufferedDataTable} containing the data to learn on
-     * @param pmmlSpec the spec of the PMML portobject
-     * @param targetReferenceCategory the category for which the probability is not modeled explicitly
-     * @param sortTargetCategories flag that indicates whether the target categories should be sorted lexicographically
-     * @param sortFactorsCategories flag that indicates whether factor (nominal) features should be sorted
-     *            lexicographically
-     * @throws InvalidSettingsException if the provided settings are invalid or inconsistent
+     * @param data
+     * @param pmmlSpec
+     * @param targetReferenceCategory
+     * @param sortTargetCategories
+     * @param sortFactorsCategories
+     * @param targetSpec the spec of the target column
+     * @throws InvalidSettingsException
      */
-    public SparseClassificationTrainingRowBuilder(final BufferedDataTable data, final PMMLPortObjectSpec pmmlSpec,
-        final DataCell targetReferenceCategory, final boolean sortTargetCategories, final boolean sortFactorsCategories)
-        throws InvalidSettingsException {
-        super(data, pmmlSpec, sortFactorsCategories, NominalValue.class);
-        final DataColumnSpec targetSpec = pmmlSpec.getTargetCols().get(0);
-        List<DataCell> valueList = new ArrayList<>();
-        final DataColumnDomain domain = targetSpec.getDomain();
-        final Set<DataCell> possibleClasses = domain.getValues();
-        if (possibleClasses == null) {
-            throw new IllegalStateException("Calculate the possible values of " + targetSpec.getName());
-        }
-        valueList.addAll(possibleClasses);
+    public SparseProbabilisticTrainingRowBuilder(final BufferedDataTable data, final PMMLPortObjectSpec pmmlSpec,
+        final DataCell targetReferenceCategory, final boolean sortTargetCategories, final boolean sortFactorsCategories,
+        final DataColumnSpec targetSpec) throws InvalidSettingsException {
+        super(data, pmmlSpec, sortFactorsCategories, ProbabilityDistributionValue.class);
+        final List<String> elementNames = targetSpec.getElementNames();
+        CheckUtils.checkArgument(elementNames != null && !elementNames.isEmpty(),
+            "A probability distribution column must always specify its classes.");
+        @SuppressWarnings("null") // explicitly checked above
+        final List<DataCell> classes = elementNames.stream().map(StringCell::new).collect(Collectors.toList());
         if (sortTargetCategories) {
-            Collections.sort(valueList, targetSpec.getType().getComparator());
+            Collections.sort(classes, StringCell.TYPE.getComparator());
         }
-        final HashMap<DataCell, Integer> valueMap = new HashMap<>();
-        valueList.forEach(c -> valueMap.put(c, valueMap.size()));
         if (targetReferenceCategory != null) {
             // targetReferenceCategory must be the last element
-            Integer removed = valueMap.remove(targetReferenceCategory);
-            if (removed == null) {
-                throw new InvalidSettingsException("The target reference category (\"" + targetReferenceCategory
-                    + "\") is not found in the target column");
-            }
-            valueList.add(targetReferenceCategory);
+            boolean removed = classes.remove(targetReferenceCategory);
+            CheckUtils.checkSetting(removed, "The target reference category (\"%s\") is not found in the target column",
+                targetReferenceCategory);
+            classes.add(targetReferenceCategory);
         }
-        m_targetDomain = valueMap;
-
+        classes.stream().map(c -> ((StringCell)c).getStringValue())
+            .forEachOrdered(c -> m_classIdxMap.put(c, m_classIdxMap.size()));
     }
 
     /**
@@ -117,7 +109,7 @@ public final class SparseClassificationTrainingRowBuilder
      */
     @Override
     public int getTargetDimension() {
-        return m_targetDomain.size() - 1;
+        return m_classIdxMap.size() - 1;
     }
 
     /**
@@ -125,15 +117,14 @@ public final class SparseClassificationTrainingRowBuilder
      */
     @Override
     protected ClassificationTrainingRow create(final float[] values, final int[] nonZeroFeatures, final int id,
-        final NominalValue targetCell) {
-        @SuppressWarnings("unlikely-arg-type") // targetCell is actually a cell
-        final Integer target = m_targetDomain.get(targetCell);
-        if (target == null) {
-            throw new IllegalStateException(
-                "DataCell \"" + targetCell.toString() + "\" is not in the DataColumnDomain of target column. "
-                    + "Please apply a " + "Domain Calculator on the target column.");
+        final ProbabilityDistributionValue targetValue) {
+        CheckUtils.checkArgument(targetValue.size() <= m_classIdxMap.size(),
+            "Probability distribution with more than the expected number of classes encountered.");
+        final double[] probabilities = new double[m_classIdxMap.size()];
+        for (int i = 0; i < targetValue.size(); i++) {
+            probabilities[i] = targetValue.getProbability(i);
         }
-        return new SparseClassificationTrainingRow(values, nonZeroFeatures, id, target.intValue());
+        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, probabilities);
     }
 
 }

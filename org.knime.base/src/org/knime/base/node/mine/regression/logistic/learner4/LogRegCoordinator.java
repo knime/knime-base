@@ -59,6 +59,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -68,11 +69,13 @@ import org.knime.base.node.mine.regression.logistic.learner4.data.Classification
 import org.knime.base.node.mine.regression.logistic.learner4.data.DataTableTrainingData;
 import org.knime.base.node.mine.regression.logistic.learner4.data.InMemoryData;
 import org.knime.base.node.mine.regression.logistic.learner4.data.SparseClassificationTrainingRowBuilder;
+import org.knime.base.node.mine.regression.logistic.learner4.data.SparseProbabilisticTrainingRowBuilder;
 import org.knime.base.node.mine.regression.logistic.learner4.data.TrainingData;
 import org.knime.base.node.mine.regression.logistic.learner4.data.TrainingRowBuilder;
 import org.knime.base.node.mine.regression.logistic.learner4.sg.SagLogRegLearner;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
+import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -85,6 +88,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.probability.ProbabilityDistributionValue;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.core.node.BufferedDataTable;
@@ -113,6 +117,7 @@ class LogRegCoordinator {
     private String m_warning;
     private PMMLPortObjectSpec m_pmmlOutSpec;
     private List<DataColumnSpec> m_specialColumns;
+    private DataColumnSpec m_targetSpec;
 
     LogRegCoordinator(final DataTableSpec tableSpec, final LogRegLearnerSettings settings) throws InvalidSettingsException {
         m_settings = settings;
@@ -179,8 +184,7 @@ class LogRegCoordinator {
         exec.setMessage("Building logistic regression model");
         ExecutionMonitor trainExec = exec.createSubProgress(1.0 - calcDomainTime);
         LogRegLearnerResult result;
-        TrainingRowBuilder<ClassificationTrainingRow> rowBuilder = new SparseClassificationTrainingRowBuilder(dataTable, m_pmmlOutSpec,
-            m_settings.getTargetReferenceCategory(), m_settings.getSortTargetCategories(), m_settings.getSortIncludesCategories());
+        TrainingRowBuilder<ClassificationTrainingRow> rowBuilder = createRowBuilder(dataTable);
         TrainingData<ClassificationTrainingRow> data;
         Long seed = m_settings.getSeed();
         if (m_settings.isInMemory()) {
@@ -196,6 +200,19 @@ class LogRegCoordinator {
 
         addToWarning(learner.getWarningMessage());
         return content;
+    }
+
+    private TrainingRowBuilder<ClassificationTrainingRow> createRowBuilder(final BufferedDataTable dataTable)
+            throws InvalidSettingsException {
+        if (m_targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
+            return new SparseProbabilisticTrainingRowBuilder(dataTable, m_pmmlOutSpec,
+                m_settings.getTargetReferenceCategory(), m_settings.getSortTargetCategories(),
+                m_settings.getSortIncludesCategories(), m_targetSpec);
+        } else {
+            return new SparseClassificationTrainingRowBuilder(dataTable, m_pmmlOutSpec,
+                m_settings.getTargetReferenceCategory(), m_settings.getSortTargetCategories(),
+                m_settings.getSortIncludesCategories());
+        }
     }
 
     private void addToWarning(final String warningMsg) {
@@ -255,7 +272,8 @@ class LogRegCoordinator {
                 DataColumnSpec colSpec = inSpec.getColumnSpec(i);
                 String colName = colSpec.getName();
                 inputCols.remove(colName);
-                if (colSpec.getType().isCompatible(NominalValue.class)) {
+                final DataType type = colSpec.getType();
+                if (type.isCompatible(NominalValue.class) || type.isCompatible(ProbabilityDistributionValue.class)) {
                     m_settings.setTargetColumn(colName);
                 }
             }
@@ -274,7 +292,7 @@ class LogRegCoordinator {
             String colName = colSpec.getName();
             final DataType type = colSpec.getType();
             if (m_settings.getTargetColumn().equals(colName)) {
-                if (type.isCompatible(NominalValue.class)) {
+                if (type.isCompatible(NominalValue.class) || type.isCompatible(ProbabilityDistributionValue.class)) {
                     targetColSpec = colSpec;
                 } else {
                     throw new InvalidSettingsException("Type of column \"" + colName + "\" is not nominal.");
@@ -295,6 +313,7 @@ class LogRegCoordinator {
         }
 
         if (null != targetColSpec) {
+            m_targetSpec = targetColSpec;
             // Check if target has at least two categories.
             final Set<DataCell> targetValues = targetColSpec.getDomain().getValues();
             if (targetValues != null && targetValues.size() < 2) {
@@ -317,22 +336,43 @@ class LogRegCoordinator {
                     colSpecCreator.setProperties(new DataColumnProperties(Collections.singletonMap("realType",
                         type.isCompatible(BitVectorValue.class) ? "BitVector" : "ByteVector")));
                     updatedSpecs[i] = colSpecCreator.createSpec();
+                } else if (columnSpec.getName().equals(targetColSpec.getName())) {
+                    updatedSpecs[i] = prepareTargetColumnSpecForPMML(targetColSpec);
                 } else {
                     updatedSpecs[i] = columnSpec;
                 }
             }
             DataTableSpec updated = new DataTableSpec(updatedSpecs);
             PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(updated);
-            creator.setTargetCols(Arrays.asList(targetColSpec));
+            creator.setTargetCols(Arrays.asList(updated.getColumnSpec(targetColSpec.getName())));
             creator.setLearningCols(regressorColSpecs);
-            //            creator.addPreprocColNames(m_specialColumns.stream().flatMap(spec -> ));
             m_pmmlOutSpec = creator.createSpec();
         } else {
-            throw new InvalidSettingsException("The target is " + "not in the input.");
+            throw new InvalidSettingsException("The target is not in the input.");
         }
     }
 
-    private LogisticRegressionContent createContentFromLearnerResult(final LogRegLearnerResult result, final TrainingRowBuilder<ClassificationTrainingRow> rowBuilder,
+    private static DataColumnSpec prepareTargetColumnSpecForPMML(final DataColumnSpec targetColSpec) {
+        final DataType type = targetColSpec.getType();
+        if (type.isCompatible(NominalValue.class)) {
+            return targetColSpec;
+        } else if (type.isCompatible(ProbabilityDistributionValue.class)) {
+            return convertProbDistrSpecToStringSpec(targetColSpec);
+        } else {
+            throw new IllegalStateException("Unsupported target type " + type);
+        }
+    }
+
+    private static DataColumnSpec convertProbDistrSpecToStringSpec(final DataColumnSpec targetColSpec) {
+        final DataColumnSpecCreator creator = new DataColumnSpecCreator(targetColSpec.getName(), StringCell.TYPE);
+        final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator(targetColSpec.getElementNames()
+            .stream().map(StringCell::new).collect(Collectors.toSet()));
+        creator.setDomain(domainCreator.createDomain());
+        return creator.createSpec();
+    }
+
+    private LogisticRegressionContent createContentFromLearnerResult(final LogRegLearnerResult result,
+    		final TrainingRowBuilder<ClassificationTrainingRow> rowBuilder,
         final DataTableSpec tableSpec) {
         List<String> factorList = new ArrayList<String>();
         List<String> covariateList = new ArrayList<String>();
@@ -350,7 +390,8 @@ class LogRegCoordinator {
                 List<DataCell> values = nominalDomainValues.get(i);
                 factorDomainValues.put(factor, values);
             } else {
-                if (columnSpec.getType().isCompatible(BitVectorValue.class) || columnSpec.getType().isCompatible(ByteVectorValue.class) ) {
+                if (columnSpec.getType().isCompatible(BitVectorValue.class) ||
+                		columnSpec.getType().isCompatible(ByteVectorValue.class) ) {
                     int length = vectorLengths.getOrDefault(i, 0).intValue();
                     for (int j = 0; j < length; ++j) {
                         covariateList.add(columnSpec.getName() + "[" + j + "]");
@@ -450,11 +491,7 @@ class LogRegCoordinator {
         domainCreator.updateDomain(data, exec);
 
         DataTableSpec spec = domainCreator.createSpec();
-        CheckUtils
-            .checkSetting(spec.getColumnSpec(targetCol).getDomain().hasValues(),
-                "Target column '%s' has too many"
-                    + " unique values - consider to use domain calucator node before to enforce calculation",
-            targetCol);
+        checkTargetIsValid(spec.getColumnSpec(targetCol));
         BufferedDataTable newDataTable = exec.createSpecReplacerTable(data, spec);
         // bug fix 5580 - ignore columns with too many different values
         Set<String> columnWithTooManyDomainValues = new LinkedHashSet<>();
@@ -477,6 +514,21 @@ class LogRegCoordinator {
         // initialize m_learner so that it has the correct DataTableSpec of the input
         init(newDataTable.getDataTableSpec(), columnWithTooManyDomainValues);
         return newDataTable;
+    }
+
+    private static void checkTargetIsValid(final DataColumnSpec targetSpec)
+        throws InvalidSettingsException {
+        if (targetSpec.getType().isCompatible(NominalValue.class)) {
+            CheckUtils
+            .checkSetting(targetSpec.getDomain().hasValues(),
+                "Target column '%s' has too many"
+                        + " unique values - consider to use domain calucator node before to enforce calculation",
+                        targetSpec.getName());
+        } else if (targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
+            // nothing to check
+        } else {
+            throw new IllegalStateException("Unknown target type " + targetSpec.getType());
+        }
     }
 
 
