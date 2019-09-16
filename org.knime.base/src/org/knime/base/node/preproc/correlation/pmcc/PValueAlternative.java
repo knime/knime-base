@@ -57,13 +57,13 @@ import java.util.Arrays;
 public enum PValueAlternative {
 
         /** two sided p-value */
-        TWO_SIDED("two sided"),
+        TWO_SIDED("two-sided"),
 
-        /** Positive association */
-        GREATER("greater"),
+        /** Positive association: One-sided (right) */
+        GREATER("one-sided (right)"),
 
-        /** Negative association */
-        LESS("less");
+        /** Negative association: One-sided (left) */
+        LESS("one-sided (left)");
 
     private final String m_desc;
 

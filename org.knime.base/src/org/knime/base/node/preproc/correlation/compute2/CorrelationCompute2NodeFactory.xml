@@ -36,8 +36,9 @@
 				highly dependent on each other, though).
 				<br />
 				The p-value for these columns indicates the probability of an
-				uncorrelated system producing a values with a correlation at least
-				as extreme.
+				uncorrelated system producing a correlation at least
+				as extreme, if the mean of the correlation is zero and it
+				follows a t-distribution with <i>df</i> degrees of freedom.
 				<br />
 				<tt>nominal &lt;-&gt; nominal</tt>:
 				<a href="http://en.wikipedia.org/wiki/Pearson%27s_chi-square_test">
@@ -51,7 +52,9 @@
 			    specified in the dialog (default 50), the correlation will not
 			    be computed.
                 <br />
-                The p-values for these columns are the p-values of a Chi-square test
+                The p-value for these columns indicates the probability of
+                independent variables showing as extreme level of dependence.
+                The value is the same as for a chi-square test
                 of independence of variables in a contingency table.
                 <br />
 				Correlation measures for other pairs of columns are not
@@ -118,8 +121,23 @@
 			</option>
 			<option name="p-value">
 				Select which p-value should be computed for Pearson's product-moment
-				coefficient. "greater" corresponds to a positive association, "less"
-				to a negative association.
+				coefficient.
+				<ul>
+					<li>
+						"two-sided" corresponds to the probability of obtaining a
+						correlation value that is at least as extreme as the observed
+						correlation.
+					</li>
+					<li>
+						"one-sided (right)" corresponds to the probability of obtaining a
+						correlation value that shows even greater <b>positive</b> association.
+					</li>
+					<li>
+						"one-sided (left)" corresponds to the probability of obtaining a
+						correlation value that shows even greater <b>negative</b> association.
+					</li>
+				</ul>
+				Note that the p-value for Pearson's chi square test is always one-sided.
 			</option>
 		</tab>
 	</fullDescription>
