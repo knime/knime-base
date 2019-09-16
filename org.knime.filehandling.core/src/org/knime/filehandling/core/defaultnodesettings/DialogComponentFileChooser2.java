@@ -345,6 +345,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 final Optional<FSConnection> connection = FSConnectionRegistry.getInstance().retrieve(key.get());
                 if (connection.isPresent()) {
                     m_fileHistoryPanel.setFileSystemBrowser(connection.get().getFileSystemBrowser());
+                    m_fileHistoryPanel.setBrowseable(true);
+                } else {
+                    m_fileHistoryPanel.setBrowseable(false);
                 }
             }
         } else {

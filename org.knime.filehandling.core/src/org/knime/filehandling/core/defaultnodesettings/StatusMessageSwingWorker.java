@@ -129,7 +129,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         final FileChooserHelper helper;
         try {
             helper = new FileChooserHelper(m_connectionFlowVariableProvider, m_settingsModel);
-        } catch (IOException e) {
+        } catch (Exception e) {
             final String msg = "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(e, true);
             LOGGER.debug(msg, e);
             return mkError(msg);
