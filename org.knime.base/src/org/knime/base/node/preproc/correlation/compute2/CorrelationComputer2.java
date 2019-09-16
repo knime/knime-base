@@ -493,7 +493,12 @@ public final class CorrelationComputer2 {
                 double t = nominatorMatrix.get(tableI, tableJ);
                 if (!Double.isNaN(t)) {
                     int validCount = m_numericValidCountMatrix.get(i, j);
-                    nominatorMatrix.set(tableI, tableJ, t / (validCount - 1));
+                    t /= validCount - 1;
+                    if (t > 1) {
+                        // Numeric instability
+                        t = 1;
+                    }
+                    nominatorMatrix.set(tableI, tableJ, t);
                 }
             }
         }
@@ -525,16 +530,12 @@ public final class CorrelationComputer2 {
     /** Calculates the requested p-value for a Pearson correlation coefficient */
     private static double calculatePearsonPValue(final PValueAlternative pValueAlternative, final double r,
         final int dof) {
-        if (dof > 0) {
-            if (!Double.isNaN(r)) {
+        if (dof > 0 && !Double.isNaN(r)) {
                 // Compute the p value if we could compute the correlation
                 final double stat = Math.sqrt(dof) * r / Math.sqrt(1 - r * r);
                 final double cp = new TDistribution(null, dof).cumulativeProbability(stat);
 
                 return getPearsonPValueForAlternative(pValueAlternative, cp);
-            } else {
-                return 1;
-            }
         } else {
             return Double.NaN;
         }
@@ -649,15 +650,12 @@ public final class CorrelationComputer2 {
      * @return cramer's V
      */
     private static Triple<Double, Double, Integer> computeCramersV(final int[][] contingency) {
-        if (contingency == null || contingency.length == 0) {
+        if (contingency == null || contingency.length <= 1 || contingency[0].length <= 1) {
             return new ImmutableTriple<>(Double.NaN, Double.NaN, 0);
         }
         final int rows = contingency.length;
         final int cols = contingency[0].length;
         final int dof = (rows - 1) * (cols - 1);
-        if (rows <= 1 || cols <= 1) {
-            return new ImmutableTriple<>(Double.NaN, 1.0, dof);
-        }
         double[] rowSums = new double[rows];
         double[] colSums = new double[cols];
         double totalSum = 0.0;
@@ -683,10 +681,14 @@ public final class CorrelationComputer2 {
             }
         }
         final int minValueCount = Math.min(rowSums.length, colSums.length) - 1;
-        final double cramersV = Math.sqrt(chisquare / (totalSum * minValueCount));
+        double cramersV = Math.sqrt(chisquare / (totalSum * minValueCount));
         // NOTE: This is correct but introduces numerical instabilities:
         // The value is almost 1 and double cannot represent this as well as something close to zero
         // scipy uses the survival function but there is no Java implementation for it available
+        if (cramersV > 1) {
+            // Numeric instability
+            cramersV = 1;
+        }
         final double pVal = 1.0 - new ChiSquaredDistribution((rows - 1) * (cols - 1)).cumulativeProbability(chisquare);
         return new ImmutableTriple<>(cramersV, pVal, dof);
     }
