@@ -6,6 +6,7 @@ Bundle-Version: 4.1.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.connections.attributes,
+ org.knime.filehandling.core.connections.base.attributes,
  org.knime.filehandling.core.defaultnodesettings,
  org.knime.filehandling.core.filechooser
 Require-Bundle: org.apache.commons.lang3,

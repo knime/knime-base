@@ -57,20 +57,20 @@ import java.nio.file.attribute.FileTime;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class FSBasicFileAttributeView implements BasicFileAttributeView {
+public class FSBasicFileAttributeView implements BasicFileAttributeView {
 
     private final String m_name;
 
-    private final FSFileAttributes m_attributes;
+    private final BasicFileAttributes m_attributes;
 
     /**
      * Constructs a file attribute view
      * @param name the name of the attribute view
-     * @param attribute the fileAttributes
+     * @param attributes the fileAttributes
      */
-    public FSBasicFileAttributeView(final String name, final FSFileAttributes attribute) {
+    public FSBasicFileAttributeView(final String name, final BasicFileAttributes attributes) {
         m_name = name;
-        m_attributes = attribute;
+        m_attributes = attributes;
     }
 
     /**
