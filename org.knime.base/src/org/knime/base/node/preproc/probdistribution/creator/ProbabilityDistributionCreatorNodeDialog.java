@@ -48,50 +48,216 @@
  */
 package org.knime.base.node.preproc.probdistribution.creator;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+
 import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.NominalValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 
 /**
  * Node dialog of the node that creates probability distributions of probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionCreatorNodeDialog extends DefaultNodeSettingsPane {
+final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
+
+    //Button Group for picking between numeric and string column
+    private final DialogComponentButtonGroup m_columnType = new DialogComponentButtonGroup(
+        ProbabilityDistributionCreatorNodeModel.createColumnTypeModel(), null, true, ColumnType.values());
+
+    //Numeric
+    private final DialogComponentColumnFilter2 m_numericColumnFilter =
+        new DialogComponentColumnFilter2(ProbabilityDistributionCreatorNodeModel.createColumnFilterModel(), 0);
+
+    private final DialogComponentBoolean m_sumUpProbabilities =
+        new DialogComponentBoolean(ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel(),
+            "Allow probabilities that sum up to 1 imprecisely");
+
+    private final DialogComponentNumber m_precisionModel = new DialogComponentNumber(
+        ProbabilityDistributionCreatorNodeModel
+            .createPrecisionModel(ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel()),
+        "Precision (number of decimal digits)", 1);
+
+    private final DialogComponentButtonGroup m_invalidHandling =
+        new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createInvalidDistributionHandlingModel(),
+            null, true, ExceptionHandling.values());
+
+    //Strings
+    @SuppressWarnings("unchecked")
+    private final DialogComponentColumnNameSelection m_stringColumnSelection =
+        new DialogComponentColumnNameSelection(ProbabilityDistributionCreatorNodeModel.createStringFilterModel(),
+            "Create probability distribution from string column:", 0, false, NominalValue.class);
+
+    // General Options
+    private final DialogComponentString m_outputName = new DialogComponentString(
+        ProbabilityDistributionCreatorNodeModel.createColumnNameModel(), "Output column name", true, 20);
+
+    private final DialogComponentBoolean m_includeColumns = new DialogComponentBoolean(
+        ProbabilityDistributionCreatorNodeModel.createRemoveIncludedColsBooleanModel(), "Remove included columns");
+
+    private final DialogComponentButtonGroup m_missingValueHandling =
+        new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createMissingValueHandlingModel(), null,
+            true, MissingValueHandling.values());
 
     public ProbabilityDistributionCreatorNodeDialog() {
-        addDialogComponent(new DialogComponentString(ProbabilityDistributionCreatorNodeModel.createColumnNameModel(),
-            "Output column name", true, 20));
+        super();
+        m_columnType.getModel().addChangeListener(e -> updateColumnType());
+        JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        panel.add(createNumericColumnPanel(), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createStringColumnPanel(), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createGeneralOptionPanel(), c);
+        addTab("Default Settings", panel);
 
-        addDialogComponent(
-            new DialogComponentColumnFilter2(ProbabilityDistributionCreatorNodeModel.createColumnFilterModel(), 0));
+    }
 
-        addDialogComponent(new DialogComponentBoolean(
-            ProbabilityDistributionCreatorNodeModel.createRemoveIncludedColsBooleanModel(), "Remove included columns"));
+    private void updateColumnType() {
+        final boolean isNumeric = m_columnType.getButton(ColumnType.NUMERIC_COLUMN.getActionCommand()).isSelected();
+        m_numericColumnFilter.getModel().setEnabled(isNumeric);
+        m_sumUpProbabilities.getModel().setEnabled(isNumeric);
+        m_precisionModel.getModel().setEnabled(isNumeric);
+        m_invalidHandling.getModel().setEnabled(isNumeric);
+        m_stringColumnSelection.getModel().setEnabled(!isNumeric);
+    }
 
-        createNewGroup("Precision");
-        final SettingsModelBoolean precisionBooleanModel =
-            ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel();
-        addDialogComponent(
-            new DialogComponentBoolean(precisionBooleanModel, "Allow probabilities that sum up to 1 imprecisely"));
+    private JPanel createNumericColumnPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Numeric Columns"));
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        panel.add(m_columnType.getButton(ColumnType.NUMERIC_COLUMN.getActionCommand()), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(m_numericColumnFilter.getComponentPanel(), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createPrecisionPanel(), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        JPanel invalidHandling = m_invalidHandling.getComponentPanel();
+        invalidHandling.setBorder(BorderFactory.createTitledBorder("Invalid Probability Distribution Handling"));
+        panel.add(invalidHandling, c);
+        return panel;
+    }
 
-        addDialogComponent(new DialogComponentNumber(
-            ProbabilityDistributionCreatorNodeModel.createPrecisionModel(precisionBooleanModel),
-            "Precision (number of decimal digits)", 1));
+    private JPanel createPrecisionPanel() {
+        final JPanel precisionPanel = new JPanel();
+        precisionPanel.setLayout(new BoxLayout(precisionPanel, BoxLayout.PAGE_AXIS));
+        precisionPanel.setBorder(BorderFactory.createTitledBorder("Precision"));
+        precisionPanel.add(m_sumUpProbabilities.getComponentPanel());
+        precisionPanel.add(m_precisionModel.getComponentPanel());
+        return precisionPanel;
+    }
 
-        createNewGroup("Missing Value Handling");
-        addDialogComponent(
-            new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createMissingValueHandlingModel(),
-                null, true, MissingValueHandling.values()));
+    private JPanel createStringColumnPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("String Columns"));
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.weightx = 1;
+        panel.add(m_columnType.getButton(ColumnType.STRING_COLUMN.getActionCommand()), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        m_stringColumnSelection.getModel().setEnabled(false);
+        panel.add(m_stringColumnSelection.getComponentPanel(), c);
+        return panel;
+    }
 
-        createNewGroup("Invalid Probability Distribution Handling");
-        addDialogComponent(new DialogComponentButtonGroup(
-            ProbabilityDistributionCreatorNodeModel.createInvalidDistributionHandlingModel(), null, true,
-            ExceptionHandling.values()));
+    private JPanel createGeneralOptionPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("General"));
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(m_outputName.getComponentPanel(), c);
+        c.gridx = 1;
+        c.gridy = 0;
+        c.insets = new Insets(0, 30, 0, 0);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(m_includeColumns.getComponentPanel(), c);
+        c.gridx = 2;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        JPanel missingValueComponent = m_missingValueHandling.getComponentPanel();
+        missingValueComponent.setBorder(BorderFactory.createTitledBorder("Missing Values"));
+        panel.add(missingValueComponent, c);
+        return panel;
+    }
+
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+
+        m_numericColumnFilter.loadSettingsFrom(settings, specs);
+        m_sumUpProbabilities.loadSettingsFrom(settings, specs);
+        m_precisionModel.loadSettingsFrom(settings, specs);
+        m_invalidHandling.loadSettingsFrom(settings, specs);
+
+        m_stringColumnSelection.loadSettingsFrom(settings, specs);
+
+        m_outputName.loadSettingsFrom(settings, specs);
+        m_includeColumns.loadSettingsFrom(settings, specs);
+        m_missingValueHandling.loadSettingsFrom(settings, specs);
+        m_columnType.loadSettingsFrom(settings, specs);
+        updateColumnType();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        if (isStringColumnSelected() && isZeroMissingValueSelected()) {
+            throw new InvalidSettingsException(
+                "Invalid Missing Value Strategy for string columns. Please pick another strategy.");
+        }
+        m_columnType.saveSettingsTo(settings);
+
+        m_numericColumnFilter.saveSettingsTo(settings);
+        m_sumUpProbabilities.saveSettingsTo(settings);
+        m_precisionModel.saveSettingsTo(settings);
+        m_invalidHandling.saveSettingsTo(settings);
+
+        m_stringColumnSelection.saveSettingsTo(settings);
+
+        m_outputName.saveSettingsTo(settings);
+        m_includeColumns.saveSettingsTo(settings);
+        m_missingValueHandling.saveSettingsTo(settings);
+    }
+
+    private boolean isStringColumnSelected() {
+        return m_columnType.getButton(ColumnType.STRING_COLUMN.getActionCommand()).isSelected();
+    }
+
+    private boolean isZeroMissingValueSelected() {
+        return m_missingValueHandling.getButton(MissingValueHandling.ZERO.getActionCommand()).isSelected();
     }
 }

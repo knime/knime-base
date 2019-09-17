@@ -48,6 +48,11 @@
  */
 package org.knime.base.node.preproc.probdistribution.creator;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -56,8 +61,10 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.MissingCell;
+import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.probability.ProbabilityDistributionCellFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -91,6 +98,10 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
 
     private final SettingsModelString m_invalidDistributionHandling = createInvalidDistributionHandlingModel();
 
+    private final SettingsModelString m_stringFilterModel = createStringFilterModel();
+
+    private final SettingsModelString m_columnTypeModel = createColumnTypeModel();
+
     static SettingsModelString createColumnNameModel() {
         return new SettingsModelString("column_name", "Probability Distribution");
     }
@@ -123,44 +134,112 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         return new SettingsModelString("invalid_distribution_handling", ExceptionHandling.FAIL.name());
     }
 
+    static SettingsModelString createStringFilterModel() {
+        return new SettingsModelString("single_string_column", "String Column");
+    }
+
+    static SettingsModelString createColumnTypeModel() {
+        return new SettingsModelString("column_type", ColumnType.getDefault().name());
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
         ColumnRearranger columnRearranger = new ColumnRearranger(spec);
-        // get included columns
-        final String[] includes = m_columnFilterModel.applyTo(spec).getIncludes();
-        final int[] colIndices = spec.columnsToIndices(includes);
-        CheckUtils.checkSetting(colIndices.length > 0, "At least one column must be selected.");
-
         // check input and create variables used by the cell factory
         CheckUtils.checkSetting(!m_columnNameModel.getStringValue().trim().isEmpty(),
             "The output column name must not be empty.");
+        final int[] colIndices = getSourceColumns(spec);
+        if (m_removeIncludedColumns.getBooleanValue()) {
+            columnRearranger.remove(colIndices);
+        }
+        final DataColumnSpecCreator colSpecCreator = new UniqueNameGenerator(columnRearranger.createSpec())
+            .newCreator(m_columnNameModel.getStringValue(), ProbabilityDistributionCellFactory.TYPE);
+
+        columnRearranger.append(getCellFactory(spec, colSpecCreator, colIndices));
+        return columnRearranger;
+    }
+
+    private boolean isStringColumn() {
+       return ColumnType.valueOf(m_columnTypeModel.getStringValue()) == ColumnType.STRING_COLUMN;
+    }
+
+    private int[] getSourceColumns(final DataTableSpec spec) throws InvalidSettingsException {
+        final int[] colIndices;
+        if (isStringColumn()) {
+            colIndices = new int[1];
+            CheckUtils.checkSetting(spec.findColumnIndex(m_stringFilterModel.getStringValue()) != -1,
+                "At least one nominal column must be selected.");
+            colIndices[0] = spec.findColumnIndex(m_stringFilterModel.getStringValue());
+        } else {
+            final String[] includes = m_columnFilterModel.applyTo(spec).getIncludes();
+            colIndices = spec.columnsToIndices(includes);
+        }
+        return colIndices;
+    }
+
+    private SingleCellFactory getCellFactory(final DataTableSpec spec, final DataColumnSpecCreator colSpecCreator,
+        final int[] colIndices) throws InvalidSettingsException {
+        final MissingValueHandling missingValueHandling = getMissingValueHandling();
+        if (isStringColumn()) {
+            return getStringCellFactory(spec, colSpecCreator, colIndices[0], missingValueHandling);
+        } else {
+            return getNumericCellFactory(spec, colSpecCreator, colIndices, missingValueHandling);
+        }
+    }
+
+    private ProbDistributionStringCellFactory getStringCellFactory(final DataTableSpec spec,
+        final DataColumnSpecCreator colSpecCreator, final int colIndices,
+        final MissingValueHandling missingValueHandling) throws InvalidSettingsException {
+        CheckUtils.checkSetting(m_stringFilterModel.getStringValue() != null, "At least one column must be selected.");
+        DataColumnSpec chosenColumn = spec.getColumnSpec(m_stringFilterModel.getStringValue());
+        final String[] possibleValues = getPossibleValues(chosenColumn);
+        colSpecCreator.setElementNames(possibleValues);
+        return new ProbDistributionStringCellFactory(colSpecCreator.createSpec(), possibleValues, colIndices,
+            missingValueHandling);
+    }
+
+    private ProbDistributionCellFactory getNumericCellFactory(final DataTableSpec spec,
+        final DataColumnSpecCreator colSpecCreator, final int[] colIndices,
+        final MissingValueHandling missingValueHandling) throws InvalidSettingsException {
+        final ExceptionHandling invalidDistributionHandling = getExceptionHandling();
+        CheckUtils.checkSetting(colIndices.length > 0, "At least one column must be selected.");
         CheckUtils.checkSetting(m_precisionModel.getIntValue() > 0, "The number of decimal digits must be > 0.");
         final double epsilon =
             m_allowUnpreciseProbabilities.getBooleanValue() ? Math.pow(10, -m_precisionModel.getIntValue()) : 0;
         CheckUtils.checkSetting(epsilon >= 0, "Epsilon must not be negative.");
-        final ExceptionHandling invalidDistributionHandling;
-        final MissingValueHandling missingValueHandling;
+        final String[] includes = m_columnFilterModel.applyTo(spec).getIncludes();
+        colSpecCreator.setElementNames(includes);
+        return new ProbDistributionCellFactory(colSpecCreator.createSpec(), epsilon, invalidDistributionHandling,
+            colIndices, missingValueHandling);
+    }
+
+    private static String[] getPossibleValues(final DataColumnSpec chosenColumn) throws InvalidSettingsException {
+        CheckUtils.checkSetting(chosenColumn.getDomain().getValues() != null, "The possible values cannot be null.");
+        Set<DataCell> possibleValues = chosenColumn.getDomain().getValues();
+        CheckUtils.checkSetting(chosenColumn.getType().isCompatible(NominalValue.class),
+            "The picked column is not nominal.");
+        return possibleValues.stream().map(DataCell::toString).toArray(String[]::new);
+    }
+
+    private MissingValueHandling getMissingValueHandling() throws InvalidSettingsException {
         try {
-            invalidDistributionHandling = ExceptionHandling.valueOf(m_invalidDistributionHandling.getStringValue());
-            missingValueHandling = MissingValueHandling.valueOf(m_missingValueHandling.getStringValue());
+            return MissingValueHandling.valueOf(m_missingValueHandling.getStringValue());
         } catch (IllegalArgumentException e) {
             throw new InvalidSettingsException(
                 "The selected missing value or invalid distribution handling strategy does not exist.");
         }
+    }
 
-        // create column spec
-        final DataColumnSpecCreator colSpecCreator = new UniqueNameGenerator(spec)
-            .newCreator(m_columnNameModel.getStringValue(), ProbabilityDistributionCellFactory.TYPE);
-        colSpecCreator.setElementNames(includes);
-        if (m_removeIncludedColumns.getBooleanValue()) {
-            columnRearranger.remove(colIndices);
+    private ExceptionHandling getExceptionHandling() throws InvalidSettingsException {
+        try {
+            return ExceptionHandling.valueOf(m_invalidDistributionHandling.getStringValue());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidSettingsException(
+                "The selected missing value or invalid distribution handling strategy does not exist.");
         }
-        columnRearranger.append(new ProbDistributionCellFactory(colSpecCreator.createSpec(), epsilon,
-            invalidDistributionHandling, colIndices, missingValueHandling));
-        return columnRearranger;
     }
 
     /**
@@ -175,6 +254,8 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         m_missingValueHandling.saveSettingsTo(settings);
         m_invalidDistributionHandling.saveSettingsTo(settings);
         m_removeIncludedColumns.saveSettingsTo(settings);
+        m_columnTypeModel.saveSettingsTo(settings);
+        m_stringFilterModel.saveSettingsTo(settings);
     }
 
     /**
@@ -189,6 +270,8 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         m_missingValueHandling.validateSettings(settings);
         m_invalidDistributionHandling.validateSettings(settings);
         m_removeIncludedColumns.validateSettings(settings);
+        m_columnTypeModel.validateSettings(settings);
+        m_stringFilterModel.validateSettings(settings);
     }
 
     /**
@@ -203,6 +286,61 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         m_missingValueHandling.loadSettingsFrom(settings);
         m_invalidDistributionHandling.loadSettingsFrom(settings);
         m_removeIncludedColumns.loadSettingsFrom(settings);
+        m_columnTypeModel.loadSettingsFrom(settings);
+        m_stringFilterModel.loadSettingsFrom(settings);
+    }
+
+    /**
+     * Appends a probability distribution for a string column.
+     *
+     * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
+     */
+    private final class ProbDistributionStringCellFactory extends SingleCellFactory {
+
+        private final List<StringCell> m_possibleValues;
+
+        private final int m_columnIndex;
+
+        private final MissingValueHandling m_missingHandling;
+
+        private boolean m_hasWarning = false;
+
+        private ProbDistributionStringCellFactory(final DataColumnSpec newColSpec, final String[] possibleValues,
+            final int columnIndex, final MissingValueHandling missingHandling) {
+            super(newColSpec);
+            m_possibleValues = Arrays.stream(possibleValues).map(StringCell::new).collect(Collectors.toList());
+            m_columnIndex = columnIndex;
+            m_missingHandling = missingHandling;
+        }
+
+        private void setWarningIfNotSet(final String message) {
+            if (!m_hasWarning) {
+                setWarningMessage(message);
+                m_hasWarning = true;
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DataCell getCell(final DataRow row) {
+            DataCell stringCell = row.getCell(m_columnIndex);
+            if (stringCell.isMissing()) {
+                switch (m_missingHandling) {
+                    case FAIL:
+                    case ZERO:
+                        throw new IllegalArgumentException(
+                            "The row '" + row.getKey().getString() + "' contains missing values.");
+                    case IGNORE:
+                        setWarningIfNotSet(
+                            "At least one row contains a missing value. Missing values will be in the output.");
+                        return new MissingCell("Input row contains missing values.");
+                }
+            }
+            double[] values = m_possibleValues.stream().mapToDouble(s -> s.equals(stringCell) ? 1.0 : 0.0).toArray();
+            return ProbabilityDistributionCellFactory.createCell(values);
+        }
     }
 
     /**
