@@ -46,11 +46,13 @@ package org.knime.base.node.preproc.filter.rowref;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.util.memory.MemoryAlertSystem;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -69,6 +71,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
  * @since 3.1
  */
 public abstract class AbstractRowRefNodeModel extends NodeModel {
+
+    /** The minimum number of elements that is being read from the reference table even if memory is low. */
+    private static final long MIN_ELEMENTS_READ = 128;
 
     /** Settings model for the reference column of the data table to filter. */
     private final SettingsModelColumnName m_dataTableCol = RowRefNodeDialogPane.createDataTableColModel();
@@ -128,7 +133,7 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("null")
+    @SuppressWarnings({"null", "resource"})
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
@@ -161,71 +166,115 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
             }
         }
 
-        //create the set to filter by
-        final Set<Object> keySet = new HashSet<Object>();
-        if (filterByString) {
-            if (useRefRowKey) {
-                for (final DataRow row : refTable) {
-                    keySet.add(row.getKey().getString());
-                }
-            } else {
-                for (final DataRow row : refTable) {
-                    keySet.add(row.getCell(refColIdx).toString());
-                }
-            }
-        } else {
-            if (useRefRowKey) {
-                for (final DataRow row : refTable) {
-                    keySet.add(row.getKey());
-                }
-            } else {
-                for (final DataRow row : refTable) {
-                    keySet.add(row.getCell(refColIdx));
-                }
-            }
-        }
-        //Filter the data table
-        final BufferedDataContainer firstBuf = exec.createDataContainer(dataTableSpec);
-        final BufferedDataContainer secondBuf;
-
-        if (m_isSplitter) {
-            secondBuf = exec.createDataContainer(dataTableSpec);
-        } else {
-            secondBuf = null;
-        }
-
         final boolean isInvertInclusion = isInvertInclusion();
+        final BufferedDataContainer firstBuf = exec.createDataContainer(dataTableSpec);
+        final BufferedDataContainer secondBuf = m_isSplitter ? exec.createDataContainer(dataTableSpec) : null;
 
-        long rowCnt = 1;
-        for (final DataRow row : dataTable) {
-            exec.checkCanceled();
-            exec.setProgress(rowCnt++ / (double)dataTable.size(), "Filtering...");
-            //get the right value to check for...
-            final Object val2Compare;
-            if (filterByString) {
-                if (useDataRowKey) {
-                    val2Compare = row.getKey().getString();
+        final double refTableSizeFraction = (double) refTable.size() / (refTable.size() + dataTable.size());
+        final ExecutionMonitor readRefMon = exec.createSubExecutionContext(refTableSizeFraction);
+        final ExecutionMonitor writeMon = exec.createSubExecutionContext(1 - refTableSizeFraction);
+
+        // we only init the disk-backed bit array if memory becomes low while reading the reference set
+        final MemoryAlertSystem memSys = MemoryAlertSystem.getInstance();
+        DiskBackedBitArray bitArray = null;
+        boolean fullyFitsIntoMemory = true;
+
+        long rowCnt = 0;
+        final Iterator<DataRow> it = refTable.iterator();
+        while (it.hasNext()) {
+            //create the set to filter by
+            final Set<Object> keySet = new HashSet<Object>();
+
+            long elementsRead = 0;
+            while (it.hasNext()) {
+                exec.checkCanceled();
+                if (filterByString) {
+                    if (useRefRowKey) {
+                        keySet.add(it.next().getKey().getString());
+                    } else {
+                        keySet.add(it.next().getCell(refColIdx).toString());
+                    }
                 } else {
-                    val2Compare = row.getCell(dataColIdx).toString();
+                    if (useRefRowKey) {
+                        keySet.add(it.next().getKey());
+                    } else {
+                        keySet.add(it.next().getCell(refColIdx));
+                    }
                 }
-            } else {
-                if (useDataRowKey) {
-                    val2Compare = row.getKey();
-                } else {
-                    val2Compare = row.getCell(dataColIdx);
+                readRefMon.setProgress(rowCnt++ / (double)refTable.size(), () -> "Reading reference table...");
+                elementsRead++;
+
+                if (memSys.isMemoryLow() && elementsRead >= MIN_ELEMENTS_READ) {
+                    fullyFitsIntoMemory = false;
+                    break;
                 }
             }
 
-            //...include/exclude matching rows by checking the val2Compare
-            if ((keySet.contains(val2Compare) && !isInvertInclusion)
-                || (!keySet.contains(val2Compare) && isInvertInclusion)) {
-                firstBuf.addRowToTable(row);
-            } else if (m_isSplitter) {
-                secondBuf.addRowToTable(row);
+            if (!fullyFitsIntoMemory) {
+                if (bitArray == null) {
+                    bitArray = new DiskBackedBitArray(dataTable.size());
+                } else {
+                    bitArray.setPosition(0);
+                }
             }
+
+            rowCnt = 1;
+            for (final DataRow row : dataTable) {
+                exec.checkCanceled();
+                //get the right value to check for...
+                final Object val2Compare;
+                if (filterByString) {
+                    if (useDataRowKey) {
+                        val2Compare = row.getKey().getString();
+                    } else {
+                        val2Compare = row.getCell(dataColIdx).toString();
+                    }
+                } else {
+                    if (useDataRowKey) {
+                        val2Compare = row.getKey();
+                    } else {
+                        val2Compare = row.getCell(dataColIdx);
+                    }
+                }
+
+                if (fullyFitsIntoMemory) {
+                    //...include/exclude matching rows by checking the val2Compare
+                    writeMon.setProgress(rowCnt++ / (double)dataTable.size(), () -> "Filtering...");
+                    if ((keySet.contains(val2Compare) && !isInvertInclusion)
+                        || (!keySet.contains(val2Compare) && isInvertInclusion)) {
+                        firstBuf.addRowToTable(row);
+                    } else if (m_isSplitter) {
+                        secondBuf.addRowToTable(row);
+                    }
+                } else {
+                    // use the bit array to memorize which rows to keep / discard
+                    if (keySet.contains(val2Compare)) {
+                        bitArray.setBit();
+                    } else {
+                        bitArray.skipBit();
+                    }
+                }
+            }
+
         }
-        firstBuf.close();
 
+        if (!fullyFitsIntoMemory) {
+            bitArray.setPosition(0);
+            rowCnt = 1;
+            for (final DataRow row : dataTable) {
+                exec.checkCanceled();
+                writeMon.setProgress(rowCnt++ / (double)dataTable.size(), () -> "Filtering...");
+                final boolean bit = bitArray.getBit();
+                if ((bit && !isInvertInclusion) || (!bit && isInvertInclusion)) {
+                    firstBuf.addRowToTable(row);
+                } else if (m_isSplitter) {
+                    secondBuf.addRowToTable(row);
+                }
+            }
+            bitArray.close();
+        }
+
+        firstBuf.close();
         if (m_isSplitter) {
             secondBuf.close();
         }
