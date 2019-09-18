@@ -255,7 +255,7 @@ final class IrlsLearner implements LogRegLearner {
      * @param tcC target category count
      * @throws CanceledExecutionException when method is cancelled
      */
-    private double likelihood(final Iterator<ClassificationTrainingRow> iter,
+    private static double likelihood(final Iterator<ClassificationTrainingRow> iter,
             final RealMatrix beta,
             final int rC, final int tcC,
             final ExecutionMonitor exec) throws CanceledExecutionException {
@@ -384,8 +384,8 @@ final class IrlsLearner implements LogRegLearner {
                     || loglike < loglikeOld) && iter > 0) {
                 converged = true;
                 for (int k = 0; k < beta.getColumnDimension(); k++) {
-                    if (abs(beta.getEntry(0, k) - betaOld.getEntry(0, k)) > m_eps
-                            * abs(betaOld.getEntry(0, k))) {
+                    if (Math.abs(beta.getEntry(0, k) - betaOld.getEntry(0, k)) > m_eps
+                            * Math.abs(betaOld.getEntry(0, k))) {
                         converged = false;
                         break;
                     }
@@ -403,8 +403,8 @@ final class IrlsLearner implements LogRegLearner {
             // test for convergence
             converged = true;
             for (int k = 0; k < beta.getColumnDimension(); k++) {
-                if (abs(beta.getEntry(0, k) - betaOld.getEntry(0, k)) > m_eps
-                        * abs(betaOld.getEntry(0, k))) {
+                if (Math.abs(beta.getEntry(0, k) - betaOld.getEntry(0, k)) > m_eps
+                        * Math.abs(betaOld.getEntry(0, k))) {
                     converged = false;
                     break;
                 }
@@ -456,8 +456,4 @@ final class IrlsLearner implements LogRegLearner {
         return new LogRegLearnerResult(betaMat, covMat, iter, loglike);
     }
 
-
-    private static double abs(final double d) {
-        return d < 0 ? -d : d;
-    }
 }

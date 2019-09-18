@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
+import org.knime.core.data.probability.ProbabilityDistributionValue;
+
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -55,12 +57,12 @@ package org.knime.base.node.mine.regression.logistic.learner4.data;
 final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseTrainingRow
     implements ClassificationTrainingRow {
 
-    private final double[] m_probabilities;
+    private final ProbabilityDistributionValue m_label;
 
     protected SparseProbabilisticClassificationTrainingRow(final float[] values, final int[] indices, final int id,
-        final double[] probabilities) {
+        final ProbabilityDistributionValue label) {
         super(values, indices, id);
-        m_probabilities = probabilities;
+        m_label = label;
     }
 
     /**
@@ -68,16 +70,7 @@ final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseT
      */
     @Override
     public int getCategory() {
-        double max = Double.NEGATIVE_INFINITY;
-        int category = -1;
-        for (int i = 0; i < m_probabilities.length; i++) {
-            final double p = m_probabilities[i];
-            if (p > max) {
-                max = p;
-                category = i;
-            }
-        }
-        return category;
+        return m_label.getMaxProbIndex();
     }
 
     /**
@@ -85,7 +78,7 @@ final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseT
      */
     @Override
     public double getProbability(final int classIdx) {
-        return m_probabilities[classIdx];
+        return m_label.getProbability(classIdx);
     }
 
 }

@@ -366,7 +366,7 @@ class LogRegCoordinator {
     private static DataColumnSpec convertProbDistrSpecToStringSpec(final DataColumnSpec targetColSpec) {
         final DataColumnSpecCreator creator = new DataColumnSpecCreator(targetColSpec.getName(), StringCell.TYPE);
         final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator(targetColSpec.getElementNames()
-            .stream().map(StringCell::new).collect(Collectors.toSet()));
+            .stream().map(StringCell::new).collect(Collectors.toCollection(LinkedHashSet::new)));
         creator.setDomain(domainCreator.createDomain());
         return creator.createSpec();
     }

@@ -118,13 +118,9 @@ public final class SparseProbabilisticTrainingRowBuilder
     @Override
     protected ClassificationTrainingRow create(final float[] values, final int[] nonZeroFeatures, final int id,
         final ProbabilityDistributionValue targetValue) {
-        CheckUtils.checkArgument(targetValue.size() <= m_classIdxMap.size(),
+        CheckUtils.checkArgument(targetValue.size() == m_classIdxMap.size(),
             "Probability distribution with more than the expected number of classes encountered.");
-        final double[] probabilities = new double[m_classIdxMap.size()];
-        for (int i = 0; i < targetValue.size(); i++) {
-            probabilities[i] = targetValue.getProbability(i);
-        }
-        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, probabilities);
+        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, targetValue);
     }
 
 }
