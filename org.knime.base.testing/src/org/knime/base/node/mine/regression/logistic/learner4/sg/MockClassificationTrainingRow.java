@@ -170,4 +170,12 @@ class MockClassificationTrainingRow implements ClassificationTrainingRow {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getProbability(final int classIdx) {
+        return m_category == classIdx ? 1.0 : 0.0;
+    }
+
 }
