@@ -91,8 +91,8 @@ public final class FileChooserHelper {
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
-    public FileChooserHelper(final FSConnectionFlowVariableProvider provider,
-        final SettingsModelFileChooser2 settings) throws IOException {
+    public FileChooserHelper(final FSConnectionFlowVariableProvider provider, final SettingsModelFileChooser2 settings)
+        throws IOException {
 
         m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
@@ -121,14 +121,15 @@ public final class FileChooserHelper {
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
 
         final List<Path> paths;
-        try (final Stream<Path> stream = includeSubfolders ? Files.walk(dirPath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS) : Files.list(dirPath)) {
+        try (final Stream<Path> stream = includeSubfolders
+            ? Files.walk(dirPath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS) : Files.list(dirPath)) {
             if (m_filter.isPresent()) {
                 final FileFilter filter = m_filter.get();
                 filter.resetCount();
-                paths = stream.filter(p -> filter.isSatisfied(p)).collect(Collectors.toList());
+                paths = stream.filter(filter::isSatisfied).collect(Collectors.toList());
                 setCounts(paths.size(), filter.getNumberOfFilteredFiles());
             } else {
-                paths = stream.collect(Collectors.toList());
+                paths = stream.filter(p -> !Files.isDirectory(p)).collect(Collectors.toList());
                 setCounts(paths.size(), 0);
             }
         }
@@ -136,8 +137,8 @@ public final class FileChooserHelper {
     }
 
     /**
-     * Returns a list of {@link Path} if the input String represents a directory its contents are scanned,
-     * otherwise the list contains the file, if it is readable.
+     * Returns a list of {@link Path} if the input String represents a directory its contents are scanned, otherwise the
+     * list contains the file, if it is readable.
      *
      * @return a list of path to read
      * @throws IOException if an I/O error occurs
