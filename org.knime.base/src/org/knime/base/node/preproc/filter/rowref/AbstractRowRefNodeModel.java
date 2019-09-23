@@ -181,7 +181,7 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
 
         long rowCnt = 0;
         final Iterator<DataRow> it = refTable.iterator();
-        while (it.hasNext()) {
+        do {
             //create the set to filter by
             final Set<Object> keySet = new HashSet<Object>();
 
@@ -256,7 +256,7 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
                 }
             }
 
-        }
+        } while (it.hasNext());
 
         if (!fullyFitsIntoMemory) {
             bitArray.setPosition(0);
