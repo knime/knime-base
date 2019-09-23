@@ -328,7 +328,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @return The name of the selected KNIME connection
      */
     public String getKNIMEFileSystem() {
-        return m_fileSystem;
+        return m_knimeFileSystem;
     }
 
     /**
@@ -416,15 +416,21 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         throws NotConfigurableException {
         final Config config;
         try {
+
             config = settings.getConfig(m_configName);
-            setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
-            setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
             setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
-            setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
-            setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
-            setFilterMode(config.getString(FILTER_MODE_KEY, m_filterMode));
-            setFilterExpression(config.getString(FILTER_EXPRESSION_KEY, m_filterExpression));
-            setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
+            if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
+                setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
+                setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
+                setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
+                setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
+                setFilterMode(config.getString(FILTER_MODE_KEY, m_filterMode));
+                setFilterExpression(config.getString(FILTER_EXPRESSION_KEY, m_filterExpression));
+                setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
+            } else {
+                FileChooserSettingsConverter.convert(this);
+            }
+
         } catch (final InvalidSettingsException ise) {
             throw new NotConfigurableException(ise.getMessage());
         }
@@ -438,14 +444,16 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final Config config = settings.getConfig(m_configName);
-        config.getString(FILE_SYSTEM_KEY);
-        config.getString(KNIME_FILESYSTEM_KEY);
+        //FIXME Check whether KNIME Mountpoint is valid
         config.getString(PATH_OR_URL_KEY);
-        config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
-        config.getBoolean(FILTER_FILES_KEY);
-        config.getString(FILTER_EXPRESSION_KEY);
-        config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
-
+        if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
+            config.getString(FILE_SYSTEM_KEY);
+            config.getString(KNIME_FILESYSTEM_KEY);
+            config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+            config.getBoolean(FILTER_FILES_KEY);
+            config.getString(FILTER_EXPRESSION_KEY);
+            config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        }
         // Validate filter mode
         final String filterMode = config.getString(FILTER_MODE_KEY);
         if (!FilterType.contains(filterMode)) {
@@ -456,15 +464,21 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+
         final Config config = settings.getConfig(m_configName);
-        m_fileSystem = config.getString(FILE_SYSTEM_KEY);
-        m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
         m_pathOrURL = config.getString(PATH_OR_URL_KEY);
-        m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
-        m_filterFiles = config.getBoolean(FILTER_FILES_KEY);
-        m_filterMode = config.getString(FILTER_MODE_KEY);
-        m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
-        m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
+            m_fileSystem = config.getString(FILE_SYSTEM_KEY);
+            m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
+            m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+            m_filterFiles = config.getBoolean(FILTER_FILES_KEY);
+            m_filterMode = config.getString(FILTER_MODE_KEY);
+            m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
+            m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        } else {
+            FileChooserSettingsConverter.convert(this);
+        }
+
         notifyChangeListeners();
     }
 

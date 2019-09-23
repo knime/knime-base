@@ -228,7 +228,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         updateKNIMEConnectionsCombo();
         addEventHandlers();
         updateComponent();
-        getModel().addChangeListener((e) -> updateComponent());
+        getModel().addChangeListener(e -> updateComponent());
     }
 
     /** Initialize the layout of the dialog component */
@@ -463,10 +463,20 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_connections.setSelectedItem(fileSystem);
         }
         // sync knime connection check box
-        final String knimeFileSystem = model.getKNIMEFileSystem();
+        updateKNIMEConnectionsCombo();
+        final KNIMEConnection knimeFileSystem =
+            KNIMEConnection.getOrCreateMountpointAbsoluteConnection(model.getKNIMEFileSystem());
+
         if ((knimeFileSystem != null) && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
+            final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
+                    (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
+            if(knimeConnectionsModel.getIndexOf(knimeFileSystem) == -1) {
+                //If the Connection did not exsist before
+                knimeConnectionsModel.addElement(knimeFileSystem);
+            }
             m_knimeConnections.setSelectedItem(knimeFileSystem);
         }
+
         // sync file history panel
         final String pathOrUrl = model.getPathOrURL();
         if ((pathOrUrl != null) && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
@@ -536,12 +546,18 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
         knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
         knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);
+
     }
 
     private void updateSettingsModel() {
         m_ignoreUpdates = true;
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
-        model.setFileSystem(((FileSystemChoice)m_connections.getSelectedItem()).getId());
+        final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
+        model.setFileSystem(fsChoice.getId());
+        if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
+            KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
+            model.setKNIMEFileSystem(connection.getId());
+        }
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
         model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
@@ -556,6 +572,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
         updateSettingsModel();
+        //FIXME in case of KNIME connection check whether it is a valid connection
         m_fileHistoryPanel.addToHistory();
     }
 

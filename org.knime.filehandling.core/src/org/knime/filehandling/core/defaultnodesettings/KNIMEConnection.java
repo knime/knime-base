@@ -158,11 +158,31 @@ public class KNIMEConnection {
      */
     public static final synchronized KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
         if (!CONNECTIONS.containsKey(mountId)) {
-            CONNECTIONS.put(mountId, new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
-                String.format("Mountpoint (%s)", mountId), mountId));
+            CONNECTIONS.put(mountId,
+                new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE, String.format("Mountpoint (%s)", mountId), mountId));
         }
 
         return CONNECTIONS.get(mountId);
+    }
+
+    /**
+     * Gets connection based on given mount id or null if connection does not exist.
+     *
+     * @param mountId the mount point identifier
+     * @return a KNIMEConnection instance
+     */
+    public static final synchronized KNIMEConnection getConnection(final String mountId) {
+        return CONNECTIONS.get(mountId);
+    }
+
+    /**
+     * Returns whether a connection exists based on the mount id.
+     * 
+     * @param id the mount point identifier
+     * @return true if connection exists false otherwise
+     */
+    public static final synchronized boolean connectionExists(final String id) {
+        return CONNECTIONS.containsKey(id);
     }
 
     /**

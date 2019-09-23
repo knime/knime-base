@@ -45,12 +45,12 @@
  * History
  *   20.11.2010 (meinl): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core;
 
 import org.knime.testing.core.AbstractTestcaseCollector;
 
 /**
- * 
+ *
  * @author Thorsten Meinl, University of Konstanz
  */
 public class BaseTestcaseCollector extends AbstractTestcaseCollector {
