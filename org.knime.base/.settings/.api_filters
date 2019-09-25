@@ -21,7 +21,7 @@
         </filter>
         <filter comment="org.knime.core.util.SWTUtilities moved to org.knime.core.ui" id="923795461">
             <message_arguments>
-                <message_argument value="4.0.1"/>
+                <message_argument value="4.0.2"/>
                 <message_argument value="4.0.0"/>
             </message_arguments>
         </filter>
