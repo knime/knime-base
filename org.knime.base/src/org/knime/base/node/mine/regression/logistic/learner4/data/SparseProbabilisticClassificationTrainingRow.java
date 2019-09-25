@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
+import java.util.stream.IntStream;
+
 import org.knime.core.data.probability.ProbabilityDistributionValue;
 
 /**
@@ -59,10 +61,18 @@ final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseT
 
     private final ProbabilityDistributionValue m_label;
 
+    private final int m_maxIdx;
+
+    private final int[] m_classIdxMapping;
+
     protected SparseProbabilisticClassificationTrainingRow(final float[] values, final int[] indices, final int id,
-        final ProbabilityDistributionValue label) {
+        final ProbabilityDistributionValue label, final int[] classIdxMapping) {
         super(values, indices, id);
         m_label = label;
+        m_classIdxMapping = classIdxMapping;
+        final int maxIdxInCell = m_label.getMaxProbIndex();
+        m_maxIdx = IntStream.range(0, m_classIdxMapping.length).filter(i -> classIdxMapping[i] == maxIdxInCell)
+            .findFirst().orElseThrow(() -> new IllegalStateException("The class index %s is not part of the mapping."));
     }
 
     /**
@@ -70,7 +80,7 @@ final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseT
      */
     @Override
     public int getCategory() {
-        return m_label.getMaxProbIndex();
+        return m_maxIdx;
     }
 
     /**
@@ -78,7 +88,7 @@ final class SparseProbabilisticClassificationTrainingRow extends AbstractSparseT
      */
     @Override
     public double getProbability(final int classIdx) {
-        return m_label.getProbability(classIdx);
+        return m_label.getProbability(m_classIdxMapping[classIdx]);
     }
 
 }

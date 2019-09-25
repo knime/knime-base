@@ -49,9 +49,7 @@
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
@@ -70,7 +68,11 @@ import org.knime.core.node.util.CheckUtils;
 public final class SparseProbabilisticTrainingRowBuilder
     extends AbstractSparseClassificationTrainingRowBuilder<ProbabilityDistributionValue> {
 
-    private final Map<String, Integer> m_classIdxMap = new HashMap<>();
+    /**
+     * The user has the option to sort the classes and select the reference class which is always put last. Therefore
+     * the class order in the target column might not match the order during training and we need to provide a mapping.
+     */
+    private final int[] m_classIdxMapping;
 
     /**
      * @param data
@@ -100,8 +102,8 @@ public final class SparseProbabilisticTrainingRowBuilder
                 targetReferenceCategory);
             classes.add(targetReferenceCategory);
         }
-        classes.stream().map(c -> ((StringCell)c).getStringValue())
-            .forEachOrdered(c -> m_classIdxMap.put(c, m_classIdxMap.size()));
+        m_classIdxMapping =
+            classes.stream().map(c -> ((StringCell)c).getStringValue()).mapToInt(elementNames::indexOf).toArray();
     }
 
     /**
@@ -109,7 +111,7 @@ public final class SparseProbabilisticTrainingRowBuilder
      */
     @Override
     public int getTargetDimension() {
-        return m_classIdxMap.size() - 1;
+        return m_classIdxMapping.length - 1;
     }
 
     /**
@@ -118,9 +120,10 @@ public final class SparseProbabilisticTrainingRowBuilder
     @Override
     protected ClassificationTrainingRow create(final float[] values, final int[] nonZeroFeatures, final int id,
         final ProbabilityDistributionValue targetValue) {
-        CheckUtils.checkArgument(targetValue.size() == m_classIdxMap.size(),
+        CheckUtils.checkArgument(targetValue.size() == m_classIdxMapping.length,
             "Probability distribution with more than the expected number of classes encountered.");
-        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, targetValue);
+        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, targetValue,
+            m_classIdxMapping);
     }
 
 }
