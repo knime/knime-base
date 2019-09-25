@@ -50,7 +50,7 @@ package org.knime.base.node.mine.regression.logistic.learner4.data;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +62,7 @@ import org.knime.core.data.NominalValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Builder object that creates sparse {@link ClassificationTrainingRow}s.
@@ -97,16 +98,16 @@ public final class SparseClassificationTrainingRowBuilder
         if (sortTargetCategories) {
             Collections.sort(valueList, targetSpec.getType().getComparator());
         }
-        final HashMap<DataCell, Integer> valueMap = new HashMap<>();
-        valueList.forEach(c -> valueMap.put(c, valueMap.size()));
+        final LinkedHashMap<DataCell, Integer> valueMap = new LinkedHashMap<>();
         if (targetReferenceCategory != null) {
             // targetReferenceCategory must be the last element
-            Integer removed = valueMap.remove(targetReferenceCategory);
-            if (removed == null) {
-                throw new InvalidSettingsException("The target reference category (\"" + targetReferenceCategory
-                    + "\") is not found in the target column");
-            }
-            valueList.add(targetReferenceCategory);
+            boolean removed = valueList.remove(targetReferenceCategory);
+            CheckUtils.checkSetting(removed,
+                "The target reference category (\"%s\") is not found in the target column", targetReferenceCategory);
+            valueList.forEach(c -> valueMap.put(c, valueMap.size()));
+            valueMap.put(targetReferenceCategory, valueMap.size());
+        } else {
+            valueList.forEach(c -> valueMap.put(c, valueMap.size()));
         }
         m_targetDomain = valueMap;
 
