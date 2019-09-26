@@ -48,9 +48,8 @@
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -91,19 +90,19 @@ public final class SparseProbabilisticTrainingRowBuilder
         CheckUtils.checkArgument(elementNames != null && !elementNames.isEmpty(),
             "A probability distribution column must always specify its classes.");
         @SuppressWarnings("null") // explicitly checked above
-        final List<DataCell> classes = elementNames.stream().map(StringCell::new).collect(Collectors.toList());
+        Stream<DataCell> valueStream = elementNames.stream().map(StringCell::new);
         if (sortTargetCategories) {
-            Collections.sort(classes, StringCell.TYPE.getComparator());
+            valueStream = valueStream.sorted(StringCell.TYPE.getComparator());
         }
         if (targetReferenceCategory != null) {
             // targetReferenceCategory must be the last element
-            boolean removed = classes.remove(targetReferenceCategory);
-            CheckUtils.checkSetting(removed, "The target reference category (\"%s\") is not found in the target column",
-                targetReferenceCategory);
-            classes.add(targetReferenceCategory);
+            valueStream = Stream.concat(valueStream.filter(c -> !c.equals(targetReferenceCategory)),
+                Stream.of(targetReferenceCategory));
         }
         m_classIdxMapping =
-            classes.stream().map(c -> ((StringCell)c).getStringValue()).mapToInt(elementNames::indexOf).toArray();
+            valueStream.map(c -> ((StringCell)c).getStringValue()).mapToInt(elementNames::indexOf).toArray();
+        CheckUtils.checkSetting(m_classIdxMapping.length == elementNames.size(),
+            "The target reference category (\"%s\") is not found in the target column", targetReferenceCategory);
     }
 
     /**

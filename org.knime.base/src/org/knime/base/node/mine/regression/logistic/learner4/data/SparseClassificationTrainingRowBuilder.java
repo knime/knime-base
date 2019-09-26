@@ -48,12 +48,10 @@ f *  Copyright by KNIME AG, Zurich, Switzerland
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
@@ -88,28 +86,24 @@ public final class SparseClassificationTrainingRowBuilder
         throws InvalidSettingsException {
         super(data, pmmlSpec, sortFactorsCategories, NominalValue.class);
         final DataColumnSpec targetSpec = pmmlSpec.getTargetCols().get(0);
-        List<DataCell> valueList = new ArrayList<>();
         final DataColumnDomain domain = targetSpec.getDomain();
         final Set<DataCell> possibleClasses = domain.getValues();
         if (possibleClasses == null) {
             throw new IllegalStateException("Calculate the possible values of " + targetSpec.getName());
         }
-        valueList.addAll(possibleClasses);
+        Stream<DataCell> valueStream = possibleClasses.stream();
         if (sortTargetCategories) {
-            Collections.sort(valueList, targetSpec.getType().getComparator());
+            valueStream = valueStream.sorted(targetSpec.getType().getComparator());
         }
-        final LinkedHashMap<DataCell, Integer> valueMap = new LinkedHashMap<>();
         if (targetReferenceCategory != null) {
             // targetReferenceCategory must be the last element
-            boolean removed = valueList.remove(targetReferenceCategory);
-            CheckUtils.checkSetting(removed,
-                "The target reference category (\"%s\") is not found in the target column", targetReferenceCategory);
-            valueList.forEach(c -> valueMap.put(c, valueMap.size()));
-            valueMap.put(targetReferenceCategory, valueMap.size());
-        } else {
-            valueList.forEach(c -> valueMap.put(c, valueMap.size()));
+            valueStream = Stream.concat(valueStream.filter(c -> !c.equals(targetReferenceCategory)),
+                Stream.of(targetReferenceCategory));
         }
-        m_targetDomain = valueMap;
+        m_targetDomain = new LinkedHashMap<>();
+        valueStream.forEach(c -> m_targetDomain.put(c, m_targetDomain.size()));
+        CheckUtils.checkSetting(m_targetDomain.size() == possibleClasses.size(),
+            "The target reference category (\"%s\") is not found in the target column", targetReferenceCategory);
 
     }
 
