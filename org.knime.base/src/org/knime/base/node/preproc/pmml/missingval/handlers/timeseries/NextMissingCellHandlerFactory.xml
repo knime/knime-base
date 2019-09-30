@@ -4,7 +4,7 @@
             non-missing value in the column it is configured for.
             When dealing with tables that have a large number of rows but not too many columns
             that need missing value replacement, the option to use disk backed statistics
-            avoid flooding of the main memory. This should be used with caution, at is generally
+            avoids flooding of the main memory. This should be used with caution, as it is generally
             much slower than in-memory statistics.
             This missing value handler does not produce standard PMML 4.2!
 </missingcellhandler>
