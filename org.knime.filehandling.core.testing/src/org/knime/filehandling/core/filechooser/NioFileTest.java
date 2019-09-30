@@ -210,7 +210,7 @@ public class NioFileTest {
     }
 
     /**
-     * Tests whether set read only equals.
+     * Tests whether set read only equals. POSIX FileSystems only
      *
      */
     @Test
@@ -227,7 +227,7 @@ public class NioFileTest {
     }
 
     /**
-     * Tests whether set execute permissions equals.
+     * Tests whether set execute permissions equals. POSIX FileSystems only
      */
     @Test
     public void execute_permissions_equals() {
@@ -240,7 +240,7 @@ public class NioFileTest {
     }
 
     /**
-     * Test whether set write permissions equals.
+     * Test whether set write permissions equals. POSIX FileSystems only
      */
     @Test
     public void write_permissions_equals() {

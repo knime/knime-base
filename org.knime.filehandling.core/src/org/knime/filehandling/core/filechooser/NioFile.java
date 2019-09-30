@@ -60,16 +60,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.AclEntry;
-import java.nio.file.attribute.AclEntryPermission;
-import java.nio.file.attribute.AclEntryType;
-import java.nio.file.attribute.AclFileAttributeView;
-import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -361,20 +355,12 @@ public final class NioFile extends File {
             newPermissions.add(PosixFilePermission.OTHERS_READ);
             Files.setPosixFilePermissions(m_path, newPermissions);
 
-        } catch (final UnsupportedOperationException unspportedEx) {
-            try {
-                final DosFileAttributeView dos = Files.getFileAttributeView(m_path, DosFileAttributeView.class);
-                dos.setReadOnly(true);
-            } catch (final Exception ex) {
-                LOGGER.warn(ex);
-                return false;
-            }
+            return true;
+
         } catch (final Exception ex) {
             LOGGER.warn(ex);
             return false;
         }
-
-        return true;
     }
 
     @Override
@@ -389,35 +375,12 @@ public final class NioFile extends File {
                 newPermissions.add(PosixFilePermission.OTHERS_READ);
             }
             Files.setPosixFilePermissions(m_path, newPermissions);
+            return true;
 
-        } catch (final UnsupportedOperationException unspportedEx) {
-            try {
-                final AclFileAttributeView aclView = Files.getFileAttributeView(m_path, AclFileAttributeView.class);
-
-                final Set<AclEntryPermission> permissions = EnumSet.of(AclEntryPermission.READ_DATA);
-                final AclEntry.Builder builder = AclEntry.newBuilder();
-                if (ownerOnly) {
-                    builder.setPrincipal(aclView.getOwner());
-                }
-
-                final AclEntry newEntry = builder.setType(readable ? AclEntryType.ALLOW : AclEntryType.DENY)
-                        .setPermissions(permissions).build();
-
-                final List<AclEntry> aclEntries = aclView.getAcl();
-                aclEntries.add(newEntry);
-                aclView.setAcl(aclEntries);
-
-            } catch (final Exception ex) {
-                LOGGER.warn(ex);
-                return false;
-            }
         } catch (final Exception ex) {
             LOGGER.warn(ex);
             return false;
         }
-
-        return true;
-
     }
 
     @Override
@@ -437,33 +400,12 @@ public final class NioFile extends File {
             }
             Files.setPosixFilePermissions(m_path, newPermissions);
 
-        } catch (final UnsupportedOperationException unsuppEx) {
-            try {
-                final AclFileAttributeView aclView = Files.getFileAttributeView(m_path, AclFileAttributeView.class);
+            return true;
 
-                final Set<AclEntryPermission> permissions = EnumSet.of(AclEntryPermission.WRITE_DATA);
-                final AclEntry.Builder builder = AclEntry.newBuilder();
-                if (ownerOnly) {
-                    builder.setPrincipal(aclView.getOwner());
-                }
-
-                final AclEntry newEntry = builder.setType(writable ? AclEntryType.ALLOW : AclEntryType.DENY)
-                        .setPermissions(permissions).build();
-
-                final List<AclEntry> aclEntries = aclView.getAcl();
-                aclEntries.add(newEntry);
-                aclView.setAcl(aclEntries);
-
-            } catch (final Exception ex) {
-                LOGGER.warn(ex);
-                return false;
-            }
         } catch (final IOException ex) {
             LOGGER.warn(ex);
             return false;
         }
-
-        return true;
     }
 
     @Override
@@ -482,33 +424,10 @@ public final class NioFile extends File {
                 newPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
             }
             return true;
-        } catch (final UnsupportedOperationException unsuppEx) {
-            try {
-                final AclFileAttributeView aclView = Files.getFileAttributeView(m_path, AclFileAttributeView.class);
-
-                final Set<AclEntryPermission> permissions = EnumSet.of(AclEntryPermission.EXECUTE);
-                final AclEntry.Builder builder = AclEntry.newBuilder();
-                if (ownerOnly) {
-                    builder.setPrincipal(aclView.getOwner());
-                }
-                final AclEntry newEntry = builder.setType(executable ? AclEntryType.ALLOW : AclEntryType.DENY)
-                        .setPermissions(permissions)
-                        .build();
-
-                final List<AclEntry> aclEntries = aclView.getAcl();
-                aclEntries.add(newEntry);
-                aclView.setAcl(aclEntries);
-
-            } catch (final Exception ex) {
-                LOGGER.warn(ex);
-                return false;
-            }
         } catch (final IOException ex) {
             LOGGER.warn(ex);
             return false;
         }
-
-        return true;
     }
 
     @Override
