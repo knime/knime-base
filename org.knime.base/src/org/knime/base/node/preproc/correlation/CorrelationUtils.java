@@ -52,6 +52,7 @@ import java.util.Collections;
 
 import org.knime.base.util.HalfDoubleMatrix;
 import org.knime.base.util.HalfIntMatrix;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -59,6 +60,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.renderer.DataValueRenderer;
 import org.knime.core.data.renderer.DoubleValueRenderer.FullPrecisionRendererFactory;
 import org.knime.core.node.BufferedDataContainer;
@@ -82,6 +84,12 @@ public final class CorrelationUtils {
     /** The name of the column containing the degrees of freedom */
     public static final String DEGREES_OF_FREEDOM_COL_NAME = "Degrees of freedom";
 
+    /** The name of the column containing the first column name */
+    public static final String FIRST_COL_NAME_COL_NAME = "First column name";
+
+    /** The name of the column containing the second column name */
+    public static final String SECOND_COL_NAME_COL_NAME = "Second column name";
+
     /** Full precision renderer for double values */
     private static final String FULL_PRECISION_RENDERER = new FullPrecisionRendererFactory().getDescription();
 
@@ -94,6 +102,10 @@ public final class CorrelationUtils {
      */
     public static DataTableSpec createCorrelationOutputTableSpec() {
         // Column spec creators
+        final DataColumnSpecCreator firstColSpecCreator =
+            new DataColumnSpecCreator(FIRST_COL_NAME_COL_NAME, StringCell.TYPE);
+        final DataColumnSpecCreator secondColSpecCreator =
+            new DataColumnSpecCreator(SECOND_COL_NAME_COL_NAME, StringCell.TYPE);
         final DataColumnSpecCreator corrColSpecCreator =
             new DataColumnSpecCreator(CORRELATION_VALUE_COL_NAME, DoubleCell.TYPE);
         final DataColumnSpecCreator pValColSpecCreator = new DataColumnSpecCreator(P_VALUE_COL_NAME, DoubleCell.TYPE);
@@ -106,8 +118,8 @@ public final class CorrelationUtils {
         pValColSpecCreator.setProperties(fullPrecRendererProps);
         corrColSpecCreator.setProperties(fullPrecRendererProps);
 
-        return new DataTableSpec(corrColSpecCreator.createSpec(), pValColSpecCreator.createSpec(),
-            dofColSpecCreator.createSpec());
+        return new DataTableSpec(firstColSpecCreator.createSpec(), secondColSpecCreator.createSpec(),
+            corrColSpecCreator.createSpec(), pValColSpecCreator.createSpec(), dofColSpecCreator.createSpec());
     }
 
     /**
@@ -131,14 +143,25 @@ public final class CorrelationUtils {
         // Fill the table
         int numInc = includeNames.length;
         int rowIndex = 0;
-        final double rowCount = numInc * (numInc - 1) / 2;
+        final double rowCount = numInc * (numInc - 1) / 2.;
         for (int i = 0; i < numInc; i++) {
             for (int j = i + 1; j < numInc; j++) {
-                final DoubleCell corr = new DoubleCell(corrMatrix.get(i, j));
-                final DoubleCell pVal = new DoubleCell(pValMatrix.get(i, j));
-                final IntCell dof = new IntCell(dofMatrix.get(i, j));
-                final RowKey rowKey = new RowKey(getRowKey(includeNames[i], includeNames[j]));
-                final DefaultRow row = new DefaultRow(rowKey, corr, pVal, dof);
+                // Column names
+                final String secondCol = includeNames[j];
+                final String firstCol = includeNames[i];
+                final StringCell firstColCell = new StringCell(firstCol);
+                final StringCell secondColCell = new StringCell(secondCol);
+
+                // Correlation, P-values, degrees of freedom
+                final DataCell corrCell = new DoubleCell(corrMatrix.get(i, j));
+                final DataCell pValCell = new DoubleCell(pValMatrix.get(i, j));
+                final DataCell dofCell = new IntCell(dofMatrix.get(i, j));
+
+                // Assemble row
+                final RowKey rowKey = new RowKey("Row" + rowIndex);
+                final DefaultRow row = new DefaultRow(rowKey, firstColCell, secondColCell, corrCell, pValCell, dofCell);
+
+                // Add row and update progress
                 exec.checkCanceled();
                 dataContainer.addRowToTable(row);
                 exec.setProgress(++rowIndex / rowCount);
@@ -146,10 +169,6 @@ public final class CorrelationUtils {
         }
         dataContainer.close();
         return dataContainer.getTable();
-    }
-
-    private static String getRowKey(final String columnNameA, final String columnNameB) {
-        return columnNameA + "_" + columnNameB;
     }
 
     /**
