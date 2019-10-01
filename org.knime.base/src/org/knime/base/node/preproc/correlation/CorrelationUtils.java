@@ -56,6 +56,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnProperties;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -153,8 +154,12 @@ public final class CorrelationUtils {
                 final StringCell secondColCell = new StringCell(secondCol);
 
                 // Correlation, P-values, degrees of freedom
-                final DataCell corrCell = new DoubleCell(corrMatrix.get(i, j));
-                final DataCell pValCell = new DoubleCell(pValMatrix.get(i, j));
+                final double corr = corrMatrix.get(i, j);
+                final double pVal = pValMatrix.get(i, j);
+                final DataCell corrCell =
+                    Double.isNaN(corr) ? new MissingCell("Correlation could not be computed.") : new DoubleCell(corr);
+                final DataCell pValCell =
+                    Double.isNaN(pVal) ? new MissingCell("P-value could not be computed.") : new DoubleCell(pVal);
                 final DataCell dofCell = new IntCell(dofMatrix.get(i, j));
 
                 // Assemble row
