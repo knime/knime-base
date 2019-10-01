@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.correlation;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 import org.knime.base.util.HalfDoubleMatrix;
@@ -128,12 +130,16 @@ public final class CorrelationUtils {
      *
      * @param correlationResult the correlation results
      * @param includeNames the names of the included columns
+     * @param compatibleColumnPairs the indices of compatible columns for each column (can be <code>null</code> if
+     *            <code>columnPairFilter</code> is not <code>ColumnPairFilter.COMPATIBLE_PAIRS</code>)
+     * @param columnPairFilter describes which column pairs should be included
      * @param exec a execution context to track the progress
      * @return the table containing the correlation results
      * @throws CanceledExecutionException if the execution was canceled
      */
     public static BufferedDataTable createCorrelationOutputTable(final CorrelationResult correlationResult,
-        final String[] includeNames, final ExecutionContext exec) throws CanceledExecutionException {
+        final String[] includeNames, final Collection<Integer>[] compatibleColumnPairs,
+        final ColumnPairFilter columnPairFilter, final ExecutionContext exec) throws CanceledExecutionException {
         final DataTableSpec outSpec = createCorrelationOutputTableSpec();
         final BufferedDataContainer dataContainer = exec.createDataContainer(outSpec);
 
@@ -147,20 +153,30 @@ public final class CorrelationUtils {
         final double rowCount = numInc * (numInc - 1) / 2.;
         for (int i = 0; i < numInc; i++) {
             for (int j = i + 1; j < numInc; j++) {
-                // Column names
-                final String secondCol = includeNames[j];
-                final String firstCol = includeNames[i];
-                final StringCell firstColCell = new StringCell(firstCol);
-                final StringCell secondColCell = new StringCell(secondCol);
-
-                // Correlation, P-values, degrees of freedom
+                // Correlation and p-value
                 final double corr = corrMatrix.get(i, j);
                 final double pVal = pValMatrix.get(i, j);
+
+                // Skip column pair if it is not valid (and should therefore not be included)
+                if ((ColumnPairFilter.VALID_CORRELATION.equals(columnPairFilter) //
+                    && Double.isNaN(corr)) //
+                    || (ColumnPairFilter.COMPATIBLE_PAIRS.equals(columnPairFilter) //
+                        && !compatibleColumnPairs[i].contains(j))) {
+                    continue;
+                }
+
+                // Cells
                 final DataCell corrCell =
                     Double.isNaN(corr) ? new MissingCell("Correlation could not be computed.") : new DoubleCell(corr);
                 final DataCell pValCell =
                     Double.isNaN(pVal) ? new MissingCell("P-value could not be computed.") : new DoubleCell(pVal);
                 final DataCell dofCell = new IntCell(dofMatrix.get(i, j));
+
+                // Column names
+                final String secondCol = includeNames[j];
+                final String firstCol = includeNames[i];
+                final StringCell firstColCell = new StringCell(firstCol);
+                final StringCell secondColCell = new StringCell(secondCol);
 
                 // Assemble row
                 final RowKey rowKey = new RowKey("Row" + rowIndex);
@@ -222,6 +238,46 @@ public final class CorrelationUtils {
          */
         public HalfIntMatrix getDegreesOfFreedomMatrix() {
             return m_degreesOfFreedomMatrix;
+        }
+    }
+
+    /**
+     * Describes which pairs of columns should be included in a correlation output table.
+     */
+    public enum ColumnPairFilter {
+
+            /** All column pairs */
+            ALL("Include all column pairs"),
+
+            /** Only pairs of compatible columns */
+            COMPATIBLE_PAIRS("Include only column pairs of compatible columns"),
+
+            /** Only pairs with valid correlation */
+            VALID_CORRELATION("Include only column pairs with a valid correlation");
+
+        private final String m_desc;
+
+        private ColumnPairFilter(final String desc) {
+            m_desc = desc;
+        }
+
+        @Override
+        public String toString() {
+            return m_desc;
+        }
+
+        /**
+         * @return the names of all possible values (in the same order as {@link #descriptions()})
+         */
+        public static String[] names() {
+            return Arrays.stream(ColumnPairFilter.values()).map(ColumnPairFilter::name).toArray(String[]::new);
+        }
+
+        /**
+         * @return the descriptions of all possible values (in the same order as {@link #names()})
+         */
+        public static String[] descriptions() {
+            return Arrays.stream(ColumnPairFilter.values()).map(ColumnPairFilter::toString).toArray(String[]::new);
         }
     }
 }

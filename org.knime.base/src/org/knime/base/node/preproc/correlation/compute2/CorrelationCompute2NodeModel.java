@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.knime.base.node.preproc.correlation.CorrelationUtils;
+import org.knime.base.node.preproc.correlation.CorrelationUtils.ColumnPairFilter;
 import org.knime.base.node.preproc.correlation.CorrelationUtils.CorrelationResult;
 import org.knime.base.node.preproc.correlation.pmcc.PMCCPortObjectAndSpec;
 import org.knime.base.node.preproc.correlation.pmcc.PValueAlternative;
@@ -123,11 +124,22 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         return new SettingsModelString("pvalAlternative", PValueAlternative.TWO_SIDED.name());
     }
 
+    /**
+     * Factory method to create the string model for selecting which column pairs should be included in the output.
+     *
+     * @return A new model.
+     */
+    static SettingsModelString createColumnPairsFilterModel() {
+        return new SettingsModelString("columnPairsFilter", ColumnPairFilter.COMPATIBLE_PAIRS.name());
+    }
+
     private SettingsModelColumnFilter2 m_columnFilterModel;
 
     private final SettingsModelIntegerBounded m_maxPossValueCountModel;
 
     private final SettingsModelString m_pValAlternativeModel;
+
+    private final SettingsModelString m_columnPairsFilter;
 
     private BufferedDataTable m_correlationTable;
 
@@ -139,6 +151,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
             new PortType[]{BufferedDataTable.TYPE, PMCCPortObjectAndSpec.TYPE});
         m_maxPossValueCountModel = createNewPossValueCounterModel();
         m_pValAlternativeModel = createPValAlternativeModel();
+        m_columnPairsFilter = createColumnPairsFilterModel();
     }
 
     @Override
@@ -203,7 +216,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
             correlationResult.getCorrelationMatrix(), correlationResult.getpValMatrix(),
             correlationResult.getDegreesOfFreedomMatrix(), selectedPValAlternative());
         BufferedDataTable out = CorrelationUtils.createCorrelationOutputTable(correlationResult, includeNames,
-            execFinish.createSubExecutionContext(0.5));
+            calculator.getCompatibleColumnPairs(), selectedColumnPairFilter(), execFinish.createSubExecutionContext(0.5));
         m_correlationTable = pmccModel.createCorrelationMatrix(execFinish.createSubExecutionContext(0.5));
 
         // Warning handling
@@ -234,6 +247,10 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         return PValueAlternative.valueOf(m_pValAlternativeModel.getStringValue());
     }
 
+    private ColumnPairFilter selectedColumnPairFilter() {
+        return ColumnPairFilter.valueOf(m_columnPairsFilter.getStringValue());
+    }
+
     @Override
     protected void reset() {
         // nothing to do
@@ -245,6 +262,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
             m_columnFilterModel.saveSettingsTo(settings);
             m_maxPossValueCountModel.saveSettingsTo(settings);
             m_pValAlternativeModel.saveSettingsTo(settings);
+            m_columnPairsFilter.saveSettingsTo(settings);
         }
     }
 
@@ -253,6 +271,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         createColumnFilterModel().validateSettings(settings);
         m_maxPossValueCountModel.validateSettings(settings);
         m_pValAlternativeModel.validateSettings(settings);
+        m_columnPairsFilter.validateSettings(settings);
     }
 
     @Override
@@ -263,6 +282,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         m_columnFilterModel.loadSettingsFrom(settings);
         m_maxPossValueCountModel.loadSettingsFrom(settings);
         m_pValAlternativeModel.loadSettingsFrom(settings);
+        m_columnPairsFilter.loadSettingsFrom(settings);
     }
 
     /**

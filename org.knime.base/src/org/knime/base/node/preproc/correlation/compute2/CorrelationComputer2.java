@@ -48,6 +48,8 @@
 package org.knime.base.node.preproc.correlation.compute2;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -74,6 +76,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.util.Pair;
+
+import com.google.common.primitives.Ints;
 
 /**
  * Calculates pairwise correlation values for a table. Uses Cramers'V for pairs of categorical columns and the standard
@@ -640,6 +644,29 @@ public final class CorrelationComputer2 {
             c += 1;
         }
         return b.toString();
+    }
+
+    /**
+     * Creates a collection for each column index of column indices which this computer tries to compute the correlation
+     * to. (numeric<->numeric, nominal<->nominal)
+     *
+     * @return a collection of column indices for each column index
+     */
+    public Collection<Integer>[] getCompatibleColumnPairs() {
+        final List<Integer> numericCols = Ints.asList(m_numericColIndexMap);
+        final List<Integer> categoricalCols = Ints.asList(m_categoricalColIndexMap);
+        @SuppressWarnings("unchecked")
+        final Collection<Integer>[] result = new Collection[m_tableSpec.getNumColumns()];
+        for (int i = 0; i < m_tableSpec.getNumColumns(); i++) {
+            if (numericCols.contains(i)) {
+                result[i] = numericCols;
+            } else if (categoricalCols.contains(i)) {
+                result[i] = categoricalCols;
+            } else {
+                result[i] = Collections.emptySet();
+            }
+        }
+        return result;
     }
 
     /**

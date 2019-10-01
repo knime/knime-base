@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.correlation.compute2;
 
+import org.knime.base.node.preproc.correlation.CorrelationUtils.ColumnPairFilter;
 import org.knime.base.node.preproc.correlation.pmcc.PValueAlternative;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
@@ -60,6 +61,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * Dialog for correlation node. Shows only a column filter.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 final class CorrelationCompute2NodeDialogPane extends DefaultNodeSettingsPane {
 
@@ -68,6 +70,11 @@ final class CorrelationCompute2NodeDialogPane extends DefaultNodeSettingsPane {
         final SettingsModelColumnFilter2 fS = CorrelationCompute2NodeModel.createColumnFilterModel();
         final DialogComponentColumnFilter2 cF = new DialogComponentColumnFilter2(fS, 0);
         addDialogComponent(cF);
+
+        final SettingsModelString oF = CorrelationCompute2NodeModel.createColumnPairsFilterModel();
+        final DialogComponentButtonGroup cO = new DialogComponentButtonGroup(oF, "Output column pairs", true,
+            ColumnPairFilter.descriptions(), ColumnPairFilter.names());
+        addDialogComponent(cO);
 
         final SettingsModelIntegerBounded sI = CorrelationCompute2NodeModel.createNewPossValueCounterModel();
         final DialogComponentNumberEdit cI = new DialogComponentNumberEdit(sI, "Possible Values Count");

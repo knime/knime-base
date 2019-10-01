@@ -113,6 +113,15 @@
 		</tab>
 
 		<tab name="Options">      
+			<option name="Output column pairs">
+				Select which column pairs of the selected columns should be included in
+				the correlation measure table. If only compatible column pairs are
+				included
+				<tt>numeric &lt;-&gt; nominal</tt>
+				pairs will be excluded.
+				If only pairs with a valid correlation are included all pairs for which
+				the correlation cannot be computed are excluded.
+			</option>
 			<option name="Possible Values Count">
 				Select an upper bound for the number of possible values for each
 				of the nominal columns. If more values are encountered in a nominal
