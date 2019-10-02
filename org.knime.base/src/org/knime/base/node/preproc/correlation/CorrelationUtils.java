@@ -188,6 +188,7 @@ public final class CorrelationUtils {
                 exec.setProgress(++rowIndex / rowCount);
             }
         }
+        exec.setProgress(1);
         dataContainer.close();
         return dataContainer.getTable();
     }
