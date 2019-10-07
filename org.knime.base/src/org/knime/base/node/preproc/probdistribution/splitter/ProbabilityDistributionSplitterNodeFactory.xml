@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Manipulator" icon="default.png">
+<knimeNode type="Manipulator" icon="./probability_distribution_splitter.png">
 	<name>Probability Distribution Splitter</name>
 	<shortDescription>Splits a Probability Distribution Cell into Double
 		cells containing the single probabilities.</shortDescription>

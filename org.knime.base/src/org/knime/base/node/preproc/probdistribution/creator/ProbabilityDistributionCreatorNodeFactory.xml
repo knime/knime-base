@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Manipulator" icon="default.png">
+<knimeNode type="Manipulator" icon="./probability_distribution_creator.png">
 	<name>Probability Distribution Creator</name>
 	<shortDescription>Creates a Probability Distribution cell out of
 		numeric cells.</shortDescription>
