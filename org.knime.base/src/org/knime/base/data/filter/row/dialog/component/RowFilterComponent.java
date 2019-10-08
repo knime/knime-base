@@ -45,6 +45,13 @@
 
 package org.knime.base.data.filter.row.dialog.component;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
@@ -53,13 +60,17 @@ import org.knime.base.data.filter.row.dialog.component.config.EditorPanelConfig;
 import org.knime.base.data.filter.row.dialog.component.config.TreePanelConfig;
 import org.knime.base.data.filter.row.dialog.component.editor.EditorPanel;
 import org.knime.base.data.filter.row.dialog.component.tree.TreePanel;
+import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
 import org.knime.base.data.filter.row.dialog.model.Node;
 import org.knime.base.data.filter.row.dialog.registry.OperatorRegistry;
 import org.knime.base.data.filter.row.dialog.util.NodeConverterHelper;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * The Row Filter component.
@@ -83,15 +94,24 @@ public class RowFilterComponent {
 
     private final RowFilterElementFactory m_elementFactory;
 
+    private final Set<ColumnRole> m_specialColumns;
+
     /**
      * Constructs a {@link RowFilterComponent}.
      *
      * @param config the {@linkplain RowFilterConfig configuration}
      * @param elementFactory the factory to create tree elements
+     * @param specialColumns the additional columns (e.g. RowID) that should be selectable in addition
+     * to the columns of the input table
+     * @since 4.1
      */
-    public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory) {
+    public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory,
+        final Set<ColumnRole> specialColumns) {
         m_config = config;
         m_elementFactory = elementFactory;
+        m_specialColumns = specialColumns == null ? Collections.emptySet() : specialColumns;
+        CheckUtils.checkArgument(!m_specialColumns.contains(ColumnRole.ORDINARY),
+            "The column role ORDINARY may not be passed as special column to the RowFilterComponent.");
 
         m_editorPanelConfig = new EditorPanelConfig(config.getGroupTypes());
         m_editorPanel = new EditorPanel(m_editorPanelConfig);
@@ -108,6 +128,16 @@ public class RowFilterComponent {
 
         m_mainPanel.add(m_treePanel);
         m_mainPanel.add(m_editorPanel);
+    }
+
+    /**
+     * Constructs a {@link RowFilterComponent}.
+     *
+     * @param config the {@linkplain RowFilterConfig configuration}
+     * @param elementFactory the factory to create tree elements
+     */
+    public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory) {
+        this(config, elementFactory, EnumSet.noneOf(ColumnRole.class));
     }
 
     /**
@@ -158,11 +188,13 @@ public class RowFilterComponent {
         throws InvalidSettingsException {
 
         m_config.loadValidatedSettingsFrom(settings);
-
-        m_treePanelConfig.setDataTableSpec(tableSpec);
+        final DataTableSpec additionalColumnsTableSpec = addSpecialColumns(tableSpec);
+        m_treePanelConfig.setDataTableSpec(additionalColumnsTableSpec);
         m_treePanelConfig.setOperatorRegistry(operatorRegistry);
+        m_treePanelConfig.setColumnSpecList(createColumnSpecList(tableSpec));
 
-        m_editorPanelConfig.setDataTableSpec(tableSpec);
+        m_editorPanelConfig.setDataTableSpec(additionalColumnsTableSpec);
+        m_editorPanelConfig.setColumnSpecList(createColumnSpecList(tableSpec));
         m_editorPanelConfig.setOperatorRegistry(operatorRegistry);
         m_editorPanelConfig.setOperatorPanelParameters(operatorPanelConfig);
 
@@ -176,4 +208,26 @@ public class RowFilterComponent {
         return NodeConverterHelper.convertToNode(m_treePanel.getRoot());
     }
 
+    private DataTableSpec addSpecialColumns(final DataTableSpec tableSpec) {
+        if (m_specialColumns.isEmpty()) {
+            return tableSpec;
+        }
+        final DataColumnSpec[] additionalColumns =
+            m_specialColumns.stream().map(c -> c.createColumnSpec(tableSpec)).toArray(DataColumnSpec[]::new);
+        final DataTableSpecCreator specCreator = new DataTableSpecCreator();
+        specCreator.setName(tableSpec.getName());
+        specCreator.addColumns(additionalColumns);
+        specCreator.addColumns(tableSpec);
+        return specCreator.createSpec();
+    }
+
+    private List<ColumnSpec> createColumnSpecList(final DataTableSpec tableSpec) {
+        return Stream
+            .concat(
+                m_specialColumns.stream()
+                    .map(c -> new ColumnSpec(c.createUniqueName(tableSpec), c.getType(), Collections.emptySet(), c)),
+                tableSpec.stream()
+                    .map(c -> new ColumnSpec(c.getName(), c.getType(), c.getDomain().getValues(), ColumnRole.ORDINARY)))
+            .collect(Collectors.toList());
+    }
 }

@@ -45,6 +45,9 @@
 
 package org.knime.base.data.filter.row.dialog.component.config;
 
+import java.util.List;
+
+import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
 import org.knime.base.data.filter.row.dialog.registry.OperatorRegistry;
 import org.knime.core.data.DataTableSpec;
 
@@ -57,6 +60,8 @@ import org.knime.core.data.DataTableSpec;
 public abstract class AbstractPanelConfig {
 
     private DataTableSpec m_dataTableSpec;
+
+    private List<ColumnSpec> m_columnSpecList;
 
     private OperatorRegistry<?> m_operatorRegistry;
 
@@ -76,6 +81,20 @@ public abstract class AbstractPanelConfig {
      */
     public void setDataTableSpec(final DataTableSpec tableSpec) {
         m_dataTableSpec = tableSpec;
+    }
+
+    /**
+     * @param columnSpecList holds the list of Column Specs from the Data Table Spec
+     */
+    public void setColumnSpecList(final List<ColumnSpec> columnSpecList) {
+        m_columnSpecList = columnSpecList;
+    }
+
+    /**
+     * @return the list of Column Specs
+     */
+    public List<ColumnSpec> getColumnSpecList() {
+        return m_columnSpecList;
     }
 
     /**
