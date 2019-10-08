@@ -52,7 +52,9 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-import org.knime.core.data.DataColumnSpec;
+import org.knime.base.data.filter.row.dialog.component.ColumnRole;
+import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
+import org.knime.core.data.DataValue;
 
 /**
  * Implementation of {@link ListCellRenderer} for condition combo box.
@@ -69,12 +71,24 @@ public class ColumnNameComboBoxCellRenderer extends DefaultListCellRenderer {
     public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
         final boolean isSelected, final boolean cellHasFocus) {
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-        final DataColumnSpec columnSpec = (DataColumnSpec)value;
+        final ColumnSpec columnSpec = (ColumnSpec)value;
         if (columnSpec != null) {
-            setText(columnSpec.getName());
-            setIcon(columnSpec.getType().getIcon());
-            setToolTipText(columnSpec.getName());
+            final ColumnRole columnRole = columnSpec.getRole();
+            //check the role of the column, additional column's name are put within '<>'.
+            switch (columnRole) {
+                case ROW_ID:
+                case ROW_INDEX:
+                    final String displayText = "<" + columnRole.getDefaultName() + ">";
+                    setText(displayText);
+                    setIcon(DataValue.UTILITY.getIcon());
+                    setToolTipText(displayText);
+                    break;
+                case ORDINARY:
+                    setText(columnSpec.getName());
+                    setIcon(columnSpec.getType().getIcon());
+                    setToolTipText(columnSpec.getName());
+                    break;
+            }
         } else {
             setText(" ");
         }
