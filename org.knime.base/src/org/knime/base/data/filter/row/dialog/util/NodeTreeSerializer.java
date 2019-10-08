@@ -45,9 +45,12 @@
 
 package org.knime.base.data.filter.row.dialog.util;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.Set;
 
+import org.knime.base.data.filter.row.dialog.component.ColumnRole;
 import org.knime.base.data.filter.row.dialog.model.AbstractElement;
 import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
 import org.knime.base.data.filter.row.dialog.model.Condition;
@@ -56,11 +59,14 @@ import org.knime.base.data.filter.row.dialog.model.GroupType;
 import org.knime.base.data.filter.row.dialog.model.Node;
 import org.knime.base.data.filter.row.dialog.model.Operation;
 import org.knime.base.data.filter.row.dialog.model.Operator;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
+
+import com.google.common.collect.Sets;
 
 /**
  * Saves and restores a {@link Node} structure.
@@ -94,6 +100,10 @@ public final class NodeTreeSerializer {
     private static final String COLUMN_SPEC_NAME = "name";
 
     private static final String COLUMN_SPEC_DATA_TYPE = "dataType";
+
+    private static final String COLUMN_POSSIBLE_VALUES = "possibleValues";
+
+    private static final String COLUMN_ROLE = "columnRole";
 
     // Operation
     private static final String OPERATION_CONFIG = "operation";
@@ -145,6 +155,10 @@ public final class NodeTreeSerializer {
                 final ConfigWO columnSpecConfig = conditionConfig.addConfig(COLUMN_SPEC_CONFIG);
                 columnSpecConfig.addString(COLUMN_SPEC_NAME, columnSpec.getName());
                 columnSpecConfig.addDataType(COLUMN_SPEC_DATA_TYPE, columnSpec.getType());
+                final Set<DataCell> possibleValues = columnSpec.getPossibleValues();
+                columnSpecConfig.addDataCellArray(COLUMN_POSSIBLE_VALUES,
+                    possibleValues.toArray(new DataCell[possibleValues.size()]));
+                columnSpecConfig.addString(COLUMN_ROLE, columnSpec.getRole().name());
             }
 
             final Operation operation = condition.getOperation();
@@ -259,7 +273,17 @@ public final class NodeTreeSerializer {
     private static ColumnSpec createColumnSpec(final ConfigRO config) throws InvalidSettingsException {
         final String name = config.getString(COLUMN_SPEC_NAME);
         final DataType type = config.getDataType(COLUMN_SPEC_DATA_TYPE);
-        return new ColumnSpec(name, type);
+        return new ColumnSpec(name, type, getPossibleValues(config), getColumnRole(config));
+    }
+
+    private static Set<DataCell> getPossibleValues(final ConfigRO config) {
+        final DataCell[] possibleValues = config.getDataCellArray(COLUMN_POSSIBLE_VALUES, (DataCell[]) null);
+        return possibleValues == null ? Collections.emptySet() : Sets.newHashSet(possibleValues);
+    }
+
+    private static ColumnRole getColumnRole(final ConfigRO config) {
+        final String columnRoleId = config.getString(COLUMN_ROLE, null);
+        return columnRoleId == null ? ColumnRole.ORDINARY : ColumnRole.valueOf(columnRoleId);
     }
 
     private static Operation createOperation(final ConfigRO config) throws InvalidSettingsException {

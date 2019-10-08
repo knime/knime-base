@@ -45,10 +45,15 @@
 
 package org.knime.base.data.filter.row.dialog.model;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.base.data.filter.row.dialog.component.ColumnRole;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 
 /**
@@ -63,6 +68,32 @@ public class ColumnSpec {
 
     private final DataType m_type;
 
+    private final ColumnRole m_role;
+
+    private final Set<DataCell> m_possibleValues;
+
+    /**
+     * Constructs a {@link ColumnSpec}.
+     *
+     * @param name the name of column, not {@code null}
+     * @param type the data type of column, not {@code null}
+     * @param possibleValues the possible values of the column, may be {@code null} or empty
+     * @param role shows if the column is an ordinary column of the DataTable input, or it is an additional column with
+     *            special functionality: RowID or RowIndex.
+     * @since 4.1
+     */
+    public ColumnSpec(final String name, final DataType type, final Set<DataCell> possibleValues,
+        final ColumnRole role) {
+        m_name = Objects.requireNonNull(name, "name");
+        m_type = Objects.requireNonNull(type, "type");
+        m_role = Objects.requireNonNull(role, "role");
+        if (possibleValues == null || possibleValues.isEmpty()) {
+            m_possibleValues = Collections.emptySet();
+        } else {
+            m_possibleValues = new HashSet<>(possibleValues);
+        }
+    }
+
     /**
      * Constructs a {@link ColumnSpec}.
      *
@@ -70,8 +101,7 @@ public class ColumnSpec {
      * @param type the data type of column, not {@code null}
      */
     public ColumnSpec(final String name, final DataType type) {
-        m_name = Objects.requireNonNull(name, "name");
-        m_type = Objects.requireNonNull(type, "type");
+        this(name, type, null, ColumnRole.ORDINARY);
     }
 
     /**
@@ -90,6 +120,23 @@ public class ColumnSpec {
      */
     public DataType getType() {
         return m_type;
+    }
+
+    /**
+     * @return if the column is an ordinary column of the table or it is an additional column such as row id or row
+     *         index.
+     * @since 4.1
+     */
+    public ColumnRole getRole() {
+        return m_role;
+    }
+
+    /**
+     * @return the possible values (may be empty but never null)
+     * @since 4.1
+     */
+    public Set<DataCell> getPossibleValues() {
+        return Collections.unmodifiableSet(m_possibleValues);
     }
 
     @Override
