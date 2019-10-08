@@ -73,9 +73,6 @@ import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
 import org.knime.base.data.filter.row.dialog.model.Operation;
 import org.knime.base.data.filter.row.dialog.model.Operator;
 import org.knime.base.data.filter.row.dialog.registry.OperatorKey;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 
 /**
@@ -89,7 +86,7 @@ public class ConditionEditorPanel extends JPanel {
 
     private final JButton m_deleteButton;
 
-    private final JComboBox<DataColumnSpec> m_columnNameComboBox = new JComboBox<>();
+    private final JComboBox<ColumnSpec> m_columnNameComboBox = new JComboBox<>();
 
     private final JComboBox<Operator> m_operatorComboBox = new JComboBox<>();
 
@@ -186,13 +183,9 @@ public class ConditionEditorPanel extends JPanel {
     private void registerActions() {
         m_columnNameComboBox.addActionListener(e -> {
             if (!m_displaying) {
-                final DataColumnSpec selectedValue = (DataColumnSpec)m_columnNameComboBox.getSelectedItem();
-                final ColumnSpec columnSpec =
-                    selectedValue == null ? null : new ColumnSpec(selectedValue.getName(), selectedValue.getType());
-                m_condition.get().setColumnSpec(columnSpec);
-
+                final ColumnSpec selectedValue = (ColumnSpec)m_columnNameComboBox.getSelectedItem();
+                m_condition.get().setColumnSpec(selectedValue);
                 fillOperatorComboBox();
-
                 updateTreeCondition();
             }
         });
@@ -260,9 +253,9 @@ public class ConditionEditorPanel extends JPanel {
     private void fillColumnNameComboBox() {
         m_columnNameComboBox.removeAllItems();
         m_columnNameComboBox.addItem(null);
-        final DataTableSpec tableSpec = m_config.getDataTableSpec();
-        if (tableSpec != null) {
-            tableSpec.stream().forEach(m_columnNameComboBox::addItem);
+        final List<ColumnSpec> columnSpecList = m_config.getColumnSpecList();
+        if (columnSpecList != null && !columnSpecList.isEmpty()) {
+            columnSpecList.stream().forEach(m_columnNameComboBox::addItem);
             setSelectedItemForFieldName();
         } else {
             final ColumnSpec conditionSpec = m_condition.get().getColumnSpec();
@@ -270,9 +263,8 @@ public class ConditionEditorPanel extends JPanel {
                 final String fieldName = conditionSpec.getName();
                 final DataType dataType = conditionSpec.getType();
                 if (fieldName != null && dataType != null) {
-                    final DataColumnSpec spec = new DataColumnSpecCreator(fieldName, dataType).createSpec();
-                    m_columnNameComboBox.addItem(spec);
-                    m_columnNameComboBox.setSelectedItem(spec);
+                    m_columnNameComboBox.addItem(conditionSpec);
+                    m_columnNameComboBox.setSelectedItem(conditionSpec);
                 }
             }
         }
@@ -286,11 +278,8 @@ public class ConditionEditorPanel extends JPanel {
 
         final String fieldName = conditionSpec.getName();
         final DataType type = conditionSpec.getType();
-
         if (fieldName != null && type != null) {
-            final DataTableSpec tableSpec = m_config.getDataTableSpec();
-            for (int i = 0; i < tableSpec.getNumColumns(); i++) {
-                final DataColumnSpec columnSpec = tableSpec.getColumnSpec(i);
+            for (ColumnSpec columnSpec : m_config.getColumnSpecList()) {
                 if (fieldName.equals(columnSpec.getName()) && type == columnSpec.getType()) {
                     m_columnNameComboBox.setSelectedItem(columnSpec);
                     break;
@@ -304,12 +293,11 @@ public class ConditionEditorPanel extends JPanel {
         if (m_columnNameComboBox.getSelectedItem() == null) {
             m_operatorComboBox.addItem(null);
         } else {
-            final DataColumnSpec selectedValue = (DataColumnSpec)m_columnNameComboBox.getSelectedItem();
+            final ColumnSpec selectedValue = (ColumnSpec)m_columnNameComboBox.getSelectedItem();
             if (selectedValue != null) {
                 final List<Operator> operators =
                     m_config.getOperatorRegistry().findRegisteredOperators(selectedValue.getType());
                 operators.forEach(m_operatorComboBox::addItem);
-
                 final Operation operation = m_condition.get().getOperation();
                 if (operation != null) {
                     final Operator operator = operation.getOperator();
