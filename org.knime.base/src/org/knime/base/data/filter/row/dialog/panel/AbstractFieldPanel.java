@@ -46,12 +46,15 @@
 package org.knime.base.data.filter.row.dialog.panel;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
@@ -63,9 +66,9 @@ import org.knime.base.data.filter.row.dialog.ValidationResult.OperandError;
  * Abstract panel for n fields for condition filters.
  *
  * @author Sascha Wolke, KNIME GmbH
- * @since 4.0
+ * @since 4.1
  */
-abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
+public abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
     private static final long serialVersionUID = -178672669602975655L;
 
     private static final int DEFAULT_TEXT_FIELD_SIZE = 15;
@@ -88,12 +91,30 @@ abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
         textField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(final KeyEvent event) {
-                if (m_onChangeConsumer != null) {
-                    m_onChangeConsumer.accept(getValues());
-                }
+                notifyListeners();
             }
         });
         return textField;
+    }
+
+    /**
+     * @return new {@link JSpinner} object
+     */
+    protected JSpinner createSpinner() {
+        final JSpinner spinner = new JSpinner();
+        spinner.setPreferredSize(new Dimension(150,20));
+        spinner.setMaximumSize(new Dimension(150,20));
+        spinner.addChangeListener(e -> notifyListeners());
+        return spinner;
+    }
+
+    /**
+     * Notifies the listeners of changes to the panel.
+     */
+    protected final void notifyListeners() {
+        if (m_onChangeConsumer != null) {
+            m_onChangeConsumer.accept(getValues());
+        }
     }
 
     @Override
@@ -110,23 +131,24 @@ abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
      * Changes the color of a text field based on validation results.
      *
      * @param result validation result
-     * @param textField text field to change
+     * @param component component to change
      * @param param parameter index in validation result (starting at 0)
      */
-    protected void setValidationResult(final ValidationResult result, final JTextField textField, final int param) {
+    protected void setValidationResult(final ValidationResult result, final JComponent component, final int param) {
         if (m_originalTextColor == null) {
-            m_originalTextColor = textField.getForeground();
-            m_originalBorder = textField.getBorder();
+            m_originalTextColor = component.getForeground();
+            m_originalBorder = component.getBorder();
         }
 
         if (hasErrors(result, param)) {
-            textField.setForeground(Color.RED);
-            textField.setBorder(m_redBorder);
+            component.setForeground(Color.RED);
+            component.setBorder(m_redBorder);
         } else {
-            textField.setForeground(m_originalTextColor);
-            textField.setBorder(m_originalBorder);
+            component.setForeground(m_originalTextColor);
+            component.setBorder(m_originalBorder);
         }
     }
+
 
     /**
      * Checks if validation result has errors.
@@ -142,4 +164,5 @@ abstract class AbstractFieldPanel extends JPanel implements OperatorPanel {
 
         return false;
     }
+
 }
