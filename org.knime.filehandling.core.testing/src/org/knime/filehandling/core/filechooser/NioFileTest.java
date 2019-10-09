@@ -51,11 +51,15 @@ package org.knime.filehandling.core.filechooser;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -71,6 +75,8 @@ import org.junit.rules.TemporaryFolder;
  *
  */
 public class NioFileTest {
+
+    private static final String TEST_FILE = "testFile";
 
     /**
      * Temporary test folder
@@ -94,12 +100,23 @@ public class NioFileTest {
     @Before
     public void init() throws IOException {
 
-        m_file = m_testFolder.newFile("testFile");
+        m_file = m_testFolder.newFile(TEST_FILE);
         m_dir = m_testFolder.getRoot();
 
         m_nioFile = new NioFile(m_file.toPath());
         m_nioDir = new NioFile(m_dir.toPath());
 
+    }
+
+    @Test
+    public void constructor_initializes_path_correctly() {
+        final NioFile nioFile = new NioFile(m_dir, TEST_FILE, FileSystems.getDefault());
+        assertEquals(nioFile.getAbsolutePath(), m_file.getAbsolutePath());
+    }
+
+    @Test
+    public void absolute_paths_equals() {
+        assertEquals(m_file.getAbsolutePath(), m_nioFile.getAbsolutePath());
     }
 
     /**
@@ -114,7 +131,7 @@ public class NioFileTest {
      * Tests whether absolute is equal for an absolute path.
      */
     @Test
-    public void absolute_equals() {
+    public void isAbsolute_equals() {
         assertEquals(m_file.isAbsolute(), m_nioFile.isAbsolute());
     }
 
@@ -127,21 +144,21 @@ public class NioFileTest {
     }
 
     /**
-     * Tests whether isFile equals.
-     */
-    @Test
-    public void isFile_equals() {
-        assertEquals(m_file.isFile(), m_nioFile.isFile());
-        assertEquals(m_dir.isFile(), m_nioDir.isFile());
-    }
-
-    /**
      * Tests whether isDirectory equals.
      */
     @Test
     public void isDirectory_equals() {
         assertEquals(m_file.isDirectory(), m_nioFile.isDirectory());
         assertEquals(m_dir.isDirectory(), m_nioDir.isDirectory());
+    }
+
+    /**
+     * Tests whether isFile equals.
+     */
+    @Test
+    public void isFile_equals() {
+        assertEquals(m_file.isFile(), m_nioFile.isFile());
+        assertEquals(m_dir.isFile(), m_nioDir.isFile());
     }
 
     /**
@@ -194,6 +211,43 @@ public class NioFileTest {
     }
 
     /**
+     * Tests whether listing of files is equal.
+     */
+    @Test
+    public void listFile_equals() {
+        assertArrayEquals(m_dir.listFiles(), m_nioDir.listFiles());
+        assertTrue(m_nioDir.listFiles().length == 1);
+    }
+
+    /**
+     * Tests whether listing of files with FilenameFilter is equal.
+     */
+    @Test
+    public void listFile_with_FilenameFilter_equals() {
+        final FilenameFilter filter = (d, f) -> !f.equals(TEST_FILE);
+        assertArrayEquals(m_dir.listFiles(filter), m_nioDir.listFiles(filter));
+        assertTrue(m_nioDir.listFiles(filter).length == 0);
+    }
+
+    /**
+     * Tests whether listing of files with FileFilter is equal.
+     */
+    @Test
+    public void listFile_with_FileFilter_equals() {
+        final FileFilter filter = (f) -> !f.equals(m_nioFile);
+        assertArrayEquals(m_dir.listFiles(filter), m_nioDir.listFiles(filter));
+        assertTrue(m_nioDir.listFiles(filter).length == 0);
+    }
+
+    /**
+     * Tests whether getPath matches
+     */
+    @Test
+    public void getPath_equals() {
+        assertEquals(m_file.getPath(), m_nioFile.getPath());
+    }
+
+    /**
      * Tests whether getParent equals.
      */
     @Test
@@ -236,20 +290,69 @@ public class NioFileTest {
         assertTrue(m_nioFile.canExecute());
 
         assertEquals(m_file.canExecute(), m_nioFile.canExecute());
+    }
 
+    /**
+     * Tests whether set execute permissions equals. POSIX FileSystems only
+     */
+    @Test
+    public void set_execute_permissions_to_false_equals() {
+        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
+        m_nioFile.setExecutable(true, false);
+        m_nioFile.setExecutable(false, false);
+        assertFalse(m_nioFile.canExecute());
+
+        assertEquals(m_file.canExecute(), m_nioFile.canExecute());
     }
 
     /**
      * Test whether set write permissions equals. POSIX FileSystems only
      */
     @Test
-    public void write_permissions_equals() {
+    public void set_write_permissions_equals() {
         Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
         m_nioFile.setWritable(true, false);
 
         assertTrue(m_nioFile.canWrite());
         assertEquals(m_file.canWrite(), m_nioFile.canWrite());
+    }
 
+    /**
+     * Test whether set write permissions equals. POSIX FileSystems only
+     */
+    @Test
+    public void set_write_permissions_to_false_equals() {
+        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
+        m_nioFile.setWritable(true, false);
+        m_nioFile.setWritable(false, false);
+
+        assertFalse(m_nioFile.canWrite());
+        assertEquals(m_file.canWrite(), m_nioFile.canWrite());
+    }
+
+    /**
+     * Test whether set read permissions equals. POSIX FileSystems only
+     */
+    @Test
+    public void set_read_permissions_equals() {
+        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
+        m_nioFile.setReadable(true, false);
+
+        assertTrue(m_nioFile.canRead());
+        assertEquals(m_file.canRead(), m_nioFile.canRead());
+    }
+
+    /**
+     * Test whether set read permissions equals. POSIX FileSystems only
+     */
+    @Test
+    public void set_read_permissions_to_false_equals() {
+        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
+        m_nioFile.setReadable(true, false);
+        m_nioFile.setReadable(false, false);
+
+        assertFalse(m_nioFile.canRead());
+        assertEquals(m_file.canRead(), m_nioFile.canRead());
     }
 
     /**
@@ -279,6 +382,27 @@ public class NioFileTest {
 
         assertEquals((m_file.lastModified() / 1000) * 1000, (m_nioFile.lastModified() / 1000) * 1000);
 
+    }
+
+    @Test
+    public void getAbsoluteFile_equals() {
+        assertEquals(m_file.getAbsoluteFile().getAbsolutePath(), m_nioFile.getAbsoluteFile().getAbsolutePath());
+    }
+
+    @Test
+    public void getParent_on_File_without_parent() {
+        final File file = new File(TEST_FILE);
+        final NioFile nioFile = new NioFile(TEST_FILE, FileSystems.getDefault());
+        assertNull(nioFile.getParent());
+        assertEquals(file.getParent(), nioFile.getParent());
+    }
+
+    @Test
+    public void getParentFile_on_File_without_parent() {
+        final File file = new File(TEST_FILE);
+        final NioFile nioFile = new NioFile(TEST_FILE, FileSystems.getDefault());
+        assertNull(nioFile.getParentFile());
+        assertEquals(file.getParentFile(), nioFile.getParentFile());
     }
 
     /**
@@ -338,10 +462,101 @@ public class NioFileTest {
     }
 
     /**
-     * Tests whether listing of files is equal.
+     * Tests the creating of a non existing file.
+     *
+     * @throws Exception
      */
     @Test
-    public void listFile_equals() {
-        assertArrayEquals(m_dir.listFiles(), m_nioDir.listFiles());
+    public void create_new_file_equals() throws Exception {
+        final File file = new File(m_dir, "newly-created.txt");
+        final NioFile nioFile = new NioFile(file.getAbsolutePath(), FileSystems.getDefault());
+
+        final boolean newFileCreated = nioFile.createNewFile();
+        assertTrue(newFileCreated);
+        assertTrue(file.exists());
+    }
+
+    /**
+     * Tests the creating of a non existing file.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void create_new_file_for_existing_file_fails() throws Exception {
+        final boolean newFileCreated = m_nioFile.createNewFile();
+        assertFalse(newFileCreated);
+    }
+
+    /**
+     * Tests the creating of a non existing directory
+     */
+    @Test
+    public void mkDir_equals() {
+        final File file = new File(m_dir, "newly-created-dir");
+        final NioFile nioFile = new NioFile(file.getAbsolutePath(), FileSystems.getDefault());
+
+        final boolean newFileCreated = nioFile.mkdir();
+        assertTrue(newFileCreated);
+        assertTrue(file.isDirectory());
+        assertTrue(file.exists());
+    }
+
+    /**
+     * Tests the creation of an already exisiting folder.
+     */
+    @Test
+    public void mkdir_for_existing_folder_fails() {
+        assertFalse(m_nioDir.mkdir());
+    }
+
+    /**
+     * Tests the creating of a non existing directory
+     */
+    @Test
+    public void mkDirs_equals() {
+        final File folderA = new File(m_dir, "folderA");
+        final File folderB = new File(folderA, "folderB");
+        final NioFile nioFile = new NioFile(folderB.getAbsolutePath(), FileSystems.getDefault());
+
+        final boolean newFoldersCreated = nioFile.mkdirs();
+        assertTrue(newFoldersCreated);
+        assertTrue(folderA.isDirectory());
+        assertTrue(folderA.exists());
+        assertTrue(folderB.isDirectory());
+        assertTrue(folderB.exists());
+    }
+
+    /**
+     * Tests the creation of an already existing folders.
+     */
+    @Test
+    public void mkdirs_for_existing_folders_fails() {
+        final File folderA = new File(m_dir, "folderA");
+        folderA.mkdir();
+        final File folderB = new File(folderA, "folderB");
+        folderB.mkdir();
+        final NioFile nioFile = new NioFile(folderB.getAbsolutePath(), FileSystems.getDefault());
+
+        assertFalse(nioFile.mkdirs());
+    }
+
+    /**
+     * Tests the setting of the last modified time
+     */
+    @Test
+    public void set_last_modified_equals() {
+        m_nioFile.setLastModified(0L);
+        assertEquals(0L, m_nioFile.lastModified());
+    }
+
+    /**
+     * Tests the compareTo method to be equal
+     */
+    @Test
+    public void compare_to() {
+        assertEquals(0, m_nioFile.compareTo(m_nioFile));
+        assertEquals(0, m_nioFile.compareTo(m_file));
+        assertEquals(m_dir.compareTo(m_file), m_nioDir.compareTo(m_nioFile));
+        assertEquals(m_file.compareTo(m_dir), m_nioFile.compareTo(m_nioDir));
     }
 }

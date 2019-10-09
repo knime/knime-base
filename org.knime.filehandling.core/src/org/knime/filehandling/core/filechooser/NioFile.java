@@ -190,28 +190,34 @@ public final class NioFile extends File {
 
     @Override
     public File[] listFiles(final FilenameFilter filter) {
-        final List<File> files = new ArrayList<>();
+
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(m_path,
             p -> filter.accept(new NioFile(p.getParent()), p.getFileName().toString()))) {
 
+            final List<File> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(p.toString(), m_fileSys)));
+            return files.stream().toArray(NioFile[]::new);
+
         } catch (final Exception ex) {
             LOGGER.warn(ex);
+            return null;
         }
-        return files.stream().toArray(NioFile[]::new);
+
     }
 
     @Override
     public File[] listFiles(final FileFilter filter) {
-        final List<File> files = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream =
             Files.newDirectoryStream(m_path, p -> filter.accept(new NioFile(p)))) {
 
+            final List<File> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(p.toString(), m_fileSys)));
+            return files.stream().toArray(NioFile[]::new);
+
         } catch (final Exception ex) {
             LOGGER.warn(ex);
+            return null;
         }
-        return files.stream().toArray(NioFile[]::new);
     }
 
     @Override
@@ -221,15 +227,17 @@ public final class NioFile extends File {
 
     @Override
     public String[] list(final FilenameFilter filter) {
-        final List<String> files = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(m_path,
             p -> filter.accept(new NioFile(p.getParent()), p.getFileName().toString()))) {
 
+            final List<String> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(p.getFileName().toString()));
+            return files.stream().toArray(String[]::new);
+
         } catch (final Exception ex) {
             LOGGER.warn(ex);
+            return null;
         }
-        return files.stream().toArray(String[]::new);
     }
 
     @Override
@@ -311,6 +319,10 @@ public final class NioFile extends File {
 
     @Override
     public boolean mkdirs() {
+        if (exists()) {
+            return false;
+        }
+
         try {
             Files.createDirectories(m_path);
             return true;
@@ -369,10 +381,19 @@ public final class NioFile extends File {
 
             final PosixFileAttributes attrs = Files.readAttributes(m_path, PosixFileAttributes.class);
             final Set<PosixFilePermission> newPermissions = attrs.permissions();
-            newPermissions.add(PosixFilePermission.OWNER_READ);
-            if (!ownerOnly) {
-                newPermissions.add(PosixFilePermission.GROUP_READ);
-                newPermissions.add(PosixFilePermission.OTHERS_READ);
+
+            if (readable) {
+                newPermissions.add(PosixFilePermission.OWNER_READ);
+                if (!ownerOnly) {
+                    newPermissions.add(PosixFilePermission.GROUP_READ);
+                    newPermissions.add(PosixFilePermission.OTHERS_READ);
+                }
+            } else {
+                newPermissions.remove(PosixFilePermission.OWNER_READ);
+                if (!ownerOnly) {
+                    newPermissions.remove(PosixFilePermission.GROUP_READ);
+                    newPermissions.remove(PosixFilePermission.OTHERS_READ);
+                }
             }
             Files.setPosixFilePermissions(m_path, newPermissions);
             return true;
@@ -393,13 +414,21 @@ public final class NioFile extends File {
         try {
             final PosixFileAttributes attrs = Files.readAttributes(m_path, PosixFileAttributes.class);
             final Set<PosixFilePermission> newPermissions = attrs.permissions();
-            newPermissions.add(PosixFilePermission.OWNER_WRITE);
-            if (!ownerOnly) {
-                newPermissions.add(PosixFilePermission.GROUP_WRITE);
-                newPermissions.add(PosixFilePermission.OTHERS_WRITE);
+
+            if (writable) {
+                newPermissions.add(PosixFilePermission.OWNER_WRITE);
+                if (!ownerOnly) {
+                    newPermissions.add(PosixFilePermission.GROUP_WRITE);
+                    newPermissions.add(PosixFilePermission.OTHERS_WRITE);
+                }
+            } else {
+                newPermissions.remove(PosixFilePermission.OWNER_WRITE);
+                if (!ownerOnly) {
+                    newPermissions.remove(PosixFilePermission.GROUP_WRITE);
+                    newPermissions.remove(PosixFilePermission.OTHERS_WRITE);
+                }
             }
             Files.setPosixFilePermissions(m_path, newPermissions);
-
             return true;
 
         } catch (final IOException ex) {
@@ -418,12 +447,23 @@ public final class NioFile extends File {
         try {
             final PosixFileAttributes attrs = Files.readAttributes(m_path, PosixFileAttributes.class);
             final Set<PosixFilePermission> newPermissions = attrs.permissions();
-            newPermissions.add(PosixFilePermission.OWNER_EXECUTE);
-            if (!ownerOnly) {
-                newPermissions.add(PosixFilePermission.GROUP_EXECUTE);
-                newPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
+
+            if (executable) {
+                newPermissions.add(PosixFilePermission.OWNER_EXECUTE);
+                if (!ownerOnly) {
+                    newPermissions.add(PosixFilePermission.GROUP_EXECUTE);
+                    newPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
+                }
+            } else {
+                newPermissions.remove(PosixFilePermission.OWNER_EXECUTE);
+                if (!ownerOnly) {
+                    newPermissions.remove(PosixFilePermission.GROUP_EXECUTE);
+                    newPermissions.remove(PosixFilePermission.OTHERS_EXECUTE);
+                }
             }
+            Files.setPosixFilePermissions(m_path, newPermissions);
             return true;
+
         } catch (final IOException ex) {
             LOGGER.warn(ex);
             return false;
@@ -489,7 +529,16 @@ public final class NioFile extends File {
 
     @Override
     public boolean equals(final Object obj) {
-        return m_path.equals(obj);
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof NioFile)) {
+            return false;
+        }
+        final NioFile nioFile = (NioFile)obj;
+
+        return m_path.equals(nioFile.m_path);
     }
 
     @Override
