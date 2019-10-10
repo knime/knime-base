@@ -84,7 +84,7 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
-import org.knime.workbench.explorer.ExplorerMountTable;
+import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
@@ -530,7 +530,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
             (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
         knimeConnectionsModel.removeAllElements();
-        ExplorerMountTable.getAllMountedIDs().stream().forEach(
+        MountPointIDProviderService.instance().getAllMountedIDs().stream().forEach(
             id -> knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(id)));
         knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
         knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
@@ -582,6 +582,5 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     public void setToolTipText(final String text) {
         // Nothing to show here ...
-
     }
 }
