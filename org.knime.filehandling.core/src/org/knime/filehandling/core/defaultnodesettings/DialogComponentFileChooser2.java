@@ -65,6 +65,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.FlowVariableModel;
@@ -577,6 +578,36 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_filterFiles.setEnabled(enabled);
             m_configureFilter.setEnabled(enabled);
         }
+    }
+
+    /**
+     * Returns the currently selected path/url.
+     *
+     * @return the currently selected path/url
+     */
+    public final String getSelectedPathOrUrl() {
+        if (m_pathFlowVariableModel.getVariableValue().isPresent()) {
+            return m_pathFlowVariableModel.getVariableValue().get().getStringValue();
+        }
+        return m_fileHistoryPanel.getSelectedFile();
+    }
+
+    /**
+     * Sets the currently path/url.
+     *
+     * @param pathOrUrl The path/url to set
+     */
+    public void setSelectedFile(final String pathOrUrl) {
+        m_fileHistoryPanel.setSelectedFile(pathOrUrl);
+    }
+
+    /**
+     * Adds a ChangeListener to the underlying {@link FilesHistoryPanel}.
+     *
+     * @param listener ChangeListener
+     */
+    public void addChangeListenerToFileSelection(final ChangeListener listener) {
+        m_fileHistoryPanel.addChangeListener(listener);
     }
 
     @Override

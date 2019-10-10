@@ -159,6 +159,10 @@ public class URIFileSystem extends FileSystem {
         }
 
         try {
+            URI uri = URI.create(path);
+            if (uri.getScheme() != null && !uri.getScheme().isEmpty()) {
+                return new URIPath(this, uri);
+            }
             return new URIPath(this, new URI(m_uri.getScheme(), m_uri.getAuthority(), path, null, null));
         } catch (URISyntaxException ex) {
             throw new RuntimeException("Failed to create URI", ex);
