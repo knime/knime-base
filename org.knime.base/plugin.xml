@@ -900,10 +900,6 @@
             factory-class="org.knime.base.node.preproc.correlation.compute.CorrelationComputeNodeFactory"/>
       <node
             category-path="/analytics/mining/featureselection"
-            factory-class="org.knime.base.node.preproc.correlation.compute2.CorrelationCompute2NodeFactory"/>
-      <node
-            after="org.knime.base.node.preproc.correlation.compute2.CorrelationCompute2NodeFactory"
-            category-path="/analytics/mining/featureselection"
             factory-class="org.knime.base.node.preproc.correlation.filter.CorrelationFilterNodeFactory"/>
       <node
             category-path="/analytics/mining/featureselection"
