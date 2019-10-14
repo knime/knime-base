@@ -767,9 +767,6 @@
             factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory"/>
       <node
             category-path="/analytics/mining/subgroup"
-            factory-class="org.knime.base.node.preproc.bitvector.create.CreateBitVectorNodeFactory"/>
-      <node
-            category-path="/analytics/mining/subgroup"
             factory-class="org.knime.base.node.mine.subgroupminer.SubgroupMinerFactory2"/>
        <node
              category-path="/analytics/mining/regression"
