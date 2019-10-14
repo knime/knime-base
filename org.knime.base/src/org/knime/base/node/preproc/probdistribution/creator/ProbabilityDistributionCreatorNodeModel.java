@@ -163,7 +163,7 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
     }
 
     private boolean isStringColumn() {
-       return ColumnType.valueOf(m_columnTypeModel.getStringValue()) == ColumnType.STRING_COLUMN;
+        return ColumnType.valueOf(m_columnTypeModel.getStringValue()) == ColumnType.STRING_COLUMN;
     }
 
     private int[] getSourceColumns(final DataTableSpec spec) throws InvalidSettingsException {
@@ -217,7 +217,10 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
     }
 
     private static String[] getPossibleValues(final DataColumnSpec chosenColumn) throws InvalidSettingsException {
-        CheckUtils.checkSetting(chosenColumn.getDomain().getValues() != null, "The possible values cannot be null.");
+        CheckUtils.checkSetting(chosenColumn.getDomain().hasValues(),
+            "The selected column '%s' does not have domain information available."
+            + " Execute preceding nodes or use a Domain Calculator to calculate its domain.",
+            chosenColumn.getName());
         Set<DataCell> possibleValues = chosenColumn.getDomain().getValues();
         CheckUtils.checkSetting(chosenColumn.getType().isCompatible(NominalValue.class),
             "The picked column is not nominal.");
@@ -337,6 +340,11 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
                             "At least one row contains a missing value. Missing values will be in the output.");
                         return new MissingCell("Input row contains missing values.");
                 }
+            }
+            String dataCellString = stringCell.toString();
+            if (dataCellString.isEmpty() || dataCellString.trim().length() == 0) {
+                throw new IllegalArgumentException(
+                    "The row '" + row.getKey().toString() + "' contains an empty string.");
             }
             double[] values = m_possibleValues.stream().mapToDouble(s -> s.equals(stringCell) ? 1.0 : 0.0).toArray();
             return ProbabilityDistributionCellFactory.createCell(values);

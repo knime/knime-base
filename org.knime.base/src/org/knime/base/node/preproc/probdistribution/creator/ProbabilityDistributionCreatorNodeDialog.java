@@ -48,12 +48,13 @@
  */
 package org.knime.base.node.preproc.probdistribution.creator;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
+import javax.swing.Box;
 import javax.swing.JPanel;
 
 import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
@@ -103,7 +104,7 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
     @SuppressWarnings("unchecked")
     private final DialogComponentColumnNameSelection m_stringColumnSelection =
         new DialogComponentColumnNameSelection(ProbabilityDistributionCreatorNodeModel.createStringFilterModel(),
-            "Create probability distribution from string column:", 0, false, NominalValue.class);
+            "String column containing classes", 0, false, NominalValue.class);
 
     // General Options
     private final DialogComponentString m_outputName = new DialogComponentString(
@@ -121,14 +122,17 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
         m_columnType.getModel().addChangeListener(e -> updateColumnType());
         JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.weightx = 1;
+        c.weighty = 1;
         c.gridx = 0;
         c.gridy = 0;
         panel.add(createNumericColumnPanel(), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weighty = 0;
         panel.add(createStringColumnPanel(), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
         panel.add(createGeneralOptionPanel(), c);
         addTab("Default Settings", panel);
 
@@ -139,52 +143,71 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
         m_numericColumnFilter.getModel().setEnabled(isNumeric);
         m_sumUpProbabilities.getModel().setEnabled(isNumeric);
         m_precisionModel.getModel().setEnabled(isNumeric);
+        m_precisionModel.getLabel().setEnabled(isNumeric);
         m_invalidHandling.getModel().setEnabled(isNumeric);
         m_stringColumnSelection.getModel().setEnabled(!isNumeric);
     }
 
     private JPanel createNumericColumnPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Numeric Columns"));
+        panel.setBorder(BorderFactory.createTitledBorder("Multiple Numeric Columns"));
         final GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.gridx = 0;
         c.gridy = 0;
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
         panel.add(m_columnType.getButton(ColumnType.NUMERIC_COLUMN.getActionCommand()), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
         panel.add(m_numericColumnFilter.getComponentPanel(), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weighty = 0;
+        c.weightx = 0;
         panel.add(createPrecisionPanel(), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        JPanel invalidHandling = m_invalidHandling.getComponentPanel();
-        invalidHandling.setBorder(BorderFactory.createTitledBorder("Invalid Probability Distribution Handling"));
-        panel.add(invalidHandling, c);
+        panel.add(createInvalidHandlingPanel(), c);
         return panel;
+    }
+
+    private JPanel createInvalidHandlingPanel() {
+        JPanel invalidHandlingPanel = new JPanel();
+        invalidHandlingPanel.setLayout(new GridBagLayout());
+        final GridBagConstraints c = new GridBagConstraints();
+        invalidHandlingPanel.setBorder(BorderFactory.createTitledBorder("Invalid Probability Distribution Handling"));
+        c.anchor = GridBagConstraints.LINE_START;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 1;
+        invalidHandlingPanel.add(m_invalidHandling.getComponentPanel(), c);
+        return invalidHandlingPanel;
     }
 
     private JPanel createPrecisionPanel() {
         final JPanel precisionPanel = new JPanel();
-        precisionPanel.setLayout(new BoxLayout(precisionPanel, BoxLayout.PAGE_AXIS));
+        precisionPanel.setLayout(new GridBagLayout());
         precisionPanel.setBorder(BorderFactory.createTitledBorder("Precision"));
-        precisionPanel.add(m_sumUpProbabilities.getComponentPanel());
-        precisionPanel.add(m_precisionModel.getComponentPanel());
+        final GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.LINE_START;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 1;
+        precisionPanel.add(m_sumUpProbabilities.getComponentPanel(), c);
+        c.gridy++;
+        precisionPanel.add(m_precisionModel.getComponentPanel(), c);
         return precisionPanel;
     }
 
     private JPanel createStringColumnPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("String Columns"));
+        panel.setBorder(BorderFactory.createTitledBorder("Single String Column"));
         final GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.LINE_START;
         c.gridx = 0;
         c.gridy = 0;
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.weightx = 1;
         panel.add(m_columnType.getButton(ColumnType.STRING_COLUMN.getActionCommand()), c);
         c.gridy++;
-        c.fill = GridBagConstraints.HORIZONTAL;
         m_stringColumnSelection.getModel().setEnabled(false);
         panel.add(m_stringColumnSelection.getComponentPanel(), c);
         return panel;
@@ -194,21 +217,22 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder("General"));
         final GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.LINE_START;
         c.gridx = 0;
         c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
         panel.add(m_outputName.getComponentPanel(), c);
-        c.gridx = 1;
-        c.gridy = 0;
-        c.insets = new Insets(0, 30, 0, 0);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx++;
+        c.insets = new Insets(0, 20, 0, 0);
         panel.add(m_includeColumns.getComponentPanel(), c);
-        c.gridx = 2;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx++;
+        c.insets = new Insets(0, 20, 0, 0);
         JPanel missingValueComponent = m_missingValueHandling.getComponentPanel();
-        missingValueComponent.setBorder(BorderFactory.createTitledBorder("Missing Values"));
+        missingValueComponent.setBorder(BorderFactory.createTitledBorder("Missing Value Handling"));
+        missingValueComponent.setPreferredSize(new Dimension(125,100));
         panel.add(missingValueComponent, c);
+        c.gridx++;
+        c.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), c);
         return panel;
     }
 

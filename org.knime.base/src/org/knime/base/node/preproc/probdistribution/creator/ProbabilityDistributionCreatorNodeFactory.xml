@@ -6,14 +6,28 @@
 		numeric cells.</shortDescription>
 	<fullDescription>
 		<intro>
-			Creates a column containing a probability distribution either from numeric or string columns. 
-			In case of numeric columns, one or more columns that contain probability 
-			values can be picked. The probability values must be non-negative and must sum up to 1.
-			In case of string columns, one single column can be selected. The probability 
-			distribution of the string column produces the same results as applying the numeric probability distribution to 
-			the output columns of One to Many node applied to the same string column.
-			The node dialog contains three main sections dedicated respectively to numeric columns, string columns
-			and common features for both types. 
+			Creates a column containing a probability distribution either from
+            		numeric columns or a single string column.
+            		In case of numeric columns, one or more columns that contain
+            		probability values can be picked. The probability values must be 
+			non-negative and must sum up to 1.
+            		<br />
+            		In case of a string column, one single column can be selected. The
+            		probability distribution of the string column produces a one-hot 
+			encoding of the string column. In order to do this, the column must 
+			have a valid domain, i.e., the possible values of the column must be known. 
+			You can use a <i>Domain Calculator</i> to calculate these values if they
+			are not present. Each of the possible values will be treated as a separate class,
+            		i.e., the number of distinct values in the string column will be the
+            		number of classes in the created probability distribution. The
+            		string value of a cell will have a probability of 1 whereby all the
+            		other possible string values of the column will have a probability of 0. The
+            		same output can be achieved by creating a probability distribution of the numeric
+            		output columns of the <i>One to Many</i> node applied to the same string
+            		column.
+            		<br />
+            		The node dialog contains three main sections dedicated respectively
+            		to numeric columns, string columns and common features for both types.
 		</intro>
 		<tab name="Numeric Columns">
 			<option name="Numeric Column Selection">Move the columns that contain the probability
@@ -82,8 +96,8 @@
 		</tab>
 	</fullDescription>
 	<ports>
-		<inPort name="Probability Values" index="0">Data with columns
-			containing probability values.
+		<inPort name="Probability Values" index="0">Data with columns containing probability values
+			or a column containing string values.
 		</inPort>
 		<outPort index="0"
 			name="Input Data with Probability Distribution">Input data with an appended column that contains the
