@@ -1,6 +1,3 @@
 */bin/
 */target/
 */build/
-org.knime.core.pmml/src/.gitignore
-org.knime.core/src/.gitignore
-org.knime.workbench.repository/src/.gitignore
