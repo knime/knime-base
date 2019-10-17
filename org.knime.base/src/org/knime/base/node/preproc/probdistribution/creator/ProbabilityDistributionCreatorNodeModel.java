@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.probdistribution.creator;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -157,7 +158,6 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
         }
         final DataColumnSpecCreator colSpecCreator = new UniqueNameGenerator(columnRearranger.createSpec())
             .newCreator(m_columnNameModel.getStringValue(), ProbabilityDistributionCellFactory.TYPE);
-
         columnRearranger.append(getCellFactory(spec, colSpecCreator, colIndices));
         return columnRearranger;
     }
@@ -217,14 +217,20 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
     }
 
     private static String[] getPossibleValues(final DataColumnSpec chosenColumn) throws InvalidSettingsException {
-        CheckUtils.checkSetting(chosenColumn.getDomain().hasValues(),
-            "The selected column '%s' does not have domain information available."
-            + " Execute preceding nodes or use a Domain Calculator to calculate its domain.",
-            chosenColumn.getName());
-        Set<DataCell> possibleValues = chosenColumn.getDomain().getValues();
         CheckUtils.checkSetting(chosenColumn.getType().isCompatible(NominalValue.class),
             "The picked column is not nominal.");
-        return possibleValues.stream().map(DataCell::toString).toArray(String[]::new);
+        CheckUtils.checkSetting(chosenColumn.getDomain().hasValues(),
+            "The selected column '%s' does not have domain information available."
+                + " Execute preceding nodes or use a Domain Calculator to calculate its domain.",
+            chosenColumn.getName());
+        Set<DataCell> possibleValues = chosenColumn.getDomain().getValues();
+        Set<String> possibleStrings = possibleValues.stream().map(DataCell::toString).map(String::trim)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        CheckUtils.checkSetting(possibleValues.size() == possibleStrings.size(),
+            "Some of the possible values are equal after trimming whitespaces.");
+        CheckUtils.checkSetting(!possibleStrings.contains(""),
+            "After trimming at least one possible values is the empty string which is not supported.");
+        return possibleStrings.toArray(new String[0]);
     }
 
     private MissingValueHandling getMissingValueHandling() throws InvalidSettingsException {
