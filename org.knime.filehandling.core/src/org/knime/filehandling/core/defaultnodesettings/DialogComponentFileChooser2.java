@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -81,7 +82,6 @@ import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
@@ -331,30 +331,57 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         updateSettingsModel();
         triggerStatusMessageUpdate();
         updateEnabledness();
-        //FIXME put that in action listener
-        updateFileHistoryPanel();
     }
 
     /**
      *
      */
     private void updateFileHistoryPanel() {
+        m_fileHistoryPanel.setEnabled(true);
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
-        if (fsChoice.getType() == Choice.FLOW_VARIABLE_FS) {
-            final Optional<String> key = m_connectionFlowVariableProvider.connectionKeyOf(fsChoice.getId());
-            if (key.isPresent()) {
-                final Optional<FSConnection> connection = FSConnectionRegistry.getInstance().retrieve(key.get());
-                if (connection.isPresent()) {
-                    m_fileHistoryPanel.setFileSystemBrowser(connection.get().getFileSystemBrowser());
-                    m_fileHistoryPanel.setBrowseable(true);
+
+        switch (fsChoice.getType()) {
+            case CUSTOM_URL_FS:
+                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(false);
+                break;
+            case FLOW_VARIABLE_FS:
+                final Optional<String> key = m_connectionFlowVariableProvider.connectionKeyOf(fsChoice.getId());
+                if (key.isPresent()) {
+                    applySettingsForConnection(fsChoice, key.get());
                 } else {
-                    m_fileHistoryPanel.setBrowseable(false);
+                    throw new IllegalStateException(String.format("No connection for %s registered", fsChoice.getId()));
                 }
-            }
-        } else {
-            m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                break;
+            case KNIME_FS:
+                //FIXME for remote set Browser and browsable depending on connection
+                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(true);
+                break;
+            case LOCAL_FS:
+                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(true);
+                break;
+            default:
+                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(false);
         }
 
+    }
+
+    private void applySettingsForConnection(final FileSystemChoice fsChoice, final String key) {
+        final Optional<FSConnection> connection = FSConnectionRegistry.getInstance().retrieve(key);
+        if (connection.isPresent()) {
+            m_fileHistoryPanel.setFileSystemBrowser(connection.get().getFileSystemBrowser());
+            m_fileHistoryPanel.setBrowseable(true);
+            m_statusMessage.setText("");
+        } else {
+            m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+            m_fileHistoryPanel.setBrowseable(false);
+            m_statusMessage.setForeground(Color.RED);
+            m_statusMessage.setText(
+                String.format("Connection to %s not available. Please reset the connector node.", fsChoice.getId()));
+        }
     }
 
     /** Method called if file filter configuration button is clicked */
@@ -393,8 +420,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_knimeConnections.setEnabled(true);
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
-            m_fileHistoryPanel.setEnabled(true);
-            m_fileHistoryPanel.setBrowseable(true);
 
             m_includeSubfolders.setEnabled(true);
             m_filterFiles.setEnabled(true);
@@ -406,8 +431,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(URL_LABEL);
-            m_fileHistoryPanel.setEnabled(true);
-            m_fileHistoryPanel.setBrowseable(false);
 
             m_includeSubfolders.setEnabled(false);
             m_filterFiles.setEnabled(false);
@@ -418,8 +441,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
-            m_fileHistoryPanel.setEnabled(true);
-            m_fileHistoryPanel.setBrowseable(true);
 
             m_includeSubfolders.setEnabled(true);
             m_filterFiles.setEnabled(true);
@@ -463,14 +484,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_connections.setSelectedItem(fileSystem);
         }
         // sync knime connection check box
-        updateKNIMEConnectionsCombo();
         final KNIMEConnection knimeFileSystem =
             KNIMEConnection.getOrCreateMountpointAbsoluteConnection(model.getKNIMEFileSystem());
 
         if ((knimeFileSystem != null) && !knimeFileSystem.equals(m_knimeConnections.getSelectedItem())) {
             final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
-                    (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
-            if(knimeConnectionsModel.getIndexOf(knimeFileSystem) == -1) {
+                (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
+            if (knimeConnectionsModel.getIndexOf(knimeFileSystem) == -1) {
                 //If the Connection did not exsist before
                 knimeConnectionsModel.addElement(knimeFileSystem);
             }
@@ -511,7 +531,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         triggerStatusMessageUpdate();
         setEnabledComponents(model.isEnabled());
-
+        updateFileHistoryPanel();
         m_ignoreUpdates = false;
     }
 
@@ -525,9 +545,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Method to update and add flow variable file system connections to combo box */
     private void updateFlowVariableConnectionsCombo() {
+        updateConnectionsCombo();
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
         m_connectionFlowVariableProvider = new FSConnectionFlowVariableProvider(m_dialogPane);
+
         for (final String connectionName : m_connectionFlowVariableProvider.allConnectionNames()) {
             final FileSystemChoice choice = FileSystemChoice.createFlowVariableFileSystemChoice(connectionName);
             if (connectionsModel.getIndexOf(choice) < 0) {
@@ -555,7 +577,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
         model.setFileSystem(fsChoice.getId());
         if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
-            KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
+            final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
             model.setKNIMEFileSystem(connection.getId());
         }
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
