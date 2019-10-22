@@ -150,7 +150,7 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
 
     private JPanel createNumericColumnPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Multiple Numeric Columns"));
+        panel.setBorder(BorderFactory.createTitledBorder("Numeric Column Selection"));
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.gridx = 0;
@@ -200,7 +200,7 @@ final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
 
     private JPanel createStringColumnPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Single String Column"));
+        panel.setBorder(BorderFactory.createTitledBorder("String Column Selection"));
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.LINE_START;
         c.gridx = 0;

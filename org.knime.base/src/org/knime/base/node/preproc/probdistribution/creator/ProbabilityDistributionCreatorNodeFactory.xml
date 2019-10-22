@@ -25,9 +25,6 @@
             		same output can be achieved by creating a probability distribution of the numeric
             		output columns of the <i>One to Many</i> node applied to the same string
             		column.
-            		<br />
-            		The node dialog contains three main sections dedicated respectively
-            		to numeric columns, string columns and common features for both types.
 		</intro>
 		<tab name="Numeric Columns">
 			<option name="Numeric Column Selection">Move the columns that contain the probability
