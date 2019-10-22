@@ -72,7 +72,7 @@ public class URIFileStore extends FileStore {
             throw new IllegalArgumentException(uri + " is not a supported URL (scheme/protocol is missing)");
         }
 
-        if (uri.getAuthority() == null) {
+        if (!uri.getScheme().equalsIgnoreCase("file") && uri.getAuthority() == null) {
             throw new IllegalArgumentException(uri + " is not a supported URL (authority is missing)");
         }
 
