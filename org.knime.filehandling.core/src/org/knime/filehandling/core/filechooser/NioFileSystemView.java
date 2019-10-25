@@ -58,7 +58,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.swing.Icon;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
 
 import org.knime.filehandling.core.connections.FSConnection;
@@ -104,7 +103,14 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public String getSystemDisplayName(final File f) {
-        return f.getName();
+        String name = f.getName();
+
+        if (name == null || name.length() == 0) {
+            name = f.getPath(); // e.g. "/"
+        }
+
+        return name;
+
     }
 
     @Override
@@ -179,7 +185,7 @@ public class NioFileSystemView extends FileSystemView {
     public boolean isParent(final File folder, final File file) {
         final Path filePath = m_fileSystem.getPath(file.getPath());
         final Path folderPath = m_fileSystem.getPath(folder.getPath());
-        return filePath.getParent().equals(folderPath);
+        return folderPath.equals(filePath.getParent());
     }
 
     @Override
@@ -224,7 +230,7 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public Icon getSystemIcon(final File f) {
-        return UIManager.getIcon(f.isDirectory() ? "FileView.directoryIcon" : "FileView.fileIcon");
+        return f.isDirectory() ? NioFileView.DIR_ICON : NioFileView.FILE_ICON;
     }
 
 }

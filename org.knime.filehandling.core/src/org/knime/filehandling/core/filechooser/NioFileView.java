@@ -44,65 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   09.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   23.10.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.filechooser;
 
 import java.io.File;
 
-import javax.swing.filechooser.FileSystemView;
+import javax.swing.Icon;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileView;
-
-import org.knime.core.node.util.AbstractJFileChooserBrowser;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.filehandling.core.connections.FSConnection;
 
 /**
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
+public class NioFileView extends FileView {
 
-    private final NioFileSystemView m_fileSystemView;
+    /** Directory icon */
+    protected static final Icon DIR_ICON = UIManager.getIcon("FileView.directoryIcon");
 
-    /**
-     * @param connection
-     */
-    public NioFileSystemBrowser(final FSConnection connection) {
-        m_fileSystemView = new NioFileSystemView(connection);
-    }
+    /** File icon */
+    protected static final Icon FILE_ICON = UIManager.getIcon("FileView.fileIcon");
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public boolean isCompatible() {
-        return NodeContext.getContext().getNodeContainer() != null;
+    public String getName(final File f) {
+        return f.getName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected FileSystemView getFileSystemView() {
-        return m_fileSystemView;
+    public String getDescription(final File f) {
+        return f.getName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected FileView getFileView() {
-        return new NioFileView();
+    public String getTypeDescription(final File f) {
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected File createFileFromPath(final String filePath) {
-        return m_fileSystemView.createFileObject(filePath);
+    public Icon getIcon(final File f) {
+        return f.isDirectory() ? DIR_ICON : FILE_ICON;
     }
 
+    @Override
+    public Boolean isTraversable(final File f) {
+        return f.isDirectory();
+    }
 
 }

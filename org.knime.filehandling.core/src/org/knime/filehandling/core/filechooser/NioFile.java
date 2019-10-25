@@ -101,7 +101,7 @@ public final class NioFile extends File {
      * @param pathname the path as string
      * @param fileSystem the file system this file belongs to
      */
-    protected NioFile(final String pathname, final FileSystem fileSystem) {
+    public NioFile(final String pathname, final FileSystem fileSystem) {
         super(pathname);
         m_fileSys = fileSystem;
         m_path = m_fileSys.getPath(pathname);
@@ -122,7 +122,7 @@ public final class NioFile extends File {
 
     @Override
     public String getName() {
-        return m_path.getFileName().toString();
+        return m_path.getFileName() == null ? "" : m_path.getFileName().toString();
     }
 
     @Override
