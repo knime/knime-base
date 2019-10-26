@@ -68,12 +68,16 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  *
@@ -87,21 +91,22 @@ public class LineReaderNodeModel extends NodeModel {
      *
      */
     public LineReaderNodeModel() {
-        super(0, 1);
+        super(new PortType[] {FileSystemPortObject.TYPE_OPTIONAL}, new PortType[] {BufferedDataTable.TYPE});
     }
 
     /** {@inheritDoc} */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         //FIXME
-        return new DataTableSpec[]{null};
+        return new PortObjectSpec[]{null};
     }
 
     /** {@inheritDoc} */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec)
         throws Exception {
-        final List<Path> pathList = m_config.getPaths(new FSConnectionFlowVariableProvider(this));
+        Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(inData, 0);
+        final List<Path> pathList = m_config.getPaths(fs);
 
         if (pathList.isEmpty()) {
             throw new InvalidSettingsException("No files selected");

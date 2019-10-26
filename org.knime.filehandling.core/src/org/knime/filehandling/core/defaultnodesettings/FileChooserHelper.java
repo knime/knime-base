@@ -62,6 +62,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
@@ -86,17 +87,17 @@ public final class FileChooserHelper {
     /**
      * Creates a new instance of {@link FileChooserHelper}.
      *
-     * @param provider the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
+     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
      *            if necessary
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
-    public FileChooserHelper(final FSConnectionFlowVariableProvider provider, final SettingsModelFileChooser2 settings)
+    public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings)
         throws IOException {
 
         m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
-        m_fileSystem = FileSystemHelper.retrieveFileSystem(provider, settings);
+        m_fileSystem = FileSystemHelper.retrieveFileSystem(fs, settings);
     }
 
     /**

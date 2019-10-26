@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.linereader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -61,6 +62,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -129,12 +131,12 @@ public class LineReaderConfig {
     /**
      * Returns a list of Paths retrieved from the file chooser dialog choices
      *
-     * @param provider the {@link FSConnectionFlowVariableProvider}
+     * @param fs the {@link FSConnectionFlowVariableProvider}
      * @return a list of paths
      * @throws IOException
      */
-    public List<Path> getPaths(final FSConnectionFlowVariableProvider provider) throws IOException {
-        final FileChooserHelper helper = new FileChooserHelper(provider, getFileChooserModel());
+    public List<Path> getPaths(final Optional<FSConnection> fs) throws IOException {
+        final FileChooserHelper helper = new FileChooserHelper(fs, getFileChooserModel());
         return helper.getPaths();
     }
 

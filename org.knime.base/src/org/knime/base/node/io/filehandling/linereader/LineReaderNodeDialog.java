@@ -57,7 +57,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -67,6 +66,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 
 /**
@@ -100,7 +100,7 @@ public class LineReaderNodeDialog extends NodeDialogPane {
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
 
-        m_filePanel = new DialogComponentFileChooser2(m_config.getFileChooserModel(), "line_read", this );
+        m_filePanel = new DialogComponentFileChooser2(0, m_config.getFileChooserModel(), "line_read", this);
         m_rowHeadPrefixField =
             new DialogComponentString(m_config.getRowPrefixModel(), "Row header prefix ", false, COMP_WIDTH);
 
@@ -196,9 +196,10 @@ public class LineReaderNodeDialog extends NodeDialogPane {
 
     /** {@inheritDoc} */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
+            m_filePanel.loadSettingsFrom(settings, specs);
             m_config.loadConfiguration(settings);
         } catch (InvalidSettingsException ex) {
            throw new NotConfigurableException(ex.getMessage());

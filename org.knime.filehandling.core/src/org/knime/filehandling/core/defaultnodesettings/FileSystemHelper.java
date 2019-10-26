@@ -48,17 +48,13 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import static java.lang.String.format;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.Optional;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
 
 /**
@@ -70,14 +66,14 @@ public class FileSystemHelper {
 
     /**
      * Method to obtain the file system for a given settings model.
+     * @param fs optional {@link FSConnection}
+     * @param settings {@link SettingsModelFileChooser2} instance
+     * @return {@link FileSystem} to use
+     * @throws IOException if custom URL is invalid
      *
-     * @param provider
-     * @param settings
-     * @return
-     * @throws IOException
      */
     @SuppressWarnings("resource")
-    public static final FileSystem retrieveFileSystem(final FSConnectionFlowVariableProvider provider,
+    public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
         final SettingsModelFileChooser2 settings) throws IOException {
 
         final FileSystemChoice choice = FileSystemChoice.getChoiceFromId(settings.getFileSystem());
@@ -94,30 +90,14 @@ public class FileSystemHelper {
                 // FIXME: Return correct FileSystem
                 toReturn = FileSystems.getDefault();
                 break;
-            case FLOW_VARIABLE_FS:
-                final String flowVariableName = choice.getId();
-                toReturn = mapFlowVariableToFileSystem(provider, flowVariableName);
+            case CONNECTED_FS:
+                toReturn = fs.orElseThrow(() -> new IllegalStateException("No remote connection available"))
+                        .getFileSystem();
                 break;
             default:
                 throw new IOException("Unsupported file system choice: " + choice.getType());
         }
 
         return toReturn;
-    }
-
-    private static FileSystem mapFlowVariableToFileSystem(final FSConnectionFlowVariableProvider provider,
-        final String flowVariableName) {
-
-        final Optional<String> connectionKey = provider.connectionKeyOf(flowVariableName);
-        if (!connectionKey.isPresent()) {
-            throw new IllegalArgumentException(format("%s is not a connection flow variable", flowVariableName));
-        }
-
-        final Optional<FSConnection> optConn = FSConnectionRegistry.getInstance().retrieve(connectionKey.get());
-        if (!optConn.isPresent()) {
-            throw new IllegalArgumentException(format("No connection found for flow variable %s", flowVariableName));
-        }
-
-        return optConn.get().getFileSystem();
     }
 }

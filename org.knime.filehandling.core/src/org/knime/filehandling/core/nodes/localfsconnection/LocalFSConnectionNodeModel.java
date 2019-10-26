@@ -14,11 +14,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.workflow.FSConnectionFlowVariableValue;
 import org.knime.core.node.workflow.FSConnectionNode;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.LocalFSConnection;
+import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Node model for creating a local file system connection.
@@ -29,11 +29,13 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
 
     private SettingsModelString m_connectionName = LocalFSConnectionNodeDialog.createNumberFormatSettingsModel();
 
+    private String m_connectionKey;
+
     /**
      * Constructor for the node model.
      */
     protected LocalFSConnectionNodeModel() {
-    	super(new PortType[]{}, new PortType[]{FlowVariablePortObject.TYPE});
+    	super(new PortType[]{}, new PortType[]{FileSystemPortObject.TYPE});
     }
 
     /**
@@ -41,10 +43,8 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
      */
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        String connectionKey = FSConnectionRegistry.getInstance().register(new LocalFSConnection());
-        String connectionName = m_connectionName.getStringValue();
-        pushFSConnectionFlowVariable(connectionName, new FSConnectionFlowVariableValue(connectionKey));
-    	return new PortObject[]{FlowVariablePortObject.INSTANCE};
+        FSConnectionRegistry.getInstance().register(m_connectionKey, new LocalFSConnection());
+        return new PortObject[]{new FileSystemPortObject(new FileSystemPortObjectSpec("Local", m_connectionKey))};
     }
 
     /**
@@ -52,7 +52,7 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
      */
     @Override
     protected void reset() {
-        // No internals
+        m_connectionKey = null;
     }
 
     /**
@@ -61,7 +61,8 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        return new PortObjectSpec[]{null};
+        m_connectionKey = FSConnectionRegistry.getInstance().getKey();
+        return new PortObjectSpec[]{new FileSystemPortObjectSpec("Local", m_connectionKey)};
     }
 
     /**
@@ -70,6 +71,7 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
          m_connectionName.saveSettingsTo(settings);
+         //TODO: save connection key
     }
 
     /**
@@ -96,7 +98,7 @@ public class LocalFSConnectionNodeModel extends NodeModel implements FSConnectio
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // No internals
+        //TODO: load file system information and re-register the connection in the registry with the same key as before!
     }
 
     /**

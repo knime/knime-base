@@ -19,5 +19,17 @@
             factory-class="org.knime.filehandling.core.nodes.localfsconnection.LocalFSConnectionNodeFactory">
       </node>
    </extension>
+   <extension
+         point="org.knime.core.PortType">
+      <portType
+            color="#178BA5"
+            hidden="false"
+            name="File System"
+            objectClass="org.knime.filehandling.core.port.FileSystemPortObject"
+            objectSerializer="org.knime.filehandling.core.port.FileSystemPortObject$Serializer"
+            specClass="org.knime.filehandling.core.port.FileSystemPortObjectSpec"
+            specSerializer="org.knime.filehandling.core.port.FileSystemPortObjectSpec$Serializer">
+      </portType>
+   </extension>
 
 </plugin>

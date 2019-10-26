@@ -68,7 +68,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -81,17 +80,18 @@ import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
+import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
  * to different file systems, as well as file filtering based on file extensions, regular expressions or wildcard.
  *
- * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
 public class DialogComponentFileChooser2 extends DialogComponent {
@@ -100,7 +100,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
     /** Flow variable provider used to retrieve connection information to different file systems */
-    private FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
+    private Optional<FSConnection> m_fs;
 
     /** Node dialog pane */
     private final NodeDialogPane m_dialogPane;
@@ -180,17 +180,20 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** String used as button label */
     private static final String CONFIGURE_BUTTON_LABEL = "Configure";
 
+    private int m_inPort;
+
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
-     *
+     * @param inPort the index of the optional {@link FileSystemPortObject}
      * @param settingsModel the settings model storing all the necessary information
      * @param historyId id used to store file history used by {@link FilesHistoryPanel}
      * @param dialogPane the {@link NodeDialogPane} this component is used for
      * @param suffixes array of file suffixes used as defaults for file filtering options
      */
-    public DialogComponentFileChooser2(final SettingsModelFileChooser2 settingsModel, final String historyId,
-        final NodeDialogPane dialogPane, final String... suffixes) {
+    public DialogComponentFileChooser2(final int inPort, final SettingsModelFileChooser2 settingsModel,
+        final String historyId, final NodeDialogPane dialogPane, final String... suffixes) {
         super(settingsModel);
+        m_inPort = inPort;
 
         m_ignoreUpdates = false;
 
@@ -345,13 +348,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
                 m_fileHistoryPanel.setBrowseable(false);
                 break;
-            case FLOW_VARIABLE_FS:
-                final Optional<String> key = m_connectionFlowVariableProvider.connectionKeyOf(fsChoice.getId());
-                if (key.isPresent()) {
-                    applySettingsForConnection(fsChoice, key.get());
-                } else {
-                    throw new IllegalStateException(String.format("No connection for %s registered", fsChoice.getId()));
-                }
+            case CONNECTED_FS:
+                final Optional<FSConnection> fs =
+                    FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
+                    applySettingsForConnection(fsChoice, fs);
                 break;
             case KNIME_FS:
                 //FIXME for remote set Browser and browsable depending on connection
@@ -369,10 +369,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     }
 
-    private void applySettingsForConnection(final FileSystemChoice fsChoice, final String key) {
-        final Optional<FSConnection> connection = FSConnectionRegistry.getInstance().retrieve(key);
-        if (connection.isPresent()) {
-            m_fileHistoryPanel.setFileSystemBrowser(connection.get().getFileSystemBrowser());
+    private void applySettingsForConnection(final FileSystemChoice fsChoice, final Optional<FSConnection> fs) {
+        if (fs.isPresent()) {
+            m_fileHistoryPanel.setFileSystemBrowser(fs.get().getFileSystemBrowser());
             m_fileHistoryPanel.setBrowseable(true);
             m_statusMessage.setText("");
         } else {
@@ -380,7 +379,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_fileHistoryPanel.setBrowseable(false);
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText(
-                String.format("Connection to %s not available. Please reset the connector node.", fsChoice.getId()));
+                String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
         }
     }
 
@@ -459,7 +458,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
-            m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_connectionFlowVariableProvider,
+            m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_fs,
                 ((SettingsModelFileChooser2)getModel()).clone(), m_statusMessage);
             m_statusMessageSwingWorker.execute();
         }
@@ -471,10 +470,12 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             return;
         }
 
+        m_fs = FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
+
         m_ignoreUpdates = true;
 
-        // add connections coming from flow variables
-        updateFlowVariableConnectionsCombo();
+        // add any connected connections
+        updateConnectedConnectionsCombo();
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
 
@@ -543,15 +544,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         FileSystemChoice.getDefaultChoices().stream().forEach(c -> connectionsModel.addElement(c));
     }
 
-    /** Method to update and add flow variable file system connections to combo box */
-    private void updateFlowVariableConnectionsCombo() {
+    /** Method to update and add connected file system connections to combo box */
+    private void updateConnectedConnectionsCombo() {
         updateConnectionsCombo();
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
-        m_connectionFlowVariableProvider = new FSConnectionFlowVariableProvider(m_dialogPane);
-
-        for (final String connectionName : m_connectionFlowVariableProvider.allConnectionNames()) {
-            final FileSystemChoice choice = FileSystemChoice.createFlowVariableFileSystemChoice(connectionName);
+        final FileSystemPortObjectSpec fspos = (FileSystemPortObjectSpec) getLastTableSpec(m_inPort);
+        if (fspos != null) {
+            final FileSystemChoice choice =
+                    FileSystemChoice.createConnectedFileSystemChoice(fspos.getFileSystemType());
             if (connectionsModel.getIndexOf(choice) < 0) {
                 connectionsModel.insertElementAt(choice, 0);
             }

@@ -53,7 +53,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.file.FileSystem;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -63,7 +62,7 @@ import org.knime.core.node.util.FileSystemBrowser;
 
 /**
  * Test suite for the {@link FSConnectionRegistry}.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
 public class FSConnectionRegistryTest {
@@ -81,93 +80,103 @@ public class FSConnectionRegistryTest {
      */
     @Test (expected = NullPointerException.class)
     public void registering_a_null_connection_is_not_allowed() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	connections.register(null);
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	connections.register(connections.getKey(), null);
     }
-    
+
     /**
-     * Tests that registering a key gives a key back.
+     * Tests registering a null connection.
      */
-    @Test
-    public void a_registered_connection_gets_a_key() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection = new TestConnection();
-    	assertTrue(connections.register(testConnection) != null);
+    @Test (expected = NullPointerException.class)
+    public void registering_a_null_key_is_not_allowed() {
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	connections.register(null, new TestConnection());
     }
-    
+
     /**
      * Tests that a registry contains a registered connection.
      */
     @Test
     public void the_registry_contains_a_registered_connection() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection = new TestConnection();
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection = new TestConnection();
+    	final String key = connections.getKey();
 
-    	String key = connections.register(testConnection);
-    	
+		connections.register(key, testConnection);
+
 		assertTrue(connections.contains(key));
     }
-    
+
     /**
      * Tests that a registered connection can be retrieved with its key.
      */
     @Test
     public void a_registered_connection_can_be_retrieved_by_its_key() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection = new TestConnection();
-    	
-    	String key = connections.register(testConnection);
-    	
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection = new TestConnection();
+    	final String key = connections.getKey();
+
+    	connections.register(key,testConnection);
+
     	assertEquals(testConnection, connections.retrieve(key).get());
     }
-    
-    /**
-     * Tests that multiple registered connections have different keys.
-     */
-    @Test
-    public void registered_connections_have_unique_keys() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection1 = new TestConnection();
-    	TestConnection testConnection2 = new TestConnection();
-    	TestConnection testConnection3 = new TestConnection();
-    	
-    	String key1 = connections.register(testConnection1);
-    	String key2 = connections.register(testConnection2);
-    	String key3 = connections.register(testConnection3);
-    	
-    	Set<String> keySet = new HashSet<>(Arrays.asList(key1, key2, key3));
 
-    	assertTrue(keySet.size() == 3);
-    }
-    
     /**
      * Tests that the keys retrive the correct connections.
      */
     @Test
     public void multiple_registered_connections_can_be_retrieved_by_their_keys() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection1 = new TestConnection();
-    	TestConnection testConnection2 = new TestConnection();
-    	
-    	String key1 = connections.register(testConnection1);
-    	String key2 = connections.register(testConnection2);
-    	
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection1 = new TestConnection();
+    	final TestConnection testConnection2 = new TestConnection();
+
+    	final String key1 = connections.getKey();
+    	final String key2 = connections.getKey();
+
+    	connections.register(key1, testConnection1);
+    	connections.register(key2, testConnection2);
+
     	assertEquals(testConnection1, connections.retrieve(key1).get());
     	assertEquals(testConnection2, connections.retrieve(key2).get());
     }
-    
+
     /**
      * Tests that a connection object cannot be registered more than once.
      */
     @Test
     public void a_connection_can_only_be_registered_once() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection = new TestConnection();
-    	
-    	String key = connections.register(testConnection);
-    	String keyWhenAlreadyRegistered = connections.register(testConnection);
-    	
-    	assertTrue(key == keyWhenAlreadyRegistered);
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection = new TestConnection();
+    	final String key = connections.getKey();
+
+    	connections.register(key, testConnection);
+    	connections.register(key, testConnection);
+    }
+
+    /**
+     * Tests that a connection object cannot be registered more than once.
+     */
+    @Test
+    public void generated_keys_are_unique() {
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final Set<String> keys = new HashSet<>();
+    	for (int i = 0; i < 1000; i++) {
+	    	assertTrue(keys.add(connections.getKey()));
+    	}
+    }
+
+    /**
+     * Tests that a two connection object can not have the same key.
+     */
+    @Test (expected = IllegalArgumentException.class)
+    public void a_connection_key_can_only_be_used_once() {
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection1 = new TestConnection();
+    	final TestConnection testConnection2 = new TestConnection();
+    	final String key = connections.getKey();
+
+    	connections.register(key, testConnection1);
+    	connections.register(key, testConnection2);
     }
 
     /**
@@ -175,39 +184,40 @@ public class FSConnectionRegistryTest {
      */
     @Test
     public void retrieving_a_key_not_in_the_registry_returns_empty_optional() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	
-    	Optional<FSConnection> connection = connections.retrieve("not in registry");
-    	
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+
+    	final Optional<FSConnection> connection = connections.retrieve("not in registry");
+
     	assertFalse(connection.isPresent());
     }
-    
+
     /**
      * Tests that a registered connection can be deregistered.
      */
     @Test
     public void a_registered_connection_can_be_deregistered() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	TestConnection testConnection = new TestConnection();
-    	
-    	String key = connections.register(testConnection);
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+    	final TestConnection testConnection = new TestConnection();
+    	final String key = connections.getKey();
+
+    	connections.register(key, testConnection);
     	connections.deregister(key);
-    	
+
     	assertFalse(connections.contains(key));
     }
-    
+
     /**
      * Tests that deregistering a non existing connection returns null.
      */
     @Test
     public void deregistering_a_key_not_in_the_registry_returns_null() {
-    	FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
-    	
-    	FSConnection connection = connections.deregister("a not registered key");
-    	
+    	final FSConnectionRegistry connections = FSConnectionRegistry.getInstance();
+
+    	final FSConnection connection = connections.deregister("a not registered key");
+
     	assertEquals(null, connection);
     }
-    
+
     private static class TestConnection implements FSConnection {
 
 		@Override
@@ -219,7 +229,7 @@ public class FSConnectionRegistryTest {
 		public FileSystemBrowser getFileSystemBrowser() {
 			return null;
 		}
-    	
+
     }
 
 }

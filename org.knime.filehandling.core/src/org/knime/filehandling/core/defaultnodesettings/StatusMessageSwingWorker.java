@@ -59,15 +59,16 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JLabel;
 import javax.swing.SwingWorker;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSConnection;
 
 /**
  * Swing worker used to update the status message of the file chooes dialog component.
@@ -95,7 +96,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
 
     private static final Color SUCCESS_GREEN = new Color(136, 170, 0);
 
-    private final FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
+    private final Optional<FSConnection> m_fs;
 
     /** Settings model */
     private final SettingsModelFileChooser2 m_settingsModel;
@@ -107,9 +108,9 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
      *
      * @param the label to update
      */
-    StatusMessageSwingWorker(final FSConnectionFlowVariableProvider connectionFlowVariableProvider,
+    StatusMessageSwingWorker(final Optional<FSConnection> fs,
         final SettingsModelFileChooser2 settingsModel, final JLabel statusMessageLabel) {
-        m_connectionFlowVariableProvider = connectionFlowVariableProvider;
+        m_fs = fs;
         m_settingsModel = settingsModel;
         m_statusMessageLabel = statusMessageLabel;
     }
@@ -128,9 +129,9 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         // get file systems
         final FileChooserHelper helper;
         try {
-            helper = new FileChooserHelper(m_connectionFlowVariableProvider, m_settingsModel);
+            helper = new FileChooserHelper(m_fs, m_settingsModel);
         } catch (Exception e) {
-            final String msg = "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(e, true);
+            final String msg = "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(e, false);
             LOGGER.debug(msg, e);
             return mkError(msg);
         }

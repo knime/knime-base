@@ -104,13 +104,10 @@ public class NioFileSystemView extends FileSystemView {
     @Override
     public String getSystemDisplayName(final File f) {
         String name = f.getName();
-
         if (name == null || name.length() == 0) {
             name = f.getPath(); // e.g. "/"
         }
-
         return name;
-
     }
 
     @Override

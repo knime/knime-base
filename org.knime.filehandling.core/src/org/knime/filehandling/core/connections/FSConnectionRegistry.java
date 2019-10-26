@@ -36,28 +36,28 @@ public class FSConnectionRegistry {
 
 	/**
 	 * Registers a connection to the registry and returns its unique key.
-	 *
+	 * @param key the unique key for the session
 	 * @param connection the connection to be registered
-	 * @return a generated key for the registration
+	 * @see FSConnectionRegistry#getKey()
 	 */
-	public synchronized String register(final FSConnection connection) {
+	public synchronized void register(final String key, final FSConnection connection) {
+		Validate.notNull(key, "key not allowed to be null");
 		Validate.notNull(connection, "Connection not allowed to be null");
-		return keyOf(connection).orElse(registerInternal(connection));
-	}
-
-	private Optional<String> keyOf(final FSConnection connection) {
-		return
-			m_connections.entrySet() //
-				.stream() //
-				.filter(entry -> entry.getValue() == connection) //
-				.findFirst() //
-				.map(entry -> entry.getKey()); //
-	}
-
-	private String registerInternal(final FSConnection connection) {
-		String key = UUID.randomUUID().toString();
+		final FSConnection existingConnection = m_connections.get(key);
+		if (existingConnection != null) {
+		    if (!existingConnection.equals(connection)) {
+		        throw new IllegalArgumentException("Different connection with key: " + key + " already exists");
+		    }
+		    return;
+		}
 		m_connections.put(key, connection);
-		return key;
+	}
+
+	/**
+	 * @return a new unique key that can be used to register a {@link FSConnection}
+	 */
+	public String getKey() {
+	    return UUID.randomUUID().toString();
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class FSConnectionRegistry {
 	}
 
 	/**
-	 * Deregisters a connection from the registry.
+	 * Deregister connection from the registry.
 	 *
 	 * @param key key for the connection to be deregistered
 	 * @return the connection that has been deregistered, null if the key is not in the registry.

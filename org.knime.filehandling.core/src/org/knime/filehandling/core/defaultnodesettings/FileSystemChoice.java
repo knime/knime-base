@@ -78,8 +78,8 @@ public class FileSystemChoice {
             /** Custom URL file system */
             CUSTOM_URL_FS,
 
-            /** Flow variable file system */
-            FLOW_VARIABLE_FS;
+            /** File system provided at the input port */
+            CONNECTED_FS;
     }
 
     /** Instance of local file system choice */
@@ -178,8 +178,8 @@ public class FileSystemChoice {
      * @param id identifier for the FileSystemChoice
      * @return new flow variable FileSystemChoice with a given id
      */
-    public static final FileSystemChoice createFlowVariableFileSystemChoice(final String id) {
-        return new FileSystemChoice(Choice.FLOW_VARIABLE_FS, id);
+    public static final FileSystemChoice createConnectedFileSystemChoice(final String id) {
+        return new FileSystemChoice(Choice.CONNECTED_FS, id);
     }
 
     /**
@@ -195,7 +195,7 @@ public class FileSystemChoice {
         if (choice.isPresent()) {
             return choice.get();
         }
-        return createFlowVariableFileSystemChoice(fileSystem);
+        return createConnectedFileSystemChoice(fileSystem);
     }
 
     @Override
