@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
+import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilter;
@@ -84,8 +85,10 @@ public final class FileChooserHelper {
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
 
+
     /**
-     * Creates a new instance of {@link FileChooserHelper}.
+     * Creates a new instance of {@link FileChooserHelper} that uses the default url timeout
+     * {@link FileUtil#getDefaultURLTimeoutMillis()} for custom URLs.
      *
      * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
      *            if necessary
@@ -93,11 +96,25 @@ public final class FileChooserHelper {
      * @throws IOException thrown when the file system could not be retrieved.
      */
     public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings)
-        throws IOException {
+            throws IOException {
+        this(fs, settings, FileUtil.getDefaultURLTimeoutMillis());
+    }
 
+
+    /**
+     * Creates a new instance of {@link FileChooserHelper}.
+     *
+     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
+     *            if necessary
+     * @param settings the settings object containing necessary information about e.g. file filtering
+     * @param timeoutInMillis timeout in milliseconds for the custom URL file system
+     * @throws IOException thrown when the file system could not be retrieved.
+     */
+    public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings,
+        final int timeoutInMillis) throws IOException {
         m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
-        m_fileSystem = FileSystemHelper.retrieveFileSystem(fs, settings);
+        m_fileSystem = FileSystemHelper.retrieveFileSystem(fs, settings, timeoutInMillis);
     }
 
     /**
@@ -184,5 +201,30 @@ public final class FileChooserHelper {
      */
     public final Pair<Integer, Integer> getCounts() {
         return m_counts;
+    }
+
+    /**
+     * Creates and returns a new Path object according to the path or URL provided by the underlying settings model.
+     *
+     * @return Path leading to the path or url provided by the underlying settings model
+     */
+    public Path getPathFromSettings() {
+        final Path pathOrUrl;
+        if (FileSystemChoice.getCustomFsUrlChoice().equals(m_settings.getFileSystemChoice())) {
+            final URI uri = URI.create(m_settings.getPathOrURL());
+            pathOrUrl = m_fileSystem.provider().getPath(uri);
+        } else {
+            pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+        }
+        return pathOrUrl;
+    }
+
+    /**
+     * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
+     *
+     * @return a clone of the underlying {@code SettingsModelFileChooser2}
+     */
+    public final SettingsModelFileChooser2 getSettingsModel() {
+        return m_settings.clone();
     }
 }

@@ -68,13 +68,14 @@ public class FileSystemHelper {
      * Method to obtain the file system for a given settings model.
      * @param fs optional {@link FSConnection}
      * @param settings {@link SettingsModelFileChooser2} instance
+     * @param timeoutInMillis timeout in milliseconds for the custom URL file system
      * @return {@link FileSystem} to use
      * @throws IOException if custom URL is invalid
      *
      */
     @SuppressWarnings("resource")
     public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
-        final SettingsModelFileChooser2 settings) throws IOException {
+        final SettingsModelFileChooser2 settings, final int timeoutInMillis) throws IOException {
 
         final FileSystemChoice choice = FileSystemChoice.getChoiceFromId(settings.getFileSystem());
         final FileSystem toReturn;
@@ -84,14 +85,15 @@ public class FileSystemHelper {
                 toReturn = FileSystems.getDefault();
                 break;
             case CUSTOM_URL_FS:
-                toReturn = URIFileSystemProvider.getInstance().newFileSystem(URI.create(settings.getPathOrURL()), null);
+                toReturn = new URIFileSystemProvider(timeoutInMillis).newFileSystem(
+                    URI.create(settings.getPathOrURL()), null);
                 break;
             case KNIME_FS:
                 // FIXME: Return correct FileSystem
                 toReturn = FileSystems.getDefault();
                 break;
             case CONNECTED_FS:
-                toReturn = fs.orElseThrow(() -> new IllegalStateException("No remote connection available"))
+                toReturn = fs.orElseThrow(() -> new IllegalStateException("No file system connection available"))
                         .getFileSystem();
                 break;
             default:

@@ -67,7 +67,6 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -76,28 +75,32 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
 
 /**
  * Special file system provider that provides file handling functionality for a single (!) URL.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
 public class URIFileSystemProvider extends FileSystemProvider {
 
-    private final static URIFileSystemProvider SINGLETON_INSTANCE = new URIFileSystemProvider();
+    private final int m_timeoutInMillis;
 
     /**
      * This class is a singleton, hence private constructor.
+     * @param timeoutInMillis read timeout in milliseconds
      */
-    private URIFileSystemProvider() {
+    public URIFileSystemProvider(final int timeoutInMillis) {
+        m_timeoutInMillis = timeoutInMillis;
     }
 
     /**
-     * @return the singleton {@link URIFileSystemProvider} instance.
+     * @return the timeout in milliseconds
      */
-    public static URIFileSystemProvider getInstance() {
-        return SINGLETON_INSTANCE;
+    public int getTimeout() {
+        return m_timeoutInMillis;
     }
 
     /**
@@ -113,7 +116,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        return new URIFileSystem(uri);
+        return new URIFileSystem(uri, getTimeout());
     }
 
     /**
@@ -130,7 +133,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("resource")
     @Override
     public Path getPath(final URI uri) {
-        return new URIPath(new URIFileSystem(uri), uri);
+        return new URIPath(new URIFileSystem(uri, getTimeout()), uri);
     }
 
     /**
@@ -150,7 +153,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection().getInputStream();
+        return uriPath.openURLConnection(getTimeout()).getInputStream();
 
     }
 
@@ -161,7 +164,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection().getOutputStream();
+        return uriPath.openURLConnection(getTimeout()).getOutputStream();
     }
 
     /**
@@ -310,12 +313,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
 
-        V toReturn = null;
-        if (type == BasicFileAttributeView.class) {
-            toReturn = (V)new URIFileAttributeView((URIPath)path);
+        try {
+            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
+                readAttributes(path, BasicFileAttributes.class));
+        } catch (final IOException ex) {
+        return null;
         }
-
-        return toReturn;
     }
 
     /**
@@ -330,14 +333,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
 
-        A toReturn = null;
+        final FSPath fsPath = (FSPath)path;
         if (type == BasicFileAttributes.class) {
-            toReturn = (A)getFileAttributeView(path, BasicFileAttributeView.class).readAttributes();
+            return (A)fsPath.getFileAttributes(type);
         } else {
             throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
         }
-
-        return toReturn;
     }
 
     /**

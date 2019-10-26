@@ -79,6 +79,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
@@ -181,6 +182,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private static final String CONFIGURE_BUTTON_LABEL = "Configure";
 
     private int m_inPort;
+
+    private int m_timeoutInMillis = FileUtil.getDefaultURLTimeoutMillis();
 
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
@@ -458,10 +461,23 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
-            m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_fs,
-                ((SettingsModelFileChooser2)getModel()).clone(), m_statusMessage);
-            m_statusMessageSwingWorker.execute();
+            try {
+                final FileChooserHelper helper = new FileChooserHelper(m_fs,
+                    ((SettingsModelFileChooser2)getModel()).clone(), m_timeoutInMillis);
+                m_statusMessageSwingWorker = new StatusMessageSwingWorker(helper, m_statusMessage);
+                m_statusMessageSwingWorker.execute();
+            } catch (Exception ex) {
+                m_statusMessage.setForeground(Color.RED);
+                m_statusMessage.setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+            }
         }
+    }
+
+    /**
+     * @param timeoutInMillis the timeout in milliseconds for the custom url file system
+     */
+    public void setTimeout(final int timeoutInMillis) {
+        m_timeoutInMillis = timeoutInMillis;
     }
 
     @Override

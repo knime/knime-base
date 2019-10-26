@@ -74,9 +74,12 @@ public class URIFileSystem extends FileSystem {
 
     private final List<FileStore> m_fileStores;
 
-    URIFileSystem(final URI uri) {
+    private final URIFileSystemProvider m_provider;
+
+    URIFileSystem(final URI uri, final int timeoutInMillis) {
         m_uri = uri;
         m_fileStores = Collections.unmodifiableList(Collections.singletonList(new URIFileStore(uri)));
+        m_provider = new URIFileSystemProvider(timeoutInMillis);
     }
 
     /**
@@ -84,7 +87,7 @@ public class URIFileSystem extends FileSystem {
      */
     @Override
     public FileSystemProvider provider() {
-        return URIFileSystemProvider.getInstance();
+        return m_provider;
     }
 
     /**

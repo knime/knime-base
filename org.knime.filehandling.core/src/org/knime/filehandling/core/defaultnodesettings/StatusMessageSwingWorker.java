@@ -59,7 +59,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -68,7 +67,6 @@ import javax.swing.SwingWorker;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
-import org.knime.filehandling.core.connections.FSConnection;
 
 /**
  * Swing worker used to update the status message of the file chooes dialog component.
@@ -96,10 +94,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
 
     private static final Color SUCCESS_GREEN = new Color(136, 170, 0);
 
-    private final Optional<FSConnection> m_fs;
-
-    /** Settings model */
-    private final SettingsModelFileChooser2 m_settingsModel;
+    private final FileChooserHelper m_helper;
 
     private final JLabel m_statusMessageLabel;
 
@@ -108,16 +103,14 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
      *
      * @param the label to update
      */
-    StatusMessageSwingWorker(final Optional<FSConnection> fs,
-        final SettingsModelFileChooser2 settingsModel, final JLabel statusMessageLabel) {
-        m_fs = fs;
-        m_settingsModel = settingsModel;
+    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel) {
+        m_helper = helper;
         m_statusMessageLabel = statusMessageLabel;
     }
 
     @Override
     protected Pair<Color, String> doInBackground() throws Exception {
-        if (m_settingsModel.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
+        if (m_helper.getSettingsModel().getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             return mkSuccess("");
         }
 
@@ -126,20 +119,10 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         // sleep for 200ms to allow for quick cancellation without getting stuck in IO
         Thread.sleep(200);
 
-        // get file systems
-        final FileChooserHelper helper;
-        try {
-            helper = new FileChooserHelper(m_fs, m_settingsModel);
-        } catch (Exception e) {
-            final String msg = "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(e, false);
-            LOGGER.debug(msg, e);
-            return mkError(msg);
-        }
-
         // instantiate a path
         final Path fileOrFolder;
         try {
-            fileOrFolder = helper.getFileSystem().getPath(m_settingsModel.getPathOrURL());
+            fileOrFolder = m_helper.getPathFromSettings();
         } catch (InvalidPathException e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
@@ -156,7 +139,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         // if folder, then scan. If file, then do nothing
         Pair<Color, String> toReturn = mkSuccess("");
         if (basicAttributes.isDirectory()) {
-            toReturn = scanFolder(helper);
+            toReturn = scanFolder(m_helper);
         }
 
         return toReturn;
