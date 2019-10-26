@@ -42,14 +42,39 @@ public class FileChooserSettingsConverterTest {
     }
 
     /**
+     * Tests a local path input.
+     */
+    @Test
+    public void localPathWindowsStyleConfigTest() {
+        final String windowsPath = "C:" + PATH_STRING;
+        m_config.setPathOrURL(windowsPath);
+        FileChooserSettingsConverter.convert(m_config);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getLocalFsChoice());
+        assertEquals(m_config.getPathOrURL(), windowsPath);
+    }
+
+    /**
      * Tests a local path with file:// input.
      */
     @Test
     public void localPathWithProtocolConfigTest() {
-        m_config.setPathOrURL("file://" + PATH_STRING);
+        final String fileURL = "file://" + PATH_STRING;
+        m_config.setPathOrURL(fileURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getLocalFsChoice());
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), fileURL);
+    }
+
+    /**
+     * Tests a local path with file:/ input.
+     */
+    @Test
+    public void localPathWithProtocolOneSlashConfigTest() {
+        final String fielURL = "file:/" + PATH_STRING;
+        m_config.setPathOrURL(fielURL);
+        FileChooserSettingsConverter.convert(m_config);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), fielURL);
     }
 
     /**
@@ -79,11 +104,11 @@ public class FileChooserSettingsConverterTest {
      */
     @Test
     public void knimeWorkspaceConfigTest() {
-        m_config.setPathOrURL("knime://knime.workflow" + PATH_STRING);
+        final String workflowURL = "knime://knime.workflow" + PATH_STRING;
+        m_config.setPathOrURL(workflowURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getKnimeFsChoice());
-        assertEquals(m_config.getKNIMEFileSystem(), KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId());
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), workflowURL);
     }
 
     /**
@@ -91,11 +116,11 @@ public class FileChooserSettingsConverterTest {
      */
     @Test
     public void knimeNodeConfigTest() {
-        m_config.setPathOrURL("knime://knime.node" + PATH_STRING);
+        final String nodeURL = "knime://knime.node" + PATH_STRING;
+        m_config.setPathOrURL(nodeURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getKnimeFsChoice());
-        assertEquals(m_config.getKNIMEFileSystem(), KNIMEConnection.NODE_RELATIVE_CONNECTION.getId());
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), nodeURL);
     }
 
     /**
@@ -103,11 +128,11 @@ public class FileChooserSettingsConverterTest {
      */
     @Test
     public void knimeMountPointConfigTest() {
-        m_config.setPathOrURL("knime://knime.mountpoint" + PATH_STRING);
+        final String mountpointURL = "knime://knime.mountpoint" + PATH_STRING;
+        m_config.setPathOrURL(mountpointURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getKnimeFsChoice());
-        assertEquals(m_config.getKNIMEFileSystem(), KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION.getId());
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), mountpointURL);
     }
 
     /**
@@ -115,11 +140,11 @@ public class FileChooserSettingsConverterTest {
      */
     @Test
     public void knimeNotExistingMountPointConfigTest() {
-        m_config.setPathOrURL("knime://" + "DoesNotExsist" + PATH_STRING);
+        final String remoteMountpointNotExistingURL = "knime://knime.mountpoint" + PATH_STRING;
+        m_config.setPathOrURL(remoteMountpointNotExistingURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getKnimeFsChoice());
-        assertEquals(m_config.getKNIMEFileSystem(), "DoesNotExsist");
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), remoteMountpointNotExistingURL);
     }
 
     /**
@@ -127,13 +152,12 @@ public class FileChooserSettingsConverterTest {
      */
     @Test
     public void knimeExistingMountPointConfigTest() {
-        m_config.setPathOrURL("knime://"
-                + KNIMEConnection.getOrCreateMountpointAbsoluteConnection("testMountpoint").getId() + PATH_STRING);
+        final String remoteMountpointURL = "knime://"
+                + KNIMEConnection.getOrCreateMountpointAbsoluteConnection("testMountpoint").getId() + PATH_STRING;
+        m_config.setPathOrURL(remoteMountpointURL);
         FileChooserSettingsConverter.convert(m_config);
-        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getKnimeFsChoice());
-        assertEquals(m_config.getKNIMEFileSystem(),
-                KNIMEConnection.getOrCreateMountpointAbsoluteConnection("testMountpoint").getId());
-        assertEquals(m_config.getPathOrURL(), PATH_STRING);
+        assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
+        assertEquals(m_config.getPathOrURL(), remoteMountpointURL);
     }
 
 }

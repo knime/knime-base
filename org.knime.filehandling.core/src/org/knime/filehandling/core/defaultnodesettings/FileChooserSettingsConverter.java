@@ -48,9 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 
@@ -80,29 +77,11 @@ public class FileChooserSettingsConverter {
     public static void convert(final SettingsModelFileChooser2 settings) {
         final String path = settings.getPathOrURL();
 
-        if (!path.contains("://")) {
+        if (!path.contains("://") && !path.startsWith("file:/")) {
             setLocal(path, settings);
-            return;
-        }
-
-        try {
-            final URL url = new URL(path);
-            final String protocol = url.getProtocol();
-            switch (protocol) {
-                case "knime":
-                    setKnimeURL(url, settings);
-                    break;
-                case "file":
-                    setLocal(url.getPath(), settings);
-                    break;
-                default:
-                    setCustom(path, settings);
-            }
-        } catch (final MalformedURLException ex) {
-            LOGGER.warn(ex);
+        } else {
             setCustom(path, settings);
         }
-
     }
 
     private static void setCustom(final String string, final SettingsModelFileChooser2 settings) {
@@ -113,18 +92,6 @@ public class FileChooserSettingsConverter {
     private static void setLocal(final String string, final SettingsModelFileChooser2 settings) {
         settings.setFileSystem(FileSystemChoice.getLocalFsChoice().getId());
         settings.setPathOrURL(string);
-    }
-
-    private static void setKnimeURL(final URL url, final SettingsModelFileChooser2 settings) {
-
-        final String host = url.getHost();
-        settings.setFileSystem(FileSystemChoice.getKnimeFsChoice().getId());
-
-        if (!KNIMEConnection.connectionExists(host)) {
-            LOGGER.warn(String.format("KNIME Mountpoint %s does not exist", host));
-        }
-        settings.setKNIMEFileSystem(host);
-        settings.setPathOrURL(url.getPath());
     }
 
 }
