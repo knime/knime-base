@@ -210,7 +210,7 @@
 				of the moving window.
 			</option>
 			<option name="Tolerance">
-				[Genetic Algorithm] The tolerance used for early
+				[Random] The tolerance used for early
 				stopping which defines the
 				threshold for the ratio of
 				improvement. If
