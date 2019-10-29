@@ -116,7 +116,7 @@ public final class NodeTreeSerializer {
     public static void saveNodeToConfig(final ConfigWO config, final Node node) {
         Objects.requireNonNull(config, "config");
         if (node == null) {
-            LOGGER.warn("Saving the empty node into configuration.");
+            LOGGER.debug("Saving the empty node into configuration.");
             return;
         }
 
