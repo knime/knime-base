@@ -45,7 +45,7 @@
  * History
  *   Apr 28, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.tablerowtovariable;
+package org.knime.base.node.flowvariable.tablerowtovariable2;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,7 +85,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
  * @author Bernd Wiswedel, University of Konstanz
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  */
-public class TableToVariableNodeModel extends NodeModel {
+public class TableToVariable2NodeModel extends NodeModel {
 
     private final SettingsModelString m_onMV;
 
@@ -96,12 +96,12 @@ public class TableToVariableNodeModel extends NodeModel {
     private final SettingsModelString m_string;
 
     /** One in, one output. */
-    protected TableToVariableNodeModel() {
+    protected TableToVariable2NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
-        m_onMV = TableToVariableNodeDialog.getOnMissing();
-        m_int = TableToVariableNodeDialog.getReplaceInteger(m_onMV);
-        m_double = TableToVariableNodeDialog.getReplaceDouble(m_onMV);
-        m_string = TableToVariableNodeDialog.getReplaceString(m_onMV);
+        m_onMV = TableToVariable2NodeDialog.getOnMissing();
+        m_int = TableToVariable2NodeDialog.getReplaceInteger(m_onMV);
+        m_double = TableToVariable2NodeDialog.getReplaceDouble(m_onMV);
+        m_string = TableToVariable2NodeDialog.getReplaceString(m_onMV);
     }
 
     /** {@inheritDoc} */

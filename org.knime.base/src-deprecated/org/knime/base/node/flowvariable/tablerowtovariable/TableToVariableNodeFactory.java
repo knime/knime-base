@@ -40,64 +40,57 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   23.10.2013 (gabor): created
+ *   Apr 28, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.tablecoltovariable;
+package org.knime.base.node.flowvariable.tablerowtovariable;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
+
 /**
- * <code>NodeFactory</code> for the "TableColumnToVariable" Node.
- * Converts the values from a table column to flow variables with the row ids as their variable name.
+ * The node factory for the table row to variable node.
  *
- * @author Gabor Bakos
+ * @author Bernd Wiswedel, University of Konstanz
+ * @deprecated
  */
-public class TableColumnToVariableNodeFactory
-        extends NodeFactory<TableColumnToVariableNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+@Deprecated
+public class TableToVariableNodeFactory
+    extends NodeFactory<TableToVariableNodeModel> {
+
+    /** {@inheritDoc} */
     @Override
-    public TableColumnToVariableNodeModel createNodeModel() {
-        return new TableColumnToVariableNodeModel();
+    protected NodeDialogPane createNodeDialogPane() {
+        return new TableToVariableNodeDialog();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public int getNrNodeViews() {
+    public TableToVariableNodeModel createNodeModel() {
+        return new TableToVariableNodeModel();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public NodeView<TableToVariableNodeModel> createNodeView(
+            final int index, final TableToVariableNodeModel model) {
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public NodeView<TableColumnToVariableNodeModel> createNodeView(final int viewIndex,
-            final TableColumnToVariableNodeModel nodeModel) {
-        throw new ArrayIndexOutOfBoundsException(viewIndex);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
+    protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new TableColumnToVariableNodeDialog();
-    }
 }
-

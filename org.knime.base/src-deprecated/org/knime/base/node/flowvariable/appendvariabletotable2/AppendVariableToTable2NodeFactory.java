@@ -43,39 +43,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 28, 2008 (wiswedel): created
+ *   May 1, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.tablerowtovariable;
+package org.knime.base.node.flowvariable.appendvariabletotable2;
 
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
-
-/**
- * The node factory for the table row to variable node.
+/** Factory for the "Variable To TableColumn" node.
  *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Patrick Winters, KNIME AG, Zurich, Switzerland
+ * @deprecated
  */
-public class TableToVariableNodeFactory
-    extends NodeFactory<TableToVariableNodeModel> {
+@Deprecated
+public class AppendVariableToTable2NodeFactory extends NodeFactory<AppendVariableToTable2NodeModel> {
 
     /** {@inheritDoc} */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new TableToVariableNodeDialog();
+    protected AppendVariableToTable2NodeDialogPane createNodeDialogPane() {
+        return new AppendVariableToTable2NodeDialogPane();
     }
 
     /** {@inheritDoc} */
     @Override
-    public TableToVariableNodeModel createNodeModel() {
-        return new TableToVariableNodeModel();
+    public AppendVariableToTable2NodeModel createNodeModel() {
+        return new AppendVariableToTable2NodeModel();
     }
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<TableToVariableNodeModel> createNodeView(
-            final int index, final TableToVariableNodeModel model) {
+    public NodeView<AppendVariableToTable2NodeModel> createNodeView(final int index,
+        final AppendVariableToTable2NodeModel model) {
         return null;
     }
 

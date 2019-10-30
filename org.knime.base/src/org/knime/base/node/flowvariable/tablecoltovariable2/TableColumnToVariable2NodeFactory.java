@@ -43,55 +43,61 @@
  * ------------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2012 (Patrick Winter): created
+ *   23.10.2013 (gabor): created
  */
-package org.knime.base.node.flowvariable.tablerowtovariable;
+package org.knime.base.node.flowvariable.tablecoltovariable2;
+
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Enums for this policies.
+ * <code>NodeFactory</code> for the "TableColumnToVariable2" Node.
+ * Converts the values from a table column to flow variables with the row ids as their variable name.
  *
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- *
- * @since 2.9
+ * @author Gabor Bakos
  */
-enum MissingValuePolicy {
-
+public class TableColumnToVariable2NodeFactory
+        extends NodeFactory<TableColumnToVariable2NodeModel> {
     /**
-     * Fail the nodes execution.
+     * {@inheritDoc}
      */
-    FAIL("Fail"),
-
-    /**
-     * Assign default values.
-     */
-    DEFAULT("Use Defaults"),
-
-    /**
-     * Omit missing values.
-     */
-    OMIT("Omit");
-
-    private final String m_name;
-
-    /**
-     * @param name Name of this policy
-     */
-    MissingValuePolicy(final String name) {
-        m_name = name;
+    @Override
+    public TableColumnToVariable2NodeModel createNodeModel() {
+        return new TableColumnToVariable2NodeModel();
     }
 
     /**
-     * @return Name of this policy
+     * {@inheritDoc}
      */
-    String getName() {
-        return m_name;
+    @Override
+    public int getNrNodeViews() {
+        return 0;
     }
 
     /**
-     * @return Array of all policy settings
+     * {@inheritDoc}
      */
-    static String[] getAllSettings() {
-        return new String[]{FAIL.getName(), DEFAULT.getName(), OMIT.getName()};
+    @Override
+    public NodeView<TableColumnToVariable2NodeModel> createNodeView(final int viewIndex,
+            final TableColumnToVariable2NodeModel nodeModel) {
+        throw new ArrayIndexOutOfBoundsException(viewIndex);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new TableColumnToVariable2NodeDialog();
+    }
 }
+

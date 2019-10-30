@@ -88,7 +88,9 @@ import org.knime.core.util.Pair;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  *
  * @since 2.9
+ * @deprecated
  */
+@Deprecated
 public class VariableToTable2NodeModel extends NodeModel {
 
     /** Key for the filter configuration. */

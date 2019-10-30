@@ -40,51 +40,39 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   May 1, 2008 (wiswedel): created
+ * ------------------------------------------------------------------------
  */
-package org.knime.base.node.flowvariable.appendvariabletotable2;
+package org.knime.base.node.flowvariable.tablecoltovariable2;
 
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.util.ColumnFilterPanel.ValueClassFilter;
 
-/** Factory for the "Variable To TableColumn" node.
+/**
+ * <code>NodeDialog</code> for the "TableColumnToVariable2" Node. Converts the values from a table column to flow
+ * variables with the row ids as their variable name.
  *
- * @author Patrick Winters, KNIME AG, Zurich, Switzerland
+ * This node dialog derives from {@link DefaultNodeSettingsPane} which allows creation of a simple dialog with standard
+ * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
+ *
+ * @author Gabor Bakos
  */
-public class AppendVariableToTable2NodeFactory extends NodeFactory<AppendVariableToTable2NodeModel> {
-
-    /** {@inheritDoc} */
-    @Override
-    protected AppendVariableToTable2NodeDialogPane createNodeDialogPane() {
-        return new AppendVariableToTable2NodeDialogPane();
+public class TableColumnToVariable2NodeDialog extends DefaultNodeSettingsPane {
+    /**
+     * New pane for configuring the TableColumnToVariable2 node.
+     */
+    protected TableColumnToVariable2NodeDialog() {
+        @SuppressWarnings("unchecked")
+        final ValueClassFilter columnFilter = new ValueClassFilter(DoubleValue.class, StringValue.class);
+        addDialogComponent(new DialogComponentColumnNameSelection(
+            TableColumnToVariable2NodeModel.createColumnSettings(), "Column name", 0, true, columnFilter));
+        final DialogComponentBoolean ignoreMissing =
+            new DialogComponentBoolean(TableColumnToVariable2NodeModel.createIgnoreMissing(), "Skip missing values");
+        ignoreMissing
+            .setToolTipText("When unchecked, the execution fails when a missing value is in the input column.");
+        addDialogComponent(ignoreMissing);
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public AppendVariableToTable2NodeModel createNodeModel() {
-        return new AppendVariableToTable2NodeModel();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<AppendVariableToTable2NodeModel> createNodeView(final int index,
-        final AppendVariableToTable2NodeModel model) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

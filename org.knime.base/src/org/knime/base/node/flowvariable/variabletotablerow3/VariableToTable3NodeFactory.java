@@ -45,7 +45,7 @@
  * History
  *   May 1, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.variabletotablerow2;
+package org.knime.base.node.flowvariable.variabletotablerow3;
 
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -56,23 +56,23 @@ import org.knime.core.node.NodeView;
  *
  * @since 2.9
  */
-public class VariableToTable2NodeFactory extends NodeFactory<VariableToTable2NodeModel> {
+public class VariableToTable3NodeFactory extends NodeFactory<VariableToTable3NodeModel> {
 
     /** {@inheritDoc} */
     @Override
-    protected VariableToTable2NodeDialogPane createNodeDialogPane() {
-        return new VariableToTable2NodeDialogPane();
+    protected VariableToTable3NodeDialogPane createNodeDialogPane() {
+        return new VariableToTable3NodeDialogPane();
     }
 
     /** {@inheritDoc} */
     @Override
-    public VariableToTable2NodeModel createNodeModel() {
-        return new VariableToTable2NodeModel();
+    public VariableToTable3NodeModel createNodeModel() {
+        return new VariableToTable3NodeModel();
     }
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<VariableToTable2NodeModel> createNodeView(final int index, final VariableToTable2NodeModel model) {
+    public NodeView<VariableToTable3NodeModel> createNodeView(final int index, final VariableToTable3NodeModel model) {
         return null;
     }
 

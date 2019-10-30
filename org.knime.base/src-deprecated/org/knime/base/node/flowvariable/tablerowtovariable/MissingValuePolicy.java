@@ -41,38 +41,59 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
+ *
+ * History
+ *   Sep 3, 2012 (Patrick Winter): created
  */
-package org.knime.base.node.flowvariable.tablecoltovariable;
-
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.StringValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.util.ColumnFilterPanel.ValueClassFilter;
+package org.knime.base.node.flowvariable.tablerowtovariable;
 
 /**
- * <code>NodeDialog</code> for the "TableColumnToVariable" Node. Converts the values from a table column to flow
- * variables with the row ids as their variable name.
+ * Enums for this policies.
  *
- * This node dialog derives from {@link DefaultNodeSettingsPane} which allows creation of a simple dialog with standard
- * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
+ * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  *
- * @author Gabor Bakos
+ * @since 2.9
+ * @deprecated
  */
-public class TableColumnToVariableNodeDialog extends DefaultNodeSettingsPane {
+@Deprecated
+enum MissingValuePolicy {
+
     /**
-     * New pane for configuring the TableColumnToVariable node.
+     * Fail the nodes execution.
      */
-    protected TableColumnToVariableNodeDialog() {
-        @SuppressWarnings("unchecked")
-        final ValueClassFilter columnFilter = new ValueClassFilter(DoubleValue.class, StringValue.class);
-        addDialogComponent(new DialogComponentColumnNameSelection(
-            TableColumnToVariableNodeModel.createColumnSettings(), "Column name", 0, true, columnFilter));
-        final DialogComponentBoolean ignoreMissing =
-            new DialogComponentBoolean(TableColumnToVariableNodeModel.createIgnoreMissing(), "Skip missing values");
-        ignoreMissing
-            .setToolTipText("When unchecked, the execution fails when a missing value is in the input column.");
-        addDialogComponent(ignoreMissing);
+    FAIL("Fail"),
+
+    /**
+     * Assign default values.
+     */
+    DEFAULT("Use Defaults"),
+
+    /**
+     * Omit missing values.
+     */
+    OMIT("Omit");
+
+    private final String m_name;
+
+    /**
+     * @param name Name of this policy
+     */
+    MissingValuePolicy(final String name) {
+        m_name = name;
     }
+
+    /**
+     * @return Name of this policy
+     */
+    String getName() {
+        return m_name;
+    }
+
+    /**
+     * @return Array of all policy settings
+     */
+    static String[] getAllSettings() {
+        return new String[]{FAIL.getName(), DEFAULT.getName(), OMIT.getName()};
+    }
+
 }

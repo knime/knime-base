@@ -45,64 +45,62 @@
  * History
  *   May 1, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.appendvariabletotable2;
+package org.knime.base.node.flowvariable.variabletotablerow3;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.AbstractCellFactory;
-import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.util.Pair;
 
-/** NodeModel for the "Variable To TableColumn" node  which adds variables as new columns to the input table.
+/** NodeModel for the "Variable To TableRow" node which converts variables into a single row values with the variable
+ * names as column headers.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  *
  * @since 2.9
  */
-public class AppendVariableToTable2NodeModel extends SimpleStreamableFunctionNodeModel {
+public class VariableToTable3NodeModel extends NodeModel {
 
-    /**
-     * Key for the filter configuration.
-     */
+    /** Key for the filter configuration. */
     static final String CFG_KEY_FILTER = "variable-filter";
 
     private FlowVariableFilterConfiguration m_filter;
 
+    private final SettingsModelString m_rowID = VariableToTable3NodeDialogPane.createSettingsModelRowID();
+
     /** One input, one output. */
-    public AppendVariableToTable2NodeModel() {
-        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL, BufferedDataTable.TYPE},
-            new PortType[]{BufferedDataTable.TYPE}, 1, 0);
+    public VariableToTable3NodeModel() {
+        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{BufferedDataTable.TYPE});
         m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         m_filter.loadDefaults(getAvailableFlowVariables(), false);
     }
@@ -110,87 +108,47 @@ public class AppendVariableToTable2NodeModel extends SimpleStreamableFunctionNod
     /** {@inheritDoc} */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        BufferedDataTable t = (BufferedDataTable)inData[1];
-        DataTableSpec ts = t.getSpec();
-        ColumnRearranger ar = createColumnRearranger(ts);
-        BufferedDataTable out = exec.createColumnRearrangeTable(t, ar, exec);
-        return new BufferedDataTable[]{out};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        ColumnRearranger ar = createColumnRearranger((DataTableSpec)inSpecs[1]);
-        return new DataTableSpec[]{ar.createSpec()};
-    }
-
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-        ColumnRearranger arranger = new ColumnRearranger(spec);
-        Set<String> nameHash = new HashSet<String>();
-        for (DataColumnSpec c : spec) {
-            nameHash.add(c.getName());
-        }
+        DataTableSpec spec = createOutSpec();
+        BufferedDataContainer cont = exec.createDataContainer(spec);
         List<Pair<String, FlowVariable.Type>> vars = getVariablesOfInterest();
-        if (vars.isEmpty()) {
-            throw new InvalidSettingsException("No variables selected");
-        }
-        DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
-        final DataCell[] values = new DataCell[vars.size()];
+        DataCell[] specs = new DataCell[vars.size()];
+        List<String> lostVariables = new ArrayList<String>();
         for (int i = 0; i < vars.size(); i++) {
             Pair<String, FlowVariable.Type> c = vars.get(i);
             String name = c.getFirst();
-            final DataType type;
+            DataCell cell = DataType.getMissingCell(); // fallback
             switch (c.getSecond()) {
                 case DOUBLE:
-                    type = DoubleCell.TYPE;
                     try {
-                        double dValue = peekFlowVariableDouble(name);
-                        values[i] = new DoubleCell(dValue);
+                        double dValue = peekFlowVariableDouble(c.getFirst());
+                        cell = new DoubleCell(dValue);
                     } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type double): " + name);
+                        lostVariables.add(name + " (Double)");
                     }
                     break;
                 case INTEGER:
-                    type = IntCell.TYPE;
                     try {
-                        int iValue = peekFlowVariableInt(name);
-                        values[i] = new IntCell(iValue);
+                        int iValue = peekFlowVariableInt(c.getFirst());
+                        cell = new IntCell(iValue);
                     } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type int): " + name);
+                        lostVariables.add(name + " (Integer)");
                     }
                     break;
                 case STRING:
-                    type = StringCell.TYPE;
                     try {
-                        String sValue = peekFlowVariableString(name);
+                        String sValue = peekFlowVariableString(c.getFirst());
                         sValue = sValue == null ? "" : sValue;
-                        values[i] = new StringCell(sValue);
+                        cell = new StringCell(sValue);
                     } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type String): " + name);
+                        lostVariables.add(name + " (String)");
                     }
                     break;
-                default:
-                    throw new InvalidSettingsException("Unsupported variable type: " + c.getSecond());
             }
-            if (nameHash.contains(name) && !name.toLowerCase().endsWith("(variable)")) {
-                name = name.concat(" (variable)");
-            }
-            String newName = name;
-            int uniquifier = 1;
-            while (!nameHash.add(newName)) {
-                newName = name + " (#" + (uniquifier++) + ")";
-            }
-            specs[i] = new DataColumnSpecCreator(newName, type).createSpec();
+            specs[i] = cell;
         }
-        arranger.append(new AbstractCellFactory(specs) {
-            /** {@inheritDoc} */
-            @Override
-            public DataCell[] getCells(final DataRow row) {
-                return values;
-            }
-        });
-        return arranger;
+        cont.addRowToTable(new DefaultRow(m_rowID.getStringValue(), specs));
+        cont.close();
+        return new BufferedDataTable[]{cont.getTable()};
     }
 
     private List<Pair<String, FlowVariable.Type>> getVariablesOfInterest() {
@@ -207,12 +165,46 @@ public class AppendVariableToTable2NodeModel extends SimpleStreamableFunctionNod
 
     /** {@inheritDoc} */
     @Override
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new DataTableSpec[]{createOutSpec()};
+    }
+
+    private DataTableSpec createOutSpec() throws InvalidSettingsException {
+        List<Pair<String, FlowVariable.Type>> vars = getVariablesOfInterest();
+        if (vars.isEmpty()) {
+            throw new InvalidSettingsException("No variables selected");
+        }
+        DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
+        for (int i = 0; i < vars.size(); i++) {
+            Pair<String, FlowVariable.Type> c = vars.get(i);
+            DataType type;
+            switch (c.getSecond()) {
+                case DOUBLE:
+                    type = DoubleCell.TYPE;
+                    break;
+                case INTEGER:
+                    type = IntCell.TYPE;
+                    break;
+                case STRING:
+                    type = StringCell.TYPE;
+                    break;
+                default:
+                    throw new InvalidSettingsException("Unsupported variable type: " + c.getSecond());
+            }
+            specs[i] = new DataColumnSpecCreator(c.getFirst(), type).createSpec();
+        }
+        return new DataTableSpec(specs);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     protected void reset() {
     }
 
     /** {@inheritDoc} */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_rowID.loadSettingsFrom(settings);
         FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         conf.loadConfigurationInModel(settings);
         m_filter = conf;
@@ -221,12 +213,14 @@ public class AppendVariableToTable2NodeModel extends SimpleStreamableFunctionNod
     /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+        m_rowID.saveSettingsTo(settings);
         m_filter.saveConfiguration(settings);
     }
 
     /** {@inheritDoc} */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_rowID.validateSettings(settings);
         FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         conf.loadConfigurationInModel(settings);
     }

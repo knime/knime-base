@@ -45,7 +45,7 @@
  * History
  *   May 1, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.variabletotablerow2;
+package org.knime.base.node.flowvariable.variabletotablerow3;
 
 import java.awt.BorderLayout;
 
@@ -71,13 +71,13 @@ import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
  *
  * @since 2.9
  */
-class VariableToTable2NodeDialogPane extends NodeDialogPane {
+class VariableToTable3NodeDialogPane extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
     private final DialogComponentString m_rowID;
 
     /** Inits components. */
-    public VariableToTable2NodeDialogPane() {
+    public VariableToTable3NodeDialogPane() {
         m_filter = new FlowVariableFilterPanel();
         m_rowID = new DialogComponentString(createSettingsModelRowID(), "Name of RowID: ");
         final JPanel panel = new JPanel(new BorderLayout());
@@ -101,7 +101,7 @@ class VariableToTable2NodeDialogPane extends NodeDialogPane {
             throws NotConfigurableException {
         m_rowID.loadSettingsFrom(settings, specs);
         FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(VariableToTable2NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(VariableToTable3NodeModel.CFG_KEY_FILTER);
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables());
         m_filter.loadConfiguration(config, getAvailableFlowVariables());
     }
@@ -111,7 +111,7 @@ class VariableToTable2NodeDialogPane extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_rowID.saveSettingsTo(settings);
         FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(VariableToTable2NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(VariableToTable3NodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
     }

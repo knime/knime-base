@@ -45,7 +45,7 @@
  * History
  *   May 1, 2008 (wiswedel): created
  */
-package org.knime.base.node.flowvariable.appendvariabletotable2;
+package org.knime.base.node.flowvariable.appendvariabletotable3;
 
 import javax.swing.JScrollPane;
 
@@ -65,12 +65,12 @@ import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
  *
  * @since 2.9
  */
-class AppendVariableToTable2NodeDialogPane extends NodeDialogPane {
+class AppendVariableToTable3NodeDialogPane extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 
     /** Inits components. */
-    public AppendVariableToTable2NodeDialogPane() {
+    public AppendVariableToTable3NodeDialogPane() {
         m_filter = new FlowVariableFilterPanel();
         addTab("Variable Selection", new JScrollPane(m_filter));
     }
@@ -80,7 +80,7 @@ class AppendVariableToTable2NodeDialogPane extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(AppendVariableToTable2NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(AppendVariableToTable3NodeModel.CFG_KEY_FILTER);
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables());
         m_filter.loadConfiguration(config, getAvailableFlowVariables());
     }
@@ -89,7 +89,7 @@ class AppendVariableToTable2NodeDialogPane extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(AppendVariableToTable2NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(AppendVariableToTable3NodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
     }

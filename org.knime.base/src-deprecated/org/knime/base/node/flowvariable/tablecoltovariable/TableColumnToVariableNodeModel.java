@@ -82,7 +82,9 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
  * with the row ids as their variable name.
  *
  * @author Gabor Bakos
+ * @deprecated
  */
+@Deprecated
 class TableColumnToVariableNodeModel extends NodeModel {
     static final String CFGKEY_IGNORE_MISSING = "ignore missing";
 
