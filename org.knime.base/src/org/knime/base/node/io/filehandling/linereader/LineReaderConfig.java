@@ -330,7 +330,4 @@ public class LineReaderConfig {
             }
         }
     }
-
-
-
 }

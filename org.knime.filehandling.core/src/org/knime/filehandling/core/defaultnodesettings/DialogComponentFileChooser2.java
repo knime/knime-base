@@ -66,7 +66,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -102,9 +101,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Flow variable provider used to retrieve connection information to different file systems */
     private Optional<FSConnection> m_fs;
-
-    /** Node dialog pane */
-    private final NodeDialogPane m_dialogPane;
 
     /** Flow variable model */
     private final FlowVariableModel m_pathFlowVariableModel;
@@ -181,12 +177,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** String used as button label */
     private static final String CONFIGURE_BUTTON_LABEL = "Configure";
 
+    /** Index of optional input port */
     private int m_inPort;
 
+    /** Timeout in milliseconds */
     private int m_timeoutInMillis = FileUtil.getDefaultURLTimeoutMillis();
 
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
+     *
      * @param inPort the index of the optional {@link FileSystemPortObject}
      * @param settingsModel the settings model storing all the necessary information
      * @param historyId id used to store file history used by {@link FilesHistoryPanel}
@@ -200,9 +199,12 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         m_ignoreUpdates = false;
 
-        m_dialogPane = dialogPane;
+        final Optional<String> legacyConfigKey = settingsModel.getLegacyConfigKey();
         m_pathFlowVariableModel =
-            m_dialogPane.createFlowVariableModel(SettingsModelFileChooser2.PATH_OR_URL_KEY, Type.STRING);
+            legacyConfigKey.isPresent() ? dialogPane.createFlowVariableModel(legacyConfigKey.get(), Type.STRING)
+                : dialogPane.createFlowVariableModel(
+                    new String[]{settingsModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                    Type.STRING);
 
         m_connectionLabel = new JLabel(CONNECTION_LABEL);
 
@@ -336,6 +338,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         }
         updateSettingsModel();
         triggerStatusMessageUpdate();
+        updateFileHistoryPanel();
         updateEnabledness();
     }
 
@@ -354,7 +357,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             case CONNECTED_FS:
                 final Optional<FSConnection> fs =
                     FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
-                    applySettingsForConnection(fsChoice, fs);
+                applySettingsForConnection(fsChoice, fs);
                 break;
             case KNIME_FS:
                 //FIXME for remote set Browser and browsable depending on connection
@@ -400,16 +403,23 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (m_fileFilterDialog == null) {
             m_fileFilterDialog = new FileFilterDialog(f, m_fileFilterPanel);
         }
+        final FilterType filterType = m_fileFilterPanel.getSelectedFilterType();
+        final String filterExpression = m_fileFilterPanel.getSelectedFilterExpression();
+        final boolean caseSensitive = m_fileFilterPanel.getCaseSensitive();
+
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
 
         if (m_fileFilterDialog.getResultStatus() == JOptionPane.OK_OPTION) {
             // updates the settings model, which in turn updates the UI
             updateSettingsModel();
+            triggerStatusMessageUpdate();
         } else {
             // overwrites the values in the file filter panel components with those
             // from the settings model
-            updateComponent();
+            m_fileFilterPanel.setFilterType(filterType);
+            m_fileFilterPanel.setFilterExpression(filterExpression);
+            m_fileFilterPanel.setCaseSensitive(caseSensitive);
         }
     }
 
@@ -462,14 +472,17 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
             try {
-                final FileChooserHelper helper = new FileChooserHelper(m_fs,
-                    ((SettingsModelFileChooser2)getModel()).clone(), m_timeoutInMillis);
+                final FileChooserHelper helper =
+                    new FileChooserHelper(m_fs, ((SettingsModelFileChooser2)getModel()).clone(), m_timeoutInMillis);
                 m_statusMessageSwingWorker = new StatusMessageSwingWorker(helper, m_statusMessage);
                 m_statusMessageSwingWorker.execute();
             } catch (Exception ex) {
                 m_statusMessage.setForeground(Color.RED);
-                m_statusMessage.setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                m_statusMessage
+                    .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             }
+        } else {
+            m_statusMessage.setText("");
         }
     }
 
@@ -515,8 +528,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         }
 
         // sync file history panel
-        final String pathOrUrl = model.getPathOrURL();
-        if ((pathOrUrl != null) && !pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
+        final String pathOrUrl = model.getPathOrURL() != null ? model.getPathOrURL() : "";
+        if (!pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
             m_fileHistoryPanel.setSelectedFile(pathOrUrl);
         }
         // sync sub folder check box
@@ -546,9 +559,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_fileFilterPanel.setCaseSensitive(caseSensitive);
         }
 
-        triggerStatusMessageUpdate();
         setEnabledComponents(model.isEnabled());
         updateFileHistoryPanel();
+        triggerStatusMessageUpdate();
         m_ignoreUpdates = false;
     }
 
@@ -565,12 +578,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         updateConnectionsCombo();
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
-        final FileSystemPortObjectSpec fspos = (FileSystemPortObjectSpec) getLastTableSpec(m_inPort);
-        if (fspos != null) {
-            final FileSystemChoice choice =
+        if (getLastTableSpecs() != null && getLastTableSpecs().length > 0) {
+            final FileSystemPortObjectSpec fspos = (FileSystemPortObjectSpec)getLastTableSpec(m_inPort);
+            if (fspos != null) {
+                final FileSystemChoice choice =
                     FileSystemChoice.createConnectedFileSystemChoice(fspos.getFileSystemType());
-            if (connectionsModel.getIndexOf(choice) < 0) {
-                connectionsModel.insertElementAt(choice, 0);
+                if (connectionsModel.getIndexOf(choice) < 0) {
+                    connectionsModel.insertElementAt(choice, 0);
+                }
             }
         }
     }
@@ -600,12 +615,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         model.setPathOrURL(m_fileHistoryPanel.getSelectedFile());
         model.setIncludeSubfolders(m_includeSubfolders.isEnabled() && m_includeSubfolders.isSelected());
         model.setFilterFiles(m_filterFiles.isEnabled() && m_filterFiles.isSelected());
-        model.setFilterMode(m_fileFilterPanel.getSelectedFilterType().getDisplayText());
-        model.setFilterExpression(m_fileFilterPanel.getSelectedFilterExpression());
-        model.setCaseSensitive(m_fileFilterPanel.getCaseSensitive());
+        model.setFilterConditions(m_fileFilterPanel.getSelectedFilterType(),
+            m_fileFilterPanel.getSelectedFilterExpression(), m_fileFilterPanel.getCaseSensitive());
         m_ignoreUpdates = false;
-
-        updateComponent();
     }
 
     @Override
@@ -634,36 +646,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_filterFiles.setEnabled(enabled);
             m_configureFilter.setEnabled(enabled);
         }
-    }
-
-    /**
-     * Returns the currently selected path/url.
-     *
-     * @return the currently selected path/url
-     */
-    public final String getSelectedPathOrUrl() {
-        if (m_pathFlowVariableModel.getVariableValue().isPresent()) {
-            return m_pathFlowVariableModel.getVariableValue().get().getStringValue();
-        }
-        return m_fileHistoryPanel.getSelectedFile();
-    }
-
-    /**
-     * Sets the currently path/url.
-     *
-     * @param pathOrUrl The path/url to set
-     */
-    public void setSelectedFile(final String pathOrUrl) {
-        m_fileHistoryPanel.setSelectedFile(pathOrUrl);
-    }
-
-    /**
-     * Adds a ChangeListener to the underlying {@link FilesHistoryPanel}.
-     *
-     * @param listener ChangeListener
-     */
-    public void addChangeListenerToFileSelection(final ChangeListener listener) {
-        m_fileHistoryPanel.addChangeListener(listener);
     }
 
     @Override

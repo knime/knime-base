@@ -93,8 +93,10 @@ public class FileSystemHelper {
                 toReturn = FileSystems.getDefault();
                 break;
             case CONNECTED_FS:
-                toReturn = fs.orElseThrow(() -> new IllegalStateException("No file system connection available"))
-                        .getFileSystem();
+                toReturn = fs
+                    .orElseThrow(
+                        () -> new IOException("No file system connection available for \"" + choice.getId() + "\""))
+                    .getFileSystem();
                 break;
             default:
                 throw new IOException("Unsupported file system choice: " + choice.getType());

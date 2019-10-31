@@ -140,7 +140,7 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
      * @return {@link FSConnection} if available
      */
     public static Optional<FSConnection> getFileSystemConnection(final PortObjectSpec[] inData, final int i) {
-        return (inData != null && inData.length >= i && (inData[i] instanceof FileSystemPortObjectSpec))
+        return (inData != null && inData.length > i && (inData[i] instanceof FileSystemPortObjectSpec))
                 ? ((FileSystemPortObjectSpec) inData[i]).getFileSystemConnection() : Optional.empty();
     }
 

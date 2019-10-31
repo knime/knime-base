@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -116,6 +118,9 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     /** True, if expression to filter should work regardless the case of the filenames. */
     private boolean m_filterCaseSensitive;
 
+    /** Config key for path of legacy settings object */
+    private final String m_legacyPathConfigKey;
+
     /** The default path. */
     private static final String DEFAULT_PATH = "";
 
@@ -133,7 +138,19 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     public SettingsModelFileChooser2(final String configName) {
         this(configName, FileSystemChoice.getLocalFsChoice().getId(),
             KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, DEFAULT_FILTER,
-            DEFAULT_FILTER_EXPRESSION, false);
+            DEFAULT_FILTER_EXPRESSION, false, null);
+    }
+
+    /**
+     * Creates a new instance of {@link SettingsModelFileChooser2} with default settings.
+     *
+     * @param configName the name of the config.
+     * @param legacyPathConfigKey the legacy config key used to store the path
+     */
+    public SettingsModelFileChooser2(final String configName, final String legacyPathConfigKey) {
+        this(configName, FileSystemChoice.getLocalFsChoice().getId(),
+            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, DEFAULT_FILTER,
+            DEFAULT_FILTER_EXPRESSION, false, legacyPathConfigKey);
     }
 
     /**
@@ -148,11 +165,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param filterMode mode to filter files in case a multiple files should be read
      * @param filterExpression the expression used to filter files
      * @param caseSensitivity true, if expression should be sensitive to case
+     * @param legacyPathConfigKey legacy config key of settings entry for path
      */
     public SettingsModelFileChooser2(final String configName,
         final String fileSystemName, final String knimeConnection, final String pathOrURL,
         final boolean searchSubfolder, final boolean filterFiles, final String filterMode,
-        final String filterExpression, final boolean caseSensitivity) {
+        final String filterExpression, final boolean caseSensitivity, final String legacyPathConfigKey) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
@@ -165,6 +183,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_filterMode = filterMode;
         m_filterExpression = filterExpression;
         m_filterCaseSensitive = caseSensitivity;
+        m_legacyPathConfigKey = legacyPathConfigKey;
     }
 
     /**
@@ -253,54 +272,35 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         }
     }
 
-    /**
-     * Sets the filter mode (e.g. wildcard or regular expression) to filter files in a selected folder.
-     *
-     * @param newValue The filter mode to filter files in a selected folder.
-     */
-    public void setFilterMode(final String newValue) {
-        boolean sameValue;
 
-        if (newValue == null) {
+    /**
+     * Sets new values for the filter conditions (filter type, filter expression, case sensitivity)
+     *
+     * @param filterType the filter type
+     * @param filterExpression filter expression
+     * @param caseSensitive case sensitivity option
+     */
+    public void setFilterConditions(final FilterType filterType, final String filterExpression,
+        final boolean caseSensitive) {
+        final String filterTypeText = filterType.getDisplayText();
+        boolean sameValue;
+        if (filterTypeText == null) {
             sameValue = (m_filterMode == null);
         } else {
-            sameValue = newValue.equals(m_filterMode);
+            sameValue = filterTypeText.equals(m_filterMode);
         }
-        m_filterMode = newValue;
+        m_filterMode = filterTypeText;
 
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
-    }
-
-    /**
-     * Sets the filter expression.
-     *
-     * @param newValue The filter expression
-     */
-    public void setFilterExpression(final String newValue) {
-        boolean sameValue;
-
-        if (newValue == null) {
-            sameValue = (m_filterExpression == null);
+        if (filterExpression == null) {
+            sameValue = (m_filterExpression == null) && sameValue;
         } else {
-            sameValue = newValue.equals(m_filterExpression);
+            sameValue = filterExpression.equals(m_filterExpression) && sameValue;
         }
-        m_filterExpression = newValue;
+        m_filterExpression = filterExpression;
 
-        if (!sameValue) {
-            notifyChangeListeners();
-        }
-    }
+        sameValue = (m_filterCaseSensitive == caseSensitive) && sameValue;
+        m_filterCaseSensitive = caseSensitive;
 
-    /**
-     * Sets the new value for the case sensitivity option.
-     *
-     * @param newValue New value for the case sensitivity option
-     */
-    public void setCaseSensitive(final boolean newValue) {
-        boolean sameValue = (m_filterCaseSensitive == newValue);
-        m_filterCaseSensitive = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
@@ -414,26 +414,42 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     @Override
     protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        final Config config;
         try {
-
-            config = settings.getConfig(m_configName);
-            setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
-            if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
-                setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
-                setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
-                setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
-                setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
-                setFilterMode(config.getString(FILTER_MODE_KEY, m_filterMode));
-                setFilterExpression(config.getString(FILTER_EXPRESSION_KEY, m_filterExpression));
-                setCaseSensitive(config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
+            final Config config = settings.getConfig(m_configName);
+            if (legacyConfigKeyExists()) {
+                setPathOrURL(settings.getString(m_legacyPathConfigKey, m_pathOrURL));
             } else {
-                FileChooserSettingsConverter.convert(this);
+                setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
             }
-
-        } catch (final InvalidSettingsException ise) {
-            throw new NotConfigurableException(ise.getMessage());
+            setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
+            setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
+            setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
+            setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
+            setFilterConditions(FilterType.fromDisplayText(config.getString(FILTER_MODE_KEY, m_filterMode)),
+                config.getString(FILTER_EXPRESSION_KEY, m_filterExpression),
+                config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
+        } catch (InvalidSettingsException ex) {
+            if (m_legacyPathConfigKey != null) {
+                setPathOrURL(settings.getString(m_legacyPathConfigKey, m_pathOrURL));
+                FileChooserSettingsConverter.convert(this);
+            } else {
+                throw new NotConfigurableException(ex.getMessage());
+            }
         }
+    }
+
+    private final boolean legacyConfigKeyExists() {
+        return m_legacyPathConfigKey != null && !m_legacyPathConfigKey.isEmpty();
+    }
+
+    /**
+     * Returns the legacy configuration key for storing the path in the SettingsModel of a node if present.
+     * Otherwise an empty Optional will be returned.
+     *
+     * @return the legacy configuration key if present
+     */
+    public final Optional<String> getLegacyConfigKey() {
+        return legacyConfigKeyExists() ? Optional.of(m_legacyPathConfigKey) : Optional.empty();
     }
 
     @Override
@@ -443,41 +459,58 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config = settings.getConfig(m_configName);
-        //FIXME Check whether KNIME Mountpoint is valid
-        config.getString(PATH_OR_URL_KEY);
-        if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
-            config.getString(FILE_SYSTEM_KEY);
-            config.getString(KNIME_FILESYSTEM_KEY);
-            config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
-            config.getBoolean(FILTER_FILES_KEY);
-            config.getString(FILTER_EXPRESSION_KEY);
-            config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        Config config;
+        try {
+            config = settings.getConfig(m_configName);
+        } catch (final InvalidSettingsException e) {
+            if (legacyConfigKeyExists()) {
+                settings.getString(m_legacyPathConfigKey);
+                FileChooserSettingsConverter.convert(this);
+                return;
+            }
+            throw e;
         }
+        //FIXME Check whether KNIME Mountpoint is valid
+        if (legacyConfigKeyExists()) {
+            settings.getString(m_legacyPathConfigKey);
+        } else {
+            config.getString(PATH_OR_URL_KEY);
+        }
+        config.getString(FILE_SYSTEM_KEY);
+        config.getString(KNIME_FILESYSTEM_KEY);
+        config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+        config.getBoolean(FILTER_FILES_KEY);
+        config.getString(FILTER_EXPRESSION_KEY);
+        config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
         // Validate filter mode
         final String filterMode = config.getString(FILTER_MODE_KEY);
         if (!FilterType.contains(filterMode)) {
-            throw new InvalidSettingsException(
-                "\"" + filterMode + "\" is not a valid filter type.");
+            throw new InvalidSettingsException("\"" + filterMode + "\" is not a valid filter type.");
         }
     }
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-        final Config config = settings.getConfig(m_configName);
-        m_pathOrURL = config.getString(PATH_OR_URL_KEY);
-        if (config.containsKey(KNIME_FILESYSTEM_KEY)) {
-            m_fileSystem = config.getString(FILE_SYSTEM_KEY);
-            m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
-            m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
-            m_filterFiles = config.getBoolean(FILTER_FILES_KEY);
-            m_filterMode = config.getString(FILTER_MODE_KEY);
-            m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
-            m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
-        } else {
-            FileChooserSettingsConverter.convert(this);
+        final Config config;
+        try {
+            config = settings.getConfig(m_configName);
+        } catch (final InvalidSettingsException e) {
+            if (legacyConfigKeyExists()) {
+                m_pathOrURL = settings.getString(m_legacyPathConfigKey);
+                FileChooserSettingsConverter.convert(this);
+                return;
+            }
+            throw e;
         }
+        m_pathOrURL =
+            legacyConfigKeyExists() ? settings.getString(m_legacyPathConfigKey) : config.getString(PATH_OR_URL_KEY);
+        m_fileSystem = config.getString(FILE_SYSTEM_KEY);
+        m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
+        m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
+        m_filterFiles = config.getBoolean(FILTER_FILES_KEY);
+        m_filterMode = config.getString(FILTER_MODE_KEY);
+        m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
+        m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
 
         notifyChangeListeners();
     }
@@ -487,7 +520,11 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         final Config config = settings.addConfig(m_configName);
         config.addString(FILE_SYSTEM_KEY, getFileSystem());
         config.addString(KNIME_FILESYSTEM_KEY, getKNIMEFileSystem());
-        config.addString(PATH_OR_URL_KEY, getPathOrURL());
+        if (legacyConfigKeyExists()) {
+            settings.addString(m_legacyPathConfigKey, getPathOrURL());
+        } else {
+            config.addString(PATH_OR_URL_KEY, getPathOrURL());
+        }
         config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
         config.addBoolean(FILTER_FILES_KEY, getFilterFiles());
         config.addString(FILTER_MODE_KEY, getFilterMode());

@@ -44,56 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 25, 2019 (julian): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
+package org.knime.base.node.io.filehandling;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.streamable.RowOutput;
 
 /**
- * This converter is used to handle legacy {@link DialogComponentFileChooser} settings and adapt them based on the saved
- * path or URL.
+ * Interface providing methods to process paths and pushes rows to a given {@link RowOutput}.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+ * @since 4.1
  */
-public class FileChooserSettingsConverter {
-
-    /** Node logger */
-    static final NodeLogger LOGGER = NodeLogger.getLogger(FileChooserSettingsConverter.class);
+public interface FilesToDataTableReader {
 
     /**
-     * Private constructor for utility class.
-     */
-    private FileChooserSettingsConverter() {
-        // private constructor for utility class
-    }
-
-    /**
-     * Converts the settings of the given {@link SettingsModelFileChooser2} according to the saved path or URL String.
+     * Creates and returns a {@link DataTableSpec} based on the specifications of the incoming data.
      *
-     * @param settings the settings to convert
+     * @param paths {@link Path Paths} leading to the data
+     * @param exec ExecutionMonitor to provide progress and cancellation
+     * @return DataTableSpec
+     * @throws InvalidSettingsException Thrown if spec could not be created
+     * @throws CanceledExecutionException if progress was canceled
      */
-    public static void convert(final SettingsModelFileChooser2 settings) {
-        final String path = settings.getPathOrURL();
+    DataTableSpec createDataTableSpec(List<Path> paths, ExecutionMonitor exec) throws InvalidSettingsException,
+    CanceledExecutionException;
 
-        if (path != null) {
-            if (!path.contains("://") && !path.startsWith("file:/")) {
-                setLocal(path, settings);
-            } else {
-                setCustom(path, settings);
-            }
+    /**
+     * Creates and returns a {@link DataTableSpec} based on the specifications of the incoming data.
+     *
+     * @param paths {@link Path Paths} leading to the data
+     * @return DataTableSpec
+     * @throws InvalidSettingsException Thrown if spec could not be created
+     */
+    default DataTableSpec createDataTableSpec(final List<Path> paths) throws InvalidSettingsException {
+        try {
+            return createDataTableSpec(paths, new ExecutionMonitor());
+        } catch (CanceledExecutionException e) {
+            //this can not happen since no one can cancel the execution monitor
+            throw new IllegalStateException();
         }
     }
 
-    private static void setCustom(final String string, final SettingsModelFileChooser2 settings) {
-        settings.setFileSystem(FileSystemChoice.getCustomFsUrlChoice().getId());
-        settings.setPathOrURL(string);
-    }
-
-    private static void setLocal(final String string, final SettingsModelFileChooser2 settings) {
-        settings.setFileSystem(FileSystemChoice.getLocalFsChoice().getId());
-        settings.setPathOrURL(string);
-    }
+    /**
+     * Pushes data rows to a {@link RowOutput}.
+     *
+     * @param path Path leading to a file
+     * @param output The RowOutput of the node
+     * @param exec ExecutionContext
+     * @throws Exception Thrown if row could not be pushed
+     */
+    void pushRowsToOutput(Path path, RowOutput output, ExecutionContext exec) throws Exception;
 
 }

@@ -50,255 +50,89 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataContainer;
+import org.knime.base.node.io.filehandling.AbstractSimpleFileReaderNodeModel;
+import org.knime.base.node.io.filehandling.FilesToDataTableReader;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
+ * NodeModel for the Line Reader node.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class LineReaderNodeModel extends NodeModel {
+public class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
 
+    /** LineReaderConfig containing all necessary information how to process specified file(s). */
     private final LineReaderConfig m_config = new LineReaderConfig();
 
     /**
-     *
+     * Creates a new instance of {@link LineReaderNodeModel}.
      */
-    public LineReaderNodeModel() {
+    LineReaderNodeModel() {
         super(new PortType[] {FileSystemPortObject.TYPE_OPTIONAL}, new PortType[] {BufferedDataTable.TYPE});
     }
 
-    /** {@inheritDoc} */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        //FIXME
-        return new PortObjectSpec[]{null};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec)
-        throws Exception {
-        Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(inData, 0);
-        final List<Path> pathList = m_config.getPaths(fs);
-
-        if (pathList.isEmpty()) {
-            throw new InvalidSettingsException("No files selected");
-        }
-
-        final DataTableSpec spec = createOutputSpec(pathList);
-        final BufferedDataContainer container = exec.createDataContainer(spec);
         try {
-            boolean skipHeader = m_config.getReadColHeader();
-            final Iterator<Path> paths = pathList.iterator();
-            while (paths.hasNext()) {
-
-                exec.checkCanceled();
-
-                final Path path = paths.next();
-                final String rowPrefix = m_config.getRowPrefix();
-                final int limit = m_config.getLimitRowCount();
-
-                final RowBuilder lineConsumer = new RowBuilder(rowPrefix, container);
-
-                if (m_config.getLimitLines()) {
-
-                    readLimited(limit - container.size(), path, lineConsumer, skipHeader);
-
-                } else {
-                    readAllLines(path, lineConsumer, skipHeader);
-                }
-
-                //read the first file, no more lines to skip
-                skipHeader = false;
-            }
-
-        } finally {
-            container.close();
-        }
-
-        return new BufferedDataTable[]{container.getTable()};
-
-    }
-
-    private static class RowBuilder implements Consumer<String> {
-
-        private final String m_rowPrefix;
-
-        private final BufferedDataContainer m_container;
-
-        /**
-         * @param rowPrefix
-         * @param container
-         */
-        public RowBuilder(final String rowPrefix, final BufferedDataContainer container) {
-            m_rowPrefix = rowPrefix;
-            m_container = container;
-        }
-
-        @Override
-        public void accept(final String line) {
-
-            final RowKey key = new RowKey(m_rowPrefix + (m_container.size()));
-            final DefaultRow row = new DefaultRow(key, new StringCell(line));
-            m_container.addRowToTable(row);
-        }
-
-    }
-
-    /**
-     * @param l
-     * @param path
-     * @throws IOException
-     */
-    private void readLimited(final long l, final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
-        throws IOException {
-        try (Stream<String> lineStream = Files.lines(path)) {
-            lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).limit(l).filter(this::regExMatch)
-                .forEachOrdered(rowbuilder);
+            Optional<FSConnection> fs = FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, 0);
+            return new PortObjectSpec[]{getFileHandlingUtil(fs).createDataTableSpec()};
+        } catch (final Exception e) {
+            throw new InvalidSettingsException(e);
         }
     }
 
-    private void readAllLines(final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
-        throws IOException {
-        try (Stream<String> lineStream = Files.lines(path)) {
-            lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).filter(this::regExMatch)
-                .forEachOrdered(rowbuilder);
-        }
+    @Override
+    public FileChooserHelper getFileChooserHelper(final Optional<FSConnection> fs) throws IOException {
+        return new FileChooserHelper(fs, m_config.getFileChooserModel());
     }
 
-    private boolean regExMatch(final String s) {
-        return !m_config.getUseRegex() || s.matches(m_config.getRegex());
+    @Override
+    public FilesToDataTableReader getReader() {
+        return new LineReader(m_config);
     }
 
-    private boolean empytFilter(final String s) {
-        return !m_config.getSkipEmptyLines() || !s.trim().isEmpty();
-    }
-
-    private DataTableSpec createOutputSpec(final List<Path> pathList) throws IOException {
-        final String tableName = getTableName(pathList);
-        final Path path = pathList.get(0);
-        try (Stream<String> currentLines = Files.lines(path)) {
-            String colName;
-
-            if (m_config.getReadColHeader()) {
-
-                final Optional<String> optColName =
-                    currentLines.filter(s -> (!m_config.getSkipEmptyLines() || !s.trim().isEmpty())).findFirst();
-
-                if (!optColName.isPresent() || optColName.get().trim().isEmpty()) {
-                    // if top line or all lines are blank in file use a default non-empty string
-                    colName = "<empty>";
-                } else {
-                    colName = optColName.get();
-                }
-            } else {
-                colName =
-                    CheckUtils.checkNotNull(m_config.getColumnHeader(), "column header in config must not be null");
-            }
-
-            final DataColumnSpecCreator creator = new DataColumnSpecCreator(colName, StringCell.TYPE);
-
-            return new DataTableSpec(tableName, creator.createSpec());
-        }
-    }
-
-    /**
-     * @param pathes
-     * @return
-     */
-    private static String getTableName(final List<Path> pathes) {
-        Path namePath = pathes.get(0);
-
-        if (pathes.size() > 1) {
-            namePath = namePath.getParent();
-        }
-        String tableName;
-        if(namePath == null || namePath.getFileName() == null) {
-            tableName = "LineReader output";
-        } else {
-            tableName = namePath.getFileName().toString();
-        }
-
-        return tableName;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // none
-
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // none
-
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_config.saveConfiguration(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.loadConfiguration(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // nothing to do
     }
-
 }
