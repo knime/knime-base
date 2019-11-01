@@ -59,6 +59,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -66,6 +67,8 @@ import javax.swing.JLabel;
 import javax.swing.SwingWorker;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.FileSystemBrowser.DialogType;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
 
 /**
@@ -75,16 +78,17 @@ import org.knime.core.util.Pair;
  */
 class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Color, String>> {
 
-    private final static NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
     /** String used as placeholder for the label when typing in the file selection component */
     private static final String SCANNING_MESSAGE = "Scanning...";
 
     /** String used for the label in case of an IOException while scanning */
-    private static final String FOLDER_SCAN_EXCEPTION_FAILURE_MESSAGE = "Failed to scan folder: %s";
+    private static final String FOLDER_SCAN_EXCEPTION_FAILURE_MESSAGE = "<html>Failed to scan folder: </br>%s</html>";
 
     /** String used for the label in case the selected file does not exist */
-    private static final String FILE_ACCESS_FAILURE_MESSAGE = "Selected file does not exist or cannot be accessed: %s";
+    private static final String FILE_FOLDER_ACCESS_FAILURE_MESSAGE =
+        "<html>Selected file/folder does not exist or cannot be accessed: <br>%s</html>";
 
     /** String used for the label in case no files matched the selected filters */
     private static final String NO_FILES_MATCHED_FILTER_MESSAGE = "No files matched the filters";
@@ -98,20 +102,34 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
 
     private final JLabel m_statusMessageLabel;
 
+    private final DialogType m_dialogType;
+
+    private FileSelectionMode m_fileSelectionMode;
+
     /**
      * Creates a new instance of {@code StatusLineSwingWorker}.
      *
      * @param the label to update
      */
-    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel) {
+    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel,
+        final DialogType dialogType, final FileSelectionMode fileSelectionMode) {
         m_helper = helper;
         m_statusMessageLabel = statusMessageLabel;
+        m_dialogType = dialogType;
+        m_fileSelectionMode = fileSelectionMode;
     }
 
     @Override
     protected Pair<Color, String> doInBackground() throws Exception {
-        if (m_helper.getSettingsModel().getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
+        final SettingsModelFileChooser2 model = m_helper.getSettingsModel();
+
+        if (model.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             return mkSuccess("");
+        }
+
+        final String pathOrUrl = model.getPathOrURL();
+        if (pathOrUrl.trim().isEmpty()) {
+            return mkError("Please specify a location");
         }
 
         publish(new Pair<>(Color.BLACK, SCANNING_MESSAGE));
@@ -126,23 +144,67 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         } catch (InvalidPathException e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
+        if (m_dialogType.equals(DialogType.OPEN_DIALOG)) {
+            // fetch file attributes for path, so we can determine whether it exists, is accessible
+            // and whether it is file or folder
+            final BasicFileAttributes basicAttributes;
+            try {
+                basicAttributes =
+                    Files.getFileAttributeView(fileOrFolder, BasicFileAttributeView.class).readAttributes();
+            } catch (IOException e) {
+                return mkError(
+                    format(FILE_FOLDER_ACCESS_FAILURE_MESSAGE, ExceptionUtil.getDeepestErrorMessage(e, false)));
+            }
+            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY) && basicAttributes.isDirectory()) {
+                final String msg = "Input location '" + fileOrFolder.toString() +"' is a directory";
+                return mkError(msg);
+            }
+            if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY) && !basicAttributes.isDirectory()) {
+                final String msg = "Input location '" + fileOrFolder.toString() + "' is a not a directory";
+                return mkError(msg);
+            }
+            if ((m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
+                || m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES))
+                && basicAttributes.isDirectory()) {
+                return scanFolder(m_helper);
+            }
+            return mkSuccess("");
+        } else {
+            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY) && (pathOrUrl.endsWith("/") || pathOrUrl.endsWith("\\"))) {
+                final String msg = "Output location '" + pathOrUrl +"' is a directory";
+                return mkError(msg);
+            }
 
-        // fetch file attributes for path, so we can determine wheter it exists, is accessible
-        // and whether it is file or folder
-        final BasicFileAttributes basicAttributes;
-        try {
-            basicAttributes = Files.getFileAttributeView(fileOrFolder, BasicFileAttributeView.class).readAttributes();
-        } catch (IOException e) {
-            return mkError(format(FILE_ACCESS_FAILURE_MESSAGE, ExceptionUtil.getDeepestErrorMessage(e, false)));
+            BasicFileAttributes basicAttributes = null;
+            try {
+                basicAttributes =
+                    Files.getFileAttributeView(fileOrFolder, BasicFileAttributeView.class).readAttributes();
+            } catch (IOException e) {
+                // do nothing
+            }
+            String warning = "";
+            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
+                && (basicAttributes != null && !basicAttributes.isDirectory())) {
+                warning = "Output file '" + pathOrUrl +"' already exists and might be overwritten";
+            }
+            if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
+                && (basicAttributes != null && basicAttributes.isDirectory())) {
+                warning = "Output directory '" + fileOrFolder.toString()
+                    + "' already exists and might be overwritten";
+            }
+            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES) && basicAttributes != null) {
+                if (basicAttributes.isDirectory()) {
+                    warning = "Output directory '" + fileOrFolder.toString()
+                        + "' already exists and might be overwritten";
+                } else {
+                    warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
+                }
+            }
+            if (!warning.isEmpty()) {
+                return mkWarning(warning);
+            }
         }
-
-        // if folder, then scan. If file, then do nothing
-        Pair<Color, String> toReturn = mkSuccess("");
-        if (basicAttributes.isDirectory()) {
-            toReturn = scanFolder(m_helper);
-        }
-
-        return toReturn;
+        return mkSuccess("");
     }
 
     private static Pair<Color, String> scanFolder(final FileChooserHelper helper) {
@@ -177,6 +239,10 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         return new Pair<>(Color.RED, msg);
     }
 
+    private static Pair<Color, String> mkWarning(final String msg) {
+        return new Pair<>(Color.ORANGE, msg);
+    }
+
     @Override
     protected void done() {
         try {
@@ -199,5 +265,12 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
     private void updateStatusMessageLabel(final Pair<Color, String> colorAndMessage) {
         m_statusMessageLabel.setForeground(colorAndMessage.getFirst());
         m_statusMessageLabel.setText(colorAndMessage.getSecond());
+    }
+
+    final Optional<String> getLatestWarning() {
+        if (m_statusMessageLabel.getForeground().equals(Color.RED)) {
+            return Optional.of(m_statusMessageLabel.getText());
+        }
+        return Optional.empty();
     }
 }

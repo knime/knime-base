@@ -131,7 +131,7 @@ public class FileFilter {
         }
     }
 
-    /** Total umber of filtered files */
+    /** Total number of filtered files */
     private int m_numberOfFilteredFiles;
 
     /** The FilterType used to filter files */

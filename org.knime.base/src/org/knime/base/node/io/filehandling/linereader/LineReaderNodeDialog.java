@@ -55,6 +55,7 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -100,7 +101,8 @@ public class LineReaderNodeDialog extends NodeDialogPane {
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
 
-        m_filePanel = new DialogComponentFileChooser2(0, m_config.getFileChooserModel(), "line_read", this);
+        m_filePanel = new DialogComponentFileChooser2(0, m_config.getFileChooserModel(), "line_read",
+            JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, this);
         m_rowHeadPrefixField =
             new DialogComponentString(m_config.getRowPrefixModel(), "Row header prefix ", false, COMP_WIDTH);
 

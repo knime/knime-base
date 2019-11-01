@@ -65,6 +65,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilter;
+import org.knime.filehandling.core.filefilter.HiddenFilesFilter;
 
 /**
  * Class used to scan files in directories.
@@ -85,27 +86,25 @@ public final class FileChooserHelper {
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
 
-
     /**
      * Creates a new instance of {@link FileChooserHelper} that uses the default url timeout
      * {@link FileUtil#getDefaultURLTimeoutMillis()} for custom URLs.
      *
-     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
-     *            if necessary
+     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable if
+     *            necessary
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
     public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings)
-            throws IOException {
+        throws IOException {
         this(fs, settings, FileUtil.getDefaultURLTimeoutMillis());
     }
-
 
     /**
      * Creates a new instance of {@link FileChooserHelper}.
      *
-     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
-     *            if necessary
+     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable if
+     *            necessary
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @param timeoutInMillis timeout in milliseconds for the custom URL file system
      * @throws IOException thrown when the file system could not be retrieved.
@@ -137,6 +136,7 @@ public final class FileChooserHelper {
         setCounts(0, 0);
         final Path dirPath = m_fileSystem.getPath(m_settings.getPathOrURL());
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
+        final HiddenFilesFilter hiddenFilesFilter = new HiddenFilesFilter(m_settings.getIncludeHiddenFiles());
 
         final List<Path> paths;
         try (final Stream<Path> stream = includeSubfolders
@@ -144,10 +144,11 @@ public final class FileChooserHelper {
             if (m_filter.isPresent()) {
                 final FileFilter filter = m_filter.get();
                 filter.resetCount();
-                paths = stream.filter(filter::isSatisfied).collect(Collectors.toList());
+                paths = stream.filter(hiddenFilesFilter).filter(filter::isSatisfied).collect(Collectors.toList());
                 setCounts(paths.size(), filter.getNumberOfFilteredFiles());
             } else {
-                paths = stream.filter(p -> !Files.isDirectory(p)).collect(Collectors.toList());
+                paths =
+                    stream.filter(p -> !Files.isDirectory(p)).filter(hiddenFilesFilter).collect(Collectors.toList());
                 setCounts(paths.size(), 0);
             }
         }

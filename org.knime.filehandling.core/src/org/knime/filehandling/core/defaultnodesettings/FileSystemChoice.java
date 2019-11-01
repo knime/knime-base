@@ -75,6 +75,9 @@ public class FileSystemChoice {
             /** KNIME file system */
             KNIME_FS,
 
+            /** KNIME Mountpoint */
+            KNIME_MOUNTPOINT,
+
             /** Custom URL file system */
             CUSTOM_URL_FS,
 
@@ -86,14 +89,18 @@ public class FileSystemChoice {
     private static final FileSystemChoice LOCAL_FS_CHOICE = new FileSystemChoice(Choice.LOCAL_FS, "Local File System");
 
     /** Instance of KNIME file system choice */
-    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "KNIME");
+    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "Realtive to");
+
+    /** Instance of KNIME file system choice */
+    private static final FileSystemChoice KNIME_MOUNTPOINT_CHOICE =
+        new FileSystemChoice(Choice.KNIME_MOUNTPOINT, "Mountpoint");
 
     /** Instance of Custom URL file system choice */
     private static final FileSystemChoice CUSTOM_URL_CHOICE = new FileSystemChoice(Choice.CUSTOM_URL_FS, "Custom URL");
 
     /** List of default file system choices */
     private static final List<FileSystemChoice> DEFAULT_CHOICES =
-        Arrays.asList(LOCAL_FS_CHOICE, KNIME_FS_CHOICE, CUSTOM_URL_CHOICE);
+        Arrays.asList(LOCAL_FS_CHOICE, KNIME_FS_CHOICE, KNIME_MOUNTPOINT_CHOICE, CUSTOM_URL_CHOICE);
 
     /** Identifier string */
     private final String m_id;
@@ -173,6 +180,15 @@ public class FileSystemChoice {
     }
 
     /**
+     * Returns the static instance for the KNIME file system choice.
+     *
+     * @return instance for the KNIME file system choice
+     */
+    public static final FileSystemChoice getKnimeMountpointChoice() {
+        return KNIME_MOUNTPOINT_CHOICE;
+    }
+
+    /**
      * Creates and returns a new flow variable FileSystemChoice with a given id
      *
      * @param id identifier for the FileSystemChoice
@@ -190,7 +206,7 @@ public class FileSystemChoice {
      * @return A FileSystemChoice identified by the given id
      */
     public static FileSystemChoice getChoiceFromId(final String fileSystem) {
-        Optional<FileSystemChoice> choice =
+        final Optional<FileSystemChoice> choice =
             DEFAULT_CHOICES.stream().filter(c -> c.getId().equals(fileSystem)).findFirst();
         if (choice.isPresent()) {
             return choice.get();
@@ -200,16 +216,16 @@ public class FileSystemChoice {
 
     @Override
     public boolean equals(final Object other) {
-        if(!(other instanceof FileSystemChoice)) {
+        if (!(other instanceof FileSystemChoice)) {
             return false;
         }
-        FileSystemChoice otherChoice = (FileSystemChoice) other;
+        final FileSystemChoice otherChoice = (FileSystemChoice)other;
         return m_id.equals(otherChoice.m_id) && m_type.equals(otherChoice.m_type);
     }
 
     @Override
     public int hashCode() {
-        HashCodeBuilder hashBuiler = new HashCodeBuilder();
+        final HashCodeBuilder hashBuiler = new HashCodeBuilder();
         hashBuiler.append(m_id);
         hashBuiler.append(m_type);
         return hashBuiler.build();

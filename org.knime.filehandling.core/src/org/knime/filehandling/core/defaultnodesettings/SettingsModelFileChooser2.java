@@ -56,7 +56,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 
 /**
@@ -79,6 +82,9 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     /** Configuration key for the option to include sub folder. */
     private static final String INCLUDE_SUBFOLDERS_KEY = "include_subfolders";
 
+    /** Configuration key for the option to include hidden files. */
+    private static final String INCLUDE_HIDDEN_FILES_KEY = "include_hidden_files";
+
     /** Configuration key for the option to filter files in selected folder. */
     private static final String FILTER_FILES_KEY = "filter_files";
 
@@ -90,6 +96,11 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     /** Configuration key to store the setting whether the filter expression is case sensitive or not. */
     private static final String FILTER_CASE_SENSITIVE_KEY = "filter_case_sensitive";
+
+    private static final String FILE_OR_FOLDER_MODEL_KEY = "fileOrFolderModel";
+
+    private final SettingsModelString m_fileOrFolderSettingsModel =
+        new SettingsModelString(FILE_OR_FOLDER_MODEL_KEY, FileOrFolderEnum.FILE.name());
 
     /** The name of the configuration object. */
     private final String m_configName;
@@ -105,6 +116,9 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     /** True, if sub-folders should be included. */
     private boolean m_includeSubfolders;
+
+    /** True, if hidden files should be included. */
+    private boolean m_includeHiddenFiles;
 
     /** True, if files should be filtered. */
     private boolean m_filterFiles;
@@ -137,7 +151,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public SettingsModelFileChooser2(final String configName) {
         this(configName, FileSystemChoice.getLocalFsChoice().getId(),
-            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, DEFAULT_FILTER,
+            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, false, DEFAULT_FILTER,
             DEFAULT_FILTER_EXPRESSION, false, null);
     }
 
@@ -149,7 +163,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public SettingsModelFileChooser2(final String configName, final String legacyPathConfigKey) {
         this(configName, FileSystemChoice.getLocalFsChoice().getId(),
-            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, DEFAULT_FILTER,
+            KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false, false, false, DEFAULT_FILTER,
             DEFAULT_FILTER_EXPRESSION, false, legacyPathConfigKey);
     }
 
@@ -161,16 +175,18 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param knimeConnection the name of the selected knime connection
      * @param pathOrURL the path of the selected file or folder
      * @param searchSubfolder true, if sub-folder should be included
+     * @param includeHiddenFiles true, if hidden files should be included
      * @param filterFiles true, if files should be filtered
      * @param filterMode mode to filter files in case a multiple files should be read
      * @param filterExpression the expression used to filter files
      * @param caseSensitivity true, if expression should be sensitive to case
      * @param legacyPathConfigKey legacy config key of settings entry for path
      */
-    public SettingsModelFileChooser2(final String configName,
-        final String fileSystemName, final String knimeConnection, final String pathOrURL,
-        final boolean searchSubfolder, final boolean filterFiles, final String filterMode,
-        final String filterExpression, final boolean caseSensitivity, final String legacyPathConfigKey) {
+
+    public SettingsModelFileChooser2(final String configName, final String fileSystemName, final String knimeConnection,
+        final String pathOrURL, final boolean searchSubfolder, final boolean includeHiddenFiles,
+        final boolean filterFiles, final String filterMode, final String filterExpression,
+        final boolean caseSensitivity, final String legacyPathConfigKey) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
@@ -184,6 +200,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_filterExpression = filterExpression;
         m_filterCaseSensitive = caseSensitivity;
         m_legacyPathConfigKey = legacyPathConfigKey;
+        m_includeHiddenFiles = includeHiddenFiles;
     }
 
     /**
@@ -252,8 +269,21 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param newValue Set true, if sub folder should be searched for files
      */
     public void setIncludeSubfolders(final boolean newValue) {
-        boolean sameValue = (m_includeSubfolders == newValue);
+        final boolean sameValue = (m_includeSubfolders == newValue);
         m_includeSubfolders = newValue;
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
+     * Sets a new value for the option to include hidden files.
+     *
+     * @param newValue Set true, if sub folder should be searched for files
+     */
+    public void setIncludeHiddenFiles(final boolean newValue) {
+        final boolean sameValue = (m_includeHiddenFiles == newValue);
+        m_includeHiddenFiles = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
@@ -265,13 +295,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param newValue Set true, if files in a selected folder should be filtered
      */
     public void setFilterFiles(final boolean newValue) {
-        boolean sameValue = (m_filterFiles == newValue);
+        final boolean sameValue = (m_filterFiles == newValue);
         m_filterFiles = newValue;
         if (!sameValue) {
             notifyChangeListeners();
         }
     }
-
 
     /**
      * Sets new values for the filter conditions (filter type, filter expression, case sensitivity)
@@ -350,6 +379,15 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     }
 
     /**
+     * Returns true, if hidden files should be included while searching files.
+     *
+     * @return True, if hidden files should be included while searching files
+     */
+    public boolean getIncludeHiddenFiles() {
+        return m_includeHiddenFiles;
+    }
+
+    /**
      * Returns true, if files should be filtered.
      *
      * @return True, if files should be filtered.
@@ -395,7 +433,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     public SettingsModelFileChooser2 clone() {
         try {
             return (SettingsModelFileChooser2)super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (final CloneNotSupportedException ex) {
             // never happens
             return null;
         }
@@ -411,6 +449,13 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         return m_configName;
     }
 
+    /**
+     * @return the fileOrFolderSettingsModel
+     */
+    public SettingsModelString getFileOrFolderSettingsModel() {
+        return m_fileOrFolderSettingsModel;
+    }
+
     @Override
     protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
@@ -424,11 +469,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
             setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
             setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
             setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
+            setIncludeHiddenFiles(config.getBoolean(INCLUDE_HIDDEN_FILES_KEY, m_includeHiddenFiles));
             setFilterFiles(config.getBoolean(FILTER_FILES_KEY, m_filterFiles));
             setFilterConditions(FilterType.fromDisplayText(config.getString(FILTER_MODE_KEY, m_filterMode)),
                 config.getString(FILTER_EXPRESSION_KEY, m_filterExpression),
                 config.getBoolean(FILTER_CASE_SENSITIVE_KEY, m_filterCaseSensitive));
-        } catch (InvalidSettingsException ex) {
+        } catch (final InvalidSettingsException ex) {
             if (m_legacyPathConfigKey != null) {
                 setPathOrURL(settings.getString(m_legacyPathConfigKey, m_pathOrURL));
                 FileChooserSettingsConverter.convert(this);
@@ -443,8 +489,8 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     }
 
     /**
-     * Returns the legacy configuration key for storing the path in the SettingsModel of a node if present.
-     * Otherwise an empty Optional will be returned.
+     * Returns the legacy configuration key for storing the path in the SettingsModel of a node if present. Otherwise an
+     * empty Optional will be returned.
      *
      * @return the legacy configuration key if present
      */
@@ -506,6 +552,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_filterMode = config.getString(FILTER_MODE_KEY);
         m_filterExpression = config.getString(FILTER_EXPRESSION_KEY);
         m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
+        m_includeHiddenFiles = config.getBoolean(INCLUDE_HIDDEN_FILES_KEY, false);
 
         notifyChangeListeners();
     }
@@ -526,6 +573,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
             config.addString(PATH_OR_URL_KEY, getPathOrURL());
         }
         config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
+        config.addBoolean(INCLUDE_HIDDEN_FILES_KEY, getIncludeHiddenFiles());
         config.addBoolean(FILTER_FILES_KEY, getFilterFiles());
         config.addString(FILTER_MODE_KEY, getFilterMode());
         config.addString(FILTER_EXPRESSION_KEY, getFilterExpression());
@@ -536,4 +584,69 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     public String toString() {
         return getClass().getSimpleName() + " ('" + m_configName + "')";
     }
+
+    /**
+     * This enum holds the options for the reading mode
+     *
+     * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+     */
+    public static enum FileOrFolderEnum implements ButtonGroupEnumInterface {
+
+            /** Selection of a single file */
+            FILE("File", "Select single file", FileSelectionMode.FILES_ONLY),
+            /** Selection of a folder */
+            FILE_IN_FOLDER("Files in folder", "Select files in a folder", FileSelectionMode.FILES_AND_DIRECTORIES);
+
+        private String m_label;
+
+        private String m_desc;
+
+        private FileSelectionMode m_selectionMode;
+
+        private FileOrFolderEnum(final String label, final String desc, final FileSelectionMode mode) {
+            m_label = label;
+            m_desc = desc;
+            m_selectionMode = mode;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getText() {
+            return m_label;
+        }
+
+        /**
+         * @return the selectionMode
+         */
+        public FileSelectionMode getSelectionMode() {
+            return m_selectionMode;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getActionCommand() {
+            return name();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getToolTip() {
+            return m_desc;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isDefault() {
+            return FILE.equals(this);
+        }
+    }
+
 }

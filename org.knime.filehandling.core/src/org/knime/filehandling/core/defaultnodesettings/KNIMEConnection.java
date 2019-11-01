@@ -51,6 +51,8 @@ package org.knime.filehandling.core.defaultnodesettings;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Class encapsulating the different types of KNIME file system connections.
  *
@@ -172,9 +174,10 @@ public class KNIMEConnection {
      * @return a KNIMEConnection instance
      */
     public static final synchronized KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
-        if (!CONNECTIONS.containsKey(mountId)) {
+        if (mountId != null && !CONNECTIONS.containsKey(mountId)) {
             CONNECTIONS.put(mountId,
-                new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE, String.format("Mountpoint (%s)", mountId), mountId));
+                new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
+                    String.format("%s", StringUtils.abbreviate(mountId, 30)), mountId));
         }
 
         return CONNECTIONS.get(mountId);
