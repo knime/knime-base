@@ -609,6 +609,11 @@ final class SendMailConfiguration {
                 break;
             default:
         }
+
+        // Make sure TLS is used. Available protocols can be obtained via:
+        // SSLContext.getDefault().getSupportedSSLParameters().getProtocols()
+        properties.setProperty("mail.smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
+
         properties.setProperty("mail." + protocol + ".host", getSmtpHost());
         properties.setProperty("mail." + protocol + ".port", Integer.toString(getSmtpPort()));
         properties.setProperty("mail." + protocol + ".auth", Boolean.toString(isUseAuthentication()));
