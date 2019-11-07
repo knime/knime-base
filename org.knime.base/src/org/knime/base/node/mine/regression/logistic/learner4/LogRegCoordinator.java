@@ -88,7 +88,8 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.data.vector.bytevector.ByteVectorValue;
 import org.knime.core.node.BufferedDataTable;
@@ -111,7 +112,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  *
  * @author Adrian Nembach, KNIME.com
  */
-class LogRegCoordinator {
+final class LogRegCoordinator {
 
     private final LogRegLearnerSettings m_settings;
     private String m_warning;
@@ -204,7 +205,7 @@ class LogRegCoordinator {
 
     private TrainingRowBuilder<ClassificationTrainingRow> createRowBuilder(final BufferedDataTable dataTable)
             throws InvalidSettingsException {
-        if (m_targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
+        if (m_targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
             return new SparseProbabilisticTrainingRowBuilder(dataTable, m_pmmlOutSpec,
                 m_settings.getTargetReferenceCategory(), m_settings.getSortTargetCategories(),
                 m_settings.getSortIncludesCategories(), m_targetSpec);
@@ -273,7 +274,7 @@ class LogRegCoordinator {
                 String colName = colSpec.getName();
                 inputCols.remove(colName);
                 final DataType type = colSpec.getType();
-                if (type.isCompatible(NominalValue.class) || type.isCompatible(ProbabilityDistributionValue.class)) {
+                if (type.isCompatible(NominalValue.class) || type.isCompatible(NominalDistributionValue.class)) {
                     m_settings.setTargetColumn(colName);
                 }
             }
@@ -292,7 +293,7 @@ class LogRegCoordinator {
             String colName = colSpec.getName();
             final DataType type = colSpec.getType();
             if (m_settings.getTargetColumn().equals(colName)) {
-                if (type.isCompatible(NominalValue.class) || type.isCompatible(ProbabilityDistributionValue.class)) {
+                if (type.isCompatible(NominalValue.class) || type.isCompatible(NominalDistributionValue.class)) {
                     targetColSpec = colSpec;
                 } else {
                     throw new InvalidSettingsException("Type of column \"" + colName + "\" is not nominal.");
@@ -356,7 +357,7 @@ class LogRegCoordinator {
         final DataType type = targetColSpec.getType();
         if (type.isCompatible(NominalValue.class)) {
             return targetColSpec;
-        } else if (type.isCompatible(ProbabilityDistributionValue.class)) {
+        } else if (type.isCompatible(NominalDistributionValue.class)) {
             return convertProbDistrSpecToStringSpec(targetColSpec);
         } else {
             throw new IllegalStateException("Unsupported target type " + type);
@@ -365,8 +366,9 @@ class LogRegCoordinator {
 
     private static DataColumnSpec convertProbDistrSpecToStringSpec(final DataColumnSpec targetColSpec) {
         final DataColumnSpecCreator creator = new DataColumnSpecCreator(targetColSpec.getName(), StringCell.TYPE);
-        final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator(targetColSpec.getElementNames()
-            .stream().map(StringCell::new).collect(Collectors.toCollection(LinkedHashSet::new)));
+        final Set<String> values = NominalDistributionValueMetaData.extractFromSpec(targetColSpec).getValues();
+        final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator(
+            values.stream().map(StringCell::new).collect(Collectors.toCollection(LinkedHashSet::new)));
         creator.setDomain(domainCreator.createDomain());
         return creator.createSpec();
     }
@@ -524,7 +526,7 @@ class LogRegCoordinator {
                 "Target column '%s' has too many"
                         + " unique values - consider to use domain calucator node before to enforce calculation",
                         targetSpec.getName());
-        } else if (targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
+        } else if (targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
             // nothing to check
         } else {
             throw new IllegalStateException("Unknown target type " + targetSpec.getType());

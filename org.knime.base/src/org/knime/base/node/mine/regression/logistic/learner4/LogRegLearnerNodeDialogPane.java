@@ -57,7 +57,6 @@ import java.awt.event.ItemListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -83,7 +82,8 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -154,8 +154,7 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
         super();
         // instantiate members
         final ColumnSelectionPanel columnSelectionPanel =
-            new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), NominalValue.class,
-                ProbabilityDistributionValue.class);
+            new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), NominalValue.class, NominalDistributionValue.class);
         m_selectionPanel = columnSelectionPanel;
 
         m_targetReferenceCategory = new JComboBox<>();
@@ -434,7 +433,7 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
         return panel;
     }
 
-    private GridBagConstraints makeSettingsConstraints() {
+    private static GridBagConstraints makeSettingsConstraints() {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.NONE;
         c.weightx = 0;
@@ -585,10 +584,9 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
     }
 
     private static Collection<DataCell> getValues(final DataColumnSpec targetSpec) {
-        if (targetSpec.getType().isCompatible(ProbabilityDistributionValue.class)) {
-            final List<String> elementNames = targetSpec.getElementNames();
-            return elementNames.isEmpty() ? Collections.emptyList()
-                : elementNames.stream().map(StringCell::new).collect(Collectors.toList());
+        if (targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
+            return NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues().stream()
+                .map(StringCell::new).collect(Collectors.toList());
         } else {
             final DataColumnDomain domain = targetSpec.getDomain();
             return domain.hasValues() ? domain.getValues() : Collections.emptyList();

@@ -48,30 +48,29 @@
  */
 package org.knime.base.node.mine.regression.logistic.learner4.data;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 
 /**
+ * Instances of this class can be used to create SparseProbabilisticClassificationTrainingRows
+ * from a {@link BufferedDataTable}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class SparseProbabilisticTrainingRowBuilder
-    extends AbstractSparseClassificationTrainingRowBuilder<ProbabilityDistributionValue> {
+    extends AbstractSparseClassificationTrainingRowBuilder<NominalDistributionValue> {
 
-    /**
-     * The user has the option to sort the classes and select the reference class which is always put last. Therefore
-     * the class order in the target column might not match the order during training and we need to provide a mapping.
-     */
-    private final int[] m_classIdxMapping;
+    private final String[] m_classes;
 
     /**
      * @param data
@@ -85,12 +84,9 @@ public final class SparseProbabilisticTrainingRowBuilder
     public SparseProbabilisticTrainingRowBuilder(final BufferedDataTable data, final PMMLPortObjectSpec pmmlSpec,
         final DataCell targetReferenceCategory, final boolean sortTargetCategories, final boolean sortFactorsCategories,
         final DataColumnSpec targetSpec) throws InvalidSettingsException {
-        super(data, pmmlSpec, sortFactorsCategories, ProbabilityDistributionValue.class);
-        final List<String> elementNames = targetSpec.getElementNames();
-        CheckUtils.checkArgument(elementNames != null && !elementNames.isEmpty(),
-            "A probability distribution column must always specify its classes.");
-        @SuppressWarnings("null") // explicitly checked above
-        Stream<DataCell> valueStream = elementNames.stream().map(StringCell::new);
+        super(data, pmmlSpec, sortFactorsCategories, NominalDistributionValue.class);
+        Collection<String> values = NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues();
+        Stream<DataCell> valueStream = values.stream().map(StringCell::new);
         if (sortTargetCategories) {
             valueStream = valueStream.sorted(StringCell.TYPE.getComparator());
         }
@@ -99,9 +95,8 @@ public final class SparseProbabilisticTrainingRowBuilder
             valueStream = Stream.concat(valueStream.filter(c -> !c.equals(targetReferenceCategory)),
                 Stream.of(targetReferenceCategory));
         }
-        m_classIdxMapping =
-            valueStream.map(c -> ((StringCell)c).getStringValue()).mapToInt(elementNames::indexOf).toArray();
-        CheckUtils.checkSetting(m_classIdxMapping.length == elementNames.size(),
+        m_classes = valueStream.map(DataCell::toString).toArray(String[]::new);
+        CheckUtils.checkSetting(m_classes.length == values.size(),
             "The target reference category (\"%s\") is not found in the target column", targetReferenceCategory);
     }
 
@@ -110,7 +105,7 @@ public final class SparseProbabilisticTrainingRowBuilder
      */
     @Override
     public int getTargetDimension() {
-        return m_classIdxMapping.length - 1;
+        return m_classes.length - 1;
     }
 
     /**
@@ -118,11 +113,20 @@ public final class SparseProbabilisticTrainingRowBuilder
      */
     @Override
     protected ClassificationTrainingRow create(final float[] values, final int[] nonZeroFeatures, final int id,
-        final ProbabilityDistributionValue targetValue) {
-        CheckUtils.checkArgument(targetValue.size() == m_classIdxMapping.length,
-            "Probability distribution with more than the expected number of classes encountered.");
-        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, targetValue,
-            m_classIdxMapping);
+        final NominalDistributionValue targetValue) {
+        final double[] classProbabilities = new double[m_classes.length];
+        int maxIdx = 0;
+        double max = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < classProbabilities.length; i++) {
+            final double p = targetValue.getProbability(m_classes[i]);
+            classProbabilities[i] = p;
+            if (p > max) {
+                max = p;
+                maxIdx = i;
+            }
+        }
+        return new SparseProbabilisticClassificationTrainingRow(values, nonZeroFeatures, id, maxIdx,
+            classProbabilities);
     }
 
 }
