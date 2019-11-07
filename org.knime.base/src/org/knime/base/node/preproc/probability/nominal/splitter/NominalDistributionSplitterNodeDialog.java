@@ -46,10 +46,10 @@
  * History
  *   Sep 5, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.splitter;
+package org.knime.base.node.preproc.probability.nominal.splitter;
 
-import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.base.node.preproc.probability.nominal.ExceptionHandling;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
@@ -61,22 +61,22 @@ import org.knime.core.node.defaultnodesettings.DialogComponentString;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionSplitterNodeDialog extends DefaultNodeSettingsPane {
+final class NominalDistributionSplitterNodeDialog extends DefaultNodeSettingsPane {
 
     @SuppressWarnings("unchecked")
-    public ProbabilityDistributionSplitterNodeDialog() {
+    public NominalDistributionSplitterNodeDialog() {
         addDialogComponent(new DialogComponentColumnNameSelection(
-            ProbabilityDistributionSplitterNodeModel.createColumnSelectionModel(), "Probability distribution column", 0,
-            true, ProbabilityDistributionValue.class));
+            NominalDistributionSplitterNodeModel.createColumnSelectionModel(), "Probability distribution column", 0,
+            true, NominalDistributionValue.class));
 
         addDialogComponent(new DialogComponentBoolean(
-            ProbabilityDistributionSplitterNodeModel.createRemoveSelectedColBooleanModel(), "Remove selected column"));
+            NominalDistributionSplitterNodeModel.createRemoveSelectedColBooleanModel(), "Remove selected column"));
 
-        addDialogComponent(new DialogComponentString(ProbabilityDistributionSplitterNodeModel.createSuffixModel(),
+        addDialogComponent(new DialogComponentString(NominalDistributionSplitterNodeModel.createSuffixModel(),
             "Suffix for probability columns"));
         createNewGroup("Missing Value Handling");
         addDialogComponent(
-            new DialogComponentButtonGroup(ProbabilityDistributionSplitterNodeModel.createMissingValueHandlingModel(),
+            new DialogComponentButtonGroup(NominalDistributionSplitterNodeModel.createMissingValueHandlingModel(),
                 null, true, ExceptionHandling.values()));
     }
 

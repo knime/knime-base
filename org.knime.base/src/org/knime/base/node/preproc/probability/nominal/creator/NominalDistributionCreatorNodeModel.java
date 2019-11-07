@@ -46,15 +46,15 @@
  * History
  *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.creator;
+package org.knime.base.node.preproc.probability.nominal.creator;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.IOException;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
+import org.knime.base.node.preproc.probability.nominal.ExceptionHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -65,16 +65,30 @@ import org.knime.core.data.MissingCell;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.data.probability.ProbabilityDistributionCellFactory;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.data.probability.nominal.NominalDistributionCell;
+import org.knime.core.data.probability.nominal.NominalDistributionCellFactory;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.StreamableFunction;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
 
@@ -83,7 +97,13 @@ import org.knime.core.util.UniqueNameGenerator;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunctionNodeModel {
+final class NominalDistributionCreatorNodeModel extends NodeModel {
+
+    /**
+     */
+    protected NominalDistributionCreatorNodeModel() {
+        super(1, 1);
+    }
 
     private final SettingsModelString m_columnNameModel = createColumnNameModel();
 
@@ -147,7 +167,57 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
      * {@inheritDoc}
      */
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+        return new DataTableSpec[]{createColumnRearranger(inSpecs[0], null).createSpec()};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        final BufferedDataTable data = inData[0];
+        final ColumnRearranger cr = createColumnRearranger(data.getDataTableSpec(), exec);
+        return new BufferedDataTable[]{exec.createColumnRearrangeTable(data, cr, exec)};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new StreamableOperator() {
+
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
+                final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[0], exec);
+                final StreamableFunction func = columnRearranger.createStreamableFunction(0, 0);
+                func.runFinal(inputs, outputs, exec);
+            }
+        };
+    }
+
+    private ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ExecutionContext exec)
+        throws InvalidSettingsException {
         ColumnRearranger columnRearranger = new ColumnRearranger(spec);
         // check input and create variables used by the cell factory
         CheckUtils.checkSetting(!m_columnNameModel.getStringValue().trim().isEmpty(),
@@ -157,8 +227,8 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
             columnRearranger.remove(colIndices);
         }
         final DataColumnSpecCreator colSpecCreator = new UniqueNameGenerator(columnRearranger.createSpec())
-            .newCreator(m_columnNameModel.getStringValue(), ProbabilityDistributionCellFactory.TYPE);
-        columnRearranger.append(getCellFactory(spec, colSpecCreator, colIndices));
+            .newCreator(m_columnNameModel.getStringValue(), NominalDistributionCellFactory.TYPE);
+        columnRearranger.append(getCellFactory(spec, colSpecCreator, colIndices, exec));
         return columnRearranger;
     }
 
@@ -181,29 +251,29 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
     }
 
     private SingleCellFactory getCellFactory(final DataTableSpec spec, final DataColumnSpecCreator colSpecCreator,
-        final int[] colIndices) throws InvalidSettingsException {
+        final int[] colIndices, final ExecutionContext exec) throws InvalidSettingsException {
         final MissingValueHandling missingValueHandling = getMissingValueHandling();
         if (isStringColumn()) {
-            return getStringCellFactory(spec, colSpecCreator, colIndices[0], missingValueHandling);
+            return getStringCellFactory(spec, colSpecCreator, colIndices[0], missingValueHandling, exec);
         } else {
-            return getNumericCellFactory(spec, colSpecCreator, colIndices, missingValueHandling);
+            return getNumericCellFactory(spec, colSpecCreator, colIndices, missingValueHandling, exec);
         }
     }
 
     private ProbDistributionStringCellFactory getStringCellFactory(final DataTableSpec spec,
         final DataColumnSpecCreator colSpecCreator, final int colIndices,
-        final MissingValueHandling missingValueHandling) throws InvalidSettingsException {
+        final MissingValueHandling missingValueHandling, final ExecutionContext exec) throws InvalidSettingsException {
         CheckUtils.checkSetting(m_stringFilterModel.getStringValue() != null, "At least one column must be selected.");
         DataColumnSpec chosenColumn = spec.getColumnSpec(m_stringFilterModel.getStringValue());
         final String[] possibleValues = getPossibleValues(chosenColumn);
-        colSpecCreator.setElementNames(possibleValues);
-        return new ProbDistributionStringCellFactory(colSpecCreator.createSpec(), possibleValues, colIndices,
-            missingValueHandling);
+        colSpecCreator.addMetaData(new NominalDistributionValueMetaData(possibleValues), false);
+        return new ProbDistributionStringCellFactory(colSpecCreator.createSpec(), colIndices, missingValueHandling,
+            exec);
     }
 
     private ProbDistributionCellFactory getNumericCellFactory(final DataTableSpec spec,
         final DataColumnSpecCreator colSpecCreator, final int[] colIndices,
-        final MissingValueHandling missingValueHandling) throws InvalidSettingsException {
+        final MissingValueHandling missingValueHandling, final ExecutionContext exec) throws InvalidSettingsException {
         final ExceptionHandling invalidDistributionHandling = getExceptionHandling();
         CheckUtils.checkSetting(colIndices.length > 0, "At least one column must be selected.");
         CheckUtils.checkSetting(m_precisionModel.getIntValue() > 0, "The number of decimal digits must be > 0.");
@@ -211,9 +281,9 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
             m_allowUnpreciseProbabilities.getBooleanValue() ? Math.pow(10, -m_precisionModel.getIntValue()) : 0;
         CheckUtils.checkSetting(epsilon >= 0, "Epsilon must not be negative.");
         final String[] includes = m_columnFilterModel.applyTo(spec).getIncludes();
-        colSpecCreator.setElementNames(includes);
+        colSpecCreator.addMetaData(new NominalDistributionValueMetaData(includes), false);
         return new ProbDistributionCellFactory(colSpecCreator.createSpec(), epsilon, invalidDistributionHandling,
-            colIndices, missingValueHandling);
+            colIndices, missingValueHandling, exec);
     }
 
     private static String[] getPossibleValues(final DataColumnSpec chosenColumn) throws InvalidSettingsException {
@@ -300,33 +370,82 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
     }
 
     /**
-     * Appends a probability distribution for a string column.
-     *
-     * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
+     * {@inheritDoc}
      */
-    private final class ProbDistributionStringCellFactory extends SingleCellFactory {
+    @Override
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        // no op
+    }
 
-        private final List<StringCell> m_possibleValues;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        // no op
+    }
 
-        private final int m_columnIndex;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void reset() {
+        // no op
+    }
 
-        private final MissingValueHandling m_missingHandling;
+    private static String[] getValues(final DataColumnSpec spec) {
+        final NominalDistributionValueMetaData metaData = NominalDistributionValueMetaData.extractFromSpec(spec);
+        return metaData.getValues().toArray(new String[0]);
+    }
+
+    /**
+     * Abstract implementation of a cell factory that appends a {@link NominalDistributionCell} column to a table.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    private abstract class AbstractProbDistributionCellFactory extends SingleCellFactory {
 
         private boolean m_hasWarning = false;
 
-        private ProbDistributionStringCellFactory(final DataColumnSpec newColSpec, final String[] possibleValues,
-            final int columnIndex, final MissingValueHandling missingHandling) {
+        protected final MissingValueHandling m_missingHandling;
+
+        protected final NominalDistributionCellFactory m_factory;
+
+        protected AbstractProbDistributionCellFactory(final DataColumnSpec newColSpec,
+            final MissingValueHandling missingHandling, final ExecutionContext exec) {
             super(newColSpec);
-            m_possibleValues = Arrays.stream(possibleValues).map(StringCell::new).collect(Collectors.toList());
-            m_columnIndex = columnIndex;
             m_missingHandling = missingHandling;
+            if (exec != null) {
+                m_factory = new NominalDistributionCellFactory(FileStoreFactory.createFileStoreFactory(exec),
+                    getValues(newColSpec));
+            } else {
+                m_factory = null;
+            }
         }
 
-        private void setWarningIfNotSet(final String message) {
+        protected void setWarningIfNotSet(final String message) {
             if (!m_hasWarning) {
                 setWarningMessage(message);
                 m_hasWarning = true;
             }
+        }
+    }
+
+    /**
+     * Appends a probability distribution for a string column.
+     *
+     * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
+     */
+    private final class ProbDistributionStringCellFactory extends AbstractProbDistributionCellFactory {
+
+        private final int m_columnIndex;
+
+        private ProbDistributionStringCellFactory(final DataColumnSpec newColSpec, final int columnIndex,
+            final MissingValueHandling missingHandling, final ExecutionContext exec) {
+            super(newColSpec, missingHandling, exec);
+            m_columnIndex = columnIndex;
         }
 
         /**
@@ -334,6 +453,7 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
          */
         @Override
         public DataCell getCell(final DataRow row) {
+            assert m_factory != null : "The cell factory may only be null during the configuration phase.";
             DataCell stringCell = row.getCell(m_columnIndex);
             if (stringCell.isMissing()) {
                 switch (m_missingHandling) {
@@ -347,13 +467,7 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
                         return new MissingCell("Input row contains missing values.");
                 }
             }
-            String dataCellString = stringCell.toString();
-            if (dataCellString.isEmpty() || dataCellString.trim().length() == 0) {
-                throw new IllegalArgumentException(
-                    "The row '" + row.getKey().toString() + "' contains an empty string.");
-            }
-            double[] values = m_possibleValues.stream().mapToDouble(s -> s.equals(stringCell) ? 1.0 : 0.0).toArray();
-            return ProbabilityDistributionCellFactory.createCell(values);
+            return m_factory.createCell(stringCell.toString());
         }
     }
 
@@ -362,7 +476,7 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    private final class ProbDistributionCellFactory extends SingleCellFactory {
+    private final class ProbDistributionCellFactory extends AbstractProbDistributionCellFactory {
 
         private final double m_epsilon;
 
@@ -370,31 +484,20 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
 
         private final int[] m_colIndices;
 
-        private final MissingValueHandling m_missingHandling;
-
-        boolean m_hasWarning = false;
-
         boolean m_hasInvalidDistribution = false;
 
         private ProbDistributionCellFactory(final DataColumnSpec newColSpec, final double epsilon,
             final ExceptionHandling invalidDistributionHandling, final int[] colIndices,
-            final MissingValueHandling missingValueHandling) {
-            super(newColSpec);
+            final MissingValueHandling missingValueHandling, final ExecutionContext exec) {
+            super(newColSpec, missingValueHandling, exec);
             m_epsilon = epsilon;
             m_invalidHandling = invalidDistributionHandling;
             m_colIndices = colIndices;
-            m_missingHandling = missingValueHandling;
-        }
-
-        private void setWarningIfNotSet(final String message) {
-            if (!m_hasWarning) {
-                setWarningMessage(message);
-                m_hasWarning = true;
-            }
         }
 
         @Override
         public DataCell getCell(final DataRow row) {
+            assert m_factory != null : "The cell factory may only be null during the configuration phase.";
             double[] values = new double[m_colIndices.length];
             int i = 0;
             for (final int idx : m_colIndices) {
@@ -419,7 +522,7 @@ final class ProbabilityDistributionCreatorNodeModel extends SimpleStreamableFunc
                 values[i++] = ((DoubleValue)cell).getDoubleValue();
             }
             try {
-                return ProbabilityDistributionCellFactory.createCell(values, m_epsilon);
+                return m_factory.createCell(values, m_epsilon);
             } catch (IllegalArgumentException e) {
                 if (m_invalidHandling == ExceptionHandling.FAIL) {
                     throw new IllegalArgumentException(

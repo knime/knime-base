@@ -46,11 +46,12 @@
  * History
  *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.splitter;
+package org.knime.base.node.preproc.probability.nominal.splitter;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
 
-import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
+import org.knime.base.node.preproc.probability.nominal.ExceptionHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -59,7 +60,8 @@ import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.probability.ProbabilityDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -74,7 +76,7 @@ import org.knime.core.util.UniqueNameGenerator;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFunctionNodeModel {
+final class NominalDistributionSplitterNodeModel extends SimpleStreamableFunctionNodeModel {
 
     private final SettingsModelString m_columnSelectionModel = createColumnSelectionModel();
 
@@ -110,7 +112,7 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
         CheckUtils.checkSetting(columnIndex >= 0, "The selected column '%s' is not in the input.",
             m_columnSelectionModel.getStringValue());
         final DataColumnSpec colSpec = spec.getColumnSpec(columnIndex);
-        CheckUtils.checkSetting(colSpec.getType().isCompatible(ProbabilityDistributionValue.class),
+        CheckUtils.checkSetting(colSpec.getType().isCompatible(NominalDistributionValue.class),
             "The selected column '%s' must be a probability distribution column.",
             m_columnSelectionModel.getStringValue());
 
@@ -123,20 +125,16 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
 
         // create column rearranger
         final ColumnRearranger columnRearranger = new ColumnRearranger(spec);
-        final List<String> elementNames = colSpec.getElementNames();
-        final int numberClasses = elementNames.size();
+        final Set<String> values = NominalDistributionValueMetaData.extractFromSpec(colSpec).getValues();
         final UniqueNameGenerator uniqueNameGenerator = new UniqueNameGenerator(spec);
-        final DataColumnSpec[] newSpecs = new DataColumnSpec[numberClasses];
         final String suffix = m_suffixModel.getStringValue();
-        for (int i = 0; i < newSpecs.length; i++) {
-            newSpecs[i] = uniqueNameGenerator.newColumn(elementNames.get(i) + suffix, DoubleCell.TYPE);
-        }
-
+        final DataColumnSpec[] newSpecs = values.stream()
+            .map(n -> uniqueNameGenerator.newColumn(n + suffix, DoubleCell.TYPE)).toArray(DataColumnSpec[]::new);
         if (m_removeSelectedColModel.getBooleanValue()) {
             columnRearranger.remove(columnIndex);
         }
         columnRearranger
-            .append(new SplitProbDistributionCellFactory(newSpecs, missingValueHandling, columnIndex, numberClasses));
+            .append(new SplitProbDistributionCellFactory(newSpecs, missingValueHandling, columnIndex, values));
         return columnRearranger;
     }
 
@@ -184,16 +182,21 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
 
         private final int m_columnIndex;
 
-        private final int m_numberClasses;
+        private final Set<String> m_values;
 
         boolean m_hasWarning = false;
 
+        private final DataCell[] m_missing;
+
         private SplitProbDistributionCellFactory(final DataColumnSpec[] colSpecs,
-            final ExceptionHandling missingValueHandling, final int columnIndex, final int numberClasses) {
+            final ExceptionHandling missingValueHandling, final int columnIndex, final Set<String> values) {
             super(colSpecs);
             m_missingHandling = missingValueHandling;
             m_columnIndex = columnIndex;
-            m_numberClasses = numberClasses;
+            m_values = values;
+            final DataCell missingCell = new MissingCell("Input row contains a missing value.");
+            m_missing = new DataCell[values.size()];
+            Arrays.fill(m_missing, missingCell);
         }
 
         private void setWarningIfNotSet(final String message) {
@@ -212,22 +215,11 @@ final class ProbabilityDistributionSplitterNodeModel extends SimpleStreamableFun
                         "The row '" + row.getKey().getString() + "' contains a missing value.");
                 }
                 setWarningIfNotSet("At least one row contains a missing value. Missing values will be in the output.");
-                final DataCell[] newCells = new DataCell[m_numberClasses];
-                for (int i = 0; i < newCells.length; i++) {
-                    newCells[i] = new MissingCell("Input row contains a missing value.");
-                }
-                return newCells;
+                return m_missing.clone();
             }
-            final ProbabilityDistributionValue probDistrValue = (ProbabilityDistributionValue)cell;
-            CheckUtils.checkState(probDistrValue.size() == m_numberClasses,
-                "Error in row '%s': The number of classes (%d) is not equal the number of probabilities (%d). This "
-                    + "is most likely an implementation error in one of the previous nodes.",
-                row.getKey().getString(), m_numberClasses, probDistrValue.size());
-            final DataCell[] newCells = new DataCell[m_numberClasses];
-            for (int i = 0; i < newCells.length; i++) {
-                newCells[i] = new DoubleCell(probDistrValue.getProbability(i));
-            }
-            return newCells;
+            final NominalDistributionValue probDistrValue = (NominalDistributionValue)cell;
+            return m_values.stream().mapToDouble(probDistrValue::getProbability).mapToObj(DoubleCell::new)
+                .toArray(DoubleCell[]::new);
         }
     }
 

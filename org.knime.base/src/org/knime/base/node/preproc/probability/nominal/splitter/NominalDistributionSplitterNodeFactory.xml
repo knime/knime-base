@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Manipulator" icon="./probability_distribution_splitter.png">
-	<name>Probability Distribution Splitter</name>
-	<shortDescription>Splits a Probability Distribution Cell into Double
-		cells containing the single probabilities.</shortDescription>
+	<name>Nominal Probability Distribution Splitter</name>
+	<shortDescription>Splits a Nominal Probability Distribution Cell into Double
+		cells containing the individual probabilities.</shortDescription>
 	<fullDescription>
 		<intro>
-			Splits a column containing a probability distribution into many
-			columns containing its single probabilities.
+			Splits a column containing a nominal probability distribution into many
+			columns containing its individual probabilities.
 		</intro>
 		<tab name="Options">
-			<option name="Probability distribution column">Select the column containing the probability
+			<option name="Probability distribution column">Select the column containing the nominal probability
 				distribution.
 			</option>
 			<option name="Remove selected column">If selected, the selected column will be removed
@@ -33,10 +33,10 @@
 	<ports>
 		<inPort name="Probability Distribution" index="0">Data with a
 			column
-			containing a probability distribution.
+			containing a nominal probability distribution.
 		</inPort>
 		<outPort index="0" name="Input Data with Probabilities">Input data with appended columns that
-			contain the single probabilities of the probability distribution.
+			contain the individual probabilities of the nominal probability distribution.
 		</outPort>
 	</ports>
 </knimeNode>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Manipulator" icon="./probability_distribution_creator.png">
-	<name>Probability Distribution Creator</name>
-	<shortDescription>Creates a Probability Distribution cell out of
+	<name>Nominal Probability Distribution Creator</name>
+	<shortDescription>Creates a Nominal Probability Distribution cell out of
 		numeric cells.</shortDescription>
 	<fullDescription>
 		<intro>
@@ -97,9 +97,8 @@
 			or a column containing string values.
 		</inPort>
 		<outPort index="0"
-			name="Input Data with Probability Distribution">Input data with an appended column that contains the
-			probability
-			distribution.
+			name="Input Data with Nominal Probability Distribution">Input data with an appended column that contains the
+			nominal probability distribution.
 		</outPort>
 	</ports>
 </knimeNode>

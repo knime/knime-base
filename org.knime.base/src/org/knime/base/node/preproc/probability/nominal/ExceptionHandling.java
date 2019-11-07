@@ -44,44 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 23, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.creator;
+package org.knime.base.node.preproc.probability.nominal;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 
 /**
- * Node factory of the node that creates probability distributions of probability values.
+ * Enumeration of strategies how to handle exceptions during the creation or splitting of probability distribution
+ * columns.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ProbabilityDistributionCreatorNodeFactory
-    extends NodeFactory<ProbabilityDistributionCreatorNodeModel> {
+public enum ExceptionHandling implements ButtonGroupEnumInterface {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ProbabilityDistributionCreatorNodeModel createNodeModel() {
-        return new ProbabilityDistributionCreatorNodeModel();
+        /** Fail if an exception occurs. */
+        FAIL("Fail"),
+        /**
+         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
+         * model building.
+         */
+        IGNORE("Ignore");
+
+    private final String m_text;
+
+    private ExceptionHandling(final String text) {
+        m_text = text;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected int getNrNodeViews() {
-        return 0;
+    public String getText() {
+        return m_text;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ProbabilityDistributionCreatorNodeModel> createNodeView(final int viewIndex,
-        final ProbabilityDistributionCreatorNodeModel nodeModel) {
+    public String getActionCommand() {
+        return name();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getToolTip() {
         return null;
     }
 
@@ -89,16 +100,8 @@ public final class ProbabilityDistributionCreatorNodeFactory
      * {@inheritDoc}
      */
     @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ProbabilityDistributionCreatorNodeDialog();
+    public boolean isDefault() {
+        return this == FAIL;
     }
 
 }

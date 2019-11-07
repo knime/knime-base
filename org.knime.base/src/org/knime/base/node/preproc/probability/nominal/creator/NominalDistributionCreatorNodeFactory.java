@@ -44,55 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 23, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution;
+package org.knime.base.node.preproc.probability.nominal.creator;
 
-import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Enumeration of strategies how to handle exceptions during the creation or splitting of probability distribution
- * columns.
+ * Node factory of the node that creates probability distributions of probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public enum ExceptionHandling implements ButtonGroupEnumInterface {
+public final class NominalDistributionCreatorNodeFactory
+    extends NodeFactory<NominalDistributionCreatorNodeModel> {
 
-        /** Fail if an exception occurs. */
-        FAIL("Fail"),
-        /**
-         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
-         * model building.
-         */
-        IGNORE("Ignore");
-
-    private final String m_text;
-
-    private ExceptionHandling(final String text) {
-        m_text = text;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NominalDistributionCreatorNodeModel createNodeModel() {
+        return new NominalDistributionCreatorNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getText() {
-        return m_text;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getActionCommand() {
-        return name();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getToolTip() {
+    public NodeView<NominalDistributionCreatorNodeModel> createNodeView(final int viewIndex,
+        final NominalDistributionCreatorNodeModel nodeModel) {
         return null;
     }
 
@@ -100,8 +89,16 @@ public enum ExceptionHandling implements ButtonGroupEnumInterface {
      * {@inheritDoc}
      */
     @Override
-    public boolean isDefault() {
-        return this == FAIL;
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new NominalDistributionCreatorNodeDialog();
     }
 
 }

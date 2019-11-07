@@ -44,57 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 6, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 28, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.creator;
+package org.knime.base.node.preproc.probability.nominal.splitter;
 
-import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Enumeration of strategies how to handle missing values.
+ * Node factory of the node that splits probability distributions into probability values.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-enum MissingValueHandling implements ButtonGroupEnumInterface {
-        /** Fail if an exception occurs. */
-        FAIL("Fail"),
-        /**
-         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
-         * model building.
-         */
-        IGNORE("Ignore"),
-        /**
-         * Don't fail and treat the missing value as 0.
-         */
-        ZERO("Treat as zero");
+public final class NominalDistributionSplitterNodeFactory
+    extends NodeFactory<NominalDistributionSplitterNodeModel> {
 
-    private final String m_text;
-
-    private MissingValueHandling(final String text) {
-        m_text = text;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NominalDistributionSplitterNodeModel createNodeModel() {
+        return new NominalDistributionSplitterNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getText() {
-        return m_text;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getActionCommand() {
-        return name();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getToolTip() {
+    public NodeView<NominalDistributionSplitterNodeModel> createNodeView(final int viewIndex,
+        final NominalDistributionSplitterNodeModel nodeModel) {
         return null;
     }
 
@@ -102,8 +89,16 @@ enum MissingValueHandling implements ButtonGroupEnumInterface {
      * {@inheritDoc}
      */
     @Override
-    public boolean isDefault() {
-        return this == FAIL;
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new NominalDistributionSplitterNodeDialog();
     }
 
 }

@@ -46,7 +46,7 @@
  * History
  *   Sep 30, 2019 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.creator;
+package org.knime.base.node.preproc.probability.nominal.creator;
 
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 

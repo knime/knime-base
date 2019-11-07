@@ -46,7 +46,7 @@
  * History
  *   Aug 29, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.probdistribution.creator;
+package org.knime.base.node.preproc.probability.nominal.creator;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -57,7 +57,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JPanel;
 
-import org.knime.base.node.preproc.probdistribution.ExceptionHandling;
+import org.knime.base.node.preproc.probability.nominal.ExceptionHandling;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -77,47 +77,47 @@ import org.knime.core.node.defaultnodesettings.DialogComponentString;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class ProbabilityDistributionCreatorNodeDialog extends NodeDialogPane {
+final class NominalDistributionCreatorNodeDialog extends NodeDialogPane {
 
     //Button Group for picking between numeric and string column
     private final DialogComponentButtonGroup m_columnType = new DialogComponentButtonGroup(
-        ProbabilityDistributionCreatorNodeModel.createColumnTypeModel(), null, true, ColumnType.values());
+        NominalDistributionCreatorNodeModel.createColumnTypeModel(), null, true, ColumnType.values());
 
     //Numeric
     private final DialogComponentColumnFilter2 m_numericColumnFilter =
-        new DialogComponentColumnFilter2(ProbabilityDistributionCreatorNodeModel.createColumnFilterModel(), 0);
+        new DialogComponentColumnFilter2(NominalDistributionCreatorNodeModel.createColumnFilterModel(), 0);
 
     private final DialogComponentBoolean m_sumUpProbabilities =
-        new DialogComponentBoolean(ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel(),
+        new DialogComponentBoolean(NominalDistributionCreatorNodeModel.createPrecisionBooleanModel(),
             "Allow probabilities that sum up to 1 imprecisely");
 
     private final DialogComponentNumber m_precisionModel = new DialogComponentNumber(
-        ProbabilityDistributionCreatorNodeModel
-            .createPrecisionModel(ProbabilityDistributionCreatorNodeModel.createPrecisionBooleanModel()),
+        NominalDistributionCreatorNodeModel
+            .createPrecisionModel(NominalDistributionCreatorNodeModel.createPrecisionBooleanModel()),
         "Precision (number of decimal digits)", 1);
 
     private final DialogComponentButtonGroup m_invalidHandling =
-        new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createInvalidDistributionHandlingModel(),
+        new DialogComponentButtonGroup(NominalDistributionCreatorNodeModel.createInvalidDistributionHandlingModel(),
             null, true, ExceptionHandling.values());
 
     //Strings
     @SuppressWarnings("unchecked")
     private final DialogComponentColumnNameSelection m_stringColumnSelection =
-        new DialogComponentColumnNameSelection(ProbabilityDistributionCreatorNodeModel.createStringFilterModel(),
+        new DialogComponentColumnNameSelection(NominalDistributionCreatorNodeModel.createStringFilterModel(),
             "String column containing classes", 0, false, NominalValue.class);
 
     // General Options
     private final DialogComponentString m_outputName = new DialogComponentString(
-        ProbabilityDistributionCreatorNodeModel.createColumnNameModel(), "Output column name", true, 20);
+        NominalDistributionCreatorNodeModel.createColumnNameModel(), "Output column name", true, 20);
 
     private final DialogComponentBoolean m_includeColumns = new DialogComponentBoolean(
-        ProbabilityDistributionCreatorNodeModel.createRemoveIncludedColsBooleanModel(), "Remove included columns");
+        NominalDistributionCreatorNodeModel.createRemoveIncludedColsBooleanModel(), "Remove included columns");
 
     private final DialogComponentButtonGroup m_missingValueHandling =
-        new DialogComponentButtonGroup(ProbabilityDistributionCreatorNodeModel.createMissingValueHandlingModel(), null,
+        new DialogComponentButtonGroup(NominalDistributionCreatorNodeModel.createMissingValueHandlingModel(), null,
             true, MissingValueHandling.values());
 
-    public ProbabilityDistributionCreatorNodeDialog() {
+    public NominalDistributionCreatorNodeDialog() {
         super();
         m_columnType.getModel().addChangeListener(e -> updateColumnType());
         JPanel panel = new JPanel(new GridBagLayout());
