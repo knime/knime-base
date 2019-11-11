@@ -54,20 +54,21 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelLong;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-/** <code>NodeDialog</code> for the "TableRowToVariable" node.
- * Exports the first row of a table into variables.
+/**
+ * <code>NodeDialog</code> for the "TableRowToVariable" node. Exports the first row of a table into variables.
  *
  * @author Iris Adae, University of Konstanz, Germany
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- *
- * @since 2.9
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
+class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
 
     private SettingsModelString m_onMissing;
 
@@ -75,15 +76,20 @@ public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
 
     private SettingsModelInteger m_replaceInteger;
 
+    private SettingsModelLong m_replaceLong;
+
     private SettingsModelString m_replaceString;
 
-    /** New pane for configuring the TableToVariable2 node.
+    private SettingsModelString m_replaceBoolean;
+
+    /**
+     * New pane for configuring the TableToVariable2 node.
      */
-    public TableToVariable2NodeDialog() {
+    TableToVariable2NodeDialog() {
         // Missing Values
         m_onMissing = getOnMissing();
-        final DialogComponentButtonGroup missingGroup = new DialogComponentButtonGroup(
-            m_onMissing, false, " Missing Values ", MissingValuePolicy.getAllSettings());
+        final DialogComponentButtonGroup missingGroup =
+            new DialogComponentButtonGroup(m_onMissing, false, " Missing Values ", MissingValuePolicy.getAllSettings());
         missingGroup.setToolTipText("Applies to missing values and if the input table is empty");
         addDialogComponent(missingGroup);
         // Default Values
@@ -92,19 +98,18 @@ public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentNumber(m_replaceDouble, "Double: ", 0.1, 10));
         m_replaceInteger = getReplaceInteger(m_onMissing);
         addDialogComponent(new DialogComponentNumber(m_replaceInteger, "Integer: ", 1, 10));
+        m_replaceLong = getReplaceLong(m_onMissing);
+        addDialogComponent(new DialogComponentNumber(m_replaceLong, "Long: ", 1L, 10));
         m_replaceString = getReplaceString(m_onMissing);
         addDialogComponent(new DialogComponentString(m_replaceString, "String: ", true, 13));
+        m_replaceBoolean = getReplaceBoolean(m_onMissing);
+        addDialogComponent(new DialogComponentStringSelection(m_replaceBoolean, "Boolean: ", "false", "true"));
     }
 
-    /** @return the SM for failing on Missing Values in Cells.
-     */
     static final SettingsModelString getOnMissing() {
         return new SettingsModelString("CFG_FAILONMISS", MissingValuePolicy.DEFAULT.getName());
     }
 
-    /** @param policyModel The policy model.
-     * @return the SM for the new Double Value.
-     */
     static final SettingsModelDouble getReplaceDouble(final SettingsModelString policyModel) {
         final SettingsModelDouble model = new SettingsModelDouble("CFG_Double", 0);
         ChangeListener listener = new PolicyChangeListener(policyModel, model);
@@ -113,9 +118,6 @@ public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
         return model;
     }
 
-    /** @param policyModel The policy model.
-     * @return the SM for the new String value.
-     */
     static final SettingsModelString getReplaceString(final SettingsModelString policyModel) {
         SettingsModelString model = new SettingsModelString("CFG_String", "missing");
         ChangeListener listener = new PolicyChangeListener(policyModel, model);
@@ -124,12 +126,30 @@ public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
         return model;
     }
 
-    /** @param policyModel The policy model.
-     * @return the SM for the new integer value.
+    /**
+     * This method returns a SettingsModelString, since a SettingsModelBoolean / DialogComponentBoolean would be
+     * represented as a checkbox with the label placed behind. Not only does that look weird, it is also less intuitive
+     * to use and is not in line with the other options in the dialog, which have their label in the front.
      */
+    static final SettingsModelString getReplaceBoolean(final SettingsModelString policyModel) {
+        final SettingsModelString model = new SettingsModelString("CFG_Boolean", "false");
+        final ChangeListener listener = new PolicyChangeListener(policyModel, model);
+        policyModel.addChangeListener(listener);
+        listener.stateChanged(null);
+        return model;
+    }
+
     static final SettingsModelInteger getReplaceInteger(final SettingsModelString policyModel) {
         SettingsModelInteger model = new SettingsModelInteger("CFG_Integer", 0);
         ChangeListener listener = new PolicyChangeListener(policyModel, model);
+        policyModel.addChangeListener(listener);
+        listener.stateChanged(null);
+        return model;
+    }
+
+    static final SettingsModelLong getReplaceLong(final SettingsModelString policyModel) {
+        final SettingsModelLong model = new SettingsModelLong("CFG_Long", 0L);
+        final ChangeListener listener = new PolicyChangeListener(policyModel, model);
         policyModel.addChangeListener(listener);
         listener.stateChanged(null);
         return model;
@@ -141,18 +161,11 @@ public class TableToVariable2NodeDialog extends DefaultNodeSettingsPane {
 
         private SettingsModel m_model;
 
-        /**
-         * @param policyModel The policy model
-         * @param defaultValueModel The model that will be enabled if the policy "default" is enabled
-         */
-        public PolicyChangeListener(final SettingsModelString policyModel, final SettingsModel defaultValueModel) {
+        PolicyChangeListener(final SettingsModelString policyModel, final SettingsModel defaultValueModel) {
             m_policyModel = policyModel;
             m_model = defaultValueModel;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void stateChanged(final ChangeEvent arg0) {
             boolean isDefaultMissValue = MissingValuePolicy.DEFAULT.getName().equals(m_policyModel.getStringValue());

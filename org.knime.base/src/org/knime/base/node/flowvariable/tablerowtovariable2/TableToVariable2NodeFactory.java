@@ -51,41 +51,33 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
-
 /**
  * The node factory for the table row to variable node.
  *
  * @author Bernd Wiswedel, University of Konstanz
  */
-public class TableToVariable2NodeFactory
-    extends NodeFactory<TableToVariable2NodeModel> {
+public class TableToVariable2NodeFactory extends NodeFactory<TableToVariable2NodeModel> {
 
-    /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return new TableToVariable2NodeDialog();
     }
 
-    /** {@inheritDoc} */
     @Override
     public TableToVariable2NodeModel createNodeModel() {
         return new TableToVariable2NodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public NodeView<TableToVariable2NodeModel> createNodeView(
-            final int index, final TableToVariable2NodeModel model) {
+    public NodeView<TableToVariable2NodeModel> createNodeView(final int index, final TableToVariable2NodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
