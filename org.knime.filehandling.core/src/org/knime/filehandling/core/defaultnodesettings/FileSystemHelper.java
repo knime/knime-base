@@ -55,7 +55,9 @@ import java.nio.file.FileSystems;
 import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
 import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
  * Utility class to obtain a NIO {@link FileSystem}.
@@ -71,7 +73,6 @@ public class FileSystemHelper {
      * @param timeoutInMillis timeout in milliseconds for the custom URL file system
      * @return {@link FileSystem} to use
      * @throws IOException if custom URL is invalid
-     *
      */
     @SuppressWarnings("resource")
     public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
@@ -89,8 +90,10 @@ public class FileSystemHelper {
                     URI.create(settings.getPathOrURL()), null);
                 break;
             case KNIME_FS:
-                // FIXME: Return correct FileSystem
-                toReturn = FileSystems.getDefault();
+                String knimeFileSystemHost = settings.getKNIMEFileSystem();
+                Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
+                URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
+                toReturn = KNIMEFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
                 break;
             case CONNECTED_FS:
                 toReturn = fs
@@ -104,4 +107,5 @@ public class FileSystemHelper {
 
         return toReturn;
     }
+
 }

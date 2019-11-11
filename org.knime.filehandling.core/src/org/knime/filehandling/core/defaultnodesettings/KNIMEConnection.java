@@ -67,22 +67,37 @@ public class KNIMEConnection {
             /**
              * knime://knime.node/
              */
-            NODE_RELATIVE,
+            NODE_RELATIVE("knime://knime.node"),
 
             /**
              * knime://knime.workflow/
              */
-            WORKFLOW_RELATIVE,
+            WORKFLOW_RELATIVE("knime://knime.workflow"),
 
             /**
              * knime://knime.mountpoint/
              */
-            MOUNTPOINT_RELATIVE,
+            MOUNTPOINT_RELATIVE("knime://knime.mountpoint"),
 
             /**
              * knime://<mount-ID>>/
              */
-            MOUNTPOINT_ABSOLUTE;
+            MOUNTPOINT_ABSOLUTE("knime://www.example.com");
+
+        private final String m_schemeAndHost;
+
+        private Type(final String schemeAndHost) {
+            m_schemeAndHost = schemeAndHost;
+        }
+
+        /**
+         * Returns the scheme and host of the connection type.
+         *
+         * @return the scheme and host of the connection type
+         */
+        public String getSchemeAndHost() {
+            return m_schemeAndHost;
+        }
     }
 
     /** KNIME node relative connection */
@@ -177,7 +192,7 @@ public class KNIMEConnection {
 
     /**
      * Returns whether a connection exists based on the mount id.
-     * 
+     *
      * @param id the mount point identifier
      * @return true if connection exists false otherwise
      */
@@ -192,5 +207,24 @@ public class KNIMEConnection {
      */
     public static final synchronized KNIMEConnection[] getAll() {
         return CONNECTIONS.values().stream().toArray(KNIMEConnection[]::new);
+    }
+
+    /**
+     * Returns a connection type for a knime URL host.
+     *
+     * @param host the knime URL host
+     * @return the corresponding connection type
+     */
+    public static KNIMEConnection.Type connectionTypeForHost(final String host) {
+        switch (host) {
+            case "knime.node" :
+                return KNIMEConnection.Type.NODE_RELATIVE;
+            case "knime.workflow" :
+                return KNIMEConnection.Type.WORKFLOW_RELATIVE;
+            case "knime.mountpoint" :
+                return KNIMEConnection.Type.MOUNTPOINT_RELATIVE;
+            default :
+                return KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE;
+        }
     }
 }

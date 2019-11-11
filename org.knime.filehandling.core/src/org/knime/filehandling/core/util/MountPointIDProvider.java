@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.util;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -61,5 +63,14 @@ public interface MountPointIDProvider {
      * @return The ids of all mounted mountpoints
      */
     List<String> getMountedIDs();
+
+    /**
+     * Resolves a KNIME URL.
+     *
+     * @param url the KNIME URL to be resolved
+     * @return the resolved URL
+     * @throws IOException if URL cannot be resolved
+     */
+    URL resolveKNIMEURL(final URL url) throws IOException;
 
 }

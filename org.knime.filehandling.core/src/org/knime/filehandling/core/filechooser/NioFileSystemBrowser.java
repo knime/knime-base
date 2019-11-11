@@ -66,10 +66,21 @@ public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
     private final NioFileSystemView m_fileSystemView;
 
     /**
-     * @param connection
+     * Constructs a new NioFileSystemBrowser.
+     *
+     * @param connection the connection to create a browser for
      */
     public NioFileSystemBrowser(final FSConnection connection) {
         m_fileSystemView = new NioFileSystemView(connection);
+    }
+
+    /**
+     * Constructs a new NioFileSystemBrowser.
+
+     * @param fileSystemView the FileSystemView to create a browser for
+     */
+    public NioFileSystemBrowser(final NioFileSystemView fileSystemView) {
+        m_fileSystemView = fileSystemView;
     }
 
     /**

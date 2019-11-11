@@ -44,56 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 2, 2019 (bjoern): created
+ *   Sep 16, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections.knime;
 
 import java.nio.file.Path;
-import java.util.Objects;
+import java.nio.file.Paths;
+
+import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
+ * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a KNIME File System.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class GenericPathUtil {
+public class KNIMEFileSystemBrowser extends NioFileSystemBrowser {
 
-    public static boolean startsWith(final Path base, final Path other) {
-        if (!Objects.equals(base.getRoot(), other.getRoot())) {
-            return false;
-        }
+    private final Path m_baseLocation;
 
-        if (base.getNameCount() < other.getNameCount()) {
-            return false;
-        }
-
-        for (int i = 0; i < other.getNameCount(); i++) {
-            if (!base.getName(i).equals(other.getName(i))) {
-                return false;
-            }
-        }
-
-        return true;
+    /**
+     * Creates a new KNIME File System Browser with a view and base location.
+     *
+     * @param fileSystemView the view of the file system
+     * @param baseLocation the base location, i.e. workflow location or mount point location
+     */
+    public KNIMEFileSystemBrowser(final NioFileSystemView fileSystemView, final Path baseLocation) {
+        super(fileSystemView);
+        m_baseLocation = baseLocation;
     }
 
-    public static boolean endsWith(final Path base, final Path other) {
-        if (base.getRoot() == null && other.getRoot() != null) {
-            return false;
-        }
-
-        if (base.getNameCount() < other.getNameCount()) {
-            return false;
-        }
-
-        int baseIndex = base.getNameCount() - 1;
-        int otherIndex = other.getNameCount() - 1;
-        while (otherIndex >= 0) {
-            if (!base.getName(baseIndex).equals(other.getName(otherIndex))) {
-                return false;
-            }
-
-            otherIndex--;
-            baseIndex--;
-        }
-        return true;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String postprocessSelectedFilePath(final String selectedFile) {
+        Path path = Paths.get(selectedFile);
+        Path relativized = m_baseLocation.relativize(path);
+        return relativized.toString();
     }
+
 }

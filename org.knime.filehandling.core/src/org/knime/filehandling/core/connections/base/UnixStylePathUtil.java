@@ -149,4 +149,14 @@ public class UnixStylePathUtil {
         }
         return commonPrefixLength;
     }
+
+    /**
+     * Replaces all backward slash (Windows separator) in the input path with forward slash (UNIX separator).
+     *
+     * @param path the input path
+     * @return a unix style path
+     */
+    public static String asUnixStylePath(final String path) {
+        return path.replaceAll("\\\\", "/");
+    }
 }

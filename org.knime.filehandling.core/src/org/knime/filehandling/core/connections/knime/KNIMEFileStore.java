@@ -44,56 +44,114 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 2, 2019 (bjoern): created
+ *   Sep 3, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections.knime;
 
-import java.nio.file.Path;
-import java.util.Objects;
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileStoreAttributeView;
 
 /**
+ * KNIME File Store.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class GenericPathUtil {
+public class KNIMEFileStore extends FileStore {
 
-    public static boolean startsWith(final Path base, final Path other) {
-        if (!Objects.equals(base.getRoot(), other.getRoot())) {
-            return false;
-        }
 
-        if (base.getNameCount() < other.getNameCount()) {
-            return false;
-        }
+    /**
+     * Creates a new KNIME File Store.
+     */
+    public KNIMEFileStore() {
 
-        for (int i = 0; i < other.getNameCount(); i++) {
-            if (!base.getName(i).equals(other.getName(i))) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
-    public static boolean endsWith(final Path base, final Path other) {
-        if (base.getRoot() == null && other.getRoot() != null) {
-            return false;
-        }
 
-        if (base.getNameCount() < other.getNameCount()) {
-            return false;
-        }
-
-        int baseIndex = base.getNameCount() - 1;
-        int otherIndex = other.getNameCount() - 1;
-        while (otherIndex >= 0) {
-            if (!base.getName(baseIndex).equals(other.getName(otherIndex))) {
-                return false;
-            }
-
-            otherIndex--;
-            baseIndex--;
-        }
-        return true;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String name() {
+        return "KNIME File Store";
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String type() {
+        return "KNIME File Store";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isReadOnly() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getTotalSpace() throws IOException {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getUsableSpace() throws IOException {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getUnallocatedSpace() throws IOException {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean supportsFileAttributeView(final String name) {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
+        if (type != KNIMEFileStoreAttributeView.class) {
+            throw new IllegalArgumentException("The type " + type.getName() + " is not supported.");
+        }
+
+        return (V) new KNIMEFileStoreAttributeView();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object getAttribute(final String attribute) throws IOException {
+        throw new UnsupportedOperationException("No file store attributes are supported");
+    }
+
 }

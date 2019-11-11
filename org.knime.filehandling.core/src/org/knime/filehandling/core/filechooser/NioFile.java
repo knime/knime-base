@@ -157,12 +157,12 @@ public final class NioFile extends File {
 
     @Override
     public String getCanonicalPath() throws IOException {
-        return getAbsolutePath();
+       return  m_path.toRealPath().toString();
     }
 
     @Override
     public File getCanonicalFile() throws IOException {
-        return new NioFile(getAbsolutePath(), m_fileSys);
+        return new NioFile(getCanonicalPath(), m_fileSys);
     }
 
     /**
@@ -538,7 +538,7 @@ public final class NioFile extends File {
         }
         final NioFile nioFile = (NioFile)obj;
 
-        return m_path.equals(nioFile.m_path);
+        return m_path.toAbsolutePath().equals(nioFile.m_path.toAbsolutePath());
     }
 
     @Override

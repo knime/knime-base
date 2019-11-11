@@ -48,8 +48,11 @@
  */
 package org.knime.filehandling.core.util;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -131,6 +134,21 @@ public class MountPointIDProviderService {
             mountpointIDs.addAll(p.getMountedIDs());
         }
         return mountpointIDs;
+    }
+
+    /**
+     * Resolves a KNIME URL.
+     *
+     * @param url the URL to be resolved
+     * @return the resolved KNIME URL
+     * @throws IOException if the KNIME URL cannot be resolved
+     */
+    public URL resolveKNIMEURL(final URL url) throws IOException {
+        Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
+        if (findFirst.isPresent()) {
+            return findFirst.get().resolveKNIMEURL(url);
+        }
+        throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
     }
 
 }

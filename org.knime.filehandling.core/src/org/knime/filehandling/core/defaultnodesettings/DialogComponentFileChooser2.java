@@ -56,6 +56,9 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
 import java.util.Optional;
 
 import javax.swing.Box;
@@ -80,6 +83,11 @@ import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystemBrowser;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystemView;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
@@ -360,9 +368,27 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 applySettingsForConnection(fsChoice, fs);
                 break;
             case KNIME_FS:
-                //FIXME for remote set Browser and browsable depending on connection
-                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setBrowseable(true);
+                final KNIMEConnection knimeConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
+                if (knimeConnection.getType() == KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE) {
+                    // Leave like this until remote part is implemented.
+                    m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                    m_statusMessage.setText("");
+                    m_fileHistoryPanel.setBrowseable(true);
+                } else {
+                    try (FileSystem fileSystem = getFileSystem(knimeConnection)) {
+                        NioFileSystemView fsView = new KNIMEFileSystemView((KNIMEFileSystem) fileSystem);
+                        m_fileHistoryPanel.setFileSystemBrowser(
+                            new KNIMEFileSystemBrowser(fsView, ((KNIMEFileSystem) fileSystem).getBasePath()));
+                        m_statusMessage.setText("");
+                        m_fileHistoryPanel.setBrowseable(true);
+                    } catch (IOException ex) {
+                        m_statusMessage.setForeground(Color.RED);
+                        m_statusMessage.setText(
+                            "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                        m_fileHistoryPanel.setBrowseable(false);
+                        LOGGER.debug("Exception when creating or closing the file system:", ex);
+                    }
+                }
                 break;
             case LOCAL_FS:
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
@@ -387,6 +413,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_statusMessage.setText(
                 String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
         }
+    }
+
+    private static FileSystem getFileSystem(final KNIMEConnection knimeConnection) throws IOException {
+        URI fsKey = URI.create(knimeConnection.getType().getSchemeAndHost());
+        return KNIMEFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
     }
 
     /** Method called if file filter configuration button is clicked */

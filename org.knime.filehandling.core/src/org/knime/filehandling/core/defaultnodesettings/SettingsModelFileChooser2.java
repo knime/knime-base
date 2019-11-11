@@ -453,11 +453,6 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     }
 
     @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveSettingsForModel(settings);
-    }
-
-    @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         Config config;
         try {
@@ -513,6 +508,11 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_filterCaseSensitive = config.getBoolean(FILTER_CASE_SENSITIVE_KEY);
 
         notifyChangeListeners();
+    }
+
+    @Override
+    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        saveSettingsForModel(settings);
     }
 
     @Override

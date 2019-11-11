@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -72,16 +71,13 @@ public class NioFileSystemView extends FileSystemView {
      * The base root directory. e.g. "/" for Unix. Might also be set to the first directory in the
      * {@link #m_rootDirectories} set. *
      */
-    final Path m_base;
+    private final Path m_base;
 
     /** Set of all root directories of the given file system */
     final Set<Path> m_rootDirectories;
 
     /** File system */
-    final FileSystem m_fileSystem;
-
-    /** File system provider */
-    final FileSystemProvider m_fsProvider;
+    private final FileSystem m_fileSystem;
 
     /**
      * Constructor for a NIO implementation of the {@link FileSystemView}.
@@ -91,9 +87,21 @@ public class NioFileSystemView extends FileSystemView {
     public NioFileSystemView(final FSConnection conn) {
         this.m_fileSystem = conn.getFileSystem();
         this.m_base = m_fileSystem.getRootDirectories().iterator().next();
-        this.m_fsProvider = m_fileSystem.provider();
         this.m_rootDirectories = new LinkedHashSet<>();
         this.m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
+    }
+
+    /**
+     * Constructor for a NIO implementation of the {@link FileSystemView}.
+     *
+     * @param fileSystem
+     * @param base
+     */
+    public NioFileSystemView(final FileSystem fileSystem, final Path base) {
+        m_fileSystem = fileSystem;
+        m_base = base;
+        m_rootDirectories = new LinkedHashSet<>();
+        m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
     }
 
     @Override
@@ -180,6 +188,10 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public boolean isParent(final File folder, final File file) {
+        if (folder == null || file == null) {
+            return false;
+        }
+
         final Path filePath = m_fileSystem.getPath(file.getPath());
         final Path folderPath = m_fileSystem.getPath(folder.getPath());
         return folderPath.equals(filePath.getParent());
@@ -193,7 +205,7 @@ public class NioFileSystemView extends FileSystemView {
     @Override
     public boolean isRoot(final File f) {
         if (f != null) {
-            return m_rootDirectories.stream().anyMatch(p -> p.equals(f.toPath()));
+            return m_fileSystem.getPath(f.toString()).getParent() == null;
         }
         return false;
     }
