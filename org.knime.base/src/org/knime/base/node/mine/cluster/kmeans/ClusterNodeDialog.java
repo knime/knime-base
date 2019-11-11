@@ -44,55 +44,153 @@
  */
 package org.knime.base.node.mine.cluster.kmeans;
 
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
+import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.defaultnodesettings.DialogComponentSeed;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 
-
 /**
- * Dialog for
- * {@link ClusterNodeModel} - allows
- * to adjust number of clusters and other properties.
+ * Dialog for {@link ClusterNodeModel} - allows to adjust number of clusters and other properties.
  *
  * @author Michael Berthold, University of Konstanz
+ * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
-public class ClusterNodeDialog extends DefaultNodeSettingsPane {
+public class ClusterNodeDialog extends NodeDialogPane {
+
+    final DialogComponentNumber m_nrOfClusters;
+
+    private final DialogComponentLabel m_centroidInitializationLabel =
+        new DialogComponentLabel("Centroid initialization: ");
+
+    private final DialogComponentSeed m_centroidSeeds =
+        new DialogComponentSeed(ClusterNodeModel.createCentroidSeedsModel(), "Use static random seed");
+
+    private final DialogComponentButtonGroup m_centroidInitialization = new DialogComponentButtonGroup(
+        ClusterNodeModel.createCentroidInitializationModel(), null, true, CentroidInitialization.values());
+
+    private final DialogComponentNumber m_maxNrOfIterations =
+        new DialogComponentNumber(ClusterNodeModel.createNrMaxIterationsModel(), "Max. number of iterations: ", 10);
+
+    @SuppressWarnings("unchecked")
+    private final DialogComponentColumnFilter m_columnFilter =
+        new DialogComponentColumnFilter(ClusterNodeModel.createUsedColumnsModel(), 0, true, DoubleValue.class);
+
+    private final DialogComponentBoolean m_enableHilite =
+        new DialogComponentBoolean(ClusterNodeModel.createEnableHiliteModel(), "Enable Hilite Mapping");
 
     /**
-     * Constructor - set name of k-means cluster node. Also initialize special
-     * property panel holding the variables that can be adjusted by the user.
+     * Constructor to create the dialog panel of the k-means node.
      */
-    @SuppressWarnings("unchecked")
-    ClusterNodeDialog() {
-        super();
-        SettingsModelIntegerBounded smib = new SettingsModelIntegerBounded(
-                ClusterNodeModel.CFG_NR_OF_CLUSTERS,
-                ClusterNodeModel.INITIAL_NR_CLUSTERS,
-                1, Integer.MAX_VALUE);
-        DialogComponentNumber nrOfClusters = new DialogComponentNumber(
-            smib, "number of clusters: ", 1, createFlowVariableModel(smib));
-        DialogComponentNumber maxNrOfIterations = new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-                        ClusterNodeModel.CFG_MAX_ITERATIONS,
-                        ClusterNodeModel.INITIAL_MAX_ITERATIONS,
-                        1, Integer.MAX_VALUE),
-                        "max. number of iterations: ", 10);
-        DialogComponentColumnFilter columnFilter = new DialogComponentColumnFilter(
-                new SettingsModelFilterString(ClusterNodeModel.CFG_COLUMNS),
-                0, true, DoubleValue.class);
-        DialogComponentBoolean enableHilite = new DialogComponentBoolean(
-            new SettingsModelBoolean(ClusterNodeModel.CFG_ENABLE_HILITE, false),
-            "Enable Hilite Mapping");
+       ClusterNodeDialog() {
+        //initialize the number of clusters model
+        final SettingsModelIntegerBounded nrOfClustersModel = ClusterNodeModel.createNrOfClustersModel();
 
-        addDialogComponent(nrOfClusters);
-        addDialogComponent(maxNrOfIterations);
-        addDialogComponent(columnFilter);
-        addDialogComponent(enableHilite);
-        setDefaultTabTitle("K-Means Properties");
+        m_nrOfClusters = new DialogComponentNumber(nrOfClustersModel, "Number of clusters: ", 1,
+            createFlowVariableModel(nrOfClustersModel));
+
+        //creating the panel
+        JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1;
+        panel.add(createClustersPanel(), c);
+        c.gridy++;
+        panel.add(leftAlignmentPanel(m_maxNrOfIterations.getComponentPanel(), "Number of Iterations"), c);
+        c.gridy++;
+        panel.add(leftAlignmentPanel(m_columnFilter.getComponentPanel(), "Column Selection"), c);
+        c.gridy++;
+        c.weighty = 1;
+        panel.add(leftAlignmentPanel(m_enableHilite.getComponentPanel(), "Hilite Mapping"), c);
+        addTab("K-Means Properties", panel);
+    }
+
+    private JPanel createClustersPanel() {
+        m_centroidInitialization.getModel().addChangeListener(e -> updateCentroidInitialization());
+        JPanel clusters = new JPanel(new GridBagLayout());
+        clusters.setBorder(BorderFactory.createTitledBorder("Clusters"));
+        final GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        clusters.add(m_nrOfClusters.getComponentPanel(), c);
+        c.gridy++;
+        c.gridwidth = 1;
+        clusters.add(m_centroidInitializationLabel.getComponentPanel(), c);
+        c.gridy++;
+        c.insets = new Insets(0, 30, 0, 0);
+        clusters.add(m_centroidInitialization.getButton(CentroidInitialization.FIRST_ROWS.getActionCommand()), c);
+        c.gridy++;
+        c.anchor = GridBagConstraints.LINE_START;
+        clusters.add(
+            m_centroidInitialization.getButton(CentroidInitialization.RANDOM_INITIALIZATION.getActionCommand()), c);
+        c.gridx = 1;
+        c.insets = new Insets(0, 0, 0, 0);
+        c.weightx = 1;
+        clusters.add(m_centroidSeeds.getComponentPanel(), c);
+        return clusters;
+    }
+
+    private static JPanel leftAlignmentPanel(final JPanel innerPanel, final String borderTitle) {
+        JPanel outerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        outerPanel.setBorder(BorderFactory.createTitledBorder(borderTitle));
+        outerPanel.add(innerPanel);
+        return outerPanel;
+    }
+
+    private boolean firstRowsIsSelected() {
+        return m_centroidInitialization.getButton(CentroidInitialization.FIRST_ROWS.getActionCommand()).isSelected();
+    }
+
+    private void updateCentroidInitialization() {
+        m_centroidSeeds.getModel().setEnabled(!firstRowsIsSelected());
+
+    }
+
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+        m_nrOfClusters.loadSettingsFrom(settings, specs);
+        m_centroidInitialization.loadSettingsFrom(settings, specs);
+        m_centroidSeeds.loadSettingsFrom(settings, specs);
+        m_maxNrOfIterations.loadSettingsFrom(settings, specs);
+        m_columnFilter.loadSettingsFrom(settings, specs);
+        m_enableHilite.loadSettingsFrom(settings, specs);
+        updateCentroidInitialization();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_nrOfClusters.saveSettingsTo(settings);
+        m_centroidInitialization.saveSettingsTo(settings);
+        m_centroidSeeds.saveSettingsTo(settings);
+        m_maxNrOfIterations.saveSettingsTo(settings);
+        m_columnFilter.saveSettingsTo(settings);
+        m_enableHilite.saveSettingsTo(settings);
+
     }
 }

@@ -57,6 +57,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.knime.base.node.mine.cluster.PMMLClusterTranslator;
 import org.knime.base.node.mine.cluster.PMMLClusterTranslator.ComparisonMeasure;
 import org.knime.core.data.DataCell;
@@ -71,6 +72,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.append.AppendedColumnRow;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -85,9 +87,12 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelSeed;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -106,6 +111,12 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  * @author Michael Berthold, University of Konstanz
  */
 public class ClusterNodeModel extends NodeModel {
+    /** Constant for the centroid initialization method in the dialog. */
+    private static final String CFG_CENTROID_INITIALIZATION = "centroid_initialization";
+
+    /** Constant for the centroid seed option in the dialog. */
+    private static final String CFG_CENTROID_SEEDS = "centroid_seeds";
+
     /** Constant for the RowKey generation and identification in the view. */
     public static final String CLUSTER = "cluster_";
 
@@ -134,6 +145,8 @@ public class ClusterNodeModel extends NodeModel {
 
     private static final String CFG_DIMENSION = "dimensions";
 
+    private static final String CFG_NUMBER_OF_ROWS = "numberOfRows";
+
     private static final String CFG_IGNORED_COLS = "ignoredColumns";
 
     private static final String CFG_CLUSTER = "kMeansCluster";
@@ -157,16 +170,121 @@ public class ClusterNodeModel extends NodeModel {
      * Introduced a column filter.
      * 02.05.2007 Dill
      */
-    private final SettingsModelIntegerBounded m_nrOfClusters
-        = new SettingsModelIntegerBounded(CFG_NR_OF_CLUSTERS, INITIAL_NR_CLUSTERS, 1, Integer.MAX_VALUE);
+    private final SettingsModelIntegerBounded m_nrOfClusters = createNrOfClustersModel();
 
-    private final SettingsModelIntegerBounded m_nrMaxIterations
-        = new SettingsModelIntegerBounded(CFG_MAX_ITERATIONS, INITIAL_MAX_ITERATIONS, 1, Integer.MAX_VALUE);
+    private final SettingsModelString m_centroidInitialization = createCentroidInitializationModel();
 
-    private final SettingsModelFilterString m_usedColumns
-        = new SettingsModelFilterString(CFG_COLUMNS);
+    private final SettingsModelIntegerBounded m_nrMaxIterations = createNrMaxIterationsModel();
 
-    private final SettingsModelBoolean m_enableHilite = new SettingsModelBoolean(CFG_ENABLE_HILITE, false);
+    private final SettingsModelFilterString m_usedColumns = createUsedColumnsModel();
+
+    private final SettingsModelBoolean m_enableHilite = createEnableHiliteModel();
+
+    private final SettingsModelSeed m_centroidSeeds = createCentroidSeedsModel();
+
+    /**
+     * @return {@link SettingsModelIntegerBounded} to hold the picked number of clusters.
+     */
+    static SettingsModelIntegerBounded createNrOfClustersModel() {
+        return new SettingsModelIntegerBounded(CFG_NR_OF_CLUSTERS, INITIAL_NR_CLUSTERS, 1, Integer.MAX_VALUE);
+    }
+
+    /**
+     * @return {@link SettingsModelString} to hold the picked method of centroid initialization.
+     */
+    static SettingsModelString createCentroidInitializationModel() {
+        return new SettingsModelString(CFG_CENTROID_INITIALIZATION, CentroidInitialization.getDefault().name()) {
+
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_CENTROID_INITIALIZATION)) {
+                    // only validate for new nodes (added created after the 4.1.0 release)
+                    super.validateSettingsForModel(settings);
+                }
+            }
+
+            @Override
+            protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+                throws NotConfigurableException {
+                if (settings.containsKey(CFG_CENTROID_INITIALIZATION)) {
+                    // the node was created after the 4.1.0 release, so we can load the settings
+                    super.loadSettingsForDialog(settings, specs);
+                } else {
+                    // the node was created prior to 4.1.0, so we need to ensure backwards compatibility
+                    setStringValue(CentroidInitialization.FIRST_ROWS.name());
+                }
+            }
+
+            @Override
+            protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_CENTROID_INITIALIZATION)) {
+                    // the node was created after the 4.1.0 release, so we can load the settings
+                    super.loadSettingsForModel(settings);
+                } else {
+                    // the node was created prior to 4.1.0, so we need to ensure backwards compatibility
+                    setStringValue(CentroidInitialization.FIRST_ROWS.name());
+                }
+            }
+        };
+    }
+
+    /**
+     * @return {@link SettingsModelSeed} to hold the random initialized centroids.
+     */
+    static SettingsModelSeed createCentroidSeedsModel() {
+        return new SettingsModelSeed(CFG_CENTROID_SEEDS, 0L, true) {
+
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_CENTROID_SEEDS)) {
+                    // only validate for new nodes (added created after the 4.1.0 release)
+                    super.validateSettingsForModel(settings);
+                }
+            }
+
+            @Override
+            protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+                throws NotConfigurableException {
+                if (settings.containsKey(CFG_CENTROID_SEEDS)) {
+                    // the node was created after the 4.1.0 release, so we can load the settings
+                    super.loadSettingsForDialog(settings, specs);
+                } else {
+                    // the node was created prior to 4.1.0, so we need to ensure backwards compatibility
+                }
+            }
+
+            @Override
+            protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_CENTROID_SEEDS)) {
+                    // the node was created after the 4.1.0 release, so we can load the settings
+                    super.loadSettingsForModel(settings);
+                } else {
+                    // the node was created prior to 4.1.0, so we need to ensure backwards compatibility
+                }
+            }
+        };
+    }
+
+    /**
+     * @return {@link SettingsModelIntegerBounded} to hold the maximum number of iteratons.
+     */
+    static SettingsModelIntegerBounded createNrMaxIterationsModel() {
+        return new SettingsModelIntegerBounded(CFG_MAX_ITERATIONS, INITIAL_MAX_ITERATIONS, 1, Integer.MAX_VALUE);
+    }
+
+    /**
+     * @return {@link SettingsModelFilterString} which holds the included numeric columns.
+     */
+    static SettingsModelFilterString createUsedColumnsModel() {
+        return new SettingsModelFilterString(CFG_COLUMNS);
+    }
+
+    /**
+     * @return {@link SettingsModelBoolean} which holds if the option enable hilite mapping is checked.
+     */
+    static SettingsModelBoolean createEnableHiliteModel() {
+        return new SettingsModelBoolean(CFG_ENABLE_HILITE, false);
+    }
 
     private ClusterViewData m_viewData;
 
@@ -240,6 +358,8 @@ public class ClusterNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         assert (settings != null);
         m_nrOfClusters.saveSettingsTo(settings);
+        m_centroidInitialization.saveSettingsTo(settings);
+        m_centroidSeeds.saveSettingsTo(settings);
         m_nrMaxIterations.saveSettingsTo(settings);
         m_usedColumns.saveSettingsTo(settings);
         m_enableHilite.saveSettingsTo(settings);
@@ -258,6 +378,8 @@ public class ClusterNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         assert (settings != null);
         m_nrOfClusters.validateSettings(settings);
+        m_centroidInitialization.validateSettings(settings);
+        m_centroidSeeds.validateSettings(settings);
         m_nrMaxIterations.validateSettings(settings);
         // if exception is thrown -> catch it, and remember it
         // in configure set all numeric columns into includeList
@@ -282,6 +404,8 @@ public class ClusterNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         assert (settings != null);
         m_nrOfClusters.loadSettingsFrom(settings);
+        m_centroidInitialization.loadSettingsFrom(settings);
+        m_centroidSeeds.loadSettingsFrom(settings);
         m_nrMaxIterations.loadSettingsFrom(settings);
         m_dimension = m_usedColumns.getIncludeList().size() + m_usedColumns.getExcludeList().size();
         // added in 3.3
@@ -471,34 +595,79 @@ public class ClusterNodeModel extends NodeModel {
         return finished;
     }
 
-    private double[][] initializeClusters(final DataTable input) {
+    private double[][] initializeClusters(final BufferedDataTable input) {
         // initialize matrix of double (nr clusters * input dimension)
         double[][] clusters = new double[m_nrOfClusters.getIntValue()][];
         for (int c = 0; c < m_nrOfClusters.getIntValue(); c++) {
             clusters[c] = new double[m_dimension - m_nrIgnoredColumns];
         }
+        //based on user selection to use first rows or random initialization, it returns the initial centroids.
+        if (isFirstRowsInitialized()) {
+            return firstRowsClusterInitialization(input, clusters);
+        } else {
+            return randomClusterInitialization(input, clusters);
+        }
+    }
+
+    private boolean isFirstRowsInitialized() {
+        return CentroidInitialization
+            .valueOf(m_centroidInitialization.getStringValue()) == CentroidInitialization.FIRST_ROWS;
+    }
+
+    private double[][] firstRowsClusterInitialization(final DataTable input, final double[][] clusters) {
         // initialize cluster centers with values of first rows in table
-        RowIterator rowIt = input.iterator();
         int c = 0;
+        final RowIterator rowIt = input.iterator();
         while (rowIt.hasNext() && c < m_nrOfClusters.getIntValue()) {
             DataRow currentRow = rowIt.next();
-            int pos = 0;
-            for (int i = 0; i < currentRow.getNumCells(); i++) {
-                if (!m_ignoreColumn[i]) {
-                    if (currentRow.getCell(i).isMissing()) {
-                        clusters[c][pos] = 0;
-                        // missing value: replace with zero
-                    } else {
-                        assert currentRow.getCell(i).getType().isCompatible(DoubleValue.class);
-                        DoubleValue currentValue = (DoubleValue)currentRow.getCell(i);
-                        clusters[c][pos] = currentValue.getDoubleValue();
-                    }
-                    pos++;
-                }
-            }
+            assignCluster(currentRow, clusters, c);
             c++;
         }
         return clusters;
+    }
+
+    private double[][] randomClusterInitialization(final BufferedDataTable input, final double[][] clusters) {
+        //initialize random centroids
+        final long nrOfRows = input.size();
+        final Set<Long> randomInitialization = randomCentroidsSetCreation(nrOfRows);
+        try(final CloseableRowIterator rowIt = input.iterator()) {
+            int c = 0;
+            for (long rowTrack = 0; rowIt.hasNext(); rowTrack ++) {
+                DataRow currentRow = rowIt.next();
+                if (randomInitialization.contains(rowTrack)) {
+                    assignCluster(currentRow, clusters, c);
+                    c++;
+                }
+            }
+        return clusters;
+        }
+    }
+
+    private Set<Long> randomCentroidsSetCreation(final long nrOfRows){
+        final Set<Long> randomInitialization = new HashSet<>();
+        final RandomDataGenerator rdg = new RandomDataGenerator();
+        rdg.reSeed(m_centroidSeeds.getSeedOrRandom());
+        while(randomInitialization.size() < m_nrOfClusters.getIntValue()) {
+            randomInitialization.add(rdg.nextLong(0L, nrOfRows - 1));
+        }
+        return randomInitialization;
+    }
+
+    private void assignCluster(final DataRow currentRow, final double[][] clusters, final int c) {
+        //stores a centroid in clusters and handles missing values.
+        int pos = 0;
+        for (int i = 0; i < currentRow.getNumCells(); i++) {
+            if (!m_ignoreColumn[i]) {
+                if (currentRow.getCell(i).isMissing()) {
+                    clusters[c][pos] = 0;
+                } else {
+                    assert currentRow.getCell(i).getType().isCompatible(DoubleValue.class);
+                    DoubleValue currentValue = (DoubleValue)currentRow.getCell(i);
+                    clusters[c][pos] = currentValue.getDoubleValue();
+                }
+                pos++;
+            }
+        }
     }
 
     private int findClosestPrototypeFor(final DataRow row, final double[][] clusters) {

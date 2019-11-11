@@ -1,46 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./kmeans.png" type="Learner">
-    <name>k-Means</name>
-    <shortDescription>Creates a crisp center based clustering.</shortDescription>
-    <fullDescription>
-        <intro>
+	<name>k-Means</name>
+	<shortDescription>Creates a crisp center based clustering.</shortDescription>
+	<fullDescription>
+		<intro>
 			This node outputs the cluster centers for a predefined number of
 			clusters (no dynamic number of clusters).
-			K-means performs a crisp clustering that assigns a data
-			vector to exactly one cluster. The algorithm terminates when the
-			cluster assignments do not change anymore.<br />
+			K-means performs a crisp
+			clustering that assigns a data
+			vector to exactly one cluster. The
+			algorithm terminates when the
+			cluster assignments do not change
+			anymore.
+			<br />
 			The clustering algorithm uses the Euclidean distance on the selected
 			attributes. The data is not normalized by the node (if required,
-			you should consider to use the "Normalizer" as a preprocessing step).			
+			you
+			should consider to use the "Normalizer" as a preprocessing step).
 		</intro>
-		<option name="number of clusters">
-			The number of clusters (cluster centers) to be created.
-	    </option>
-		<option name="max number of iterations">
-		    The number of iterations after which the algorithm terminates,
-			independent of the accuracy improvement of the cluster centers.
+		<option name="Number of clusters">
+			The number of clusters (cluster centers) to be
+			created.
+		</option>
+		<option name="Centroid initialization">
+			Allows to pick the centroid initialization method.
+			<i>First k rows</i>
+			initializes the centroids using the first rows of the input table.
+			<i>Random initialization</i>
+			initializes the centroids with random rows of the input table.
+			When
+			picking the
+			<i>Random initialization</i>
+			,
+			by checking the
+			<i>Use static random seed</i>
+			it is possible to get reproducible results (same centroids for the
+			same
+			seed). The static random seed value can be controlled by
+			manipulating the
+			corresponding flow variable named:
+			<i>centroid_seeds</i>
+			<br />
+			<b>Note:</b>
+			The choice between the centroid initialization methods can be
+			controlled by a flow variable as well, named:
+			<i>centroid_initialization</i>
+			. The default option:
+			<i>Random initialization</i>
+			will be picked if a string "RANDOM_INITIALIZATION" is fed to this
+			variable, while for
+			<i>First k rows</i>
+			option the flow variable needs to be set "FIRST_ROWS".
+		</option>
+		<option name="Max number of iterations">
+			The number of iterations after which the
+			algorithm
+			terminates,
+			independent of the accuracy improvement of the
+			cluster
+			centers.
+		</option>
+		<option name="Numeric Column Selection">
+			Move the numeric columns of interest
+			to the "Include" list.
+			<i>Always include all columns</i>
+			option moves all numeric columns to the "Include" list by default.
 		</option>
 		<option name="Enable Hilite Mapping">
-            If enabled, the hiliting of a cluster row (2nd output) will hilite all rows of this
-            cluster in the input table and the 1st output table. Depending on the number of rows, enabling this 
-            feature might consume a lot of memory.
+			If enabled, the hiliting of a cluster row (2nd
+			output) will hilite all
+			rows of this
+			cluster in the input table and
+			the
+			1st output table. Depending on the
+			number
+			of rows, enabling this
+			feature might consume a lot of memory.
 		</option>
 	</fullDescription>
-	
-    <ports>
-        <inPort index="0" name="Clustering input">Input to clustering. All 
-        numerical values and only these are considered for clustering.</inPort>
-        <outPort index="0" name="Labeled input">The input data labeled with the 
-        cluster they are contained in.</outPort>
-        <outPort index="1" name="Clusters">The created clusters</outPort>
-        <outPort index="2" name="PMML Cluster Model">PMML cluster model</outPort>
+
+	<ports>
+		<inPort index="0" name="Clustering input">Input to clustering. All
+			numerical values
+			and only these are considered for clustering.
+		</inPort>
+		<outPort index="0" name="Labeled input">The input data labeled with the
+			cluster they are contained in.
+		</outPort>
+		<outPort index="1" name="Clusters">The created clusters</outPort>
+		<outPort index="2" name="PMML Cluster Model">PMML cluster model</outPort>
 	</ports>
-	
+
 	<views>
 		<view index="0" name="Cluster View">
-			Displays the cluster prototypes in a tree-like structure, with each
-            node containing the coordinates of the cluster center.
+			Displays the cluster prototypes in a
+			tree-like structure, with each
+			node containing the coordinates of the
+			cluster center.
 		</view>
 	</views>
 </knimeNode>
