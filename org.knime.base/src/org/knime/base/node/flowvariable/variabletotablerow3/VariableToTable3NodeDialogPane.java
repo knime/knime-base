@@ -53,6 +53,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,22 +64,25 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
+import org.knime.core.node.util.filter.variable.VariableTypeFilter;
+import org.knime.core.node.workflow.VariableType;
 
-/** Dialog for the "Variable To TableRow" node.
+/**
+ * Dialog for the "Variable To TableRow" node.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- *
- * @since 2.9
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 class VariableToTable3NodeDialogPane extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
+
     private final DialogComponentString m_rowID;
 
-    /** Inits components. */
-    public VariableToTable3NodeDialogPane() {
-        m_filter = new FlowVariableFilterPanel();
+    VariableToTable3NodeDialogPane() {
+        m_filter =
+            new FlowVariableFilterPanel(new VariableTypeFilter(VariableAndDataCellUtil.getSupportedVariableTypes()));
         m_rowID = new DialogComponentString(createSettingsModelRowID(), "Name of RowID: ");
         final JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_filter, BorderLayout.CENTER);
@@ -89,28 +93,25 @@ class VariableToTable3NodeDialogPane extends NodeDialogPane {
         addTab("Variable Selection", new JScrollPane(panel));
     }
 
-    /** @return settings model to set the RowID name
-     */
     static SettingsModelString createSettingsModelRowID() {
         return new SettingsModelString("row-id", "values");
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-            throws NotConfigurableException {
+        throws NotConfigurableException {
         m_rowID.loadSettingsFrom(settings, specs);
-        FlowVariableFilterConfiguration config =
+        final FlowVariableFilterConfiguration config =
             new FlowVariableFilterConfiguration(VariableToTable3NodeModel.CFG_KEY_FILTER);
-        config.loadConfigurationInDialog(settings, getAvailableFlowVariables());
-        m_filter.loadConfiguration(config, getAvailableFlowVariables());
+        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
+        config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
+        m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_rowID.saveSettingsTo(settings);
-        FlowVariableFilterConfiguration config =
+        final FlowVariableFilterConfiguration config =
             new FlowVariableFilterConfiguration(VariableToTable3NodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
