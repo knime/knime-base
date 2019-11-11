@@ -49,6 +49,7 @@ package org.knime.base.node.flowvariable.appendvariabletotable3;
 
 import javax.swing.JScrollPane;
 
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -57,38 +58,40 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
+import org.knime.core.node.util.filter.variable.VariableTypeFilter;
+import org.knime.core.node.workflow.VariableType;
 
-/** Dialog for the "Variable To TableColumn" node.
+/**
+ * Dialog for the "Variable To TableColumn" node.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- *
- * @since 2.9
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 class AppendVariableToTable3NodeDialogPane extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 
     /** Inits components. */
-    public AppendVariableToTable3NodeDialogPane() {
-        m_filter = new FlowVariableFilterPanel();
+    AppendVariableToTable3NodeDialogPane() {
+        m_filter =
+            new FlowVariableFilterPanel(new VariableTypeFilter(VariableAndDataCellUtil.getSupportedVariableTypes()));
         addTab("Variable Selection", new JScrollPane(m_filter));
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        FlowVariableFilterConfiguration config =
+        final FlowVariableFilterConfiguration config =
             new FlowVariableFilterConfiguration(AppendVariableToTable3NodeModel.CFG_KEY_FILTER);
-        config.loadConfigurationInDialog(settings, getAvailableFlowVariables());
-        m_filter.loadConfiguration(config, getAvailableFlowVariables());
+        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
+        config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
+        m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        FlowVariableFilterConfiguration config =
+        final FlowVariableFilterConfiguration config =
             new FlowVariableFilterConfiguration(AppendVariableToTable3NodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);

@@ -49,13 +49,14 @@ package org.knime.base.node.flowvariable.appendvariabletotable3;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.knime.base.node.flowvariable.VariableAndDataCellPair;
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -64,9 +65,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -80,99 +78,60 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.util.Pair;
+import org.knime.core.node.workflow.VariableType;
 
-/** NodeModel for the "Variable To TableColumn" node  which adds variables as new columns to the input table.
+/**
+ * NodeModel for the "Variable To TableColumn" node which adds variables as new columns to the input table.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- *
- * @since 2.9
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNodeModel {
+class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNodeModel {
 
-    /**
-     * Key for the filter configuration.
-     */
+    /** Key for the filter configuration. */
     static final String CFG_KEY_FILTER = "variable-filter";
 
     private FlowVariableFilterConfiguration m_filter;
 
     /** One input, one output. */
-    public AppendVariableToTable3NodeModel() {
+    AppendVariableToTable3NodeModel() {
         super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL, BufferedDataTable.TYPE},
             new PortType[]{BufferedDataTable.TYPE}, 1, 0);
         m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        m_filter.loadDefaults(getAvailableFlowVariables(), false);
+        m_filter.loadDefaults(getAvailableFlowVariables(VariableAndDataCellUtil.getSupportedVariableTypes()), false);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        BufferedDataTable t = (BufferedDataTable)inData[1];
-        DataTableSpec ts = t.getSpec();
-        ColumnRearranger ar = createColumnRearranger(ts);
-        BufferedDataTable out = exec.createColumnRearrangeTable(t, ar, exec);
-        return new BufferedDataTable[]{out};
+        final BufferedDataTable table = (BufferedDataTable)inData[1];
+        final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec());
+        return new BufferedDataTable[]{exec.createColumnRearrangeTable(table, columnRearranger, exec)};
     }
 
-    /** {@inheritDoc} */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        ColumnRearranger ar = createColumnRearranger((DataTableSpec)inSpecs[1]);
-        return new DataTableSpec[]{ar.createSpec()};
+        final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[1]);
+        return new DataTableSpec[]{columnRearranger.createSpec()};
     }
 
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
-        ColumnRearranger arranger = new ColumnRearranger(spec);
-        Set<String> nameHash = new HashSet<String>();
-        for (DataColumnSpec c : spec) {
-            nameHash.add(c.getName());
-        }
-        List<Pair<String, FlowVariable.Type>> vars = getVariablesOfInterest();
+        final ColumnRearranger columnRearranger = new ColumnRearranger(spec);
+        final Set<String> nameHash = spec.stream().map(c -> c.getName()).collect(Collectors.toCollection(HashSet::new));
+        final List<VariableAndDataCellPair> vars = getFilteredVariables();
         if (vars.isEmpty()) {
             throw new InvalidSettingsException("No variables selected");
         }
-        DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
-        final DataCell[] values = new DataCell[vars.size()];
+
+        final DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
+        final DataCell[] cells = new DataCell[vars.size()];
         for (int i = 0; i < vars.size(); i++) {
-            Pair<String, FlowVariable.Type> c = vars.get(i);
-            String name = c.getFirst();
-            final DataType type;
-            switch (c.getSecond()) {
-                case DOUBLE:
-                    type = DoubleCell.TYPE;
-                    try {
-                        double dValue = peekFlowVariableDouble(name);
-                        values[i] = new DoubleCell(dValue);
-                    } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type double): " + name);
-                    }
-                    break;
-                case INTEGER:
-                    type = IntCell.TYPE;
-                    try {
-                        int iValue = peekFlowVariableInt(name);
-                        values[i] = new IntCell(iValue);
-                    } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type int): " + name);
-                    }
-                    break;
-                case STRING:
-                    type = StringCell.TYPE;
-                    try {
-                        String sValue = peekFlowVariableString(name);
-                        sValue = sValue == null ? "" : sValue;
-                        values[i] = new StringCell(sValue);
-                    } catch (NoSuchElementException e) {
-                        throw new InvalidSettingsException("No such flow variable (of type String): " + name);
-                    }
-                    break;
-                default:
-                    throw new InvalidSettingsException("Unsupported variable type: " + c.getSecond());
-            }
+            final VariableAndDataCellPair var = vars.get(i);
+            final DataType type = var.getCellType();
+            cells[i] = var.getDataCell();
+
+            String name = var.getName();
             if (nameHash.contains(name) && !name.toLowerCase().endsWith("(variable)")) {
                 name = name.concat(" (variable)");
             }
@@ -183,64 +142,56 @@ public class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNod
             }
             specs[i] = new DataColumnSpecCreator(newName, type).createSpec();
         }
-        arranger.append(new AbstractCellFactory(specs) {
-            /** {@inheritDoc} */
+
+        columnRearranger.append(new AbstractCellFactory(specs) {
             @Override
             public DataCell[] getCells(final DataRow row) {
-                return values;
+                return cells;
             }
         });
-        return arranger;
+        return columnRearranger;
     }
 
-    private List<Pair<String, FlowVariable.Type>> getVariablesOfInterest() {
-        List<Pair<String, FlowVariable.Type>> result = new ArrayList<Pair<String, FlowVariable.Type>>();
-        if (m_filter != null) {
-            String[] names = m_filter.applyTo(getAvailableFlowVariables()).getIncludes();
-            Map<String, FlowVariable> vars = getAvailableFlowVariables();
-            for (String name : names) {
-                result.add(new Pair<String, FlowVariable.Type>(name, vars.get(name).getType()));
-            }
-        }
-        return result;
+    private List<VariableAndDataCellPair> getFilteredVariables() {
+        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
+
+        final Set<String> include_names =
+            new HashSet<>(Arrays.asList(m_filter.applyTo(getAvailableFlowVariables(types)).getIncludes()));
+
+        return VariableAndDataCellUtil.getVariablesAsDataCells(getAvailableFlowVariables(types)).stream()
+            .filter(v -> include_names.contains(v.getName())).collect(Collectors.toList());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void reset() {
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
+        final FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         conf.loadConfigurationInModel(settings);
         m_filter = conf;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_filter.saveConfiguration(settings);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
+        final FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         conf.loadConfigurationInModel(settings);
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
-    /** {@inheritDoc} */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
 }

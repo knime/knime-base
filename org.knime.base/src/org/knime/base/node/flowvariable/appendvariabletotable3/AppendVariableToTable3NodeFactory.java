@@ -50,38 +50,34 @@ package org.knime.base.node.flowvariable.appendvariabletotable3;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
-/** Factory for the "Variable To TableColumn" node.
+/**
+ * Factory for the "Variable To TableColumn" node.
  *
  * @author Patrick Winters, KNIME AG, Zurich, Switzerland
  */
 public class AppendVariableToTable3NodeFactory extends NodeFactory<AppendVariableToTable3NodeModel> {
 
-    /** {@inheritDoc} */
     @Override
     protected AppendVariableToTable3NodeDialogPane createNodeDialogPane() {
         return new AppendVariableToTable3NodeDialogPane();
     }
 
-    /** {@inheritDoc} */
     @Override
     public AppendVariableToTable3NodeModel createNodeModel() {
         return new AppendVariableToTable3NodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<AppendVariableToTable3NodeModel> createNodeView(final int index,
         final AppendVariableToTable3NodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
