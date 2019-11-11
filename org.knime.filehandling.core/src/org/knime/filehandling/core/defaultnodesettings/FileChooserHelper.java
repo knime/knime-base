@@ -65,7 +65,6 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilter;
-import org.knime.filehandling.core.filefilter.HiddenFilesFilter;
 
 /**
  * Class used to scan files in directories.
@@ -81,7 +80,7 @@ public final class FileChooserHelper {
     private final SettingsModelFileChooser2 m_settings;
 
     /** Optional containing a {@link FileFilter} if selected */
-    private final Optional<FileFilter> m_filter;
+    private final FileFilter m_filter;
 
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
@@ -111,7 +110,7 @@ public final class FileChooserHelper {
      */
     public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings,
         final int timeoutInMillis) throws IOException {
-        m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
+        m_filter = new FileFilter(settings.getFileFilterSettings());
         m_settings = settings;
         m_fileSystem = FileSystemHelper.retrieveFileSystem(fs, settings, timeoutInMillis);
     }
@@ -136,21 +135,15 @@ public final class FileChooserHelper {
         setCounts(0, 0);
         final Path dirPath = m_fileSystem.getPath(m_settings.getPathOrURL());
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
-        final HiddenFilesFilter hiddenFilesFilter = new HiddenFilesFilter(m_settings.getIncludeHiddenFiles());
 
         final List<Path> paths;
         try (final Stream<Path> stream = includeSubfolders
             ? Files.walk(dirPath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS) : Files.list(dirPath)) {
-            if (m_filter.isPresent()) {
-                final FileFilter filter = m_filter.get();
-                filter.resetCount();
-                paths = stream.filter(hiddenFilesFilter).filter(filter::isSatisfied).collect(Collectors.toList());
-                setCounts(paths.size(), filter.getNumberOfFilteredFiles());
-            } else {
-                paths =
-                    stream.filter(p -> !Files.isDirectory(p)).filter(hiddenFilesFilter).collect(Collectors.toList());
-                setCounts(paths.size(), 0);
-            }
+
+            m_filter.resetCount();
+            paths = stream.filter(m_filter).collect(Collectors.toList());
+            setCounts(paths.size(), m_filter.getNumberOfFilteredFiles());
+
         }
         return paths;
     }
@@ -174,7 +167,7 @@ public final class FileChooserHelper {
 
         final List<Path> toReturn;
 
-        if (Files.isDirectory(pathOrUrl)) {
+        if (Files.isDirectory(pathOrUrl) && m_settings.readFilesFromFolder()) {
             toReturn = scanDirectoryTree();
         } else {
             toReturn = Collections.singletonList(pathOrUrl);

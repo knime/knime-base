@@ -113,6 +113,9 @@ final class LineReader implements FilesToDataTableReader {
     @Override
     public DataTableSpec createDataTableSpec(final List<Path> paths, final ExecutionMonitor exec)
             throws InvalidSettingsException {
+        if(paths.isEmpty()) {
+            throw new InvalidSettingsException("No input file specified.");
+        }
         final String tableName = getTableName(paths);
         final Path path = paths.get(0);
         try (Stream<String> currentLines = Files.lines(path)) {

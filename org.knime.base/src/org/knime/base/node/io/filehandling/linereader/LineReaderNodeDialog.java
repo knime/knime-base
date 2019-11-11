@@ -203,8 +203,8 @@ public class LineReaderNodeDialog extends NodeDialogPane {
         try {
             m_filePanel.loadSettingsFrom(settings, specs);
             m_config.loadConfiguration(settings);
-        } catch (InvalidSettingsException ex) {
-           throw new NotConfigurableException(ex.getMessage());
+        } catch (final InvalidSettingsException ex) {
+            throw new NotConfigurableException(ex.getMessage());
         }
     }
 

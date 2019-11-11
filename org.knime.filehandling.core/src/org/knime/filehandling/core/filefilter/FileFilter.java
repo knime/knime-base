@@ -48,76 +48,60 @@
  */
 package org.knime.filehandling.core.filefilter;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
  * File Filter.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class FileFilter {
+public class FileFilter implements Predicate<Path> {
 
     /**
      * FilterType enumeration used for {@link FileFilter}.
      *
      * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
      */
-    public enum FilterType {
-            /**
-             * Only files with certain extensions pass this filter.
-             */
-            EXTENSIONS("File extension(s)"),
+    public enum FilterType implements ButtonGroupEnumInterface {
+
             /**
              * Only files with names containing the wildcard pass this filter.
              */
-            WILDCARD("Wildcard"),
+            WILDCARD("Wildcard", "Only files with names containing the wildcard pass this filter.",
+                "Wildcard patterns contain '*' (sequence of characters) and '?' (one character)"),
             /**
              * Only files with names that matches the regex pass this filter.
              */
-            REGEX("Regular expression");
+            REGEX("Regular expression", "Only files with names that matches the regex pass this filter.",
+                "Regual expression e.g.[0-9]* matches any string of digits, for more examples in see java.util.regex.Pattern");
 
         /** The display text */
         private final String m_displayText;
+
+        private final String m_description;
+
+        private final String m_inputTooltip;
 
         /**
          * Creates a new instance of {@code FilterType}
          *
          * @param displayText The display text
          */
-        private FilterType(final String displayText) {
+        private FilterType(final String displayText, final String description, final String tooltip) {
             m_displayText = displayText;
-        }
-
-        /**
-         * Returns the display text of an enum type.
-         *
-         * @return the display text of an enum type
-         */
-        public final String getDisplayText() {
-            return m_displayText;
-        }
-
-        @Override
-        public String toString() {
-            return this.getDisplayText();
-        }
-
-        /**
-         * Returns the FilterType based on a string.
-         *
-         * @param displayText The display text used to retrieve the FilterType
-         * @return the FilterType
-         */
-        public static final FilterType fromDisplayText(final String displayText) {
-            return Arrays.stream(values()).filter((f) -> f.getDisplayText().equals(displayText)).findFirst().get();
+            m_description = description;
+            m_inputTooltip = tooltip;
         }
 
         /**
@@ -127,69 +111,92 @@ public class FileFilter {
          * @return true, if the argument represents a filter type in this enum
          */
         public static final boolean contains(final String filterType) {
-            return Arrays.stream(values()).anyMatch(f -> f.getDisplayText().equals(filterType));
+            return Arrays.stream(values()).anyMatch(f -> f.name().equals(filterType));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getText() {
+            return m_displayText;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getActionCommand() {
+            return name();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getToolTip() {
+            return m_description;
+        }
+
+        /**
+         * @return the inputTooltip
+         */
+        public String getInputTooltip() {
+            return m_inputTooltip;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isDefault() {
+            return this.equals(WILDCARD);
         }
     }
 
     /** Total number of filtered files */
     private int m_numberOfFilteredFiles;
 
-    /** The FilterType used to filter files */
-    private final FilterType m_filterType;
-
-    /** List of file extensions used if {@link FilterType#EXTENSIONS} is selected */
-    private final List<String> m_extensions;
-
-    /** Regex pattern used if {@link FilterType#WILDCARD} or {@link FilterType#REGEX} is selected */
-    private final Pattern m_regex;
-
-    /** Case sensitive */
-    private final boolean m_caseSensitive;
-
-    /**
-     * Create a new instance of {@code FileFilter}.
-     *
-     * @param filterType the file filter type
-     * @param filterExpression the file filter expression
-     * @param caseSensitive case sensitive
-     */
-    public FileFilter(final FilterType filterType, final String filterExpression, final boolean caseSensitive) {
-        m_filterType = filterType;
-        String regexPattern = null;
-        switch (filterType) {
-            case EXTENSIONS:
-                m_extensions = Arrays.stream(filterExpression.split(";")).map((ex) -> "." + ex).collect(Collectors.toList());
-                break;
-            case WILDCARD:
-                regexPattern = wildcardToRegex(filterExpression, false);
-                m_extensions = Collections.emptyList();
-                break;
-            case REGEX:
-                regexPattern = filterExpression;
-                m_extensions = Collections.emptyList();
-                break;
-            default:
-                throw new IllegalStateException("Unknown filter: " + filterType);
-        }
-
-        m_caseSensitive = caseSensitive;
-        if (regexPattern != null) {
-            m_regex = m_caseSensitive ? Pattern.compile(regexPattern)
-                : Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
-        } else {
-            m_regex = null;
-        }
-    }
+    private final FileFilterSettings m_fileFilterSettings;
 
     /**
      * Create a new instance of {@code FileFilter} using a {@link SettingsModelFileChooser2} that contains all necessary
      * parameters.
      *
-     * @param settings settings model containing necessary parameters
+     * @param fileFilterSettings settings model containing necessary parameters
      */
-    public FileFilter(final SettingsModelFileChooser2 settings) {
-        this(FilterType.fromDisplayText(settings.getFilterMode()), settings.getFilterExpression(),
-            settings.getCaseSensitive());
+    public FileFilter(final FileFilterSettings fileFilterSettings) {
+        m_fileFilterSettings = fileFilterSettings;
+    }
+
+    private final boolean isSatisfiedFilterHidden(final Path path) {
+        try {
+            return !(m_fileFilterSettings.filterHiddenFiles() && Files.isHidden(path));
+        } catch (final IOException ex) {
+            return true;
+        }
+    }
+
+    private final boolean isSatisfiedFileExtension(final Path path) {
+        if (!m_fileFilterSettings.filterFilesByExtension()) {
+            return true;
+        }
+        boolean accept = false;
+
+        final String pathAsString = path.getFileName().toString();
+        final List<String> extensions = Arrays.stream(m_fileFilterSettings.getFilterExpressionExtension().split(";")) //
+            .map(ex -> "." + ex).collect(Collectors.toList());
+        if (m_fileFilterSettings.isFilterCaseSensitiveExtension()) {
+            accept = extensions.stream().anyMatch(pathAsString::endsWith);
+        } else {
+            accept = extensions.stream()//
+                .anyMatch(ext -> pathAsString.toLowerCase().endsWith(ext.toLowerCase()));
+        }
+        if (!accept) {
+            m_numberOfFilteredFiles++;
+        }
+
+        return accept;
     }
 
     /**
@@ -198,35 +205,27 @@ public class FileFilter {
      * @param path the path to check
      * @return true, if the path satisfies the filter requirements
      */
-    public final boolean isSatisfied(final Path path) {
+    private final boolean isSatisfiedFileName(final Path path) {
+        if (!m_fileFilterSettings.filterFilesByName()) {
+            return true;
+        }
         // toString might not be the correct method
         final String pathAsString;
-
+        final FilterType filterMode = m_fileFilterSettings.getFilterType();
+        final String filterExpression = m_fileFilterSettings.getFilterExpressionName();
+        final String regexString =
+            filterMode.equals(FilterType.WILDCARD) ? wildcardToRegex(filterExpression, false) : filterExpression;
+        final Pattern regex = m_fileFilterSettings.isFilterCaseSensitiveName() ? Pattern.compile(regexString)
+            : Pattern.compile(regexString, Pattern.CASE_INSENSITIVE);
         boolean accept = false;
-        if (Files.isRegularFile(path)) {
-            switch (m_filterType) {
-                case EXTENSIONS:
-                    pathAsString = path.getFileName().toString();
-                    if (m_caseSensitive) {
-                        accept = m_extensions.stream().anyMatch(ext -> pathAsString.endsWith(ext));
-                    } else {
-                        accept = m_extensions.stream()//
-                            .anyMatch(ext -> pathAsString.toLowerCase().endsWith(ext.toLowerCase()));
-                    }
-                    break;
-                case WILDCARD:
-                    // no break
-                case REGEX:
-                    pathAsString = path.toString();
-                    accept = m_regex.matcher(pathAsString).matches();
-                    break;
-                default:
-                    accept = false;
-            }
-            if (!accept) {
-                m_numberOfFilteredFiles++;
-            }
+
+        pathAsString = path.getFileName().toString();
+        accept = regex.matcher(pathAsString).matches();
+
+        if (!accept) {
+            m_numberOfFilteredFiles++;
         }
+
         return accept;
     }
 
@@ -247,23 +246,23 @@ public class FileFilter {
     }
 
     /**
-     * Converts a wildcard pattern containing '*' and '?' as meta characters into a regular expression. Optionally,
-     * the backslash can be enabled as escape character for the wildcards. In this case a backslash has a special
-     * meaning and needs may need to be escaped itself.
+     * Converts a wildcard pattern containing '*' and '?' as meta characters into a regular expression. Optionally, the
+     * backslash can be enabled as escape character for the wildcards. In this case a backslash has a special meaning
+     * and needs may need to be escaped itself.
      *
      * @param wildcard a wildcard expression
-     * @param enableEscaping {@code true} if the wildcards may be escaped (i.e. they loose their special meaning)
-     *            by prepending a backslash
+     * @param enableEscaping {@code true} if the wildcards may be escaped (i.e. they loose their special meaning) by
+     *            prepending a backslash
      * @return the corresponding regular expression
      */
     private static final String wildcardToRegex(final String wildcard, final boolean enableEscaping) {
         // FIXME: This method is copied from org.knime.base.util.WildcardMatcher
         // (we don't want to import org.knime.base)
         // This needs to be replaced by a more convenient solutions
-        StringBuilder buf = new StringBuilder(wildcard.length() + 20);
+        final StringBuilder buf = new StringBuilder(wildcard.length() + 20);
 
         for (int i = 0; i < wildcard.length(); i++) {
-            char c = wildcard.charAt(i);
+            final char c = wildcard.charAt(i);
             switch (c) {
                 case '*':
                     if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
@@ -304,6 +303,17 @@ public class FileFilter {
         }
 
         return buf.toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean test(final Path path) {
+        return Files.isRegularFile(path) && //
+            isSatisfiedFilterHidden(path) && //
+            isSatisfiedFileExtension(path) && //
+            isSatisfiedFileName(path);
     }
 
 }

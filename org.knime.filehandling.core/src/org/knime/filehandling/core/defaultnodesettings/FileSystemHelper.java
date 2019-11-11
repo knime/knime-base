@@ -78,7 +78,7 @@ public class FileSystemHelper {
     public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
         final SettingsModelFileChooser2 settings, final int timeoutInMillis) throws IOException {
 
-        final FileSystemChoice choice = FileSystemChoice.getChoiceFromId(settings.getFileSystem());
+        final FileSystemChoice choice = settings.getFileSystemChoice();
         final FileSystem toReturn;
 
         switch (choice.getType()) {
