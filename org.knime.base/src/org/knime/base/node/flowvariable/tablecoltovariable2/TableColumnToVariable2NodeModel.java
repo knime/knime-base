@@ -49,18 +49,17 @@ package org.knime.base.node.flowvariable.tablecoltovariable2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.stream.Collectors;
 
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.IntValue;
-import org.knime.core.data.StringValue;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -82,15 +81,17 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
  * with the row ids as their variable name.
  *
  * @author Gabor Bakos
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 class TableColumnToVariable2NodeModel extends NodeModel {
-    static final String CFGKEY_IGNORE_MISSING = "ignore missing";
 
-    static final boolean DEFAULT_IGNORE_MISSING = true;
+    private static final String CFGKEY_IGNORE_MISSING = "ignore missing";
 
-    static final String CFGKEY_COLUMN = "column";
+    private static final boolean DEFAULT_IGNORE_MISSING = true;
 
-    static final String DEFAULT_COLUMN = "";
+    private static final String CFGKEY_COLUMN = "column";
+
+    private static final String DEFAULT_COLUMN = "";
 
     static final SettingsModelBoolean createIgnoreMissing() {
         return new SettingsModelBoolean(CFGKEY_IGNORE_MISSING, DEFAULT_IGNORE_MISSING);
@@ -107,54 +108,40 @@ class TableColumnToVariable2NodeModel extends NodeModel {
     /**
      * Constructor for the node model.
      */
-    protected TableColumnToVariable2NodeModel() {
+    TableColumnToVariable2NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         if (inData[0] instanceof BufferedDataTable) {
             final BufferedDataTable table = (BufferedDataTable)inData[0];
-            final int colIndex = table.getSpec().findColumnIndex(m_column.getStringValue());
+            final DataTableSpec spec = table.getSpec();
+            final int colIndex = spec.findColumnIndex(m_column.getStringValue());
             assert colIndex >= 0 : colIndex;
-            for (DataRow dataRow : table) {
-                DataCell cell = dataRow.getCell(colIndex);
+            final DataType type = spec.getColumnSpec(colIndex).getType();
+            for (final DataRow row : table) {
+                final DataCell cell = row.getCell(colIndex);
+                final String name = row.getKey().getString();
                 if (cell.isMissing()) {
                     if (m_ignoreMissing.getBooleanValue()) {
                         continue;
                     }
-                    throw new Exception("Missing value in column (" + m_column.getColumnName() + ") in row: "
-                        + dataRow.getKey());
+                    throw new MissingValueException((MissingValue)cell,
+                        "Missing value in column (" + m_column.getColumnName() + ") in row: " + row.getKey());
                 }
-                if (cell instanceof IntValue) {
-                    final IntValue iv = (IntValue)cell;
-                    pushFlowVariableInt(dataRow.getKey().getString(), iv.getIntValue());
-                } else if (cell instanceof DoubleValue) {
-                    final DoubleValue dv = (DoubleValue)cell;
-                    pushFlowVariableDouble(dataRow.getKey().getString(), dv.getDoubleValue());
-                } else if (cell instanceof StringValue) {
-                    final StringValue sv = (StringValue)cell;
-                    pushFlowVariableString(dataRow.getKey().getString(), sv.getStringValue());
-                }
+
+                VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
             }
         }
         return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // Do nothing, no internal state
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (inSpecs[0] instanceof DataTableSpec) {
@@ -164,8 +151,8 @@ class TableColumnToVariable2NodeModel extends NodeModel {
             }
             final int colIndex = spec.findColumnIndex(m_column.getStringValue());
             if (colIndex < 0) {
-                String errorMessage = "Wrong column name, not in input: " + m_column.getStringValue()
-                        + " in: " + spec;
+                final String errorMessage =
+                    "Wrong column name, not in input: " + m_column.getStringValue() + " in: " + spec;
                 errorOrDefault(spec, errorMessage);
             }
         } else {
@@ -174,15 +161,10 @@ class TableColumnToVariable2NodeModel extends NodeModel {
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
-    /**
-     * @param spec
-     * @param errorMessage
-     * @throws InvalidSettingsException
-     */
-    void errorOrDefault(final DataTableSpec spec, final String errorMessage) throws InvalidSettingsException {
-        Collection<DataColumnSpec> applicableColumns = applicableColumns(spec);
+    private void errorOrDefault(final DataTableSpec spec, final String errorMessage) throws InvalidSettingsException {
+        final Collection<DataColumnSpec> applicableColumns = applicableColumns(spec);
         if (applicableColumns.size() == 1) {
-            DataColumnSpec column = applicableColumns.iterator().next();
+            final DataColumnSpec column = applicableColumns.iterator().next();
             m_column.setSelection(column.getName(), false);
             setWarningMessage("Selected column " + column.getName());
         } else {
@@ -190,63 +172,38 @@ class TableColumnToVariable2NodeModel extends NodeModel {
         }
     }
 
-    /**
-     * @param spec
-     * @return
-     */
     private static Collection<DataColumnSpec> applicableColumns(final DataTableSpec spec) {
-        List<DataColumnSpec> ret = new ArrayList<DataColumnSpec>();
-        for (DataColumnSpec colSpec : spec) {
-            final DataType type = colSpec.getType();
-            if (type.isCompatible(DoubleValue.class) || type.isCompatible(StringValue.class)) {
-                ret.add(colSpec);
-            }
-        }
-        return ret ;
+        return spec.stream().filter(s -> VariableAndDataCellUtil.isTypeCompatible(s.getType()))
+            .collect(Collectors.toList());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_column.saveSettingsTo(settings);
         m_ignoreMissing.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_column.loadSettingsFrom(settings);
         m_ignoreMissing.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_column.validateSettings(settings);
         m_ignoreMissing.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         //No internal state
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         //No internal state
     }
 

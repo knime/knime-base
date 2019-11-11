@@ -52,52 +52,35 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * <code>NodeFactory</code> for the "TableColumnToVariable2" Node.
- * Converts the values from a table column to flow variables with the row ids as their variable name.
+ * <code>NodeFactory</code> for the "TableColumnToVariable2" Node. Converts the values from a table column to flow
+ * variables with the row ids as their variable name.
  *
  * @author Gabor Bakos
  */
-public class TableColumnToVariable2NodeFactory
-        extends NodeFactory<TableColumnToVariable2NodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+public class TableColumnToVariable2NodeFactory extends NodeFactory<TableColumnToVariable2NodeModel> {
     @Override
     public TableColumnToVariable2NodeModel createNodeModel() {
         return new TableColumnToVariable2NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<TableColumnToVariable2NodeModel> createNodeView(final int viewIndex,
-            final TableColumnToVariable2NodeModel nodeModel) {
+        final TableColumnToVariable2NodeModel nodeModel) {
         throw new ArrayIndexOutOfBoundsException(viewIndex);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return new TableColumnToVariable2NodeDialog();
     }
 }
-

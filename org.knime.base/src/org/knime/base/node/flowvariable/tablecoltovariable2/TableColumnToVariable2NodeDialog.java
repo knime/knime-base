@@ -44,12 +44,15 @@
  */
 package org.knime.base.node.flowvariable.tablecoltovariable2;
 
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.StringValue;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.util.ColumnFilterPanel.ValueClassFilter;
+import org.knime.core.node.util.ColumnFilter;
 
 /**
  * <code>NodeDialog</code> for the "TableColumnToVariable2" Node. Converts the values from a table column to flow
@@ -59,20 +62,36 @@ import org.knime.core.node.util.ColumnFilterPanel.ValueClassFilter;
  * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
  *
  * @author Gabor Bakos
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class TableColumnToVariable2NodeDialog extends DefaultNodeSettingsPane {
+class TableColumnToVariable2NodeDialog extends DefaultNodeSettingsPane {
+
     /**
      * New pane for configuring the TableColumnToVariable2 node.
      */
-    protected TableColumnToVariable2NodeDialog() {
-        @SuppressWarnings("unchecked")
-        final ValueClassFilter columnFilter = new ValueClassFilter(DoubleValue.class, StringValue.class);
+    TableColumnToVariable2NodeDialog() {
+        final ColumnFilter filter = new ColumnFilter() {
+            @Override
+            public boolean includeColumn(final DataColumnSpec colSpec) {
+                return VariableAndDataCellUtil.isTypeCompatible(colSpec.getType());
+            }
+
+            @Override
+            public String allFilteredMsg() {
+                return "No columns compatible with any of the types "
+                    + Arrays.stream(VariableAndDataCellUtil.getSupportedVariableTypes())
+                        .map(t -> t.getIdentifier().toLowerCase()).collect(Collectors.joining(", "))
+                    + ".";
+            }
+        };
         addDialogComponent(new DialogComponentColumnNameSelection(
-            TableColumnToVariable2NodeModel.createColumnSettings(), "Column name", 0, true, columnFilter));
+            TableColumnToVariable2NodeModel.createColumnSettings(), "Column name", 0, true, filter));
+
         final DialogComponentBoolean ignoreMissing =
             new DialogComponentBoolean(TableColumnToVariable2NodeModel.createIgnoreMissing(), "Skip missing values");
         ignoreMissing
             .setToolTipText("When unchecked, the execution fails when a missing value is in the input column.");
         addDialogComponent(ignoreMissing);
     }
+
 }
