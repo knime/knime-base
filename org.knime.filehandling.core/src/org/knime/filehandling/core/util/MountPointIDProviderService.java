@@ -49,16 +49,19 @@
 package org.knime.filehandling.core.util;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 
 /**
  * Service that provides access to the ids of mounted mountpoints.
@@ -80,7 +83,7 @@ public class MountPointIDProviderService {
 
     private static MountPointIDProviderService m_instance;
 
-    private List<MountPointIDProvider> m_providers = new ArrayList<>();
+    private final List<MountPointIDProvider> m_providers = new ArrayList<>();
 
     private MountPointIDProviderService() {
         try {
@@ -96,7 +99,7 @@ public class MountPointIDProviderService {
 
                 if ((operator == null) || operator.isEmpty()) {
                     LOGGER.error("The extension '" + decl + "' doesn't provide the required attribute '"
-                            + EXT_POINT_ATTR_DF + "'");
+                        + EXT_POINT_ATTR_DF + "'");
                     LOGGER.error("Extension " + decl + " ignored.");
                     continue;
                 }
@@ -144,11 +147,114 @@ public class MountPointIDProviderService {
      * @throws IOException if the KNIME URL cannot be resolved
      */
     public URL resolveKNIMEURL(final URL url) throws IOException {
-        Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
+        final Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
         if (findFirst.isPresent()) {
             return findFirst.get().resolveKNIMEURL(url);
         }
         throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
     }
 
+    private MountPointIDProvider getProvider() {
+        final Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
+        if (findFirst.isPresent()) {
+            return findFirst.get();
+        }
+        throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
+    }
+
+    /**
+     * Lists all the files and folders at a given URI.
+     *
+     * @param uri the location of the directory
+     * @return all files and folders in the given directory
+     * @throws CoreException
+     */
+    public List<URI> listFiles(final URI uri) throws CoreException {
+        return getProvider().listFiles(uri);
+    }
+
+    /**
+     * Gets the file attributes to a given URI.
+     *
+     * @param uri the URI of the file
+     * @return the attributes of the URI
+     * @throws IOException
+     *
+     */
+    public FSFileAttributes getFileAttributes(final URI uri) throws IOException {
+        return getProvider().getFileAttributes(uri);
+    }
+
+    /**
+     * Copies a file from the source to the target.
+     *
+     * @param source source location
+     * @param target target destination
+     * @return true if file was copied
+     * @throws IOException
+     */
+    public boolean copyFile(final URI source, final URI target) throws IOException {
+        return getProvider().copyFile(source, target);
+    }
+
+    /**
+     * Moves a file from the source to the target.
+     *
+     * @param source source location
+     * @param target target destination
+     * @return true if file was moved
+     * @throws IOException
+     */
+    public boolean moveFile(final URI source, final URI target) throws IOException {
+        return getProvider().moveFile(source, target);
+    }
+
+    /**
+     * Deletes a file at the URI location.
+     *
+     * @param uri file to be deleted
+     * @return true if file was deleted
+     * @throws IOException
+     */
+    public boolean deleteFile(final URI uri) throws IOException {
+        return getProvider().deleteFile(uri);
+    }
+
+    /**
+     * Creates a directory at the given URI location/
+     *
+     * @param uri the location of the directory to be created
+     * @throws IOException
+     */
+    public void createDirectory(final URI uri) throws IOException {
+        try {
+            getProvider().createDirectory(uri);
+        } catch (final CoreException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    /**
+     * Checks whether a file at the given URI location is readable.
+     *
+     * @param uri the location of the file
+     * @return true if the file is readable
+     */
+    public boolean isReadable(final URI uri) {
+        try {
+            return getProvider().isReadable(uri);
+        } catch (final CoreException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether a URI points to a workflow.
+     *
+     * @param uri the location to be checked
+     * @return true if the URI is a workflow
+     */
+    public boolean isWorkflow(final URI uri) {
+        return getProvider().isWorkflow(uri);
+    }
 }

@@ -230,4 +230,18 @@ public class KNIMEConnection {
                 return KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE;
         }
     }
+
+    /**
+     * Returns the scheme and host of the connection type.
+     *
+     * @return the scheme and host of the connection type
+     */
+    public String getSchemeAndHost() {
+        if (m_type.equals(Type.MOUNTPOINT_ABSOLUTE)) {
+            return "knime://" + m_key;
+        } else {
+            return m_type.getSchemeAndHost();
+        }
+    }
+
 }

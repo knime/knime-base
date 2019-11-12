@@ -44,29 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Iterator;
 
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.FSDirectoryStream;
 
 /**
- * Interface for the FSPath implementation that has a method to obtain {@link FSFileAttributes}.
+ * Implementation of {@link FSDirectoryStream} for KNIME Mountpoint file systems.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public interface FSPath extends Path {
+public class KNIMERemoteDirectoryStream extends FSDirectoryStream {
 
     /**
-     * Returns the {@link FSFileAttributes} for this path.
+     * Constructs a new directory stream for the given path.
      *
-     * @param type the type of the requested FileAttributes
-     * @return FSFileAttribute for this path
-     * @throws IOException
+     * @param path the path to be iterated over
+     * @param filter the filter to be applied to the content
      */
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException;
+    public KNIMERemoteDirectoryStream(final Path path, final Filter<? super Path> filter) {
+        super(path, filter);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Iterator<Path> getIterator(final Path path, final Filter<? super Path> filter) {
+        return new KNIMERemotePathIterator(path, filter);
+    }
 
 }

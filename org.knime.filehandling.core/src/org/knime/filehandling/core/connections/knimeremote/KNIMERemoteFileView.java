@@ -44,29 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Path;
 
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.filechooser.NioFileView;
+import org.osgi.framework.FrameworkUtil;
 
 /**
- * Interface for the FSPath implementation that has a method to obtain {@link FSFileAttributes}.
+ * FileView that shows a KNIME icon for workflows
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public interface FSPath extends Path {
+public class KNIMERemoteFileView extends NioFileView {
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMERemoteFileView.class);
 
-    /**
-     * Returns the {@link FSFileAttributes} for this path.
-     *
-     * @param type the type of the requested FileAttributes
-     * @return FSFileAttribute for this path
-     * @throws IOException
-     */
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException;
+    @Override
+    public Icon getIcon(final File f) {
+        final Path path = f.toPath();
+        if (path instanceof KNIMERemotePath) {
+            final KNIMERemotePath knimeRemotePath = (KNIMERemotePath)path;
+            if (knimeRemotePath.isWorkflow()) {
+                try {
+                    final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(getClass()));
+                    final File workflowImage = new File(bundle, "icons/knime_default.png");
+                    return new ImageIcon(workflowImage.getPath());
+                } catch (final Exception e) {
+                    LOGGER.debug(e);
+                }
+            }
+        }
+
+        return super.getIcon(f);
+    }
 
 }

@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -73,6 +74,8 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
 
     private boolean m_hasBeenWritten = false;
 
+    private boolean m_isClosed = false;
+
     private final T m_file;
 
     /**
@@ -89,8 +92,8 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
             Files.createTempFile(String.format("tempFSfile-%s-", UUID.randomUUID().toString().replace('-', '_')),
                 m_file.getFileName().toString());
         //FIXME we just need a path here.
-        Files.delete(m_tempFile);
-        if (options.contains(StandardOpenOption.READ) || options.contains(StandardOpenOption.APPEND)) {
+       // Files.delete(m_tempFile);
+        if (options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.APPEND)) {
             copyFromRemote(m_file, m_tempFile);
         }
         m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, options);
@@ -98,7 +101,7 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
 
     /**
      * Copies the content of the remote file to a local temporary file.
-     * 
+     *
      * @param remoteFile the remote file to copy from
      * @param tempFile the temporary file to copy to
      * @throws IOException if an I/O error occurs
@@ -107,7 +110,7 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
 
     /**
      * Copies the content of the local remote file to the remote file.
-     * 
+     *
      * @param remoteFile the remote file to copy to
      * @param tempFile the temporary file to copy to
      * @throws IOException if an I/O error occurs
@@ -127,11 +130,14 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public void close() throws IOException {
-        if (m_hasBeenWritten) {
-            copyToRemote(m_file, m_tempFile);
+        if(!m_isClosed) {
+            if (m_hasBeenWritten) {
+                copyToRemote(m_file, m_tempFile);
+            }
+            m_tempFileSeekableByteChannel.close();
+            Files.delete(m_tempFile);
+            m_isClosed = true;
         }
-        m_tempFileSeekableByteChannel.close();
-        Files.delete(m_tempFile);
     }
 
     /**
@@ -139,6 +145,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public int read(final ByteBuffer dst) throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         return m_tempFileSeekableByteChannel.read(dst);
     }
 
@@ -147,6 +156,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public int write(final ByteBuffer src) throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         m_hasBeenWritten = true;
         return m_tempFileSeekableByteChannel.write(src);
     }
@@ -156,6 +168,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public long position() throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         return m_tempFileSeekableByteChannel.position();
     }
 
@@ -164,6 +179,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public SeekableByteChannel position(final long newPosition) throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         return m_tempFileSeekableByteChannel.position(newPosition);
     }
 
@@ -172,6 +190,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public long size() throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         return m_tempFileSeekableByteChannel.size();
     }
 
@@ -180,6 +201,9 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     @Override
     public SeekableByteChannel truncate(final long size) throws IOException {
+        if(m_isClosed) {
+            throw new ClosedChannelException();
+        }
         return m_tempFileSeekableByteChannel.truncate(size);
     }
 

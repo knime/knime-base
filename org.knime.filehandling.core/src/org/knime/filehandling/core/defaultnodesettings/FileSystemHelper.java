@@ -56,6 +56,7 @@ import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
 import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -68,6 +69,7 @@ public class FileSystemHelper {
 
     /**
      * Method to obtain the file system for a given settings model.
+     *
      * @param fs optional {@link FSConnection}
      * @param settings {@link SettingsModelFileChooser2} instance
      * @param timeoutInMillis timeout in milliseconds for the custom URL file system
@@ -86,13 +88,22 @@ public class FileSystemHelper {
                 toReturn = FileSystems.getDefault();
                 break;
             case CUSTOM_URL_FS:
-                toReturn = new URIFileSystemProvider(timeoutInMillis).newFileSystem(
-                    URI.create(settings.getPathOrURL()), null);
+                toReturn =
+                    new URIFileSystemProvider(timeoutInMillis).newFileSystem(URI.create(settings.getPathOrURL()), null);
+                break;
+            case KNIME_MOUNTPOINT:
+                final String knimeFileSystem = settings.getKNIMEFileSystem();
+                final KNIMEConnection connection =
+                    KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
+
+                final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
+                toReturn = KNIMERemoteFileSystemProvider.getInstance().getOrCreateFileSystem(remoteFsKey);
                 break;
             case KNIME_FS:
-                String knimeFileSystemHost = settings.getKNIMEFileSystem();
-                Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
-                URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
+                final String knimeFileSystemHost = settings.getKNIMEFileSystem();
+                final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
+
+                final URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
                 toReturn = KNIMEFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
                 break;
             case CONNECTED_FS:

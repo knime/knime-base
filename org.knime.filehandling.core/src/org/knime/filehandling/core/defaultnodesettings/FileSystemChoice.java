@@ -89,7 +89,7 @@ public class FileSystemChoice {
     private static final FileSystemChoice LOCAL_FS_CHOICE = new FileSystemChoice(Choice.LOCAL_FS, "Local File System");
 
     /** Instance of KNIME file system choice */
-    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "Realtive to");
+    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "Relative to");
 
     /** Instance of KNIME file system choice */
     private static final FileSystemChoice KNIME_MOUNTPOINT_CHOICE =

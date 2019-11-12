@@ -44,29 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.IOException;
+import java.net.URI;
+import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import org.eclipse.core.runtime.CoreException;
+import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
- * Interface for the FSPath implementation that has a method to obtain {@link FSFileAttributes}.
+ * Iterates over all the files and folders of the path on a remote KNIME mount point.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public interface FSPath extends Path {
+public class KNIMERemotePathIterator implements Iterator<Path> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMERemotePathIterator.class);
+
+    private final KNIMERemoteFileSystem m_fileSystem;
+
+    private Iterator<KNIMERemotePath> m_iterator;
 
     /**
-     * Returns the {@link FSFileAttributes} for this path.
+     * Creates an iterator over all the files and folder in the given paths location.
      *
-     * @param type the type of the requested FileAttributes
-     * @return FSFileAttribute for this path
-     * @throws IOException
+     * @param path destination to iterate over
+     * @param filter
      */
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException;
+    public KNIMERemotePathIterator(final Path path, final Filter<? super Path> filter) {
+        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
+        m_fileSystem = (KNIMERemoteFileSystem)knimePath.getFileSystem();
+
+        List<URI> uriList;
+        try {
+            uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
+            m_iterator = uriList.stream().map(p -> new KNIMERemotePath(m_fileSystem, p)).iterator();
+        } catch (final CoreException ex) {
+            LOGGER.warn(ex);
+            m_iterator = Collections.emptyIterator();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Path next() {
+        return m_iterator.next();
+    }
 
 }

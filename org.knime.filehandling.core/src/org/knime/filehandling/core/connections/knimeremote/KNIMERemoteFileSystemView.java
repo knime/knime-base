@@ -44,29 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 12, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.net.URI;
 
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * Interface for the FSPath implementation that has a method to obtain {@link FSFileAttributes}.
+ * File System view for {@link KNIMERemoteFileSystem}
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public interface FSPath extends Path {
+public class KNIMERemoteFileSystemView extends NioFileSystemView {
 
     /**
-     * Returns the {@link FSFileAttributes} for this path.
+     * File System view for {@link KNIMERemoteFileSystem}
      *
-     * @param type the type of the requested FileAttributes
-     * @return FSFileAttribute for this path
-     * @throws IOException
+     * @param fileSystem the {@link KNIMERemoteFileSystem}
      */
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException;
+    public KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
+        super(fileSystem, new KNIMERemotePath(fileSystem, URI.create("/")));
+    }
 
 }

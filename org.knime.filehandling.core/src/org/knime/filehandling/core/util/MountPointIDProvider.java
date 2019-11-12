@@ -49,8 +49,12 @@
 package org.knime.filehandling.core.util;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
+
+import org.eclipse.core.runtime.CoreException;
+import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 
 /**
  * Interface for MountPointIdProvider instances.
@@ -72,5 +76,78 @@ public interface MountPointIDProvider {
      * @throws IOException if URL cannot be resolved
      */
     URL resolveKNIMEURL(final URL url) throws IOException;
+
+
+    /**
+     * Lists the children of the Mountpoint object represented by the given URI.
+     *
+     * @param uri the uri of the object
+     * @return list of URI representing the children of the input object
+     * @throws CoreException
+     */
+    List<URI> listFiles(final URI uri) throws CoreException;
+
+    /**
+     * Gets the {@link FSFileAttributes} for the Mountpoint object represented by the given URI.
+     *
+     * @param uri he uri of the object
+     * @return the {@link FSFileAttributes}
+     * @throws IOException
+     */
+    FSFileAttributes getFileAttributes(URI uri) throws IOException;
+
+    /**
+     * Copies a file from the source to the target.
+     *
+     * @param source source location
+     * @param target target destination
+     * @return true if file was copied
+     * @throws IOException
+     */
+    boolean copyFile(URI source, URI target) throws IOException;
+
+    /**
+     * Moves a file from the source to the target.
+     *
+     * @param source source location
+     * @param target target destination
+     * @return true if file was moved
+     * @throws IOException
+     */
+    boolean moveFile(URI source, URI target) throws IOException;
+
+    /**
+     * Deletes a file at the URI location.
+     *
+     * @param uri file to be deleted
+     * @return true if file was deleted
+     * @throws IOException
+     */
+    boolean deleteFile(URI uri) throws IOException;
+
+    /**
+     * Creates a directory at the given URI location/
+     *
+     * @param uri the location of the directory to be created
+     * @throws CoreException
+     */
+    void createDirectory(URI uri) throws CoreException;
+
+    /**
+     * Checks whether a file at the given URI location is readable.
+     *
+     * @param uri the location of the file
+     * @return true if the file is readable
+     * @throws CoreException
+     */
+    boolean isReadable(URI uri) throws CoreException;
+
+    /**
+     * Checks whether a URI points to a workflow.
+     *
+     * @param uri the location to be checked
+     * @return true if the URI is a workflow
+     */
+    boolean isWorkflow(URI uri);
 
 }

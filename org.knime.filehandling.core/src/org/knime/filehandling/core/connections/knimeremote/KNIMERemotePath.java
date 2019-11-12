@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 28, 2019 (bjoern): created
+ *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.url;
+package org.knime.filehandling.core.connections.knimeremote;
 
 import static java.lang.String.format;
 
@@ -63,71 +63,83 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Iterator;
 
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.attributes.FSBasicAttributes;
 import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.filechooser.NioFile;
+import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
+ * Paths to a remote KNIME Server.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class URIPath implements FSPath {
+public class KNIMERemotePath implements FSPath {
 
     /**
      * The file system of this path.
      */
     protected final FileSystem m_fileSystem;
 
-    /**
-     * The URI this path wraps.
-     */
-    protected final URI m_uri;
+    private final String m_path;
 
     private final String[] m_pathComponents;
 
     private final boolean m_isAbsolute;
 
-    private final boolean m_hasRootPathComponent;
+    /**
+     * Constructs a {@code KNIMERemotePath} from a path string, or a sequence of strings that when joined form a path
+     * string.
+     *
+     * @param fileSystem the filesystem the path belongs to
+     * @param first the path string or initial part of the path string
+     * @param more additional strings to be joined to form the path string
+     */
+    protected KNIMERemotePath(final FileSystem fileSystem, final String first, final String... more) {
+        m_fileSystem = fileSystem;
+        String path = first;
+        if (more.length > 0) {
+            if (!first.endsWith(m_fileSystem.getSeparator()) && !more[0].startsWith(m_fileSystem.getSeparator())) {
+                path = path + m_fileSystem.getSeparator();
+            }
+            path += String.join(UnixStylePathUtil.SEPARATOR, more);
+        }
+        m_path = path.isEmpty() ? m_fileSystem.getSeparator() : path;
+        m_isAbsolute = UnixStylePathUtil.hasRootComponent(m_path);
+        m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_path);
+    }
 
     /**
-     * Constructs a new URIPath.
+     * Constructs a {@code KNIMERemotePath} from a URI.
      *
      * @param fileSystem the paths file system
      * @param uri the uri to be wrapped
      */
-    protected URIPath(final FileSystem fileSystem, final URI uri) {
+    protected KNIMERemotePath(final FileSystem fileSystem, final URI uri) {
         m_fileSystem = fileSystem;
-        m_uri = uri;
+        m_path = uri.getPath();
 
-        // FIXME this needs to be moved elsewhere because we have to allow relative URIs
-        // make sure we have a proper URI with an absolute path
-        //        if (m_uri.getScheme() == null) {
-        //            throw new IllegalArgumentException(String.format("Custom URIs must start with a scheme"));
-        //        }
-        //
-        //        if (m_uri.getAuthority() == null) {
-        //            throw new IllegalArgumentException(
-        //                String.format("Custom URIs have an authority component (e.g. host and port)"));
-        //        }
-        //
-        //        if (m_uri.getPath() == null) {
-        //            throw new IllegalArgumentException(String.format("Custom URIs must specify a path"));
-        //        }
+        m_isAbsolute = UnixStylePathUtil.hasRootComponent(m_path);
+        m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_path);
+    }
 
-        m_hasRootPathComponent = UnixStylePathUtil.hasRootComponent(uri.getPath());
+    /**
+     * Creates a mount point absolute path consisting of the underlying file systems mount point and this path.
+     *
+     * @return a mount point absolute path
+     */
+    public KNIMERemotePath toMountPointAbsolutePath() {
+        final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem)m_fileSystem;
 
-        m_isAbsolute = m_uri.getScheme() != null && m_uri.getAuthority() != null && m_uri.getPath() != null
-            && m_hasRootPathComponent;
-
-        m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_uri.getPath());
+        final String mountpoint = knimeFS.getMountpoint();
+        final String seperator = knimeFS.getSeparator();
+        final URI uri = URI.create("knime://" + mountpoint + seperator + m_path);
+        return new KNIMERemotePath(m_fileSystem, uri);
     }
 
     /**
@@ -151,15 +163,10 @@ public class URIPath implements FSPath {
      */
     @Override
     public Path getRoot() {
-        URIPath toReturn = null;
+        final KNIMERemotePath toReturn = null;
 
-        if (m_hasRootPathComponent) {
-            try {
-                return new URIPath(m_fileSystem,
-                    new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null));
-            } catch (URISyntaxException ex) {
-                throw new RuntimeException("Failed to get root of custom URI file system", ex);
-            }
+        if (m_isAbsolute) {
+            return new KNIMERemotePath(m_fileSystem, m_fileSystem.getSeparator());
         }
 
         return toReturn;
@@ -171,13 +178,13 @@ public class URIPath implements FSPath {
     @Override
     public Path getFileName() {
         if (m_pathComponents.length == 0) {
-            return null;
+            return this;
         }
 
         final String filename = m_pathComponents[m_pathComponents.length - 1];
         try {
-            return new URIPath(m_fileSystem, new URI(null, null, filename, null, null));
-        } catch (URISyntaxException ex) {
+            return new KNIMERemotePath(m_fileSystem, new URI(null, null, filename, null, null));
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get file name of custom URI", ex);
         }
     }
@@ -187,22 +194,21 @@ public class URIPath implements FSPath {
      */
     @Override
     public Path getParent() {
-        if (m_pathComponents.length < 2) {
+        if (m_pathComponents.length == 0) {
             return null;
         }
-
-        StringBuilder parentBuilder = new StringBuilder(m_fileSystem.getSeparator());
+        if (m_pathComponents.length == 1) {
+            return getRoot();
+        }
+        final StringBuilder parentBuilder = new StringBuilder(m_fileSystem.getSeparator());
         for (int i = 0; i < m_pathComponents.length - 1; i++) {
             parentBuilder.append(m_pathComponents[i]);
             parentBuilder.append(m_fileSystem.getSeparator());
         }
+        parentBuilder.deleteCharAt(parentBuilder.length() - 1);
 
-        try {
-            return new URIPath(m_fileSystem,
-                new URI(m_uri.getScheme(), m_uri.getAuthority(), parentBuilder.toString(), null, null));
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("Failed to get parent of custom URI", ex);
-        }
+        return new KNIMERemotePath(m_fileSystem, parentBuilder.toString());
+
     }
 
     /**
@@ -219,8 +225,8 @@ public class URIPath implements FSPath {
     @Override
     public Path getName(final int index) {
         try {
-            return new URIPath(m_fileSystem, new URI(null, null, m_pathComponents[index], null, null));
-        } catch (URISyntaxException ex) {
+            return new KNIMERemotePath(m_fileSystem, new URI(null, null, m_pathComponents[index], null, null));
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get path component of custom URI", ex);
         }
     }
@@ -232,8 +238,8 @@ public class URIPath implements FSPath {
     public Path subpath(final int beginIndex, final int endIndex) {
         try {
             final String relativeSubpath = String.join("/", Arrays.copyOfRange(m_pathComponents, beginIndex, endIndex));
-            return new URIPath(m_fileSystem, new URI(null, null, relativeSubpath, null, null));
-        } catch (URISyntaxException ex) {
+            return new KNIMERemotePath(m_fileSystem, new URI(null, null, relativeSubpath, null, null));
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get path component of custom URI", ex);
         }
     }
@@ -254,16 +260,7 @@ public class URIPath implements FSPath {
      */
     @Override
     public boolean startsWith(final String other) {
-        final Path otherPath = makeCustomURIPathOnCurrentFileSystem(other);
-        return GenericPathUtil.startsWith(this, otherPath);
-    }
-
-    private URIPath makeCustomURIPathOnCurrentFileSystem(final String otherPath) {
-        try {
-            return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), otherPath, null, null));
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("Failed make path", ex);
-        }
+        return m_path.startsWith(other);
     }
 
     /**
@@ -283,8 +280,7 @@ public class URIPath implements FSPath {
      */
     @Override
     public boolean endsWith(final String other) {
-        final Path otherPath = makeCustomURIPathOnCurrentFileSystem(other);
-        return GenericPathUtil.endsWith(this, otherPath);
+        return m_path.endsWith(other);
     }
 
     /**
@@ -292,7 +288,7 @@ public class URIPath implements FSPath {
      */
     @Override
     public Path normalize() {
-        return new URIPath(m_fileSystem, m_uri.normalize());
+        return new KNIMERemotePath(m_fileSystem, m_path);
     }
 
     /**
@@ -304,7 +300,7 @@ public class URIPath implements FSPath {
             throw new IllegalArgumentException("Cannot resolve paths across different file systems");
         }
 
-        final URIPath otherUriPath = (URIPath)other;
+        final KNIMERemotePath otherKNIMERemotePath = (KNIMERemotePath)other;
 
         if (other.isAbsolute()) {
             return other;
@@ -315,14 +311,10 @@ public class URIPath implements FSPath {
         }
 
         final String resolvedPathString =
-            UnixStylePathUtil.resolve(m_pathComponents, otherUriPath.m_pathComponents, m_hasRootPathComponent);
+            UnixStylePathUtil.resolve(m_pathComponents, otherKNIMERemotePath.m_pathComponents, m_isAbsolute);
 
-        try {
-            return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), resolvedPathString,
-                otherUriPath.m_uri.getQuery(), otherUriPath.m_uri.getFragment()));
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
+        return new KNIMERemotePath(m_fileSystem, resolvedPathString);
+
     }
 
     /**
@@ -334,15 +326,10 @@ public class URIPath implements FSPath {
             return this;
         }
 
-        try {
-            final Path otherPath =
-                new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null));
+        final Path otherPath = new KNIMERemotePath(m_fileSystem, other);
 
-            return resolve(otherPath);
+        return resolve(otherPath);
 
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
     }
 
     /**
@@ -375,15 +362,10 @@ public class URIPath implements FSPath {
             return this;
         }
 
-        try {
-            final Path otherPath =
-                new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null));
+        final Path otherPath = new KNIMERemotePath(m_fileSystem, other);
 
-            return resolveSibling(otherPath);
+        return resolveSibling(otherPath);
 
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
     }
 
     /**
@@ -400,7 +382,12 @@ public class URIPath implements FSPath {
      */
     @Override
     public URI toUri() {
-        return m_uri;
+        final String mountpoint = ((KNIMERemoteFileSystem)m_fileSystem).getMountpoint();
+        try {
+            return new URI("knime", mountpoint, m_path, null);
+        } catch (final URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -411,7 +398,7 @@ public class URIPath implements FSPath {
         if (m_isAbsolute) {
             return this;
         } else {
-            throw new IllegalStateException(format("Relative URI %s cannot be made absolute", m_uri));
+            throw new IllegalStateException(format("Relative Path %s cannot be made absolute", m_path));
         }
     }
 
@@ -429,7 +416,7 @@ public class URIPath implements FSPath {
      */
     @Override
     public File toFile() {
-        throw new UnsupportedOperationException();
+        return new NioFile(m_path, m_fileSystem);
     }
 
     /**
@@ -456,7 +443,6 @@ public class URIPath implements FSPath {
      */
     @Override
     public Iterator<Path> iterator() {
-        // cannot do any file listings on URIs
         throw new UnsupportedOperationException();
     }
 
@@ -478,7 +464,7 @@ public class URIPath implements FSPath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = FileUtil.toURL(m_uri.toString());
+        final URL url = toUri().toURL();
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
@@ -495,8 +481,8 @@ public class URIPath implements FSPath {
             throw new IllegalArgumentException("Cannot compare paths across different file systems");
         }
 
-        final URIPath otherUriPath = (URIPath)other;
-        return m_uri.compareTo(otherUriPath.m_uri);
+        final KNIMERemotePath otherUriPath = (KNIMERemotePath)other;
+        return m_path.compareTo(otherUriPath.m_path);
     }
 
     @Override
@@ -508,34 +494,32 @@ public class URIPath implements FSPath {
             return false;
         }
 
-        final URIPath other = (URIPath)o;
+        final KNIMERemotePath other = (KNIMERemotePath)o;
         if (other.m_fileSystem != m_fileSystem) {
             return false;
         }
 
-        return m_uri.equals(other.m_uri);
+        return m_path.equals(other.m_path);
     }
 
     @Override
     public int hashCode() {
         int result = m_fileSystem.hashCode();
-        result = 31 * result + m_uri.hashCode();
+        result = 31 * result + m_path.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return m_uri.toString();
+        return m_path.toString();
     }
 
     @Override
-    public FSFileAttributes getFileAttributes(final Class<?> type) {
-        if (type == BasicFileAttributes.class) {
-            return new FSFileAttributes(true, this, p -> {
-                return new FSBasicAttributes(FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
-                    0L, false, false);
-            });
-        }
-        throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
+    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException {
+        return MountPointIDProviderService.instance().getFileAttributes(toUri());
+    }
+
+    public boolean isWorkflow() {
+        return MountPointIDProviderService.instance().isWorkflow(toUri());
     }
 }

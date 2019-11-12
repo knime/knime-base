@@ -81,12 +81,19 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.ui.node.workflow.RemoteWorkflowContext;
+import org.knime.core.ui.node.workflow.WorkflowManagerUI;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystemBrowser;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystemView;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystem;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemBrowser;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemView;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2.FileOrFolderEnum;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
@@ -398,20 +405,25 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())
                 || fsChoice.equals(FileSystemChoice.getKnimeMountpointChoice())) {
                 updateKNIMEConnectionsCombo();
-                final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
-                model.setKNIMEFileSystem(connection.getId());
+                handleKnimeConnectionUpdate();
+            } else {
+                updateEnabledness();
+                updateFileHistoryPanel();
+                triggerStatusMessageUpdate();
             }
-            updateFileHistoryPanel();
-            updateEnabledness();
-            triggerStatusMessageUpdate();
         }
     }
 
     private void handleKnimeConnectionUpdate() {
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
-        model.setKNIMEFileSystem(connection != null ? connection.getId() : null);
-        triggerStatusMessageUpdate();
+        if (connection != null) {
+            model.setKNIMEFileSystem(connection.getId());
+            updateEnabledness();
+            updateFileHistoryPanel();
+            triggerStatusMessageUpdate();
+        }
+
     }
 
     private void handleIncludeSubfolderUpdate() {
@@ -440,6 +452,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             case CUSTOM_URL_FS:
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
                 m_fileHistoryPanel.setBrowseable(false);
+                m_fileHistoryPanel.setEnabled(true);
                 break;
             case CONNECTED_FS:
                 final Optional<FSConnection> fs =
@@ -448,39 +461,67 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 break;
             case KNIME_FS:
                 final KNIMEConnection knimeConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
-                if (knimeConnection.getType() == KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE) {
-                    // Leave like this until remote part is implemented.
-                    m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+
+                try (FileSystem fileSystem = getFileSystem(knimeConnection)) {
+                    final NioFileSystemView fsView = new KNIMEFileSystemView((KNIMEFileSystem)fileSystem);
+                    m_fileHistoryPanel.setFileSystemBrowser(
+                        new KNIMEFileSystemBrowser(fsView, ((KNIMEFileSystem)fileSystem).getBasePath()));
                     m_statusMessage.setText("");
                     m_fileHistoryPanel.setBrowseable(true);
-                } else {
-                    try (FileSystem fileSystem = getFileSystem(knimeConnection)) {
-                        final NioFileSystemView fsView = new KNIMEFileSystemView((KNIMEFileSystem)fileSystem);
-                        m_fileHistoryPanel.setFileSystemBrowser(
-                            new KNIMEFileSystemBrowser(fsView, ((KNIMEFileSystem)fileSystem).getBasePath()));
-                        m_statusMessage.setText("");
-                        m_fileHistoryPanel.setBrowseable(true);
-                    } catch (final IOException ex) {
-                        m_statusMessage.setForeground(Color.RED);
-                        m_statusMessage
-                            .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-                        m_fileHistoryPanel.setBrowseable(false);
-                        LOGGER.debug("Exception when creating or closing the file system:", ex);
-                    }
+                    m_fileHistoryPanel.setEnabled(true);
+                } catch (final IOException ex) {
+                    m_statusMessage.setForeground(Color.RED);
+                    m_statusMessage
+                        .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                    m_fileHistoryPanel.setBrowseable(false);
+                    m_fileHistoryPanel.setEnabled(true);
+                    LOGGER.debug("Exception when creating or closing the file system:", ex);
                 }
+
                 break;
             case KNIME_MOUNTPOINT:
-                //FIXME for remote set Browser and browsable depending on connection
-                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setBrowseable(true);
+                final KNIMEConnection knimeMountConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
+                final String schemeAndHost = knimeMountConnection.getSchemeAndHost();
+                final URI fsKey = URI.create(schemeAndHost);
+
+                try {
+                    @SuppressWarnings("resource")
+                    final KNIMERemoteFileSystem fileSystem =
+                        (KNIMERemoteFileSystem)KNIMERemoteFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
+
+                    final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(fileSystem);
+                    final KNIMERemoteFileSystemBrowser fsBrowser = new KNIMERemoteFileSystemBrowser(fsView);
+
+                    m_fileHistoryPanel.setFileSystemBrowser(fsBrowser);
+                    m_statusMessage.setText("");
+                    final boolean isReadable = MountPointIDProviderService.instance().isReadable(fsKey);
+                    m_fileHistoryPanel.setBrowseable(isReadable);
+                    m_fileHistoryPanel.setEnabled(true);
+                } catch (final IOException ex) {
+                    m_statusMessage.setForeground(Color.RED);
+                    m_statusMessage
+                        .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                    m_fileHistoryPanel.setBrowseable(false);
+                    m_fileHistoryPanel.setEnabled(true);
+                    LOGGER.debug("Exception when creating or closing the file system:", ex);
+                }
                 break;
             case LOCAL_FS:
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
                 m_fileHistoryPanel.setBrowseable(true);
+                m_fileHistoryPanel.setEnabled(true);
                 break;
             default:
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
                 m_fileHistoryPanel.setBrowseable(false);
+                m_fileHistoryPanel.setEnabled(false);
+        }
+
+        if (excutedOnServer() && !fsChoice.getType().equals(Choice.CONNECTED_FS)) {
+            m_fileHistoryPanel.setBrowseable(false);
+            m_fileHistoryPanel.setEnabled(false);
+            m_statusMessage.setForeground(Color.RED);
+            m_statusMessage.setText("Browsing is not supported in job view.");
         }
 
     }
@@ -489,10 +530,12 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (fs.isPresent()) {
             m_fileHistoryPanel.setFileSystemBrowser(fs.get().getFileSystemBrowser());
             m_fileHistoryPanel.setBrowseable(true);
+            m_fileHistoryPanel.setEnabled(true);
             m_statusMessage.setText("");
         } else {
             m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
             m_fileHistoryPanel.setBrowseable(false);
+            m_fileHistoryPanel.setEnabled(true);
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText(
                 String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
@@ -530,7 +573,22 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Method to update enabledness of components */
     private void updateEnabledness() {
-        if (m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
+        if (excutedOnServer()
+            && !((FileSystemChoice)m_connections.getSelectedItem()).getType().equals(Choice.CONNECTED_FS)) {
+            //We are on the server, and do not have a connected connection
+            //so we disable everything but the connection combobox
+
+            m_fileOrFolderButtonGroup.getModel().setEnabled(false);
+            m_knimeConnections.setEnabled((m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
+                || m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeMountpointChoice())));
+            m_fileFolderLabel.setEnabled(false);
+
+            m_includeSubfolders.setEnabled(false);
+            m_configureFilter.setEnabled(false);
+            m_fileHistoryPanel.setBrowseable(false);
+            m_fileHistoryPanel.setEnabled(false);
+
+        } else if (m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
             || m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeMountpointChoice())) {
             // KNIME connections are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, KNIME_CARD_VIEW_IDENTIFIER);
@@ -548,6 +606,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
 
             m_fileOrFolderButtonGroup.getModel().setEnabled(false);
+            m_knimeConnections.setEnabled(false);
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(URL_LABEL);
 
@@ -557,6 +616,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             // some remote connection is selected, or we are using the local FS
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
             m_fileOrFolderButtonGroup.getModel().setEnabled(true);
+            m_knimeConnections.setEnabled(false);
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
 
@@ -573,31 +633,34 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_statusMessageSwingWorker.cancel(true);
             m_statusMessageSwingWorker = null;
         }
-
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
-        if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
+        final FileSystemChoice fsChoice = model.getFileSystemChoice();
+        if (excutedOnServer() && !fsChoice.getType().equals(Choice.CONNECTED_FS)) {
+            return;
+        }
+
+        if (model.getPathOrURL() != null) {
             try {
                 final FileChooserHelper helper = new FileChooserHelper(m_fs, model.clone(), m_timeoutInMillis);
-                FileSelectionMode fileOrFolder =
+                final FileSelectionMode fileOrFolder =
                     model.readFilesFromFolder() ? FileSelectionMode.DIRECTORIES_ONLY : FileSelectionMode.FILES_ONLY;
 
                 m_statusMessageSwingWorker =
                     new StatusMessageSwingWorker(helper, m_statusMessage, m_dialogType, fileOrFolder);
                 m_statusMessageSwingWorker.execute();
             } catch (final Exception ex) {
-                m_statusMessage.setForeground(Color.RED);
-                m_statusMessage
-                    .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                if (fsChoice != null && fsChoice.getType().equals(Choice.CONNECTED_FS) && !m_fs.isPresent()) {
+                    m_statusMessage.setForeground(Color.RED);
+                    m_statusMessage.setText(String.format(
+                        "Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
+                } else {
+                    m_statusMessage.setForeground(Color.RED);
+                    m_statusMessage
+                        .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                }
             }
         } else {
-            final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
-            if (fsChoice != null && fsChoice.getType().equals(Choice.CONNECTED_FS) && !m_fs.isPresent()) {
-                m_statusMessage.setForeground(Color.RED);
-                m_statusMessage.setText(String
-                    .format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
-            } else {
-                m_statusMessage.setText("");
-            }
+            m_statusMessage.setText("");
         }
     }
 
@@ -705,14 +768,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
             knimeConnectionsModel.setSelectedItem(KNIMEConnection.getConnection(model.getKNIMEFileSystem()));
         } else {
-            knimeConnectionsModel.setSelectedItem(null);
+            knimeConnectionsModel.setSelectedItem(m_knimeConnections.getItemAt(0));
         }
 
     }
 
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
-        //FIXME in case of KNIME connection check whether it is a valid connection
         m_fileHistoryPanel.addToHistory();
     }
 
@@ -750,4 +812,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     public void setForceExtensionOnSave(final String forcedExtension) {
         m_fileHistoryPanel.setForceExtensionOnSave(forcedExtension);
     }
+
+    protected boolean excutedOnServer() {
+
+        return Optional.ofNullable(NodeContext.getContext())
+        .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
+        .map(wfm -> wfm.getContext())
+        .map(ctx -> ((ctx instanceof RemoteWorkflowContext) ? (RemoteWorkflowContext)ctx : null)).isPresent();
+
+    }
+
 }
