@@ -41,60 +41,62 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.preproc.append.row;
 
+import java.util.Optional;
+
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortType;
 
 /**
  * Factory to create nodes that concatenate input tables to one output table.
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class AppendedRowsNodeFactory 
-        extends NodeFactory<AppendedRowsNodeModel> {
+public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRowsNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AppendedRowsNodeModel createNodeModel() {
-        return new AppendedRowsNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView<AppendedRowsNodeModel> createNodeView(final int viewIndex,
-            final AppendedRowsNodeModel nodeModel) {
+    public NodeView<AppendedRowsNodeModel> createNodeView(final int viewIndex, final AppendedRowsNodeModel nodeModel) {
         throw new IndexOutOfBoundsException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
+    @Override
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        PortsConfigurationBuilder b = new PortsConfigurationBuilder();
+        b.addExtendableInputPortGroup("input",
+            new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE}, BufferedDataTable.TYPE);
+        b.addFixedOutputPortGroup("Concatenated tables", BufferedDataTable.TYPE);
+        return Optional.of(b);
+    }
+
     /**
-     * {@inheritDoc}
+     * @since 4.1
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
+    protected AppendedRowsNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        // cannot be null due to #createPortsConfigBuilder's correctness
+        return new AppendedRowsNodeModel(creationConfig.getPortConfig().get());
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return new AppendedRowsNodeDialog();
     }
 }

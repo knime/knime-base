@@ -83,6 +83,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
@@ -156,6 +157,15 @@ public class AppendedRowsNodeModel extends NodeModel {
      */
     AppendedRowsNodeModel(final int nrIns) {
         super(getInPortTypes(nrIns), new PortType[] {BufferedDataTable.TYPE});
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param portsConfiguration the ports configuration
+     */
+    AppendedRowsNodeModel(final PortsConfiguration portsConfiguration) {
+        super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
     }
 
     private static final PortType[] getInPortTypes(final int nrIns) {

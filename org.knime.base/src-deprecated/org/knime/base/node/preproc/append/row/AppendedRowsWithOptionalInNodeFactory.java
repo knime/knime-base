@@ -47,14 +47,41 @@
  */
 package org.knime.base.node.preproc.append.row;
 
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+
 /**
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated with AP-12988 the concatenate node supports modifiable, i.e., extendable ports
  */
-public class AppendedRowsWithOptionalInNodeFactory extends
-        AppendedRowsNodeFactory {
+@Deprecated
+public class AppendedRowsWithOptionalInNodeFactory extends NodeFactory<AppendedRowsNodeModel> {
 
-    /** {@inheritDoc} */
+    @Override
+    public int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * @since 4.1
+     */
+    @Override
+    public NodeView<AppendedRowsNodeModel> createNodeView(final int viewIndex, final AppendedRowsNodeModel nodeModel) {
+        throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new AppendedRowsNodeDialog();
+    }
+
     @Override
     public AppendedRowsNodeModel createNodeModel() {
         return new AppendedRowsNodeModel(4);
