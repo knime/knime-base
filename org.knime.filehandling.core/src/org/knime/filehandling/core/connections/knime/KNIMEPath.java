@@ -50,7 +50,10 @@ package org.knime.filehandling.core.connections.knime;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -64,7 +67,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
+import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 
 /**
  * Path implementation needed for browsing KNIME mount points.
@@ -127,8 +132,7 @@ public class KNIMEPath implements Path {
      */
     @Override
     public Path getParent() {
-
-        Path parent = m_fileSystem.getBasePath().resolve(m_path).getParent();
+        Path parent = m_path.getParent();
         return parent == null? null : new KNIMEPath(m_fileSystem, parent.toString());
     }
 
@@ -385,6 +389,47 @@ public class KNIMEPath implements Path {
      */
     public Path toLocalPath() {
         return m_fileSystem.getBasePath().resolve(m_path);
+    }
+
+    /**
+     * Opens a {@link URLConnection} to the resource.
+     *
+     * @return an already connected {@link URLConnection}.
+     * @throws IOException
+     */
+    public URLConnection openURLConnection() throws IOException {
+        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis());
+    }
+
+    /**
+     * Opens a {@link URLConnection} to the resource.
+     *
+     * @param timeoutMillis Timeout in millis for the connect and read operations.
+     * @return an already connected {@link URLConnection}.
+     * @throws IOException
+     */
+    public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
+        final URL url = getURL();
+        final URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(timeoutMillis);
+        connection.setReadTimeout(timeoutMillis);
+        connection.connect();
+        return connection;
+    }
+
+    private URL getURL() {
+        String schemeAndHost = m_fileSystem.getConnectionType().getSchemeAndHost();
+
+        // TODO TU: check apache for URL encoding
+        String unixStylePath = UnixStylePathUtil.asUnixStylePath(m_path.toString()).replaceAll(" ", "%20");
+        URI create = URI.create(schemeAndHost + m_fileSystem.getSeparator() + unixStylePath);
+        try {
+            URL url = create.toURL();
+            return url;
+        } catch (MalformedURLException ex) {
+
+            return null;
+        }
     }
 
 }

@@ -17,6 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 
 public class KNIMEPathTest {
 	
@@ -391,19 +392,19 @@ public class KNIMEPathTest {
 	private KNIMEFileSystem localMountPointRelativeFS() {
 		String workspaceAbsPath = m_workspaceFolder.getAbsolutePath().replaceAll("\\\\", "/");
 		URI workspaceURI = Paths.get(workspaceAbsPath).toUri();
-		return new KNIMEFileSystem(m_fsProvider, workspaceURI);
+		return new KNIMEFileSystem(m_fsProvider, workspaceURI, KNIMEConnection.Type.MOUNTPOINT_RELATIVE);
 	}
 	
 	private KNIMEFileSystem workflowRelativeFS() {
 		String workflowAbsPath = m_workflowFolder.getAbsolutePath().replaceAll("\\\\", "/");
 		URI workflowURI = Paths.get(workflowAbsPath).toUri();
-		return new KNIMEFileSystem(m_fsProvider, workflowURI);
+		return new KNIMEFileSystem(m_fsProvider, workflowURI, KNIMEConnection.Type.WORKFLOW_RELATIVE);
 	}
 	
 	private KNIMEFileSystem nodeRelativeFS() {
 		String nodeAbsPath = m_nodeFolder.getAbsolutePath().replaceAll("\\\\", "/");
 		URI nodeURI = Paths.get(nodeAbsPath).toUri();
-		return new KNIMEFileSystem(m_fsProvider, nodeURI);
+		return new KNIMEFileSystem(m_fsProvider, nodeURI, KNIMEConnection.Type.NODE_RELATIVE);
 	}
 	
 }

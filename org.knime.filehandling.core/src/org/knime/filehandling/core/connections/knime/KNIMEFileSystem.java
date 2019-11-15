@@ -61,6 +61,7 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 
 /**
  *
@@ -72,14 +73,20 @@ public class KNIMEFileSystem extends FileSystem {
     private final KNIMEFileSystemProvider m_fileSystemProvider;
 
     private final URI m_key;
+    private final KNIMEConnection.Type m_connectionType;
 
     /**
      * @param fileSystemProvider
      * @param baseLocation
+     * @param connectionType
      */
-    public KNIMEFileSystem(final KNIMEFileSystemProvider fileSystemProvider, final URI baseLocation) {
+    public KNIMEFileSystem(
+            final KNIMEFileSystemProvider fileSystemProvider,
+            final URI baseLocation,
+            final KNIMEConnection.Type connectionType) {
         m_fileSystemProvider = fileSystemProvider;
         m_key = baseLocation;
+        m_connectionType = connectionType;
     }
 
     /**
@@ -196,4 +203,10 @@ public class KNIMEFileSystem extends FileSystem {
         return m_key;
     }
 
+    /**
+     * @return the connection type
+     */
+    public KNIMEConnection.Type getConnectionType() {
+        return m_connectionType;
+    }
 }
