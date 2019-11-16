@@ -177,7 +177,8 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_fileFilterSettings = fileFilterSettings;
         m_legacyPathConfigKey = legacyPathConfigKey;
         m_defaultSuffixes = suffixes;
-
+        //notify change listeners when the file or folder setting changes since this affects the returned paths
+        m_fileOrFolderSettingsModel.addChangeListener(e -> notifyChangeListeners());
     }
 
     /**
@@ -259,7 +260,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param filterSettings the filter options to set
      */
     public void setFilterSettings(final FileFilterSettings filterSettings) {
+        final boolean sameValue = (m_fileFilterSettings.equals(filterSettings));
         m_fileFilterSettings = filterSettings;
+        if (!sameValue) {
+        	//notify change listeners when the file settings changes since this affects the returned paths
+            notifyChangeListeners();
+        }
     }
 
     /**
