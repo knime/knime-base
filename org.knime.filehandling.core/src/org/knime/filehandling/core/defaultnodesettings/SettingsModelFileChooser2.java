@@ -103,9 +103,6 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     /** True, if sub-folders should be included. */
     private boolean m_includeSubfolders;
 
-    /** Config key for path of legacy settings object */
-    private final String m_legacyPathConfigKey;
-
     private FileFilterSettings m_fileFilterSettings;
 
     private final String[] m_defaultSuffixes;
@@ -123,7 +120,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public SettingsModelFileChooser2(final String configName) {
         this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false,
-            new FileFilterSettings(), null, new String[0]);
+            new FileFilterSettings(), new String[0]);
     }
 
     /**
@@ -134,20 +131,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public SettingsModelFileChooser2(final String configName, final String[] suffixes) {
         this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false,
-            new FileFilterSettings(suffixes), null, suffixes);
-    }
-
-    /**
-     * Creates a new instance of {@link SettingsModelFileChooser2} with default settings.
-     *
-     * @param configName the name of the config.
-     * @param legacyPathConfigKey the legacy config key used to store the path
-     * @param suffixes the list of default suffixes the dialog should filter on
-     */
-    public SettingsModelFileChooser2(final String configName, final String legacyPathConfigKey,
-        final String... suffixes) {
-        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false,
-            new FileFilterSettings(suffixes), legacyPathConfigKey, suffixes);
+            new FileFilterSettings(suffixes), suffixes);
     }
 
     /**
@@ -159,13 +143,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param pathOrURL the path of the selected file or folder
      * @param searchSubfolder true, if sub-folder should be included
      * @param fileFilterSettings the filter settings for the file filter
-     * @param legacyPathConfigKey legacy config key of settings entry for path
      * @param suffixes the list of default suffixes the dialog should filter on
      */
 
     public SettingsModelFileChooser2(final String configName, final String fileSystemName, final String knimeConnection,
         final String pathOrURL, final boolean searchSubfolder, final FileFilterSettings fileFilterSettings,
-        final String legacyPathConfigKey, final String[] suffixes) {
+        final String[] suffixes) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
@@ -175,7 +158,6 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_pathOrURL = pathOrURL;
         m_includeSubfolders = searchSubfolder;
         m_fileFilterSettings = fileFilterSettings;
-        m_legacyPathConfigKey = legacyPathConfigKey;
         m_defaultSuffixes = suffixes;
         //notify change listeners when the file or folder setting changes since this affects the returned paths
         m_fileOrFolderSettingsModel.addChangeListener(e -> notifyChangeListeners());
@@ -333,7 +315,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     }
 
     @Override
-    protected String getConfigName() {
+    public String getConfigName() {
         return m_configName;
     }
 
@@ -349,14 +331,10 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     @Override
     protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        Config config;
         try {
-            final Config config = settings.getConfig(m_configName);
-            if (legacyConfigKeyExists()) {
-                setPathOrURL(settings.getString(m_legacyPathConfigKey, m_pathOrURL));
-            } else {
-                setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
-            }
-
+            config = settings.getConfig(m_configName);
+            setPathOrURL(config.getString(PATH_OR_URL_KEY, m_pathOrURL));
             setFileSystem(config.getString(FILE_SYSTEM_KEY, m_fileSystem));
             if (m_fileSystem.isEmpty() && specs.length > 0
                 && specs[specs.length - 1] instanceof FileSystemPortObjectSpec) {
@@ -367,19 +345,10 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
             setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
             setFilterSettings(m_fileFilterSettings);
             m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
-        } catch (final InvalidSettingsException ex) {
-            if (m_legacyPathConfigKey != null) {
-                setPathOrURL(settings.getString(m_legacyPathConfigKey, m_pathOrURL));
-                FileChooserSettingsConverter.convert(this);
-            } else {
-                throw new NotConfigurableException(ex.getMessage());
-            }
+        } catch (InvalidSettingsException ex) {
+            throw new NotConfigurableException(ex.getMessage());
         }
 
-    }
-
-    private final boolean legacyConfigKeyExists() {
-        return m_legacyPathConfigKey != null && !m_legacyPathConfigKey.isEmpty();
     }
 
     /**
@@ -389,16 +358,6 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public FileFilterSettings getFileFilterSettings() {
         return m_fileFilterSettings;
-    }
-
-    /**
-     * Returns the legacy configuration key for storing the path in the SettingsModel of a node if present. Otherwise an
-     * empty Optional will be returned.
-     *
-     * @return the legacy configuration key if present
-     */
-    public final Optional<String> getLegacyConfigKey() {
-        return legacyConfigKeyExists() ? Optional.of(m_legacyPathConfigKey) : Optional.empty();
     }
 
     /**
@@ -421,28 +380,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        Config config;
-        try {
-            config = settings.getConfig(m_configName);
-        } catch (final InvalidSettingsException e) {
-            if (legacyConfigKeyExists()) {
-                settings.getString(m_legacyPathConfigKey);
-                FileChooserSettingsConverter.convert(this);
-                return;
-            }
-            throw e;
-        }
+        final Config config = settings.getConfig(m_configName);
         //FIXME Check whether KNIME Mountpoint is valid
-        String path;
-        if (legacyConfigKeyExists()) {
-            path = settings.getString(m_legacyPathConfigKey);
-        } else {
-            path = config.getString(PATH_OR_URL_KEY);
+        final String path = config.getString(PATH_OR_URL_KEY);
+        if (path == null || path.isEmpty()) {
+            throw new InvalidSettingsException("No location provided! Please enter a valid location.");
         }
-        if (path.isEmpty()) {
-            throw new InvalidSettingsException("No source location provided! Please enter a valid location.");
-        }
-
         config.getString(FILE_SYSTEM_KEY);
         config.getString(KNIME_FILESYSTEM_KEY);
         config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
@@ -451,19 +394,8 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config;
-        try {
-            config = settings.getConfig(m_configName);
-        } catch (final InvalidSettingsException e) {
-            if (legacyConfigKeyExists()) {
-                m_pathOrURL = settings.getString(m_legacyPathConfigKey);
-                FileChooserSettingsConverter.convert(this);
-                return;
-            }
-            throw e;
-        }
-        m_pathOrURL =
-            legacyConfigKeyExists() ? settings.getString(m_legacyPathConfigKey) : config.getString(PATH_OR_URL_KEY);
+        final Config config = settings.getConfig(m_configName);
+        m_pathOrURL = config.getString(PATH_OR_URL_KEY);
         m_fileSystem = config.getString(FILE_SYSTEM_KEY);
         m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
         m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
@@ -482,11 +414,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         final Config config = settings.addConfig(m_configName);
         config.addString(FILE_SYSTEM_KEY, getFileSystem());
         config.addString(KNIME_FILESYSTEM_KEY, getKNIMEFileSystem());
-        if (legacyConfigKeyExists()) {
-            settings.addString(m_legacyPathConfigKey, getPathOrURL());
-        } else {
-            config.addString(PATH_OR_URL_KEY, getPathOrURL());
-        }
+        config.addString(PATH_OR_URL_KEY, getPathOrURL());
         config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
         m_fileFilterSettings.saveToConfig(config);
         m_fileOrFolderSettingsModel.saveSettingsTo(settings);
@@ -502,7 +430,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      *
      * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
      */
-    public static enum FileOrFolderEnum implements ButtonGroupEnumInterface {
+    public enum FileOrFolderEnum implements ButtonGroupEnumInterface {
 
             /** Selection of a single file */
             FILE("File", "Select single file", FileSelectionMode.FILES_ONLY),

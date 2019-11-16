@@ -77,7 +77,7 @@ public class FileChooserSettingsConverter {
     public static void convert(final SettingsModelFileChooser2 settings) {
         final String path = settings.getPathOrURL();
 
-        if (path != null) {
+        if (path != null && !path.isEmpty()) {
             if (!path.contains("://") && !path.startsWith("file:/")) {
                 setLocal(path, settings);
             } else {

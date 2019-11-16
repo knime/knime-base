@@ -103,8 +103,9 @@ public class LineReaderNodeDialog extends NodeDialogPane {
 
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
-        final FlowVariableModel fvm = createFlowVariableModel(new String[]{LineReaderConfig.CFG_FILE_CHOOSER,
-            SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
+    	final FlowVariableModel fvm = createFlowVariableModel(
+                new String[]{m_config.getFileChooserModel().getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+                Type.STRING);
         m_filePanel = new DialogComponentFileChooser2(0, m_config.getFileChooserModel(), "line_read",
             JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, fvm);
         m_rowHeadPrefixField =

@@ -227,7 +227,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_dialogType = DialogType.fromJFileChooserCode(dialogType);
         m_fileSelectionMode = FileSelectionMode.fromJFileChooserCode(selectionMode);
         m_fileHistoryPanel = new FilesHistoryPanel(m_pathFlowVariableModel, historyId, new LocalFileSystemBrowser(),
-            m_fileSelectionMode, m_dialogType, settingsModel.getDefaultSuffixes());
+            m_fileSelectionMode, m_dialogType, convertExtensions(settingsModel.getDefaultSuffixes()));
 
         m_fileOrFolderButtonGroup = new DialogComponentButtonGroup(settingsModel.getFileOrFolderSettingsModel(), null,
             false, SettingsModelFileChooser2.FileOrFolderEnum.values());
@@ -252,6 +252,19 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         addEventHandlers();
 
         updateComponent();
+    }
+
+    /** Converts the string array containing file extensions to a concatenated String used for the FilesHistoryPanel */
+    private static final String convertExtensions(final String[] extensions) {
+        final StringBuilder ext = new StringBuilder();
+        for (int i = 0; i < extensions.length; i++) {
+            final String extension = extensions[i];
+            ext.append(extension.charAt(0) == '.' ? extension : "." + extension);
+            if (i < extensions.length - 1) {
+                ext.append("|");
+            }
+        }
+        return ext.toString();
     }
 
     /** Initialize the layout of the dialog component */
@@ -578,7 +591,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             }
         } else {
             final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
-            if (fsChoice.getType().equals(Choice.CONNECTED_FS) && !m_fs.isPresent()) {
+            if (fsChoice != null && fsChoice.getType().equals(Choice.CONNECTED_FS) && !m_fs.isPresent()) {
                 m_statusMessage.setForeground(Color.RED);
                 m_statusMessage.setText(String
                     .format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
@@ -635,8 +648,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateConnectionsCombo() {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
-        connectionsModel.removeAllElements();
-        FileSystemChoice.getDefaultChoices().stream().forEach(connectionsModel::addElement);
+        if (connectionsModel.getSize() > 0) {
+            while (connectionsModel.getSize() > 4) {
+                connectionsModel.removeElementAt(0);
+            }
+        } else {
+            FileSystemChoice.getDefaultChoices().stream().forEach(connectionsModel::addElement);
+        }
 
         if (connectionsModel.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
             || connectionsModel.getSelectedItem().equals(FileSystemChoice.getKnimeMountpointChoice())) {
@@ -650,7 +668,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
 
-        if (getLastTableSpecs() != null && getLastTableSpecs().length > 0) {
+        if (getLastTableSpecs() != null && getLastTableSpecs().length > m_inPort) {
             final FileSystemPortObjectSpec fspos = (FileSystemPortObjectSpec)getLastTableSpec(m_inPort);
             if (fspos != null) {
                 final FileSystemChoice choice =
@@ -658,7 +676,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 if (connectionsModel.getIndexOf(choice) < 0) {
                     connectionsModel.insertElementAt(choice, 0);
                 }
-
             }
         } else {
             updateConnectionsCombo();
@@ -723,5 +740,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
 
+    }
+
+    /**
+     * Sets the file extension that is being used, if none exists for the selected file/folder.
+     *
+     * @param forcedExtension the file extension
+     */
+    public void setForceExtensionOnSave(final String forcedExtension) {
+        m_fileHistoryPanel.setForceExtensionOnSave(forcedExtension);
     }
 }
