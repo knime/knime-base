@@ -58,6 +58,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
+import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -68,7 +69,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
  *
@@ -100,9 +103,10 @@ public class LineReaderNodeDialog extends NodeDialogPane {
 
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
-
+        final FlowVariableModel fvm = createFlowVariableModel(new String[]{LineReaderConfig.CFG_FILE_CHOOSER,
+            SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
         m_filePanel = new DialogComponentFileChooser2(0, m_config.getFileChooserModel(), "line_read",
-            JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, this);
+            JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, fvm);
         m_rowHeadPrefixField =
             new DialogComponentString(m_config.getRowPrefixModel(), "Row header prefix ", false, COMP_WIDTH);
 
