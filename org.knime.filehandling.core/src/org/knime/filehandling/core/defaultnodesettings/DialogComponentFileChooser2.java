@@ -72,7 +72,6 @@ import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
@@ -82,7 +81,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
-import org.knime.core.node.workflow.FlowVariable.Type;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
@@ -209,19 +207,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      *            {@link JFileChooser#SAVE_DIALOG})
      * @param selectionMode integer defining the dialog type (see {@link JFileChooser#FILES_ONLY},
      *            {@link JFileChooser#FILES_AND_DIRECTORIES} and {@link JFileChooser#DIRECTORIES_ONLY}
-     * @param dialogPane the {@link NodeDialogPane} this component is used for
+     * @param fvm {@link FlowVariableModel} to use
      */
     public DialogComponentFileChooser2(final int inPort, final SettingsModelFileChooser2 settingsModel,
-        final String historyId, final int dialogType, final int selectionMode, final NodeDialogPane dialogPane) {
+        final String historyId, final int dialogType, final int selectionMode, final FlowVariableModel fvm) {
         super(settingsModel);
         m_inPort = inPort;
-
-        final Optional<String> legacyConfigKey = settingsModel.getLegacyConfigKey();
-        m_pathFlowVariableModel =
-            legacyConfigKey.isPresent() ? dialogPane.createFlowVariableModel(legacyConfigKey.get(), Type.STRING)
-                : dialogPane.createFlowVariableModel(
-                    new String[]{settingsModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
-                    Type.STRING);
+        m_pathFlowVariableModel = fvm;
 
         m_connectionLabel = new JLabel(CONNECTION_LABEL);
 
