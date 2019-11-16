@@ -75,6 +75,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
@@ -291,7 +292,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         if (Arrays.asList(modes).contains(AccessMode.READ)) {
-            final URL url = path.toUri().toURL();
+            final URL url = FileUtil.toURL(path.toString());
             try (final InputStream in = url.openStream()) {
                 // do nothing
             } catch (IOException e) {

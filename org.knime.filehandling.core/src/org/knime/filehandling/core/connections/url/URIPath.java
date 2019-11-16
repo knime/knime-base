@@ -460,7 +460,7 @@ public class URIPath implements FSPath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = m_uri.toURL();
+        final URL url = FileUtil.toURL(m_uri.toString());
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);

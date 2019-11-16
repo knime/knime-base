@@ -68,16 +68,16 @@ public class URIFileStore extends FileStore {
     private final String m_name;
 
     URIFileStore(final URI uri) {
-        if (uri.getScheme() == null) {
-            throw new IllegalArgumentException(uri + " is not a supported URL (scheme/protocol is missing)");
-        }
-
-        if (!uri.getScheme().equalsIgnoreCase("file") && uri.getAuthority() == null) {
+        if (uri.getScheme() != null && !uri.getScheme().equalsIgnoreCase("file") && uri.getAuthority() == null) {
             throw new IllegalArgumentException(uri + " is not a supported URL (authority is missing)");
         }
 
         m_type = uri.getScheme();
-        m_name = String.format("%s://%s", uri.getScheme(), uri.getAuthority());
+        if (uri.getScheme() == null && uri.getAuthority() == null) {
+            m_name = "";
+        } else {
+            m_name = String.format("%s://%s", uri.getScheme(), uri.getAuthority());
+        }
     }
 
     /**
