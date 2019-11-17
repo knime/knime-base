@@ -48,11 +48,13 @@ package org.knime.base.data.filter.row.dialog.component.renderer;
 import java.awt.Color;
 import java.awt.Component;
 
+import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.knime.base.data.filter.row.dialog.component.tree.model.TreeElement;
+import org.knime.core.node.util.SharedIcons;
 
 /**
  * Tree cell renderer for condition tree.
@@ -76,6 +78,10 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
         m_defaultBorderSelectionColor = getBorderSelectionColor();
         m_defaultTextNonSelectionColor = getTextNonSelectionColor();
         m_defaultTextSelectionColor = getTextSelectionColor();
+        final Icon groupIcon = SharedIcons.ADD_PLUS_FILLED.get();
+        setLeafIcon(SharedIcons.FILTER.get());
+        setOpenIcon(groupIcon);
+        setClosedIcon(groupIcon);
     }
 
     @Override
