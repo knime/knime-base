@@ -8,16 +8,9 @@
             icon="icons/cfilehandling16x16.png"
             level-id="file-handling-prototype"
             locked="true"
-            name="File Handling (Prototype)"
+            name="File Handling (Labs)"
             path="/labs/">
       </category>
-   </extension>
-   <extension
-         point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/labs/file-handling-prototype"
-            factory-class="org.knime.filehandling.core.nodes.localfsconnection.LocalFSConnectionNodeFactory">
-      </node>
    </extension>
    <extension
          point="org.knime.core.PortType">
