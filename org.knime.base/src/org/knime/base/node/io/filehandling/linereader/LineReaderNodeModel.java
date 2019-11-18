@@ -63,7 +63,6 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * NodeModel for the Line Reader node.
@@ -85,12 +84,7 @@ final class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        try {
-            Optional<FSConnection> fs = FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, 0);
-            return new PortObjectSpec[]{getFileHandlingUtil(fs).createDataTableSpec()};
-        } catch (final Exception e) {
-            throw new InvalidSettingsException(e);
-        }
+        return null;
     }
 
     @Override
