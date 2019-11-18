@@ -55,6 +55,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.streamable.PartitionInfo;
@@ -96,7 +97,7 @@ public abstract class AbstractSimpleFileReaderNodeModel extends NodeModel {
     }
 
     @Override
-    public BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
+    public BufferedDataTable[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(inData, 0);
         final FileHandlingUtil util = getFileHandlingUtil(fs);
         return new BufferedDataTable[]{util.createDataTable(exec)};
