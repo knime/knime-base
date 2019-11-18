@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./rowfilter.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Advanced Row Filter</name>
+	<shortDescription>
+		Allows to filter rows with complex queries defined on multiple columns.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>The node allows creating queries interactively. A query can contain conditions on multiple columns,
+		 which can be grouped and combined with either the logical AND or logical OR operation. <br/>
+		 
+		 The row filter also allows to apply conditions to the RowID as well as index based conditions.
+		 The corresponding columns are called &lt;RowID&gt; and &lt;RowINDEX&gt; and are always the top most options when
+		 opening the drop down for column selection. The &lt;RowID&gt; is treated as a string column, while the &lt;RowINDEX&gt; is considered
+		 to be numerical starting at index 0.
+		 </intro>
+
+		<tab name="Buttons and views">
+		<option name="Preview">All the set conditions will be shown in this panel, as a tree structure.
+		</option>
+		<option name="Add Condition">Add condition adds instantly one condition to the Conditions panel, which is ready 
+		to be set. The conditions need a column to be specified and also the operator and operands based on which
+		the rows will be filtered. If a group is selected the condition will be added to that, 
+		if a condition is selected it will be added to the parent group.
+		
+		</option>
+	    <option name="Group">Creates a new group, which will be shown in the Conditions Panel
+	     and put the selected condition below. There are two ways in which a group combines its conditions.
+	     <ul>
+	     	<li>AND: The group evaluates to true if all of its conditions evaluate to true.</li>
+	     	<li>OR: The group evaluates to true if any of its conditions evaluates to true.</li>
+	     </ul>
+		</option>
+	    <option name="Ungroup">Delete the selected group and put its conditions 
+	    into the parent group. 
+		</option>
+		<option name="Delete">Delete the selected element from the list so it won't show up anymore in the 
+		Conditions Panel.
+		</option>
+		<option name="Include/Exclude by query">
+			This option allows you to select whether the specified query defines the rows that are included in or excluded from the
+			output table.
+		</option>
+		</tab>
+		<tab name="Conditions">
+		<option name="General conditions">
+			These conditions are available for all primitive types.
+			<ul>
+				<li>== checks for equality of the values in the specified column and the value provided in the text field.</li>
+				<li>!= checks for inequality of the values in the specified column and the value provided in the text field.</li>
+				<li>missing evaluates to true only for missing values.</li>
+				<li>not missing evaluates to true for values that aren't the missing value.</li>
+			</ul>
+			</option>
+		<option name="String conditions">
+			The <i>pattern matching</i> condition applies to string columns and it allows to match values based on a regular expression or wildcard expression.
+			You can configure it by setting the respective checkmarks
+			according to whether the pattern contains wildcards or is a regular 
+			expression. Wildcard patterns contain '*' (matching any sequence of
+			characters) and '?' (matching any one character). Examples of regular
+			expressions are given below. Also, a case sensitive match can be enabled
+			by the according checkmark. Note: if you select a pattern from the drop-down
+			menu of the pattern text field, the node still performs a comparison of
+			the string representation of the data values. <br/>
+			Here are some examples of regular expressions:<br />
+			"<tt>^foo.*</tt>" matches anything that starts with "foo". The '^'-character
+			stands for the beginning of the word, the dot matches any (one) character,
+			and the asterisk allows any number (including zero) of the previous character.<br />
+			"<tt>[0-9]*</tt>" matches any string of digits (including the empty string).
+			The <tt>[</tt> <tt>]</tt> define a set of characters (they could be
+			added individually like <tt>[0123456789]</tt>, or by range). This set
+			matches any (one) character included in the set.<br />
+            For a complete explanation of regular expressions see e.g. the JavaDoc
+            of the <a href="http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#sum">
+            java.util.regex.Pattern</a> class.
+		</option>
+		<option name="Numerical conditions">
+			These conditions apply to numerical columns.
+			<ul>
+				<li>&lt; evaluates to true for values below the specified value.</li>
+				<li>&lt;= evaluates to true for values below or equal to the specified value.</li>
+				<li>&gt; evaluates to true for values greater than the specified value.</li>
+				<li>&gt;= evaluates to true for values greater or equal the specified value.</li>
+				<li><i>between</i> allows you to specify a range in which the value has to lie.
+				Note that the range is inclusive meaning that the start and endpoint are included in the range.</li>
+			</ul>
+		</option>
+		</tab>
+	</fullDescription>
+	
+	<ports>
+		<inPort index="0" name="To be filtered">Data table from which to filter rows.</inPort>
+		<outPort index="0" name="Filtered">Data table with rows meeting the specified criteria</outPort>
+	</ports>	
+</knimeNode>

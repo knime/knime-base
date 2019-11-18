@@ -2143,6 +2143,11 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.probability.nominal.splitter.NominalDistributionSplitterNodeFactory">
       </node>
+      <node
+            category-path="labs/"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.filter.row2.RowFilterNodeFactory">
+      </node>
    </extension>
    
       
