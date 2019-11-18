@@ -54,17 +54,15 @@ import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.AbstractSimpleFileReaderNodeModel;
 import org.knime.base.node.io.filehandling.FilesToDataTableReader;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
@@ -72,7 +70,7 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
+final class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
 
     /** LineReaderConfig containing all necessary information how to process specified file(s). */
     private final LineReaderConfig m_config = new LineReaderConfig();
@@ -80,8 +78,9 @@ public class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
     /**
      * Creates a new instance of {@link LineReaderNodeModel}.
      */
-    LineReaderNodeModel() {
-        super(new PortType[] {FileSystemPortObject.TYPE_OPTIONAL}, new PortType[] {BufferedDataTable.TYPE});
+    LineReaderNodeModel(final NodeCreationConfiguration creationConfig) {
+        super(creationConfig.getPortConfig().get().getInputPorts(),
+            creationConfig.getPortConfig().get().getOutputPorts());
     }
 
     @Override

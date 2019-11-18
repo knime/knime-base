@@ -55,7 +55,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -71,28 +70,28 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class LineReaderConfig {
+final class LineReaderConfig {
 
     /** Config key for file chooser. */
-    static final String CFG_FILE_CHOOSER = "filechooser";
+    private static final String CFG_FILE_CHOOSER = "filechooser";
 
     /** Config key for row prefix. */
-    static final String CFG_ROW_PREFIX = "rowPrefix";
+    private static final String CFG_ROW_PREFIX = "rowPrefix";
 
     /** Config key for column header. */
-    static final String CFG_COLUMN_HEADER = "columnHeader";
+    private static final String CFG_COLUMN_HEADER = "columnHeader";
 
     /** Config key for skip empty lines. */
-    static final String CFG_SKIP_EMPTY = "skipEmpty";
+    private static final String CFG_SKIP_EMPTY = "skipEmpty";
 
     /** Config key for limit lines decision */
-    static final String CFG_LIMIT_LINES = "limitLines";
+    private static final String CFG_LIMIT_LINES = "limitLines";
 
     /** Config key for limit row count */
-    static final String CFG_LIMIT_ROW_COUNT = "limitRowCount";
+    private static final String CFG_LIMIT_ROW_COUNT = "limitRowCount";
 
     /** Config key for regex. */
-    static final String CFG_REGEX = "regex";
+    private static final String CFG_REGEX = "regex";
 
     private final SettingsModelFileChooser2 m_fileChooserModel = new SettingsModelFileChooser2(CFG_FILE_CHOOSER);
 
@@ -113,142 +112,88 @@ public class LineReaderConfig {
 
     private final SettingsModelBoolean m_useRegexModel = new SettingsModelBoolean("useRegex", false);
 
-    /**
-     *
-     */
-    public LineReaderConfig() {
+    LineReaderConfig() {
         m_limitRowCountModel.setEnabled(getLimitLines());
         m_regexModel.setEnabled(getUseRegex());
     }
 
-    /**
-     * @return the file chooser model
-     */
-    public SettingsModelFileChooser2 getFileChooserModel() {
+    final SettingsModelFileChooser2 getFileChooserModel() {
         return m_fileChooserModel;
     }
 
     /**
      * Returns a list of Paths retrieved from the file chooser dialog choices
      *
-     * @param fs the {@link FSConnectionFlowVariableProvider}
+     * @param fs the {@link FSConnection}
      * @return a list of paths
      * @throws IOException
      */
-    public List<Path> getPaths(final Optional<FSConnection> fs) throws IOException {
+    final List<Path> getPaths(final Optional<FSConnection> fs) throws IOException {
         final FileChooserHelper helper = new FileChooserHelper(fs, getFileChooserModel());
         return helper.getPaths();
     }
 
-    /**
-     * @return the rowPrefixModel
-     */
-    public SettingsModelString getRowPrefixModel() {
+    final SettingsModelString getRowPrefixModel() {
         return m_rowPrefixModel;
     }
 
-    /**
-     * @return the rowPrefix
-     */
-    public String getRowPrefix() {
+    final String getRowPrefix() {
         return m_rowPrefixModel.getStringValue();
     }
 
-    /**
-     * @return the columnHeaderModel
-     */
-    public SettingsModelString getColumnHeaderModel() {
+    final SettingsModelString getColumnHeaderModel() {
         return m_columnHeaderModel;
     }
 
-    /**
-     * @return the columnHeader
-     */
-    public String getColumnHeader() {
+    final String getColumnHeader() {
         return m_columnHeaderModel.getStringValue();
     }
 
-    /**
-     * @return the chooserModel
-     */
-    public SettingsModelString getChooserModel() {
+    final SettingsModelString getChooserModel() {
         return m_chooserModel;
     }
 
-    /**
-     * @return the readColHeader
-     */
-    public Boolean getReadColHeader() {
+    final Boolean getReadColHeader() {
         return m_chooserModel.getStringValue().equals(CustomColumnHeader.FirstLine.getActionCommand());
     }
 
-    /**
-     * @return the skipEmptyLinesModel
-     */
-    public SettingsModelBoolean getSkipEmptyLinesModel() {
+    final SettingsModelBoolean getSkipEmptyLinesModel() {
         return m_skipEmptyLinesModel;
     }
 
-    /**
-     * @return is skipEmptyLines
-     */
-    public boolean getSkipEmptyLines() {
+    final boolean getSkipEmptyLines() {
         return m_skipEmptyLinesModel.getBooleanValue();
     }
 
-    /**
-     * @return the limitLinesModel
-     */
-    public SettingsModelBoolean getLimitLinesModel() {
+    final SettingsModelBoolean getLimitLinesModel() {
         return m_limitLinesModel;
     }
 
-    /**
-     * @return the limitLines
-     */
-    public boolean getLimitLines() {
+    final boolean getLimitLines() {
         return m_limitLinesModel.getBooleanValue();
     }
 
-    /**
-     * @return the limitRowCountModel
-     */
-    public SettingsModelInteger getLimitRowCountModel() {
+    final SettingsModelInteger getLimitRowCountModel() {
         return m_limitRowCountModel;
     }
 
-    /**
-     * @return the limitRowCount
-     */
-    public int getLimitRowCount() {
+    final int getLimitRowCount() {
         return m_limitRowCountModel.getIntValue();
     }
 
-    /**
-     * @return the regexModel
-     */
-    public SettingsModelString getRegexModel() {
+    final SettingsModelString getRegexModel() {
         return m_regexModel;
     }
 
-    /**
-     * @return the regex
-     */
-    public String getRegex() {
+    final String getRegex() {
         return m_regexModel.getStringValue();
     }
 
-    /**
-     * @return the useRegexModel
-     */
-    public SettingsModelBoolean getUseRegexModel() {
+    final SettingsModelBoolean getUseRegexModel() {
         return m_useRegexModel;
     }
 
-    /**
-     * @return the useRegex
-     */
-    public boolean getUseRegex() {
+    final boolean getUseRegex() {
         return m_useRegexModel.getBooleanValue();
     }
 
@@ -258,7 +203,7 @@ public class LineReaderConfig {
      * @param settings the node settings
      * @throws InvalidSettingsException if settings are invalid
      */
-    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
         m_fileChooserModel.validateSettings(settings);
         m_rowPrefixModel.validateSettings(settings);

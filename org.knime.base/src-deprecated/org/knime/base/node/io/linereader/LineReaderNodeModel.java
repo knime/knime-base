@@ -69,7 +69,9 @@ import org.knime.core.node.util.CheckUtils;
 
 /** Model implementation of the line reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated
  */
+@Deprecated
 final class LineReaderNodeModel extends NodeModel {
     private LineReaderConfig m_config;
 

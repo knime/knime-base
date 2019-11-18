@@ -51,7 +51,9 @@ import org.knime.core.node.NodeView;
 
 /** Factory to node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated
  */
+@Deprecated
 public final class LineReaderNodeFactory extends
         NodeFactory<LineReaderNodeModel> {
 

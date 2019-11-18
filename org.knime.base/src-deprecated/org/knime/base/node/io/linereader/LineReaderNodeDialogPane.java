@@ -81,7 +81,9 @@ import org.knime.core.node.workflow.FlowVariable;
 /**
  * Dialog to Line Reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated
  */
+@Deprecated
 final class LineReaderNodeDialogPane extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;

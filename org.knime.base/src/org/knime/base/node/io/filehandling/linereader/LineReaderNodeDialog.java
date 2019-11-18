@@ -77,7 +77,7 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class LineReaderNodeDialog extends NodeDialogPane {
+final class LineReaderNodeDialog extends NodeDialogPane {
 
     private static final int COMP_WIDTH = 10;
 

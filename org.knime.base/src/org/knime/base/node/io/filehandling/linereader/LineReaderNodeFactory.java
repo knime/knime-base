@@ -48,56 +48,53 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
+import java.util.Optional;
+
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  * Creates a Line Reader node that uses {@link FSConnection}
- * 
+ *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class LineReaderNodeFactory extends NodeFactory<LineReaderNodeModel> {
+public class LineReaderNodeFactory extends ConfigurableNodeFactory<LineReaderNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public LineReaderNodeModel createNodeModel() {
-        return new LineReaderNodeModel();
+    protected LineReaderNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new LineReaderNodeModel(creationConfig);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new LineReaderNodeDialog();
+    }
+
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<LineReaderNodeModel> createNodeView(final int viewIndex, final LineReaderNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new LineReaderNodeDialog();
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        builder.addOptionalInputPortGroup("File System Connection", FileSystemPortObject.TYPE);
+        builder.addFixedOutputPortGroup("Data table", BufferedDataTable.TYPE);
+        return Optional.of(builder);
     }
-
 }

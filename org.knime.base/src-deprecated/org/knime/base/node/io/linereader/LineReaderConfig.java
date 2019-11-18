@@ -60,7 +60,9 @@ import org.knime.core.node.util.CheckUtils;
 /**
  * Configuration for line reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated
  */
+@Deprecated
 final class LineReaderConfig {
 
     /** Config key for URL. */

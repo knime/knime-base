@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./linereader-icon-new.png" type="Source"
-	xmlns="http://knime.org/node/v2.8"
+<knimeNode icon="./linereader.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Line Reader</name>
 
 	<shortDescription>
@@ -15,11 +15,40 @@
 			single string data cell in a single row. The row prefix and column header 
 			can be specified in the dialog.
 		</intro>
-		<option name="Connection">
-			Select the connection to use for the reading.
+		<option name="File or folder">
+			Select whether you want to read a file or multiple files within a folder.
 		</option>
-		<option name="URL field">
-			Select the file to be read using the Browse button.
+		<option name="Read from..."> 
+			Select a file system which stores the data you want to read. There are three default file systems to choose from.<br/>
+			<ul>
+				<li>Local File System: Allows you to select a file/folder from your local system.</li>
+				<li>KNIME: Allows you to choose a specific KNIME file system. Whenever this is selected, a new dropdown menu appears to choose whether to use workflow, mountpoint or node relative browsing and file selection.</li>
+				<li>Custom URL: Uses the standard URL handler providing the ability to read a file from URLs (e.g. file, http or KNIME protocol). Browsing and reading folders are disabled for this option.</li>
+			</ul>
+			It is possible to use other file systems with this node. Therefore, you have to enable the file system connection input port of this node by clicking the <b>+</b> in the bottom left corner of the node's icon and choose <i>Add File System Connection port</i>.<br/>
+			Afterwards, you can simply connect the desired connector node to the reader node. The file system connection will then be shown in the drop down menu.
+		</option>	
+		<option name="File/folder or URL">
+			Enter a valid destination. Depending on the selected file system this is either a path (used by <i>Local File System</i>, <i>KNIME File System</i> and custom file systems added by specific connector nodes) or a URL (used by <i>Custom URL</i> option).<br/>
+			A path usually starts with a slash (/) character and does not contain a protocol.
+			You can also choose a previously selected file/folder from the drop-down list, or select a destination from	the &quot;Browse...&quot; dialog (browsing is not available for custom URLs).
+		</option>
+		<option name="Include subfolders">
+			Check if you want to include all matching files from subfolders of the defined location.
+		</option>
+		<option name="File filtering">
+			Press this button for file filtering options.
+		</option>
+		<option name="File filtering: File extension(s)">
+			Enter file extensions used to filter files.
+			Additionally, there is an option to choose whether the filter should work in a case sensitive or insensitive manner.
+		</option>
+		<option name="File filtering: File names">
+			Select the desired filter method (regular expression or wildcard) and enter a valid expression to match the filenames of the files to be read.
+			Additionally, there is an option to choose whether the filter should work in a case sensitive or insensitive manner.
+		</option>
+		<option name="File filtering options: Filter hidden files">
+			Select if hidden files should be filtered.
 		</option>
 		<option name="Row header prefix">
 			The prefix of the row headers (amended by a running index).
@@ -45,7 +74,10 @@
 	</fullDescription>
 
 	<ports>
-		<outPort index="0" name="Lines from the file">The lines as read from the
-			file, each line represented by a single cell in a data row.</outPort>
+		<dynInPort insert-before="0" name="File system connection" group-identifier="File System Connection"> 
+			The file system connection.
+		</dynInPort>
+		<outPort index="0" name="Lines from the file(s)">The lines as read from the
+			file(s), each line represented by a single cell in a data row.</outPort>
 	</ports>
 </knimeNode>

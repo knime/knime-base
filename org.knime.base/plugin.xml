@@ -644,6 +644,7 @@
       <node
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.linereader.LineReaderNodeFactory">
       </node>
       <node
@@ -2128,7 +2129,8 @@
             factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory">
       </node>
       <node
-            category-path="/labs/file-handling-prototype"
+            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            category-path="/io/read"
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
       </node>
       <node
