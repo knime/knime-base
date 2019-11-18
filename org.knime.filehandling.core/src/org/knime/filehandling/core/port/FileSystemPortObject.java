@@ -117,7 +117,7 @@ public class FileSystemPortObject extends AbstractSimplePortObject {
     @Override
     public JComponent[] getViews() {
         //TODO: Create nicer view with more information about the file system
-        return super.getViews();
+        return null;
     }
 
     /**
