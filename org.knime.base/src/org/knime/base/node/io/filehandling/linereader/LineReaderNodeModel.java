@@ -84,6 +84,10 @@ final class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final String pathOrURL = m_config.getFileChooserModel().getPathOrURL();
+        if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
+            throw new InvalidSettingsException("Please enter a valid location");
+        }
         return null;
     }
 
