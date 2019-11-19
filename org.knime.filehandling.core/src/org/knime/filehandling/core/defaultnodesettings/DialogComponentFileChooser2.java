@@ -204,6 +204,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private final JPanel m_buttonGroupPanel;
 
+    private boolean m_ignoreUpdates;
+
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
      *
@@ -415,15 +417,16 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     }
 
     private void handleKnimeConnectionUpdate() {
-        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
-        final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
-        if (connection != null) {
-            model.setKNIMEFileSystem(connection.getId());
-            updateEnabledness();
-            updateFileHistoryPanel();
-            triggerStatusMessageUpdate();
+        if(!m_ignoreUpdates) {
+            final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+            final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
+            if (connection != null) {
+                model.setKNIMEFileSystem(connection.getId());
+                updateEnabledness();
+                updateFileHistoryPanel();
+                triggerStatusMessageUpdate();
+            }
         }
-
     }
 
     private void handleIncludeSubfolderUpdate() {
@@ -451,8 +454,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         switch (fsChoice.getType()) {
             case CUSTOM_URL_FS:
                 m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setBrowseable(false);
                 m_fileHistoryPanel.setEnabled(true);
+                m_fileHistoryPanel.setBrowseable(false);
                 break;
             case CONNECTED_FS:
                 final Optional<FSConnection> fs =
@@ -467,14 +470,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                     m_fileHistoryPanel.setFileSystemBrowser(
                         new KNIMEFileSystemBrowser(fsView, ((KNIMEFileSystem)fileSystem).getBasePath()));
                     m_statusMessage.setText("");
-                    m_fileHistoryPanel.setBrowseable(true);
                     m_fileHistoryPanel.setEnabled(true);
+                    m_fileHistoryPanel.setBrowseable(true);
                 } catch (final IOException ex) {
                     m_statusMessage.setForeground(Color.RED);
                     m_statusMessage
                         .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-                    m_fileHistoryPanel.setBrowseable(false);
                     m_fileHistoryPanel.setEnabled(true);
+                    m_fileHistoryPanel.setBrowseable(false);
                     LOGGER.debug("Exception when creating or closing the file system:", ex);
                 }
 
@@ -495,14 +498,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                     m_fileHistoryPanel.setFileSystemBrowser(fsBrowser);
                     m_statusMessage.setText("");
                     final boolean isReadable = MountPointIDProviderService.instance().isReadable(fsKey);
-                    m_fileHistoryPanel.setBrowseable(isReadable);
                     m_fileHistoryPanel.setEnabled(true);
+                    m_fileHistoryPanel.setBrowseable(isReadable);
                 } catch (final IOException ex) {
                     m_statusMessage.setForeground(Color.RED);
                     m_statusMessage
                         .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-                    m_fileHistoryPanel.setBrowseable(false);
                     m_fileHistoryPanel.setEnabled(true);
+                    m_fileHistoryPanel.setBrowseable(false);
                     LOGGER.debug("Exception when creating or closing the file system:", ex);
                 }
                 break;
@@ -523,7 +526,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText("Browsing is not supported in job view.");
         }
-
+        getComponentPanel().repaint();
     }
 
     private void applySettingsForConnection(final FileSystemChoice fsChoice, final Optional<FSConnection> fs) {
@@ -585,7 +588,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
             m_includeSubfolders.setEnabled(false);
             m_configureFilter.setEnabled(false);
-            m_fileHistoryPanel.setBrowseable(false);
             m_fileHistoryPanel.setEnabled(false);
 
         } else if (m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
@@ -750,7 +752,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Method to update and add KNIME file system connections to combo box */
     private void updateKNIMEConnectionsCombo() {
-
+        m_ignoreUpdates = true;
         final DefaultComboBoxModel<KNIMEConnection> knimeConnectionsModel =
             (DefaultComboBoxModel<KNIMEConnection>)m_knimeConnections.getModel();
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
@@ -767,10 +769,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);
 
             knimeConnectionsModel.setSelectedItem(KNIMEConnection.getConnection(model.getKNIMEFileSystem()));
-        } else {
-            knimeConnectionsModel.setSelectedItem(m_knimeConnections.getItemAt(0));
         }
-
+        m_ignoreUpdates = false;
     }
 
     @Override
@@ -813,11 +813,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_fileHistoryPanel.setForceExtensionOnSave(forcedExtension);
     }
 
+    /**
+     * @return whether the dialog is opened on the server
+     */
     protected boolean excutedOnServer() {
 
         return Optional.ofNullable(NodeContext.getContext())
         .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
-        .map(wfm -> wfm.getContext())
+        .map(WorkflowManagerUI::getContext)
         .map(ctx -> ((ctx instanceof RemoteWorkflowContext) ? (RemoteWorkflowContext)ctx : null)).isPresent();
 
     }
