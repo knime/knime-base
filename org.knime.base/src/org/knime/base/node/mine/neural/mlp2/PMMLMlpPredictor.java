@@ -89,6 +89,7 @@ import org.w3c.dom.Node;
  * Predictor for applying Multilayer Perceptron PMML models to a table.
  *
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLMlpPredictor implements PMMLTablePredictor {
 

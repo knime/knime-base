@@ -53,6 +53,7 @@ import org.knime.core.node.ExecutionContext;
 /**
  * Context for a prediction process.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public interface PredictorContext {
     /**

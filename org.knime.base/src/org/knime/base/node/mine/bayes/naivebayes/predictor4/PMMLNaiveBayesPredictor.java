@@ -73,6 +73,7 @@ import org.w3c.dom.Node;
 /**
  * Predictor for naive bayes models.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLNaiveBayesPredictor implements PMMLTablePredictor {
 

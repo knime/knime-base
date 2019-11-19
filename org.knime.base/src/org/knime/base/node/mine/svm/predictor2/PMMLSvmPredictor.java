@@ -57,8 +57,8 @@ import org.knime.base.node.mine.svm.PMMLSVMTranslator;
 import org.knime.base.node.mine.svm.Svm;
 import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.base.predict.PMMLClassificationPredictorOptions;
-import org.knime.base.predict.PredictorContext;
 import org.knime.base.predict.PMMLTablePredictor;
+import org.knime.base.predict.PredictorContext;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -75,6 +75,7 @@ import org.w3c.dom.Node;
 /**
  * Predictor for applying SVM PMML models to a table.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLSvmPredictor implements PMMLTablePredictor {
 

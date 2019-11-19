@@ -55,6 +55,7 @@ import org.knime.core.node.ExecutionContext;
 /**
  * Predictor context for a node.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class DefaultPredictorContext implements PredictorContext {
 

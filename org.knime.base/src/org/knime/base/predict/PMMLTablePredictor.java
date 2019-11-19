@@ -57,6 +57,7 @@ import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 /**
  * A predictor that applies a PMML model to a table.
  * @author Alexander Fillbrunn
+ * @since 4.1
  */
 public interface PMMLTablePredictor {
     /**

@@ -89,6 +89,7 @@ import org.w3c.dom.Node;
  * Class for predicting PMML decision tree models.
  *
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLDecisionTreePredictor implements PMMLTablePredictor {
 

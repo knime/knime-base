@@ -51,6 +51,7 @@ package org.knime.base.predict;
 /**
  *
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLRegressionPredictorOptions {
     private String m_customPredictionName;

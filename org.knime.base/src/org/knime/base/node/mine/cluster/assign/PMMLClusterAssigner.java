@@ -55,8 +55,8 @@ import java.util.Set;
 
 import org.knime.base.node.mine.cluster.PMMLClusterTranslator;
 import org.knime.base.node.mine.cluster.PMMLClusterTranslator.ComparisonMeasure;
-import org.knime.base.predict.PredictorContext;
 import org.knime.base.predict.PMMLTablePredictor;
+import org.knime.base.predict.PredictorContext;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -77,6 +77,7 @@ import org.w3c.dom.Node;
 /**
  * Class containing the predictor logic for cluster assignment.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public final class PMMLClusterAssigner implements PMMLTablePredictor {
 

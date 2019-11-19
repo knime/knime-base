@@ -51,6 +51,7 @@ package org.knime.base.predict;
 /**
  * Options for PMML predictors, determining their output.
  * @author Alexander Fillbrunn, KNIME GmbH, Konstanz, Germany
+ * @since 4.1
  */
 public class PMMLClassificationPredictorOptions {
     private String m_customPredictionName;
