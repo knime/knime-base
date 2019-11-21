@@ -173,10 +173,16 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private final FileSelectionMode m_fileSelectionMode;
 
     /** String used for file system connection label. */
-    private static final String CONNECTION_LABEL = "Read from: ";
+    private static final String CONNECTION_LABEL_READ = "Read from: ";
+
+    /** String used for file system connection label. */
+    private static final String CONNECTION_LABEL_WRITE = "Write to: ";
 
     /** String used for the label next to the {@code FilesHistoryPanel} */
-    private static final String FILE_FOLDER_LABEL = "File/Folder:";
+    private static final String FOLDER_LABEL = "Folder:";
+
+    /** String used for the label next to the {@code FilesHistoryPanel} */
+    private static final String FILE_LABEL = "File:";
 
     /** String used for the label next to the {@code FilesHistoryPanel} */
     private static final String URL_LABEL = "URL:";
@@ -224,14 +230,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_inPort = inPort;
         m_pathFlowVariableModel = fvm;
 
-        m_connectionLabel = new JLabel(CONNECTION_LABEL);
+        m_connectionLabel =
+                new JLabel(dialogType == JFileChooser.OPEN_DIALOG ? CONNECTION_LABEL_READ : CONNECTION_LABEL_WRITE);
 
         m_connections = new JComboBox<>(new FileSystemChoice[0]);
         m_connections.setEnabled(true);
 
         m_knimeConnections = new JComboBox<>();
 
-        m_fileFolderLabel = new JLabel(FILE_FOLDER_LABEL);
+        m_fileFolderLabel = new JLabel(FILE_LABEL);
 
         m_dialogType = DialogType.fromJFileChooserCode(dialogType);
         m_fileSelectionMode = FileSelectionMode.fromJFileChooserCode(selectionMode);
@@ -249,6 +256,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_fileFilterConfigurationPanel = new FileFilterPanel();
 
         initFilterOptionsPanel();
+        setFileFolderLabel();
         setFileFilterPanelVisibility();
 
         m_statusMessage = new JLabel(EMPTY_STRING);
@@ -390,7 +398,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private void handleFileOrFolderButtonUpdate() {
         setFileFilterPanelVisibility();
+        setFileFolderLabel();
         triggerStatusMessageUpdate();
+    }
+
+    private void setFileFolderLabel() {
+        final SettingsModelString model = ((SettingsModelFileChooser2)getModel()).getFileOrFolderSettingsModel();
+        m_fileFolderLabel.setText(
+            FileOrFolderEnum.valueOf(model.getStringValue()).equals(FileOrFolderEnum.FILE)
+            ? FILE_LABEL : FOLDER_LABEL);
     }
 
     private void handleHistoryPanelUpdate() {
@@ -576,12 +592,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** Method to update enabledness of components */
     private void updateEnabledness() {
+        final SettingsModelString fileOrFolderModel = (SettingsModelString)m_fileOrFolderButtonGroup.getModel();
+        final boolean fileSelected =
+                FileOrFolderEnum.valueOf(fileOrFolderModel.getStringValue()).equals(FileOrFolderEnum.FILE);
         if (excutedOnServer()
             && !((FileSystemChoice)m_connections.getSelectedItem()).getType().equals(Choice.CONNECTED_FS)) {
             //We are on the server, and do not have a connected connection
             //so we disable everything but the connection combobox
 
-            m_fileOrFolderButtonGroup.getModel().setEnabled(false);
+            fileOrFolderModel.setEnabled(false);
             m_knimeConnections.setEnabled((m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
                 || m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeMountpointChoice())));
             m_fileFolderLabel.setEnabled(false);
@@ -595,10 +614,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             // KNIME connections are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, KNIME_CARD_VIEW_IDENTIFIER);
 
-            m_fileOrFolderButtonGroup.getModel().setEnabled(true);
+            fileOrFolderModel.setEnabled(true);
             m_knimeConnections.setEnabled(true);
             m_fileFolderLabel.setEnabled(true);
-            m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
+            m_fileFolderLabel.setText(fileSelected ? FILE_LABEL : FOLDER_LABEL);
 
             m_includeSubfolders.setEnabled(true);
             m_configureFilter.setEnabled(true);
@@ -607,7 +626,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             // Custom URLs are selected
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
 
-            m_fileOrFolderButtonGroup.getModel().setEnabled(false);
+            fileOrFolderModel.setEnabled(false);
             m_knimeConnections.setEnabled(false);
             m_fileFolderLabel.setEnabled(true);
             m_fileFolderLabel.setText(URL_LABEL);
@@ -617,10 +636,10 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         } else {
             // some remote connection is selected, or we are using the local FS
             m_connectionSettingsCardLayout.show(m_connectionSettingsPanel, DEFAULT_CARD_VIEW_IDENTIFIER);
-            m_fileOrFolderButtonGroup.getModel().setEnabled(true);
+            fileOrFolderModel.setEnabled(true);
             m_knimeConnections.setEnabled(false);
             m_fileFolderLabel.setEnabled(true);
-            m_fileFolderLabel.setText(FILE_FOLDER_LABEL);
+            m_fileFolderLabel.setText(fileSelected ? FILE_LABEL : FOLDER_LABEL);
 
             m_includeSubfolders.setEnabled(true);
             m_configureFilter.setEnabled(true);
