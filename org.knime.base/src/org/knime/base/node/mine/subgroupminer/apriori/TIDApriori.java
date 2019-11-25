@@ -53,7 +53,6 @@ import java.util.List;
 
 import org.knime.base.node.mine.subgroupminer.freqitemset.AssociationRule;
 import org.knime.base.node.mine.subgroupminer.freqitemset.FrequentItemSet;
-import org.knime.base.node.mine.subgroupminer.freqitemset.TIDFrequentItemSet;
 import org.knime.core.data.vector.bitvector.BitVectorValue;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
@@ -81,8 +80,6 @@ public class TIDApriori implements AprioriAlgorithm {
     private int m_dbsize;
 
     private List<TIDItem> m_frequentItems;
-
-    private List<TIDItem> m_alwaysFrequentItems = new ArrayList<TIDItem>();
 
     private List<TIDItemSet> m_repository;
 
@@ -171,21 +168,6 @@ public class TIDApriori implements AprioriAlgorithm {
         // LOGGER.debug("frequent items: " + m_frequentItems);
     }
 
-    /**
-     * Filters the always frequent items which occur in every transaction.
-     */
-    private void filterAlwaysFrequentItems() {
-        m_alwaysFrequentItems = new ArrayList<TIDItem>();
-        for (TIDItem i : m_frequentItems) {
-            // LOGGER.debug("freq item: " + i);
-            // LOGGER.debug(i.getSupport() + " == " + m_dbsize);
-            if (i.getSupport() == m_dbsize) {
-                m_alwaysFrequentItems.add(i);
-            }
-        }
-        m_frequentItems.removeAll(m_alwaysFrequentItems);
-    }
-
     private void addToClosedRepository(final TIDItemSet i) {
         if (m_repository == null) {
             m_repository = new ArrayList<TIDItemSet>();
@@ -256,7 +238,6 @@ public class TIDApriori implements AprioriAlgorithm {
 
         findFrequentItems(transactions, exec);
         LOGGER.debug("found " + m_frequentItems.size() + " frequent items");
-        filterAlwaysFrequentItems();
         findFrequentItemsDepthFirst(exec);
     }
 
@@ -270,13 +251,6 @@ public class TIDApriori implements AprioriAlgorithm {
         List<Integer> tids = new ArrayList<Integer>();
         for (int i = 0; i < m_dbsize; i++) {
             tids.add(i);
-        }
-        for (TIDItem i : m_alwaysFrequentItems) {
-            List<Integer> id = new ArrayList<Integer>();
-            id.add(i.getId());
-            TIDFrequentItemSet freqSet = new TIDFrequentItemSet(
-                    Integer.toString(m_idCounter++), id, 1.0, tids);
-            freqSets.add(freqSet);
         }
         if (type.equals(FrequentItemSet.Type.FREE)) {
             getFrequentItemSets(m_prefixTree, freqSets);
@@ -345,28 +319,6 @@ public class TIDApriori implements AprioriAlgorithm {
                     FrequentItemSet.Type.CLOSED);
         List<AssociationRule> associationRules
             = new ArrayList<AssociationRule>();
-        // handle always frequent items seperately
-        List<Integer> alwaysFrequentIds = new ArrayList<Integer>();
-        for (TIDItem item : m_alwaysFrequentItems) {
-            alwaysFrequentIds.add(item.getId());
-        }
-        for (TIDItem item : m_alwaysFrequentItems) {
-            // create for each item an association
-            // rule with the rest of them in them in the antecendent
-            // support = dbsize, confidence = 1
-            List<Integer> rest = new ArrayList<Integer>(alwaysFrequentIds);
-            // we want to remove the object with the value and not at position
-            // thus we the argument needs to be an object!
-            rest.remove(Integer.valueOf(item.getId()));
-            List<Integer>itemList = new ArrayList<Integer>();
-            itemList.add(item.getId());
-            AssociationRule rule = new AssociationRule(
-                    new FrequentItemSet(Integer.toString(m_idCounter++), rest,
-                        1.0),
-                    new FrequentItemSet(Integer.toString(m_idCounter++),
-                        itemList, 1.0), 1.0, 1.0, 1.0);
-            associationRules.add(rule);
-        }
         // for each itemset
         for (FrequentItemSet s : frequentItemSets) {
             if (s.getItems().size() > 1) {
