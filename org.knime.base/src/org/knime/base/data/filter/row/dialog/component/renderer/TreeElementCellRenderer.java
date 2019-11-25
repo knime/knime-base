@@ -53,7 +53,10 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import org.knime.base.data.filter.row.dialog.component.DefaultGroupTypes;
 import org.knime.base.data.filter.row.dialog.component.tree.model.TreeElement;
+import org.knime.base.data.filter.row.dialog.component.tree.model.TreeGroup;
+import org.knime.base.data.filter.row.dialog.model.GroupType;
 import org.knime.core.node.util.SharedIcons;
 
 /**
@@ -78,10 +81,7 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
         m_defaultBorderSelectionColor = getBorderSelectionColor();
         m_defaultTextNonSelectionColor = getTextNonSelectionColor();
         m_defaultTextSelectionColor = getTextSelectionColor();
-        final Icon groupIcon = SharedIcons.ADD_PLUS_FILLED.get();
         setLeafIcon(SharedIcons.FILTER.get());
-        setOpenIcon(groupIcon);
-        setClosedIcon(groupIcon);
     }
 
     @Override
@@ -98,7 +98,9 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
 
         if (userObject instanceof TreeElement<?>) {
             final TreeElement<?> view = (TreeElement<?>)userObject;
-
+            if (view instanceof TreeGroup) {
+                setIconType(view);
+            }
             view.getValidationResult().ifPresent(result -> {
                 if (result.hasErrors()) {
                     setBorderSelectionColor(Color.RED);
@@ -117,6 +119,22 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
             });
         }
         return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+    }
+
+    /** Decided which is the correct icon, based on the group type. */
+    private void setIconType(final TreeElement<?> view) {
+        final TreeGroup treeGroup = (TreeGroup)view;
+        final GroupType groupType = treeGroup.getValue().getType();
+        final Icon icon;
+        if (groupType.equals(DefaultGroupTypes.AND)){
+            icon = SharedIcons.LOGICAL_AND.get();
+        } else if(groupType.equals(DefaultGroupTypes.OR)) {
+            icon = SharedIcons.LOGICAL_OR.get();
+        } else {
+            icon = SharedIcons.FILTER.get();
+        }
+        setOpenIcon(icon);
+        setClosedIcon(icon);
     }
 
 }
