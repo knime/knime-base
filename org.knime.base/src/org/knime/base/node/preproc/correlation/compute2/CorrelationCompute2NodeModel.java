@@ -147,8 +147,11 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
      * One input, one output.
      */
     CorrelationCompute2NodeModel() {
-        super(new PortType[]{BufferedDataTable.TYPE},
-            new PortType[]{BufferedDataTable.TYPE, PMCCPortObjectAndSpec.TYPE});
+        super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{ //
+            BufferedDataTable.TYPE, // Correlation values
+            BufferedDataTable.TYPE, // Correlation matrix
+            PMCCPortObjectAndSpec.TYPE // Correlation model
+        });
         m_maxPossValueCountModel = createNewPossValueCounterModel();
         m_pValAlternativeModel = createPValAlternativeModel();
         m_columnPairsFilter = createColumnPairsFilterModel();
@@ -175,8 +178,11 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
         if (includesNames.length == 0) {
             throw new InvalidSettingsException("No columns selected");
         }
-        return new PortObjectSpec[]{CorrelationUtils.createCorrelationOutputTableSpec(),
-            new PMCCPortObjectAndSpec(includesNames)};
+        return new PortObjectSpec[]{ //
+            CorrelationUtils.createCorrelationOutputTableSpec(), // Correlation values
+            PMCCPortObjectAndSpec.createOutSpec(includesNames), // Correlation matrix
+            new PMCCPortObjectAndSpec(includesNames) // Correlation model
+        };
     }
 
     @Override
@@ -216,7 +222,8 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
             correlationResult.getCorrelationMatrix(), correlationResult.getpValMatrix(),
             correlationResult.getDegreesOfFreedomMatrix(), selectedPValAlternative());
         BufferedDataTable out = CorrelationUtils.createCorrelationOutputTable(correlationResult, includeNames,
-            calculator.getCompatibleColumnPairs(), selectedColumnPairFilter(), execFinish.createSubExecutionContext(0.5));
+            calculator.getCompatibleColumnPairs(), selectedColumnPairFilter(),
+            execFinish.createSubExecutionContext(0.5));
         m_correlationTable = pmccModel.createCorrelationMatrix(execFinish.createSubExecutionContext(0.5));
 
         // Warning handling
@@ -240,7 +247,10 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
             setWarningMessage(warning.toString());
         }
 
-        return new PortObject[]{out, pmccModel};
+        return new PortObject[]{out, // Correlation table
+            m_correlationTable, // Correlation matrix
+            pmccModel // Correlation model
+        };
     }
 
     private PValueAlternative selectedPValAlternative() {

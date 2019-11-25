@@ -158,7 +158,10 @@
 		<outPort index="0" name="Correlation measure">
 			Correlation variables, p-values and degrees of freedom.
 		</outPort>
-		<outPort name="Correlation Model" index="1">
+		<outPort index="1" name="Correlation matrix">
+			Correlation variables in a matrix representation.
+		</outPort>
+		<outPort index="2" name="Correlation model">
 			A model containing the correlation measures. This model is appropriate
 			to be read by the Correlation Filter node.
 		</outPort>
