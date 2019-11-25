@@ -438,7 +438,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
             final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
             if (connection != null) {
-                model.setKNIMEFileSystem(connection.getId());
+                if (model.getFileSystemChoice().equals(FileSystemChoice.getKnimeFsChoice())) {
+                    model.setKNIMEFileSystem(connection.getId());
+                } else if (model.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())) {
+                    model.setKnimeMountpointFileSystem(connection.getId());
+                }
                 updateEnabledness();
                 updateFileHistoryPanel();
                 triggerStatusMessageUpdate();
@@ -721,6 +725,20 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_connections.setSelectedItem(fileSystem);
         }
 
+        if ((fileSystem != null) && fileSystem.equals(FileSystemChoice.getKnimeFsChoice())) {
+            final String knimeFileSystem = model.getKNIMEFileSystem();
+            if (knimeFileSystem != null
+                && !knimeFileSystem.equalsIgnoreCase(((KNIMEConnection)m_knimeConnections.getSelectedItem()).getId())) {
+                m_knimeConnections.setSelectedItem(knimeFileSystem);
+            }
+        } else if ((fileSystem != null) && fileSystem.equals(FileSystemChoice.getKnimeFsChoice())) {
+            final String knimeMountpoint = model.getKNIMEFileSystem();
+            if (knimeMountpoint != null
+                && !knimeMountpoint.equalsIgnoreCase(((KNIMEConnection)m_knimeConnections.getSelectedItem()).getId())) {
+                m_knimeConnections.setSelectedItem(knimeMountpoint);
+            }
+        }
+
         // sync file history panel
         final String pathOrUrl = model.getPathOrURL() != null ? model.getPathOrURL() : "";
         if (!pathOrUrl.equals(m_fileHistoryPanel.getSelectedFile())) {
@@ -791,8 +809,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (fsChoice.equals(FileSystemChoice.getKnimeMountpointChoice())) {
             MountPointIDProviderService.instance().getAllMountedIDs().stream().forEach(
                 id -> knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(id)));
-            knimeConnectionsModel
-                .setSelectedItem(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(model.getKNIMEFileSystem()));
+            final String modelMountpointValue = model.getKnimeMountpointFileSystem();
+
+            if (modelMountpointValue != null && !modelMountpointValue.isEmpty()) {
+                knimeConnectionsModel.setSelectedItem(
+                    KNIMEConnection.getOrCreateMountpointAbsoluteConnection(model.getKnimeMountpointFileSystem()));
+            } else {
+                knimeConnectionsModel.setSelectedItem(knimeConnectionsModel.getElementAt(0));
+            }
         } else if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
             knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
             knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);

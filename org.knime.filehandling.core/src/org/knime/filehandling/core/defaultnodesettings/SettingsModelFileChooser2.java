@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.util.Optional;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -77,6 +75,9 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     /** Configuration key to store the selected KNIME connection. */
     private static final String KNIME_FILESYSTEM_KEY = "knime_filesystem";
 
+    /** Configuration key to store the selected KNIME mountpoint connection. */
+    private static final String KNIME_MOUNTPOINT_FILESYSTEM_KEY = "knime_mountpoint_filesystem";
+
     /** Configuration key to store the path of the selected file or folder. */
     public static final String PATH_OR_URL_KEY = "path_or_url";
 
@@ -93,6 +94,9 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
 
     /** The name of the selected file system. */
     private String m_fileSystem;
+
+    /** The name of the selected KNIME mountpoint connection. */
+    private String m_knimeMountpointFileSystem;
 
     /** The name of the selected KNIME connection. */
     private String m_knimeFileSystem;
@@ -119,7 +123,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param configName the name of the config.
      */
     public SettingsModelFileChooser2(final String configName) {
-        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false,
+        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
             new FileFilterSettings(), new String[0]);
     }
 
@@ -130,7 +134,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param suffixes the list of default suffixes the dialog should filter on
      */
     public SettingsModelFileChooser2(final String configName, final String[] suffixes) {
-        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), DEFAULT_PATH, false,
+        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
             new FileFilterSettings(suffixes), suffixes);
     }
 
@@ -147,14 +151,15 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
 
     public SettingsModelFileChooser2(final String configName, final String fileSystemName, final String knimeConnection,
-        final String pathOrURL, final boolean searchSubfolder, final FileFilterSettings fileFilterSettings,
-        final String[] suffixes) {
+        final String knimeMountpointConnection, final String pathOrURL, final boolean searchSubfolder,
+        final FileFilterSettings fileFilterSettings, final String[] suffixes) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
         }
         m_configName = configName;
         m_fileSystem = fileSystemName;
         m_knimeFileSystem = knimeConnection;
+        m_knimeMountpointFileSystem = knimeMountpointConnection;
         m_pathOrURL = pathOrURL;
         m_includeSubfolders = searchSubfolder;
         m_fileFilterSettings = fileFilterSettings;
@@ -204,6 +209,24 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
     }
 
     /**
+     * @param newValue the knimeMountpointFileSystem to set
+     */
+    public void setKnimeMountpointFileSystem(final String newValue) {
+        boolean sameValue;
+
+        if (newValue == null) {
+            sameValue = (m_knimeMountpointFileSystem == null);
+        } else {
+            sameValue = newValue.equals(m_knimeMountpointFileSystem);
+        }
+        m_knimeMountpointFileSystem = newValue;
+
+        if (!sameValue) {
+            notifyChangeListeners();
+        }
+    }
+
+    /**
      * Sets the path of the file/folder.
      *
      * @param newValue The path of the file/folder
@@ -245,7 +268,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         final boolean sameValue = (m_fileFilterSettings.equals(filterSettings));
         m_fileFilterSettings = filterSettings;
         if (!sameValue) {
-        	//notify change listeners when the file settings changes since this affects the returned paths
+            //notify change listeners when the file settings changes since this affects the returned paths
             notifyChangeListeners();
         }
     }
@@ -273,6 +296,13 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public String getKNIMEFileSystem() {
         return m_knimeFileSystem;
+    }
+
+    /**
+     * @return the knimeMountpointFileSystem
+     */
+    public String getKnimeMountpointFileSystem() {
+        return m_knimeMountpointFileSystem;
     }
 
     /**
@@ -342,10 +372,12 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
                 setFileSystem(fspos.getFileSystemType());
             }
             setKNIMEFileSystem(config.getString(KNIME_FILESYSTEM_KEY, m_knimeFileSystem));
+            setKnimeMountpointFileSystem(
+                config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY, m_knimeMountpointFileSystem));
             setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
             setFilterSettings(m_fileFilterSettings);
             m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
-        } catch (InvalidSettingsException ex) {
+        } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
 
@@ -388,6 +420,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         }
         config.getString(FILE_SYSTEM_KEY);
         config.getString(KNIME_FILESYSTEM_KEY);
+        config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY);
         config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
         m_fileFilterSettings.validate(config);
     }
@@ -398,6 +431,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_pathOrURL = config.getString(PATH_OR_URL_KEY);
         m_fileSystem = config.getString(FILE_SYSTEM_KEY);
         m_knimeFileSystem = config.getString(KNIME_FILESYSTEM_KEY);
+        m_knimeMountpointFileSystem = config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY);
         m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
         m_fileFilterSettings.loadFromConfig(config);
         m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
@@ -414,6 +448,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         final Config config = settings.addConfig(m_configName);
         config.addString(FILE_SYSTEM_KEY, getFileSystem());
         config.addString(KNIME_FILESYSTEM_KEY, getKNIMEFileSystem());
+        config.addString(KNIME_MOUNTPOINT_FILESYSTEM_KEY, getKnimeMountpointFileSystem());
         config.addString(PATH_OR_URL_KEY, getPathOrURL());
         config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
         m_fileFilterSettings.saveToConfig(config);

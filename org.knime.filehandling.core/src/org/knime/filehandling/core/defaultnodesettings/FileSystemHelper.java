@@ -92,7 +92,10 @@ public class FileSystemHelper {
                     new URIFileSystemProvider(timeoutInMillis).newFileSystem(URI.create(settings.getPathOrURL()), null);
                 break;
             case KNIME_MOUNTPOINT:
-                final String knimeFileSystem = settings.getKNIMEFileSystem();
+                final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
+                if (knimeFileSystem == null) {
+                    throw new IOException("Invalid Mountpoint selection");
+                }
                 final KNIMEConnection connection =
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
 

@@ -129,9 +129,10 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
             return mkSuccess("");
         }
 
-        if (model.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())) {
+        if (model.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())
+            && m_helper.getSettingsModel().getKnimeMountpointFileSystem() != null) {
             final KNIMEConnection knimeConnection =
-                KNIMEConnection.getConnection(m_helper.getSettingsModel().getKNIMEFileSystem());
+                KNIMEConnection.getConnection(m_helper.getSettingsModel().getKnimeMountpointFileSystem());
             if (knimeConnection.getType() == KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE) {
                 final boolean isReadable =
                     MountPointIDProviderService.instance().isReadable(URI.create(knimeConnection.getSchemeAndHost()));
@@ -189,7 +190,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
                 final String msg = "Output location '" + pathOrUrl + "' is a directory";
                 return mkError(msg);
             }
-            if(Files.exists(fileOrFolder)) {
+            if (Files.exists(fileOrFolder)) {
                 BasicFileAttributes basicAttributes = null;
                 try {
                     basicAttributes =
@@ -204,12 +205,13 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
                 }
                 if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
                     && (basicAttributes != null && basicAttributes.isDirectory())) {
-                    warning = "Output directory '" + fileOrFolder.toString() + "' already exists and might be overwritten";
+                    warning =
+                        "Output directory '" + fileOrFolder.toString() + "' already exists and might be overwritten";
                 }
                 if (m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES) && basicAttributes != null) {
                     if (basicAttributes.isDirectory()) {
-                        warning =
-                            "Output directory '" + fileOrFolder.toString() + "' already exists and might be overwritten";
+                        warning = "Output directory '" + fileOrFolder.toString()
+                            + "' already exists and might be overwritten";
                     } else {
                         warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
                     }
