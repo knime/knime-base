@@ -52,6 +52,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -231,7 +232,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_pathFlowVariableModel = fvm;
 
         m_connectionLabel =
-                new JLabel(dialogType == JFileChooser.OPEN_DIALOG ? CONNECTION_LABEL_READ : CONNECTION_LABEL_WRITE);
+            new JLabel(dialogType == JFileChooser.OPEN_DIALOG ? CONNECTION_LABEL_READ : CONNECTION_LABEL_WRITE);
 
         m_connections = new JComboBox<>(new FileSystemChoice[0]);
         m_connections.setEnabled(true);
@@ -405,8 +406,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void setFileFolderLabel() {
         final SettingsModelString model = ((SettingsModelFileChooser2)getModel()).getFileOrFolderSettingsModel();
         m_fileFolderLabel.setText(
-            FileOrFolderEnum.valueOf(model.getStringValue()).equals(FileOrFolderEnum.FILE)
-            ? FILE_LABEL : FOLDER_LABEL);
+            FileOrFolderEnum.valueOf(model.getStringValue()).equals(FileOrFolderEnum.FILE) ? FILE_LABEL : FOLDER_LABEL);
     }
 
     private void handleHistoryPanelUpdate() {
@@ -433,7 +433,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     }
 
     private void handleKnimeConnectionUpdate() {
-        if(!m_ignoreUpdates) {
+        if (!m_ignoreUpdates) {
             final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
             final KNIMEConnection connection = (KNIMEConnection)m_knimeConnections.getModel().getSelectedItem();
             if (connection != null) {
@@ -570,9 +570,18 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void showFileFilterConfigurationDialog() {
 
         final Container c = getComponentPanel().getParent();
+        Frame parentFrame = null;
+        Container parent = getComponentPanel();
+        while (parent != null) {
+            if (parent instanceof Frame) {
+                parentFrame = (Frame)parent;
+                break;
+            }
+            parent = parent.getParent();
+        }
 
         if (m_fileFilterDialog == null) {
-            m_fileFilterDialog = new FileFilterDialog(null, m_fileFilterConfigurationPanel);
+            m_fileFilterDialog = new FileFilterDialog(parentFrame, m_fileFilterConfigurationPanel);
         }
 
         m_fileFilterDialog.setLocationRelativeTo(c);
@@ -594,7 +603,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateEnabledness() {
         final SettingsModelString fileOrFolderModel = (SettingsModelString)m_fileOrFolderButtonGroup.getModel();
         final boolean fileSelected =
-                FileOrFolderEnum.valueOf(fileOrFolderModel.getStringValue()).equals(FileOrFolderEnum.FILE);
+            FileOrFolderEnum.valueOf(fileOrFolderModel.getStringValue()).equals(FileOrFolderEnum.FILE);
         if (excutedOnServer()
             && !((FileSystemChoice)m_connections.getSelectedItem()).getType().equals(Choice.CONNECTED_FS)) {
             //We are on the server, and do not have a connected connection
@@ -838,9 +847,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     protected boolean excutedOnServer() {
 
         return Optional.ofNullable(NodeContext.getContext())
-        .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
-        .map(WorkflowManagerUI::getContext)
-        .map(ctx -> ((ctx instanceof RemoteWorkflowContext) ? (RemoteWorkflowContext)ctx : null)).isPresent();
+            .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
+            .map(WorkflowManagerUI::getContext)
+            .map(ctx -> ((ctx instanceof RemoteWorkflowContext) ? (RemoteWorkflowContext)ctx : null)).isPresent();
 
     }
 
