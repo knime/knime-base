@@ -53,7 +53,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
 import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 
 /**
@@ -77,22 +76,21 @@ public interface MountPointIDProvider {
      */
     URL resolveKNIMEURL(final URL url) throws IOException;
 
-
     /**
      * Lists the children of the Mountpoint object represented by the given URI.
      *
      * @param uri the uri of the object
      * @return list of URI representing the children of the input object
-     * @throws CoreException
+     * @throws IOException if the files could not be listed
      */
-    List<URI> listFiles(final URI uri) throws CoreException;
+    List<URI> listFiles(final URI uri) throws IOException;
 
     /**
      * Gets the {@link FSFileAttributes} for the Mountpoint object represented by the given URI.
      *
      * @param uri he uri of the object
      * @return the {@link FSFileAttributes}
-     * @throws IOException
+     * @throws IOException if the attributes could not be build
      */
     FSFileAttributes getFileAttributes(URI uri) throws IOException;
 
@@ -102,7 +100,7 @@ public interface MountPointIDProvider {
      * @param source source location
      * @param target target destination
      * @return true if file was copied
-     * @throws IOException
+     * @throws IOException if the file could not be copied
      */
     boolean copyFile(URI source, URI target) throws IOException;
 
@@ -112,7 +110,7 @@ public interface MountPointIDProvider {
      * @param source source location
      * @param target target destination
      * @return true if file was moved
-     * @throws IOException
+     * @throws IOException if the file could not be moved
      */
     boolean moveFile(URI source, URI target) throws IOException;
 
@@ -121,7 +119,7 @@ public interface MountPointIDProvider {
      *
      * @param uri file to be deleted
      * @return true if file was deleted
-     * @throws IOException
+     * @throws IOException if the file could not be deleted
      */
     boolean deleteFile(URI uri) throws IOException;
 
@@ -129,18 +127,18 @@ public interface MountPointIDProvider {
      * Creates a directory at the given URI location/
      *
      * @param uri the location of the directory to be created
-     * @throws CoreException
+     * @throws IOException if the directory could not be created
      */
-    void createDirectory(URI uri) throws CoreException;
+    void createDirectory(URI uri) throws IOException;
 
     /**
      * Checks whether a file at the given URI location is readable.
      *
      * @param uri the location of the file
      * @return true if the file is readable
-     * @throws CoreException
+     * @throws IOException if mountpoint does not exist or the information fetching fails
      */
-    boolean isReadable(URI uri) throws CoreException;
+    boolean isReadable(URI uri) throws IOException;
 
     /**
      * Checks whether a URI points to a workflow.

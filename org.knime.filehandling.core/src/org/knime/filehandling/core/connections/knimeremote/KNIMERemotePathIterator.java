@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Path;
@@ -55,7 +56,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
@@ -86,7 +86,7 @@ public class KNIMERemotePathIterator implements Iterator<Path> {
         try {
             uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
             m_iterator = uriList.stream().map(p -> new KNIMERemotePath(m_fileSystem, p)).iterator();
-        } catch (final CoreException ex) {
+        } catch (final IOException ex) {
             LOGGER.warn(ex);
             m_iterator = Collections.emptyIterator();
         }

@@ -55,7 +55,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -167,9 +166,9 @@ public class MountPointIDProviderService {
      *
      * @param uri the location of the directory
      * @return all files and folders in the given directory
-     * @throws CoreException
+     * @throws IOException if files could not be listed
      */
-    public List<URI> listFiles(final URI uri) throws CoreException {
+    public List<URI> listFiles(final URI uri) throws IOException {
         return getProvider().listFiles(uri);
     }
 
@@ -178,7 +177,7 @@ public class MountPointIDProviderService {
      *
      * @param uri the URI of the file
      * @return the attributes of the URI
-     * @throws IOException
+     * @throws IOException if attributes could not be created
      *
      */
     public FSFileAttributes getFileAttributes(final URI uri) throws IOException {
@@ -191,7 +190,7 @@ public class MountPointIDProviderService {
      * @param source source location
      * @param target target destination
      * @return true if file was copied
-     * @throws IOException
+     * @throws IOException if file could not be copied
      */
     public boolean copyFile(final URI source, final URI target) throws IOException {
         return getProvider().copyFile(source, target);
@@ -203,7 +202,7 @@ public class MountPointIDProviderService {
      * @param source source location
      * @param target target destination
      * @return true if file was moved
-     * @throws IOException
+     * @throws IOException if file could not be created
      */
     public boolean moveFile(final URI source, final URI target) throws IOException {
         return getProvider().moveFile(source, target);
@@ -214,24 +213,20 @@ public class MountPointIDProviderService {
      *
      * @param uri file to be deleted
      * @return true if file was deleted
-     * @throws IOException
+     * @throws IOException if file could not be deleted
      */
     public boolean deleteFile(final URI uri) throws IOException {
         return getProvider().deleteFile(uri);
     }
 
     /**
-     * Creates a directory at the given URI location/
+     * Creates a directory at the given URI location.
      *
      * @param uri the location of the directory to be created
-     * @throws IOException
+     * @throws IOException if directory could not be created
      */
     public void createDirectory(final URI uri) throws IOException {
-        try {
-            getProvider().createDirectory(uri);
-        } catch (final CoreException ex) {
-            throw new IOException(ex);
-        }
+        getProvider().createDirectory(uri);
     }
 
     /**
@@ -239,13 +234,10 @@ public class MountPointIDProviderService {
      *
      * @param uri the location of the file
      * @return true if the file is readable
+     * @throws IOException if mounpoint does not exist or information fetching fails
      */
-    public boolean isReadable(final URI uri) {
-        try {
-            return getProvider().isReadable(uri);
-        } catch (final CoreException ex) {
-            return false;
-        }
+    public boolean isReadable(final URI uri) throws IOException {
+        return getProvider().isReadable(uri);
     }
 
     /**
