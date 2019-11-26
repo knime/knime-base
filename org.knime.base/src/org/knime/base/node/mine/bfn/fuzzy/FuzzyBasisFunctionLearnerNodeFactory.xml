@@ -9,7 +9,7 @@
 	
 	<fullDescription>
 		<intro>		
-    	Learns a Fuzzy Rule Model on labeled numeric data using 
+    	This rule learner* learns a Fuzzy Rule Model on labeled numeric data using 
     	<a href="http://www.uni-konstanz.de/bioml/bioml2/publications/Papers2003/Bert03_mixedFR_ijar.pdf">
     	Mixed Fuzzy Rule Formation</a> as the underlying training algorithm 
     	(also known as RecBF-DDA algorithm),
@@ -29,7 +29,10 @@
     	measurements. The model output port contains the fuzzy
     	rule model, which can be used for prediction in the Fuzzy Rule Predictor 
     	node.
+    	<br/><br/>
+    	(*) RULE LEARNER is a registered trademark of Minitab, LLC and is used with Minitab’s permission.
 		</intro>
+		
 		<option name="Missing Values">
 	    Select one method to handle missing values: "Incorp" may generate fuzzy 
 	    rules with missing values, if no replacement value has been 

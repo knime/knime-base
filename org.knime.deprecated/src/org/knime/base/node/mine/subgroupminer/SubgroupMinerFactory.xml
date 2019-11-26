@@ -11,7 +11,7 @@
 	
 	<fullDescription>
 		<intro>
-			Searches for frequent itemsets meeting the user-defined minimum support
+			The association rule learner* searches for frequent itemsets meeting the user-defined minimum support
 			criterion and, optionally, creates association rules from them. 
 			The column containing the bitvectors has to be selected. The minimum 
 			support as an absolute number must be provided (therefore check the number
@@ -29,7 +29,9 @@
 			item in the consequence.
 			The underlying data structure can be either an ARRAY or a TIDList. 
 			Choose the former when there are many transactions an less items, and 
-			the latter if the structure of the input data is vice versa.		
+			the latter if the structure of the input data is vice versa.	
+			<br/><br/>
+			(*) RULE LEARNER is a registered trademark of Minitab, LLC and is used with Minitab’s permission.
 		</intro>
 		
 	<option name="Column containing bitvectors">

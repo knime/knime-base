@@ -11,7 +11,7 @@
 	
 	<fullDescription>
 		<intro>
-			Searches for frequent itemsets meeting the user-defined minimum 
+			The association rule learner* searches for frequent itemsets meeting the user-defined minimum 
 			support criterion and, optionally, creates association rules from 
 			them. The column containing the transactions (BitVectors or 
 			Collections) has to be selected. The minimum 
@@ -29,7 +29,9 @@
 			The underlying data structure used by the algorithm can be either an
 			ARRAY or a TIDList. Choose the former when there are many 
 			transactions an less items, and	the latter if the structure of the 
-			input data is vice versa.		
+			input data is vice versa.
+			<br/><br/>
+			(*) RULE LEARNER is a registered trademark of Minitab, LLC and is used with Minitab’s permission.
 		</intro>
 		
 	<option name="Column containing transactions">
