@@ -104,15 +104,15 @@ public class KNIMEConnection {
 
     /** KNIME node relative connection */
     public static final KNIMEConnection NODE_RELATIVE_CONNECTION =
-        new KNIMEConnection(Type.NODE_RELATIVE, "Node-relative", "knime.node");
+        new KNIMEConnection(Type.NODE_RELATIVE, "Current node", "knime.node");
 
     /** KNIME workflow relative connection */
     public static final KNIMEConnection WORKFLOW_RELATIVE_CONNECTION =
-        new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Workflow-relative", "knime.workflow");
+        new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Current workflow", "knime.workflow");
 
     /** KNIME mount point relative connection */
     public static final KNIMEConnection MOUNTPOINT_RELATIVE_CONNECTION =
-        new KNIMEConnection(Type.MOUNTPOINT_RELATIVE, "Mountpoint-relative", "knime.mountpoint");
+        new KNIMEConnection(Type.MOUNTPOINT_RELATIVE, "Current mountpoint", "knime.mountpoint");
 
     /** Map of all available connections */
     private static final Map<String, KNIMEConnection> CONNECTIONS = new HashMap<>();
