@@ -206,8 +206,8 @@ final class LineReaderNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
-            m_filePanel.loadSettingsFrom(settings, specs);
             m_config.loadConfiguration(settings);
+            m_filePanel.loadSettingsFrom(settings, specs);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
