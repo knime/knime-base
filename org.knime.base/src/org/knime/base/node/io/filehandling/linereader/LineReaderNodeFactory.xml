@@ -15,21 +15,22 @@
 			single string data cell in a single row. The row prefix and column header 
 			can be specified in the dialog.
 		</intro>
-		<option name="File or folder">
+		<option name="File or files in folder">
 			Select whether you want to read a file or multiple files within a folder.
 		</option>
 		<option name="Read from..."> 
-			Select a file system which stores the data you want to read. There are three default file systems to choose from.<br/>
+			Select a file system which stores the data you want to read. There are four default file system options to choose from:<br/>
 			<ul>
 				<li>Local File System: Allows you to select a file/folder from your local system.</li>
-				<li>KNIME: Allows you to choose a specific KNIME file system. Whenever this is selected, a new dropdown menu appears to choose whether to use workflow, mountpoint or node relative browsing and file selection.</li>
+				<li>Relative to: Allows you to choose whether to resolve the path relative to the workflow, mountpoint or node.</li>
+				<li>Mountpoint: Allows you to choose a mountpoint. Whenever this is selected, a new drop-down menu appears to choose from available mountpoints.</li>
 				<li>Custom URL: Uses the standard URL handler providing the ability to read a file from URLs (e.g. file, http or KNIME protocol). Browsing and reading folders are disabled for this option.</li>
 			</ul>
-			It is possible to use other file systems with this node. Therefore, you have to enable the file system connection input port of this node by clicking the <b>+</b> in the bottom left corner of the node's icon and choose <i>Add File System Connection port</i>.<br/>
+			It is possible to use other file systems with this node. Therefore, you have to enable the file system connection input port of this node by clicking the <b>...</b> in the bottom left corner of the node's icon and choose <i>Add File System Connection port</i>.<br/>
 			Afterwards, you can simply connect the desired connector node to the reader node. The file system connection will then be shown in the drop down menu.
 		</option>	
 		<option name="File/folder or URL">
-			Enter a valid destination. Depending on the selected file system this is either a path (used by <i>Local File System</i>, <i>KNIME File System</i> and custom file systems added by specific connector nodes) or a URL (used by <i>Custom URL</i> option).<br/>
+			Enter a valid destination. Depending on the selected file system this is either a path (used by <i>Local File System</i>, <i>Relative to</i>, <i>Mountpoint</i> options and custom file systems added by specific connector nodes) or a URL (used by <i>Custom URL</i> option).<br/>
 			A path usually starts with a slash (/) character and does not contain a protocol.
 			You can also choose a previously selected file/folder from the drop-down list, or select a destination from	the &quot;Browse...&quot; dialog (browsing is not available for custom URLs).
 		</option>
@@ -41,7 +42,8 @@
 		</option>
 		<option name="File filtering: File extension(s)">
 			Enter file extensions used to filter files.
-			Additionally, there is an option to choose whether the filter should work in a case sensitive or insensitive manner.
+			Additionally, there is an option to choose whether the filter should work in a case sensitive or insensitive manner. <br/>
+			<i>Note</i>: A file extension has to be entered without the preceding dot. Multiple extensions have to be separated by a semicolon character (e.g. <i>txt;log</i>). 
 		</option>
 		<option name="File filtering: File names">
 			Select the desired filter method (regular expression or wildcard) and enter a valid expression to match the filenames of the files to be read.
