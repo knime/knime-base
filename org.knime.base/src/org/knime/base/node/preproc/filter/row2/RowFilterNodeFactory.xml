@@ -6,7 +6,8 @@
 	</shortDescription>
 	
 	<fullDescription>
-		<intro>The node allows creating queries interactively. A query can contain conditions on multiple columns,
+		<intro>This node allows to filter rows based on a query defined in the node dialog.
+		 A query can contain conditions on multiple columns,
 		 which can be grouped and combined with either the logical AND or logical OR operation. <br/>
 		 
 		 The row filter also allows to apply conditions to the RowID as well as index based conditions.
@@ -16,22 +17,22 @@
 		 </intro>
 
 		<tab name="Buttons and views">
-		<option name="Preview">All the set conditions will be shown in this panel, as a tree structure.
+		<option name="Query View">A view of the created query displayed as tree structure.
 		</option>
-		<option name="Add Condition">Add condition adds instantly one condition to the Conditions panel, which is ready 
-		to be set. The conditions need a column to be specified and also the operator and operands based on which
-		the rows will be filtered. If a group is selected the condition will be added to that, 
-		if a condition is selected it will be added to the parent group.
-		
+		<option name="Add Condition">Allows to add a new condition to the query.
+		You can select which column the condition should apply to, as well as the kind of operator to use in the condition.
+		Depending on the operator you will also have to specify the necessary operands to complete the condition.
+		See below for a list of the different operators for the different types of columns.
 		</option>
-	    <option name="Group">Creates a new group, which will be shown in the Conditions Panel
-	     and put the selected condition below. There are two ways in which a group combines its conditions.
+	    <option name="Add Group">Creates a new group consisting of the currently selected condition. Please note that a group must contain
+	    at least two condition to be valid.
+	     There are two ways in which a group combines its conditions.
 	     <ul>
 	     	<li>AND: The group evaluates to true if all of its conditions evaluate to true.</li>
 	     	<li>OR: The group evaluates to true if any of its conditions evaluates to true.</li>
 	     </ul>
 		</option>
-	    <option name="Ungroup">Delete the selected group and put its conditions 
+	    <option name="Remove Group">Delete the selected group and put its conditions 
 	    into the parent group. 
 		</option>
 		<option name="Delete">Delete the selected element from the list so it won't show up anymore in the 
@@ -42,8 +43,8 @@
 			output table.
 		</option>
 		</tab>
-		<tab name="Conditions">
-		<option name="General conditions">
+		<tab name="Operators">
+		<option name="General operators">
 			These conditions are available for all primitive types.
 			<ul>
 				<li>== checks for equality of the values in the specified column and the value provided in the text field.</li>
@@ -52,7 +53,7 @@
 				<li>not missing evaluates to true for values that aren't the missing value.</li>
 			</ul>
 			</option>
-		<option name="String conditions">
+		<option name="String operators">
 			The <i>pattern matching</i> condition applies to string columns and it allows to match values based on a regular expression or wildcard expression.
 			You can configure it by setting the respective checkmarks
 			according to whether the pattern contains wildcards or is a regular 
@@ -74,7 +75,7 @@
             of the <a href="http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#sum">
             java.util.regex.Pattern</a> class.
 		</option>
-		<option name="Numerical conditions">
+		<option name="Numerical operators">
 			These conditions apply to numerical columns.
 			<ul>
 				<li>&lt; evaluates to true for values below the specified value.</li>

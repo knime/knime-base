@@ -181,7 +181,7 @@ public class TreePanel extends JPanel {
         final JPanel previewPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.SOUTHWEST;
-        final JLabel label = new JLabel("Preview");
+        final JLabel label = new JLabel("Query View");
         previewPanel.add(label);
         panel.add(previewPanel, c);
 
@@ -251,7 +251,7 @@ public class TreePanel extends JPanel {
         });
         panel.add(m_addButton);
 
-        m_groupButton = new JButton("Group");
+        m_groupButton = new JButton("Add Group");
         m_groupButton.setEnabled(false);
         m_groupButton.addActionListener(e -> {
             m_config.getTreeChangedListener().ifPresent(Runnable::run);
@@ -261,7 +261,7 @@ public class TreePanel extends JPanel {
         });
         panel.add(m_groupButton);
 
-        m_ungroupButton = new JButton("Ungroup");
+        m_ungroupButton = new JButton("Remove Group");
         m_ungroupButton.setEnabled(false);
         m_ungroupButton.addActionListener(e -> {
             m_config.getTreeChangedListener().ifPresent(Runnable::run);
