@@ -48,7 +48,12 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -118,7 +123,7 @@ final class LineReader implements FilesToDataTableReader {
         }
         final String tableName = getTableName(paths);
         final Path path = paths.get(0);
-        try (Stream<String> currentLines = Files.lines(path)) {
+        try (Stream<String> currentLines = getBufferedReader(path).lines()) {
             String colName;
 
             if (m_readColHeader) {
@@ -201,7 +206,7 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readLimited(final long l, final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try (Stream<String> lineStream = Files.lines(path)) {
+        try (final Stream<String> lineStream = getBufferedReader(path).lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).limit(l).filter(this::regExMatch)
                 .forEachOrdered(rowbuilder);
         }
@@ -209,11 +214,18 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readAllLines(final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try (Stream<String> lineStream = Files.lines(path)) {
+        try(final Stream<String> lineStream = getBufferedReader(path).lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).filter(this::regExMatch)
-                .forEachOrdered(rowbuilder);
+            .forEachOrdered(rowbuilder);
         }
     }
+
+    private static final BufferedReader getBufferedReader(final Path path) throws IOException {
+        final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+            .onUnmappableCharacter(CodingErrorAction.REPLACE);
+        return new BufferedReader(new InputStreamReader(Files.newInputStream(path), decoder));
+    }
+
 
     private boolean regExMatch(final String s) {
         return !m_useRegex || s.matches(m_regex);
