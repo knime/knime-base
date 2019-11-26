@@ -144,6 +144,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param configName the name of the configuration object.
      * @param fileSystemName the name of the selected file system
      * @param knimeConnection the name of the selected knime connection
+     * @param knimeMountpointFileSystem the name of the default KNIME mountpoint connection
      * @param pathOrURL the path of the selected file or folder
      * @param searchSubfolder true, if sub-folder should be included
      * @param fileFilterSettings the filter settings for the file filter
@@ -151,7 +152,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
 
     public SettingsModelFileChooser2(final String configName, final String fileSystemName, final String knimeConnection,
-        final String knimeMountpointConnection, final String pathOrURL, final boolean searchSubfolder,
+        final String knimeMountpointFileSystem, final String pathOrURL, final boolean searchSubfolder,
         final FileFilterSettings fileFilterSettings, final String[] suffixes) {
         if ((configName == null) || "".equals(configName)) {
             throw new IllegalArgumentException("The configName must be a " + "non-empty string");
@@ -159,7 +160,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_configName = configName;
         m_fileSystem = fileSystemName;
         m_knimeFileSystem = knimeConnection;
-        m_knimeMountpointFileSystem = knimeMountpointConnection;
+        m_knimeMountpointFileSystem = knimeMountpointFileSystem;
         m_pathOrURL = pathOrURL;
         m_includeSubfolders = searchSubfolder;
         m_fileFilterSettings = fileFilterSettings;
