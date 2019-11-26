@@ -63,6 +63,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -76,7 +77,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
 
@@ -91,6 +91,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
 
     /**
      * This class is a singleton, hence private constructor.
+     * 
      * @param timeoutInMillis read timeout in milliseconds
      */
     public URIFileSystemProvider(final int timeoutInMillis) {
@@ -290,12 +291,15 @@ public class URIFileSystemProvider extends FileSystemProvider {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
+        if (!exists((URIPath)path)) {
+            throw new NoSuchFileException(String.format("File %s does not exist.", path.toString()));
+        }
 
         if (Arrays.asList(modes).contains(AccessMode.READ)) {
             final URL url = FileUtil.toURL(path.toString());
             try (final InputStream in = url.openStream()) {
                 // do nothing
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new IOException("Cannot access file: " + e.getMessage(), e);
             }
         }
@@ -318,7 +322,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
             return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
                 readAttributes(path, BasicFileAttributes.class));
         } catch (final IOException ex) {
-        return null;
+            return null;
         }
     }
 
@@ -334,11 +338,28 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
 
-        final FSPath fsPath = (FSPath)path;
+        final URIPath uriPath = (URIPath)path;
+        if (!exists(uriPath)) {
+            throw new NoSuchFileException(String.format("File %s does not exist.", uriPath.toString()));
+        }
+
         if (type == BasicFileAttributes.class) {
-            return (A)fsPath.getFileAttributes(type);
+            return (A)uriPath.getFileAttributes(type);
         } else {
             throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
+        }
+    }
+
+    private boolean exists(final URIPath uriPath) throws IOException {
+        try {
+            if (uriPath.isDirectory()) {
+                //Workaround for the ejb knime server connection. Directories are always assumed to exist.
+                return true;
+            }
+            uriPath.openURLConnection(m_timeoutInMillis).getInputStream();
+            return true;
+        } catch (final Exception e) {
+            return false;
         }
     }
 

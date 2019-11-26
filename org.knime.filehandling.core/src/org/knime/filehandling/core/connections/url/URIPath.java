@@ -107,21 +107,6 @@ public class URIPath implements FSPath {
         m_fileSystem = fileSystem;
         m_uri = uri;
 
-        // FIXME this needs to be moved elsewhere because we have to allow relative URIs
-        // make sure we have a proper URI with an absolute path
-        //        if (m_uri.getScheme() == null) {
-        //            throw new IllegalArgumentException(String.format("Custom URIs must start with a scheme"));
-        //        }
-        //
-        //        if (m_uri.getAuthority() == null) {
-        //            throw new IllegalArgumentException(
-        //                String.format("Custom URIs have an authority component (e.g. host and port)"));
-        //        }
-        //
-        //        if (m_uri.getPath() == null) {
-        //            throw new IllegalArgumentException(String.format("Custom URIs must specify a path"));
-        //        }
-
         m_hasRootPathComponent = UnixStylePathUtil.hasRootComponent(uri.getPath());
 
         m_isAbsolute = m_uri.getScheme() != null && m_uri.getAuthority() != null && m_uri.getPath() != null
@@ -151,13 +136,13 @@ public class URIPath implements FSPath {
      */
     @Override
     public Path getRoot() {
-        URIPath toReturn = null;
+        final URIPath toReturn = null;
 
         if (m_hasRootPathComponent) {
             try {
                 return new URIPath(m_fileSystem,
                     new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null));
-            } catch (URISyntaxException ex) {
+            } catch (final URISyntaxException ex) {
                 throw new RuntimeException("Failed to get root of custom URI file system", ex);
             }
         }
@@ -177,7 +162,7 @@ public class URIPath implements FSPath {
         final String filename = m_pathComponents[m_pathComponents.length - 1];
         try {
             return new URIPath(m_fileSystem, new URI(null, null, filename, null, null));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get file name of custom URI", ex);
         }
     }
@@ -187,11 +172,14 @@ public class URIPath implements FSPath {
      */
     @Override
     public Path getParent() {
-        if (m_pathComponents.length < 2) {
+        if (m_pathComponents.length == 0) {
             return null;
         }
+        if (m_pathComponents.length == 1) {
+            return getRoot();
+        }
 
-        StringBuilder parentBuilder = new StringBuilder(m_fileSystem.getSeparator());
+        final StringBuilder parentBuilder = new StringBuilder(m_fileSystem.getSeparator());
         for (int i = 0; i < m_pathComponents.length - 1; i++) {
             parentBuilder.append(m_pathComponents[i]);
             parentBuilder.append(m_fileSystem.getSeparator());
@@ -200,7 +188,7 @@ public class URIPath implements FSPath {
         try {
             return new URIPath(m_fileSystem,
                 new URI(m_uri.getScheme(), m_uri.getAuthority(), parentBuilder.toString(), null, null));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get parent of custom URI", ex);
         }
     }
@@ -220,7 +208,7 @@ public class URIPath implements FSPath {
     public Path getName(final int index) {
         try {
             return new URIPath(m_fileSystem, new URI(null, null, m_pathComponents[index], null, null));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get path component of custom URI", ex);
         }
     }
@@ -233,7 +221,7 @@ public class URIPath implements FSPath {
         try {
             final String relativeSubpath = String.join("/", Arrays.copyOfRange(m_pathComponents, beginIndex, endIndex));
             return new URIPath(m_fileSystem, new URI(null, null, relativeSubpath, null, null));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to get path component of custom URI", ex);
         }
     }
@@ -261,7 +249,7 @@ public class URIPath implements FSPath {
     private URIPath makeCustomURIPathOnCurrentFileSystem(final String otherPath) {
         try {
             return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), otherPath, null, null));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed make path", ex);
         }
     }
@@ -320,7 +308,7 @@ public class URIPath implements FSPath {
         try {
             return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), resolvedPathString,
                 otherUriPath.m_uri.getQuery(), otherUriPath.m_uri.getFragment()));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to resolve path", ex);
         }
     }
@@ -340,7 +328,7 @@ public class URIPath implements FSPath {
 
             return resolve(otherPath);
 
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to resolve path", ex);
         }
     }
@@ -381,7 +369,7 @@ public class URIPath implements FSPath {
 
             return resolveSibling(otherPath);
 
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to resolve path", ex);
         }
     }
@@ -531,11 +519,16 @@ public class URIPath implements FSPath {
     @Override
     public FSFileAttributes getFileAttributes(final Class<?> type) {
         if (type == BasicFileAttributes.class) {
-            return new FSFileAttributes(true, this, p -> {
-                return new FSBasicAttributes(FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
-                    0L, false, false);
-            });
+            return new FSFileAttributes(!isDirectory(), this, p -> new FSBasicAttributes(FileTime.fromMillis(0L),
+                FileTime.fromMillis(0L), FileTime.fromMillis(0L), 0L, false, false));
         }
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
+    }
+
+    /**
+     * @return whether this URI is assumed to be a directory (i.e. if the path ends with the path separator)
+     */
+    public boolean isDirectory() {
+        return m_uri.getPath().endsWith(m_fileSystem.getSeparator());
     }
 }
