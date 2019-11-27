@@ -417,7 +417,13 @@ public class KNIMEPath implements Path {
         return connection;
     }
 
-    private URL getURL() {
+    /**
+     * Creates a KNIME URL of this path, concatenating the underlying file systems scheme and host with
+     * the relative path.
+     *
+     * @return the full KNIME URL of this path
+     */
+    public URL getURL() {
         String schemeAndHost = m_fileSystem.getConnectionType().getSchemeAndHost();
 
         // TODO TU: check apache for URL encoding
@@ -427,7 +433,6 @@ public class KNIMEPath implements Path {
             URL url = create.toURL();
             return url;
         } catch (MalformedURLException ex) {
-
             return null;
         }
     }

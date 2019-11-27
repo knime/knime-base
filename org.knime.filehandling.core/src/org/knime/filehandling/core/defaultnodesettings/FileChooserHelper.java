@@ -61,9 +61,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
+import org.knime.filehandling.core.connections.knime.KNIMEPath;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
@@ -220,5 +224,38 @@ public final class FileChooserHelper {
      */
     public final SettingsModelFileChooser2 getSettingsModel() {
         return m_settings.clone();
+    }
+
+    /**
+     * Checks whether a given path is a {@link KNIMEPath}.
+     *
+     * @param path path under test
+     * @return true if the path is an instance of KNIMEPath
+     */
+    @SuppressWarnings("static-method")
+    public boolean isKNIMERelativePath(final Path path) {
+        return path instanceof KNIMEPath;
+    }
+
+    /**
+     * Determines if the provided path can be executed in the given context.
+     *
+     * @param path path under test
+     * @param context the workflow context, either local or on a server
+     * @throws InvalidSettingsException if the path cannot be executed in the context
+     */
+    @SuppressWarnings({"resource", "static-method"})
+    public void canExecuteOnServer(final Path path, final WorkflowContext context) throws InvalidSettingsException {
+        if (isOnServer(context) && path instanceof KNIMEPath) {
+            final KNIMEPath knimePath = (KNIMEPath) path;
+            final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
+            if (fileSystem.getConnectionType().equals(KNIMEConnection.Type.NODE_RELATIVE)) {
+                throw new InvalidSettingsException("Executing node relative paths on KNIME server is not supported.");
+            }
+        }
+    }
+
+    private static boolean isOnServer(final WorkflowContext context) {
+        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
     }
 }
