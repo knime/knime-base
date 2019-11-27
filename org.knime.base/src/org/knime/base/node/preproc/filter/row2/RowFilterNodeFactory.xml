@@ -17,11 +17,11 @@
 		 </intro>
 
 		<tab name="Buttons and views">
-		<option name="Query View">A view of the created query displayed as tree structure.
+		<option name="Query View">A view of the created query displayed as a tree structure.
 		</option>
 		<option name="Add Condition">Allows to add a new condition to the query.
 		You can select which column the condition should apply to, as well as the kind of operator to use in the condition.
-		Depending on the operator you will also have to specify the necessary operands to complete the condition.
+		Depending on the operator, you will also have to specify the necessary operands to complete the condition.
 		See below for a list of the different operators for the different types of columns.
 		</option>
 	    <option name="Add Group">Creates a new group consisting of the currently selected condition. Please note that a group must contain
