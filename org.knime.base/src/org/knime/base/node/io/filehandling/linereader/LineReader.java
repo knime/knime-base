@@ -118,16 +118,14 @@ final class LineReader implements FilesToDataTableReader {
     @Override
     public DataTableSpec createDataTableSpec(final List<Path> paths, final ExecutionMonitor exec)
             throws InvalidSettingsException {
-        if(paths.isEmpty()) {
+        if (paths.isEmpty()) {
             throw new InvalidSettingsException("No input file specified.");
         }
         final String tableName = getTableName(paths);
         final Path path = paths.get(0);
-        try (Stream<String> currentLines = getBufferedReader(path).lines()) {
-            String colName;
-
-            if (m_readColHeader) {
-
+        String colName;
+        if (m_readColHeader) {
+            try (Stream<String> currentLines = getBufferedReader(path).lines()) {
                 final Optional<String> optColName =
                     currentLines.filter(s -> (!m_skipEmptyLines || !s.trim().isEmpty())).findFirst();
 
@@ -137,16 +135,16 @@ final class LineReader implements FilesToDataTableReader {
                 } else {
                     colName = optColName.get();
                 }
-            } else {
-                colName = CheckUtils.checkNotNull(m_columnHeader, "column header in config must not be null");
+            } catch (final IOException e) {
+                throw new InvalidSettingsException(e);
             }
-
-            final DataColumnSpecCreator creator = new DataColumnSpecCreator(colName, StringCell.TYPE);
-
-            return new DataTableSpec(tableName, creator.createSpec());
-        } catch (final IOException e) {
-            throw new InvalidSettingsException(e);
+        } else {
+            colName = CheckUtils.checkNotNull(m_columnHeader, "column header in config must not be null");
         }
+
+        final DataColumnSpecCreator creator = new DataColumnSpecCreator(colName, StringCell.TYPE);
+
+        return new DataTableSpec(tableName, creator.createSpec());
     }
 
     @Override

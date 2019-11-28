@@ -63,6 +63,7 @@ import org.knime.core.node.streamable.PortInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.port.FileSystemPortObject;
@@ -119,6 +120,18 @@ public abstract class AbstractSimpleFileReaderNodeModel extends NodeModel {
                 output.close();
             }
         };
+    }
+
+    @Override
+    public PortObjectSpec[] computeFinalOutputSpecs(final StreamableOperatorInternals internals,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        try {
+            return new PortObjectSpec[]{
+                getFileHandlingUtil(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, 0))
+                    .createDataTableSpec()};
+        } catch (final IOException e) {
+            throw new InvalidSettingsException(e);
+        }
     }
 
     /**
