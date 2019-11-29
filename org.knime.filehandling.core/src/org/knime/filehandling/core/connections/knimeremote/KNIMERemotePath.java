@@ -59,6 +59,7 @@ import java.net.URLConnection;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
@@ -102,6 +103,10 @@ public class KNIMERemotePath implements FSPath {
      */
     protected KNIMERemotePath(final FileSystem fileSystem, final String first, final String... more) {
         m_fileSystem = fileSystem;
+
+        // Called to check whether first or more contain illegal characters!
+        Paths.get(first, more);
+
         String path = first;
         if (more.length > 0) {
             if (!first.endsWith(m_fileSystem.getSeparator()) && !more[0].startsWith(m_fileSystem.getSeparator())) {
