@@ -118,7 +118,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
     /** Flow variable provider used to retrieve connection information to different file systems */
-    private Optional<FSConnection> m_fs;
+    private Optional<FSConnection> m_fs = Optional.empty();
 
     /** Flow variable model */
     private final FlowVariableModel m_pathFlowVariableModel;
@@ -238,6 +238,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         m_connections.setEnabled(true);
 
         m_knimeConnections = new JComboBox<>();
+        m_knimeConnections.setRenderer(new KNIMEConnectionRenderer());
 
         m_fileFolderLabel = new JLabel(FILE_LABEL);
 
@@ -430,6 +431,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 triggerStatusMessageUpdate();
             }
         }
+        setConnectionChoiceColor();
     }
 
     private void handleKnimeConnectionUpdate() {
@@ -443,6 +445,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                     model.setKnimeMountpointFileSystem(connection.getId());
                 }
                 updateEnabledness();
+                setKnimeConnectionColors();
                 updateFileHistoryPanel();
                 triggerStatusMessageUpdate();
             }
@@ -706,6 +709,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     protected void updateComponent() {
 
         m_fs = FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
+        m_connections.setRenderer(new FileSystemChoiceRenderer(m_fs));
 
         final boolean filesAndDirectories = m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES);
         m_fileOrFolderButtonGroup.getModel().setEnabled(filesAndDirectories);
@@ -812,6 +816,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             } else {
                 knimeConnectionsModel.setSelectedItem(knimeConnectionsModel.getElementAt(0));
             }
+            setKnimeConnectionColors();
         } else if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
             knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
             knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
@@ -820,6 +825,17 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             knimeConnectionsModel.setSelectedItem(KNIMEConnection.getConnection(model.getKNIMEFileSystem()));
         }
         m_ignoreUpdates = false;
+    }
+
+    private void setKnimeConnectionColors() {
+        m_knimeConnections.setForeground(KNIMEConnectionRenderer.getForegroundColor(
+            (KNIMEConnection)m_knimeConnections.getSelectedItem(), getComponentPanel().getForeground()));
+    }
+
+    private void setConnectionChoiceColor() {
+        final FileSystemChoice fsChoice = (FileSystemChoice)m_connections.getSelectedItem();
+        m_connections.setForeground(
+            FileSystemChoiceRenderer.getForegroundColor(fsChoice, getComponentPanel().getForeground(), m_fs));
     }
 
     @Override

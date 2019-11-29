@@ -48,10 +48,13 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
  * Class encapsulating the different types of KNIME file system connections.
@@ -175,9 +178,8 @@ public class KNIMEConnection {
      */
     public static final synchronized KNIMEConnection getOrCreateMountpointAbsoluteConnection(final String mountId) {
         if (mountId != null && !CONNECTIONS.containsKey(mountId)) {
-            CONNECTIONS.put(mountId,
-                new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
-                    String.format("%s", StringUtils.abbreviate(mountId, 30)), mountId));
+            CONNECTIONS.put(mountId, new KNIMEConnection(Type.MOUNTPOINT_ABSOLUTE,
+                String.format("%s", StringUtils.abbreviate(mountId, 30)), mountId));
         }
 
         return CONNECTIONS.get(mountId);
@@ -220,13 +222,13 @@ public class KNIMEConnection {
      */
     public static KNIMEConnection.Type connectionTypeForHost(final String host) {
         switch (host) {
-            case "knime.node" :
+            case "knime.node":
                 return KNIMEConnection.Type.NODE_RELATIVE;
-            case "knime.workflow" :
+            case "knime.workflow":
                 return KNIMEConnection.Type.WORKFLOW_RELATIVE;
-            case "knime.mountpoint" :
+            case "knime.mountpoint":
                 return KNIMEConnection.Type.MOUNTPOINT_RELATIVE;
-            default :
+            default:
                 return KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE;
         }
     }
@@ -242,6 +244,26 @@ public class KNIMEConnection {
         } else {
             return m_type.getSchemeAndHost();
         }
+    }
+
+    /**
+     * @return whether the mountpoint is connected
+     */
+    public boolean isConnected() {
+        try {
+            return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
+                || MountPointIDProviderService.instance().isReadable(URI.create(getSchemeAndHost()));
+        } catch (final IOException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * @return whether the mountpoint is valid
+     */
+    public boolean isValid() {
+        return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
+            || MountPointIDProviderService.instance().getAllMountedIDs().contains(m_key);
     }
 
 }
