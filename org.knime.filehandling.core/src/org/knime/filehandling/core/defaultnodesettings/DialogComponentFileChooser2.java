@@ -73,7 +73,6 @@ import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
@@ -585,11 +584,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             parent = parent.getParent();
         }
 
-        if (m_fileFilterDialog == null) {
-            m_fileFilterDialog = new FileFilterDialog(parentFrame, m_fileFilterConfigurationPanel);
-            KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> m_fileFilterDialog.setIconImage(i.getImage()));
-        }
-
+        m_fileFilterDialog = new FileFilterDialog(parentFrame, m_fileFilterConfigurationPanel);
         m_fileFilterDialog.setLocationRelativeTo(c);
         m_fileFilterDialog.setVisible(true);
 

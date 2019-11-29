@@ -61,6 +61,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import org.knime.core.node.KNIMEConstants;
+
 /**
  * Dialog for file filtering options.
  *
@@ -97,6 +99,7 @@ public class FileFilterDialog extends JDialog {
      */
     public FileFilterDialog(final Frame owner, final FileFilterPanel panel) {
         super(owner, TITLE_STRING, true);
+        KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> setIconImage(i.getImage()));
 
         m_fileFilterPanel = panel;
         final JPanel rootPanel = new JPanel();
@@ -139,7 +142,7 @@ public class FileFilterDialog extends JDialog {
 
         setContentPane(rootPanel);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        setAlwaysOnTop(true);
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent we) {
@@ -148,7 +151,6 @@ public class FileFilterDialog extends JDialog {
                 onCancel();
             }
         });
-//        setMinimumSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
         pack();
     }
 
