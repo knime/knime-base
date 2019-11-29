@@ -105,12 +105,12 @@ public class URIPath implements FSPath {
      */
     protected URIPath(final FileSystem fileSystem, final URI uri) {
         m_fileSystem = fileSystem;
+
         m_uri = uri;
 
         m_hasRootPathComponent = UnixStylePathUtil.hasRootComponent(uri.getPath());
 
-        m_isAbsolute = m_uri.getScheme() != null && m_uri.getAuthority() != null && m_uri.getPath() != null
-            && m_hasRootPathComponent;
+        m_isAbsolute = m_uri.getPath() != null && m_hasRootPathComponent;
 
         m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_uri.getPath());
     }
@@ -451,23 +451,27 @@ public class URIPath implements FSPath {
     /**
      * Opens a {@link URLConnection} to the resource.
      *
+     * @param openOutputConnection whether the connection should be opened for writing
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection() throws IOException {
-        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis());
+    public URLConnection openURLConnection(final boolean openOutputConnection) throws IOException {
+        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis(), openOutputConnection);
     }
 
     /**
      * Opens a {@link URLConnection} to the resource.
      *
      * @param timeoutMillis Timeout in millis for the connect and read operations.
+     * @param openOutputConnection whether the connection should be opened for writing
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
+    public URLConnection openURLConnection(final int timeoutMillis, final boolean openOutputConnection)
+        throws IOException {
         final URL url = FileUtil.toURL(m_uri.toString());
         final URLConnection connection = url.openConnection();
+        connection.setDoOutput(openOutputConnection);
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
         connection.connect();

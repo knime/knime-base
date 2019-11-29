@@ -66,6 +66,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -91,7 +92,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
 
     /**
      * This class is a singleton, hence private constructor.
-     * 
+     *
      * @param timeoutInMillis read timeout in milliseconds
      */
     public URIFileSystemProvider(final int timeoutInMillis) {
@@ -155,7 +156,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection(getTimeout()).getInputStream();
+        return uriPath.openURLConnection(getTimeout(), false).getInputStream();
 
     }
 
@@ -166,7 +167,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection(getTimeout()).getOutputStream();
+        if ("file".equalsIgnoreCase(uriPath.toUri().getScheme())) {
+            return Files.newOutputStream(Paths.get(uriPath.toUri()), options);
+        }
+
+        return uriPath.openURLConnection(getTimeout(), true).getOutputStream();
+
     }
 
     /**
@@ -356,7 +362,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.
                 return true;
             }
-            uriPath.openURLConnection(m_timeoutInMillis).getInputStream();
+            uriPath.openURLConnection(m_timeoutInMillis, false).getInputStream();
             return true;
         } catch (final Exception e) {
             return false;
