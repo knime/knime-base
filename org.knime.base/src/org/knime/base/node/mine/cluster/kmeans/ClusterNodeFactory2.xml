@@ -24,42 +24,20 @@
 			created.
 		</option>
 		<option name="Centroid initialization">
-			Allows to pick the centroid initialization method.
-			<i>First k rows</i>
-			initializes the centroids using the first rows of the input table.
-			<i>Random initialization</i>
-			initializes the centroids with random rows of the input table.
-			When
-			picking the
-			<i>Random initialization</i>
-			,
-			by checking the
-			<i>Use static random seed</i>
-			it is possible to get reproducible results (same centroids for the
-			same
-			seed). The static random seed value can be controlled by
-			manipulating the
-			corresponding flow variable named:
-			<i>centroid_seeds</i>
-			<br />
-			<b>Note:</b>
-			The choice between the centroid initialization methods can be
-			controlled by a flow variable as well, named:
-			<i>centroid_initialization</i>
-			. The default option:
-			<i>Random initialization</i>
-			will be picked if a string "RANDOM_INITIALIZATION" is fed to this
-			variable, while for
-			<i>First k rows</i>
-			option the flow variable needs to be set "FIRST_ROWS".
+			<ul>
+			<li><b>First k rows:</b>
+			Initializes the centroids using the first rows of the input table.
+			</li>
+			<li><b>Random initialization:</b>
+			Initializes the centroids with random rows of the input table.
+			Checking the <i>Use static random seed</i>
+			it is possible to get reproducible results.
+			</li>
+			</ul>
 		</option>
 		<option name="Max number of iterations">
-			The number of iterations after which the
-			algorithm
-			terminates,
-			independent of the accuracy improvement of the
-			cluster
-			centers.
+			The maximum number of iterations after which the algorithm terminates if it
+			hasn't found a stable solution before.
 		</option>
 		<option name="Numeric Column Selection">
 			Move the numeric columns of interest
