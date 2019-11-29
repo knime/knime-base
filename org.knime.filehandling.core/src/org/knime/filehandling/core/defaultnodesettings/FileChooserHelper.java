@@ -50,6 +50,8 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -262,5 +264,26 @@ public final class FileChooserHelper {
 
     private static boolean isOnServer(final WorkflowContext context) {
         return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
+    }
+
+    /**
+     * Checks that a relative KNIME path does not leave its topmost allowed directory! I.e node relative paths cannot
+     * leave the workflow directory and workflow relative paths cannot leave the mount point.
+     *
+     * @throws InvalidSettingsException
+     */
+    public void checkKNIMEPathIsValid() throws InvalidSettingsException {
+        Path path = getPathFromSettings();
+        if (path instanceof KNIMEPath) {
+            final KNIMEPath knimePath = (KNIMEPath) path;
+            URL url = knimePath.getURL();
+            try {
+                // This called to check if the URL can be resolved, will throw an exception if not!
+                FileUtil.resolveToPath(url);
+            } catch (IOException | URISyntaxException ex) {
+                throw new InvalidSettingsException(ex.getMessage());
+            }
+        }
+
     }
 }

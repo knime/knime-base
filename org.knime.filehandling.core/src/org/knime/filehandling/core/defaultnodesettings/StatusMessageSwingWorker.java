@@ -65,12 +65,14 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JLabel;
-import javax.swing.SwingWorker;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
+import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.knime.KNIMEPath;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -78,7 +80,7 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
-class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Color, String>> {
+class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String>, Pair<Color, String>> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 
@@ -122,7 +124,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
     }
 
     @Override
-    protected Pair<Color, String> doInBackground() throws Exception {
+    protected Pair<Color, String> doInBackgroundWithContext() throws Exception {
         final SettingsModelFileChooser2 model = m_helper.getSettingsModel();
 
         if (model.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
@@ -159,6 +161,15 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         } catch (final InvalidPathException e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
+
+        if (fileOrFolder instanceof KNIMEPath) {
+            try {
+                m_helper.checkKNIMEPathIsValid();
+            } catch (InvalidSettingsException e) {
+                return mkError(e.getMessage());
+            }
+        }
+
         if (m_dialogType.equals(DialogType.OPEN_DIALOG)) {
             // fetch file attributes for path, so we can determine whether it exists, is accessible
             // and whether it is file or folder
@@ -262,7 +273,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
     }
 
     @Override
-    protected void done() {
+    protected void doneWithContext() {
         try {
             updateStatusMessageLabel(get());
         } catch (final ExecutionException e) {
@@ -275,7 +286,7 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
     }
 
     @Override
-    protected void process(final List<Pair<Color, String>> chunks) {
+    protected void processWithContext(final List<Pair<Color, String>> chunks) {
         final Pair<Color, String> colorAndMessage = chunks.get(chunks.size() - 1);
         updateStatusMessageLabel(colorAndMessage);
     }
