@@ -559,6 +559,17 @@ public final class NioFile extends File {
     @SuppressWarnings("static-method")
     private void readObject(final java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
         s.readObject();
+
+    }
+
+    /**
+     * Returns a copy of this NioFile with the given extension concatenated to the file name.
+     *
+     * @param fileExtension file extension to be added
+     * @return a copy of this NioFile with the file extension added to its file name
+     */
+    public NioFile withFileExtension(final String fileExtension) {
+        return new NioFile(getPath().concat(fileExtension), m_fileSys);
     }
 
 }

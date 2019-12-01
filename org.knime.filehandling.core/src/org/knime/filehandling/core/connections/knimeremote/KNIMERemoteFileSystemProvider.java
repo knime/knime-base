@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -180,9 +181,10 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Path is from a different file system provider");
         }
 
-        final KNIMERemotePath uriPath = (KNIMERemotePath)path;
-        final KNIMERemotePath mountPointAbsolutePath = toMountPointAbsolutePath(uriPath);
-        return mountPointAbsolutePath.openURLConnection(getTimeout()).getOutputStream();
+        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
+        final URL knimeURL = toURL(knimePath);
+
+        return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
     }
 
     private static int getTimeout() {
@@ -317,9 +319,9 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 
-    private static KNIMERemotePath toMountPointAbsolutePath(final Path path) {
+    private static URL toURL(final Path path) {
         if (path instanceof KNIMERemotePath) {
-            return ((KNIMERemotePath)path).toMountPointAbsolutePath();
+            return ((KNIMERemotePath)path).toURL();
         } else {
             throw new IllegalArgumentException("Input path must be an instance of KNIMERemotePath");
         }

@@ -68,6 +68,7 @@ import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.connections.knime.KNIMEPath;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
@@ -252,6 +253,10 @@ public final class FileChooserHelper {
             if (fileSystem.getConnectionType().equals(KNIMEConnection.Type.NODE_RELATIVE)) {
                 throw new InvalidSettingsException("Executing node relative paths on KNIME server is not supported.");
             }
+        }
+
+        if (isOnServer(context) && path instanceof KNIMERemotePath) {
+            throw new InvalidSettingsException("Executing mountpoint absolute paths on KNIME server is not supported.");
         }
     }
 

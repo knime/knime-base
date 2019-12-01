@@ -48,8 +48,11 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import java.io.File;
+
 import javax.swing.filechooser.FileView;
 
+import org.knime.filehandling.core.filechooser.NioFile;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
@@ -76,5 +79,16 @@ public class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
         return new KNIMERemoteFileView();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected File addFileExtension(final File file, final String fileExtension) {
+        if (file instanceof NioFile) {
+            return ((NioFile) file).withFileExtension(fileExtension);
+        }
+
+        return super.addFileExtension(file, fileExtension);
+    }
 
 }

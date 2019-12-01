@@ -52,6 +52,7 @@ import static java.lang.String.format;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -131,20 +132,6 @@ public class KNIMERemotePath implements FSPath {
 
         m_isAbsolute = UnixStylePathUtil.hasRootComponent(m_path);
         m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_path);
-    }
-
-    /**
-     * Creates a mount point absolute path consisting of the underlying file systems mount point and this path.
-     *
-     * @return a mount point absolute path
-     */
-    public KNIMERemotePath toMountPointAbsolutePath() {
-        final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem)m_fileSystem;
-
-        final String mountpoint = knimeFS.getMountpoint();
-        final String seperator = knimeFS.getSeparator();
-        final URI uri = URI.create("knime://" + mountpoint + seperator + m_path);
-        return new KNIMERemotePath(m_fileSystem, uri);
     }
 
     /**
@@ -383,16 +370,40 @@ public class KNIMERemotePath implements FSPath {
     }
 
     /**
+     * Creates a KNIME URL of the path of the form:
+     *
+     * knime://[mount-point-id]/path/to/resource
+     *
+     * @return the KNIME URL of this remote path
+     */
+    public URL toURL() {
+        final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem) m_fileSystem;
+
+        final String mountpoint = knimeFS.getMountpoint();
+        final String encodedPath = encodedPath();
+        final URI uri = URI.create("knime://" + mountpoint + encodedPath);
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException ex) {
+            // this should not happen!
+            return null;
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public URI toUri() {
-        final String mountpoint = ((KNIMERemoteFileSystem)m_fileSystem).getMountpoint();
         try {
-            return new URI("knime", mountpoint, m_path, null);
+            return toURL().toURI();
         } catch (final URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private String encodedPath() {
+        return UnixStylePathUtil.asUnixStylePath(m_path).replaceAll(" ", "%20");
     }
 
     /**
