@@ -100,9 +100,10 @@ public class FileSystemChoiceRenderer extends DefaultListCellRenderer {
             setText(fsChoice.getId());
         }
         if (!isSelected) {
-            setBackground(list.getParent().getBackground());
+            setBackground(list.getBackground());
         } else {
             setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
         }
 
         return this;
