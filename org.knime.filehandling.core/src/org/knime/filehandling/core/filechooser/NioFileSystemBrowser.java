@@ -120,4 +120,15 @@ public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected File addFileExtension(final File file, final String fileExtension) {
+        if (file instanceof NioFile) {
+            return ((NioFile) file).withFileExtension(fileExtension);
+        }
+
+        return super.addFileExtension(file, fileExtension);
+    }
 }
