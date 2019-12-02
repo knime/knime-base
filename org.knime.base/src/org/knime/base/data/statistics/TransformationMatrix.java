@@ -50,9 +50,13 @@ package org.knime.base.data.statistics;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.math3.exception.MathArithmeticException;
+import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.EigenDecomposition;
@@ -67,6 +71,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.util.CheckUtils;
+
+import Jama.EigenvalueDecomposition;
+import Jama.Matrix;
 
 /**
  * This class accepts a matrix and calculates its {@link EigenDecomposition}.
@@ -146,8 +153,30 @@ public final class TransformationMatrix {
     public TransformationMatrix(final RealMatrix matrix, final RealVector centers, final int maxDimToReduceTo) {
         CheckUtils.checkNotNull(matrix, "Matrix cannot be null");
         CheckUtils.checkArgument(maxDimToReduceTo > 0, "Max dimensions has to be greater than zero");
-        final EigenDecomposition eigenDecomp = new EigenDecomposition(matrix);
-        final double[] eVals = eigenDecomp.getRealEigenvalues();
+
+        Supplier<double[]> realEigenVals;
+        Function<Integer, RealVector> getEigenvector;
+        try {
+            final EigenDecomposition eigenDecomp = new EigenDecomposition(matrix);
+            realEigenVals = () -> eigenDecomp.getRealEigenvalues();
+            getEigenvector = i -> eigenDecomp.getEigenvector(i);
+        } catch (final MaxCountExceededException | MathArithmeticException e) {
+            // math.commons has problems in some cases so we use jama as fallback see AP-13058
+            final EigenvalueDecomposition jama = new EigenvalueDecomposition(new Matrix(matrix.getData()));
+            realEigenVals = () -> jama.getRealEigenvalues();
+            getEigenvector = new Function<Integer, RealVector>() {
+
+                private final double[][] eVecs = jama.getV().transpose().getArray();
+
+                @Override
+                public RealVector apply(final Integer idx) {
+                    return new ArrayRealVector(eVecs[idx]);
+                }
+
+            };
+        }
+
+        final double[] eVals = realEigenVals.get();
         int[] permutation = IntStream.range(0, eVals.length)//
             .boxed()//
             .sorted((i, j) -> Double.compare(eVals[j], eVals[i]))//
@@ -156,7 +185,7 @@ public final class TransformationMatrix {
         m_sortedEigenVals = new ArrayRealVector(Arrays.stream(permutation)//
             .mapToDouble(i -> eVals[i])//
             .toArray(), false);
-        m_sortedEigenVecs = normalizeEigenvectorsAndSigns(eigenDecomp, permutation);
+        m_sortedEigenVecs = normalizeEigenvectorsAndSigns(getEigenvector, permutation);
         // if no means are provided use a 0 mean array
         if (centers == null) {
             m_centers = new ArrayRealVector(eVals.length);
@@ -166,11 +195,10 @@ public final class TransformationMatrix {
         m_maxDimToReduceTo = Math.min(maxDimToReduceTo, m_centers.getDimension());
     }
 
-    private static RealMatrix normalizeEigenvectorsAndSigns(final EigenDecomposition eigenDecomp,
+    private static RealMatrix normalizeEigenvectorsAndSigns(final Function<Integer, RealVector> getEigenvector,
         final int[] permutation) {
         final double[][] normEigenVecs = Arrays.stream(permutation)//
-            .mapToObj(
-                i -> eigenDecomp.getEigenvector(i).mapMultiply(1.0 / eigenDecomp.getEigenvector(i).getNorm()).toArray())
+            .mapToObj(i -> getEigenvector.apply(i).mapMultiply(1.0 / getEigenvector.apply(i).getNorm()).toArray())
             .toArray(double[][]::new);
         return new Array2DRowRealMatrix(normEigenVecs, false);
     }
