@@ -113,7 +113,9 @@ public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
     @Override
     protected File createFileFromPath(final String filePath) {
         try {
-            return m_fileSystemView.createFileObject(filePath);
+            File file = m_fileSystemView.createFileObject(filePath);
+            file.getAbsolutePath(); // This is called to verify that the created file is absolute
+            return file;
         } catch (Exception ex) {
             // returning null instead of throwing an exception will ensure the default directory is opened on browse
             return null;
