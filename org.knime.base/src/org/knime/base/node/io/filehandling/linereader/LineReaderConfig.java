@@ -127,8 +127,9 @@ final class LineReaderConfig {
      * @param fs the {@link FSConnection}
      * @return a list of paths
      * @throws IOException
+     * @throws InvalidSettingsException
      */
-    final List<Path> getPaths(final Optional<FSConnection> fs) throws IOException {
+    final List<Path> getPaths(final Optional<FSConnection> fs) throws IOException, InvalidSettingsException {
         final FileChooserHelper helper = new FileChooserHelper(fs, getFileChooserModel());
         return helper.getPaths();
     }

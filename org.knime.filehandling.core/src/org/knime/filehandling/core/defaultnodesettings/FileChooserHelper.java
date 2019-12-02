@@ -161,17 +161,10 @@ public final class FileChooserHelper {
      *
      * @return a list of path to read
      * @throws IOException if an I/O error occurs
+     * @throws InvalidSettingsException
      */
-    public final List<Path> getPaths() throws IOException {
-
-        final Path pathOrUrl;
-        if (m_settings.getFileSystemChoice() == FileSystemChoice.getCustomFsUrlChoice()) {
-            final URI uri = URI.create(m_settings.getPathOrURL());
-            pathOrUrl = m_fileSystem.provider().getPath(uri);
-        } else {
-            pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
-        }
-
+    public final List<Path> getPaths() throws IOException, InvalidSettingsException {
+        Path pathOrUrl = getPathFromSettings();
         final List<Path> toReturn;
 
         if (Files.isDirectory(pathOrUrl) && m_settings.readFilesFromFolder()) {
@@ -208,8 +201,9 @@ public final class FileChooserHelper {
      * Creates and returns a new Path object according to the path or URL provided by the underlying settings model.
      *
      * @return Path leading to the path or url provided by the underlying settings model
+     * @throws InvalidSettingsException
      */
-    public Path getPathFromSettings() {
+    public Path getPathFromSettings() throws InvalidSettingsException {
         final Path pathOrUrl;
         if (FileSystemChoice.getCustomFsUrlChoice().equals(m_settings.getFileSystemChoice())) {
             final URI uri = URI.create(m_settings.getPathOrURL());
@@ -217,9 +211,24 @@ public final class FileChooserHelper {
         } else {
             pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
         }
+        validateKNIMERelativePath(pathOrUrl);
+
         return pathOrUrl;
     }
 
+    private static void validateKNIMERelativePath(final Path path) throws InvalidSettingsException {
+        if (path instanceof KNIMEPath) {
+            final KNIMEPath knimePath = (KNIMEPath) path;
+            final URL url = knimePath.getURL();
+            try {
+                // This called to check if the URL can be resolved, will throw an exception if not!
+                FileUtil.resolveToPath(url);
+            } catch (IOException | URISyntaxException ex) {
+                throw new InvalidSettingsException(ex.getMessage());
+            }
+        }
+    }
+    
     /**
      * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
      *
@@ -266,24 +275,4 @@ public final class FileChooserHelper {
         return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
     }
 
-    /**
-     * Checks that a relative KNIME path does not leave its topmost allowed directory! I.e node relative paths cannot
-     * leave the workflow directory and workflow relative paths cannot leave the mount point.
-     *
-     * @throws InvalidSettingsException
-     */
-    public void checkKNIMEPathIsValid() throws InvalidSettingsException {
-        Path path = getPathFromSettings();
-        if (path instanceof KNIMEPath) {
-            final KNIMEPath knimePath = (KNIMEPath) path;
-            URL url = knimePath.getURL();
-            try {
-                // This called to check if the URL can be resolved, will throw an exception if not!
-                FileUtil.resolveToPath(url);
-            } catch (IOException | URISyntaxException ex) {
-                throw new InvalidSettingsException(ex.getMessage());
-            }
-        }
-
-    }
 }

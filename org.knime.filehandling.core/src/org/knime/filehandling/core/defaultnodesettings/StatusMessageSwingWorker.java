@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -66,13 +65,11 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.JLabel;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.connections.knime.KNIMEPath;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -158,16 +155,8 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
         final Path fileOrFolder;
         try {
             fileOrFolder = m_helper.getPathFromSettings();
-        } catch (final InvalidPathException e) {
+        } catch (final Exception e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
-        }
-
-        if (fileOrFolder instanceof KNIMEPath) {
-            try {
-                m_helper.checkKNIMEPathIsValid();
-            } catch (InvalidSettingsException e) {
-                return mkError(e.getMessage());
-            }
         }
 
         if (m_dialogType.equals(DialogType.OPEN_DIALOG)) {
