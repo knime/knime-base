@@ -555,13 +555,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void applySettingsForConnection(final FileSystemChoice fsChoice, final Optional<FSConnection> fs) {
         if (fs.isPresent()) {
             m_fileHistoryPanel.setFileSystemBrowser(fs.get().getFileSystemBrowser());
-            m_fileHistoryPanel.setBrowseable(true);
             m_fileHistoryPanel.setEnabled(true);
+            m_fileHistoryPanel.setBrowseable(true);
             m_statusMessage.setText("");
         } else {
             m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-            m_fileHistoryPanel.setBrowseable(false);
             m_fileHistoryPanel.setEnabled(true);
+            m_fileHistoryPanel.setBrowseable(false);
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText(
                 String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
@@ -737,6 +737,9 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 m_knimeConnections.setSelectedItem(knimeMountpoint);
             }
         }
+
+        setConnectionChoiceColor();
+        setKnimeConnectionColors();
 
         // sync file history panel
         final String pathOrUrl = model.getPathOrURL() != null ? model.getPathOrURL() : "";
