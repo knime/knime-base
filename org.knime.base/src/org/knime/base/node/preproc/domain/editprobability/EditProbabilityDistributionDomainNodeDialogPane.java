@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,19 +43,34 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * Created on Mar 17, 2013 by wiswedel
+ * History
+ *   Dec 18, 2019 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.domain.editnominal;
+package org.knime.base.node.preproc.domain.editprobability;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+
+import org.knime.base.node.preproc.domain.editnominal.EditNominalDomainDialog;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.probability.nominal.NominalDistributionCellFactory;
+import org.knime.core.data.probability.nominal.NominalDistributionValue;
+import org.knime.core.data.probability.nominal.NominalDistributionValueMetaData;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,22 +79,25 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.ColumnFilter;
 
 /**
- * Dialog to node.
  *
- * @author Marcel Hanser
+ * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
-public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
+final class EditProbabilityDistributionDomainNodeDialogPane extends NodeDialogPane {
 
     private final EditNominalDomainDialog m_editNominalDomainDialog;
 
-    private static class NominalDomainTypeHandler implements EditNominalDomainDialog.TypeHandler {
+    private final EditEpsilonConfiguration m_epsilonConfiguration;
+
+    private final JSpinner m_epsilonSpinner;
+
+    private static class NominalProbabilityTypeHandler implements EditNominalDomainDialog.TypeHandler {
 
         /**
          * {@inheritDoc}
          */
         @Override
         public DataType getClassType() {
-            return StringCell.TYPE;
+            return NominalDistributionCellFactory.TYPE;
         }
 
         /**
@@ -89,7 +108,7 @@ public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
             return new ColumnFilter() {
                 @Override
                 public boolean includeColumn(final DataColumnSpec name) {
-                    return name.getType().isCompatible(StringValue.class);
+                    return name.getType().isCompatible(NominalDistributionValue.class);
                 }
 
                 @Override
@@ -104,27 +123,65 @@ public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
          */
         @Override
         public Optional<Set<DataCell>> getPossibleValues(final DataColumnSpec spec) {
-            return Optional.ofNullable(spec.getDomain().getValues());
+            try {
+                return Optional.ofNullable(NominalDistributionValueMetaData.extractFromSpec(spec).getValues().stream().map(StringCell::new)
+                    .collect(Collectors.toSet()));
+            }catch(IllegalStateException e) {
+                return Optional.empty();
+            }
         }
     }
 
-    /**
-     *
-     */
-    public EditNominalDomainNodeDialogPane() {
-        m_editNominalDomainDialog = new EditNominalDomainDialog(new NominalDomainTypeHandler(), false);
-        addTab("Edit Domain Values", m_editNominalDomainDialog.getPanel());
+    public EditProbabilityDistributionDomainNodeDialogPane() {
+        m_editNominalDomainDialog = new EditNominalDomainDialog(new NominalProbabilityTypeHandler(), true);
+        m_epsilonConfiguration = new EditEpsilonConfiguration();
+        m_epsilonSpinner = new JSpinner(new SpinnerNumberModel(4, 1, Integer.MAX_VALUE, 1));
+        addTab("Edit Domain Values", createProbabilityDistributionPanel());
     }
 
-    /**
-     * Saving and restoring.
-     **/
+    private JPanel createProbabilityDistributionPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
+        panel.add(m_editNominalDomainDialog.getPanel(), c);
+        c.gridy++;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weighty = 0;
+        panel.add(createEpsilonSpinnerPanel(), c);
+        return panel;
+
+    }
+
+    private JPanel createEpsilonSpinnerPanel() {
+        JPanel spinnerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        spinnerPanel.setBorder(BorderFactory.createTitledBorder("Precision"));
+        JLabel epsilonLabel = new JLabel("Precision (number of decimal digits)");
+        spinnerPanel.add(epsilonLabel);
+        m_epsilonSpinner.setPreferredSize(new Dimension(100,20));
+        spinnerPanel.add(m_epsilonSpinner);
+        return spinnerPanel;
+    }
+
+    private void setEpsilonValue() {
+        m_epsilonConfiguration.setEpsilonValue(getEpsilonValue());
+    }
+
+    private int getEpsilonValue() {
+        return Integer.parseInt(m_epsilonSpinner.getValue().toString());
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_editNominalDomainDialog.save(settings);
+        setEpsilonValue();
+        m_epsilonConfiguration.saveSettings(settings);
     }
 
     /**
@@ -134,6 +191,8 @@ public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
         m_editNominalDomainDialog.load(settings, specs[0]);
+        m_epsilonConfiguration.loadConfigurationInDialog(settings);
+        m_epsilonSpinner.setValue(m_epsilonConfiguration.getEpsilonValue());
     }
 
     /**

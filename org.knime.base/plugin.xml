@@ -2148,6 +2148,12 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.filter.row2.RowFilterNodeFactory">
       </node>
+      <node
+            after="org.knime.base.node.preproc.domain.editnominal.EditNominalDomainNodeFactory"
+            category-path="/manipulation/column/column-convert+replace"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.domain.editprobability.EditProbabilityDistributionDomainNodeFactory">
+      </node>
    </extension>
    
       

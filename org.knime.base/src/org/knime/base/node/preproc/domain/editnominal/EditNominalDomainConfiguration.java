@@ -68,12 +68,12 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Marcel Hanser
  */
-final class EditNominalDomainConfiguration {
+public final class EditNominalDomainConfiguration {
 
     /**
      * The unknown cell.
      */
-    static final StringCell UNKNOWN_VALUES_CELL = new StringCell(
+    public static final StringCell UNKNOWN_VALUES_CELL = new StringCell(
         "---sabbel krababbel - new unkown column dummy do not touch! {}-)");
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(EditNominalDomainConfiguration.class);
@@ -84,9 +84,13 @@ final class EditNominalDomainConfiguration {
 
     private static final String COLUMN_CREATED_VALS = "created-domain-values";
 
-    private Map<String, List<DataCell>> m_colMapping = new HashMap<String, List<DataCell>>();
+    private static final String COLUMN_REMOVED_VALS = "removed-domain-values";
 
-    private Map<String, Set<DataCell>> m_createdDomainValues = new HashMap<String, Set<DataCell>>();
+    private Map<String, List<DataCell>> m_colMapping = new HashMap<>();
+
+    private Map<String, Set<DataCell>> m_createdDomainValues = new HashMap<>();
+
+    private Map<String, Set<DataCell>> m_removedDomainValues = new HashMap<>();
 
     private static final String IGNORE_NOT_PRESENT_COLS = "ignore-not-present-col";
 
@@ -95,6 +99,7 @@ final class EditNominalDomainConfiguration {
     private boolean m_ignoreNotExistingColumns = false;
 
     private boolean m_ignoreWrongTypes = false;
+
 
     /**
      * Loads the configuration for the dialog with corresponding default values.
@@ -121,7 +126,7 @@ final class EditNominalDomainConfiguration {
      * @param settings the settings to load
      * @throws InvalidSettingsException if the settings are invalid
      */
-    void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_ignoreWrongTypes = settings.getBoolean(IGNORE_NOT_MATHING_TYPES);
         m_ignoreNotExistingColumns = settings.getBoolean(IGNORE_NOT_PRESENT_COLS);
 
@@ -133,7 +138,7 @@ final class EditNominalDomainConfiguration {
      *
      * @param settings Arg settings.
      */
-    void saveSettings(final NodeSettingsWO settings) {
+    public void saveSettings(final NodeSettingsWO settings) {
         settings.addBoolean(IGNORE_NOT_MATHING_TYPES, m_ignoreWrongTypes);
         settings.addBoolean(IGNORE_NOT_PRESENT_COLS, m_ignoreNotExistingColumns);
 
@@ -143,10 +148,13 @@ final class EditNominalDomainConfiguration {
             NodeSettingsWO col = cols.addNodeSettings(entry.getKey());
             col.addDataCellArray(COLUMN_ORDERING, entry.getValue().toArray(new DataCell[entry.getValue().size()]));
             Set<DataCell> createdValues = m_createdDomainValues.get(entry.getKey());
-
             if (createdValues != null && !createdValues.isEmpty()) {
                 col.addDataCellArray(COLUMN_CREATED_VALS, //
                     createdValues.toArray(new DataCell[createdValues.size()]));
+            }
+            Set<DataCell> removedValues = m_removedDomainValues.get(entry.getKey());
+            if (removedValues != null && !removedValues.isEmpty()) {
+                col.addDataCellArray(COLUMN_REMOVED_VALS, removedValues.toArray(new DataCell[removedValues.size()]));
             }
         }
     }
@@ -162,13 +170,18 @@ final class EditNominalDomainConfiguration {
         NodeSettingsRO nodeSettings = settings.getNodeSettings(COLUMNS);
         for (String cols : nodeSettings) {
             NodeSettingsRO colSettings = nodeSettings.getNodeSettings(cols);
-            DataCell[] dataCellArray = colSettings.getDataCellArray(COLUMN_ORDERING, new DataCell[0]);
-            DataCell[] createdSettings = colSettings.getDataCellArray(COLUMN_CREATED_VALS, new DataCell[0]);
-
+            DataCell[] dataCellArray = colSettings.getDataCellArray(COLUMN_ORDERING);
             CheckUtils.checkSetting(dataCellArray != null, "invalid settings for column '%s'", cols);
-
             m_colMapping.put(cols, Arrays.asList(dataCellArray));
-            m_createdDomainValues.put(cols, new HashSet<DataCell>(Arrays.asList(createdSettings)));
+            if (colSettings.containsKey(COLUMN_CREATED_VALS)) {
+                DataCell[] createdSettings = colSettings.getDataCellArray(COLUMN_CREATED_VALS);
+                m_createdDomainValues.put(cols, new HashSet<DataCell>(Arrays.asList(createdSettings)));
+            }
+            if (colSettings.containsKey(COLUMN_REMOVED_VALS)) {
+                DataCell[] removedSettings = colSettings.getDataCellArray(COLUMN_REMOVED_VALS);
+                m_removedDomainValues.put(cols, new HashSet<DataCell>(Arrays.asList(removedSettings)));
+            }
+
         }
     }
 
@@ -177,7 +190,7 @@ final class EditNominalDomainConfiguration {
      *
      * @return an immutable set of columns for which a configuration exists
      */
-    Set<String> getConfiguredColumns() {
+    public Set<String> getConfiguredColumns() {
         return Collections.unmodifiableSet(m_colMapping.keySet());
     }
 
@@ -185,10 +198,10 @@ final class EditNominalDomainConfiguration {
      * Returns an immutable list of the ordered DataCell of the given column or <code>null</code> if no sorting is
      * configured for the given column.
      *
-     * @param columnName the column
+     * @param columnName the column name of the selected column
      * @return an immutable list of the ordered DataCell of the given column or <code>null</code>
      */
-    List<DataCell> getSorting(final String columnName) {
+    public List<DataCell> getSorting(final String columnName) {
         List<DataCell> list = m_colMapping.get(columnName);
         return list == null ? null : Collections.unmodifiableList(m_colMapping.get(columnName));
     }
@@ -196,35 +209,45 @@ final class EditNominalDomainConfiguration {
     /**
      * Returns <code>true</code> if the cell is a within this node created value.
      *
-     * @param columnName the column
-     * @param cell the cell
+     * @param columnName the column name of the selected column
+     * @param cell holds the cell we need to check if it is a created value
      * @return <code>true</code> if the cell is a within this node created value
      */
     boolean isCreatedValue(final String columnName, final DataCell cell) {
-        return m_createdDomainValues.containsKey(columnName) ? m_createdDomainValues.get(columnName).contains(cell)
-            : false;
+        return (m_createdDomainValues.containsKey(columnName) && m_createdDomainValues.get(columnName).contains(cell));
     }
+
+    boolean isRemovedValue(final String columnName, final DataCell cell) {
+        return (m_removedDomainValues.containsKey(columnName) && m_removedDomainValues.get(columnName).contains(cell));
+    }
+
 
     /**
      * Adds a cell which is created within this node to the corresponding set.
      *
-     * @param columnName the name
-     * @param cell the cell
+     * @param columnName the name of the selected column
+     * @param cell holds the cell which we need to add to the selected column
      */
     void addCreatedValue(final String columnName, final DataCell cell) {
-        Set<DataCell> set = m_createdDomainValues.get(columnName);
-        if (set == null) {
-            set = new HashSet<DataCell>();
-            m_createdDomainValues.put(columnName, set);
-        }
+        Set<DataCell> set = m_createdDomainValues.computeIfAbsent(columnName, k -> new HashSet<DataCell>());
         set.add(cell);
     }
 
     /**
+     * Adds a cell which is removed to the corresponding set.
+     *
+     * @param columnName holds the name of the selected column
+     * @param cell holds the cell selected to be removed
+     */
+    void addRemovedValue(final String columnName, final DataCell cell) {
+        Set<DataCell> set = m_removedDomainValues.computeIfAbsent(columnName, k -> new HashSet<DataCell>());
+        set.add(cell);
+    }
+    /**
      * Sets the sorting for the given column. Previous settings are overriden.
      *
-     * @param columnName the column
-     * @param cells the sorting
+     * @param columnName the column selected
+     * @param cells the sorting of the cells of the selected column
      */
     void setSorting(final String columnName, final List<DataCell> cells) {
         m_colMapping.put(columnName, new ArrayList<DataCell>(cells));
@@ -233,17 +256,18 @@ final class EditNominalDomainConfiguration {
     /**
      * Removes the stored sorting and created values for the given column.
      *
-     * @param columnName the column
+     * @param columnName the column selected
      */
     void removeSorting(final String columnName) {
         m_colMapping.remove(columnName);
         m_createdDomainValues.remove(columnName);
+        m_removedDomainValues.remove(columnName);
     }
 
     /**
      * Returns <code>true</code> if there is a sorting configuration for given column.
      *
-     * @param columnName the column
+     * @param columnName the column selected
      * @return <code>true</code> if there is a sorting configuration for given column.
      */
     boolean isConfiguredColumn(final String columnName) {
@@ -253,7 +277,7 @@ final class EditNominalDomainConfiguration {
     /**
      * @return the ignoreNotExistingColumns
      */
-    boolean isIgnoreNotExistingColumns() {
+    public boolean isIgnoreNotExistingColumns() {
         return m_ignoreNotExistingColumns;
     }
 
@@ -265,9 +289,9 @@ final class EditNominalDomainConfiguration {
     }
 
     /**
-     * @return the ignoreWrongTypes
+     * @return {@code true} if the ignoreWrongTypes is picked or {@code false} otherwise
      */
-    boolean isIgnoreWrongTypes() {
+    public boolean isIgnoreWrongTypes() {
         return m_ignoreWrongTypes;
     }
 
@@ -276,5 +300,13 @@ final class EditNominalDomainConfiguration {
      */
     void setIgnoreWrongTypes(final boolean ignoreWrongTypes) {
         m_ignoreWrongTypes = ignoreWrongTypes;
+    }
+
+    public void reset() {
+       m_removedDomainValues.clear();
+       m_createdDomainValues.clear();
+       m_colMapping.clear();
+       m_ignoreWrongTypes = false;
+       m_ignoreNotExistingColumns = false;
     }
 }

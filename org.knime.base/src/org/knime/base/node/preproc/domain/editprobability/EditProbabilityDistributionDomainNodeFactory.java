@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,106 +43,61 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * Created on Mar 17, 2013 by wiswedel
+ * History
+ *   Dec 18, 2019 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.domain.editnominal;
+package org.knime.base.node.preproc.domain.editprobability;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.ColumnFilter;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Dialog to node.
+ * This is an example implementation of the node factory of the "EditProbabilityDistributionDomain" node.
  *
- * @author Marcel Hanser
+ * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
-public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
+public class EditProbabilityDistributionDomainNodeFactory
+    extends NodeFactory<EditProbabilityDistributionDomainNodeModel> {
 
-    private final EditNominalDomainDialog m_editNominalDomainDialog;
-
-    private static class NominalDomainTypeHandler implements EditNominalDomainDialog.TypeHandler {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DataType getClassType() {
-            return StringCell.TYPE;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public ColumnFilter getColumnFilter() {
-            return new ColumnFilter() {
-                @Override
-                public boolean includeColumn(final DataColumnSpec name) {
-                    return name.getType().isCompatible(StringValue.class);
-                }
-
-                @Override
-                public String allFilteredMsg() {
-                    return "";
-                }
-            };
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Optional<Set<DataCell>> getPossibleValues(final DataColumnSpec spec) {
-            return Optional.ofNullable(spec.getDomain().getValues());
-        }
-    }
-
-    /**
-     *
-     */
-    public EditNominalDomainNodeDialogPane() {
-        m_editNominalDomainDialog = new EditNominalDomainDialog(new NominalDomainTypeHandler(), false);
-        addTab("Edit Domain Values", m_editNominalDomainDialog.getPanel());
-    }
-
-    /**
-     * Saving and restoring.
-     **/
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_editNominalDomainDialog.save(settings);
+    public EditProbabilityDistributionDomainNodeModel createNodeModel() {
+        return new EditProbabilityDistributionDomainNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_editNominalDomainDialog.load(settings, specs[0]);
+    public int getNrNodeViews() {
+        return 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void onClose() {
-        m_editNominalDomainDialog.close();
+    public NodeView<EditProbabilityDistributionDomainNodeModel> createNodeView(final int viewIndex,
+        final EditProbabilityDistributionDomainNodeModel nodeModel) {
+        throw new IndexOutOfBoundsException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public EditProbabilityDistributionDomainNodeDialogPane createNodeDialogPane() {
+        return new EditProbabilityDistributionDomainNodeDialogPane();
     }
 
 }

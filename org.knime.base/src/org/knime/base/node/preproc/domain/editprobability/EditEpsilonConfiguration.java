@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,106 +43,73 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * Created on Mar 17, 2013 by wiswedel
+ * History
+ *   Dec 20, 2019 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.domain.editnominal;
+package org.knime.base.node.preproc.domain.editprobability;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.StringValue;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.ColumnFilter;
 
 /**
- * Dialog to node.
  *
- * @author Marcel Hanser
+ * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
-public class EditNominalDomainNodeDialogPane extends NodeDialogPane {
+final class EditEpsilonConfiguration {
 
-    private final EditNominalDomainDialog m_editNominalDomainDialog;
+    /**
+     *  The key to save the epsilon value
+    */
+    private static final String EPSILON_VALUE = "epsilon-value";
 
-    private static class NominalDomainTypeHandler implements EditNominalDomainDialog.TypeHandler {
+    /**
+     * The predefined value of the epsilon
+    */
+    private int m_epsilonValue = 4;
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DataType getClassType() {
-            return StringCell.TYPE;
-        }
+    /**
+     * Loads the epsilon value in the dialog
+     *
+     * @param settings to load the epsilon value from
+     */
+    public void loadConfigurationInDialog(final NodeSettingsRO settings) {
+        m_epsilonValue = settings.getInt(EPSILON_VALUE, 4);
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public ColumnFilter getColumnFilter() {
-            return new ColumnFilter() {
-                @Override
-                public boolean includeColumn(final DataColumnSpec name) {
-                    return name.getType().isCompatible(StringValue.class);
-                }
+    /**
+     * Load the configuration of the epsilon value in the node model
+     *
+     * @param settings settings to load the epsilon value from
+     * @throws InvalidSettingsException thrown if the settings are not valid
+     */
+    public void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_epsilonValue = settings.getInt(EPSILON_VALUE);
+    }
 
-                @Override
-                public String allFilteredMsg() {
-                    return "";
-                }
-            };
-        }
+    /**
+     * Saves into settings the epsilon value
+     *
+     * @param settings holds the settings where the epsilon value needs to be saved
+     */
+    public void saveSettings(final NodeSettingsWO settings) {
+        settings.addInt(EPSILON_VALUE, m_epsilonValue);
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Optional<Set<DataCell>> getPossibleValues(final DataColumnSpec spec) {
-            return Optional.ofNullable(spec.getDomain().getValues());
-        }
+    /**
+     * Sets the epsilon value
+     *
+     * @param epsilonValue the current chosen epsilon value
+     */
+    public void setEpsilonValue(final int epsilonValue) {
+        m_epsilonValue = epsilonValue;
     }
 
     /**
      *
+     * @return returns the current epsilon value
      */
-    public EditNominalDomainNodeDialogPane() {
-        m_editNominalDomainDialog = new EditNominalDomainDialog(new NominalDomainTypeHandler(), false);
-        addTab("Edit Domain Values", m_editNominalDomainDialog.getPanel());
+    public double getEpsilonValue() {
+        return m_epsilonValue;
     }
-
-    /**
-     * Saving and restoring.
-     **/
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_editNominalDomainDialog.save(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_editNominalDomainDialog.load(settings, specs[0]);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onClose() {
-        m_editNominalDomainDialog.close();
-    }
-
 }
