@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -66,7 +67,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -156,7 +156,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection(getTimeout(), false).getInputStream();
+        return uriPath.openURLConnection(getTimeout()).getInputStream();
 
     }
 
@@ -167,12 +167,16 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        if ("file".equalsIgnoreCase(uriPath.toUri().getScheme())) {
-            return Files.newOutputStream(Paths.get(uriPath.toUri()), options);
+        try {
+            final Path localURL = FileUtil.resolveToPath(uriPath.toUri().toURL());
+            if (localURL != null) {
+                return Files.newOutputStream(localURL, options);
+            } else {
+                return FileUtil.openOutputConnection(uriPath.toUri().toURL(), "PUT").getOutputStream();
+            }
+        } catch (final URISyntaxException ex) {
+            throw new IOException(ex);
         }
-
-        return uriPath.openURLConnection(getTimeout(), true).getOutputStream();
-
     }
 
     /**
@@ -362,7 +366,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.
                 return true;
             }
-            uriPath.openURLConnection(m_timeoutInMillis, false).getInputStream();
+            uriPath.openURLConnection(m_timeoutInMillis).getInputStream();
             return true;
         } catch (final Exception e) {
             return false;

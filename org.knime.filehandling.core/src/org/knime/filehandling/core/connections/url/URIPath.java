@@ -455,23 +455,21 @@ public class URIPath implements FSPath {
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection(final boolean openOutputConnection) throws IOException {
-        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis(), openOutputConnection);
+    public URLConnection openURLConnection() throws IOException {
+        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis());
     }
 
     /**
      * Opens a {@link URLConnection} to the resource.
      *
      * @param timeoutMillis Timeout in millis for the connect and read operations.
-     * @param openOutputConnection whether the connection should be opened for writing
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection(final int timeoutMillis, final boolean openOutputConnection)
+    public URLConnection openURLConnection(final int timeoutMillis)
         throws IOException {
         final URL url = FileUtil.toURL(m_uri.toString());
         final URLConnection connection = url.openConnection();
-        connection.setDoOutput(openOutputConnection);
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
         connection.connect();
