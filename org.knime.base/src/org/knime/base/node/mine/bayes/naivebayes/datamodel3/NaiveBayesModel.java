@@ -523,6 +523,8 @@ public final class NaiveBayesModel {
             throw new InvalidSettingsException("Only one Naive Bayes model supported per PMML document");
         }
         final org.dmg.pmml.NaiveBayesModelDocument.NaiveBayesModel bayesModel = naiveBayesModelList.get(0);
+        DerivedFieldMapper derivedFieldMapper =
+            new DerivedFieldMapper(pmml);
         //set ignore missing values to true as it has no effect on the prediction
         m_ignoreMissingVals = true;
         m_pmmlZeroProbThreshold = Double.valueOf(bayesModel.getThreshold());
@@ -531,7 +533,8 @@ public final class NaiveBayesModel {
         m_modelByAttrName = new LinkedHashMap<>(inputs.getBayesInputList().size() + 1);
         for (BayesInput input : inputs.getBayesInputList()) {
             final AttributeModel attributeModel = AttributeModel.loadModel(input);
-            m_modelByAttrName.put(attributeModel.getAttributeName(), attributeModel);
+
+            m_modelByAttrName.put(derivedFieldMapper.getColumnName(attributeModel.getAttributeName()), attributeModel);
         }
         final Map<String, String> inputExtension =
             PMMLNaiveBayesModelTranslator.convertToMap(inputs.getExtensionList());
@@ -548,7 +551,7 @@ public final class NaiveBayesModel {
         final ClassAttributeModel classModel = ClassAttributeModel.loadClassAttributeFromPMML(output);
         m_classColName = classModel.getAttributeName();
         m_classColType = getDataType(pmml.getDataDictionary(), m_classColName);
-        m_modelByAttrName.put(m_classColName, classModel);
+        m_modelByAttrName.put(derivedFieldMapper.getColumnName(m_classColName), classModel);
     }
 
     private static DataType getDataType(final DataDictionary dataDictionary, final String classColName) {
