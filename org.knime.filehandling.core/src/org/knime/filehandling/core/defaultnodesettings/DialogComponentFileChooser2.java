@@ -730,16 +730,16 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 && !knimeFileSystem.equalsIgnoreCase(((KNIMEConnection)m_knimeConnections.getSelectedItem()).getId())) {
                 m_knimeConnections.setSelectedItem(knimeFileSystem);
             }
-        } else if ((fileSystem != null) && fileSystem.equals(FileSystemChoice.getKnimeFsChoice())) {
-            final String knimeMountpoint = model.getKNIMEFileSystem();
+        } else if ((fileSystem != null) && fileSystem.equals(FileSystemChoice.getKnimeMountpointChoice())) {
+            final String knimeMountpoint = model.getKnimeMountpointFileSystem();
             if (knimeMountpoint != null
                 && !knimeMountpoint.equalsIgnoreCase(((KNIMEConnection)m_knimeConnections.getSelectedItem()).getId())) {
                 m_knimeConnections.setSelectedItem(knimeMountpoint);
             }
+            setKnimeConnectionColors();
         }
 
         setConnectionChoiceColor();
-        setKnimeConnectionColors();
 
         // sync file history panel
         final String pathOrUrl = model.getPathOrURL() != null ? model.getPathOrURL() : "";

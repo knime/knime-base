@@ -119,7 +119,7 @@ public class FileSystemChoiceRenderer extends DefaultListCellRenderer {
      */
     protected static Color getForegroundColor(final FileSystemChoice fsChoice, final Color defaultColor,
         final Optional<FSConnection> connection) {
-        if (fsChoice.getType().equals(Choice.CONNECTED_FS) && (!connection.isPresent())) {
+        if (fsChoice != null && fsChoice.getType().equals(Choice.CONNECTED_FS) && (!connection.isPresent())) {
             return Color.RED;
         } else {
             return defaultColor;

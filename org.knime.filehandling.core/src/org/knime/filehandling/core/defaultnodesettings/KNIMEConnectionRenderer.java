@@ -96,9 +96,9 @@ public class KNIMEConnectionRenderer extends DefaultListCellRenderer {
      * @return the foreground color for the given KNIMEConnection
      */
     protected static Color getForegroundColor(final KNIMEConnection connection, final Color defaultColor) {
-        if (!connection.isValid()) {
+        if (connection != null && !connection.isValid()) {
             return Color.RED;
-        } else if (!connection.isConnected()) {
+        } else if (connection != null && !connection.isConnected()) {
             return Color.GRAY;
         } else {
             return defaultColor;
