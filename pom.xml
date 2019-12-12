@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.knime.maven</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>4.1.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>org.knime</groupId>
+	<artifactId>knime-base</artifactId>
+    <version>${revision}${changelist}</version>
+	<packaging>pom</packaging>
+
+    <properties>
+		<revision>4.1.0</revision>
+		<changelist>-SNAPSHOT</changelist>
+	    <feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
+	    <feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
+        
+	</properties>
+
+
+	<modules>
+		<module>org.knime.base</module>
+		<module>org.knime.filehandling.core</module>
+		<module>org.knime.filehandling.core.testing</module>
+		<module>org.knime.base.testing</module>
+		<module>org.knime.deprecated</module>
+		<module>org.knime.features.base</module>
+		<module>org.knime.features.filehandling.core</module>
+		<module>org.knime.features.base.testing</module>
+		<module>org.knime.time</module>
+		<module>org.knime.time.testing</module>
+		<module>org.knime.update.base</module>
+	</modules>
+
+	<repositories>
+		<repository>
+			<id>p2-knime-core</id>
+			<layout>p2</layout>
+			<url>${knime.core.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-expressions</id>
+			<layout>p2</layout>
+			<url>${knime.expressions.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-shared</id>
+			<layout>p2</layout>
+			<url>${knime.shared.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-tp</id>
+			<layout>p2</layout>
+			<url>${knime.tp.p2}</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-source-feature-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>source-feature</id>
+						<phase>package</phase>
+						<goals>
+							<goal>source-feature</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>
+						<plugin id="org.apache.commons.logging.log4j" />
+						<plugin id="org.apache.xerces.clfix" />
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
