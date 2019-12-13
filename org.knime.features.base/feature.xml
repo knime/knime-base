@@ -2,7 +2,7 @@
 <feature
       id="org.knime.features.base"
       label="KNIME Core"
-      version="4.1.0.qualifier"
+      version="4.2.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland"
       plugin="org.knime.product"
       image="icons/knime64.gif">
