@@ -2154,6 +2154,11 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.filter.row2.RowFilterNodeFactory">
       </node>
+      <node
+            category-path="/manipulation/table"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.tablediff.TableDifferNodeFactory">
+      </node>
    </extension>
    
       

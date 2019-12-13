@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="equals.png" type="Manipulator"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Table Difference Finder</name>
+
+	<shortDescription>
+		Compares two tables with respect to their values as
+		well as their column specs.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+		The Table Difference Finder offers the functionality to compare two table by means of their
+		values and table specs. Depending on the configuration the two input tables will be either be entirely
+		be compared or solely respective a subset of the columns existent in the reference table, i.e., the first input.
+		</intro>
+		<tab name="Options">
+		<option name="Compare entire tables">
+		If this	option is checked all columns from the first as well as the second input will be compared against
+		each other. Otherwise, the tables will solely be compared respective the selected columns of the 
+		reference table. 
+		</option>
+			<option name="Select columns from reference table">
+				The list contains the names of those columns in
+				the reference table to be included for the comparison. It allows you
+				to select the columns manually (by moving them to the right panel),
+				via wildcard/regex (all columns whose names match the wildcard/regex
+				are included) or via type selection (all columns with a certain type
+				are included). In case of manual selection, the behavior for new
+				columns (i.e. that are not available at the time you configure the
+				node)can be specified as either Enforce exclusion (new columns are
+				excluded and therefore not used for comparison) or Enforce inclusion
+				(new columns are included and therefore used for comparison).
+			</option>
+			<option name="Fail option:">
+				<b>Never:</b>
+				The Node will not fail on differences regarding the table spec nor
+				the values.
+				<br></br>
+				<br></br>
+				<b>Differing table specs:</b>
+				The Node will fail if the tables feature differing specs.
+				<br></br>
+				<br></br>
+				<b>Differing values:</b>
+				The Node will fail if the tables feature differing specs and/or values.
+			</option>
+		</tab>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Table 1">Reference table.
+		</inPort>
+		<inPort index="1" name="Table 2">Table to check for compliance.
+		</inPort>
+		<outPort index="0" name="Value differences">
+			Table exhibiting all differing entries.
+		</outPort>
+		<outPort index="1" name="Domain differences">
+			Table containing a row for each unique column.
+		</outPort>
+	</ports>
+</knimeNode>
+
