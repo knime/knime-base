@@ -108,6 +108,14 @@ implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
      * {@inheritDoc}
      */
     @Override
+    public Class<FlowTryCatchContext> getFlowScopeContextClass() {
+        return FlowTryCatchContext.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_alwaysPopulate.getBooleanValue()) {
             pushFlowVariableString("FailingNode", m_defaultVariable.getStringValue());
@@ -132,6 +140,7 @@ implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
             // main branch is active - no failure so far...
             return new PortObject[]{inData[0], FlowVariablePortObject.INSTANCE};
         }
+
         // main branch inactive, grab spec from alternative (default) input
         // and push error reasons on stack (they come from the ScopeObject
         // which will we removed after this node, closing the scope).
