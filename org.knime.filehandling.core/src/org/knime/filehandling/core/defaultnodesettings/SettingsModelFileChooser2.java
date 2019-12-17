@@ -377,6 +377,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
                 config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY, m_knimeMountpointFileSystem));
             setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
             setFilterSettings(m_fileFilterSettings);
+            m_fileFilterSettings.loadFromConfig(config);
             m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
