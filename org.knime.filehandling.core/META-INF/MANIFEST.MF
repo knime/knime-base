@@ -11,6 +11,7 @@ Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.defaultnodesettings,
  org.knime.filehandling.core.filechooser,
  org.knime.filehandling.core.port,
+ org.knime.filehandling.core.testing,
  org.knime.filehandling.core.util
 Require-Bundle: org.apache.commons.lang3,
  org.knime.core;bundle-version="[4.1.0,5.0.0)",

@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="org.knime.filehandling.core.MountPointIDProvider" name="MountPointIDProvider" schema="schema/org.knime.filehandling.core.MountPointIDProvider.exsd"/>
+   <extension-point id="org.knime.filehandling.FSTestInitializerProvider" name="FSTestInitializerProvider" schema="schema/org.knime.filehandling.core.FSTestInitializerProvider.exsd"/>
    <extension
          point="org.knime.workbench.repository.categories">
       <category
