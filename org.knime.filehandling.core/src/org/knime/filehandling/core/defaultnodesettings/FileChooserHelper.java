@@ -56,10 +56,10 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
@@ -148,9 +148,11 @@ public final class FileChooserHelper {
             ? Files.walk(dirPath, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS) : Files.list(dirPath)) {
 
             m_filter.resetCount();
-            paths = stream.filter(m_filter).collect(Collectors.toList());
+            final Path[] pathArray = stream.filter(m_filter).toArray(Path[]::new);
+            // enforce lexicographic sorting on the paths
+            Arrays.sort(pathArray);
+            paths = Collections.unmodifiableList(Arrays.asList(pathArray));
             setCounts(paths.size(), m_filter.getNumberOfFilteredFiles());
-
         }
         return paths;
     }
@@ -228,7 +230,7 @@ public final class FileChooserHelper {
             }
         }
     }
-    
+
     /**
      * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
      *
