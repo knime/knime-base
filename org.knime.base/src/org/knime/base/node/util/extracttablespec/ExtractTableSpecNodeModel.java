@@ -50,8 +50,8 @@ package org.knime.base.node.util.extracttablespec;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.util.DataTableSpecExtractor;
 import org.knime.core.data.util.DataTableSpecExtractor.PossibleValueOutputFormat;
 import org.knime.core.data.util.DataTableSpecExtractor.PropertyHandlerOutputFormat;
@@ -103,8 +103,10 @@ class ExtractTableSpecNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        return new DataTableSpec[] {
-                getExtractedDataTable(inSpecs[0]).getDataTableSpec()};
+        final ContainerTable table = getExtractedDataTable(inSpecs[0]);
+        final DataTableSpec spec = table.getDataTableSpec();
+        table.clear();
+        return new DataTableSpec[]{spec};
     }
 
     /**
@@ -113,8 +115,10 @@ class ExtractTableSpecNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        return new BufferedDataTable[] {exec.createBufferedDataTable(
-                getExtractedDataTable(inData[0].getDataTableSpec()), exec)};
+        final ContainerTable ctable = getExtractedDataTable(inData[0].getDataTableSpec());
+        final BufferedDataTable bdt = exec.createBufferedDataTable(ctable, exec);
+        ctable.clear();
+        return new BufferedDataTable[]{bdt};
     }
 
     /**
@@ -125,7 +129,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
      * @return The data table containing the meta information from the given
      * spec.
      */
-    private DataTable getExtractedDataTable(final DataTableSpec spec) {
+    private ContainerTable getExtractedDataTable(final DataTableSpec spec) {
         DataTableSpecExtractor extractor = new DataTableSpecExtractor();
         extractor.setPossibleValueOutputFormat(m_possibleValuesAsCollection.getBooleanValue()
                        ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
