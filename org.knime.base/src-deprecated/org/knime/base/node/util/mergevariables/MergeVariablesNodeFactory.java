@@ -44,91 +44,62 @@
  *
  * History
  *   21.05.2012 (kilian): created
- *   13.01.2020 (lars.schweikardt): enhanced
+ *   13.01.2020 (lars.schweikardt): deprecated
  */
 package org.knime.base.node.util.mergevariables;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Node model mergen various flow variables into one.
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
- * @author Lars Schweikardt, KNIME.com, Konstanz, Germany
+ * @deprecated with AP-13381 the merge variables node support modifiable, i.e., extendable ports
  */
-final class MergeVariablesNodeModel extends NodeModel {
+@Deprecated
+public class MergeVariablesNodeFactory extends
+        NodeFactory<MergeVariablesNodeModel> {
 
     /**
-     * Creates an instance of <code>MergeVariablesNodeModel</code>.
+     * {@inheritDoc}
      */
-    MergeVariablesNodeModel() {
-        super(new PortType[]{FlowVariablePortObject.TYPE, FlowVariablePortObject.TYPE_OPTIONAL,
-            FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE});
+    @Override
+    public MergeVariablesNodeModel createNodeModel() {
+        return new MergeVariablesNodeModel();
     }
 
     /**
-     * Constructor.
-     *
-     * @param portsConfiguration the ports configuration
+     * {@inheritDoc}
      */
-    MergeVariablesNodeModel(final PortsConfiguration portsConfiguration) {
-        super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+    public NodeView<MergeVariablesNodeModel> createNodeView(final int viewIndex,
+            final MergeVariablesNodeModel nodeModel) {
+        return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        return new PortObject[]{FlowVariablePortObject.INSTANCE};
+    protected boolean hasDialog() {
+        return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // Nothing to do ...
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
     }
 
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Nothing to do ...
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Nothing to do ...
-    }
-
-    @Override
-    protected void reset() {
-        // Nothing to do ...
-    }
-
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // Nothing to do ...
-    }
-
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // Nothing to do ...
-    }
 }

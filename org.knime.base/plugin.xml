@@ -1664,7 +1664,13 @@
       </node>
       <node
             category-path="/flowcontrol/variables"
+            deprecated="true"
             factory-class="org.knime.base.node.util.mergevariables.MergeVariablesNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/variables"
+            factory-class="org.knime.base.node.util.mergevariables.MergeVariables2NodeFactory"
             >
       </node>
       <node

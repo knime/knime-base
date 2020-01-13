@@ -41,61 +41,62 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   21.05.2012 (kilian): created
+ *   13.01.2020 (lars.schweikardt): enhanced
  */
 package org.knime.base.node.util.mergevariables;
 
+import java.util.Optional;
+
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 
 /**
- * 
+ * Factory class of the merge merge variables node.
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
+ * @author Lars Schweikardt, KNIME.com, Konstanz, Germany
  */
-public class MergeVariablesNodeFactory extends
-        NodeFactory<MergeVariablesNodeModel> {
+public class MergeVariables2NodeFactory extends ConfigurableNodeFactory<MergeVariablesNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MergeVariablesNodeModel createNodeModel() {
-        return new MergeVariablesNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<MergeVariablesNodeModel> createNodeView(final int viewIndex,
-            final MergeVariablesNodeModel nodeModel) {
+        final MergeVariablesNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        PortsConfigurationBuilder b = new PortsConfigurationBuilder();
+        b.addExtendableInputPortGroup("input",
+            new PortType[]{FlowVariablePortObject.TYPE, FlowVariablePortObject.TYPE,}, FlowVariablePortObject.TYPE);
+        b.addFixedOutputPortGroup("Merged variables", FlowVariablePortObject.TYPE);
+        return Optional.of(b);
+    }
+
+    @Override
+    public MergeVariablesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new MergeVariablesNodeModel(creationConfig.getPortConfig().get());
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return null;
     }
 
