@@ -148,4 +148,11 @@ public interface MountPointIDProvider {
      */
     boolean isWorkflow(URI uri);
 
+    /**
+     * Returns the default directory of this mount point.
+     *
+     * @param uri the location of the mount point
+     * @return the default directory of this mount point
+     */
+    URI getDefaultDirectory(URI uri);
 }

@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
-import java.net.URI;
-
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
@@ -65,7 +63,7 @@ public class KNIMERemoteFileSystemView extends NioFileSystemView {
      * @param fileSystem the {@link KNIMERemoteFileSystem}
      */
     public KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
-        super(fileSystem, new KNIMERemotePath(fileSystem, URI.create("/")));
+        super(fileSystem, fileSystem.getDefaultDirectory());
     }
 
 }

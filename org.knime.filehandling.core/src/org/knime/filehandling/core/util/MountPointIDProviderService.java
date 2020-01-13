@@ -249,4 +249,14 @@ public class MountPointIDProviderService {
     public boolean isWorkflow(final URI uri) {
         return getProvider().isWorkflow(uri);
     }
+
+    /**
+     * Returns the default directory of this mount point.
+     *
+     * @param uri the location of the mount point
+     * @return the default directory of this mount point
+     */
+    public URI getDefaultDirectory(final URI uri) {
+        return getProvider().getDefaultDirectory(uri);
+    }
 }
