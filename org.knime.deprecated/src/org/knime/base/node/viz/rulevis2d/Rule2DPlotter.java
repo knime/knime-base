@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   23.05.2006 (Fabian Dill): created
  */
@@ -69,6 +69,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.FuzzyIntervalValue;
 import org.knime.core.data.RowIterator;
+import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -77,7 +78,7 @@ import org.knime.core.node.property.hilite.HiLiteHandler;
 
 /**
  * Passes the normalized rules to a Rule2DDrawingPane.
- * 
+ *
  * @author Fabian Dill, University of Konstanz
  */
 public class Rule2DPlotter extends ScatterPlotter {
@@ -104,7 +105,7 @@ public class Rule2DPlotter extends ScatterPlotter {
 
     /**
      * Creates an instance of the Rule2DPlotter.
-     * 
+     *
      * @param data - the data points
      * @param rules - the rules
      * @param props - the scatter properties.
@@ -136,7 +137,7 @@ public class Rule2DPlotter extends ScatterPlotter {
 
     /**
      * Sets the rules.
-     * 
+     *
      * @param rules - the rules.
      */
     public void setRules(final DataArray rules) {
@@ -145,7 +146,7 @@ public class Rule2DPlotter extends ScatterPlotter {
 
     /**
      * Sets the hiliteHandler for the rules to the drawingPane.
-     * 
+     *
      * @param handlr - hilitehandler for the rules.
      */
     public void setRuleHiLiteHandler(final HiLiteHandler handlr) {
@@ -369,8 +370,9 @@ public class Rule2DPlotter extends ScatterPlotter {
 
                 }
                 rows.close();
-                drawingPane.setNormalizedRules(new DefaultDataArray(rows
-                        .getTable(), 1, m_rules.size()));
+                final ContainerTable table = (ContainerTable)rows.getTable();
+                drawingPane.setNormalizedRules(new DefaultDataArray(table, 1, m_rules.size()));
+                table.clear();
             }
             super.updatePaintModel();
         }
