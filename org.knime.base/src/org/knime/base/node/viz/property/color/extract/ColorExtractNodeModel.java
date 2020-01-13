@@ -59,6 +59,7 @@ import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -100,8 +101,10 @@ final class ColorExtractNodeModel extends NodeModel {
         if (colorSpec == null) {
             return null;
         }
-        return new DataTableSpec[] {
-                extractColorTable(colorSpec).getDataTableSpec()};
+        final ContainerTable ctable = extractColorTable(colorSpec);
+        final DataTableSpec spec = ctable.getDataTableSpec();
+        ctable.clear();
+        return new DataTableSpec[] {spec};
     }
 
     /** {@inheritDoc} */
@@ -110,19 +113,20 @@ final class ColorExtractNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
         ColorHandlerPortObject colorPO = (ColorHandlerPortObject)inObjects[0];
         DataTableSpec colorSpec = colorPO.getSpec();
-        return new BufferedDataTable[] {exec.createBufferedDataTable(
-                extractColorTable(colorSpec), exec)
-        };
+        final ContainerTable ctable = extractColorTable(colorSpec);
+        final BufferedDataTable bdt = exec.createBufferedDataTable(extractColorTable(colorSpec), exec);
+        ctable.clear();
+        return new BufferedDataTable[]{bdt};
     }
 
-    private DataTable extractColorTable(final DataTableSpec colorSpec)
+    private ContainerTable extractColorTable(final DataTableSpec colorSpec)
         throws InvalidSettingsException {
         // first column has column handler (convention in ColorHandlerPO)
         ColorHandler clrHdl = colorSpec.getColumnSpec(0).getColorHandler();
         final ColorModel model = clrHdl.getColorModel();
         if (model.getClass() == ColorModelNominal.class) {
             ColorModelNominal nom = (ColorModelNominal) model;
-            return extractColorTable(nom);
+            return (ContainerTable)extractColorTable(nom);
         } else if (model.getClass() == ColorModelRange.class) {
             ColorModelRange range = (ColorModelRange) model;
             return extractColorTable(range);
@@ -137,7 +141,7 @@ final class ColorExtractNodeModel extends NodeModel {
     /**
      * @param range
      * @return */
-    private DataTable extractColorTable(final ColorModelRange range) {
+    private ContainerTable extractColorTable(final ColorModelRange range) {
         DataTableSpec spec = createSpec(DoubleCell.TYPE);
         DataContainer cnt = new DataContainer(spec);
         RowKey[] keys = new RowKey[] {new RowKey("min"), new RowKey("max")};
@@ -152,7 +156,7 @@ final class ColorExtractNodeModel extends NodeModel {
             cnt.addRowToTable(row);
         }
         cnt.close();
-        return cnt.getTable();
+        return (ContainerTable)cnt.getTable();
     }
 
     /**
