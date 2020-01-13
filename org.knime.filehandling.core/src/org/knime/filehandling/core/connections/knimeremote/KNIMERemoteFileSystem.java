@@ -64,6 +64,7 @@ import java.util.Set;
 
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
  *
@@ -253,4 +254,12 @@ public class KNIMERemoteFileSystem extends FileSystem {
         return m_nodeContext;
     }
 
+    /**
+     * Returns the default directory of this file system.
+     *
+     * @return the default directory of this file system
+     */
+    public Path getDefaultDirectory() {
+        return new KNIMERemotePath(this, MountPointIDProviderService.instance().getDefaultDirectory(m_mountpoint));
+    }
 }
