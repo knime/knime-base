@@ -114,8 +114,6 @@ final class NumericalAttributeModel extends AttributeModel {
 
         private static final String MEAN_CFG = "mean";
 
-        //        private static final String VARIANCE_CFG = "variance";
-
         private static final String SD_CFG = "sd";
 
         private final String m_classValue;
@@ -275,6 +273,10 @@ final class NumericalAttributeModel extends AttributeModel {
                 m_missingValueRecs.inc();
             } else {
                 final double val = ((DoubleValue)attrVal).getDoubleValue();
+                CheckUtils.checkArgument(!Double.isNaN(val), "Data contain NaN values in column '%s'.",
+                    getAttributeName());
+                CheckUtils.checkArgument(!Double.isInfinite(val), "Data contain infinite values in column '%s'.",
+                    getAttributeName());
                 m_incMean.increment(val);
                 m_incVar.increment(val);
             }
@@ -284,22 +286,25 @@ final class NumericalAttributeModel extends AttributeModel {
 
         private double getLogProbability(final DataCell attributeValue, final double logProbThreshold) {
             /* This is soo wrong ... but actually we cannot call this method except we have loaded the
-             * model from PMML => this should ever happen.
+             * model from PMML => this should never happen.
              */
-            if (Double.isNaN(m_mean) || m_incMean != null) {
-                throw new RuntimeException("Mean hasn't been calculated");
+            if (m_incMean != null) {
+                throw new RuntimeException(
+                    String.format("The mean hasn't been calculated for class '%s' in column '%s'.", m_classValue,
+                        getAttributeName()));
             }
             /* m_noOfRows == 0 & therefore getNoOfNotMissingRows() == 0 if we have read from PMML without missing
              * entries => however, we should not run into this case, since it is ensure by the calling method
              */
             if (attributeValue.isMissing()) {
-                if (m_noOfRows == 0) {
-                    throw new IllegalStateException(
-                        "Model for attribute " + getAttributeName() + " contains no rows for class " + m_classValue);
-                }
                 return logProbThreshold;
             }
-
+            CheckUtils.checkArgument(!Double.isNaN(m_mean),
+                "The mean of column '%s' for class '%s' is NaN. The learner, potentially,"
+                    + " only witnessed missing values for this class during training.",
+                getAttributeName(), m_classValue);
+            CheckUtils.checkArgument(!Double.isInfinite(m_mean), "The mean of column '%s' for class '%s' is infinite.",
+                getAttributeName(), m_classValue);
             // very wide domain (e.g. data values contain Double.INFINITY or such)
             if (Double.isInfinite(m_sd)) {
                 return logProbThreshold;
