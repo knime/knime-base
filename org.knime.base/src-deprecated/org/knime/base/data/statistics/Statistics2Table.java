@@ -69,6 +69,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DefaultTable;
@@ -402,12 +403,17 @@ public class Statistics2Table {
     }
 
     /**
-     * Create nominal value table containing all possible values together with
-     * their occurrences.
+     * This method is susceptible to resource leaks, since it returns a table that blocks system resources. Make sure to
+     * {@link ContainerTable#clear() clear} the returned table after use to dispose underlying resources once the table
+     * is no longer needed.
+     * <p>
+     * Create nominal value table containing all possible values together with their occurrences.
+     *
      * @param nominal value output table
      * @return data table with nominal values for each column
+     * @since 4.2
      */
-    public DataTable createNominalValueTable(final List<String> nominal) {
+    public ContainerTable createNominalValueTable(final List<String> nominal) {
         DataTableSpec outSpec = createOutSpecNominal(m_spec, nominal);
         Iterator[] it = new Iterator[outSpec.getNumColumns() / 2];
         int idx = 0;
@@ -440,7 +446,7 @@ public class Statistics2Table {
                     new DefaultRow(RowKey.createRowKey(rowIndex++), cells));
         } while (true);
         cont.close();
-        return cont.getTable();
+        return (ContainerTable)cont.getTable();
     }
 
     private DataRow createRow(final String key, final double[] array) {

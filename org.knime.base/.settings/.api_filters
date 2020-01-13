@@ -16,6 +16,22 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/data/statistics/Statistics2Table.java" type="org.knime.base.data.statistics.Statistics2Table">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.data.statistics.Statistics2Table"/>
+                <message_argument value="createNominalValueTable(List&lt;String&gt;)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/data/statistics/Statistics3Table.java" type="org.knime.base.data.statistics.Statistics3Table">
+        <filter id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.data.statistics.Statistics3Table"/>
+                <message_argument value="createNominalValueTable(List&lt;String&gt;)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/mine/transformation/pca/apply/PCA2ApplyNodeModel.java" type="org.knime.base.node.mine.transformation.pca.apply.PCA2ApplyNodeModel">
         <filter id="571519004">
             <message_arguments>
