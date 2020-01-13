@@ -2298,6 +2298,9 @@
         <MissingCellHandler
               MissingCellHandlerFactory="org.knime.base.node.preproc.pmml.missingval.handlers.FixedLongValueMissingCellHandlerFactory">
         </MissingCellHandler>
+        <MissingCellHandler
+              MissingCellHandlerFactory="org.knime.base.node.preproc.pmml.missingval.handlers.FixedBooleanValueMissingCellHandlerFactory">
+        </MissingCellHandler>
      </extension>
      <extension
            point="org.knime.core.DataType">
