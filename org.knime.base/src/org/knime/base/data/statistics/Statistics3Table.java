@@ -77,6 +77,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.BlobWrapperDataCell;
+import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
@@ -640,17 +641,13 @@ public class Statistics3Table {
     }
 
     /**
-     * This method is susceptible to resource leaks, since it returns a table that blocks system resources. Make sure to
-     * {@link ContainerTable#clear() clear} the returned table after use to dispose underlying resources once the table
-     * is no longer needed.
-     * <p>
      * Create nominal value table containing all possible values together with their occurrences.
      *
      * @param nominal value output table
      * @return data table with nominal values for each column
      * @since 4.2
      */
-    public ContainerTable createNominalValueTable(final List<String> nominal) {
+    public CloseableTable createNominalValueTable(final List<String> nominal) {
         DataTableSpec outSpec = createOutSpecNominal(m_spec, nominal);
         @SuppressWarnings("unchecked")
         Iterator<Entry<DataCell, Integer>>[] it = new Iterator[(outSpec.getNumColumns() / 3)];
@@ -688,7 +685,7 @@ public class Statistics3Table {
             cont.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIndex++), cells));
         } while (true);
         cont.close();
-        return (ContainerTable)cont.getTable();
+        return cont.getCloseableTable();
     }
 
     private DataRow createRow(final String key, final double[] array) {

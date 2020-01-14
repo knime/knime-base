@@ -60,6 +60,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.container.ContainerTable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -152,10 +153,9 @@ public class Statistics2NodeModel extends NodeModel {
         BufferedDataTable outTable1 = exec.createBufferedDataTable(
                 m_statTable.createStatisticMomentsTable(),
                 exec.createSubProgress(0.5));
-        final ContainerTable table = m_statTable.createNominalValueTable(m_nominalFilter.getIncludeList());
-        final BufferedDataTable outTable2 = exec.createBufferedDataTable(table, exec.createSubProgress(0.5));
-        table.clear();
-        return new BufferedDataTable[]{outTable1, outTable2};
+        try (final CloseableTable table = m_statTable.createNominalValueTable(m_nominalFilter.getIncludeList())) {
+            return new BufferedDataTable[]{outTable1, exec.createBufferedDataTable(table, exec.createSubProgress(0.5))};
+        }
     }
 
     /**

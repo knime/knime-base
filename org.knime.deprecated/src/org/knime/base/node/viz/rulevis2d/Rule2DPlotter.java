@@ -69,7 +69,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.FuzzyIntervalValue;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.container.ContainerTable;
+import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -370,9 +370,9 @@ public class Rule2DPlotter extends ScatterPlotter {
 
                 }
                 rows.close();
-                final ContainerTable table = (ContainerTable)rows.getTable();
-                drawingPane.setNormalizedRules(new DefaultDataArray(table, 1, m_rules.size()));
-                table.clear();
+                try (final CloseableTable table = rows.getCloseableTable()) {
+                    drawingPane.setNormalizedRules(new DefaultDataArray(table, 1, m_rules.size()));
+                }
             }
             super.updatePaintModel();
         }

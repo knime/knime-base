@@ -55,11 +55,10 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.container.ContainerTable;
+import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
@@ -101,10 +100,9 @@ final class ColorExtractNodeModel extends NodeModel {
         if (colorSpec == null) {
             return null;
         }
-        final ContainerTable ctable = extractColorTable(colorSpec);
-        final DataTableSpec spec = ctable.getDataTableSpec();
-        ctable.clear();
-        return new DataTableSpec[] {spec};
+        try (final CloseableTable table = extractColorTable(colorSpec)) {
+            return new DataTableSpec[] {table.getDataTableSpec()};
+        }
     }
 
     /** {@inheritDoc} */
@@ -113,20 +111,19 @@ final class ColorExtractNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
         ColorHandlerPortObject colorPO = (ColorHandlerPortObject)inObjects[0];
         DataTableSpec colorSpec = colorPO.getSpec();
-        final ContainerTable ctable = extractColorTable(colorSpec);
-        final BufferedDataTable bdt = exec.createBufferedDataTable(extractColorTable(colorSpec), exec);
-        ctable.clear();
-        return new BufferedDataTable[]{bdt};
+        try (final CloseableTable table = extractColorTable(colorSpec)) {
+            return new BufferedDataTable[]{exec.createBufferedDataTable(table, exec)};
+        }
     }
 
-    private ContainerTable extractColorTable(final DataTableSpec colorSpec)
+    private CloseableTable extractColorTable(final DataTableSpec colorSpec)
         throws InvalidSettingsException {
         // first column has column handler (convention in ColorHandlerPO)
         ColorHandler clrHdl = colorSpec.getColumnSpec(0).getColorHandler();
         final ColorModel model = clrHdl.getColorModel();
         if (model.getClass() == ColorModelNominal.class) {
             ColorModelNominal nom = (ColorModelNominal) model;
-            return (ContainerTable)extractColorTable(nom);
+            return extractColorTable(nom);
         } else if (model.getClass() == ColorModelRange.class) {
             ColorModelRange range = (ColorModelRange) model;
             return extractColorTable(range);
@@ -136,12 +133,7 @@ final class ColorExtractNodeModel extends NodeModel {
         }
     }
 
-
-
-    /**
-     * @param range
-     * @return */
-    private ContainerTable extractColorTable(final ColorModelRange range) {
+    private CloseableTable extractColorTable(final ColorModelRange range) {
         DataTableSpec spec = createSpec(DoubleCell.TYPE);
         DataContainer cnt = new DataContainer(spec);
         RowKey[] keys = new RowKey[] {new RowKey("min"), new RowKey("max")};
@@ -156,14 +148,10 @@ final class ColorExtractNodeModel extends NodeModel {
             cnt.addRowToTable(row);
         }
         cnt.close();
-        return (ContainerTable)cnt.getTable();
+        return cnt.getCloseableTable();
     }
 
-    /**
-     * @param nom
-     * @return
-     * @throws InvalidSettingsException */
-    private DataTable extractColorTable(final ColorModelNominal nom)
+    private CloseableTable extractColorTable(final ColorModelNominal nom)
     throws InvalidSettingsException {
         DataType superType = null;
         for (DataCell c : nom) {
@@ -188,7 +176,7 @@ final class ColorExtractNodeModel extends NodeModel {
             cnt.addRowToTable(row);
         }
         cnt.close();
-        return cnt.getTable();
+        return cnt.getCloseableTable();
     }
 
     /**

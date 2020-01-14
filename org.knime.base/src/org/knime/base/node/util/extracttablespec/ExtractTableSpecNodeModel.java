@@ -51,7 +51,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.ContainerTable;
+import org.knime.core.data.container.CloseableTable;
 import org.knime.core.data.util.DataTableSpecExtractor;
 import org.knime.core.data.util.DataTableSpecExtractor.PossibleValueOutputFormat;
 import org.knime.core.data.util.DataTableSpecExtractor.PropertyHandlerOutputFormat;
@@ -103,10 +103,9 @@ class ExtractTableSpecNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        final ContainerTable table = getExtractedDataTable(inSpecs[0]);
-        final DataTableSpec spec = table.getDataTableSpec();
-        table.clear();
-        return new DataTableSpec[]{spec};
+        try (final CloseableTable table = getExtractedDataTable(inSpecs[0])) {
+            return new DataTableSpec[]{table.getDataTableSpec()};
+        }
     }
 
     /**
@@ -115,10 +114,9 @@ class ExtractTableSpecNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        final ContainerTable ctable = getExtractedDataTable(inData[0].getDataTableSpec());
-        final BufferedDataTable bdt = exec.createBufferedDataTable(ctable, exec);
-        ctable.clear();
-        return new BufferedDataTable[]{bdt};
+        try (final CloseableTable table = getExtractedDataTable(inData[0].getDataTableSpec())) {
+            return new BufferedDataTable[]{exec.createBufferedDataTable(table, exec)};
+        }
     }
 
     /**
@@ -129,7 +127,7 @@ class ExtractTableSpecNodeModel extends NodeModel {
      * @return The data table containing the meta information from the given
      * spec.
      */
-    private ContainerTable getExtractedDataTable(final DataTableSpec spec) {
+    private CloseableTable getExtractedDataTable(final DataTableSpec spec) {
         DataTableSpecExtractor extractor = new DataTableSpecExtractor();
         extractor.setPossibleValueOutputFormat(m_possibleValuesAsCollection.getBooleanValue()
                        ? PossibleValueOutputFormat.Collection : PossibleValueOutputFormat.Hide);
