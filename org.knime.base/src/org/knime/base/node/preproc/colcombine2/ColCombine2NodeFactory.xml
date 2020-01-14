@@ -29,6 +29,8 @@
 		delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of 
 		the above example would be <i>some-value</i>).</option>
 		<option name="Name of appended column">The name of the new column.</option>
+		<option name="Remove included columns"> If selected, removes the columns in the &quot;Include&quot;
+		list from the output.</option>
 		<option name="Column Selection">Move the columns of interest into the &quot;Include&quot; list.</option>
 	</fullDescription>
 	

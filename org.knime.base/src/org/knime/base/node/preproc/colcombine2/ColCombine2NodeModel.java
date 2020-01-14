@@ -89,6 +89,8 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     static final String CFG_QUOTE_CHAR = "quote_char";
     /** Config identifier: delimiter replacement string. */
     static final String CFG_REPLACE_DELIMITER_STRING = "replace_delimiter";
+    /** Config identifier: remove included columns. */
+    static final String CFG_REMOVE_INCLUDED_COLUMNS = "remove_included_columns";
 
     private DataColumnSpecFilterConfiguration m_filterConf;
     private String m_newColName;
@@ -98,6 +100,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     private boolean m_isQuotingAlways;
     private String m_replaceDelimString;
     private String[] m_included;
+    private boolean m_removeIncludedColumns;
 
 
     /** {@inheritDoc} */
@@ -114,6 +117,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     /** {@inheritDoc} */
     @Override
     protected void reset() {
+        // noting to reset
     }
 
     /** {@inheritDoc} */
@@ -176,6 +180,9 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
                return new StringCell(handleContent(cellContents, delimTrim));
             }
         });
+        if(m_removeIncludedColumns) {
+            result.remove(m_included);
+        }
         return result;
     }
 
@@ -237,6 +244,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
                         CFG_REPLACE_DELIMITER_STRING, m_replaceDelimString);
             }
             settings.addString(CFG_NEW_COLUMN_NAME, m_newColName);
+            settings.addBoolean(CFG_REMOVE_INCLUDED_COLUMNS, m_removeIncludedColumns);
         }
     }
 
@@ -257,6 +265,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
             m_replaceDelimString = settings.getString(
                     CFG_REPLACE_DELIMITER_STRING);
         }
+        m_removeIncludedColumns = settings.getBoolean(CFG_REMOVE_INCLUDED_COLUMNS, false);
     }
 
     /** {@inheritDoc} */
@@ -305,6 +314,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     protected void loadInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
+        // no internals
     }
 
     /** {@inheritDoc} */
@@ -312,6 +322,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     protected void saveInternals(final File internDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
+        // no internals
     }
 
 

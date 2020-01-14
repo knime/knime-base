@@ -47,8 +47,6 @@ package org.knime.base.node.preproc.colcombine2;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -88,6 +86,7 @@ public class ColCombine2NodeDialog extends NodeDialogPane {
     private final JTextField m_replaceDelimStringField;
     private final JRadioButton m_quoteCharRadioButton;
     private final JRadioButton m_replaceDelimRadioButton;
+    private final JCheckBox m_removeIncludedColumns;
     private DataTableSpec m_spec;
 
     /** Inits GUI. */
@@ -119,19 +118,18 @@ public class ColCombine2NodeDialog extends NodeDialogPane {
             new JRadioButton("Replace Delimiter by ");
         butGroup.add(m_quoteCharRadioButton);
         butGroup.add(m_replaceDelimRadioButton);
-        ActionListener radioButtonListener = new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                boolean isQuote = m_quoteCharRadioButton.isSelected();
-                m_quoteCharField.setEnabled(isQuote);
-                m_quoteAlwaysChecker.setEnabled(isQuote);
-                m_replaceDelimStringField.setEnabled(!isQuote);
-            }
-        };
-        m_quoteCharRadioButton.addActionListener(radioButtonListener);
-        m_replaceDelimRadioButton.addActionListener(radioButtonListener);
+        m_quoteCharRadioButton.addActionListener(e -> updateQuoteStatus());
+        m_replaceDelimRadioButton.addActionListener(e -> updateQuoteStatus());
         m_quoteCharRadioButton.doClick();
+        m_removeIncludedColumns = new JCheckBox("Remove included columns");
         initLayout();
+    }
+
+    private void updateQuoteStatus() {
+        boolean isQuote = m_quoteCharRadioButton.isSelected();
+        m_quoteCharField.setEnabled(isQuote);
+        m_quoteAlwaysChecker.setEnabled(isQuote);
+        m_replaceDelimStringField.setEnabled(!isQuote);
     }
 
     private void initLayout() {
@@ -171,12 +169,16 @@ public class ColCombine2NodeDialog extends NodeDialogPane {
         gdb.gridwidth = 2;
         p.add(m_appendColNameField, gdb);
 
+        gdb.gridx = 4;
+        gdb.gridwidth = 1;
+        p.add(m_removeIncludedColumns, gdb);
+
         gdb.gridy++;
         gdb.gridx = 0;
         gdb.fill = GridBagConstraints.BOTH;
         gdb.weightx = 1.0;
         gdb.weighty = 1.0;
-        gdb.gridwidth = 3;
+        gdb.gridwidth = 5;
         p.add(m_filterPanel, gdb);
 
         addTab("Settings", p);
@@ -222,6 +224,9 @@ public class ColCombine2NodeDialog extends NodeDialogPane {
             m_replaceDelimRadioButton.doClick();
             m_replaceDelimStringField.setText(replaceDelim);
         }
+        m_removeIncludedColumns
+            .setSelected(settings.getBoolean(ColCombine2NodeModel.CFG_REMOVE_INCLUDED_COLUMNS, false));
+
     }
 
     /** {@inheritDoc} */
@@ -258,5 +263,6 @@ public class ColCombine2NodeDialog extends NodeDialogPane {
             settings.addString(
                     ColCombine2NodeModel.CFG_REPLACE_DELIMITER_STRING, replace);
         }
+        settings.addBoolean(ColCombine2NodeModel.CFG_REMOVE_INCLUDED_COLUMNS, m_removeIncludedColumns.isSelected());
     }
 }
