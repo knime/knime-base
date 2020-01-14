@@ -17,10 +17,10 @@
 	</p>
 	<p>
 	The SVM learning algorithm used is described in the following papers:
-	<a href="http://research.microsoft.com/~jplatt/smo-book.pdf">
+	<a href="https://www.microsoft.com/en-us/research/publication/fast-training-of-support-vector-machines-using-sequential-minimal-optimization/">
 	Fast Training of Support Vector Machines using Sequential Minimal 
 	Optimization</a>, by John C. Platt and
-	<a href="http://coblitz.codeen.org:3125/citeseer.ist.psu.edu/cache/papers/cs/11207/http:zSzzSzguppy.mpe.nus.edu.sgzSz~mpesskzSzsmo_mod.pdf/improvements-to-platt-s.pdf">
+	<a href="https://digilander.libero.it/sedekfx/papers_/smo_mod.pdf">
 	Improvements to Platt's SMO Algorithm for SVM Classifier Design</a>, by
 		S. S. Keerthi et. al.
 	</p>
