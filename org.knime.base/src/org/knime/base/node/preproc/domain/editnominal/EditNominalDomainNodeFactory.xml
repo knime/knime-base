@@ -41,7 +41,7 @@
 			Non-string typed
 			columns are filtered out. A column name with red border indicates that the
 			domain values for this
-			columns were previously configured but the column either no longer
+			columns were previously modified but the column either no longer
 			exists or has a different type (no string column anymore). Red written
 			domain value orderings can
 			be edited
@@ -89,20 +89,20 @@
 		</option>
 		<option name="Reset/Delete">
 			Restores the original domain value list as in the
-			input table. If a not existing but previously configured column is
+			input table. If a not existing but previously modified column is
 			selected (written in red), this button is labeled
 			with 'Delete' and
-			deletes the stored configuration for the selected column.
+			deletes the stored modifications for the selected column.
 		</option>
-		<option name="If a configured columns is not present in data">
+		<option name="If a modified columns is not present in data">
 			Determines if the execution should either fail or
-			the column should be ignored if a configured column does not exist in
+			the column should be ignored if a modified column does not exist in
 			the input table.
 		</option>
-		<option name="If a configured columns has an incompatible type">
+		<option name="If a modified columns has an incompatible type">
 			Determines if the execution should either fail or
 			the column should be ignored if
-			the types of a configured column are
+			the types of a modified column are
 			not equal.
 		</option>
 	</fullDescription>

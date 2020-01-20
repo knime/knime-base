@@ -107,9 +107,9 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  */
 public final class EditNominalDomainDialog {
 
-    private static final String IGNORE_COLUMNS_NOT_PRESENT_IN_DATA = "If a configured column is not present in data";
+    private static final String IGNORE_COLUMNS_NOT_PRESENT_IN_DATA = "If a modified column is not present in data";
 
-    private static final String IGNORE_COLUMNS_NOT_MATCHING_TYPES = "If a configured column has an incompatible type";
+    private static final String IGNORE_COLUMNS_NOT_MATCHING_TYPES = "If a modified column has an incompatible type";
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(EditNominalDomainDialog.class);
 

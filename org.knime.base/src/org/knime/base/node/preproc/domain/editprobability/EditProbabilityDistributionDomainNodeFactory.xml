@@ -38,7 +38,7 @@
 			All the other column types are filtered out. A
 			column name with red
 			border indicates that the column was previously
-			configured but
+			modified but
 			either
 			it doesn't exist anymore or its type has
 			changed (not a
@@ -68,18 +68,18 @@
 		</option>
 		<option name="Reset/Delete">Restores the original probability distribution
 			classes as in the input table. If a not existing, but previously
-			configured column is selected (written in red), this buttons is
-			marked with 'Delete' and deletes the stored configuration for the
+			modified column is selected (written in red), this button is
+			marked with 'Delete' and deletes the stored modifications for the
 			selected column.
 		</option>
-		<option name="If a configured column is not present in data">
+		<option name="If a modified column is not present in data">
 			Determines whether the execution should either fail or
-			the column should be ignored if a configured column does not exist
+			the column should be ignored if a modified column does not exist
 			in the input table.
 		</option>
-		<option name="If a configured column has an incompatible type">
+		<option name="If a modified column has an incompatible type">
 			Determines whether the execution should either fail or
-			the column should be ignored if the type of the configured column is
+			the column should be ignored if the type of the modified column is
 			not compatible with a probability distribution column.
 		</option>
 		<option name="Precision (number of decimal digits)">
