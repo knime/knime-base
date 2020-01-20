@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
@@ -90,7 +91,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
     public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(FeatureSelectionModel.class);
 
     private final Collection<Pair<Double, Collection<Integer>>> m_featureLevels =
-        new ArrayList<Pair<Double, Collection<Integer>>>();
+        new ArrayList<>();
 
     private final AbstractColumnHandler m_columnHandler;
 
@@ -164,9 +165,14 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         Collection<Integer> includedFeatures = new ArrayList<>();
         if (settings.thresholdMode()) {
             // find minimal set for given threshold
-            Pair<Double, Collection<Integer>> p = findMinimalSet(settings.errorThreshold());
-            if (p != null) {
-                includedFeatures.addAll(p.getSecond());
+            Optional<Pair<Double, Collection<Integer>>> p = findMinimalSet(settings.errorThreshold());
+            if (p.isPresent()) {
+                includedFeatures.addAll(p.get().getSecond());
+            }
+        } else if(settings.bestScoreMode()) {
+            Optional<Pair<Double, Collection<Integer>>> p = getBestScorePair();
+            if (p.isPresent()) {
+                includedFeatures.addAll(p.get().getSecond());
             }
         } else {
             // find features with specified length
@@ -215,11 +221,11 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
      * @return the minimal set with a better score than <b>threshold</b>
      */
     public Collection<String> getNamesOfMinimialSet(final double threshold) {
-        final Pair<Double, Collection<Integer>> minimalSet = findMinimalSet(threshold);
-        return m_columnHandler.getColumnNamesFor(minimalSet.getSecond());
+        final Optional<Pair<Double, Collection<Integer>>> minimalSet = findMinimalSet(threshold);
+        return m_columnHandler.getColumnNamesFor(minimalSet.isPresent()? minimalSet.get().getSecond(): Collections.emptySet());
     }
 
-    private Pair<Double, Collection<Integer>> findMinimalSet(final double threshold) {
+    private Optional<Pair<Double, Collection<Integer>>> findMinimalSet(final double threshold) {
         Pair<Double, Collection<Integer>> minimalSet = null;
         int minimalSetSize = Integer.MAX_VALUE;
         for (final Pair<Double, Collection<Integer>> level : m_featureLevels) {
@@ -228,12 +234,35 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
                 minimalSetSize = level.getSecond().size();
             }
         }
-
-        return minimalSet;
+        return Optional.ofNullable(minimalSet);
     }
 
     private final boolean comp(final double value, final double threshold) {
         return m_isMinimize ? value <= threshold : value >= threshold;
+    }
+
+
+    /**
+     * Returns the names of the features contained in the smallest feature set with the best score.
+     * The best score depends wether the score variable is being minimized or maximized. In case of
+     * minimization, we search for the lowest score and vice-versa in case of maximization.
+     *
+     * @return the minimal set with the best score.
+     */
+    public Collection<String> getBestScore() {
+        final Optional<Pair<Double, Collection<Integer>>> col = getBestScorePair();
+        return m_columnHandler.getColumnNamesFor(col.isPresent()? col.get().getSecond(): Collections.emptySet());
+    }
+
+    private Optional<Pair<Double, Collection<Integer>>> getBestScorePair(){
+        return m_featureLevels.stream().min(createComparator());
+    }
+
+    private Comparator<Pair<Double, Collection<Integer>>> createComparator(){
+        return (o1, o2) -> {
+            final int comp = o1.getFirst().compareTo(o2.getFirst());
+            return m_isMinimize? comp : -comp;
+        };
     }
 
     /**
@@ -295,20 +324,20 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         public void savePortObjectSpec(final FeatureSelectionModel model, final PortObjectSpecZipOutputStream out)
             throws IOException {
             out.putNextEntry(new ZipEntry("spec.file"));
-            final DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(out));
-            model.m_columnHandler.save(outStream);
-            outStream.writeBoolean(model.isMinimize());
-            outStream.writeUTF(model.m_scoreName);
-            outStream.writeInt(model.m_featureLevels.size());
-            for (final Pair<Double, Collection<Integer>> level : model.m_featureLevels) {
-                outStream.writeDouble(level.getFirst());
-                outStream.writeInt(level.getSecond().size());
-                for (final Integer feature : level.getSecond()) {
-                    outStream.writeInt(feature);
+            try(final DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(out))){
+                model.m_columnHandler.save(outStream);
+                outStream.writeBoolean(model.isMinimize());
+                outStream.writeUTF(model.m_scoreName);
+                outStream.writeInt(model.m_featureLevels.size());
+                for (final Pair<Double, Collection<Integer>> level : model.m_featureLevels) {
+                    outStream.writeDouble(level.getFirst());
+                    outStream.writeInt(level.getSecond().size());
+                    for (final Integer feature : level.getSecond()) {
+                        outStream.writeInt(feature);
+                    }
                 }
+                outStream.flush();
             }
-            outStream.flush();
-            outStream.close();
         }
 
         /**
@@ -317,23 +346,23 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         @Override
         public FeatureSelectionModel loadPortObjectSpec(final PortObjectSpecZipInputStream in) throws IOException {
             in.getNextEntry();
-            final DataInputStream inStream = new DataInputStream(new BufferedInputStream(in));
-            final AbstractColumnHandler colHandler = AbstractColumnHandler.loadColumnHandler(inStream);
-            final FeatureSelectionModel model = new FeatureSelectionModel(colHandler);
-            model.setIsMinimize(inStream.readBoolean());
-            model.setScoreName(inStream.readUTF());
-            final int numFeatureLevels = inStream.readInt();
-            for (int i = 0; i < numFeatureLevels; i++) {
-                double score = inStream.readDouble();
-                int length = inStream.readInt();
-                List<Integer> list = new ArrayList<>(length);
-                for (int j = 0; j < length; j++) {
-                    list.add(inStream.readInt());
+            try (final DataInputStream inStream = new DataInputStream(new BufferedInputStream(in))){
+                final AbstractColumnHandler colHandler = AbstractColumnHandler.loadColumnHandler(inStream);
+                final FeatureSelectionModel model = new FeatureSelectionModel(colHandler);
+                model.setIsMinimize(inStream.readBoolean());
+                model.setScoreName(inStream.readUTF());
+                final int numFeatureLevels = inStream.readInt();
+                for (int i = 0; i < numFeatureLevels; i++) {
+                    double score = inStream.readDouble();
+                    int length = inStream.readInt();
+                    List<Integer> list = new ArrayList<>(length);
+                    for (int j = 0; j < length; j++) {
+                        list.add(inStream.readInt());
+                    }
+                    model.addFeatureLevel(score, Collections.unmodifiableCollection(list));
                 }
-                model.addFeatureLevel(score, Collections.unmodifiableCollection(list));
+                return model;
             }
-            inStream.close();
-            return model;
         }
 
     }
@@ -359,6 +388,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         @Override
         public void savePortObject(final FeatureSelectionModel portObject, final PortObjectZipOutputStream out,
             final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+            // nothing to save
         }
     }
 
@@ -367,6 +397,6 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
      */
     @Override
     public JComponent[] getViews() {
-        return null;
+        return new JComponent[0];
     }
 }

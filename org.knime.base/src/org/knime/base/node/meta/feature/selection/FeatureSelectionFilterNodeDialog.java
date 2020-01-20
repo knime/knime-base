@@ -52,8 +52,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,10 +72,6 @@ import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -100,10 +95,10 @@ import org.knime.core.util.Pair;
 public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
     private static class MyTableModel implements TableModel {
         private final CopyOnWriteArrayList<TableModelListener> m_listeners =
-                new CopyOnWriteArrayList<TableModelListener>();
+                new CopyOnWriteArrayList<>();
 
         private final List<Pair<Double, Collection<String>>> m_featureLevels =
-                new ArrayList<Pair<Double, Collection<String>>>();
+                new ArrayList<>();
 
         private String m_scoreName;
 
@@ -115,20 +110,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         public void featuresChanged(final FeatureSelectionModel fsModel) {
             m_featureLevels.clear();
             m_featureLevels.addAll(fsModel.featureLevels());
-            Collections.sort(m_featureLevels,
-                    new Comparator<Pair<Double, Collection<String>>>() {
-                        @Override
-                        public int compare(
-                                final Pair<Double, Collection<String>> o1,
-                                final Pair<Double, Collection<String>> o2) {
-                            int diff = o1.getFirst().compareTo(o2.getFirst());
-                            if (diff != 0) {
-                                return fsModel.isMinimize() ? diff : -diff;
-                            }
-                            return -o1.getSecond().size()
-                                    + o2.getSecond().size();
-                        }
-                    });
+            Collections.sort(m_featureLevels, createComparator(fsModel));
             TableModelEvent ev;
             if (m_scoreName == null || !m_scoreName.equals(fsModel.getScoreName())) {
                 m_scoreName = fsModel.getScoreName();
@@ -142,6 +124,16 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
             }
         }
 
+        private static Comparator<Pair<Double, Collection<String>>> createComparator(final FeatureSelectionModel fsModel){
+            return (o1, o2) -> {
+                final int diff = o1.getFirst().compareTo(o2.getFirst());
+                if (diff != 0) {
+                    return fsModel.isMinimize() ? diff : -diff;
+                }
+                return -o1.getSecond().size()
+                        + o2.getSecond().size();
+            };
+        }
         /**
          * {@inheritDoc}
          */
@@ -270,11 +262,16 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
 
     private final JLabel m_warningMessage = new JLabel(" ");
 
+    private final JLabel m_optimizationMessage = new JLabel(" ");
+
     private final JCheckBox m_includeStaticColumns = new JCheckBox(
             "Include static columns");
 
     private final JRadioButton m_manualMode = new JRadioButton(
             "Select features manually");
+
+    private final JRadioButton m_bestScoreMode = new JRadioButton(
+            "Select best score");
 
     private final JRadioButton m_thresholdMode = new JRadioButton(
             "Select features automatically by score threshold");
@@ -287,6 +284,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
     private final FeatureSelectionFilterSettings m_settings = new FeatureSelectionFilterSettings();
 
     private FeatureSelectionModel m_fsModel;
+
 
     /**
      * Creates a new dialog.
@@ -306,39 +304,22 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
 
         c.gridy++;
         c.anchor = GridBagConstraints.WEST;
-        m_includeStaticColumns.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                Collection<String> l = m_includedColumns.getSelectedColumns();
-                if (m_includeStaticColumns.isSelected()) {
-                    l.addAll(m_staticColumns);
-                } else {
-                    l.removeAll(m_staticColumns);
-                }
-                m_includedColumns.setSelectedColumns(l);
-            }
-        });
+        m_includeStaticColumns.addActionListener(e -> addStaticColumnsListener());
         p.add(m_includeStaticColumns, c);
 
         ButtonGroup bg = new ButtonGroup();
+        bg.add(m_bestScoreMode);
         bg.add(m_manualMode);
         bg.add(m_thresholdMode);
-        ActionListener al = new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                m_featureLevels.setEnabled(m_manualMode.isSelected());
-                m_featureLevels.getSelectionModel().removeSelectionInterval(0,
-                        999);
 
-                m_errorThreshold.setEnabled(!m_manualMode.isSelected());
-                errorThresholdChanged();
-            }
-        };
-        m_manualMode.addActionListener(al);
-        m_thresholdMode.addActionListener(al);
+        m_manualMode.addActionListener(e -> addFeatureSelectionListener());
+        m_bestScoreMode.addActionListener(e -> addFeatureSelectionListener());
+        m_thresholdMode.addActionListener(e -> addFeatureSelectionListener());
 
         c.gridy++;
         p.add(m_manualMode, c);
+        c.gridy++;
+        p.add(m_bestScoreMode, c);
         c.gridy++;
         p.add(m_thresholdMode, c);
 
@@ -347,26 +328,22 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         p.add(new JLabel("      Prediction score threshold   "), c);
         c.gridx = 1;
         m_errorThreshold.setPreferredSize(new Dimension(60, 20));
-        m_errorThreshold.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                errorThresholdChanged();
-            }
-        });
-
+        m_errorThreshold.addChangeListener(e -> errorThresholdChanged());
         p.add(m_errorThreshold, c);
 
+        c.gridy++;
         c.gridx = 0;
         c.gridwidth = 2;
+        c.insets = new Insets(10, 5, 0, 0);
+        m_optimizationMessage.setForeground(Color.BLUE);
+        p.add(m_optimizationMessage, c);
+
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets = new Insets(10, 0, 0, 0);
         c.gridy++;
         m_featureLevels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        m_featureLevels.getSelectionModel().addListSelectionListener(
-                new ListSelectionListener() {
-                    @Override
-                    public void valueChanged(final ListSelectionEvent e) {
-                        listSelectionChanged(e);
-                    }
-                });
+        m_featureLevels.getSelectionModel().addListSelectionListener(e -> addListSelectionChangedListener());
+
         m_includedColumns.setUserSelectionAllowed(false);
 
         JPanel p2 = new JPanel(new GridLayout(1, 2));
@@ -382,12 +359,31 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         addTab("Column Selection", p);
     }
 
-    private void listSelectionChanged(final ListSelectionEvent ev) {
+    private void addStaticColumnsListener() {
+        Collection<String> l = m_includedColumns.getSelectedColumns();
+        if (m_includeStaticColumns.isSelected()) {
+            l.addAll(m_staticColumns);
+        } else {
+            l.removeAll(m_staticColumns);
+        }
+        m_includedColumns.setSelectedColumns(l);
+    }
+
+    private void addFeatureSelectionListener() {
+        m_featureLevels.setEnabled(m_manualMode.isSelected());
+        m_featureLevels.getSelectionModel().clearSelection();
+        bestScoreSelection();
+        m_errorThreshold.setEnabled(m_thresholdMode.isSelected());
+        errorThresholdChanged();
+    }
+
+
+    private void addListSelectionChangedListener() {
         int selRow = m_featureLevels.getSelectionModel().getMinSelectionIndex();
         m_warningMessage.setText(" ");
         if (selRow >= 0) {
             Collection<String> features =
-                    new ArrayList<String>(m_tableModel.getFeatures(selRow));
+                    new ArrayList<>(m_tableModel.getFeatures(selRow));
             if (m_includeStaticColumns.isSelected()) {
                 features.addAll(m_staticColumns);
             }
@@ -401,14 +397,26 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         }
     }
 
+    private void bestScoreSelection() {
+        m_warningMessage.setText("");
+        if (!m_bestScoreMode.isSelected()) {
+            return;
+        }
+        final Collection<String> bestScoreFeatures = m_fsModel.getBestScore();
+        final Collection<String> features = new ArrayList<>(bestScoreFeatures);
+        if (m_includeStaticColumns.isSelected()) {
+            features.addAll(m_staticColumns);
+        }
+        setIntervalNotManualMode(bestScoreFeatures.size());
+        m_includedColumns.setSelectedColumns(features);
+    }
+
     private void errorThresholdChanged() {
         m_warningMessage.setText(" ");
         if (!m_thresholdMode.isSelected()) {
             return; // make sure that column selection is only changed if we are in threshold mode
         }
         final Collection<String> namesOfMinimalSet = m_fsModel.getNamesOfMinimialSet(((Number)m_errorThreshold.getValue()).doubleValue());
-//                FeatureSelectionFilterSettings.findMinimalSet(m_fsModel,
-//                        ((Number)m_errorThreshold.getValue()).doubleValue());
 
         if (namesOfMinimalSet != null) {
             final Collection<String> features = new ArrayList<>(namesOfMinimalSet);
@@ -420,6 +428,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
                 m_warningMessage.setText("Warning: Some features are missing "
                         + "in the input table");
             }
+            setIntervalNotManualMode(namesOfMinimalSet.size());
         } else {
             m_includedColumns.clearSelection();
             m_warningMessage.setText("No feature combination with prediction "
@@ -443,6 +452,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         m_settings.thresholdMode(m_thresholdMode.isSelected());
         m_settings.errorThreshold(((Number)m_errorThreshold.getValue())
                 .doubleValue());
+        m_settings.bestScoreMode(m_bestScoreMode.isSelected());
         m_settings.saveSettings(settings);
     }
 
@@ -459,47 +469,60 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
             throw new NotConfigurableException(
                     "No feature selection model available.");
         }
+        final String optimization =
+                m_fsModel.isMinimize() ? "The score is being minimized." : "The score is being maximized.";
+        final String optimizationMessageText = "<html>Optimization Criterion: <i>"+ optimization + "</i></html>";
+        m_optimizationMessage.setText(optimizationMessageText);
         m_staticColumns = Arrays.asList(m_fsModel.getConstantColumns());
-        ViewUtils.runOrInvokeLaterInEDT(new Runnable() {
-            @Override
-            public void run() {
-                m_tableModel.featuresChanged(m_fsModel);
-                if (specs[1] != null) {
-                    m_includedColumns.update((DataTableSpec)specs[1]);
-                } else {
-                    ((DefaultListModel)m_includedColumns.getModel()).clear();
-                }
-                final int numIncl = m_settings.includedColumns(m_fsModel).size();
-                final int setSize = m_settings.includeConstantColumns() ? numIncl - m_fsModel.getConstantColumns().length : numIncl;
-                // Makes sure that the right components are enabled/disabled
-                if (m_settings.thresholdMode()) {
-                    m_thresholdMode.doClick();
-                } else {
-                    m_manualMode.doClick();
-                }
-                for (int i = 0; i < m_tableModel.getRowCount(); i++) {
-                    if (m_settings.thresholdMode()) {
-                        if (m_tableModel.getNrOfFeatures(i) == setSize) {
-                            m_featureLevels.getSelectionModel()
-                                    .setSelectionInterval(i, i);
-                            break;
-                        }
-                    } else {
-                        if (m_tableModel.getNrOfFeatures(i) == m_settings
-                                .nrOfFeatures()) {
-                            m_featureLevels.getSelectionModel()
-                                    .setSelectionInterval(i, i);
-                            break;
-                        }
-                    }
-                }
-                m_includeStaticColumns.setSelected(m_settings
-                        .includeConstantColumns());
-                m_includedColumns.setSelectedColumns(m_settings.includedColumns(m_fsModel));
-                m_thresholdMode.setSelected(m_settings.thresholdMode());
-                m_manualMode.setSelected(!m_settings.thresholdMode());
-                m_errorThreshold.setValue(m_settings.errorThreshold());
+        ViewUtils.runOrInvokeLaterInEDT(runLaterInEDT(specs));
+    }
+
+    private Runnable runLaterInEDT(final PortObjectSpec[] specs) {
+        return () -> {m_tableModel.featuresChanged(m_fsModel);
+        if (specs[1] != null) {
+            m_includedColumns.update((DataTableSpec)specs[1]);
+        } else {
+            ((DefaultListModel<?>)m_includedColumns.getModel()).clear();
+        }
+
+        final int numIncl = m_settings.includedColumns(m_fsModel).size();
+        final int setSize = m_settings.includeConstantColumns() ? numIncl - m_fsModel.getConstantColumns().length : numIncl;
+            if (m_settings.bestScoreMode()) {
+                m_bestScoreMode.doClick();
+                setIntervalNotManualMode(setSize);
+            } else if (m_settings.thresholdMode()) {
+                m_thresholdMode.doClick();
+                setIntervalNotManualMode(setSize);
+            } else {
+                setIntervalManualMode();
             }
-        });
+
+        m_includeStaticColumns.setSelected(m_settings
+                .includeConstantColumns());
+        m_includedColumns.setSelectedColumns(m_settings.includedColumns(m_fsModel));
+        m_thresholdMode.setSelected(m_settings.thresholdMode());
+        m_bestScoreMode.setSelected(m_settings.bestScoreMode());
+        m_manualMode.setSelected(!m_settings.thresholdMode() && !m_settings.bestScoreMode());
+        m_errorThreshold.setValue(m_settings.errorThreshold());
+        };
+    }
+
+    private void setIntervalNotManualMode(final int setSize) {
+        for (int i = 0; i < m_tableModel.getRowCount(); i++) {
+            if (m_tableModel.getNrOfFeatures(i) == setSize) {
+                m_featureLevels.getSelectionModel().setSelectionInterval(i, i);
+                break;
+            }
+        }
+    }
+
+    private void setIntervalManualMode() {
+        m_manualMode.doClick();
+        for (int i = 0; i < m_tableModel.getRowCount(); i++) {
+            if (m_tableModel.getNrOfFeatures(i) == m_settings.nrOfFeatures()) {
+                m_featureLevels.getSelectionModel().setSelectionInterval(i, i);
+                break;
+            }
+        }
     }
 }

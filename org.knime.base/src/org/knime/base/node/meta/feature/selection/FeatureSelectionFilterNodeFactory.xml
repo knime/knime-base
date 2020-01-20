@@ -14,6 +14,8 @@
 		If this option is checked, any static columns are included in the output table, otherwise they are filtered out.
         </option>
         <option name="Select features manually">By selecting this option you can choose a set of features in the table below.</option>
+        <option name="Select best score">By selecting this option the best score is chosen. In case the score is being maximized, 
+        the best score is the highest score value, while if the score is being minimized the best score is the lowest score value. </option>
         <option name="Select features automatically by score threshold">By selecting this option you can set a
         prediction score threshold.</option>
         <option name="Prediction score threshold">Enter a prediction score threshold here.  The smallest feature set with a score below the specified threshold (if the score is to be minimized) or above the specified threshold (if the score is to be maximized) is selected.</option>       
