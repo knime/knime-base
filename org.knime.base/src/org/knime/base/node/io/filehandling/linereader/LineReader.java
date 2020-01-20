@@ -117,7 +117,7 @@ final class LineReader implements FilesToDataTableReader {
 
     @Override
     public DataTableSpec createDataTableSpec(final List<Path> paths, final ExecutionMonitor exec)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
         if (paths.isEmpty()) {
             throw new InvalidSettingsException("No input file specified.");
         }
@@ -125,7 +125,8 @@ final class LineReader implements FilesToDataTableReader {
         final Path path = paths.get(0);
         String colName;
         if (m_readColHeader) {
-            try (Stream<String> currentLines = getBufferedReader(path).lines()) {
+            try (final BufferedReader reader = getBufferedReader(path);
+                    final Stream<String> currentLines = reader.lines()) {
                 final Optional<String> optColName =
                     currentLines.filter(s -> (!m_skipEmptyLines || !s.trim().isEmpty())).findFirst();
 
@@ -189,7 +190,7 @@ final class LineReader implements FilesToDataTableReader {
             final DefaultRow row = new DefaultRow(key, new StringCell(line));
             try {
                 m_output.push(row);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 final Thread currentThread = Thread.currentThread();
                 if (currentThread.isInterrupted()) {
                     currentThread.interrupt();
@@ -204,7 +205,8 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readLimited(final long l, final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try (final Stream<String> lineStream = getBufferedReader(path).lines()) {
+        try (final BufferedReader reader = getBufferedReader(path);
+                final Stream<String> lineStream = reader.lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).limit(l).filter(this::regExMatch)
                 .forEachOrdered(rowbuilder);
         }
@@ -212,9 +214,10 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readAllLines(final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try(final Stream<String> lineStream = getBufferedReader(path).lines()) {
+        try (final BufferedReader reader = getBufferedReader(path);
+                final Stream<String> lineStream = reader.lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).filter(this::regExMatch)
-            .forEachOrdered(rowbuilder);
+                .forEachOrdered(rowbuilder);
         }
     }
 
@@ -223,7 +226,6 @@ final class LineReader implements FilesToDataTableReader {
             .onUnmappableCharacter(CodingErrorAction.REPLACE);
         return new BufferedReader(new InputStreamReader(Files.newInputStream(path), decoder));
     }
-
 
     private boolean regExMatch(final String s) {
         return !m_useRegex || s.matches(m_regex);
