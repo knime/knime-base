@@ -56,7 +56,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
-public class EditProbabilityDistributionDomainNodeFactory
+final class EditProbabilityDistributionDomainNodeFactory
     extends NodeFactory<EditProbabilityDistributionDomainNodeModel> {
 
     /**
