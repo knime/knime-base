@@ -44,129 +44,100 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2019 (bjoern): created
+ *   03.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.connections.base.attributes;
 
-import java.nio.file.attribute.BasicFileAttributes;
+import java.io.IOException;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
+import java.util.Set;
+
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
 
 /**
- * Simple standard implementation of {@link BasicFileAttributes}.
+ * Basic implementation of <{@link BasicFileAttributeView}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class BasicFileAttributesImpl implements BasicFileAttributes {
+public class FSFileAttributeView implements PosixFileAttributeView {
 
-    private final FileTime m_lastModifiedTime;
+    private final String m_name;
 
-    private final FileTime m_lastAccessTime;
+    private final CheckedExceptionFunction<FSFileAttributes, IOException> m_readAttributesFunction;
 
-    private final FileTime m_creationTime;
-
-    private final boolean m_isRegularFile;
-
-    private final boolean m_isDirectory;
-
-    private final boolean m_isSymbolicLink;
-
-    private final boolean m_isOther;
-
-    private final long m_size;
-
-    private final Object m_fileKey;
-
-    public BasicFileAttributesImpl(final FileTime lastModifiedTime,
-        final FileTime lastAccessTime,
-        final FileTime creationTime,
-        final boolean isRegularFile,
-        final boolean isDirectory,
-        final boolean isSymbolicLink,
-        final boolean isOther,
-        final long size,
-        final Object fileKey) {
-
-        m_lastModifiedTime = lastModifiedTime;
-        m_lastAccessTime = lastAccessTime;
-        m_creationTime = creationTime;
-        m_isRegularFile = isRegularFile;
-        m_isDirectory = isDirectory;
-        m_isSymbolicLink = isSymbolicLink;
-        m_isOther = isOther;
-        m_size = size;
-        m_fileKey = fileKey;
+    /**
+     * Constructs a file attribute view
+     *
+     * @param name the name of the attribute view
+     * @param readAttributesFunction function that reads attributes
+     */
+    public FSFileAttributeView(final String name,
+        final CheckedExceptionFunction<FSFileAttributes, IOException> readAttributesFunction) {
+        m_name = name;
+        m_readAttributesFunction = readAttributesFunction;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public FileTime lastModifiedTime() {
-        return m_lastModifiedTime;
+    public String name() {
+        return m_name;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public FileTime lastAccessTime() {
-        return m_lastAccessTime;
+    public void setTimes(final FileTime lastModifiedTime, final FileTime lastAccessTime, final FileTime createTime)
+        throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public FileTime creationTime() {
-        return m_creationTime;
+    public UserPrincipal getOwner() throws IOException {
+        return readAttributes().owner();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isRegularFile() {
-        return m_isRegularFile;
+    public void setOwner(final UserPrincipal owner) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isDirectory() {
-        return m_isDirectory;
+    public PosixFileAttributes readAttributes() throws IOException {
+        return m_readAttributesFunction.apply();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isSymbolicLink() {
-        return m_isSymbolicLink;
+    public void setPermissions(final Set<PosixFilePermission> perms) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isOther() {
-        return m_isOther;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long size() {
-        return m_size;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object fileKey() {
-        return m_fileKey;
+    public void setGroup(final GroupPrincipal group) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
 }

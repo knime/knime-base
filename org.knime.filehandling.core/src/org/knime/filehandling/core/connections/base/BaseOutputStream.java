@@ -44,24 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   15.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knime;
+package org.knime.filehandling.core.connections.base;
 
-import java.nio.file.attribute.FileStoreAttributeView;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
+ * Wrapper for {@link OutputStream} that is closed when the file system is closed.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class KNIMEFileStoreAttributeView implements FileStoreAttributeView {
+public class BaseOutputStream extends OutputStream {
+
+    /**
+     * Wraps the given outputStream and registers it at the file system.
+     * 
+     * @param outputStream outputStreamt to wrap
+     * @param fileSystem the handling file system
+     */
+    public BaseOutputStream(final OutputStream outputStream, final BaseFileSystem fileSystem) {
+        m_outputStream = outputStream;
+        m_fileSystem = fileSystem;
+    }
+
+    private final OutputStream m_outputStream;
+
+    private final BaseFileSystem m_fileSystem;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String name() {
-        return "KNIME File Store Attribute View";
+    public void write(final int b) throws IOException {
+        m_outputStream.write(b);
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void write(final byte b[]) throws IOException {
+        m_outputStream.write(b, 0, b.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void write(final byte b[], final int off, final int len) throws IOException {
+        m_outputStream.write(b, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void flush() throws IOException {
+        m_outputStream.flush();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void close() throws IOException {
+        m_outputStream.close();
+        m_fileSystem.notifyClosed(this);
     }
 
 }

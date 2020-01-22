@@ -44,91 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   14.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.attributes;
+package org.knime.filehandling.core.connections.base.attributes;
 
-import java.nio.file.attribute.FileTime;
+import java.util.Optional;
 
 /**
- * Basic attributes provider for the {@link FSFileAttributes}.
+ *  Interface for the attributes cache
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class FSBasicAttributes {
-
-    private final FileTime m_lastModifiedTime;
-
-    private final FileTime m_lastAccessTime;
-
-    private final FileTime m_creationTime;
-
-    private final long m_size;
-
-    private final boolean m_isSymbolicLink;
-
-    private final boolean m_isOther;
+public interface AttributesCache {
 
     /**
-     * Constructs a basic attribute instance.
+     * Stores the attributes for a path represented by an URI in the cache.
      *
-     * @param lastModifiedTime last modified time of the file
-     * @param lastAccessTime last access time of the file
-     * @param creationTime creation time of the file
-     * @param size size of the file
-     * @param isSymbolic whether file is a symbolic link
-     * @param isOther whether file is other
+     * @param path the path as string
+     * @param attributes file attributes to cache
      */
-    public FSBasicAttributes(final FileTime lastModifiedTime, final FileTime lastAccessTime,
-        final FileTime creationTime, final long size, final boolean isSymbolic, final boolean isOther) {
-        m_lastModifiedTime = lastModifiedTime;
-        m_lastAccessTime = lastAccessTime;
-        m_creationTime = creationTime;
-        m_size = size;
-        m_isSymbolicLink = isSymbolic;
-        m_isOther = isOther;
-    }
+    void storeAttributes(final String path, FSFileAttributes attributes);
 
     /**
-     * @return lastModifiedTime
+     * Returns an Optional containing the cached file-attributes for a path if present.
+     *
+     * @param path the path as string
+     * @return optional file attributes from cache
      */
-    public FileTime lastModifiedTime() {
-        return m_lastModifiedTime;
-    }
+    Optional<FSFileAttributes> getAttributes(final String path);
 
     /**
-     * @return lastAccessTime
+     * Clears all data from the cache.
      */
-    public FileTime lastAccessTime() {
-        return m_lastAccessTime;
-    }
-
-    /**
-     * @return m_creationTime
-     */
-    public FileTime creationTime() {
-        return m_creationTime;
-    }
-
-    /**
-     * @return isSymbolicLink
-     */
-    public boolean isSymbolicLink() {
-        return m_isSymbolicLink;
-    }
-
-    /**
-     * @return isOther
-     */
-    public boolean isOther() {
-        return m_isOther;
-    }
-
-    /**
-     * @return size
-     */
-    public long size() {
-        return m_size;
-    }
+    void clearCache();
 
 }

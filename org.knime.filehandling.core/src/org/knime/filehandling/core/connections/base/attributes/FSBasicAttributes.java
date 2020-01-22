@@ -46,27 +46,89 @@
  * History
  *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.base.attributes;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 /**
- * Interface for the FSPath implementation that has a method to obtain {@link FSFileAttributes}.
+ * Basic attributes provider for the {@link FSFileAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public interface FSPath extends Path {
+public class FSBasicAttributes {
+
+    private final FileTime m_lastModifiedTime;
+
+    private final FileTime m_lastAccessTime;
+
+    private final FileTime m_creationTime;
+
+    private final long m_size;
+
+    private final boolean m_isSymbolicLink;
+
+    private final boolean m_isOther;
 
     /**
-     * Returns the {@link FSFileAttributes} for this path.
+     * Constructs a basic attribute instance.
      *
-     * @param type the type of the requested FileAttributes
-     * @return FSFileAttribute for this path
-     * @throws IOException
+     * @param lastModifiedTime last modified time of the file
+     * @param lastAccessTime last access time of the file
+     * @param creationTime creation time of the file
+     * @param size size of the file
+     * @param isSymbolic whether file is a symbolic link
+     * @param isOther whether file is other
      */
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException;
+    public FSBasicAttributes(final FileTime lastModifiedTime, final FileTime lastAccessTime,
+        final FileTime creationTime, final long size, final boolean isSymbolic, final boolean isOther) {
+        m_lastModifiedTime = lastModifiedTime;
+        m_lastAccessTime = lastAccessTime;
+        m_creationTime = creationTime;
+        m_size = size;
+        m_isSymbolicLink = isSymbolic;
+        m_isOther = isOther;
+    }
+
+    /**
+     * @return lastModifiedTime
+     */
+    public FileTime lastModifiedTime() {
+        return m_lastModifiedTime;
+    }
+
+    /**
+     * @return lastAccessTime
+     */
+    public FileTime lastAccessTime() {
+        return m_lastAccessTime;
+    }
+
+    /**
+     * @return m_creationTime
+     */
+    public FileTime creationTime() {
+        return m_creationTime;
+    }
+
+    /**
+     * @return isSymbolicLink
+     */
+    public boolean isSymbolicLink() {
+        return m_isSymbolicLink;
+    }
+
+    /**
+     * @return isOther
+     */
+    public boolean isOther() {
+        return m_isOther;
+    }
+
+    /**
+     * @return size
+     */
+    public long size() {
+        return m_size;
+    }
 
 }

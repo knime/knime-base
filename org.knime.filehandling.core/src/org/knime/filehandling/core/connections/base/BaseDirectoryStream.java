@@ -44,114 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   19.12.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knime;
+package org.knime.filehandling.core.connections.base;
 
 import java.io.IOException;
-import java.nio.file.FileStore;
-import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileStoreAttributeView;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Path;
+import java.util.Iterator;
+
+import org.apache.commons.lang3.Validate;
 
 /**
- * KNIME File Store.
+ * Base implementation of {@link DirectoryStream}.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class KNIMEFileStore extends FileStore {
+public class BaseDirectoryStream implements DirectoryStream<Path> {
 
+    private final Iterator<Path> m_iterator;
 
-    /**
-     * Creates a new KNIME File Store.
-     */
-    public KNIMEFileStore() {
+    private volatile boolean m_isClosed = false;
 
-    }
-
+    private final BaseFileSystem m_fileSystem;
 
     /**
-     * {@inheritDoc}
+     * Constructs a DirectoryStream with the given iterator.
+     *
+     * @param iterator the iterator to use in the directory stream
+     * @param fileSystem the file system this stream belongs to
      */
-    @Override
-    public String name() {
-        return "KNIME File Store";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String type() {
-        return "KNIME File Store";
+    public BaseDirectoryStream(final Iterator<Path> iterator, final BaseFileSystem fileSystem) {
+        Validate.notNull(iterator, "Iterator must not be null.");
+        m_iterator = iterator;
+        m_fileSystem = fileSystem;
+        m_fileSystem.addCloseable(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isReadOnly() {
-        return false;
+    public void close() throws IOException {
+        m_isClosed = true;
+        m_fileSystem.notifyClosed(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public long getTotalSpace() throws IOException {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getUsableSpace() throws IOException {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getUnallocatedSpace() throws IOException {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean supportsFileAttributeView(final String name) {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
-        if (type != KNIMEFileStoreAttributeView.class) {
-            throw new IllegalArgumentException("The type " + type.getName() + " is not supported.");
+    public Iterator<Path> iterator() {
+        if (m_isClosed) {
+            throw new IllegalStateException("Directory stream is already closed.");
         }
 
-        return (V) new KNIMEFileStoreAttributeView();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object getAttribute(final String attribute) throws IOException {
-        throw new UnsupportedOperationException("No file store attributes are supported");
+        return m_iterator;
     }
 
 }

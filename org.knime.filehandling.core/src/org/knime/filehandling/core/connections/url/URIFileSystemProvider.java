@@ -61,7 +61,6 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -72,21 +71,25 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.spi.FileSystemProvider;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
-import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.attributes.FSBasicAttributes;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 
 /**
  * Special file system provider that provides file handling functionality for a single (!) URL.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystemProvider extends FileSystemProvider {
+public class URIFileSystemProvider extends BaseFileSystemProvider {
 
     private final int m_timeoutInMillis;
 
@@ -117,22 +120,6 @@ public class URIFileSystemProvider extends FileSystemProvider {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        return new URIFileSystem(uri, getTimeout());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileSystem getFileSystem(final URI uri) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @SuppressWarnings("resource")
     @Override
     public Path getPath(final URI uri) {
@@ -147,36 +134,6 @@ public class URIFileSystemProvider extends FileSystemProvider {
         final FileAttribute<?>... attrs) throws IOException {
 
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection(getTimeout()).getInputStream();
-
-    }
-
-    @Override
-    public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final URIPath uriPath = (URIPath)path;
-        try {
-            final Path localURL = FileUtil.resolveToPath(uriPath.toUri().toURL());
-            if (localURL != null) {
-                return Files.newOutputStream(localURL, options);
-            } else {
-                return FileUtil.openOutputConnection(uriPath.toUri().toURL(), "PUT").getOutputStream();
-            }
-        } catch (final URISyntaxException ex) {
-            throw new IOException(ex);
-        }
     }
 
     /**
@@ -301,7 +258,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
-        if (!exists((URIPath)path)) {
+        if (!exists(path)) {
             throw new NoSuchFileException(String.format("File %s does not exist.", path.toString()));
         }
 
@@ -328,12 +285,8 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
 
-        try {
-            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                readAttributes(path, BasicFileAttributes.class));
-        } catch (final IOException ex) {
-            return null;
-        }
+        return (V)new FSFileAttributeView(path.getFileName().toString(),
+            () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class));
     }
 
     /**
@@ -354,13 +307,27 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         if (type == BasicFileAttributes.class) {
-            return (A)uriPath.getFileAttributes(type);
+            return (A)fetchAttributesInternal(uriPath, type);
         } else {
             throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
         }
     }
 
-    private boolean exists(final URIPath uriPath) throws IOException {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
+        throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean exists(final Path path) {
+        final URIPath uriPath = (URIPath)path;
         try {
             if (uriPath.isDirectory()) {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.
@@ -377,19 +344,60 @@ public class URIFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
-        throws IOException {
-
-        return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
-            attributes);
+    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+        return new URIFileSystem(uri, getTimeout());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
-        throws IOException {
-        throw new UnsupportedOperationException();
+    public InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        final URIPath uriPath = (URIPath)path;
+        return uriPath.openURLConnection(getTimeout()).getInputStream();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different file system provider");
+        }
+
+        final URIPath uriPath = (URIPath)path;
+        try {
+            final Path localURL = FileUtil.resolveToPath(uriPath.toUri().toURL());
+            if (localURL != null) {
+                return Files.newOutputStream(localURL, options);
+            } else {
+                return FileUtil.openOutputConnection(uriPath.toUri().toURL(), "PUT").getOutputStream();
+            }
+        } catch (final URISyntaxException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter) throws IOException {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+        final URIPath uriPath = (URIPath)path;
+        if (type == BasicFileAttributes.class) {
+            return new FSFileAttributes(!uriPath.isDirectory(), uriPath,
+                p -> new FSBasicAttributes(FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
+                    0L, false, false));
+        }
+        throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
     }
 }

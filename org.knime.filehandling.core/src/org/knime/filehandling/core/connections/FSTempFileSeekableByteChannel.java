@@ -59,6 +59,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.Set;
 import java.util.UUID;
 
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+
 /**
  * Implementation of {@link SeekableByteChannel} for remote files systems that do not support seekable byte channels. In
  * this case the file is downloaded into a local temporary file from which a SeekableByteChannel is retrieved.
@@ -71,8 +73,6 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
     private final Path m_tempFile;
 
     private final SeekableByteChannel m_tempFileSeekableByteChannel;
-
-    private boolean m_hasBeenWritten = false;
 
     private boolean m_isClosed = false;
 
@@ -92,11 +92,14 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
             Files.createTempFile(String.format("tempFSfile-%s-", UUID.randomUUID().toString().replace('-', '_')),
                 m_file.getFileName().toString());
         //FIXME we just need a path here.
-       // Files.delete(m_tempFile);
-        if (options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.APPEND)) {
+        Files.delete(m_tempFile);
+        if (options.contains(StandardOpenOption.APPEND)) {
             copyFromRemote(m_file, m_tempFile);
         }
         m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, options);
+        if(file.getFileSystem() instanceof BaseFileSystem) {
+            ((BaseFileSystem)file.getFileSystem()).addCloseable(this);
+        }
     }
 
     /**
@@ -131,12 +134,15 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
     @Override
     public void close() throws IOException {
         if(!m_isClosed) {
-            if (m_hasBeenWritten) {
-                copyToRemote(m_file, m_tempFile);
-            }
+
+           copyToRemote(m_file, m_tempFile);
+
             m_tempFileSeekableByteChannel.close();
             Files.delete(m_tempFile);
             m_isClosed = true;
+            if(m_file.getFileSystem() instanceof BaseFileSystem) {
+                ((BaseFileSystem)m_file.getFileSystem()).notifyClosed(this);
+            }
         }
     }
 
@@ -159,7 +165,6 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
         if(m_isClosed) {
             throw new ClosedChannelException();
         }
-        m_hasBeenWritten = true;
         return m_tempFileSeekableByteChannel.write(src);
     }
 

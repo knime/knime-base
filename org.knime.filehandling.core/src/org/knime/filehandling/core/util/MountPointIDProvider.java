@@ -53,7 +53,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 
 /**
  * Interface for MountPointIdProvider instances.

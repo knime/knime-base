@@ -69,8 +69,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.filechooser.NioFile;
@@ -81,7 +79,7 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemotePath implements FSPath {
+public class KNIMERemotePath implements Path {
 
     /**
      * The file system of this path.
@@ -528,11 +526,6 @@ public class KNIMERemotePath implements FSPath {
     @Override
     public String toString() {
         return m_path.toString();
-    }
-
-    @Override
-    public FSFileAttributes getFileAttributes(final Class<?> type) throws IOException {
-        return MountPointIDProviderService.instance().getFileAttributes(toUri());
     }
 
     public boolean isWorkflow() {

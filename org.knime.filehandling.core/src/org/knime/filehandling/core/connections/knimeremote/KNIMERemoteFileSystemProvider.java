@@ -56,26 +56,26 @@ import java.net.URL;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
-import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
@@ -84,13 +84,13 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
+public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
 
     private static final KNIMERemoteFileSystemProvider SINGLETON_INSTANCE = new KNIMERemoteFileSystemProvider();
 
     private static final String SCHEME = "knime";
 
-    private final Map<String, FileSystem> m_fileSystems = new HashMap<>();
+    private final Map<URI, BaseFileSystem> m_fileSystems = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Returns the singleton instance of this provider.
@@ -110,32 +110,15 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
     }
 
     /**
-     * Gets or creates a new {@link KNIMEFileSystem} based on the input fsKey.
-     *
-     * @param fsKey the key that either retrieves or creates a new file system.
-     * @return a file system for the key
-     * @throws IOException
-     */
-    public FileSystem getOrCreateFileSystem(final URI fsKey) throws IOException {
-        return fileSystemExists(fsKey) ? getFileSystem(fsKey) : newFileSystem(fsKey, null);
-    }
-
-    private boolean fileSystemExists(final URI uri) {
-        return m_fileSystems.containsKey(uri.getHost());
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
-    public FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        final String fsKey = uri.getHost();
-        if (m_fileSystems.containsKey(fsKey)) {
+    public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+        if (m_fileSystems.containsKey(uri)) {
             throw new FileSystemAlreadyExistsException();
         }
-
-        final KNIMERemoteFileSystem fileSystem = new KNIMERemoteFileSystem(this, uri);
-        m_fileSystems.put(fsKey, fileSystem);
+        final BaseFileSystem fileSystem = createFileSystem(uri, env);
+        m_fileSystems.put(uri, fileSystem);
         return fileSystem;
     }
 
@@ -144,7 +127,43 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public FileSystem getFileSystem(final URI uri) {
-        return m_fileSystems.get(uri.getHost());
+        final FileSystem fileSystem = m_fileSystems.get(uri);
+        if (fileSystem == null) {
+            throw new FileSystemNotFoundException();
+        }
+        return fileSystem;
+    }
+
+    /**
+     * Removes the file system for the given URI from the list of file systems.
+     *
+     * @param uri the URI to the file system
+     */
+    @Override
+    public synchronized void removeFileSystem(final URI uri) {
+        m_fileSystems.remove(uri);
+    }
+
+    /**
+     * Returns whether a file system for the given URI exists in the list of file systems.
+     *
+     * @param uri the URI to the file system
+     * @return whether a file system for the uri exists
+     */
+    @Override
+    public synchronized boolean isOpen(final URI uri) {
+        return m_fileSystems.containsKey(uri);
+    }
+
+    /**
+     * Gets or creates a new {@link KNIMEFileSystem} based on the input fsKey.
+     *
+     * @param fsKey the key that either retrieves or creates a new file system.
+     * @return a file system for the key
+     * @throws IOException
+     */
+    public FileSystem getOrCreateFileSystem(final URI fsKey) throws IOException {
+        return isOpen(fsKey) ? getFileSystem(fsKey) : newFileSystem(fsKey, null);
     }
 
     /**
@@ -164,40 +183,8 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final KNIMERemotePath uriPath = (KNIMERemotePath)path;
-        return uriPath.openURLConnection(getTimeout()).getInputStream();
-
-    }
-
-    @Override
-    public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
-        final URL knimeURL = toURL(knimePath);
-
-        return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
-    }
-
     private static int getTimeout() {
         return FileUtil.getDefaultURLTimeoutMillis();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
-        throws IOException {
-        return new KNIMERemoteDirectoryStream(dir, filter);
     }
 
     /**
@@ -267,52 +254,6 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
-        final LinkOption... options) {
-
-        try {
-            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                readAttributes(path, BasicFileAttributes.class, options));
-        } catch (final IOException ex) {
-            return null;
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
-        final LinkOption... options) throws IOException {
-
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a KNIMERemotePath");
-        }
-
-        final FSPath fsPath = (FSPath)path;
-        if (type == BasicFileAttributes.class) {
-            return (A)fsPath.getFileAttributes(type);
-        } else {
-            throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
-        throws IOException {
-        return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
-            attributes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
         throws IOException {
@@ -325,6 +266,63 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         } else {
             throw new IllegalArgumentException("Input path must be an instance of KNIMERemotePath");
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+        return new KNIMERemoteFileSystem(this, uri);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean exists(final Path path) {
+        try {
+            MountPointIDProviderService.instance().getFileAttributes(path.toUri());
+            return true;
+        } catch (final IOException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        final KNIMERemotePath uriPath = (KNIMERemotePath)path;
+        return uriPath.openURLConnection(getTimeout()).getInputStream();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
+        final URL knimeURL = toURL(knimePath);
+
+        return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter) {
+        return new KNIMERemotePathIterator(dir, filter);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+        return MountPointIDProviderService.instance().getFileAttributes(path.toUri());
     }
 
 }

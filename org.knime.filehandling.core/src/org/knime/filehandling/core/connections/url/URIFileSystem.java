@@ -48,71 +48,38 @@
  */
 package org.knime.filehandling.core.connections.url;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 
 /**
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystem extends FileSystem {
+public class URIFileSystem extends BaseFileSystem {
 
     private final URI m_uri;
 
-    private final List<FileStore> m_fileStores;
-
-    private final URIFileSystemProvider m_provider;
 
     URIFileSystem(final URI uri, final int timeoutInMillis) {
+        super(new URIFileSystemProvider(timeoutInMillis), uri, getName(uri), uri.getScheme(), 0);
         m_uri = uri;
-        m_fileStores = Collections.unmodifiableList(Collections.singletonList(new URIFileStore(uri)));
-        m_provider = new URIFileSystemProvider(timeoutInMillis);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileSystemProvider provider() {
-        return m_provider;
+    private static String getName(final URI uri) {
+
+        if (uri.getScheme() == null && uri.getAuthority() == null) {
+            return "";
+        } else {
+            return String.format("%s://%s", uri.getScheme(), uri.getAuthority());
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void close() throws IOException {
-        // nothing to do
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isOpen() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
 
     /**
      * {@inheritDoc}
@@ -135,13 +102,6 @@ public class URIFileSystem extends FileSystem {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return m_fileStores;
-    }
 
     /**
      * {@inheritDoc}
@@ -168,23 +128,8 @@ public class URIFileSystem extends FileSystem {
      * {@inheritDoc}
      */
     @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        throw new UnsupportedOperationException();
+    public void prepareClose() {
+        // Nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public WatchService newWatchService() throws IOException {
-        throw new UnsupportedOperationException();
-    }
 }

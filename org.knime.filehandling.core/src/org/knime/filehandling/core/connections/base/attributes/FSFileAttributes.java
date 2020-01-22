@@ -46,7 +46,7 @@
  * History
  *   28.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.attributes;
+package org.knime.filehandling.core.connections.base.attributes;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -77,6 +77,8 @@ public class FSFileAttributes implements PosixFileAttributes {
 
     private final Function<Path, FSPosixAttributes> m_posixMetaDataFunction;
 
+    private final long m_fetchTime;
+
     /**
      * Constructor for the usage of only {@link BasicFileAttributes} methods. Usage of the {@link PosixFileAttributes}
      * methods will result in null values.
@@ -106,6 +108,7 @@ public class FSFileAttributes implements PosixFileAttributes {
         m_fileKey = path;
         m_metaDataFunction = metaDataFunction;
         m_posixMetaDataFunction = posixMetaDataFunction;
+        m_fetchTime = System.currentTimeMillis();
     }
 
     /**
@@ -178,7 +181,7 @@ public class FSFileAttributes implements PosixFileAttributes {
         return m_basicAttributes.size();
     }
 
-    private void generateBasicAttributes() {
+    private synchronized void generateBasicAttributes() {
         if (m_basicAttributes == null) {
             m_basicAttributes = m_metaDataFunction.apply(m_fileKey);
         }
@@ -219,10 +222,17 @@ public class FSFileAttributes implements PosixFileAttributes {
         return m_posixAttributes.permissions();
     }
 
-    private void generatePosixAttributes() {
+    private synchronized void generatePosixAttributes() {
         if (m_posixAttributes == null) {
             m_posixAttributes = m_posixMetaDataFunction.apply(m_fileKey);
         }
+    }
+
+    /**
+     * @return the fetchTime
+     */
+    public long getFetchTime() {
+        return m_fetchTime;
     }
 
 }

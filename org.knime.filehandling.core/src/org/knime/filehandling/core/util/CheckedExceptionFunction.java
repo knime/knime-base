@@ -44,59 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   03.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   02.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.attributes;
-
-import java.io.IOException;
-import java.nio.file.attribute.BasicFileAttributeView;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
+package org.knime.filehandling.core.util;
 
 /**
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @param <R> The return type of the function
+ * @param <E> The Exception thrown by the function
  */
-public class FSBasicFileAttributeView implements BasicFileAttributeView {
-
-    private final String m_name;
-
-    private final BasicFileAttributes m_attributes;
+@FunctionalInterface
+public interface CheckedExceptionFunction <R, E extends Exception> {
 
     /**
-     * Constructs a file attribute view
-     * @param name the name of the attribute view
-     * @param attributes the fileAttributes
+     * Apply the function to the input t and returns an Object of type <R>.
+     * Might throw an exception <E>
+     * @param t Input of type <T>
+     * @return object of type <R>
+     * @throws E <E>
      */
-    public FSBasicFileAttributeView(final String name, final BasicFileAttributes attributes) {
-        m_name = name;
-        m_attributes = attributes;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String name() {
-        return m_name;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public BasicFileAttributes readAttributes() throws IOException {
-        return m_attributes;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setTimes(final FileTime lastModifiedTime, final FileTime lastAccessTime, final FileTime createTime)
-        throws IOException {
-        //TODO implement
-        throw new UnsupportedOperationException();
-    }
+    R apply() throws E;
 
 }

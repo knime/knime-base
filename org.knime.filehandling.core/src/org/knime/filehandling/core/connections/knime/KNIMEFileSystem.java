@@ -48,78 +48,42 @@
  */
 package org.knime.filehandling.core.connections.knime;
 
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.Set;
 
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 
 /**
+ *  File System implementation for the KNIME "relative to" paths.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMEFileSystem extends FileSystem {
+public class KNIMEFileSystem extends BaseFileSystem {
 
     private static final String SEPERATOR = UnixStylePathUtil.SEPARATOR;
-    private final KNIMEFileSystemProvider m_fileSystemProvider;
 
     private final URI m_key;
     private final KNIMEConnection.Type m_connectionType;
 
     /**
-     * @param fileSystemProvider
-     * @param baseLocation
-     * @param connectionType
+     * Constructs a KNIME file system for relative paths.
+     *
+     * @param fileSystemProvider the file system provider
+     * @param baseLocation the base location of the file system
+     * @param connectionType the connection type
      */
     public KNIMEFileSystem(
             final KNIMEFileSystemProvider fileSystemProvider,
             final URI baseLocation,
             final KNIMEConnection.Type connectionType) {
-        m_fileSystemProvider = fileSystemProvider;
+        super(fileSystemProvider, baseLocation, "KNIME File Store", "KNIME File Store", 0);
         m_key = baseLocation;
         m_connectionType = connectionType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileSystemProvider provider() {
-        return m_fileSystemProvider;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void close() throws IOException {
-        m_fileSystemProvider.close(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isOpen() {
-        return m_fileSystemProvider.isOpen(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
 
     /**
      * {@inheritDoc}
@@ -137,21 +101,6 @@ public class KNIMEFileSystem extends FileSystem {
         return Paths.get(m_key).getFileSystem().getRootDirectories();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return Paths.get(m_key).getFileSystem().getFileStores();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> supportedFileAttributeViews() {
-        return Paths.get(m_key).getFileSystem().supportedFileAttributeViews();
-    }
 
     /**
      * {@inheritDoc}
@@ -159,30 +108,6 @@ public class KNIMEFileSystem extends FileSystem {
     @Override
     public Path getPath(final String first, final String... more) {
         return new KNIMEPath(this, first, more);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public WatchService newWatchService() throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -208,5 +133,14 @@ public class KNIMEFileSystem extends FileSystem {
      */
     public KNIMEConnection.Type getConnectionType() {
         return m_connectionType;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void prepareClose() {
+        //Nothing to do
     }
 }

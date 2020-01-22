@@ -44,38 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   28.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knimeremote;
+package org.knime.filehandling.core.connections.base.attributes;
 
-import java.nio.file.Path;
-import java.util.Iterator;
-
-import org.knime.filehandling.core.connections.FSDirectoryStream;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Implementation of {@link FSDirectoryStream} for KNIME Mountpoint file systems.
+ * This class provides POSIX file attributes for the {@link FSFileAttributes}.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class KNIMERemoteDirectoryStream extends FSDirectoryStream {
+public class FSPosixAttributes {
+
+    private final UserPrincipal m_owner;
+
+    private final GroupPrincipal m_group;
+
+    private final Set<PosixFilePermission> m_permissions;
 
     /**
-     * Constructs a new directory stream for the given path.
+     * Constructs a {@link FSPosixAttributes} class with the given owner, group and permissions.
      *
-     * @param path the path to be iterated over
-     * @param filter the filter to be applied to the content
+     * @param owner the owner of the files
+     * @param group the group of the file
+     * @param permissions the permissions to the file
      */
-    public KNIMERemoteDirectoryStream(final Path path, final Filter<? super Path> filter) {
-        super(path, filter);
+    public FSPosixAttributes(final UserPrincipal owner, final GroupPrincipal group,
+        final Set<PosixFilePermission> permissions) {
+        m_owner = owner;
+        m_group = group;
+        m_permissions = new HashSet<>(permissions);
     }
 
     /**
-     * {@inheritDoc}
+     * @return the file owner
      */
-    @Override
-    protected Iterator<Path> getIterator(final Path path, final Filter<? super Path> filter) {
-        return new KNIMERemotePathIterator(path, filter);
+    public UserPrincipal owner() {
+        return m_owner;
+    }
+
+    /**
+     * @return the file group owner
+     */
+    public GroupPrincipal group() {
+        return m_group;
+    }
+
+    /**
+     * Returns the permissions of the file. The file permissions are returned
+     * as a set of {@link PosixFilePermission} elements. The returned set is a
+     * copy of the file permissions and is modifiable. This allows the result
+     * to be modified and passed to the {@link PosixFileAttributeView#setPermissions
+     * setPermissions} method to update the file's permissions.
+     *
+     * @return  the file permissions
+     */
+    public Set<PosixFilePermission> permissions() {
+        return new HashSet<>(m_permissions);
     }
 
 }

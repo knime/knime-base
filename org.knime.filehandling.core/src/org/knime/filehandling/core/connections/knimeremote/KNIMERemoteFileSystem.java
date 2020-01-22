@@ -48,21 +48,12 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileStoreAttributeView;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
-import java.util.Set;
 
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
@@ -70,9 +61,7 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystem extends FileSystem {
-
-    private final KNIMERemoteFileSystemProvider m_provider;
+public class KNIMERemoteFileSystem extends BaseFileSystem {
 
     private final URI m_mountpoint;
 
@@ -85,42 +74,10 @@ public class KNIMERemoteFileSystem extends FileSystem {
      * @param baseLocation
      */
     public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation) {
-        m_provider = provider;
+        super(provider, baseLocation, "KNIME Remote FileStore", "KNIME Remote FileStore", 0);
         m_mountpoint = baseLocation;
 
         m_nodeContext = NodeContext.getContext();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileSystemProvider provider() {
-        return m_provider;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void close() throws IOException {
-        // not needed
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isOpen() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isReadOnly() {
-        return false;
     }
 
     /**
@@ -139,72 +96,6 @@ public class KNIMERemoteFileSystem extends FileSystem {
         return Collections.singletonList(new KNIMERemotePath(this, URI.create(UnixStylePathUtil.SEPARATOR)));
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return Collections.singleton(new FileStore() {
-
-            @Override
-            public String type() {
-                return "KNIME Remote FileStore";
-            }
-
-            @Override
-            public boolean supportsFileAttributeView(final String name) {
-                return false;
-            }
-
-            @Override
-            public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
-                return false;
-            }
-
-            @Override
-            public String name() {
-                return null;
-            }
-
-            @Override
-            public boolean isReadOnly() {
-                return false;
-            }
-
-            @Override
-            public long getUsableSpace() throws IOException {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public long getUnallocatedSpace() throws IOException {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public long getTotalSpace() throws IOException {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
-                return null;
-            }
-
-            @Override
-            public Object getAttribute(final String attribute) throws IOException {
-                return null;
-            }
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<String> supportedFileAttributeViews() {
-        return Collections.emptySet();
-    }
 
     /**
      * {@inheritDoc}
@@ -212,30 +103,6 @@ public class KNIMERemoteFileSystem extends FileSystem {
     @Override
     public Path getPath(final String first, final String... more) {
         return new KNIMERemotePath(this, first, more);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public WatchService newWatchService() throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -262,4 +129,14 @@ public class KNIMERemoteFileSystem extends FileSystem {
     public Path getDefaultDirectory() {
         return new KNIMERemotePath(this, MountPointIDProviderService.instance().getDefaultDirectory(m_mountpoint));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void prepareClose() {
+        //Nothing to do.
+    }
+
+
 }

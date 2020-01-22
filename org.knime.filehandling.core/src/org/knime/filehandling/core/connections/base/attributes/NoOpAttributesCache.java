@@ -44,75 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   21.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   14.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.base.attributes;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Path;
-import java.util.Iterator;
+import java.util.Optional;
 
 /**
- * Amazon S3 implementation of {@link DirectoryStream}
+ * Dummy implementation for the attributes cache used if not caching is required.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class FSDirectoryStream implements DirectoryStream<Path> {
-
-    private final Path m_path;
-
-    private final Filter<? super Path> m_filter;
-
-    private Iterator<Path> m_iterator;
-
-    private volatile boolean m_isClosed = false;
+public class NoOpAttributesCache implements AttributesCache {
 
     /**
-     * Constructs a new instance of a {@link FSDirectoryStream} for the given path
-     *
-     * @param path the path to iterate over
-     * @param filter the filter to apply to the output
+     * {@inheritDoc}
      */
-    public FSDirectoryStream(final Path path, final Filter<? super Path> filter) {
-        m_path = path;
-        m_filter = filter;
+    @Override
+    public void storeAttributes(final String path, final FSFileAttributes attributes) {
+        //Nothing to do
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void close() throws IOException {
-        m_isClosed = true;
-
+    public Optional<FSFileAttributes> getAttributes(final String path) {
+        //Nothing to do
+        return Optional.empty();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Iterator<Path> iterator() {
-        if (m_isClosed) {
-            throw new IllegalStateException("Directory stream is already closed.");
-        }
-
-        if (m_iterator != null) {
-            throw new IllegalStateException("DirectoryStream supports only a single Iterator.");
-        }
-
-        m_iterator = getIterator(m_path, m_filter);
-        return m_iterator;
-
+    public void clearCache() {
+        // Nothing to do
     }
-
-    /**
-     * Returns a Iterator over the files in the folder.
-     *
-     * @param path the path of the folder
-     * @param filter the filter to apply to the content
-     * @return Returns a Iterator over the files in the folder.
-     */
-    protected abstract Iterator<Path> getIterator(Path path, Filter<? super Path> filter);
 
 }

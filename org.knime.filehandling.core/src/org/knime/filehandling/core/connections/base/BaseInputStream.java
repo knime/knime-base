@@ -44,125 +44,107 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2019 (bjoern): created
+ *   14.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.url;
+package org.knime.filehandling.core.connections.base;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileStore;
-import java.nio.file.attribute.BasicFileAttributeView;
-import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileStoreAttributeView;
+import java.io.InputStream;
 
 /**
- * Dummy {@link FileStore} implementation for custom URIs. The only thing this class
- * does is to define the file store name <url-scheme>://<url-authority>.
+ * Wrapper for {@link InputStream} that is closed when the file system is closed.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class URIFileStore extends FileStore {
+public class BaseInputStream extends InputStream {
 
-    private final String m_type;
+    private final InputStream m_inputStream;
 
-    private final String m_name;
+    private final BaseFileSystem m_fileSystem;
 
-    URIFileStore(final URI uri) {
-        if (uri.getScheme() != null && !uri.getScheme().equalsIgnoreCase("file") && uri.getAuthority() == null) {
-            throw new IllegalArgumentException(uri + " is not a supported URL (authority is missing)");
-        }
-
-        m_type = uri.getScheme();
-        if (uri.getScheme() == null && uri.getAuthority() == null) {
-            m_name = "";
-        } else {
-            m_name = String.format("%s://%s", uri.getScheme(), uri.getAuthority());
-        }
+    /**
+     * Wraps the given inputStream and registers it at the file system.
+     *
+     * @param inputStream the input stream to wrap
+     * @param fileSystem the handling file system
+     */
+    public BaseInputStream(final InputStream inputStream, final BaseFileSystem fileSystem) {
+        m_inputStream = inputStream;
+        m_fileSystem = fileSystem;
+        m_fileSystem.addCloseable(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String name() {
-        return m_name;
+    public int read(final byte[] b) throws IOException {
+        return m_inputStream.read(b);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String type() {
-        return m_type;
+    public int read(final byte[] b, final int off, final int len) throws IOException {
+        return m_inputStream.read(b, off, len);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isReadOnly() {
-        // custom URL should not be generally read only
-        return false;
+    public int read() throws IOException {
+        return m_inputStream.read();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public long getTotalSpace() throws IOException {
-        return 0;
+    public long skip(final long n) throws IOException {
+        return m_inputStream.skip(n);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public long getUsableSpace() throws IOException {
-        return 0;
+    public int available() throws IOException {
+        return m_inputStream.available();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public long getUnallocatedSpace() throws IOException {
-        return 0;
+    public void close() throws IOException {
+        m_inputStream.close();
+        m_fileSystem.notifyClosed(this);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean supportsFileAttributeView(final Class<? extends FileAttributeView> type) {
-        return type == BasicFileAttributeView.class;
+    public synchronized void mark(final int readlimit) {
+        m_inputStream.mark(readlimit);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean supportsFileAttributeView(final String name) {
-        return name.equals("basic");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
-        if (type != URIFileStoreAttributeView.class) {
-            throw new IllegalArgumentException("Unsupported file store attribute view: " + type.getName());
-        }
-
-        return (V)URIFileStoreAttributeView.getInstance();
+    public synchronized void reset() throws IOException {
+        m_inputStream.reset();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Object getAttribute(final String attribute) throws IOException {
-        throw new UnsupportedOperationException("No file store attributes are supported");
+    public boolean markSupported() {
+        return m_inputStream.markSupported();
     }
+
 }

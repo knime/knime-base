@@ -54,14 +54,12 @@ import static org.knime.core.ui.wrapper.Wrapper.wraps;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
@@ -74,7 +72,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,7 +81,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.Validate;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
@@ -92,10 +88,11 @@ import org.knime.core.ui.node.workflow.WorkflowContextUI;
 import org.knime.core.ui.node.workflow.WorkflowManagerUI;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.IRemoteFileUtilsService;
-import org.knime.filehandling.core.connections.FSDirectoryStream;
-import org.knime.filehandling.core.connections.attributes.FSBasicAttributes;
-import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.attributes.FSBasicAttributes;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
+import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
@@ -107,15 +104,15 @@ import org.osgi.framework.ServiceReference;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMEFileSystemProvider extends FileSystemProvider {
+public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
 
-    private final static NodeLogger LOGGER = NodeLogger.getLogger(KNIMEFileSystemProvider.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMEFileSystemProvider.class);
 
-    private final static KNIMEFileSystemProvider SINGLETON_INSTANCE = new KNIMEFileSystemProvider();
+    private static final KNIMEFileSystemProvider SINGLETON_INSTANCE = new KNIMEFileSystemProvider();
 
-    private final static String SCHEME = "knime";
+    private static final String SCHEME = "knime";
 
-    private final Map<URI, FileSystem> m_fileSystems = new HashMap<>();
+    private final Map<URI, BaseFileSystem> m_fileSystems = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Returns the singleton instance of this provider.
@@ -138,32 +135,13 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        validate(uri);
-        URI baseLocationURI = createFSKey(uri);
-        Type connectionType = KNIMEConnection.connectionTypeForHost(uri.getHost());
-        KNIMEFileSystem knimeFileSystem = new KNIMEFileSystem(this, baseLocationURI, connectionType);
-        m_fileSystems.put(baseLocationURI, knimeFileSystem);
-        return knimeFileSystem;
-    }
-
-    private static URI createFSKey(final URI uri) throws IOException, MalformedURLException {
-        URL baseLocation = MountPointIDProviderService.instance().resolveKNIMEURL(uri.toURL());
-        try {
-            return baseLocation.toURI();
-        } catch (URISyntaxException ex) {
-            throw new IOException(ex);
-        }
-    }
-
-    private void validate(final URI uri) {
-        Validate.notNull(uri, "URI cannot be null");
+    public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
         if (m_fileSystems.containsKey(uri)) {
             throw new FileSystemAlreadyExistsException();
         }
-        if (!uri.getScheme().equalsIgnoreCase(getScheme())) {
-            throw new IllegalArgumentException("The URI must have scheme '" + getScheme() + "'");
-        }
+        final BaseFileSystem fileSystem = createFileSystem(uri, env);
+        m_fileSystems.put(uri, fileSystem);
+        return fileSystem;
     }
 
     /**
@@ -171,16 +149,59 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public FileSystem getFileSystem(final URI uri) {
-        try {
-            URI fsKey = createFSKey(uri);
-            FileSystem fileSystem = m_fileSystems.get(fsKey);
-            if (fileSystem == null) {
-                throw new FileSystemNotFoundException();
-            }
-            return fileSystem;
-        } catch (IOException ex) {
+        final FileSystem fileSystem = m_fileSystems.get(uri);
+        if (fileSystem == null) {
             throw new FileSystemNotFoundException();
         }
+        return fileSystem;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+        if (!uri.getScheme().equalsIgnoreCase(getScheme())) {
+            throw new IllegalArgumentException("The URI must have scheme '" + getScheme() + "'");
+        }
+        URI baseLocationURI;
+        try {
+            baseLocationURI = createFSKey(uri);
+        } catch (final IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        final Type connectionType = KNIMEConnection.connectionTypeForHost(uri.getHost());
+        return new KNIMEFileSystem(this, baseLocationURI, connectionType);
+    }
+
+    private static URI createFSKey(final URI uri) throws IOException {
+        final URL baseLocation = MountPointIDProviderService.instance().resolveKNIMEURL(uri.toURL());
+        try {
+            return baseLocation.toURI();
+        } catch (final URISyntaxException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    /**
+     * Removes the file system for the given URI from the list of file systems.
+     *
+     * @param uri the URI to the file system
+     */
+    @Override
+    public synchronized void removeFileSystem(final URI uri) {
+        m_fileSystems.remove(uri);
+    }
+
+    /**
+     * Returns whether a file system for the given URI exists in the list of file systems.
+     *
+     * @param uri the URI to the file system
+     * @return whether a file system for the uri exists
+     */
+    @Override
+    public synchronized boolean isOpen(final URI uri) {
+        return m_fileSystems.containsKey(uri);
     }
 
     /**
@@ -189,7 +210,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("resource")
     @Override
     public Path getPath(final URI uri) {
-        FileSystem fileSystem = getFileSystem(uri);
+        final FileSystem fileSystem = getFileSystem(uri);
         return fileSystem.getPath(uri.getPath());
     }
 
@@ -197,12 +218,10 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public SeekableByteChannel newByteChannel(
-            final Path path,
-            final Set<? extends OpenOption> options,
-            final FileAttribute<?>... attrs)
-            throws IOException {
-        Path localPath = toLocalPath(path);
+    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
+        final FileAttribute<?>... attrs) throws IOException {
+        //FIXME This might not work on the server
+        final Path localPath = toLocalPath(path);
         return Files.newByteChannel(localPath.normalize(), options);
     }
 
@@ -210,41 +229,8 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
-        throws IOException {
-        Optional<WorkflowContext> serverContext = getServerContext();
-        if (serverContext.isPresent()) {
-            return new FSDirectoryStream(dir, filter) {
-
-                @SuppressWarnings("resource")
-                @Override
-                protected Iterator<Path> getIterator(final Path path, final Filter<? super Path> filter1) {
-                    final KNIMEPath knimePath = (KNIMEPath) dir;
-                    final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
-                    final URL knimeURL = knimePath.getURL();
-                    try {
-                        final List<URL> listFiles = FileUtil.listFiles(knimeURL , p -> true, false);
-                        final List<Path> paths = new ArrayList<>();
-                        for (URL fileURL : listFiles) {
-                            paths.add(new KNIMEPath(fileSystem, fileURL.getPath()));
-                        }
-                        return paths.iterator();
-                    } catch (IOException | URISyntaxException ex) {
-                        LOGGER.debug("Error when listing files at '" + knimeURL.toString() +"'.", ex);
-                        return Collections.emptyIterator();
-                    }
-                }
-            };
-        } else {
-            return Files.newDirectoryStream(toLocalPath(dir), filter);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+        //FIXME This might not work on the server
         Files.createDirectories(toLocalPath(dir), attrs);
     }
 
@@ -253,6 +239,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void delete(final Path path) throws IOException {
+        //FIXME This might not work on the server
         Files.delete(toLocalPath(path));
     }
 
@@ -261,15 +248,15 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public boolean deleteIfExists(final Path path) throws IOException {
-        Optional<WorkflowContext> serverContext = getServerContext();
+        final Optional<WorkflowContext> serverContext = getServerContext();
         if (serverContext.isPresent()) {
             final WorkflowContext context = serverContext.get();
-            final URL knimeURL = ((KNIMEPath) path).getURL();
+            final URL knimeURL = ((KNIMEPath)path).getURL();
 
             boolean exists = false;
             try {
                 exists = makeRestCall((s) -> s.exists(knimeURL), context);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 throw new IOException(ex);
             }
 
@@ -281,7 +268,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
                         return null;
                     }, context);
                     deleted = true;
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     throw new IOException(ex);
                 }
             }
@@ -297,6 +284,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+        //FIXME This might not work on the server
         Files.copy(toLocalPath(source), toLocalPath(target), options);
     }
 
@@ -305,6 +293,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+        //FIXME This might not work on the server
         Files.move(toLocalPath(source), toLocalPath(target), options);
     }
 
@@ -313,6 +302,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
+        //FIXME This might not work on the server
         return Files.isSameFile(toLocalPath(path), toLocalPath(path2));
     }
 
@@ -334,7 +324,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
-        return Files.getFileStore(toLocalPath(path));
+        return path.getFileSystem().getFileStores().iterator().next();
     }
 
     /**
@@ -343,14 +333,14 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("resource")
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        Optional<WorkflowContext> serverContext = getServerContext();
+        final Optional<WorkflowContext> serverContext = getServerContext();
 
         if (serverContext.isPresent()) {
             final WorkflowContext context = serverContext.get();
-            final KNIMEPath knimePath = (KNIMEPath) path;
+            final KNIMEPath knimePath = (KNIMEPath)path;
             final URL knimeURL = knimePath.getURL();
 
-            final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
+            final KNIMEFileSystem fileSystem = (KNIMEFileSystem)knimePath.getFileSystem();
             if (fileSystem.getConnectionType() == KNIMEConnection.Type.NODE_RELATIVE) {
                 throw new IOException("Node relative paths cannot be executed on the server.");
             }
@@ -358,7 +348,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
             boolean exists = false;
             try {
                 exists = makeRestCall((s) -> s.exists(knimeURL), context);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 throw new IOException(ex);
             }
 
@@ -367,7 +357,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
                 throw new IOException("The file does not exist: '" + knimeURL.toString() + "'.");
             }
         } else {
-            Path localPath = toLocalPath(path);
+            final Path localPath = toLocalPath(path);
             localPath.getFileSystem().provider().checkAccess(localPath, modes);
         }
     }
@@ -377,23 +367,20 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type, final LinkOption... options) {
+    public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
+        final LinkOption... options) {
         if (onServer()) {
-            try {
-                return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                    readAttributes(path, BasicFileAttributes.class, options));
-            } catch (final IOException ex) {
-                return null;
-            }
+            return (V)new FSFileAttributeView(path.getFileName().toString(),
+                () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class, options));
         }
 
         return Files.getFileAttributeView(toLocalPath(path), type, options);
     }
 
     private static Optional<WorkflowContext> getServerContext() {
-        WorkflowContextUI workflowContext = getWorkflowContext();
+        final WorkflowContextUI workflowContext = getWorkflowContext();
         if (wraps(workflowContext, WorkflowContext.class)) {
-            WorkflowContext context = unwrap(workflowContext, WorkflowContext.class);
+            final WorkflowContext context = unwrap(workflowContext, WorkflowContext.class);
             if (context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent()) {
                 return Optional.of(context);
             }
@@ -401,16 +388,15 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
         return Optional.empty();
     }
 
-
     private static boolean onServer() {
         return getServerContext().isPresent();
     }
 
     private static WorkflowContextUI getWorkflowContext() {
-        NodeContext nodeContext = NodeContext.getContext();
+        final NodeContext nodeContext = NodeContext.getContext();
         if (nodeContext != null) {
-            return
-                nodeContext.getContextObjectForClass(WorkflowManagerUI.class).map(wfm -> wfm.getContext()).orElse(null);
+            return nodeContext.getContextObjectForClass(WorkflowManagerUI.class).map(wfm -> wfm.getContext())
+                .orElse(null);
         } else {
             return null;
         }
@@ -422,22 +408,21 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings({"unchecked"})
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
-        final LinkOption... options)
-        throws IOException {
-        Optional<WorkflowContext> serverContext = getServerContext();
+        final LinkOption... options) throws IOException {
+        final Optional<WorkflowContext> serverContext = getServerContext();
         if (serverContext.isPresent()) {
-            WorkflowContext context = serverContext.get();
+            final WorkflowContext context = serverContext.get();
             if (path instanceof KNIMEPath) {
-                final KNIMEPath knimePath = (KNIMEPath) path;
+                final KNIMEPath knimePath = (KNIMEPath)path;
                 final URL knimeURL = knimePath.getURL();
                 boolean isRegularFile = false;
                 try {
                     isRegularFile = !makeRestCall((s) -> s.isWorkflowGroup(knimeURL), context);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     LOGGER.debug("Error when making 'isDirectory' rest call", e);
                 }
 
-                return (A) new FSFileAttributes(isRegularFile, path,
+                return (A)new FSFileAttributes(isRegularFile, path,
                     p -> new FSBasicAttributes(null, null, null, 0, false, false));
             }
         }
@@ -446,11 +431,13 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     }
 
     // FIXME this is simply copied from KnimeRemoteFile, we should find a solution for better re-use!
-    private static <O> O makeRestCall(final IRemoteFileUtilServiceFunction<O> func, final WorkflowContext workflowContext) throws Exception {
+    private static <O> O makeRestCall(final IRemoteFileUtilServiceFunction<O> func,
+        final WorkflowContext workflowContext) throws Exception {
         if (workflowContext.getRemoteRepositoryAddress().isPresent()
             && workflowContext.getServerAuthToken().isPresent()) {
-            BundleContext ctx = FrameworkUtil.getBundle(IRemoteFileUtilsService.class).getBundleContext();
-            ServiceReference<IRemoteFileUtilsService> ref = ctx.getServiceReference(IRemoteFileUtilsService.class);
+            final BundleContext ctx = FrameworkUtil.getBundle(IRemoteFileUtilsService.class).getBundleContext();
+            final ServiceReference<IRemoteFileUtilsService> ref =
+                ctx.getServiceReference(IRemoteFileUtilsService.class);
             if (ref != null) {
                 try {
                     return func.run(ctx.getService(ref));
@@ -476,7 +463,9 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options) throws IOException {
+    public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
+        throws IOException {
+        //FIXME This might not work on the server
         return Files.readAttributes(toLocalPath(path), attributes, options);
     }
 
@@ -484,58 +473,17 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options) throws IOException {
+    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
+        throws IOException {
+        //FIXME This might not work on the server
         Files.setAttribute(toLocalPath(path), attribute, value, options);
-    }
-
-    /**
-     * Closes the given file system.
-     *
-     * @param knimeFileSystem file system to be closed
-     */
-    public void close(final KNIMEFileSystem knimeFileSystem) {
-        m_fileSystems.remove(knimeFileSystem.getKey());
-    }
-
-    /**
-     * Checks whether a given file system is open or not.
-     *
-     * @param knimeFileSystem the file system
-     * @return true if the file system is open
-     */
-    public boolean isOpen(final KNIMEFileSystem knimeFileSystem) {
-        return m_fileSystems.containsKey(knimeFileSystem.getKey());
     }
 
     private static Path toLocalPath(final Path path) {
         if (path instanceof KNIMEPath) {
-            return((KNIMEPath) path).toLocalPath();
+            return ((KNIMEPath)path).toLocalPath();
         } else {
             throw new IllegalArgumentException("Input path must be an instance of KNIMEPath");
-        }
-    }
-
-    @Override
-    public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final KNIMEPath knimePath = (KNIMEPath)path;
-        return knimePath.openURLConnection(getTimeout()).getInputStream();
-    }
-
-    @Override
-    public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
-        final KNIMEPath knimePath = (KNIMEPath)path;
-        if (onServer()) {
-            return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
-        } else {
-            return Files.newOutputStream(knimePath.toLocalPath(), options);
         }
     }
 
@@ -551,16 +499,95 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
      * @throws IOException
      */
     public FileSystem getOrCreateFileSystem(final URI fsKey) throws IOException {
-        return fileSystemExists(fsKey) ? getFileSystem(fsKey) : newFileSystem(fsKey, null);
+        return isOpen(fsKey) ? getFileSystem(fsKey) : newFileSystem(fsKey, null);
     }
 
-    private boolean fileSystemExists(final URI uri) {
-        try {
-            URI fsKey  = createFSKey(uri);
-            return m_fileSystems.containsKey(fsKey);
-        } catch (IOException ex) {
-            return false;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean exists(final Path path) {
+        final Optional<WorkflowContext> serverContext = getServerContext();
+        if (serverContext.isPresent()) {
+            final WorkflowContext context = serverContext.get();
+            final URL knimeURL = ((KNIMEPath)path).getURL();
+
+            try {
+                return makeRestCall(s -> s.exists(knimeURL), context);
+            } catch (final Exception ex) {
+                return false;
+            }
+        } else {
+            return Files.exists(path);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different file system provider");
+        }
+
+        final KNIMEPath knimePath = (KNIMEPath)path;
+        return knimePath.openURLConnection(getTimeout()).getInputStream();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different file system provider");
+        }
+
+        final KNIMEPath knimePath = (KNIMEPath)path;
+        if (onServer()) {
+            return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
+        } else {
+            return Files.newOutputStream(knimePath.toLocalPath(), options);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IOException
+     */
+    @SuppressWarnings("resource")
+    @Override
+    public Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter) throws IOException {
+        final Optional<WorkflowContext> serverContext = getServerContext();
+        if (serverContext.isPresent()) {
+            final KNIMEPath knimePath = (KNIMEPath)dir;
+            final KNIMEFileSystem fileSystem = (KNIMEFileSystem)knimePath.getFileSystem();
+            final URL knimeURL = knimePath.getURL();
+            try {
+                final List<URL> listFiles = FileUtil.listFiles(knimeURL, p -> true, false);
+                final List<Path> paths = new ArrayList<>();
+                for (final URL fileURL : listFiles) {
+                    paths.add(new KNIMEPath(fileSystem, fileURL.getPath()));
+                }
+                return paths.iterator();
+            } catch (IOException | URISyntaxException ex) {
+                LOGGER.debug("Error when listing files at '" + knimeURL.toString() + "'.", ex);
+                return Collections.emptyIterator();
+            }
+        } else {
+            return Files.newDirectoryStream(toLocalPath(dir), filter).iterator();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+      //provider methods overrides get attributes methods
+        return null;
     }
 
 }

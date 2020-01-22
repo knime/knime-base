@@ -63,15 +63,10 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Iterator;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.attributes.FSBasicAttributes;
-import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 
@@ -79,7 +74,7 @@ import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIPath implements FSPath {
+public class URIPath implements Path {
 
     /**
      * The file system of this path.
@@ -466,8 +461,7 @@ public class URIPath implements FSPath {
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection(final int timeoutMillis)
-        throws IOException {
+    public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
         final URL url = FileUtil.toURL(m_uri.toString());
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
@@ -516,15 +510,6 @@ public class URIPath implements FSPath {
     @Override
     public String toString() {
         return m_uri.toString();
-    }
-
-    @Override
-    public FSFileAttributes getFileAttributes(final Class<?> type) {
-        if (type == BasicFileAttributes.class) {
-            return new FSFileAttributes(!isDirectory(), this, p -> new FSBasicAttributes(FileTime.fromMillis(0L),
-                FileTime.fromMillis(0L), FileTime.fromMillis(0L), 0L, false, false));
-        }
-        throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
     }
 
     /**

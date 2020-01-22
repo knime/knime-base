@@ -44,69 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   28.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   13.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.attributes;
+package org.knime.filehandling.core.connections.base.attributes;
 
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
- * This class provides POSIX file attributes for the {@link FSFileAttributes}.
+ * Cache for file attributes. Attributes can be stored
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class FSPosixAttributes {
+public class BaseAttributesCache implements AttributesCache {
 
-    private final UserPrincipal m_owner;
+    private final long m_timeTolive;
 
-    private final GroupPrincipal m_group;
-
-    private final Set<PosixFilePermission> m_permissions;
+    private final Cache<String, FSFileAttributes> m_attributesCache;
 
     /**
-     * Constructs a {@link FSPosixAttributes} class with the given owner, group and permissions.
+     * Constructs a attribute cache with the given time to live in milliseconds.
      *
-     * @param owner the owner of the files
-     * @param group the group of the file
-     * @param permissions the permissions to the file
+     * @param timeToLive time to live in milliseconds
      */
-    public FSPosixAttributes(final UserPrincipal owner, final GroupPrincipal group,
-        final Set<PosixFilePermission> permissions) {
-        m_owner = owner;
-        m_group = group;
-        m_permissions = new HashSet<>(permissions);
+    public BaseAttributesCache(final long timeToLive) {
+        m_timeTolive = timeToLive;
+        m_attributesCache =
+            CacheBuilder.newBuilder().softValues().expireAfterWrite(m_timeTolive, TimeUnit.MILLISECONDS).build();
+
     }
 
     /**
-     * @return the file owner
+     * {@inheritDoc}
      */
-    public UserPrincipal owner() {
-        return m_owner;
+    @Override
+    public synchronized void storeAttributes(final String path, final FSFileAttributes attributes) {
+        m_attributesCache.put(path, attributes);
     }
 
     /**
-     * @return the file group owner
+     * {@inheritDoc}
      */
-    public GroupPrincipal group() {
-        return m_group;
+    @Override
+    public synchronized Optional<FSFileAttributes> getAttributes(final String path) {
+
+        Optional<FSFileAttributes> attributes = Optional.ofNullable(m_attributesCache.getIfPresent(path));
+        if (attributes.isPresent() && isExpired(attributes.get())) {
+            m_attributesCache.invalidate(path);
+            attributes = Optional.empty();
+        }
+        return attributes;
+
+    }
+
+    private boolean isExpired(final FSFileAttributes attributes) {
+        return (System.currentTimeMillis() - attributes.getFetchTime()) > m_timeTolive;
     }
 
     /**
-     * Returns the permissions of the file. The file permissions are returned
-     * as a set of {@link PosixFilePermission} elements. The returned set is a
-     * copy of the file permissions and is modifiable. This allows the result
-     * to be modified and passed to the {@link PosixFileAttributeView#setPermissions
-     * setPermissions} method to update the file's permissions.
-     *
-     * @return  the file permissions
+     * {@inheritDoc}
      */
-    public Set<PosixFilePermission> permissions() {
-        return new HashSet<>(m_permissions);
+    @Override
+    public synchronized void clearCache() {
+        m_attributesCache.invalidateAll();
     }
 
 }
