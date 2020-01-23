@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.knime.features.base"
-      label="KNIME Core"
+      label="KNIME Base nodes"
       version="4.2.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland"
       plugin="org.knime.product"
       image="icons/knime64.gif">
 
    <description url="http://www.knime.com/">
-      This features contains KNIME. All plugins needed to run the information mining workbench are included. Note that there are additional features available.
+      This features contains basic KNIME nodes.
    </description>
 
    <copyright>
@@ -728,13 +728,6 @@ interoperation with KNIME.  The owner of a Node may freely choose the
 license terms applicable to such Node, including when such Node is
 propagated with or for interoperation with KNIME.
    </license>
-
-   <requires>
-      <import feature="org.eclipse.gef" version="3.9.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.platform" version="4.4.2" match="greaterOrEqual"/>
-      <import feature="org.eclipse.rcp" version="4.4.2" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.jdt.core" version="3.10.0" match="greaterOrEqual"/>
-   </requires>
 
    <plugin
          id="org.knime.base"
