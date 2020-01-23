@@ -90,8 +90,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
      */
     public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(FeatureSelectionModel.class);
 
-    private final Collection<Pair<Double, Collection<Integer>>> m_featureLevels =
-        new ArrayList<>();
+    private final Collection<Pair<Double, Collection<Integer>>> m_featureLevels = new ArrayList<>();
 
     private final AbstractColumnHandler m_columnHandler;
 
@@ -101,6 +100,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
 
     /**
      * Creates a new model.
+     *
      * @param columnHandler the ColumnHandler that holds the information about the features and constant columns
      */
     public FeatureSelectionModel(final AbstractColumnHandler columnHandler) {
@@ -146,15 +146,16 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
     }
 
     /**
-     * Checks if the input table contains all columns specified in the selected feature level and provides a warning message if any columns are missing.
-     * It also provides an outSpec if only some of the columns are missing.
+     * Checks if the input table contains all columns specified in the selected feature level and provides a warning
+     * message if any columns are missing. It also provides an outSpec if only some of the columns are missing.
      *
      * @param settings the settings of the FeatureSelectionFilter node
      * @param inSpec {@link DataTableSpec} of the input table
      * @return a Pair containing a possible warning message and the outSpec
      * @throws InvalidSettingsException thrown if no columns of the feature level are contained in the input table
      */
-    public Pair<String, DataTableSpec> getTableSpecAndWarning(final FeatureSelectionFilterSettings settings, final DataTableSpec inSpec) throws InvalidSettingsException {
+    public Pair<String, DataTableSpec> getTableSpecAndWarning(final FeatureSelectionFilterSettings settings,
+        final DataTableSpec inSpec) throws InvalidSettingsException {
         final boolean includeStaticCols = settings.includeConstantColumns();
         final Collection<Integer> includedFeatures = getIncludedFeatures(settings);
         return m_columnHandler.getOutSpecAndWarning(includedFeatures, inSpec, includeStaticCols);
@@ -169,7 +170,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
             if (p.isPresent()) {
                 includedFeatures.addAll(p.get().getSecond());
             }
-        } else if(settings.bestScoreMode()) {
+        } else if (settings.bestScoreMode()) {
             Optional<Pair<Double, Collection<Integer>>> p = getBestScorePair();
             if (p.isPresent()) {
                 includedFeatures.addAll(p.get().getSecond());
@@ -213,8 +214,8 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
 
     /**
      * Returns the names of the features contained in the smallest feature set that is better than <b>threshold</b>.
-     * What is considered as better depends on whether the score variable should be minimized or not (e.g. in case
-     * of accuracy the minimal set that has a accuracy larger than <b>threshold</b> is returned while for error, the
+     * What is considered as better depends on whether the score variable should be minimized or not (e.g. in case of
+     * accuracy the minimal set that has a accuracy larger than <b>threshold</b> is returned while for error, the
      * minimal set with an error lower than <b>threshold</b> is returned).
      *
      * @param threshold the threshold to use
@@ -222,7 +223,8 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
      */
     public Collection<String> getNamesOfMinimialSet(final double threshold) {
         final Optional<Pair<Double, Collection<Integer>>> minimalSet = findMinimalSet(threshold);
-        return m_columnHandler.getColumnNamesFor(minimalSet.isPresent()? minimalSet.get().getSecond(): Collections.emptySet());
+        return m_columnHandler
+            .getColumnNamesFor(minimalSet.isPresent() ? minimalSet.get().getSecond() : Collections.emptySet());
     }
 
     private Optional<Pair<Double, Collection<Integer>>> findMinimalSet(final double threshold) {
@@ -241,27 +243,26 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         return m_isMinimize ? value <= threshold : value >= threshold;
     }
 
-
     /**
-     * Returns the names of the features contained in the smallest feature set with the best score.
-     * The best score depends wether the score variable is being minimized or maximized. In case of
-     * minimization, we search for the lowest score and vice-versa in case of maximization.
+     * Returns the names of the features contained in the smallest feature set with the best score. The best score
+     * depends wether the score variable is being minimized or maximized. In case of minimization, we search for the
+     * lowest score and vice-versa in case of maximization.
      *
      * @return the minimal set with the best score.
      */
     public Collection<String> getBestScore() {
         final Optional<Pair<Double, Collection<Integer>>> col = getBestScorePair();
-        return m_columnHandler.getColumnNamesFor(col.isPresent()? col.get().getSecond(): Collections.emptySet());
+        return m_columnHandler.getColumnNamesFor(col.isPresent() ? col.get().getSecond() : Collections.emptySet());
     }
 
-    private Optional<Pair<Double, Collection<Integer>>> getBestScorePair(){
+    private Optional<Pair<Double, Collection<Integer>>> getBestScorePair() {
         return m_featureLevels.stream().min(createComparator());
     }
 
-    private Comparator<Pair<Double, Collection<Integer>>> createComparator(){
+    private Comparator<Pair<Double, Collection<Integer>>> createComparator() {
         return (o1, o2) -> {
             final int comp = o1.getFirst().compareTo(o2.getFirst());
-            return m_isMinimize? comp : -comp;
+            return m_isMinimize ? comp : -comp;
         };
     }
 
@@ -324,7 +325,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         public void savePortObjectSpec(final FeatureSelectionModel model, final PortObjectSpecZipOutputStream out)
             throws IOException {
             out.putNextEntry(new ZipEntry("spec.file"));
-            try(final DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(out))){
+            try (final DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(out))) {
                 model.m_columnHandler.save(outStream);
                 outStream.writeBoolean(model.isMinimize());
                 outStream.writeUTF(model.m_scoreName);
@@ -346,7 +347,7 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         @Override
         public FeatureSelectionModel loadPortObjectSpec(final PortObjectSpecZipInputStream in) throws IOException {
             in.getNextEntry();
-            try (final DataInputStream inStream = new DataInputStream(new BufferedInputStream(in))){
+            try (final DataInputStream inStream = new DataInputStream(new BufferedInputStream(in))) {
                 final AbstractColumnHandler colHandler = AbstractColumnHandler.loadColumnHandler(inStream);
                 final FeatureSelectionModel model = new FeatureSelectionModel(colHandler);
                 model.setIsMinimize(inStream.readBoolean());
@@ -366,7 +367,6 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         }
 
     }
-
 
     /**
      * @noreference This class is not intended to be referenced by clients.

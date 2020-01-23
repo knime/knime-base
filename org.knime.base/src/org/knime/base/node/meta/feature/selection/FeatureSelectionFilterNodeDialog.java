@@ -94,11 +94,9 @@ import org.knime.core.util.Pair;
  */
 public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
     private static class MyTableModel implements TableModel {
-        private final CopyOnWriteArrayList<TableModelListener> m_listeners =
-                new CopyOnWriteArrayList<>();
+        private final CopyOnWriteArrayList<TableModelListener> m_listeners = new CopyOnWriteArrayList<>();
 
-        private final List<Pair<Double, Collection<String>>> m_featureLevels =
-                new ArrayList<>();
+        private final List<Pair<Double, Collection<String>>> m_featureLevels = new ArrayList<>();
 
         private String m_scoreName;
 
@@ -124,16 +122,17 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
             }
         }
 
-        private static Comparator<Pair<Double, Collection<String>>> createComparator(final FeatureSelectionModel fsModel){
+        private static Comparator<Pair<Double, Collection<String>>>
+            createComparator(final FeatureSelectionModel fsModel) {
             return (o1, o2) -> {
                 final int diff = o1.getFirst().compareTo(o2.getFirst());
                 if (diff != 0) {
                     return fsModel.isMinimize() ? diff : -diff;
                 }
-                return -o1.getSecond().size()
-                        + o2.getSecond().size();
+                return -o1.getSecond().size() + o2.getSecond().size();
             };
         }
+
         /**
          * {@inheritDoc}
          */
@@ -204,8 +203,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         }
 
         /**
-         * Returns the number of included feature for the level shown in the
-         * given row.
+         * Returns the number of included feature for the level shown in the given row.
          *
          * @param rowIndex the row's index
          *
@@ -216,8 +214,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         }
 
         /**
-         * Returns a collection with all included feature names for the level
-         * shown in the given row.
+         * Returns a collection with all included feature names for the level shown in the given row.
          *
          * @param rowIndex the row's index
          *
@@ -247,14 +244,12 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
          * {@inheritDoc}
          */
         @Override
-        public void setValueAt(final Object value, final int rowIndex,
-                final int columnIndex) {
+        public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
             // not editable
         }
     }
 
-    private final ColumnSelectionList m_includedColumns =
-            new ColumnSelectionList();
+    private final ColumnSelectionList m_includedColumns = new ColumnSelectionList();
 
     private final MyTableModel m_tableModel = new MyTableModel();
 
@@ -264,27 +259,21 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
 
     private final JLabel m_optimizationMessage = new JLabel(" ");
 
-    private final JCheckBox m_includeStaticColumns = new JCheckBox(
-            "Include static columns");
+    private final JCheckBox m_includeStaticColumns = new JCheckBox("Include static columns");
 
-    private final JRadioButton m_manualMode = new JRadioButton(
-            "Select features manually");
+    private final JRadioButton m_manualMode = new JRadioButton("Select features manually");
 
-    private final JRadioButton m_bestScoreMode = new JRadioButton(
-            "Select best score");
+    private final JRadioButton m_bestScoreMode = new JRadioButton("Select best score");
 
-    private final JRadioButton m_thresholdMode = new JRadioButton(
-            "Select features automatically by score threshold");
+    private final JRadioButton m_thresholdMode = new JRadioButton("Select features automatically by score threshold");
 
-    private final JSpinner m_errorThreshold = new JSpinner(
-            new SpinnerNumberModel(0.5, 0, 1, 0.01));
+    private final JSpinner m_errorThreshold = new JSpinner(new SpinnerNumberModel(0.5, 0, 1, 0.01));
 
     private List<String> m_staticColumns;
 
     private final FeatureSelectionFilterSettings m_settings = new FeatureSelectionFilterSettings();
 
     private FeatureSelectionModel m_fsModel;
-
 
     /**
      * Creates a new dialog.
@@ -377,20 +366,17 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         errorThresholdChanged();
     }
 
-
     private void addListSelectionChangedListener() {
         int selRow = m_featureLevels.getSelectionModel().getMinSelectionIndex();
         m_warningMessage.setText(" ");
         if (selRow >= 0) {
-            Collection<String> features =
-                    new ArrayList<>(m_tableModel.getFeatures(selRow));
+            Collection<String> features = new ArrayList<>(m_tableModel.getFeatures(selRow));
             if (m_includeStaticColumns.isSelected()) {
                 features.addAll(m_staticColumns);
             }
             m_includedColumns.setSelectedColumns(features);
             if (m_includedColumns.getSelectedIndices().length < features.size()) {
-                m_warningMessage.setText("Warning: Some features are missing "
-                        + "in the input table");
+                m_warningMessage.setText("Warning: Some features are missing " + "in the input table");
             }
         } else {
             m_includedColumns.clearSelection();
@@ -416,7 +402,8 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         if (!m_thresholdMode.isSelected()) {
             return; // make sure that column selection is only changed if we are in threshold mode
         }
-        final Collection<String> namesOfMinimalSet = m_fsModel.getNamesOfMinimialSet(((Number)m_errorThreshold.getValue()).doubleValue());
+        final Collection<String> namesOfMinimalSet =
+            m_fsModel.getNamesOfMinimialSet(((Number)m_errorThreshold.getValue()).doubleValue());
 
         if (namesOfMinimalSet != null) {
             final Collection<String> features = new ArrayList<>(namesOfMinimalSet);
@@ -425,14 +412,13 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
             }
             m_includedColumns.setSelectedColumns(features);
             if (m_includedColumns.getSelectedIndices().length < features.size()) {
-                m_warningMessage.setText("Warning: Some features are missing "
-                        + "in the input table");
+                m_warningMessage.setText("Warning: Some features are missing " + "in the input table");
             }
             setIntervalNotManualMode(namesOfMinimalSet.size());
         } else {
             m_includedColumns.clearSelection();
-            m_warningMessage.setText("No feature combination with prediction "
-                    + "error below the threshold does exist");
+            m_warningMessage
+                .setText("No feature combination with prediction " + "error below the threshold does exist");
         }
     }
 
@@ -440,8 +426,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
      * {@inheritDoc}
      */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         int selRow = m_featureLevels.getSelectedRow();
         if (selRow >= 0) {
             m_settings.nrOfFeatures(m_tableModel.getNrOfFeatures(selRow));
@@ -450,8 +435,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
         }
         m_settings.includeConstantColumns(m_includeStaticColumns.isSelected());
         m_settings.thresholdMode(m_thresholdMode.isSelected());
-        m_settings.errorThreshold(((Number)m_errorThreshold.getValue())
-                .doubleValue());
+        m_settings.errorThreshold(((Number)m_errorThreshold.getValue()).doubleValue());
         m_settings.bestScoreMode(m_bestScoreMode.isSelected());
         m_settings.saveSettings(settings);
     }
@@ -460,14 +444,13 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
      * {@inheritDoc}
      */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final PortObjectSpec[] specs) throws NotConfigurableException {
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
         m_settings.loadSettingsForDialog(settings);
 
         m_fsModel = (FeatureSelectionModel)specs[0];
         if (m_fsModel == null) {
-            throw new NotConfigurableException(
-                    "No feature selection model available.");
+            throw new NotConfigurableException("No feature selection model available.");
         }
         final String optimization =
                 m_fsModel.isMinimize() ? "The score is being minimized." : "The score is being maximized.";
@@ -478,12 +461,13 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
     }
 
     private Runnable runLaterInEDT(final PortObjectSpec[] specs) {
-        return () -> {m_tableModel.featuresChanged(m_fsModel);
-        if (specs[1] != null) {
-            m_includedColumns.update((DataTableSpec)specs[1]);
-        } else {
-            ((DefaultListModel<?>)m_includedColumns.getModel()).clear();
-        }
+        return () -> {
+            m_tableModel.featuresChanged(m_fsModel);
+            if (specs[1] != null) {
+                m_includedColumns.update((DataTableSpec)specs[1]);
+            } else {
+                ((DefaultListModel<?>)m_includedColumns.getModel()).clear();
+            }
 
         final int numIncl = m_settings.includedColumns(m_fsModel).size();
         final int setSize = m_settings.includeConstantColumns() ? numIncl - m_fsModel.getConstantColumns().length : numIncl;
@@ -497,13 +481,12 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
                 setIntervalManualMode();
             }
 
-        m_includeStaticColumns.setSelected(m_settings
-                .includeConstantColumns());
-        m_includedColumns.setSelectedColumns(m_settings.includedColumns(m_fsModel));
-        m_thresholdMode.setSelected(m_settings.thresholdMode());
-        m_bestScoreMode.setSelected(m_settings.bestScoreMode());
-        m_manualMode.setSelected(!m_settings.thresholdMode() && !m_settings.bestScoreMode());
-        m_errorThreshold.setValue(m_settings.errorThreshold());
+            m_includeStaticColumns.setSelected(m_settings.includeConstantColumns());
+            m_includedColumns.setSelectedColumns(m_settings.includedColumns(m_fsModel));
+            m_thresholdMode.setSelected(m_settings.thresholdMode());
+            m_bestScoreMode.setSelected(m_settings.bestScoreMode());
+            m_manualMode.setSelected(!m_settings.thresholdMode() && !m_settings.bestScoreMode());
+            m_errorThreshold.setValue(m_settings.errorThreshold());
         };
     }
 

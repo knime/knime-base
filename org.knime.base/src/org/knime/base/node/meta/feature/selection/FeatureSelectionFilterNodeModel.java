@@ -77,15 +77,14 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
      */
     public FeatureSelectionFilterNodeModel() {
         super(new PortType[]{FeatureSelectionModel.TYPE, BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE});
+            new PortType[]{BufferedDataTable.TYPE});
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         FeatureSelectionModel model = (FeatureSelectionModel)inSpecs[0];
         if (model == null) {
             throw new InvalidSettingsException("No model available");
@@ -106,14 +105,11 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
         return new PortObjectSpec[]{outSpec};
     }
 
-
-
     /**
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         FeatureSelectionModel model = (FeatureSelectionModel)inData[0];
         BufferedDataTable table = (BufferedDataTable)inData[1];
 
@@ -130,9 +126,8 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
@@ -140,8 +135,7 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_settings.loadSettings(settings);
     }
 
@@ -157,9 +151,8 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
@@ -175,8 +168,7 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         FeatureSelectionFilterSettings s = new FeatureSelectionFilterSettings();
         s.loadSettings(settings);
     }

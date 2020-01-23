@@ -77,7 +77,6 @@ public class FeatureSelectionFilterSettings {
 
     private boolean m_bestScoreMode;
 
-
     /**
      * Sets the error threshold for automatic feature selection.
      *
@@ -95,7 +94,6 @@ public class FeatureSelectionFilterSettings {
     public double errorThreshold() {
         return m_errorThreshold;
     }
-
 
     /**
      * Sets if the features are selected manually or dynamically by an error threshold.
@@ -169,7 +167,7 @@ public class FeatureSelectionFilterSettings {
             if (p != null) {
                 l.addAll(p.getSecond());
             }
-        } else if(m_bestScoreMode){
+        } else if (m_bestScoreMode) {
             Optional<Pair<Double, Collection<String>>> p = model.featureLevels().stream().min(createComparator(model));
             if (p.isPresent()) {
                 l.addAll(p.get().getSecond());
@@ -180,8 +178,8 @@ public class FeatureSelectionFilterSettings {
                 if (incFeatures.size() == m_nrOfFeatures) {
                     l.addAll(incFeatures);
                     break;
-                    }
                 }
+            }
         }
         if (m_includeTargetColumn) {
             l.addAll(Arrays.asList(model.getConstantColumns()));
@@ -191,8 +189,8 @@ public class FeatureSelectionFilterSettings {
 
     /**
      * Returns the number of included feature for the selected level. This is not necessarily the same with the number
-     * of included columns in the {@link BWElimModel} as the latter only contains columns that are present in the
-     * input table while the number of features is the "level" that comes out from the elimination loop.
+     * of included columns in the {@link BWElimModel} as the latter only contains columns that are present in the input
+     * table while the number of features is the "level" that comes out from the elimination loop.
      *
      * @return the number of included features
      */
@@ -201,9 +199,9 @@ public class FeatureSelectionFilterSettings {
     }
 
     /**
-     * Sets the number of included feature for the selected level. This is not necessarily the same with the number
-     * of included columns in the {@link BWElimModel} as the latter only contains columns that are present in the
-     * input table while the number of features is the "level" that comes out from the elimination loop.
+     * Sets the number of included feature for the selected level. This is not necessarily the same with the number of
+     * included columns in the {@link BWElimModel} as the latter only contains columns that are present in the input
+     * table while the number of features is the "level" that comes out from the elimination loop.
      *
      * @param number the number of included features
      */
@@ -257,8 +255,7 @@ public class FeatureSelectionFilterSettings {
     }
 
     static Pair<Double, Collection<String>> findMinimalSet(final FeatureSelectionModel model, final double threshold) {
-        List<Pair<Double, Collection<String>>> col =
-            new ArrayList<>(model.featureLevels());
+        List<Pair<Double, Collection<String>>> col = new ArrayList<>(model.featureLevels());
         // sort subsets by score
         Collections.sort(col, createComparator(model));
 
@@ -266,14 +263,15 @@ public class FeatureSelectionFilterSettings {
         for (Pair<Double, Collection<String>> p : col) {
             final boolean betterThanThreshold =
                 model.isMinimize() ? p.getFirst() <= threshold : p.getFirst() >= threshold;
-            if (betterThanThreshold && ((selectedLevel == null) || (selectedLevel.getSecond().size() > p.getSecond().size()))) {
-                    selectedLevel = p;
+            if (betterThanThreshold
+                && ((selectedLevel == null) || (selectedLevel.getSecond().size() > p.getSecond().size()))) {
+                selectedLevel = p;
             }
         }
         return selectedLevel;
     }
 
-    private static Comparator<Pair<Double, Collection<String>>> createComparator(final FeatureSelectionModel model){
+    private static Comparator<Pair<Double, Collection<String>>> createComparator(final FeatureSelectionModel model) {
         return (o1, o2) -> {
             final int comp = o1.getFirst().compareTo(o2.getFirst());
             return model.isMinimize() ? comp : -comp;
