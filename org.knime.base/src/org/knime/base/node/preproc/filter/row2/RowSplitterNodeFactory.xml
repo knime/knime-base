@@ -1,20 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./rowfilter.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Row Filter (Labs)</name>
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./rowsplitter.png" type="Manipulator"
+	xmlns="http://knime.org/node/v2.8"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+	<name>Row Splitter (Labs)</name>
+
 	<shortDescription>
-		Allows to filter rows with complex queries defined on multiple columns.
+		Allows to split rows into two tables based on complex queries defined on multiple columns.
 	</shortDescription>
-	
+
 	<fullDescription>
-		<intro>This node allows to filter rows based on a query defined in the node dialog.
+		<intro>This node has exactly the same functionality as the Row Filter node, except for that it has an
+		additional output that provides the rows that are filtered out. For performance and disk space reasons
+		you may want to consider using the Row Filter node. The table at the upper port (with index 0) contains
+		the rows included in the result according to the splitting criteria (the node settings). The lower port 
+		(with index 1) provides a table with all rows not matching the splitting criteria. The sum of the number of 
+		rows in the two output tables is the same than the number of rows in the input table. <br />
+		This node allows to split rows based on a query defined in the node dialog.
 		 A query can contain conditions on multiple columns,
 		 which can be grouped and combined with either the logical AND or logical OR operation. <br/>
 		 
-		 The row filter also allows to apply conditions to the RowID as well as index based conditions.
+		 The row splitter also allows to apply conditions to the RowID as well as index based conditions.
 		 The corresponding columns are called &lt;RowID&gt; and &lt;RowINDEX&gt; and are always the top most options when
 		 opening the drop down for column selection. The &lt;RowID&gt; is treated as a string column, while the &lt;RowINDEX&gt; is considered
 		 to be numerical starting at index 0.
-		 </intro>
+		</intro>
+
 
 		<tab name="Buttons and views">
 		<option name="Query View">A view of the created query displayed as a tree structure.
@@ -40,7 +51,7 @@
 		</option>
 		<option name="Include/Exclude by query">
 			This option allows you to select whether the specified query defines the rows that are included in or excluded from the
-			output table.
+			top table.
 		</option>
 		</tab>
 		<tab name="Operators">
@@ -54,7 +65,8 @@
 			</ul>
 			</option>
 		<option name="String operators">
-			The <i>pattern matching</i> condition applies to string columns and it allows to match values based on a regular expression or wildcard expression.
+			The <i>pattern matching</i> condition applies to string columns and it allows to 
+			match values based on a regular expression or wildcard expression.
 			You can configure it by setting the respective checkmarks
 			according to whether the pattern contains wildcards or is a regular 
 			expression. Wildcard patterns contain '*' (matching any sequence of
@@ -88,9 +100,14 @@
 		</option>
 		</tab>
 	</fullDescription>
-	
+
 	<ports>
-		<inPort index="0" name="To be filtered">Data table from which to filter rows.</inPort>
-		<outPort index="0" name="Filtered">Data table with rows meeting the specified criteria</outPort>
-	</ports>	
+		<inPort index="0" name="To be filtered">Data table from which to split rows
+		</inPort>
+		<!-- possibly more input ports here -->
+		<outPort index="0" name="Filtered">Data table with rows meeting the specified criteria
+		</outPort>
+		<outPort index="1" name="Filtered Out">Data table with rows not meeting the specified criteria</outPort>
+		<!-- possibly more output ports here -->
+	</ports>
 </knimeNode>

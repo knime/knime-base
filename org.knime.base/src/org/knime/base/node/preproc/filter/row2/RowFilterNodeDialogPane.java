@@ -81,8 +81,7 @@ public class RowFilterNodeDialogPane extends NodeDialogPane {
 
     private JRadioButton m_excludeButton;
 
-    private final KnimeRowFilterConfig m_config =
-        new KnimeRowFilterConfig(RowFilterNodeModel.CFGFILTER, RowFilterNodeModel.GROUP_TYPES);
+    private final KnimeRowFilterConfig m_config = AbstractRowFilterNodeModel.getRowFilterConfig();
 
     private final RowFilterElementFactory m_elementFactory = new DefaultRowFilterElementFactory();
 
@@ -97,6 +96,13 @@ public class RowFilterNodeDialogPane extends NodeDialogPane {
      */
 
     public RowFilterNodeDialogPane() {
+        super.addTab("Filter Criteria", createRowFilterPanel());
+    }
+
+    /**
+     * @return the row filter panel
+     */
+    protected JPanel createRowFilterPanel() {
         //keeps all sub-panels
         final JPanel bigPanel = new JPanel();
         bigPanel.setLayout(new BoxLayout(bigPanel, BoxLayout.PAGE_AXIS));
@@ -121,8 +127,7 @@ public class RowFilterNodeDialogPane extends NodeDialogPane {
         //add the subpanels to the bigpanel
         bigPanel.add(panel);
         bigPanel.add(panelInclude);
-        super.addTab("Filter Criteria", bigPanel);
-
+        return bigPanel;
     }
 
     /**

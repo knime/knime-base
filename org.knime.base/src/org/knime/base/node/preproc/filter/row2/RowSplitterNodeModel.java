@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,24 +41,24 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   29.06.2005 (ohl): created
+ *   Jan 23, 2020 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row2;
 
 import org.knime.base.node.preproc.filter.row2.operator.RowPredicate;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.BufferedDataTableRowOutput;
+import org.knime.core.node.streamable.DataTableRowInput;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
@@ -69,22 +70,20 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
 
 /**
- * Model of a node filtering rows. It keeps an instance of a row filter, which tells whether or not to include a row
- * into the result, and a range to allow for index based filtering. The reason the range is kept separately and not in a
- * normal filter instance is performance. If we are leaving the row number range we can immediately flag the end of the
- * table, while if we would use a filter instance we would have to run to the end of the input table (always getting a
- * mismatch because the row number is out of the valid range).
+ * This class is the model implementation of the "RowSplitter" node. It splits the rows into two tables: one holding the
+ * matches (all the rows that fulfill the filtering criteria) and one holding all the misses (all the rows that do not
+ * fulfill the matching criteria).
  *
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
+final class RowSplitterNodeModel extends AbstractRowFilterNodeModel {
+
 
     /**
-     * Creates a new Row Filter Node Model.
+     * Creates a new Row Splitter Node Model.
      */
-    protected RowFilterNodeModel() {
-        super(1, 1);
+    protected RowSplitterNodeModel() {
+        super(1, 2);
     }
 
     /**
@@ -92,72 +91,57 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        configureInputSpec(inSpecs[0]);
-        return inSpecs;
+        final DataTableSpec dataTableSpec = inSpecs[0];
+        configureInputSpec(dataTableSpec);
+        return new DataTableSpec[]{dataTableSpec, dataTableSpec};
     }
 
     /**
-     * Checks every row if the test is passed, it is pushed in the output rows.
      *
-     * @throws CanceledExecutionException
+     * {@inheritDoc}
      */
-    private static void filterInput(final RowInput inData, final RowOutput outData, final RowPredicate rowPredicate,
-        final ExecutionContext exec) throws InterruptedException, CanceledExecutionException {
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        final BufferedDataTable inTable = inData[0];
+        final DataTableRowInput rowInput = new DataTableRowInput(inTable);
+        final DataTableSpec inSpec = inTable.getDataTableSpec();
+        final BufferedDataContainer match = exec.createDataContainer(inSpec);
+        final BufferedDataTableRowOutput matchOutput = new BufferedDataTableRowOutput(match);
+        final BufferedDataContainer miss = exec.createDataContainer(inSpec);
+        final BufferedDataTableRowOutput missOutput = new BufferedDataTableRowOutput(miss);
+        final RowPredicate rowPredicate = createRowPredicate(inSpec);
+        RowSplitterNodeModel.filterInput(rowInput, matchOutput, missOutput, rowPredicate, exec, inTable.size());
+        return new BufferedDataTable[]{matchOutput.getDataTable(), missOutput.getDataTable()};
+    }
+
+    /**
+     * Checks the rows one by one and pushes it in the match output if the criteria are fulfilled, otherwise in the miss
+     * output rows.
+     *
+     * @param inData holds the input row.
+     * @param matchData holds the rows fulfilling the filtering criteria.
+     * @param missData holds the rows not fulfilling the filtering criteria.
+     * @param rowPredicate holds the {@link RowPredicate} to test the rows one by one.
+     * @param exec holds the {@link ExecutionContext}.
+     * @throws InterruptedException thrown if the execution is interrupted.
+     * @throws CanceledExecutionException thrown if the execution is canceled.
+     */
+    private static void filterInput(final RowInput inData, final RowOutput matchData, final RowOutput missData,
+        final RowPredicate rowPredicate, final ExecutionContext exec, final long tableLength)
+        throws InterruptedException, CanceledExecutionException {
         DataRow row;
         for (long i = 0; (row = inData.poll()) != null; i++) {
             exec.checkCanceled();
             if (rowPredicate.test(row, i)) {
-                outData.push(row);
+                matchData.push(row);
+            } else {
+                missData.push(row);
             }
+            exec.getProgressMonitor().setProgress((double) i/tableLength);
         }
-        inData.close();
-        outData.close();
-    }
-
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
-        final BufferedDataTable in = inData[0];
-        final BufferedDataContainer container = exec.createDataContainer(in.getDataTableSpec());
-        exec.setMessage("Searching first matching row...");
-        // Create RowPredicate
-        final RowPredicate rowPredicate = createRowPredicate(in.getDataTableSpec());
-        // test rows with row predicate and add only matching rows to the container
-        try (CloseableRowIterator rowIterator = in.filter(createTableFilter(rowPredicate), exec).iterator()) {
-            for (long i = getStartIdx(rowPredicate); rowIterator.hasNext(); i++) {
-                exec.checkCanceled();
-                final DataRow row = rowIterator.next();
-                if (rowPredicate.test(row, i)) {
-                    container.addRowToTable(row);
-                }
-            }
-        }
-        container.close();
-        return new BufferedDataTable[]{container.getTable()};
-    }
-
-    private static long getStartIdx(final RowPredicate rowPredicate) {
-        if (rowPredicate.getRowIndexRange().hasLowerBound()) {
-            return rowPredicate.getRowIndexRange().lowerEndpoint();
-        } else {
-            return 0;
-        }
-    }
-
-    private static TableFilter createTableFilter(final RowPredicate rowPredicate) {
-        //Create TableFilter used later to filter the needed part of the input table
-        final int[] vectorizedColumnIndices =
-            rowPredicate.getRequiredColumns().stream().mapToInt(Integer::intValue).toArray();
-        TableFilter.Builder tableFilterBuilder =
-            new TableFilter.Builder().withMaterializeColumnIndices(vectorizedColumnIndices);
-        if (rowPredicate.getRowIndexRange().hasLowerBound()) {
-            tableFilterBuilder =
-                tableFilterBuilder.withFromRowIndex(rowPredicate.getRowIndexRange().lowerEndpoint());
-        }
-        if (rowPredicate.getRowIndexRange().hasUpperBound()) {
-            tableFilterBuilder = tableFilterBuilder.withToRowIndex(rowPredicate.getRowIndexRange().upperEndpoint());
-        }
-        return tableFilterBuilder.build();
+        matchData.close();
+        missData.close();
     }
 
     @Override
@@ -167,7 +151,7 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
 
     @Override
     public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED, OutputPortRole.DISTRIBUTED};
     }
 
     @Override
@@ -184,12 +168,12 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext ctx)
                 throws Exception {
                 final RowInput inData = (RowInput)inputs[0];
-                final RowOutput output = (RowOutput)outputs[0];
+                final RowOutput matchData = (RowOutput)outputs[0];
+                final RowOutput missData = (RowOutput)outputs[1];
                 final RowPredicate rowPredicate = createRowPredicate(inData.getDataTableSpec());
 
-                RowFilterNodeModel.filterInput(inData, output, rowPredicate, ctx);
+                RowSplitterNodeModel.filterInput(inData, matchData, missData, rowPredicate, ctx, -1);
             }
         };
     }
-
 }
