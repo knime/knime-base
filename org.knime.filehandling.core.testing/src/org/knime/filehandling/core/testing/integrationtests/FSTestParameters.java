@@ -69,10 +69,23 @@ public class FSTestParameters {
 		Enumeration<String> propertyNames = (Enumeration<String>) testProperties.propertyNames();
 		while (propertyNames.hasMoreElements()) {
 			final String key = propertyNames.nextElement();
-			final String value = testProperties.getProperty(key);
-			final String keyWithoutFSType = key.replace(fsType + ".", "");
-			configuration.put(keyWithoutFSType, value);
+			if (key.startsWith(fsType)) {
+				final String value = testProperties.getProperty(key);
+				final String keyWithoutFSType = key.replace(fsType + ".", "");
+				configuration.put(keyWithoutFSType, value);
+			}
 		}
+		
+		if (configuration.isEmpty()) {
+			final String errMsg = 
+				String.format(
+					"No properties for the file system '%s' found in the properties file '%s'.", 
+					fsType, 
+					TEST_PROPERTIES_FILE_NAME
+				);
+			throw new IllegalStateException(errMsg);
+		}
+		
 		return configuration;
 	}
 

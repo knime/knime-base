@@ -24,13 +24,8 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testFileExists() throws IOException {
-		m_testInitializer.createFile("dir", "file.txt");
-		
-		FileSystem fileSystem = m_connection.getFileSystem();
-		String rootFolder = m_testInitializer.getRoot().toString();
-		Path pathToExistingFile = fileSystem.getPath(rootFolder, "dir", "file.txt");
-		
-		assertTrue(Files.exists(pathToExistingFile));
+		Path pathToFile = m_testInitializer.createFile("dir", "file.txt");
+		assertTrue(Files.exists(pathToFile));
 	}
 	
 	@Test

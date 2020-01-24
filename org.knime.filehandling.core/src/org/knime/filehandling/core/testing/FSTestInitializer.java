@@ -100,7 +100,8 @@ public interface FSTestInitializer {
      * Creates a file with the provided path, starting from the configured root directory.
      *
      * @param pathComponents the path components of the file to be created
+     * @return the path to the created file
      */
-    public void createFile(String... pathComponents);
+    public Path createFile(String... pathComponents);
 
 }

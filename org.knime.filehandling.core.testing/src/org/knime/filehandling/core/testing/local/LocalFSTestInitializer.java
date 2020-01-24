@@ -106,7 +106,7 @@ public class LocalFSTestInitializer implements FSTestInitializer {
     }
 
     @Override
-    public void createFile(final String... pathComponents) {
+    public Path createFile(final String... pathComponents) {
         if (pathComponents == null || pathComponents.length == 0) {
             throw new IllegalArgumentException("path components can not be empty or null");
         }
@@ -119,7 +119,7 @@ public class LocalFSTestInitializer implements FSTestInitializer {
         final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
         try {
         	Files.createDirectories(directories);
-        	Files.createFile(file);
+        	return Files.createFile(file);
         } catch (IOException e) {
         	throw new RuntimeIOException("Exception while creating a file at ." + file.toString(), e);
         }
