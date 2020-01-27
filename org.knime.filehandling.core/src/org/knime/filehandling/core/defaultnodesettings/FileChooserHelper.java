@@ -71,6 +71,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.connections.knime.KNIMEPath;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
@@ -207,13 +208,34 @@ public final class FileChooserHelper {
      */
     public Path getPathFromSettings() throws InvalidSettingsException {
         final Path pathOrUrl;
-        if (FileSystemChoice.getCustomFsUrlChoice().equals(m_settings.getFileSystemChoice())) {
-            final URI uri = URI.create(m_settings.getPathOrURL());
-            pathOrUrl = m_fileSystem.provider().getPath(uri);
-        } else {
-            pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+        final Choice fileSystemChoice = m_settings.getFileSystemChoice().getType();
+        switch (fileSystemChoice) {
+            case CONNECTED_FS:
+                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                break;
+            case CUSTOM_URL_FS:
+                final URI uri = URI.create(m_settings.getPathOrURL());
+                pathOrUrl = m_fileSystem.provider().getPath(uri);
+                break;
+            case KNIME_FS:
+                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                validateKNIMERelativePath(pathOrUrl);
+                break;
+            case KNIME_MOUNTPOINT:
+                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                break;
+            case LOCAL_FS:
+                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                break;
+            default:
+                final String errMsg =
+                    String.format("Unknown choice enum '%s', make sure the switch covers all cases!", fileSystemChoice);
+                throw new RuntimeException(errMsg);
         }
-        validateKNIMERelativePath(pathOrUrl);
+
+        if (!pathOrUrl.isAbsolute() && fileSystemChoice != Choice.KNIME_FS) {
+            throw new InvalidSettingsException("The path must be absolute.");
+        }
 
         return pathOrUrl;
     }
