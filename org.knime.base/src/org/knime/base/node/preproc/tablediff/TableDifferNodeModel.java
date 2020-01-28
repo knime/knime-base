@@ -86,6 +86,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Node model of the "Table Difference Finder" node. It offers the functionality to compare two table by means of their
@@ -212,8 +213,11 @@ final class TableDifferNodeModel extends NodeModel {
             final DataTableSpec refSpec = inSpecs[PORT_REFERENCE_TABLE];
             final DataTableSpec compSpec = inSpecs[PORT_COMPARED_TABLE];
             for (int[] pos : getColumnMapping(refSpec, compSpec).values()) {
-                checkSpecDifferences(null, -1, refSpec, pos[PORT_REFERENCE_TABLE], compSpec, pos[PORT_COMPARED_TABLE],
-                    confFailMode);
+                CheckUtils.checkSetting(pos[PORT_REFERENCE_TABLE] != -1 // non-missing column in ref table
+                    && pos[PORT_COMPARED_TABLE] != -1 // non-missing column in compared table
+                    && refSpec.getColumnSpec(pos[PORT_REFERENCE_TABLE]).getType()
+                        .equals(compSpec.getColumnSpec(pos[PORT_COMPARED_TABLE]).getType()) // same data types
+                    , ERROR_DIFFERENT_SPECS);
             }
         }
         return new DataTableSpec[]{VALUE_TABLE_SPEC, SPEC_TABLE_SPEC};
@@ -391,12 +395,14 @@ final class TableDifferNodeModel extends NodeModel {
      */
     private static void addRowForMissingCols(final BufferedDataContainer buf, final String colName,
         final DataRow refRow, final DataRow compRow, final int posReferenceTable, final int posComparedTable) {
+        final DataCell origRefKey = createStringCellFromRowKey(refRow);
+        final DataCell origCompKey = createStringCellFromRowKey(compRow);
         if (posReferenceTable == -1) {
             buf.addRowToTable(createCellDiffRow(buf.size(), colName, MISSING_COLUMN_CELL,
-                compRow.getCell(posComparedTable), MISSING_COLUMN_CELL, createStringCellFromRowKey(compRow)));
+                compRow.getCell(posComparedTable), origRefKey, origCompKey));
         } else {
             buf.addRowToTable(createCellDiffRow(buf.size(), colName, refRow.getCell(posReferenceTable),
-                MISSING_COLUMN_CELL, createStringCellFromRowKey(refRow), MISSING_COLUMN_CELL));
+                MISSING_COLUMN_CELL, origRefKey, origCompKey));
         }
     }
 
@@ -444,20 +450,32 @@ final class TableDifferNodeModel extends NodeModel {
     private static void addMissingCells(final BufferedDataContainer buf, final Map<String, int[]> colMapping,
         final DataRow row, final int posIdx) {
         for (Entry<String, int[]> pos : colMapping.entrySet()) {
-            DataCell refCell = row.getCell(pos.getValue()[posIdx]);
+
+            // can be null as the column might only exists in the other, shorter table
+            final int colIdx = pos.getValue()[posIdx];
+            DataCell refCell;
+            if (colIdx == -1) {
+                refCell = MISSING_COLUMN_CELL;
+            } else {
+                refCell = row.getCell(colIdx);
+            }
+
+            // initialize the remaining cells
             final DataCell compCell;
             final DataCell refRowIdentifier;
             final DataCell compRowIdentifier;
             if (posIdx == PORT_REFERENCE_TABLE) {
-                compCell = MISSING_ROW_CELL;
+                compCell = pos.getValue()[PORT_COMPARED_TABLE] >= 0 ? MISSING_ROW_CELL : MISSING_COLUMN_CELL;
                 refRowIdentifier = createStringCellFromRowKey(row);
                 compRowIdentifier = MISSING_ROW_CELL;
             } else {
                 compCell = refCell;
-                refCell = MISSING_ROW_CELL;
+                refCell = pos.getValue()[PORT_REFERENCE_TABLE] >= 0 ? MISSING_ROW_CELL : MISSING_COLUMN_CELL;
                 refRowIdentifier = MISSING_ROW_CELL;
                 compRowIdentifier = createStringCellFromRowKey(row);
             }
+
+            // create the row and add it to the table
             buf.addRowToTable(
                 createCellDiffRow(buf.size(), pos.getKey(), refCell, compCell, refRowIdentifier, compRowIdentifier));
         }
@@ -556,16 +574,14 @@ final class TableDifferNodeModel extends NodeModel {
             throw new IllegalArgumentException(ERROR_DIFFERENT_SPECS);
         }
         // only null if we call this method during configure
-        if (buf != null) {
-            final DataCell refName =
-                refDataColSpec != null ? StringCellFactory.create(refDataColSpec.getName()) : MISSING_COLUMN_CELL;
-            final DataCell compName =
-                compDataColSpec != null ? StringCellFactory.create(compDataColSpec.getName()) : MISSING_COLUMN_CELL;
+        final DataCell refName =
+            refDataColSpec != null ? StringCellFactory.create(refDataColSpec.getName()) : MISSING_COLUMN_CELL;
+        final DataCell compName =
+            compDataColSpec != null ? StringCellFactory.create(compDataColSpec.getName()) : MISSING_COLUMN_CELL;
 
-            buf.addRowToTable(
-                new DefaultRow(RowKey.createRowKey(rowKeyNo), refName, compName, BooleanCellFactory.create(typeEquals),
-                    BooleanCellFactory.create(domainEquals), BooleanCellFactory.create(refPos == compPos)));
-        }
+        buf.addRowToTable(
+            new DefaultRow(RowKey.createRowKey(rowKeyNo), refName, compName, BooleanCellFactory.create(typeEquals),
+                BooleanCellFactory.create(domainEquals), BooleanCellFactory.create(refPos == compPos)));
     }
 
     @Override

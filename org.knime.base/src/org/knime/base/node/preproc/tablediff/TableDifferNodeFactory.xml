@@ -21,6 +21,8 @@
 		If this	option is checked all columns from the first as well as the second input will be compared against
 		each other. Otherwise, the tables will solely be compared respective the selected columns of the 
 		reference table. 
+		<br/>
+		<b>Note:</b> Row IDs are not being compared. 
 		</option>
 			<option name="Select columns from reference table">
 				The list contains the names of those columns in
