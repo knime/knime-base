@@ -625,6 +625,10 @@
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.columnappend.ColumnAppenderNodeFactory"
+            deprecated="true"/>
+      <node
+            category-path="/manipulation/column/column-split+combine"
+            factory-class="org.knime.base.node.preproc.columnappend2.ColumnAppender2NodeFactory"
             after="org.knime.base.node.preproc.split2.SplitNodeFactory2"/>
       <node
             after="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"

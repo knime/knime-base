@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./collumnappend.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Column Appender</name>
+
+	<shortDescription>
+		A fast way to reverse the operation of a splitter
+		node.
+	</shortDescription>
+
+	<fullDescription>
+	<intro>
+		The Column Appender takes two or more tables and quickly combines them by
+		appending their columns according to the order of the tables at the input 
+		ports. It simply appends columns from the second input table to the first 
+		input table and does the same for the third table if the optional port is 
+		activated and connected. One can keep adding optional ports and append 
+		columns from multiple tables. The node performs a simple and 
+		straight forward join operation but can be faster if certain preconditions are
+		met. For more details please read the description of the "Identical row
+		keys and table lengths"-option below. When in doubt, use the Joiner.
+		<br></br>
+		If the input tables share some column names, the offending column
+		names from the bottom tables will be appended with "(#1), (#2) and so on".		
+	</intro>
+	<tab name="Options">
+		<option name="Identical row keys and table lengths">
+			If the row keys in both input tables exactly match (i.e. the row key
+			names, their order, and their number have to match) this option can
+			be checked in order to allow a faster execution with less memory consumption. 
+			If the row keys (names, order, number) don't match exactly the node execution 
+			will fail.
+			<br></br>
+			<br></br>
+			If this option
+			<i>is NOT checked</i>
+			the result table is newly created. This might result in a longer processing time. 
+			However, in this case the number of rows in the input tables can differ and missing 
+			values are added accordingly. The row keys are either generated new or taken from 
+			one of the input tables (see options below).
+		</option>
+		<option name = "Generate new row keys">
+		    Row keys are newly generated. If one of the input table is longer than the other, 
+		    missing values are inserted accordingly.
+		</option>
+		<option name = "Use row keys from one of the input tables">
+			The row keys of the table with the selected index are used. Tables with less number 
+			of rows will be filled with missing values accordingly. And tables with more number
+			of rows will be truncated.
+		</option>
+	</tab>
+
+</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Table 0">If the option "Identical row keys and table lengths" is checked: a sorted table with n rows. Otherwise a table without restrictions.</inPort>
+		<inPort index="1" name="Table 1">If the option "Identical row keys and table lengths" is checked: Another sorted table with n rows. Otherwise a table without restrictions.</inPort>
+        <dynInPort insert-before="2" name="Table ..." group-identifier="input"> Table contributing subsequent columns. </dynInPort>
+		<outPort index="0" name="Appended table">A table with the columns from all input tables
+			(Table 1, Table 2, Table 3 (Optional) ...
+		</outPort>
+	</ports>
+</knimeNode>
+
