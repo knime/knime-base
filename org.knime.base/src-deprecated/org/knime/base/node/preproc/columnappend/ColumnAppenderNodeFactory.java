@@ -50,8 +50,11 @@ import org.knime.core.node.NodeView;
 
 /**
  * <code>NodeFactory</code> for the "ColumnAppender" Node. A fast way to reverse the operation of a splitter noded.
+ * Deprecated in favor of the ColumnAppender Node with variable input ports.
  *
  * @author Aaron Hart, Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (deprecated)
+ * @deprecated
  */
 @Deprecated
 public class ColumnAppenderNodeFactory extends NodeFactory<ColumnAppenderNodeModel> {
@@ -76,8 +79,8 @@ public class ColumnAppenderNodeFactory extends NodeFactory<ColumnAppenderNodeMod
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ColumnAppenderNodeModel>
-            createNodeView(final int viewIndex, final ColumnAppenderNodeModel nodeModel) {
+    public NodeView<ColumnAppenderNodeModel> createNodeView(final int viewIndex,
+        final ColumnAppenderNodeModel nodeModel) {
         return null;
     }
 

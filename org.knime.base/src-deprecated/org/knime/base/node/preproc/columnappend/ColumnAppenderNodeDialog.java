@@ -56,8 +56,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * <code>NodeDialog</code> for the "ColumnAppender" Node. A fast way to reverse the operation of a splitter node.
+ * Deprecated in favor of the ColumnAppender Node with variable input ports.
  *
  * @author Martin Horn, University of Konstanz
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (deprecated)
+ * @deprecated
  */
 @Deprecated
 public class ColumnAppenderNodeDialog extends DefaultNodeSettingsPane {

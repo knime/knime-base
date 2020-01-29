@@ -71,12 +71,11 @@ public class ColumnAppender2NodeDialog extends DefaultNodeSettingsPane {
         final SettingsModelString cfgRowKeyMode = ColumnAppender2NodeModel.createRowIDModeSelectModel();
         addDialogComponent(
             new DialogComponentButtonGroup(cfgRowKeyMode, true, null, ColumnAppender2NodeModel.ROWID_MODE_OPTIONS));
-        cfgRowKeyMode.setStringValue(ColumnAppender2NodeModel.ROWID_MODE_OPTIONS[0]);
 
         final SettingsModelIntegerBounded cfgRowIDTable =
             ColumnAppender2NodeModel.createRowIDTableSelectModel(numberOfInput - 1);
-
         addDialogComponent(new DialogComponentNumber(cfgRowIDTable, "", 1, 4, null, true, "Value cannot be negative."));
+
         cfgRowKeyMode.addChangeListener(l -> cfgRowIDTable
             .setEnabled(cfgRowKeyMode.getStringValue().equals(ColumnAppender2NodeModel.ROWID_MODE_OPTIONS[2])));
     }

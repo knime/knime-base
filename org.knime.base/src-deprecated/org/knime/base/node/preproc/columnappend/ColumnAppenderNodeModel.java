@@ -80,10 +80,14 @@ import org.knime.core.util.UniqueNameGenerator;
 
 /**
  * This is the model implementation of ColumnAppender. A fast way to reverse the operation of a splitter noded.
+ * Deprecated in favor of the ColumnAppender Node with variable input ports.
  *
  * @author Aaron Hart, Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Martin Horn, University of Konstanz
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (deprecated)
+ * @deprecated
  */
+@Deprecated
 final class ColumnAppenderNodeModel extends NodeModel {
 
 

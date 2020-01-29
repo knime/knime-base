@@ -91,14 +91,14 @@ import org.knime.core.util.UniqueNameGenerator;
  */
 final class ColumnAppender2NodeModel extends NodeModel {
 
-    /* different options of getting a rowID */
+    /* Different options of getting rowIDs. */
     static final String[] ROWID_MODE_OPTIONS =
         {"Identical row keys and table lengths", "Generate new row keys", "Use row keys from one of the input tables"};
 
-    /* key for storing the selected way of getting rowIDs */
+    /* Key for storing the selected way of getting rowIDs. */
     private static final String KEY_SELECTED_ROWID_MODE = "selected_rowid_mode";
 
-    /* key for storing the table (port index) used for rowIDs */
+    /* Key for storing the table (port index) used for rowIDs. */
     private static final String KEY_SELECTED_ROWID_TABLE = "selected_rowid_table";
 
     static SettingsModelString createRowIDModeSelectModel() {
@@ -116,9 +116,9 @@ final class ColumnAppender2NodeModel extends NodeModel {
     private final int m_numInPorts;
 
     /**
-     * Constructor for dynamic ports
+     * Constructor for dynamic ports.
      *
-     * @param portsConfiguration the ports configuration
+     * @param portsConfiguration The ports configuration.
      */
     ColumnAppender2NodeModel(final PortsConfiguration portsConfiguration) {
         super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
@@ -158,8 +158,9 @@ final class ColumnAppender2NodeModel extends NodeModel {
                 }
             }
         } else {
-            //create a new table and fill the rows accordingly
-            // in case of generating new row keys, focus table will be the one with the most rows
+            /* Create a new table and fill the rows accordingly.
+             * In case of generating new row keys, focus table will be the one with the most rows.
+             */
             int focusTableIndex = generateNewKeys() ? longestTableIndex(inData) : rowIDTable();
             BufferedDataContainer container = exec.createDataContainer(combineOutSpecs(inSpecs));
             CustomRowIterator[] rowItList = new CustomRowIterator[m_numInPorts];
@@ -254,14 +255,14 @@ final class ColumnAppender2NodeModel extends NodeModel {
                         new CustomRowIteratorStreamingImpl(inList[i], inList[i].getDataTableSpec().getNumColumns());
                 }
 
-                /* number of rows will be -1 for all inputs in case of streaming */
+                /* Number of rows will be -1 for all inputs in case of streaming. */
                 long[] numRowsList = new long[inputs.length];
                 Arrays.fill(numRowsList, -1);
 
                 RowOutput out = (RowOutput)outputs[0];
                 compute(rowItList, focusTableIndex, out::push, exec, numRowsList);
 
-                /* poll all the remaining rows if there are any but don't do anything with them */
+                /* Poll all the remaining rows if there are any but don't do anything with them. */
                 for (int i = 0; i < inputs.length; i++) {
                     while (rowItList[i].hasNext()) {
                         rowItList[i].next();
@@ -281,7 +282,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        //in-ports are non-distributed since it can't be guaranteed that the chunks at each port are of identical size
+        /* In-ports are non-distributed since it can't be guaranteed that the chunks at each port are of identical size. */
         return Stream.generate(() -> InputPortRole.NONDISTRIBUTED_STREAMABLE).limit(m_numInPorts)
             .toArray(InputPortRole[]::new);
     }
@@ -294,7 +295,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
-    /* combines the rows in case a new table is created */
+    /* Combines the rows in case a new table is created. */
     private void compute(final CustomRowIterator[] rowItList, final int focusTableIndex, final RowConsumer output,
         final ExecutionContext exec, final long[] numRowsList) throws InterruptedException, CanceledExecutionException {
         long rowCount = 0;
@@ -313,7 +314,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
                 for (DataCell cell : currRow) {
                     cells.add(cell);
                 }
-                // Advance all iterators, capture  the row id while on focus table
+                /* Advance all iterators, capture  the row id while on focus table. */
                 rowKeyList.add(currRow.getKey().getString());
             }
 
@@ -330,29 +331,29 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * Given an array of DataTableSpec, it returns a single concatenated DataTableSpec. Redundant column names are
      * resolved by appending "(#1)", "(#2)", and so on as required.
      *
-     * @param inSpecs an array of DataTableSpec
-     * @return a concatenation of the input Specs
+     * @param inSpecs An array of DataTableSpec.
+     * @return A concatenation of the input Specs.
      */
     private static DataTableSpec combineOutSpecs(final DataTableSpec[] inSpecs) {
-        // Copy the column specs of the first table
+        /* Copy the column specs of the first table. */
         List<DataColumnSpec> mergedColSpecs = new ArrayList<>();
         for (int i = 0; i < inSpecs[0].getNumColumns(); i++) {
             DataColumnSpec columnSpec = inSpecs[0].getColumnSpec(i);
             mergedColSpecs.add(columnSpec);
         }
 
-        // Initialize the output spec with the spec of first table
+        /* Initialize the output spec with the spec of first table. */
         DataTableSpec outTableSpec =
             new DataTableSpec(mergedColSpecs.toArray(new DataColumnSpec[mergedColSpecs.size()]));
 
-        // Incrementally add specs after checking for column name duplicates
+        /* Incrementally add specs after checking for column name duplicates. */
         UniqueNameGenerator nameGenerator = new UniqueNameGenerator(outTableSpec);
         for (int i = 1; i < inSpecs.length; i++) {
             for (int j = 0; j < inSpecs[i].getNumColumns(); j++) {
                 DataColumnSpec curColSpec = inSpecs[i].getColumnSpec(j);
                 mergedColSpecs.add(nameGenerator.newCreator(curColSpec).createSpec());
             }
-            // Update the unique name generator with merged column specs
+            /* Update the unique name generator with merged column specs. */
             outTableSpec = new DataTableSpec(mergedColSpecs.toArray(new DataColumnSpec[mergedColSpecs.size()]));
             nameGenerator = new UniqueNameGenerator(outTableSpec);
         }
@@ -364,8 +365,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * are unique across all the specs. Redundant column names are resolved by appending "(#1)", "(#2)", and so on as
      * required.
      *
-     * @param inSpecs an array of DataTableSpec
-     * @return a new array of DataTableSpec where column names are unique across all specs
+     * @param inSpecs An array of DataTableSpec.
+     * @return A new array of DataTableSpec where column names are unique across all specs.
      */
     private static DataTableSpec[] uniqifyOutSpecs(final DataTableSpec[] inSpecs) {
         DataTableSpec combinedTableSpec = combineOutSpecs(inSpecs);
@@ -386,16 +387,16 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Checks if all/relevant iterators has a next element. It also calls hasNext() on all iterators.
      *
-     * @param rowItList
+     * @param rowItList an array of row iterators to be checked.
      * @param focusTableIndex The index of the input table deciding the row ids.
-     * @return whether or not all/relevant iterators has a next element
+     * @return Whether or not all/relevant iterators has a next element.
      * @throws InterruptedException
      */
     private boolean iteratorsHasNext(final CustomRowIterator[] rowItList, final int focusTableIndex)
         throws InterruptedException {
         int count = 0;
         boolean focusHasNext = false;
-        // all iterators must call hasNext()
+        /* all iterators must call hasNext(). */
         for (int i = 0; i < rowItList.length; i++) {
             if (rowItList[i].hasNext()) {
                 count++;
@@ -414,7 +415,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /* HELPER METHODS */
 
     /**
-     * Checks if the option Identical row keys and table lengths is selected or not
+     * Checks if the option Identical row keys and table lengths is selected or not.
      *
      * @return true if the option Identical row keys and table lengths is selected, false otherwise.
      */
@@ -423,7 +424,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     }
 
     /**
-     * Checks if the option Identical row keys and table lengths is selected or not
+     * Checks if the option Identical row keys and table lengths is selected or not.
      *
      * @return true if the option Identical row keys and table lengths is selected, false otherwise.
      */
@@ -435,25 +436,25 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * Gets the index of the table (within the input ports) that decides the rowIDs. In case of newly generated rowIDs
      * it returns -1.
      *
-     * @return the index of the table (within the input ports) that decides the rowIDs
+     * @return The index of the table (within the input ports) that decides the rowIDs.
      */
     private int rowIDTable() {
         if (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[2])) {
             return m_rowIDTableSettings.getIntValue();
         } else if (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[1])) {
-            return -1; // should not be used / use longest table instead
+            return -1; /* Should not be used. Use longest table instead. */
         }
         return 0;
     }
 
     /**
-     * Given a list of strings, picks the one from the deciding table or generate new using the rowIndex (in the case of
-     * newly generated rowIDs and returns a RowKey based on the picked string.
+     * Given a list of strings, picks the one from the deciding table or generates a new string using the rowIndex (in
+     * the case of newly generated rowIDs) and returns a RowKey based on the picked string.
      *
      * @param focusTableIndex The index of the input table deciding the row ids.
-     * @param rowIndex
-     * @param rowKeyList
-     * @return a RowKey based on the deciding table index or newly generated rowID string
+     * @param rowIndex The index of the row for which the id is generated.
+     * @param rowKeyList A list of row keys from different tables.
+     * @return A RowKey based on the deciding table index or newly generated rowID string.
      */
     private RowKey chooseRowKey(final int focusTableIndex, final long rowIndex, final ArrayList<String> rowKeyList) {
         String rowKey = "";
@@ -465,9 +466,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
                     throw new IllegalArgumentException("Tables contain non-matching rows or are sorted "
                         + "differently, keys in row " + rowIndex + " do not match: \"" + rowKeyList.toString() + "\"");
                 }
-
             }
-            rowKey = rowKeyList.get(0); // any of the similar row keys
+            rowKey = rowKeyList.get(0); /* Any one of the similar row keys. */
         } else {
             rowKey = rowKeyList.get(focusTableIndex);
         }
@@ -483,7 +483,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     private void differingTableSizeMsg(final int focusTableIndex, final long[] numRowsList) {
         if (!identicalElements(numRowsList)) {
             if (generateNewKeys()) {
-                /* set warning messages if missing values have been inserted or one table was truncated */
+                /* Set warning messages if missing values have been inserted or one table was truncated. */
                 setWarningMessage("Input tables differ in length! Missing values have been added accordingly.");
             } else {
                 detailedTablesDifferMesseges(focusTableIndex, numRowsList);
@@ -513,10 +513,10 @@ final class ColumnAppender2NodeModel extends NodeModel {
     }
 
     /**
-     * Returns the longest (maximum number of rows) input table index
+     * Returns the longest (maximum number of rows) input table index.
      *
-     * @param inData an array of BufferedDataTable
-     * @return the index of longest input table
+     * @param inData An array of BufferedDataTable.
+     * @return The index of longest input table.
      */
     private int longestTableIndex(final BufferedDataTable[] inData) {
         long maxNumRows = inData[0].size();
@@ -531,9 +531,9 @@ final class ColumnAppender2NodeModel extends NodeModel {
     }
 
     /**
-     * Checks if an number array contains identical numbers only
+     * Checks if an number array contains identical numbers only.
      *
-     * @param array The array to be checked
+     * @param array The array to be checked.
      * @return true if all elements are the same, false otherwise.
      */
     private final boolean identicalElements(final long[] array) {
@@ -547,10 +547,10 @@ final class ColumnAppender2NodeModel extends NodeModel {
     }
 
     /**
-     * Gets a row of missing value cells with a given number of columns
+     * Gets a row of missing value cells with a given number of columns.
      *
-     * @param numCol the number of columns
-     * @return a row of missing value cells
+     * @param numCol The number of columns.
+     * @return A row of missing value cells.
      */
     private static DefaultRow getMissingCellsRow(final int numCol) {
         return new DefaultRow("DefaultRow",
@@ -586,7 +586,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         @Override
         public DataRow next() {
-            /* next return a row of missing value cells if iterator is at the end */
+            /* next returns a row of missing value cells if iterator is at the end. */
             if (!m_rowIt.hasNext()) {
                 return getMissingCellsRow(m_numCol);
             }
@@ -615,8 +615,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         @Override
         public boolean hasNext() throws InterruptedException {
-            /* if hasNext() is called multiple times without calling next() in between,
-             this if-clause ensures that it still returns true */
+            /* If hasNext() is called multiple times without calling next() in between,
+             this if-clause ensures that it still returns true. */
             if (m_row == null) {
                 m_row = m_rowInput.poll();
             }
@@ -626,7 +626,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
         @Override
         public DataRow next() {
             DataRow row = m_row;
-            /* next return a row of missing value cells if iterator is at the end */
+            /* next returns a row of missing value cells if iterator is at the end. */
             if (row == null) {
                 row = getMissingCellsRow(m_numCol);
             }
