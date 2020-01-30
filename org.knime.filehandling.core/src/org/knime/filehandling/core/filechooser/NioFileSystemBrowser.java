@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.filechooser;
 
+import java.awt.Component;
 import java.io.File;
 
 import javax.swing.filechooser.FileSystemView;
@@ -132,5 +133,19 @@ public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
         }
 
         return super.addFileExtension(file, fileExtension);
+    }
+
+    @Override
+    public String openDialogAndGetSelectedFileName(final FileSelectionMode fileSelectionMode, final DialogType dialogType,
+        final Component parent, final String forcedFileExtensionOnSave, final String selectedFile, final String[] suffixes) {
+
+        // Provide the parent component to the view to show failure dialogs bounded to parent component.
+        try {
+            m_fileSystemView.setParentView(parent);
+            return super.openDialogAndGetSelectedFileName(fileSelectionMode, dialogType, parent,
+                forcedFileExtensionOnSave, selectedFile, suffixes);
+        } finally {
+            m_fileSystemView.setParentView(null);
+        }
     }
 }

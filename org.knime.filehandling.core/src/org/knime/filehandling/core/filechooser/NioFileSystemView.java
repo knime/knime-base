@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.filechooser;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -57,6 +58,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.swing.Icon;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
 
 import org.knime.filehandling.core.connections.FSConnection;
@@ -78,6 +80,11 @@ public class NioFileSystemView extends FileSystemView {
 
     /** File system */
     private final FileSystem m_fileSystem;
+
+    /**
+     * Parent component, might be {@code null}. Useful in dialogs.
+     */
+    private Component m_parentComponent;
 
     /**
      * Constructor for a NIO implementation of the {@link FileSystemView}.
@@ -132,7 +139,17 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public File[] getFiles(final File dir, final boolean useFileHiding) {
-        return new NioFile(dir.getPath(), m_fileSystem).listFiles();
+        final File[] result =
+            new NioFile(dir.getPath(), m_fileSystem).listFiles(f -> !useFileHiding || !isHiddenFile(f));
+
+        if (result == null) {
+            JOptionPane.showMessageDialog(m_parentComponent,
+                "Error in directory listing, see KNIME console/log.", "Unable to list files.",
+                JOptionPane.ERROR_MESSAGE);
+            return new File[0];
+        } else {
+            return result;
+        }
     }
 
     @Override
@@ -242,4 +259,12 @@ public class NioFileSystemView extends FileSystemView {
         return f.isDirectory() ? NioFileView.DIR_ICON : NioFileView.FILE_ICON;
     }
 
+    /**
+     * Set the parent dialog to show failure dialogs with a working window binding.
+     *
+     * @param parent parent component or {@code null}
+     */
+    protected void setParentView(final Component parent) {
+        m_parentComponent = parent;
+    }
 }
