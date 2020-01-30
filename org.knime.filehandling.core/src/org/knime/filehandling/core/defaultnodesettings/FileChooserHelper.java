@@ -242,6 +242,15 @@ public final class FileChooserHelper {
 
     private static void validateKNIMERelativePath(final Path path) throws InvalidSettingsException {
         if (path instanceof KNIMEPath) {
+            final String pathAsString = path.toString();
+            if (pathAsString.startsWith("\\") || pathAsString.startsWith("/")) {
+                throw new InvalidSettingsException("The path must be relative (cannot start with a leading slash).");
+            }
+
+            if (path.isAbsolute()) {
+                throw new InvalidSettingsException("The path must be relative");
+            }
+
             final KNIMEPath knimePath = (KNIMEPath) path;
             final URL url = knimePath.getURL();
             try {
