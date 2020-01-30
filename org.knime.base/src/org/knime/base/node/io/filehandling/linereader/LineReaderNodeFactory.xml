@@ -37,7 +37,7 @@
 		<option name="Include subfolders">
 			Check if you want to include all matching files from subfolders of the defined location.
 		</option>
-		<option name="File filtering">
+		<option name="Filter options">
 			Press this button for file filtering options.
 		</option>
 		<option name="File filtering: File extension(s)">
