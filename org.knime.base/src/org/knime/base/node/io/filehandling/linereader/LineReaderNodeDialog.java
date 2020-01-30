@@ -216,6 +216,7 @@ final class LineReaderNodeDialog extends NodeDialogPane {
     /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_filePanel.saveSettingsTo(settings);
         m_config.saveConfiguration(settings);
     }
 
