@@ -49,14 +49,13 @@
 package org.knime.filehandling.core.connections.knimeremote;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -65,8 +64,6 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
 public class KNIMERemotePathIterator implements Iterator<Path> {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMERemotePathIterator.class);
 
     private final KNIMERemoteFileSystem m_fileSystem;
 
@@ -77,18 +74,26 @@ public class KNIMERemotePathIterator implements Iterator<Path> {
      *
      * @param path destination to iterate over
      * @param filter
+     * @throws UncheckedIOException on I/O errors
      */
     public KNIMERemotePathIterator(final Path path, final Filter<? super Path> filter) {
         final KNIMERemotePath knimePath = (KNIMERemotePath)path;
         m_fileSystem = (KNIMERemoteFileSystem)knimePath.getFileSystem();
 
-        List<URI> uriList;
+        final List<URI> uriList;
         try {
             uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
-            m_iterator = uriList.stream().map(p -> new KNIMERemotePath(m_fileSystem, p)).iterator();
+            m_iterator = uriList.stream()
+                .map(p -> new KNIMERemotePath(m_fileSystem, p))
+                .filter(p -> {
+                    try {
+                        return filter.accept(p);
+                    } catch (final IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }})
+                .iterator();
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
-            m_iterator = Collections.emptyIterator();
+            throw new UncheckedIOException(ex);
         }
     }
 

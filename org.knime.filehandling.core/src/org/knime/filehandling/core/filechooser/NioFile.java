@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
  *
@@ -150,7 +151,7 @@ public final class NioFile extends File {
         try {
             return Files.isHidden(m_path);
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not determine if '" + m_path + "' is hidden: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -196,10 +197,10 @@ public final class NioFile extends File {
 
             final List<File> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(p.toString(), m_fileSys)));
-            return files.stream().toArray(NioFile[]::new);
+            return files.toArray(new NioFile[0]);
 
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return null;
         }
 
@@ -212,10 +213,10 @@ public final class NioFile extends File {
 
             final List<File> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(new NioFile(p.toString(), m_fileSys)));
-            return files.stream().toArray(NioFile[]::new);
+            return files.toArray(new NioFile[0]);
 
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return null;
         }
     }
@@ -235,7 +236,7 @@ public final class NioFile extends File {
             return files.stream().toArray(String[]::new);
 
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return null;
         }
     }
@@ -260,7 +261,7 @@ public final class NioFile extends File {
         try {
             return Files.size(m_path);
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not get file size of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return 0L;
         }
     }
@@ -270,7 +271,7 @@ public final class NioFile extends File {
         try {
             return Files.getLastModifiedTime(m_path).toMillis();
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not get last modified time of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return 0L;
         }
     }
@@ -301,7 +302,7 @@ public final class NioFile extends File {
             Files.createFile(m_path);
             return true;
         } catch (final FileAlreadyExistsException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not create new file '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -312,7 +313,7 @@ public final class NioFile extends File {
             Files.createDirectory(m_path);
             return true;
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not create directory '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -327,7 +328,7 @@ public final class NioFile extends File {
             Files.createDirectories(m_path);
             return true;
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not create directory (including parent directories) '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -340,7 +341,7 @@ public final class NioFile extends File {
             Files.move(m_path, nioDest);
             return true;
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not rename '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
 
@@ -352,7 +353,7 @@ public final class NioFile extends File {
             Files.setLastModifiedTime(m_path, FileTime.fromMillis(time));
             return true;
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not set last modified time of  '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -370,7 +371,7 @@ public final class NioFile extends File {
             return true;
 
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not set read only permissions of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -399,7 +400,7 @@ public final class NioFile extends File {
             return true;
 
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not set readable permissions of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -432,7 +433,7 @@ public final class NioFile extends File {
             return true;
 
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not set writable permissions of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -465,7 +466,7 @@ public final class NioFile extends File {
             return true;
 
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not set executable permissions '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
@@ -485,7 +486,7 @@ public final class NioFile extends File {
         try {
             return Files.getFileStore(m_path).getTotalSpace();
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not get total space of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return 0L;
         }
     }
@@ -495,7 +496,7 @@ public final class NioFile extends File {
         try {
             return Files.getFileStore(m_path).getUsableSpace();
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not get usable space of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return 0L;
         }
     }
@@ -505,7 +506,7 @@ public final class NioFile extends File {
         try {
             return Files.getFileStore(m_path).getUnallocatedSpace();
         } catch (final IOException ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not get free space of '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return 0L;
         }
     }
@@ -516,7 +517,7 @@ public final class NioFile extends File {
             Files.delete(m_path);
             return true;
         } catch (final Exception ex) {
-            LOGGER.warn(ex);
+            LOGGER.warn("Could not delete '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
             return false;
         }
     }
