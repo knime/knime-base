@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.AbstractSimpleFileReaderNodeModel;
@@ -88,6 +89,13 @@ final class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
         if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location");
         }
+
+        final String encoding = m_config.getEncoding();
+        if (!encoding.equals(LineReaderConfig.DEFAULT_ENCODING) && !Charset.isSupported(encoding)) {
+            final String message = String.format("The configured encoding '%s' is not supported.", encoding);
+            throw new InvalidSettingsException(message);
+        }
+
         return null;
     }
 

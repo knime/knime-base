@@ -66,11 +66,13 @@ import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
- * Configuration for the {@link LineReaderNodeModel}
+ * Configuration for the {@link LineReaderNodeModel}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
 final class LineReaderConfig {
+
+    static final String DEFAULT_ENCODING = "default";
 
     /** Config key for file chooser. */
     private static final String CFG_FILE_CHOOSER = "filechooser";
@@ -93,6 +95,8 @@ final class LineReaderConfig {
     /** Config key for regex. */
     private static final String CFG_REGEX = "regex";
 
+    private static final String CFG_ENCODING = "encoding";
+
     private final SettingsModelFileChooser2 m_fileChooserModel = new SettingsModelFileChooser2(CFG_FILE_CHOOSER);
 
     private final SettingsModelString m_rowPrefixModel = new SettingsModelString(CFG_ROW_PREFIX, "Row");
@@ -111,6 +115,8 @@ final class LineReaderConfig {
     private final SettingsModelString m_regexModel = new SettingsModelString(CFG_REGEX, "");
 
     private final SettingsModelBoolean m_useRegexModel = new SettingsModelBoolean("useRegex", false);
+
+    private final SettingsModelString m_encodingModel = new SettingsModelString(CFG_ENCODING, DEFAULT_ENCODING);
 
     LineReaderConfig() {
         m_limitRowCountModel.setEnabled(getLimitLines());
@@ -198,6 +204,14 @@ final class LineReaderConfig {
         return m_useRegexModel.getBooleanValue();
     }
 
+    final SettingsModelString getEncodingModel() {
+        return m_encodingModel;
+    }
+
+    final String getEncoding() {
+        return m_encodingModel.getStringValue();
+    }
+
     /**
      * Validates the given settings
      *
@@ -228,6 +242,10 @@ final class LineReaderConfig {
                 throw new InvalidSettingsException("Invalid Regex: " + m_regexModel, e);
             }
         }
+
+        if (settings.containsKey(LineReaderConfig.CFG_ENCODING)) {
+            m_encodingModel.validateSettings(settings);
+        }
     }
 
     /**
@@ -245,6 +263,7 @@ final class LineReaderConfig {
         m_useRegexModel.saveSettingsTo(settings);
         m_limitLinesModel.saveSettingsTo(settings);
         m_chooserModel.saveSettingsTo(settings);
+        m_encodingModel.saveSettingsTo(settings);
     }
 
     /**
@@ -274,6 +293,12 @@ final class LineReaderConfig {
             } catch (final PatternSyntaxException e) {
                 throw new InvalidSettingsException("Invalid Regex: " + m_regexModel, e);
             }
+        }
+
+        if (settings.containsKey(LineReaderConfig.CFG_ENCODING)) {
+            m_encodingModel.loadSettingsFrom(settings);
+        } else {
+            m_encodingModel.setStringValue(LineReaderConfig.DEFAULT_ENCODING);
         }
     }
 }

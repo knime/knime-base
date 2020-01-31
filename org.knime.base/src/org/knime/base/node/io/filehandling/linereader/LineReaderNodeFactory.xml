@@ -73,6 +73,12 @@
 		<option name="Match input against regex">
 		    If set, lines that do not match the specified regular expression are skipped.
 		</option>
+		<option name="Encoding">
+            To read lines from a file that contains characters in a different encoding, you can select a character set 
+            in this dropdown box (UTF-8, UTF-16, etc.), or specify any other encoding supported by your Java VM 
+            manually (type it in the box). The default value uses the default encoding of the Java VM, which may depend 
+            on the locale or the Java property &quot;file.encoding&quot;
+        </option>
 	</fullDescription>
 
 	<ports>
