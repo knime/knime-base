@@ -48,21 +48,19 @@
  */
 package org.knime.base.node.preproc.topk;
 
-import java.util.Arrays;
-import java.util.List;
+import java.awt.Dimension;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
-import org.knime.base.node.preproc.sorter.SortCriterionPanel;
+import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 
 /**
@@ -72,26 +70,47 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
  */
 final class TopKSelectorNodeDialog extends NodeDialogPane {
 
-    private final SortCriterionPanel m_criterionPanel = new SortCriterionPanel();
+    /**
+     * The tab's name.
+     */
+    private static final String TAB = "Settings";
 
-    private final TopKSelectorSettings m_settings = new TopKSelectorSettings();
+    private static final String TAB_ADVANCED_SETTINGS = "Advanced Settings";
+
+    private final TopKSelectorSettings m_settings;
+
+    private final DynamicSorterPanel m_panel;
+
+    private final AdvancedSettings m_advancedSettings;
 
     /**
      *
      */
     public TopKSelectorNodeDialog() {
-        final JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(m_criterionPanel.getPanel());
+
+        super();
+
+        m_settings = new TopKSelectorSettings();
+        m_advancedSettings = new AdvancedSettings(m_settings);
+
+        m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
+
         final DialogComponentNumber kComp = new DialogComponentNumber(m_settings.getKModel(), "Number of rows", 1);
-        panel.add(kComp.getComponentPanel());
-        final DialogComponentBoolean missingsToEnd =
-            new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
-        panel.add(missingsToEnd.getComponentPanel());
-        final DialogComponentButtonGroup outputOrder = new DialogComponentButtonGroup(m_settings.getOutputOrderModel(),
-            "Output order", true, OutputOrder.values());
-        panel.add(outputOrder.getComponentPanel());
-        addTab("Settings", panel);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+        JPanel tempPanel = kComp.getComponentPanel();
+        tempPanel.setPreferredSize(new Dimension(0, 25));
+        tempPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        mainPanel.add(tempPanel);
+        mainPanel.add(m_panel.getPanel());
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setPreferredSize(new Dimension(100, 250));
+        super.addTab(TAB, scrollPane);
+
+        scrollPane = new JScrollPane(m_advancedSettings.getPanel());
+        super.addTab(TAB_ADVANCED_SETTINGS, scrollPane);
     }
 
     /**
@@ -99,11 +118,8 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_criterionPanel.checkValid();
-        final List<String> includedColumns = m_criterionPanel.getIncludedColumnList();
-        m_settings.setColumns(includedColumns.toArray(new String[includedColumns.size()]));
-        m_settings.setOrders(m_criterionPanel.getSortOrder());
         m_settings.saveSettingsTo(settings);
+        m_panel.save(settings);
     }
 
     /**
@@ -116,14 +132,14 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         if (spec == null || spec.getNumColumns() < 1) {
             throw new NotConfigurableException("No columns to select by.");
         }
+
+        m_panel.load(settings, specs);
+
         try {
             m_settings.loadValidatedSettingsFrom(settings);
+
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException("Couldn't load settings", e);
         }
-        final String[] columns = m_settings.getColumns();
-        m_criterionPanel.update(spec, columns == null ? null : Arrays.asList(columns),
-            m_settings.getOrders(), 3);
     }
-
 }

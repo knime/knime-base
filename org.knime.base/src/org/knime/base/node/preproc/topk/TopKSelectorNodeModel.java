@@ -57,7 +57,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.knime.base.node.preproc.sorter.SorterNodeDialogPanel2;
+import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -83,6 +83,16 @@ final class TopKSelectorNodeModel extends NodeModel {
 
     static final int IN_DATA = 0;
 
+    /**
+     * The key for the IncludeList in the NodeSettings.
+     */
+    public static final String INCLUDELIST_KEY = "columns";
+
+    /**
+     * The key for the Sort Order Array in the NodeSettings.
+     */
+    public static final String SORTORDER_KEY = "order";
+
     private final TopKSelectorSettings m_settings = new TopKSelectorSettings();
 
     TopKSelectorNodeModel() {
@@ -94,8 +104,8 @@ final class TopKSelectorNodeModel extends NodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_settings.getColumns() == null) {
-            CheckUtils.checkSetting(m_settings.getColumns() != null, "No columns specified to select by.");
+        if (m_settings.getIncllist() == null) {
+            CheckUtils.checkSetting(m_settings.getIncllist() != null, "No columns specified to select by.");
         }
         findColumnIndices(inSpecs[IN_DATA]);
         return inSpecs.clone();
@@ -115,7 +125,7 @@ final class TopKSelectorNodeModel extends NodeModel {
         }
         final int[] indices = findColumnIndices(spec);
         final Comparator<DataRow> rowComparator =
-            new RowComparator(indices, m_settings.getOrders(), m_settings.isMissingToEnd(), spec);
+            new RowComparator(indices, m_settings.getSortOrders(), m_settings.isMissingToEnd(), spec);
         final TopKSelector elementSelector = createElementSelector(rowComparator);
         final OutputOrder outputOrder = m_settings.getOutputOrder();
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();
@@ -130,11 +140,10 @@ final class TopKSelectorNodeModel extends NodeModel {
     }
 
     private int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-        final String[] columns = m_settings.getColumns();
-        final int[] indices = new int[columns.length];
+        final int[] indices = new int[m_settings.getIncllist().length];
         final List<String> missingColumns = new ArrayList<>();
         for (int i = 0; i < indices.length; i++) {
-            final String name = columns[i];
+            final String name = m_settings.getIncllist()[i];
             if (isRowKey(name)) {
                 indices[i] = -1;
             } else {
@@ -165,7 +174,7 @@ final class TopKSelectorNodeModel extends NodeModel {
     }
 
     private static boolean isRowKey(final String colName) {
-        return SorterNodeDialogPanel2.ROWKEY.getName().equals(colName);
+        return DynamicSorterPanel.ROWKEY.getName().equals(colName);
     }
 
     private static BufferedDataTable createOutputTable(final Collection<DataRow> topK, final DataTableSpec spec,

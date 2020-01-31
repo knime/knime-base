@@ -63,12 +63,18 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
  */
 final class TopKSelectorSettings {
 
-    private static SettingsModelIntegerBounded createKModel() {
-        return new SettingsModelIntegerBounded("k", 5, 1, Integer.MAX_VALUE);
+    /**
+     * Array containing information about the sort order for each column. true:
+     * ascending; false: descending
+     */
+    private boolean[] m_sortOrder = null;
+
+    private static SettingsModelStringArray createInclListModel() {
+        return new SettingsModelStringArray(TopKSelectorNodeModel.INCLUDELIST_KEY, null);
     }
 
-    private static SettingsModelStringArray createColumnsModel() {
-        return new SettingsModelStringArray("columns", null);
+    private static SettingsModelIntegerBounded createKModel() {
+        return new SettingsModelIntegerBounded("k", 5, 1, Integer.MAX_VALUE);
     }
 
     private static SettingsModelBoolean createMissingsToEndModel() {
@@ -79,63 +85,40 @@ final class TopKSelectorSettings {
         return new SettingsModelString("outputOrder", OutputOrder.NO_ORDER.name());
     }
 
-    static final String CFG_ORDER = "order";
-
-    private final SettingsModelIntegerBounded m_k = createKModel();
-
-    private final SettingsModelStringArray m_columns = createColumnsModel();
+    private final SettingsModelStringArray m_inclList = createInclListModel();
 
     private final SettingsModelBoolean m_missingToEnd = createMissingsToEndModel();
 
     private final SettingsModelString m_outputOrder = createOutputOrderModel();
 
-    /**
-     * Array containing information about the sort order for each column. true: ascending; false: descending
-     */
-    private boolean[] m_orders = null;
+    private final SettingsModelIntegerBounded m_k = createKModel();
 
     void saveSettingsTo(final NodeSettingsWO settings) {
         m_k.saveSettingsTo(settings);
-        m_columns.saveSettingsTo(settings);
         m_missingToEnd.saveSettingsTo(settings);
         m_outputOrder.saveSettingsTo(settings);
-        settings.addBooleanArray(CFG_ORDER, m_orders);
+        m_inclList.saveSettingsTo(settings);
+        settings.addBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY, m_sortOrder);
     }
 
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_k.validateSettings(settings);
-        m_columns.validateSettings(settings);
         m_missingToEnd.validateSettings(settings);
         m_outputOrder.validateSettings(settings);
-        settings.getBooleanArray(CFG_ORDER);
-        checkForDuplicateRows(settings);
-    }
-
-    static void checkForDuplicateRows(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final SettingsModelStringArray temp = createColumnsModel();
-        temp.loadSettingsFrom(settings);
-        final String[] columns = temp.getStringArrayValue();
-        for (int i = 0; i < columns.length; i++) {
-            String entry = columns[i];
-            for (int j = i + 1; j < columns.length; j++) {
-                if (entry.equals(columns[j])) {
-                    throw new InvalidSettingsException(
-                        String.format("Dublicate column '%s' at positions %s and %s.", entry, i, j));
-                }
-            }
-        }
+        m_inclList.validateSettings(settings);
+        settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
     }
 
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_k.loadSettingsFrom(settings);
-        m_columns.loadSettingsFrom(settings);
         m_missingToEnd.loadSettingsFrom(settings);
         m_outputOrder.loadSettingsFrom(settings);
-        m_orders = settings.getBooleanArray(CFG_ORDER);
+        m_inclList.loadSettingsFrom(settings);
+        m_sortOrder = settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
     }
 
-    int getK() {
-        return m_k.getIntValue();
+    SettingsModelStringArray getIncllistModel() {
+        return m_inclList;
     }
 
     SettingsModelIntegerBounded getKModel() {
@@ -150,12 +133,16 @@ final class TopKSelectorSettings {
         return m_missingToEnd;
     }
 
-    String[] getColumns() {
-        return m_columns.getStringArrayValue();
+    String[] getIncllist(){
+        return m_inclList.getStringArrayValue();
     }
 
-    boolean[] getOrders() {
-        return m_orders;
+    boolean[] getSortOrders() {
+        return m_sortOrder;
+    }
+
+    int getK() {
+        return m_k.getIntValue();
     }
 
     boolean isMissingToEnd() {
@@ -165,17 +152,4 @@ final class TopKSelectorSettings {
     OutputOrder getOutputOrder() {
         return OutputOrder.valueOf(m_outputOrder.getStringValue());
     }
-
-    void setColumns(final String[] columns) {
-        m_columns.setStringArrayValue(columns);
-    }
-
-    void setOrders(final boolean[] orders) {
-        m_orders = orders;
-    }
-
-    void setMissingToEnd(final boolean missingToEnd) {
-        m_missingToEnd.setBooleanValue(missingToEnd);
-    }
-
 }
