@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.sort.BufferedDataTableSorter;
 import org.knime.core.node.BufferedDataTable;
@@ -204,8 +205,7 @@ public class SorterNodeModel extends NodeModel {
         // exist in the DataTableSpec
         List<String> notAvailableCols = new ArrayList<String>();
         for (String ic : m_inclList) {
-            if (!ic.equals(SorterNodeDialogPanel2.NOSORT.getName())
-                    && !ic.equals(SorterNodeDialogPanel2.ROWKEY.getName())) {
+            if (!ic.equals(DynamicSorterPanel.ROWKEY.getName())) {
                 if ((inSpecs[INPORT].findColumnIndex(ic) == -1)) {
                     notAvailableCols.add(ic);
                 }

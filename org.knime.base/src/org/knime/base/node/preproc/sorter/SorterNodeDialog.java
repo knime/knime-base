@@ -47,60 +47,57 @@
  */
 package org.knime.base.node.preproc.sorter;
 
-import java.util.Arrays;
-import java.util.List;
+import java.awt.Dimension;
 
 import javax.swing.JScrollPane;
 
+import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 
-
 /**
- * Dialog for choosing the columns that will be sorted. It is also possible to
- * set the order of columns
+ * Dialog for choosing the columns that will be sorted. It is also possible to set the order of columns
  *
  * @author Nicolas Cebron, University of Konstanz
  */
 public class SorterNodeDialog extends NodeDialogPane {
-    private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(SorterNodeDialog.class);
-
     /**
      * The tab's name.
      */
     private static final String TAB = "Sorting Filter";
 
-    /*
-     * Hold the Panel
-     */
-    private final SorterNodeDialogPanel2 m_panel;
+    private static final String TAB_ADVANCED_SETTINGS = "Advanced Settings";
 
     /*
-     * The initial number of SortItems that the SorterNodeDialogPanel should
-     * show.
+     * Hold the outer panels
      */
-    private static final int NRSORTITEMS = 3;
+    private final DynamicSorterPanel m_panel;
+
+    private final AdvancedSettings m_advancedSettings;
 
     /**
-     * Creates a new {@link NodeDialogPane} for the Sorter Node in order to
-     * choose the desired columns and the sorting order (ascending/ descending).
+     * Creates a new {@link NodeDialogPane} for the Sorter Node in order to choose the desired columns and the sorting
+     * order (ascending/ descending).
      */
     SorterNodeDialog() {
         super();
-        m_panel = new SorterNodeDialogPanel2();
-        super.addTab(TAB, new JScrollPane(m_panel));
+        m_panel = new DynamicSorterPanel(SorterNodeModel.INCLUDELIST_KEY, SorterNodeModel.SORTORDER_KEY);
+        m_advancedSettings = new AdvancedSettings();
+        JScrollPane scrollPane = new JScrollPane(m_panel.getPanel());
+        scrollPane.setPreferredSize(new Dimension(100, 200));
+        super.addTab(TAB, scrollPane);
+
+        scrollPane = new JScrollPane(m_advancedSettings.getPanel());
+        super.addTab(TAB_ADVANCED_SETTINGS, scrollPane);
     }
 
     /**
-     * Calls the update method of the underlying update method of the
-     * {@link SorterNodeDialogPanel} using the input data table spec from this
-     * {@link SorterNodeModel}.
+     * Creates a list of sorting criteria from the settings using the input data
+     * table spec from this {@link SorterNodeModel} and fills the panel with the different sort criteria, if available.
      *
      * @param settings the node settings to read from
      * @param specs the input specs
@@ -109,56 +106,15 @@ public class SorterNodeDialog extends NodeDialogPane {
      * @throws NotConfigurableException if the dialog cannot be opened.
      */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
-        if (specs.length == 0 || specs[0] == null
-                || specs[0].getNumColumns() == 0) {
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+
+        if (specs.length == 0 || specs[0] == null || specs[0].getNumColumns() == 0) {
             throw new NotConfigurableException("No columns to sort.");
         }
-        List<String> list = null;
-        boolean[] sortOrder = null;
-        boolean sortinMemory = false;
 
-        if (settings.containsKey(SorterNodeModel.INCLUDELIST_KEY)) {
-            try {
-                String[] alist =
-                    settings.getStringArray(SorterNodeModel.INCLUDELIST_KEY);
-                if (alist != null) {
-                    list = Arrays.asList(alist);
-                }
-            } catch (InvalidSettingsException ise) {
-                LOGGER.error(ise.getMessage());
-            }
-        }
-
-        if (settings.containsKey(SorterNodeModel.SORTORDER_KEY)) {
-            try {
-                sortOrder = settings
-                        .getBooleanArray(SorterNodeModel.SORTORDER_KEY);
-            } catch (InvalidSettingsException ise) {
-                LOGGER.error(ise.getMessage());
-            }
-        }
-        if (list != null) {
-            if (list.size() == 0 || list.size() != sortOrder.length) {
-                list = null;
-                sortOrder = null;
-            }
-        }
-
-        if (settings.containsKey(SorterNodeModel.SORTINMEMORY_KEY)) {
-            try {
-                sortinMemory = settings
-                        .getBoolean(SorterNodeModel.SORTINMEMORY_KEY);
-            } catch (InvalidSettingsException ise) {
-                LOGGER.error(ise.getMessage());
-            }
-        }
-        boolean sortMissingToEnd = settings.getBoolean(
-                SorterNodeModel.MISSING_TO_END_KEY, false);
-        // set the values on the panel
-        m_panel.update(specs[SorterNodeModel.INPORT], list, sortOrder,
-                NRSORTITEMS, sortinMemory, sortMissingToEnd);
+        m_panel.load(settings, specs);
+        m_advancedSettings.load(settings);
     }
 
     /**
@@ -173,16 +129,7 @@ public class SorterNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
-        assert (settings != null);
-        m_panel.checkValid();
-        List<String> inclList = m_panel.getIncludedColumnList();
-        settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, inclList
-                .toArray(new String[inclList.size()]));
-        settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, m_panel
-                .getSortOrder());
-        settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, m_panel
-                .sortInMemory());
-        settings.addBoolean(SorterNodeModel.MISSING_TO_END_KEY,
-                m_panel.isSortMissingToEnd());
+         m_panel.save(settings);
+         m_advancedSettings.save(settings);
     }
 }
