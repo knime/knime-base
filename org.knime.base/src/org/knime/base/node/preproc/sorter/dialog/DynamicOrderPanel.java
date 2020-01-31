@@ -118,6 +118,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         m_addItemArea.add(Box.createVerticalStrut(10));
         m_addItemArea.add(m_addItemLabel);
         m_addItemArea.add(Box.createVerticalStrut(30));
+        m_panel.add(m_addItemArea);
     }
 
     /**
@@ -154,8 +155,6 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         } else {
             createPanelFromInclude(items);
         }
-
-        m_panel.add(m_addItemArea);
 
         final int numOfOuterPanels = m_outerPanels.size();
         m_outerPanels.get(0).showArrowUp(false);
