@@ -80,8 +80,10 @@ import org.knime.core.node.InvalidSettingsException;
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @since 4.1 extracted from {@link SorterNodeDialogPanel2} for the use in the Element Selector node
+ * @deprecated as of 4.2.0. Use the DynamicSorterPanel
+ * @since 4.2
  */
+@Deprecated
 public final class SortCriterionPanel {
 
     /**

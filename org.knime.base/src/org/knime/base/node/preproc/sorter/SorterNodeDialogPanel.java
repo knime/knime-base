@@ -81,8 +81,11 @@ import org.knime.core.data.def.StringCell;
  * @see SorterNodeDialogPanel
  *
  * @author Nicolas Cebron, University of Konstanz
+ *
+ * @deprecated as of 4.2.0. Use the DynamicSorterPanel
  */
 
+@Deprecated
 public final class SorterNodeDialogPanel extends JPanel {
     private static final long serialVersionUID = -4370835468477694930L;
 
@@ -155,6 +158,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         remButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(remButton);
         remButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onRemIt();
             }
@@ -164,6 +168,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         remAllButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(remAllButton);
         remAllButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onRemAll();
             }
@@ -173,6 +178,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         addButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(addButton);
         addButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onAddIt();
             }
@@ -182,6 +188,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         addAllButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(addAllButton);
         addAllButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onAddAll();
             }
@@ -192,6 +199,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         upButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(upButton);
         upButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onUp();
             }
@@ -203,6 +211,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         downButton.setPreferredSize(new Dimension(125, 25));
         buttonPan.add(downButton);
         downButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onDown();
             }
@@ -214,6 +223,7 @@ public final class SorterNodeDialogPanel extends JPanel {
         m_comboModel.addElement(DESC);
         m_sortorderComboBox = new JComboBox(m_comboModel);
         m_sortorderComboBox.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(final ActionEvent ae) {
                 onsortOrder();
             }
@@ -234,6 +244,7 @@ public final class SorterNodeDialogPanel extends JPanel {
              *      (javax.swing.event.ListSelectionEvent)
              */
 
+            @Override
             public void valueChanged(final ListSelectionEvent e) {
                 if (!(e.getValueIsAdjusting())) {
                     showSortOrder();

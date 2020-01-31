@@ -71,7 +71,10 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @see SortItem
  * @author Nicolas Cebron, University of Konstanz
+ *
+ * @deprecated as of 4.2.0. Use the DynamicSorterPanel
  */
+@Deprecated
 public class SorterNodeDialogPanel2 extends JPanel {
     private static final long serialVersionUID = -1757898824881266019L;
 
