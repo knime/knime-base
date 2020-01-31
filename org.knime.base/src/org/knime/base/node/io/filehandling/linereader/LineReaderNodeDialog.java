@@ -48,14 +48,21 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.nio.charset.Charset;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
@@ -101,6 +108,12 @@ final class LineReaderNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_useRegexButton;
 
+    private final JLabel m_encodingLabel;
+
+    private final JComboBox<String> m_encodingSelection;
+
+    private final JLabel m_encodingWarning;
+
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
     	final FlowVariableModel fvm = createFlowVariableModel(
@@ -130,7 +143,55 @@ final class LineReaderNodeDialog extends NodeDialogPane {
         m_config.getLimitLinesModel()
             .addChangeListener(e -> m_config.getLimitRowCountModel().setEnabled(m_config.getLimitLines()));
 
+        // Encoding setup
+        m_encodingWarning = new JLabel("");
+        m_encodingWarning.setForeground(Color.RED);
+
+        m_encodingLabel = new JLabel("Encoding:");
+        m_encodingSelection = new JComboBox<>( //
+                new String[] { //
+                    LineReaderConfig.DEFAULT_ENCODING, //
+                    "US-ASCII", //
+                    "ISO-8859-1", //
+                    "UTF-8", //
+                    "UTF-16LE", //
+                    "UTF-16BE", //
+                    "UTF-16" //
+                }); //
+
+        m_encodingSelection.setEditable(true);
+        m_encodingSelection.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+
+            @Override
+            public void keyReleased(final KeyEvent e) {
+                final String selectedItem = (String)m_encodingSelection.getEditor().getItem();
+                updateEncodingWarning(selectedItem);
+                m_config.getEncodingModel().setStringValue(selectedItem);
+                // Needed for the label to be updated after each key has been typed!
+                m_encodingWarning.revalidate();
+            }
+
+        });
+
+        m_encodingSelection.addActionListener(e -> {
+            String selectedEncoding = (String) m_encodingSelection.getSelectedItem();
+            m_config.getEncodingModel().setStringValue(selectedEncoding);
+            updateEncodingWarning(selectedEncoding);
+        });
+
         addTab("Settings", initLayout());
+    }
+
+    private void updateEncodingWarning(final String selectedEncoding) {
+        try {
+            if (!Charset.isSupported(selectedEncoding)) {
+                m_encodingWarning.setText(String.format("The encoding '%s' is not supported", selectedEncoding));
+            } else {
+                m_encodingWarning.setText("");
+            }
+        } catch (Exception e) {
+            m_encodingWarning.setText(String.format("Invalid encoding name '%s'.", selectedEncoding));
+        }
     }
 
     private JPanel initLayout() {
@@ -186,7 +247,22 @@ final class LineReaderNodeDialog extends NodeDialogPane {
         gbc.gridx += 1;
         optionsPanel.add(m_regexField.getComponentPanel(), gbc);
 
+        JPanel encodingPanel = new JPanel();
+        encodingPanel.setLayout(new BoxLayout(encodingPanel, BoxLayout.X_AXIS));
+
+        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        encodingPanel.add(m_encodingLabel);
+        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        encodingPanel.add(m_encodingSelection);
+        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        encodingPanel.add(m_encodingWarning);
+        gbc.gridwidth = 3;
+        gbc.gridy += 1;
+        gbc.gridx = 0;
+        optionsPanel.add(encodingPanel, gbc);
+
         //empty panel to eat up extra space
+        gbc.gridwidth = 1;
         gbc.gridx++;
         gbc.gridy++;
         gbc.weightx = 1;
@@ -208,6 +284,10 @@ final class LineReaderNodeDialog extends NodeDialogPane {
         try {
             m_config.loadConfiguration(settings);
             m_filePanel.loadSettingsFrom(settings, specs);
+
+            final String configuredEncoding = m_config.getEncoding();
+            m_encodingSelection.setSelectedItem(configuredEncoding);
+            updateEncodingWarning(configuredEncoding);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }

@@ -51,9 +51,9 @@ package org.knime.base.node.io.filehandling.linereader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -99,6 +99,8 @@ final class LineReader implements FilesToDataTableReader {
 
     private final String m_columnHeader;
 
+    private final String m_encoding;
+
     /**
      * Creates a new instance of {@link LineReader} with given {@link LineReaderConfig}.
      *
@@ -113,6 +115,7 @@ final class LineReader implements FilesToDataTableReader {
         m_regex = config.getRegex();
         m_skipEmptyLines = config.getSkipEmptyLines();
         m_columnHeader = config.getColumnHeader();
+        m_encoding = config.getEncoding();
     }
 
     @Override
@@ -221,10 +224,19 @@ final class LineReader implements FilesToDataTableReader {
         }
     }
 
-    private static final BufferedReader getBufferedReader(final Path path) throws IOException {
-        final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
-            .onUnmappableCharacter(CodingErrorAction.REPLACE);
-        return new BufferedReader(new InputStreamReader(Files.newInputStream(path), decoder));
+    private final BufferedReader getBufferedReader(final Path path) throws IOException {
+        Charset charset = Charset.defaultCharset();
+        if (!m_encoding.equals(LineReaderConfig.DEFAULT_ENCODING)) {
+            charset = Charset.forName(m_encoding);
+        }
+
+        CharsetDecoder charsetDecoder = //
+            charset //
+                .newDecoder() //
+                .onMalformedInput(CodingErrorAction.REPLACE) //
+                .onUnmappableCharacter(CodingErrorAction.REPLACE); //
+
+        return new BufferedReader(new InputStreamReader(Files.newInputStream(path), charsetDecoder));
     }
 
     private boolean regExMatch(final String s) {
