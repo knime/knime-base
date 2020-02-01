@@ -88,8 +88,9 @@ public class FileSystemHelper {
                 toReturn = FileSystems.getDefault();
                 break;
             case CUSTOM_URL_FS:
+                final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
                 toReturn =
-                    new URIFileSystemProvider(timeoutInMillis).newFileSystem(URI.create(settings.getPathOrURL()), null);
+                    new URIFileSystemProvider(timeoutInMillis).newFileSystem(uri, null);
                 break;
             case KNIME_MOUNTPOINT:
                 final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
