@@ -64,6 +64,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
@@ -215,6 +216,7 @@ public final class FileChooserHelper {
                 break;
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(m_settings.getPathOrURL().replace(" ", "%20"));
+                validateCustomURL(uri);
                 pathOrUrl = m_fileSystem.provider().getPath(uri);
                 break;
             case KNIME_FS:
@@ -225,6 +227,7 @@ public final class FileChooserHelper {
                 pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
                 break;
             case LOCAL_FS:
+                validateLocalFsAccess();
                 pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
                 break;
             default:
@@ -238,6 +241,33 @@ public final class FileChooserHelper {
         }
 
         return pathOrUrl;
+    }
+
+    private void validateCustomURL(final URI uri) throws InvalidSettingsException {
+        if (uri.getScheme() == null) {
+            throw new InvalidSettingsException("URL scheme missing, e.g. http");
+        }
+
+        if (uri.getScheme().equals("file")) {
+            validateLocalFsAccess();
+        }
+    }
+
+    private void validateLocalFsAccess() throws InvalidSettingsException {
+        final NodeContext nodeContext = NodeContext.getContext();
+
+        if (nodeContext == null) {
+            throw new InvalidSettingsException("No node context available");
+        }
+
+        final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
+        if (workflowContext == null) {
+            throw new InvalidSettingsException("No workflow context available");
+        }
+
+        if (isOnServer(workflowContext)) {
+            throw new InvalidSettingsException("Direct access to the local file system is not allowed on KNIME Server.");
+        }
     }
 
     private static void validateKNIMERelativePath(final Path path) throws InvalidSettingsException {
