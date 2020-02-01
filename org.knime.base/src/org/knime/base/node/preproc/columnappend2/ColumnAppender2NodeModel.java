@@ -50,7 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
@@ -59,7 +59,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowIterator;
-import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -82,6 +81,8 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
 
 /**
@@ -91,29 +92,27 @@ import org.knime.core.util.UniqueNameGenerator;
  */
 final class ColumnAppender2NodeModel extends NodeModel {
 
-    /* Different options of getting rowIDs. */
-    static final String[] ROWID_MODE_OPTIONS =
-        {"Identical row keys and table lengths", "Generate new row keys", "Use row keys from one of the input tables"};
-
     /* Key for storing the selected way of getting rowIDs. */
     private static final String KEY_SELECTED_ROWID_MODE = "selected_rowid_mode";
 
     /* Key for storing the table (port index) used for rowIDs. */
     private static final String KEY_SELECTED_ROWID_TABLE = "selected_rowid_table";
 
-    static SettingsModelString createRowIDModeSelectModel() {
-        return new SettingsModelString(KEY_SELECTED_ROWID_MODE, ROWID_MODE_OPTIONS[0]);
-    }
-
-    static SettingsModelIntegerBounded createRowIDTableSelectModel(final int maxValue) {
-        return new SettingsModelIntegerBounded(KEY_SELECTED_ROWID_TABLE, 0, 0, maxValue);
-    }
-
-    private final SettingsModelString m_rowIDModesSettings = createRowIDModeSelectModel();
-
-    private final SettingsModelIntegerBounded m_rowIDTableSettings = createRowIDTableSelectModel(2);
-
     private final int m_numInPorts;
+
+    /** Different options of getting rowIDs. */
+    private final SettingsModelString m_rowIDModesSettings;
+
+    /** Table number that decides the rowIDs. */
+    private final SettingsModelIntegerBounded m_rowIDTableSettings;
+
+    static SettingsModelString createRowIDModeSelectModel() {
+        return new SettingsModelString(KEY_SELECTED_ROWID_MODE, RowKeyMode.IDENTICAL.getActionCommand());
+    }
+
+    static SettingsModelIntegerBounded createRowIDTableSelectModel() {
+        return new SettingsModelIntegerBounded(KEY_SELECTED_ROWID_TABLE, 1, 1, Integer.MAX_VALUE);
+    }
 
     /**
      * Constructor for dynamic ports.
@@ -123,122 +122,83 @@ final class ColumnAppender2NodeModel extends NodeModel {
     ColumnAppender2NodeModel(final PortsConfiguration portsConfiguration) {
         super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
         m_numInPorts = portsConfiguration.getInputPorts().length;
-        m_rowIDTableSettings
-            .setEnabled(m_rowIDModesSettings.getStringValue().equals(ColumnAppender2NodeModel.ROWID_MODE_OPTIONS[2]));
-        m_rowIDModesSettings.addChangeListener(l -> m_rowIDTableSettings
-            .setEnabled(m_rowIDModesSettings.getStringValue().equals(ColumnAppender2NodeModel.ROWID_MODE_OPTIONS[2])));
+        m_rowIDModesSettings = createRowIDModeSelectModel();
+        m_rowIDTableSettings = createRowIDTableSelectModel();
     }
 
-    private static interface RowConsumer {
-        void consume(DataRow row) throws InterruptedException;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
-
-        DataTableSpec[] inSpecs = new DataTableSpec[m_numInPorts];
-        for (int i = 0; i < m_numInPorts; i++) {
-            inSpecs[i] = inData[i].getDataTableSpec();
-        }
-
-        BufferedDataTable out = null;
-        if (identicaRowKeys()) {
-            DataTableSpec[] outTableSpec = uniqifyOutSpecs(inSpecs);
-            BufferedDataTable[] uniqColTables = new BufferedDataTable[m_numInPorts];
-            for (int i = 1; i < uniqColTables.length; i++) {
-                uniqColTables[i] = exec.createSpecReplacerTable(inData[i], outTableSpec[i]);
-                if (i == 1) {
-                    out = exec.createJoinedTable(inData[0], uniqColTables[i], exec);
-                } else {
-                    out = exec.createJoinedTable(out, uniqColTables[i], exec);
-                }
-            }
-        } else {
-            /* Create a new table and fill the rows accordingly.
-             * In case of generating new row keys, focus table will be the one with the most rows.
-             */
-            int focusTableIndex = generateNewKeys() ? longestTableIndex(inData) : rowIDTable();
-            BufferedDataContainer container = exec.createDataContainer(combineOutSpecs(inSpecs));
-            CustomRowIterator[] rowItList = new CustomRowIterator[m_numInPorts];
-            long[] numRowsList = new long[m_numInPorts];
-            for (int i = 0; i < m_numInPorts; i++) {
-                rowItList[i] = new CustomRowIteratorImpl(inData[i].iterator(), inData[i].getSpec().getNumColumns());
-                numRowsList[i] = inData[i].size();
-            }
-            compute(rowItList, focusTableIndex, container::addRowToTable, exec, numRowsList);
-
-            container.close();
-            out = container.getTable();
-        }
-        return new BufferedDataTable[]{out};
-    }
-
-    @Override
-    protected void reset() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        DataTableSpec spec = combineOutSpecs(inSpecs);
+
+        // Sanity check settings even though dialog checks, in case any flow variables went bad.
+        CheckUtils.checkSetting(m_rowIDTableSettings.getIntValue() <= m_numInPorts,
+            "The selected port number for row key must be a number between 1 and %s (the number of input tables)",
+            m_numInPorts);
+        final DataTableSpec spec = combineToSingleSpec(createUniqueSpecs(inSpecs));
         return new DataTableSpec[]{spec};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_rowIDModesSettings.saveSettingsTo(settings);
         m_rowIDTableSettings.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_rowIDModesSettings.loadSettingsFrom(settings);
         m_rowIDTableSettings.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_rowIDModesSettings.validateSettings(settings);
         m_rowIDModesSettings.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        /* Nothing to do here. */
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        /* Nothing to do here. */
+    }
 
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        /* In-ports are non-distributed since it can't be guaranteed that the chunks at each port are of identical size. */
+        return Stream.generate(() -> InputPortRole.NONDISTRIBUTED_STREAMABLE) //
+            .limit(m_numInPorts) //
+            .toArray(InputPortRole[]::new); //
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
+    protected void reset() {
+        /* Nothing to do here. */
+    }
+
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        final BufferedDataTable out;
+        if (m_rowIDModesSettings.getStringValue().equals("IDENTICAL")) {
+            out = joinTablesWithIdenticalKeys(inData, exec);
+        } else {
+            out = createNewTable(inData, exec);
+        }
+        return new BufferedDataTable[]{out};
     }
 
     //////////////// STREAMING FUNCTIONS ////////////////
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -246,247 +206,186 @@ final class ColumnAppender2NodeModel extends NodeModel {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                int focusTableIndex = rowIDTable();
-                RowInput[] inList = new RowInput[inputs.length];
-                CustomRowIterator[] rowItList = new CustomRowIterator[inputs.length];
+                RowInput[] rowInArray = new RowInput[inputs.length];
+                CustomRowIterator[] rowIterators = new CustomRowIterator[inputs.length];
                 for (int i = 0; i < inputs.length; i++) {
-                    inList[i] = (RowInput)inputs[i];
-                    rowItList[i] =
-                        new CustomRowIteratorStreamingImpl(inList[i], inList[i].getDataTableSpec().getNumColumns());
+                    rowInArray[i] = (RowInput)inputs[i];
+                    rowIterators[i] = new CustomRowIteratorStreamingImpl(rowInArray[i],
+                        rowInArray[i].getDataTableSpec().getNumColumns());
                 }
-
                 /* Number of rows will be -1 for all inputs in case of streaming. */
-                long[] numRowsList = new long[inputs.length];
-                Arrays.fill(numRowsList, -1);
+                final Long[] rowCounts = new Long[m_numInPorts];
+                Arrays.fill(rowCounts, Long.valueOf(-1));
 
-                RowOutput out = (RowOutput)outputs[0];
-                compute(rowItList, focusTableIndex, out::push, exec, numRowsList);
+                RowOutput rowOut = (RowOutput)outputs[0];
+                compute(exec, rowOut::push, rowIterators, rowCounts, m_rowIDTableSettings.getIntValue() - 1);
 
                 /* Poll all the remaining rows if there are any but don't do anything with them. */
                 for (int i = 0; i < inputs.length; i++) {
-                    while (rowItList[i].hasNext()) {
-                        rowItList[i].next();
+                    while (rowIterators[i].hasNext()) {
+                        rowIterators[i].next();
                     }
                 }
 
                 for (int i = 0; i < inputs.length; i++) {
-                    inList[i].close();
+                    rowInArray[i].close();
                 }
-                out.close();
+                rowOut.close();
             }
         };
     }
 
     /**
-     * {@inheritDoc}
+     * Given an array of BufferedDataTable, it returns their corresponding specs.
+     *
+     * @param inData an array of BufferedDataTable
+     * @return an array of DataTableSpec
      */
-    @Override
-    public InputPortRole[] getInputPortRoles() {
-        /* In-ports are non-distributed since it can't be guaranteed that the chunks at each port are of identical size. */
-        return Stream.generate(() -> InputPortRole.NONDISTRIBUTED_STREAMABLE).limit(m_numInPorts)
-            .toArray(InputPortRole[]::new);
+    private static DataTableSpec[] getSpecFromInput(final BufferedDataTable[] inData) {
+        return Arrays.stream(inData)//
+            .map(BufferedDataTable::getDataTableSpec)//
+            .toArray(DataTableSpec[]::new);
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
-    }
-
-    /* Combines the rows in case a new table is created. */
-    private void compute(final CustomRowIterator[] rowItList, final int focusTableIndex, final RowConsumer output,
-        final ExecutionContext exec, final long[] numRowsList) throws InterruptedException, CanceledExecutionException {
-        long rowCount = 0;
-        long numRowsFocusTable = (focusTableIndex == -1) ? numRowsList[0] : numRowsList[focusTableIndex];
-        while (iteratorsHasNext(rowItList, focusTableIndex)) {
-            if (numRowsFocusTable != -1) {
-                exec.setProgress(rowCount / (double)numRowsFocusTable);
-                long rowCountFinal = rowCount;
-                exec.setMessage(() -> "Appending columns (row " + rowCountFinal + "/" + numRowsFocusTable + ")");
-            }
-            exec.checkCanceled();
-            ArrayList<DataCell> cells = new ArrayList<>();
-            ArrayList<String> rowKeyList = new ArrayList<>();
-            for (int i = 0; i < rowItList.length; i++) {
-                DataRow currRow = rowItList[i].next();
-                for (DataCell cell : currRow) {
-                    cells.add(cell);
-                }
-                /* Advance all iterators, capture  the row id while on focus table. */
-                rowKeyList.add(currRow.getKey().getString());
-            }
-
-            RowKey rowKey = chooseRowKey(focusTableIndex, rowCount, rowKeyList);
-
-            DefaultRow res = new DefaultRow(rowKey, cells);
-            output.consume(res);
-            rowCount++;
-        }
-        differingTableSizeMsg(focusTableIndex, numRowsList);
-    }
-
-    /**
-     * Given an array of DataTableSpec, it returns a single concatenated DataTableSpec. Redundant column names are
-     * resolved by appending "(#1)", "(#2)", and so on as required.
+     * Given an array of DataTableSpec, it returns same sized array of DataTableSpec in which all column names are
+     * unique across all of the array elements. Redundant column names are resolved by appending "(#1)", "(#2)", and so
+     * on as required.
      *
      * @param inSpecs An array of DataTableSpec.
      * @return A concatenation of the input Specs.
      */
-    private static DataTableSpec combineOutSpecs(final DataTableSpec[] inSpecs) {
-        /* Copy the column specs of the first table. */
-        List<DataColumnSpec> mergedColSpecs = new ArrayList<>();
-        for (int i = 0; i < inSpecs[0].getNumColumns(); i++) {
-            DataColumnSpec columnSpec = inSpecs[0].getColumnSpec(i);
-            mergedColSpecs.add(columnSpec);
-        }
+    private static DataTableSpec[] createUniqueSpecs(final DataTableSpec[] inSpecs) {
 
-        /* Initialize the output spec with the spec of first table. */
-        DataTableSpec outTableSpec =
-            new DataTableSpec(mergedColSpecs.toArray(new DataColumnSpec[mergedColSpecs.size()]));
+        final UniqueNameGenerator nameGen = new UniqueNameGenerator((DataTableSpec)null);
 
-        /* Incrementally add specs after checking for column name duplicates. */
-        UniqueNameGenerator nameGenerator = new UniqueNameGenerator(outTableSpec);
-        for (int i = 1; i < inSpecs.length; i++) {
-            for (int j = 0; j < inSpecs[i].getNumColumns(); j++) {
-                DataColumnSpec curColSpec = inSpecs[i].getColumnSpec(j);
-                mergedColSpecs.add(nameGenerator.newCreator(curColSpec).createSpec());
+        final DataTableSpec[] uniqDataTableSpecs = new DataTableSpec[inSpecs.length];
+        for (int i = 0; i < inSpecs.length; i++) {
+            final DataTableSpec curSpec = inSpecs[i];
+            final DataColumnSpec[] outColSpecs = new DataColumnSpec[curSpec.getNumColumns()];
+            for (int j = 0; j < curSpec.getNumColumns(); j++) {
+                DataColumnSpec curColSpec = curSpec.getColumnSpec(j);
+                outColSpecs[j] = nameGen.newCreator(curColSpec).createSpec();
             }
-            /* Update the unique name generator with merged column specs. */
-            outTableSpec = new DataTableSpec(mergedColSpecs.toArray(new DataColumnSpec[mergedColSpecs.size()]));
-            nameGenerator = new UniqueNameGenerator(outTableSpec);
+            uniqDataTableSpecs[i] = new DataTableSpec(outColSpecs);
         }
-        return outTableSpec;
+        return uniqDataTableSpecs;
     }
 
     /**
-     * Given an array of DataTableSpec, it returns an array of DataTableSpec of the same size in which all column names
-     * are unique across all the specs. Redundant column names are resolved by appending "(#1)", "(#2)", and so on as
-     * required.
+     * Creates a single combined DataTableSpec from an array while respecting the order of the input DataTableSpecs.
      *
      * @param inSpecs An array of DataTableSpec.
-     * @return A new array of DataTableSpec where column names are unique across all specs.
+     * @return A combined DataTableSpec.
      */
-    private static DataTableSpec[] uniqifyOutSpecs(final DataTableSpec[] inSpecs) {
-        DataTableSpec combinedTableSpec = combineOutSpecs(inSpecs);
-        DataTableSpec[] uniqTableSpecs = new DataTableSpec[inSpecs.length];
-        int globalCounter = 0;
-        for (int i = 0; i < inSpecs.length; i++) {
-            List<DataColumnSpec> currColSpecs = new ArrayList<>();
-            for (int j = 0; j < inSpecs[i].getNumColumns(); j++) {
-                currColSpecs.add(combinedTableSpec.getColumnSpec(globalCounter));
-                globalCounter++;
-            }
-            DataColumnSpec[] currColSpecsArray = currColSpecs.toArray(new DataColumnSpec[currColSpecs.size()]);
-            uniqTableSpecs[i] = (new DataTableSpec(currColSpecsArray));
-        }
-        return uniqTableSpecs;
+    private static DataTableSpec combineToSingleSpec(final DataTableSpec[] inSpecs) {
+        return Arrays.stream(inSpecs) //
+            .reduce(new DataTableSpec(), DataTableSpec::new);
     }
 
     /**
-     * Checks if all/relevant iterators has a next element. It also calls hasNext() on all iterators.
+     * Provided an array of BufferedDataTable with equal row count and identical RowIDs it returns a joined single
+     * BufferedDataTable where the columns of each BufferedDataTable are appended in respective order.
      *
-     * @param rowItList an array of row iterators to be checked.
-     * @param focusTableIndex The index of the input table deciding the row ids.
-     * @return Whether or not all/relevant iterators has a next element.
+     * @param inData An array of BufferedDataTable.
+     * @param exec The execution context.
+     * @return A combined BufferedDataTable containing all the columns from all tables.
+     * @throws CanceledExecutionException
+     */
+    private static BufferedDataTable joinTablesWithIdenticalKeys(final BufferedDataTable[] inData,
+        final ExecutionContext exec) throws CanceledExecutionException {
+        DataTableSpec[] outTableSpec = createUniqueSpecs(getSpecFromInput(inData));
+        BufferedDataTable out = null;
+        for (int i = 1; i < inData.length; i++) {
+            final BufferedDataTable uniqufiedcolNamesTable = exec.createSpecReplacerTable(inData[i], outTableSpec[i]);
+            if (i == 1) {
+                out = exec.createJoinedTable(inData[0], uniqufiedcolNamesTable, exec);
+            } else {
+                out = exec.createJoinedTable(out, uniqufiedcolNamesTable, exec);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Provided an array of BufferedDataTable, it returns a joined single BufferedDataTable where the columns of each
+     * BufferedDataTable are appended in respective order.
+     *
+     * @param inData An array of BufferedDataTable.
+     * @param exec The execution context.
+     * @return A combined BufferedDataTable containing all the columns from all tables.
      * @throws InterruptedException
+     * @throws CanceledExecutionException
      */
-    private boolean iteratorsHasNext(final CustomRowIterator[] rowItList, final int focusTableIndex)
-        throws InterruptedException {
-        int count = 0;
-        boolean focusHasNext = false;
-        /* all iterators must call hasNext(). */
-        for (int i = 0; i < rowItList.length; i++) {
-            if (rowItList[i].hasNext()) {
-                count++;
-                if (i == focusTableIndex) {
-                    focusHasNext = true;
-                }
-            }
-        }
-        if (generateNewKeys()) {
-            return count > 0;
+    private BufferedDataTable createNewTable(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws InterruptedException, CanceledExecutionException {
+
+        final Long[] rowCounts = Arrays.stream(inData).map(BufferedDataTable::size).toArray(Long[]::new);
+
+        CustomRowIterator[] rowIterators =
+            Arrays.stream(inData).map(d -> new CustomRowIteratorImpl(d.iterator(), d.getSpec().getNumColumns()))
+                .toArray(CustomRowIteratorImpl[]::new);
+
+        BufferedDataContainer outDataContainer =
+            exec.createDataContainer(combineToSingleSpec(createUniqueSpecs((getSpecFromInput(inData)))));
+
+        if (m_rowIDModesSettings.getStringValue().equals("KEY_TABLE")) {
+            compute(exec, outDataContainer::addRowToTable, rowIterators, rowCounts,
+                m_rowIDTableSettings.getIntValue() - 1);
         } else {
-            return focusHasNext;
+            final int longestTableIndex = IntStream.range(0, m_numInPorts) //
+                .reduce((a, b) -> rowCounts[a] < rowCounts[b] ? b : a) //
+                .getAsInt();
+            compute(exec, outDataContainer::addRowToTable, rowIterators, rowCounts, longestTableIndex);
         }
-    }
-
-    /* HELPER METHODS */
-
-    /**
-     * Checks if the option Identical row keys and table lengths is selected or not.
-     *
-     * @return true if the option Identical row keys and table lengths is selected, false otherwise.
-     */
-    private boolean identicaRowKeys() {
-        return (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[0]));
+        outDataContainer.close();
+        return outDataContainer.getTable();
     }
 
     /**
-     * Checks if the option Identical row keys and table lengths is selected or not.
+     * Combines the rows to create new table.
      *
-     * @return true if the option Identical row keys and table lengths is selected, false otherwise.
+     * @param exec The execution context.
+     * @param output
+     * @param rowIterators An array of iterators on each table to be appended.
+     * @param rowCounts An array of row counts from each table.
+     * @param decidingTableIdx The index of the table that decides the RowID and length of the output.
+     * @throws InterruptedException
+     * @throws CanceledExecutionException
      */
-    private boolean generateNewKeys() {
-        return (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[1]));
-    }
+    private void compute(final ExecutionContext exec, final RowConsumer output, final CustomRowIterator[] rowIterators,
+        final Long[] rowCounts, final int decidingTableIdx) throws InterruptedException, CanceledExecutionException {
+        final long numRowsFocusTable = (decidingTableIdx == -1) ? rowCounts[0] : rowCounts[decidingTableIdx];
 
-    /**
-     * Gets the index of the table (within the input ports) that decides the rowIDs. In case of newly generated rowIDs
-     * it returns -1.
-     *
-     * @return The index of the table (within the input ports) that decides the rowIDs.
-     */
-    private int rowIDTable() {
-        if (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[2])) {
-            return m_rowIDTableSettings.getIntValue();
-        } else if (m_rowIDModesSettings.getStringValue().equals(ROWID_MODE_OPTIONS[1])) {
-            return -1; /* Should not be used. Use longest table instead. */
-        }
-        return 0;
-    }
-
-    /**
-     * Given a list of strings, picks the one from the deciding table or generates a new string using the rowIndex (in
-     * the case of newly generated rowIDs) and returns a RowKey based on the picked string.
-     *
-     * @param focusTableIndex The index of the input table deciding the row ids.
-     * @param rowIndex The index of the row for which the id is generated.
-     * @param rowKeyList A list of row keys from different tables.
-     * @return A RowKey based on the deciding table index or newly generated rowID string.
-     */
-    private RowKey chooseRowKey(final int focusTableIndex, final long rowIndex, final ArrayList<String> rowKeyList) {
-        String rowKey = "";
-        if (generateNewKeys()) {
-            rowKey = "Row" + rowIndex;
-        } else if (identicaRowKeys()) {
-            for (int i = 1; i < rowKeyList.size(); i++) {
-                if (!(rowKeyList.get(i - 1).equals(rowKeyList.get(i)))) {
-                    throw new IllegalArgumentException("Tables contain non-matching rows or are sorted "
-                        + "differently, keys in row " + rowIndex + " do not match: \"" + rowKeyList.toString() + "\"");
-                }
+        MultipleRowIterators multiIt = new MultipleRowIterators(rowIterators,
+            RowKeyMode.valueOf(m_rowIDModesSettings.getStringValue()), decidingTableIdx);
+        while (multiIt.hasNext()) {
+            if (numRowsFocusTable != -1) {
+                final long rowCountFinal = multiIt.getPos();
+                exec.setProgress(rowCountFinal / (double)numRowsFocusTable,
+                    () -> "Appending columns (row " + rowCountFinal + "/" + numRowsFocusTable + ")");
             }
-            rowKey = rowKeyList.get(0); /* Any one of the similar row keys. */
-        } else {
-            rowKey = rowKeyList.get(focusTableIndex);
+            exec.checkCanceled();
+            output.consume(multiIt.next());
         }
-        return new RowKey(rowKey);
+        differingTableSizeMsg(decidingTableIdx, rowCounts);
+
     }
 
     /**
      * Checks if table sizes (number of rows) differ and displays warning messages according to the setup.
      *
-     * @param focusTableIndex The index of the input table deciding the row ids.
-     * @param numRowsList The number of rows from each input table.
+     * @param decidingTableIdx The index of the table that decides the RowID and length of the output.
+     * @param rowCounts An array of row counts from each table.
      */
-    private void differingTableSizeMsg(final int focusTableIndex, final long[] numRowsList) {
-        if (!identicalElements(numRowsList)) {
-            if (generateNewKeys()) {
-                /* Set warning messages if missing values have been inserted or one table was truncated. */
+    private void differingTableSizeMsg(final int decidingTableIdx, final Long[] rowCounts) {
+        if (!identicalElements(rowCounts)) {
+            /* Set warning messages if missing values have been inserted or one table was truncated.
+             * In case of generating new rowIDs a generic warning is displayed. */
+            if (m_rowIDModesSettings.getStringValue().equals("GENERATE")) {
                 setWarningMessage("Input tables differ in length! Missing values have been added accordingly.");
             } else {
-                detailedTablesDifferMesseges(focusTableIndex, numRowsList);
+                detailedTablesDifferMesseges(decidingTableIdx, rowCounts);
             }
         }
     }
@@ -494,40 +393,25 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Displays detailed warning messages if input tables are shorter or longer than the deciding table.
      *
-     * @param focusTableIndex The index of the input table deciding the row ids.
-     * @param numRowsList The number of rows from each input table.
+     * @param decidingTableIdx The index of the table that decides the RowID and length of the output.
+     * @param rowCounts An array of row counts from each table.
      */
-    private void detailedTablesDifferMesseges(final int focusTableIndex, final long[] numRowsList) {
+    private void detailedTablesDifferMesseges(final int decidingTableIdx, final Long[] rowCounts) {
         for (int i = 0; i < m_numInPorts; i++) {
-            if (i == focusTableIndex || numRowsList[focusTableIndex] == numRowsList[i]) {
+            final int compareResult = rowCounts[i].compareTo(rowCounts[decidingTableIdx]);
+            // Tables are the same
+            if (compareResult == 0) {
                 continue;
             }
-            if (numRowsList[focusTableIndex] > numRowsList[i]) {
-                setWarningMessage("Table " + i + " is shorter than the selected table (Table " + focusTableIndex
-                    + ")! Missing values have been added accordingly.");
-            } else {
-                setWarningMessage("Table " + i + " is longer than the selected table (Table " + focusTableIndex
-                    + ")! It has been truncated.");
-            }
-        }
-    }
 
-    /**
-     * Returns the longest (maximum number of rows) input table index.
-     *
-     * @param inData An array of BufferedDataTable.
-     * @return The index of longest input table.
-     */
-    private int longestTableIndex(final BufferedDataTable[] inData) {
-        long maxNumRows = inData[0].size();
-        int focusTableIndex = 0;
-        for (int i = 1; i < m_numInPorts; i++) {
-            if (inData[i].size() > maxNumRows) {
-                maxNumRows = inData[i].size();
-                focusTableIndex = i;
+            if (compareResult < 0) { // Table is shorter than the deciding table
+                setWarningMessage("Table " + (i + 1) + " is shorter than the selected table (Table "
+                    + (decidingTableIdx + 1) + ")! Missing values have been added accordingly.");
+            } else { // Table is longer than the deciding table
+                setWarningMessage("Table " + (i + 1) + " is longer than the selected table (Table "
+                    + (decidingTableIdx + 1) + ")! It has been truncated.");
             }
         }
-        return focusTableIndex;
     }
 
     /**
@@ -536,31 +420,17 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * @param array The array to be checked.
      * @return true if all elements are the same, false otherwise.
      */
-    private final boolean identicalElements(final long[] array) {
-        long currNumRow = array[0];
-        for (int i = 1; i < m_numInPorts; i++) {
-            if (currNumRow != array[i]) {
-                return false;
-            }
-        }
-        return true;
+    private static final boolean identicalElements(final Long[] array) {
+        return (Stream.of(array).distinct().count() == 1);
     }
 
-    /**
-     * Gets a row of missing value cells with a given number of columns.
-     *
-     * @param numCol The number of columns.
-     * @return A row of missing value cells.
-     */
-    private static DefaultRow getMissingCellsRow(final int numCol) {
-        return new DefaultRow("DefaultRow",
-            Stream.generate(DataType::getMissingCell).limit(numCol).toArray(DataCell[]::new));
+    private static interface RowConsumer {
+        void consume(DataRow row) throws InterruptedException;
     }
 
     static interface CustomRowIterator {
         boolean hasNext() throws InterruptedException;
-
-        DataRow next();
+        DataRow next() throws InterruptedException;
     }
 
     /**
@@ -572,11 +442,15 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         private RowIterator m_rowIt;
 
-        private int m_numCol;
+        private final int m_numCol;
+
+        private final DefaultRow m_emptyRow;
 
         CustomRowIteratorImpl(final RowIterator rowIt, final int numCol) {
             m_rowIt = rowIt;
             m_numCol = numCol;
+            m_emptyRow = new DefaultRow("NoRowID",
+                Stream.generate(DataType::getMissingCell).limit(m_numCol).toArray(DataCell[]::new));
         }
 
         @Override
@@ -588,7 +462,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
         public DataRow next() {
             /* next returns a row of missing value cells if iterator is at the end. */
             if (!m_rowIt.hasNext()) {
-                return getMissingCellsRow(m_numCol);
+                return m_emptyRow;
             }
             return m_rowIt.next();
         }
@@ -608,9 +482,13 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         private int m_numCol;
 
+        private final DefaultRow m_emptyRow;
+
         CustomRowIteratorStreamingImpl(final RowInput rowInput, final int numCol) {
             m_rowInput = rowInput;
             m_numCol = numCol;
+            m_emptyRow = new DefaultRow("NoRowID",
+                Stream.generate(DataType::getMissingCell).limit(m_numCol).toArray(DataCell[]::new));
         }
 
         @Override
@@ -624,14 +502,151 @@ final class ColumnAppender2NodeModel extends NodeModel {
         }
 
         @Override
-        public DataRow next() {
-            DataRow row = m_row;
+        public DataRow next() throws InterruptedException {
             /* next returns a row of missing value cells if iterator is at the end. */
-            if (row == null) {
-                row = getMissingCellsRow(m_numCol);
+            DataRow row = m_row;
+            if (!hasNext()) {
+                row = m_emptyRow;
             }
             m_row = null;
             return row;
         }
     }
+
+    /**
+     * A pseudo iterator that manages multiple CustomRowIterators.
+     *
+     * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+     */
+    private static final class MultipleRowIterators {
+
+        private final CustomRowIterator[] m_iterators;
+
+        private final RowKeyMode m_keyMode;
+
+        private final int m_itCount;
+
+        private final int m_decidingTableIdx;
+
+        private long m_currentPos;
+
+        /**
+         * constructor
+         *
+         * @param rowIterators An array of row iterators.
+         * @param keyMode The way to handle the row keys.
+         * @param decidingTableIdx The table deciding the the rowID and output table length
+         */
+
+        MultipleRowIterators(final CustomRowIterator[] rowIterators, final RowKeyMode keyMode,
+            final int decidingTableIdx) {
+            m_iterators = rowIterators;
+            m_keyMode = keyMode;
+            m_itCount = rowIterators.length;
+            m_decidingTableIdx = decidingTableIdx;
+            m_currentPos = 0;
+
+        }
+
+        public long getPos() {
+            return m_currentPos;
+        }
+
+        public boolean hasNext() throws InterruptedException {
+            boolean focusHasNext = false;
+            int count = 0;
+            /* all iterators must call hasNext(). */
+            for (int i = 0; i < m_itCount; i++) {
+                if (m_iterators[i].hasNext()) {
+                    count++;
+                    if (i == m_decidingTableIdx) {
+                        focusHasNext = true;
+                    }
+                }
+            }
+            if (m_keyMode.equals(RowKeyMode.GENERATE)) {
+                return count > 0;
+            } else {
+                return focusHasNext;
+            }
+        }
+
+        public DataRow next() throws InterruptedException {
+            ArrayList<DataCell> cells = new ArrayList<>();
+            String rowKey = "";
+
+            for (int i = 0; i < m_itCount; i++) {
+                DataRow currRow = m_iterators[i].next();
+                for (DataCell cell : currRow) {
+                    cells.add(cell);
+                }
+                if (i == m_decidingTableIdx && !m_keyMode.equals(RowKeyMode.GENERATE)) {
+                    rowKey = currRow.getKey().getString();
+                }
+
+                if (m_keyMode.equals(RowKeyMode.IDENTICAL)) {
+                    if (i == 0) {
+                        rowKey = currRow.getKey().getString();
+                    } else if (!rowKey.equals(currRow.getKey().getString())) {
+                        throw new IllegalArgumentException(
+                            "Tables contain non-matching rows or are sorted " + "differently, keys in row " + m_itCount
+                                + " do not match: \"" + rowKey + "\" vs \"" + currRow.getKey().getString() + "\"");
+                    }
+
+                }
+            }
+
+            if (m_keyMode.equals(RowKeyMode.GENERATE)) {
+                rowKey = "Row" + m_currentPos;
+            }
+
+            DefaultRow res = new DefaultRow(rowKey, cells);
+            m_currentPos++;
+            return res;
+        }
+    }
+
+    /**
+     * Different options used to decide the RowIDs during column appending.
+     *
+     * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+     */
+    enum RowKeyMode implements ButtonGroupEnumInterface {
+            IDENTICAL("Identical row keys and table lengths"), //
+            GENERATE("Generate new row keys"), //
+            KEY_TABLE("Use the row keys from the input table: ");
+
+        private String m_text;
+
+        private String m_tooltip;
+
+        RowKeyMode(final String text) {
+            this.m_text = text;
+            this.m_tooltip = "<html>Choose the way the row keys of the output tables are decided.<br>"
+                + "If \"Identical row keys and table lengths\" is chosen, all input tables<br> "
+                + "should have exactly the same row Ids in the exact same order.<html>";
+        }
+
+        @Override
+        public String getText() {
+            return m_text;
+        }
+
+        @Override
+        public String getActionCommand() {
+            return name();
+        }
+
+        @Override
+        public String getToolTip() {
+            return m_tooltip;
+        }
+
+        @Override
+        public boolean isDefault() {
+            return this == IDENTICAL;
+        }
+
+    }
+
 }
