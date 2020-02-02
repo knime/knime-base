@@ -122,10 +122,12 @@ public class TableNodeView<T extends TableNodeModel> extends NodeView<T> {
                 updateTitle();
             }
         });
+        JMenu editMenu = m_tableView.createEditMenu();
+        addWriteCSVMenuItemTo(editMenu);
+        getJMenuBar().add(editMenu);
         getJMenuBar().add(m_tableView.createHiLiteMenu());
         getJMenuBar().add(m_tableView.createNavigationMenu());
         getJMenuBar().add(m_tableView.createViewMenu());
-        getJMenuBar().add(createWriteCSVMenu());
         setHiLiteHandler(getNodeModel().getInHiLiteHandler(
                 TableNodeModel.INPORT));
         setComponent(m_tableView);
@@ -301,10 +303,10 @@ public class TableNodeView<T extends TableNodeModel> extends NodeView<T> {
         }
     }
 
-    /* A JMenu that has one entry "Write to CSV file". */
-    private JMenu createWriteCSVMenu() {
-        JMenu menu = new JMenu("Output");
-        JMenuItem item = new JMenuItem("Write CSV");
+    /** Adds "Write to CSV file" action to argument menu. */
+    private void addWriteCSVMenuItemTo(final JMenu editMenu) {
+        editMenu.addSeparator();
+        JMenuItem item = new JMenuItem("Write CSV...");
         item.addPropertyChangeListener("ancestor",
                 new PropertyChangeListener() {
                     @Override
@@ -325,8 +327,7 @@ public class TableNodeView<T extends TableNodeModel> extends NodeView<T> {
                 }
             }
         });
-        menu.add(item);
-        return menu;
+        editMenu.add(item);
     }
 
     /**
@@ -408,15 +409,11 @@ public class TableNodeView<T extends TableNodeModel> extends NodeView<T> {
                     settings.setSeparatorReplacement("");
                     settings.setReplaceSeparatorInStrings(true);
                     settings.setMissValuePattern("");
-                    CSVWriter writer = new CSVWriter(new FileWriter(m_file),
-                            settings);
                     String message;
-                    try {
+                    try (CSVWriter writer = new CSVWriter(new FileWriter(m_file), settings)) {
                         writer.write(table, m_exec);
-                        writer.close();
                         message = "Done.";
                     } catch (CanceledExecutionException ce) {
-                        writer.close();
                         m_file.delete();
                         message = "Canceled.";
                     }
