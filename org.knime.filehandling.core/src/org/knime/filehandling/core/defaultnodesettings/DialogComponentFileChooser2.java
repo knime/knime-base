@@ -763,12 +763,22 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateConnectionsCombo() {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
+
+        // temporarily remove KNIME_FS from the default choices, unless it is already selected (see AP-13587)
+        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
+        final boolean showKnimeFsChoice = model.getFileSystemChoice() == FileSystemChoice.getKnimeFsChoice();
+
         if (connectionsModel.getSize() > 0) {
-            while (connectionsModel.getSize() > 4) {
+
+            final int noOfDefaultChoices = 3 + (showKnimeFsChoice ? 1 : 0);
+            while (connectionsModel.getSize() > noOfDefaultChoices) {
                 connectionsModel.removeElementAt(0);
             }
         } else {
-            FileSystemChoice.getDefaultChoices().stream().forEach(connectionsModel::addElement);
+            FileSystemChoice.getDefaultChoices()
+                .stream()
+                .filter(c -> showKnimeFsChoice || c != FileSystemChoice.getKnimeFsChoice())
+                .forEach(connectionsModel::addElement);
         }
 
         if (connectionsModel.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
