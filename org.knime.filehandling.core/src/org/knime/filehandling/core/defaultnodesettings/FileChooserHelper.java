@@ -69,9 +69,7 @@ import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.connections.knime.KNIMEPath;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
@@ -205,7 +203,8 @@ public final class FileChooserHelper {
      * Creates and returns a new Path object according to the path or URL provided by the underlying settings model.
      *
      * @return Path leading to the path or url provided by the underlying settings model
-     * @throws InvalidSettingsException
+     * @throws InvalidSettingsException If the path could not be constructed because of an invalid setting, or if
+     *             accessing the path is not allowed in the current context (e.g. on the server).
      */
     public Path getPathFromSettings() throws InvalidSettingsException {
         final Path pathOrUrl;
@@ -310,28 +309,6 @@ public final class FileChooserHelper {
     @SuppressWarnings("static-method")
     public boolean isKNIMERelativePath(final Path path) {
         return path instanceof KNIMEPath;
-    }
-
-    /**
-     * Determines if the provided path can be executed in the given context.
-     *
-     * @param path path under test
-     * @param context the workflow context, either local or on a server
-     * @throws InvalidSettingsException if the path cannot be executed in the context
-     */
-    @SuppressWarnings({"resource", "static-method"})
-    public void canExecuteOnServer(final Path path, final WorkflowContext context) throws InvalidSettingsException {
-        if (isOnServer(context) && path instanceof KNIMEPath) {
-            final KNIMEPath knimePath = (KNIMEPath) path;
-            final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
-            if (fileSystem.getConnectionType().equals(KNIMEConnection.Type.NODE_RELATIVE)) {
-                throw new InvalidSettingsException("Executing node relative paths on KNIME server is not supported.");
-            }
-        }
-
-        if (isOnServer(context) && path instanceof KNIMERemotePath) {
-            throw new InvalidSettingsException("Executing mountpoint absolute paths on KNIME server is not supported.");
-        }
     }
 
     private static boolean isOnServer(final WorkflowContext context) {
