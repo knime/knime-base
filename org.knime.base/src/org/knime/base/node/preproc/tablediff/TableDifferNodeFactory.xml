@@ -14,13 +14,13 @@
 		<intro>
 		The Table Difference Finder offers the functionality to compare two table by means of their
 		values and table specs. Depending on the configuration the two input tables will be either be entirely
-		be compared or solely respective a subset of the columns existent in the reference table, i.e., the first input.
+		be compared or solely respective a subset of the columns existent in the reference table, i.e., the second input.
 		</intro>
 		<tab name="Options">
 		<option name="Compare entire tables">
 		If this	option is checked all columns from the first as well as the second input will be compared against
 		each other. Otherwise, the tables will solely be compared respective the selected columns of the 
-		reference table. 
+		reference, i.e., the second input table. 
 		<br/>
 		<b>Note:</b> Row IDs are not being compared. 
 		</option>
@@ -53,9 +53,9 @@
 	</fullDescription>
 
 	<ports>
-		<inPort index="0" name="Table 1">Reference table.
+		<inPort index="0" name="Table to compare to">Table to check for compliance.
 		</inPort>
-		<inPort index="1" name="Table 2">Table to check for compliance.
+		<inPort index="1" name="Reference table">Reference table.
 		</inPort>
 		<outPort index="0" name="Value differences">
 			Table exhibiting all differing entries.

@@ -98,10 +98,10 @@ import org.knime.core.node.util.CheckUtils;
 final class TableDifferNodeModel extends NodeModel {
 
     /** Port index of the reference table. */
-    private static final int PORT_REFERENCE_TABLE = 0;
+    static final int PORT_REFERENCE_TABLE = 1;
 
     /** Port index of the the comparison table. */
-    private static final int PORT_COMPARED_TABLE = 1;
+    private static final int PORT_COMPARED_TABLE = 0;
 
     /** Error message in case the node has to fail on different values. */
     private static final String ERROR_DIFFERENT_VALUES = "There are differences in the values.";
@@ -198,7 +198,7 @@ final class TableDifferNodeModel extends NodeModel {
      * @return the settings model storing the failure mode
      */
     static SettingsModelString createFailureModeModel() {
-        return new SettingsModelString("failure_mode", FailureMode.NEVER.getText());
+        return new SettingsModelString("failure_mode", FailureMode.NEVER.getActionCommand());
     }
 
     /** Constructor. */
@@ -208,7 +208,7 @@ final class TableDifferNodeModel extends NodeModel {
 
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        final FailureMode confFailMode = FailureMode.getValueFromLabel(m_failureMode.getStringValue());
+        final FailureMode confFailMode = FailureMode.valueOf(m_failureMode.getStringValue());
         if (confFailMode == FailureMode.DIFFERENT_SPECS || confFailMode == FailureMode.DIFFERENT_VALUES) {
             final DataTableSpec refSpec = inSpecs[PORT_REFERENCE_TABLE];
             final DataTableSpec compSpec = inSpecs[PORT_COMPARED_TABLE];
@@ -232,7 +232,7 @@ final class TableDifferNodeModel extends NodeModel {
         final BufferedDataTable compTable = inData[PORT_COMPARED_TABLE];
 
         // get the configure fail mode
-        final FailureMode confFailMode = FailureMode.getValueFromLabel(m_failureMode.getStringValue());
+        final FailureMode confFailMode = FailureMode.valueOf(m_failureMode.getStringValue());
 
         // If different lengths and Failure Mode is "Fail on different values" the node will fail right away
         if (confFailMode == FailureMode.DIFFERENT_VALUES && (refTable.size() != compTable.size())) {
@@ -282,7 +282,7 @@ final class TableDifferNodeModel extends NodeModel {
         // linked hashmap to keep the ordering cols ref table additional cols comp table
         return colNames.stream().collect(//
             LinkedHashMap::new,
-            (map, c) -> map.put(c, new int[]{refSpec.findColumnIndex(c), compSpec.findColumnIndex(c)}), //
+            (map, c) -> map.put(c, new int[]{compSpec.findColumnIndex(c), refSpec.findColumnIndex(c)}), //
             Map::putAll);
     }
 
@@ -664,14 +664,6 @@ final class TableDifferNodeModel extends NodeModel {
         @Override
         public boolean isDefault() {
             return m_isDefault;
-        }
-
-        static FailureMode getValueFromLabel(final String label) {
-            if (label == null) {
-                throw new NullPointerException("Label is null");
-            }
-            return Arrays.stream(FailureMode.values()).filter(fm -> fm.m_label.equals(label)).findFirst().orElseThrow(
-                () -> new IllegalArgumentException("No enum constant associated with the given label '" + label + "'"));
         }
 
     }

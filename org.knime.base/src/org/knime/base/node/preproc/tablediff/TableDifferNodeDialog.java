@@ -52,13 +52,11 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
 
-import org.knime.base.node.preproc.tablediff.TableDifferNodeModel.FailureMode;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -90,11 +88,12 @@ final class TableDifferNodeDialog extends NodeDialogPane {
     TableDifferNodeDialog() {
         m_diaCompareTablesEntirely = new DialogComponentBoolean(TableDifferNodeModel.createCompareTablesEntirelyModel(),
             "Compare entire tables");
-        m_diaColumnFilter = new DialogComponentColumnFilter2(TableDifferNodeModel.createComparedColumnsModel(), 0);
-        m_diaFailMode = new DialogComponentButtonGroup(TableDifferNodeModel.createFailureModeModel(), true,
-            "Fail option", Arrays.stream(FailureMode.values()).map(v -> v.getText()).toArray(String[]::new));
+        m_diaColumnFilter = new DialogComponentColumnFilter2(TableDifferNodeModel.createComparedColumnsModel(),
+            TableDifferNodeModel.PORT_REFERENCE_TABLE);
+        m_diaFailMode = new DialogComponentButtonGroup(TableDifferNodeModel.createFailureModeModel(), "Fail option",
+            true, TableDifferNodeModel.FailureMode.values());
         m_changeListener = e -> m_diaColumnFilter.getModel().setEnabled(!m_diaCompareTablesEntirely.isSelected());
-
+        m_diaCompareTablesEntirely.getModel().addChangeListener(m_changeListener);
         addTab("Settings", createLayout());
     }
 
@@ -131,11 +130,11 @@ final class TableDifferNodeDialog extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
-        m_diaCompareTablesEntirely.getModel().removeChangeListener(m_changeListener);
         m_diaCompareTablesEntirely.loadSettingsFrom(settings, specs);
         m_diaColumnFilter.loadSettingsFrom(settings, specs);
         m_diaFailMode.loadSettingsFrom(settings, specs);
-        m_diaCompareTablesEntirely.getModel().addChangeListener(m_changeListener);
+        // enable / disable the column filter (cannot be done during constructor due to impl details of col filter)
+        m_changeListener.stateChanged(null);
     }
 
     @Override
