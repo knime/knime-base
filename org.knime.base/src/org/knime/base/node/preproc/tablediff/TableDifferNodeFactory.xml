@@ -12,9 +12,13 @@
 
 	<fullDescription>
 		<intro>
-		The Table Difference Finder offers the functionality to compare two table by means of their
-		values and table specs. Depending on the configuration the two input tables will be either be entirely
-		be compared or solely respective a subset of the columns existent in the reference table, i.e., the second input.
+		The Table Difference Finder offers the functionality to compare two tables by
+		means of their values and table specs. Firstly, the values in the selected 
+		columns are compared in both tables, and the possible differences are shown
+		for each row and column. Secondly, the types, domains, and positions of
+		the selected columns are compared in both tables, and the results are shown
+		for each column. The selected columns are either all columns in both
+		tables, or a subset of columns in the reference table, i.e. the second input.
 		</intro>
 		<tab name="Options">
 		<option name="Compare entire tables">
@@ -38,16 +42,17 @@
 			</option>
 			<option name="Fail option:">
 				<b>Never:</b>
-				The Node will not fail on differences regarding the table spec nor
-				the values.
+				The The node will not fail on any differences between the two tables.
 				<br></br>
 				<br></br>
 				<b>Differing table specs:</b>
-				The Node will fail if the tables feature differing specs.
+				The node will fail if any of the selected columns does not exist in
+				the other table, or the columns differ in type or domain. 
+				<i>Note</i> that differing column positions are being ignored.
 				<br></br>
 				<br></br>
 				<b>Differing values:</b>
-				The Node will fail if the tables feature differing specs and/or values.
+				 On the first occurrence of differences in the values the node will fail.
 			</option>
 		</tab>
 	</fullDescription>
