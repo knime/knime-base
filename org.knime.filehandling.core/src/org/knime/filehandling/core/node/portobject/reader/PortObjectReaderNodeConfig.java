@@ -54,5 +54,21 @@ import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeConfi
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
 public class PortObjectReaderNodeConfig extends AbstractPortObjectIONodeConfig {
-    // empty default implementation
+
+    /**
+     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     */
+    protected PortObjectReaderNodeConfig() {
+        super();
+    }
+
+    /**
+     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     *
+     * @param fileSuffixes the suffixes to filter on
+     */
+    protected PortObjectReaderNodeConfig(final String[] fileSuffixes) {
+        super(fileSuffixes);
+    }
+
 }

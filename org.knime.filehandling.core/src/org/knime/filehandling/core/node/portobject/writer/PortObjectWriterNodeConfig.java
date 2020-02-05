@@ -65,6 +65,22 @@ public class PortObjectWriterNodeConfig extends AbstractPortObjectIONodeConfig {
     private final SettingsModelBoolean m_overwriteModel = new SettingsModelBoolean(CFG_OVERWRITE, false);
 
     /**
+     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     */
+    protected PortObjectWriterNodeConfig() {
+        super();
+    }
+
+    /**
+     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     *
+     * @param fileSuffixes the suffixes to filter on
+     */
+    protected PortObjectWriterNodeConfig(final String[] fileSuffixes) {
+        super(fileSuffixes);
+    }
+
+    /**
      * @return the overwriteModel
      */
     public SettingsModelBoolean getOverwriteModel() {
