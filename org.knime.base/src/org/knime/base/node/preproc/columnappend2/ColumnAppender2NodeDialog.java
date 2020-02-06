@@ -48,6 +48,7 @@
 package org.knime.base.node.preproc.columnappend2;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -77,6 +78,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
+
 public class ColumnAppender2NodeDialog extends NodeDialogPane {
     private final int m_numInputPorts;
 
@@ -95,9 +97,9 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
     private final JPanel m_panel;
 
     /**
-     * Constructor for dynamic ports
+     * Constructor for dynamic ports.
      *
-     * @param portsConfiguration the ports configuration
+     * @param portsConfiguration The ports configuration.
      */
     public ColumnAppender2NodeDialog(final PortsConfiguration portsConfiguration) {
 
@@ -133,6 +135,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
         m_panel.add(m_selectedTableIndexComponent.getComponentPanel(), gbc);
 
         gbc.anchor = GridBagConstraints.ABOVE_BASELINE_LEADING;
+        gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0.0;
         gbc.gridwidth = 2;
         gbc.gridx = 0;
@@ -145,7 +148,8 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        if (m_selectedTableIndexModel.getIntValue() < 1 || m_selectedTableIndexModel.getIntValue() > m_numInputPorts) {
+        if (isKeyFromTableMode() && (m_selectedTableIndexModel.getIntValue() < 1
+            || m_selectedTableIndexModel.getIntValue() > m_numInputPorts)) {
             throw new InvalidSettingsException("Table number should be between 1 and " + m_numInputPorts + "!");
         }
         m_rowKeyModeComponent.saveSettingsTo(settings);
@@ -161,17 +165,18 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
         controlTableSelect();
     }
 
-    /* trick borrowed from  LDA2NodeDialog */
+    /* Trick borrowed from  LDA2NodeDialog. */
     /**
-     * A way to prevent overwriting on existing settings when the selected table is no more
-     * there, e.g., when the input port providing the table is deleted.
+     * A way to prevent overwriting on existing settings when the selected table is no more there, e.g., when the input
+     * port providing the table is deleted.
      *
      */
     private void validateTableSelection() {
         m_selectedTableIndexComponent.setToolTipText(m_tableIndexValueInfo);
         final JSpinner spinner = (JSpinner)m_selectedTableIndexComponent.getComponentPanel().getComponent(1);
-        final JLabel errMsgLabel = (JLabel)m_invalidTableIndexComponent.getComponentPanel().getComponent(0);
         final JFormattedTextField spinnerTextField = ((DefaultEditor)spinner.getEditor()).getTextField();
+        final JLabel errMsgLabel = (JLabel)m_invalidTableIndexComponent.getComponentPanel().getComponent(0);
+        errMsgLabel.setPreferredSize(new Dimension(380, 50));
         if (m_selectedTableIndexModel.getIntValue() < 1 || m_selectedTableIndexModel.getIntValue() > m_numInputPorts) {
             spinnerTextField.setBackground(Color.RED);
             spinnerTextField.setEnabled(true);
@@ -186,16 +191,31 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
         }
     }
 
+    /**
+     * This makes sure the load
+     */
     private void controlTableSelect() {
         final JSpinner spinner = (JSpinner)m_selectedTableIndexComponent.getComponentPanel().getComponent(1);
         final JFormattedTextField spinnerTextField = ((DefaultEditor)spinner.getEditor()).getTextField();
+        final JLabel errMsgLabel = (JLabel)m_invalidTableIndexComponent.getComponentPanel().getComponent(0);
         if (m_rowKeyModeModel.getStringValue().equals("KEY_TABLE")) {
             spinnerTextField.setEnabled(true);
             spinner.setEnabled(true);
+            validateTableSelection();
         } else {
             spinnerTextField.setEnabled(false);
             spinner.setEnabled(false);
+            errMsgLabel.setText("");
         }
     }
 
+    /**
+     * A helper method that checks the current mode of getting row keys.
+     *
+     * @return true if keys are taken from a selected table, false otherwise.
+     */
+    private final boolean isKeyFromTableMode() {
+        return ColumnAppender2NodeModel.RowKeyMode.valueOf(m_rowKeyModeModel.getStringValue())
+            .equals(ColumnAppender2NodeModel.RowKeyMode.KEY_TABLE);
+    }
 }
