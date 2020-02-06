@@ -287,15 +287,17 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     /**
-     * This method compares the values of the common columns. If there are any differences those will be saved in a new
-     * row.
+     * This method compares the values of the common columns and adds a row for every different value. In case one of
+     * the input tables is longer than the other a row will be added for every column, as well as if a certain column
+     * only exists in one of both tables.
      *
      * @param exec Execution Context
-     * @param colMapping Column Mapping of the common columns of the Data
-     * @param inData contains the Data of the two input ports
-     * @param buf BufferedDataContainer with the value table output Spec
+     * @param refTable the reference table
+     * @param compTable the compared table
+     * @param colMapping column mapping of the input tables
+     * @param confFailMode failure mode on which the node should fail
      *
-     * @return BufferedDataTable with the differences of the values
+     * @return table with a row for every different value
      * @throws CanceledExecutionException
      */
     private static BufferedDataTable getValueDifferences(final ExecutionContext exec, final BufferedDataTable refTable,
@@ -351,14 +353,14 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     /**
-     * This method checks if there are differences in the values of two cells. In case the data type of two cells do not
-     * match they are considered as unequal.
+     * Checks if there are differences in two cells w.r.t. their values and their types. In case the data types or the
+     * values do not match, the cells are considered as unequal and a new row will be added to the output table.
      *
-     * @param buf
-     * @param pos Colmapping for two columns
-     * @param refRow from the reference table
-     * @param compRow from the compared table
-     * @param rowKeyNo Current processed row
+     * @param buf the BufferedDataContainer of the output table
+     * @param pos the column mapping for two columns
+     * @param refRow contains the row from the reference table
+     * @param compRow contains the row from the compared table
+     * @param confFailMode failure mode on which the node should fail
      */
     private static void writeDifferingCellEntries(final BufferedDataContainer buf, final Entry<String, int[]> pos,
         final DataRow refRow, final DataRow compRow, final FailureMode confFailMode) {
@@ -384,12 +386,12 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     /**
-     * This method adds the values from a certain column in case a column is missing in one table.
+     * Creates a row to the differences in values table in case a column only exists in one of the input tables.
      *
-     * @param buf BufferedDataContainer to add new rows
-     * @param colName Column name
-     * @param refRow Row from the reference table
-     * @param compRow Row from the compared table
+     * @param buf the BufferedDataContainer of the output table
+     * @param colName name of the missing column
+     * @param refRow contains the row from the reference table
+     * @param compRow contains the row from the compared table
      * @param posReferenceTable position of the column in the reference table
      * @param posComparedTable position of the column in the compared table
      */
@@ -406,20 +408,26 @@ final class TableDifferNodeModel extends NodeModel {
         }
     }
 
+    /**
+     * Creates a DataCell with the the RowId from the data row k.
+     *
+     * @param k datarow
+     * @return a DataCell with the the RowId as value from the the input DataRow k
+     */
     private static DataCell createStringCellFromRowKey(final DataRow k) {
         return StringCellFactory.create(k.getKey().getString());
     }
 
     /**
-     * This method adds the remaining values to the table in case both input tables differ in length.
+     * Iterates over every row of the longer table to add rows to the differences in values table.
      *
-     * @param exec
-     * @param buf BufferedDataContainer to add new rows
-     * @param tableSize Length of the longest table
-     * @param startRowNo Number of the at least processed row
-     * @param nonEmptyIter RowIterator from the longer table
-     * @param colMapping to identify the positions of the columns in both tables
-     * @param isTop Flag to differ if it is the reference table or the compared table
+     * @param exec Execution Context
+     * @param buf the BufferedDataContainer of the output table
+     * @param tableSize length of the longer table
+     * @param startRowNo row number of the last processed row
+     * @param nonEmptyIter the row iterator which has got remaining rows
+     * @param colMapping column mapping of the input tables
+     * @param posIdx index contains whether 0 (compared table) or 1 (reference table)
      *
      * @throws CanceledExecutionException
      */
@@ -440,19 +448,19 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     /**
-     * This method acts as an helper function of the addcellsMissingInShorterTable to reduce complexity.
+     * Adds a row to the differences in values table for every column in a row in case the differ in length.
      *
-     * @param buf BufferedDataContainer to add new rows
-     * @param colMapping to identify the positions of the columns in both tables
-     * @param row The row of the longer table
-     * @param isTop Flag to differ if it is the reference table or the compared table
+     * @param buf the BufferedDataContainer of the output table
+     * @param colMapping column mapping of the input tables
+     * @param row a DataRow which is not available in one of both input tables
+     * @param posIdx index contains whether 0 (compared table) or 1 (reference table)
      */
     private static void addMissingCells(final BufferedDataContainer buf, final Map<String, int[]> colMapping,
         final DataRow row, final int posIdx) {
         for (Entry<String, int[]> pos : colMapping.entrySet()) {
 
             // null if column only exists in the other, shorter table - in this case we omit that entry
-            if (pos.getValue()[posIdx] > 0) {
+            if (pos.getValue()[posIdx] >= 0) {
                 DataCell refCell = row.getCell(pos.getValue()[posIdx]);
 
                 // initialize the remaining cells
@@ -480,11 +488,12 @@ final class TableDifferNodeModel extends NodeModel {
     /**
      * Creates a new row for the value difference table.
      *
-     * @param rowIdx current Row number
-     * @param colName Column Name
-     * @param refCell Cell from the reference table
-     * @param compCell Cell from the compared table
-     * @param rowIdentifier Row number from reference table
+     * @param rowIdx current RowId
+     * @param colName column name
+     * @param refCell cell from the reference table
+     * @param compCell cell from the compared table
+     * @param refRowIdentifier RowId from the reference table
+     * @param compRowIdentifier RowId from the compared table
      * @return
      */
     private static DefaultRow createCellDiffRow(final long rowIdx, final String colName, final DataCell refCell,
@@ -494,15 +503,17 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     /**
-     * This method compares the DataColumnSpecs ofcolumns in both tables. If there are any differences in the column
-     * spec, those differences will be saved in a new row.
+     * Compares the DataTableSpecs of the input tables. For every entry in the column mapping a row will be created
+     * containing information if type, domain and position equals or not.
      *
-     * @param buf BufferedDataContainer with the bottom output Spec
-     * @param refSpec spec of the reference table
-     * @param compSpec spec of the comparison table
-     * @param colMapping Mapping of the column names to their indices in the different tables
-     * @return BufferedDataTable
-     * @throws CanceledExecutionException - If the execution has been canceled
+     * @param exec Execution context
+     * @param refSpec DataTableSpec from the reference table
+     * @param compSpec DataTableSpec from the compared table
+     * @param colMapping column mapping of the input tables
+     * @param confFailMode failure mode on which the node should fail
+     *
+     * @return table with a row for every column in the column mapping
+     * @throws CanceledExecutionException
      */
     private static BufferedDataTable getSpecDifferences(final ExecutionContext exec, final DataTableSpec refSpec,
         final DataTableSpec compSpec, final Map<String, int[]> colMapping, final FailureMode confFailMode)
@@ -521,16 +532,17 @@ final class TableDifferNodeModel extends NodeModel {
         return buf.getTable();
     }
 
+
     /**
-     * This method creates a new row for every column spec of common column as well as uncommon columns.
+     * Checks if there are differences w.r.t. the data type, domain and position of the DataColumnSpecs.
      *
-     * @param buf BuffereDataContainer to add addtional rows
-     * @param rowKeyNo to create a continuous row id
-     * @param refSpec the reference spec
-     * @param refPos position of the column from the reference table
-     * @param compSpec the comparision spec
-     * @param compPos position of the column from the compared table
-     *
+     * @param buf BufferedDataContainer of the output table
+     * @param rowKeyNo number to create the RowIds
+     * @param refSpec DataTableSpec of the reference table
+     * @param refPos index of the position of the column in the reference table
+     * @param compSpec DataTableSpec of the compared table
+     * @param compPos index of the position of the column in the compared table
+     * @param confFailMode failure mode on which the node should fail
      */
     private static void checkSpecDifferences(final BufferedDataContainer buf, final long rowKeyNo,
         final DataTableSpec refSpec, final int refPos, final DataTableSpec compSpec, final int compPos,
