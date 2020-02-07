@@ -61,7 +61,7 @@ import org.knime.core.node.port.PortType;
  *
   * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel> {
+public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel> {
 
     /**
      * {@inheritDoc}

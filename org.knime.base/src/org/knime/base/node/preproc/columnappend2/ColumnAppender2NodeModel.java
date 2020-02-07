@@ -50,8 +50,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -60,7 +58,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.RowIterator;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -120,7 +118,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Constructor for dynamic ports.
      *
-     * @param portsConfiguration Tthe ports configuration.
+     * @param portsConfiguration the ports configuration
      */
     ColumnAppender2NodeModel(final PortsConfiguration portsConfiguration) {
         super(portsConfiguration.getInputPorts(), portsConfiguration.getOutputPorts());
@@ -190,8 +188,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Given an array of BufferedDataTable, it returns their corresponding specs.
      *
-     * @param inData an array of BufferedDataTable.
-     * @return an array of DataTableSpec.
+     * @param inData an array of BufferedDataTable
+     * @return an array of DataTableSpec
      */
     private static DataTableSpec[] getSpecFromInput(final BufferedDataTable[] inData) {
         return Arrays.stream(inData)//
@@ -204,8 +202,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * unique across all of the array elements. Redundant column names are resolved by appending "(#1)", "(#2)", and so
      * on as required.
      *
-     * @param inSpecs an array of DataTableSpec.
-     * @return a concatenation of the input Specs.
+     * @param inSpecs an array of DataTableSpec
+     * @return a concatenation of the input Specs
      */
     private static DataTableSpec[] createUniqueSpecs(final DataTableSpec[] inSpecs) {
 
@@ -226,8 +224,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Creates a single combined DataTableSpec from an array while respecting the order of the input DataTableSpecs.
      *
-     * @param inSpecs an array of DataTableSpec.
-     * @return a combined DataTableSpec.
+     * @param inSpecs an array of DataTableSpec
+     * @return a combined DataTableSpec
      */
     private static DataTableSpec combineToSingleSpec(final DataTableSpec[] inSpecs) {
         return Arrays.stream(inSpecs) //
@@ -238,14 +236,14 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * Provided an array of BufferedDataTable with equal row count and identical RowIDs it returns a joined single
      * BufferedDataTable where the columns of each BufferedDataTable are appended in respective order.
      *
-     * @param inData an array of BufferedDataTable.
-     * @param exec the execution context.
-     * @return a combined BufferedDataTable containing all the columns from all tables.
+     * @param inData an array of BufferedDataTable
+     * @param exec the execution context
+     * @return a combined BufferedDataTable containing all the columns from all tables
      * @throws CanceledExecutionException - If the execution is canceled by the user
      */
     private static BufferedDataTable joinTablesWithIdenticalKeys(final BufferedDataTable[] inData,
         final ExecutionContext exec) throws CanceledExecutionException {
-        DataTableSpec[] outTableSpec = createUniqueSpecs(getSpecFromInput(inData));
+        final DataTableSpec[] outTableSpec = createUniqueSpecs(getSpecFromInput(inData));
         BufferedDataTable out = null;
         for (int i = 1; i < inData.length; i++) {
             final BufferedDataTable uniqufiedcolNamesTable = exec.createSpecReplacerTable(inData[i], outTableSpec[i]);
@@ -262,65 +260,76 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * Provided an array of BufferedDataTable, it returns a joined single BufferedDataTable where the columns of each
      * BufferedDataTable are appended in respective order.
      *
-     * @param inData an array of BufferedDataTable.
-     * @param exec the execution context.
-     * @return a combined BufferedDataTable containing all the columns from all tables.
+     * @param inData an array of BufferedDataTable
+     * @param exec the execution context
+     * @return a combined BufferedDataTable containing all the columns from all tables
      * @throws InterruptedException - If the execution is canceled by the user
      * @throws CanceledExecutionException - If the execution is canceled by the user
      */
     private BufferedDataTable createNewTable(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws InterruptedException, CanceledExecutionException {
 
-        final long[] rowCounts = Arrays.stream(inData).mapToLong(BufferedDataTable::size).toArray();
-
-        BufferedDataContainer outDataContainer =
+        final BufferedDataContainer outDataContainer =
             exec.createDataContainer(combineToSingleSpec(createUniqueSpecs((getSpecFromInput(inData)))));
 
-        /* Get the index of a table that is deciding the length/rowID of the result */
-        int decidingTblIdx = getDecidingTableIndex();
-        if (isSelectedMode(RowKeyMode.GENERATE)) {
-            decidingTblIdx = IntStream.range(0, m_numInPorts) //
-                .reduce((a, b) -> rowCounts[a] < rowCounts[b] ? b : a) //
-                .getAsInt(); // This works because m_numInPorts is always >= 2.
-        }
+        /* Get the row count of the selected table or the longest table / in case of generated row keys. */
+        final int decidingTblIdx = getDecidingTableIndex();
 
-        MultipleRowIterators iter =
+        final MultipleRowIterators iter =
             new MultipleRowIterators(inData, decidingTblIdx, isSelectedMode(RowKeyMode.IDENTICAL));
 
-        compute(exec, outDataContainer::addRowToTable, iter, rowCounts[decidingTblIdx]);
+        compute(exec, outDataContainer::addRowToTable, iter, getOutputRowCount(inData, decidingTblIdx));
         outDataContainer.close();
         return outDataContainer.getTable();
     }
 
     /**
+     * Calculates the number of rows written to the output.
+     *
+     * @param inData an array of BufferedDataTable
+     * @param decidingTblIdx the index of the table who provides the RowIDs.
+     * @return the total number of rows written to the output
+     */
+    private static long getOutputRowCount(final BufferedDataTable[] inData, final int decidingTblIdx) {
+        final long[] rowCounts = Arrays.stream(inData).mapToLong(BufferedDataTable::size).toArray();
+        final long totalNumRows =
+            (decidingTblIdx == -1) ? Arrays.stream(rowCounts).max().getAsLong() : rowCounts[decidingTblIdx];
+        return totalNumRows;
+    }
+
+    /**
      * Combines the rows to create new table.
      *
-     * @param exec The execution context.
+     * @param exec The execution context
      * @param output the row consumer
-     * @param iters a wrapped array of RowIterators.
-     * @param numRowsTotal the total number of rows at the output table.
+     * @param iters a wrapped array of RowIterators
+     * @param totalNumRows the total number of rows at the output table
      * @throws InterruptedException - If the execution is canceled by the user
      * @throws CanceledExecutionException - If the execution is canceled by the user
      */
     private void compute(final ExecutionContext exec, final RowConsumer output, final MultipleRowIterators iters,
-        final long numRowsTotal) throws InterruptedException, CanceledExecutionException {
-        while (iters.hasNext()) {
-            if (numRowsTotal != -1) {
-                final long currRowIndex = iters.getCurrentRowIndex();
-                exec.setProgress(currRowIndex / (double)numRowsTotal,
-                    () -> "Appending columns (row " + currRowIndex + "/" + numRowsTotal + ")");
+        final long totalNumRows) throws InterruptedException, CanceledExecutionException {
+        try {
+            while (iters.hasNext()) {
+                if (totalNumRows != -1) {
+                    final long currRowIndex = iters.getCurrentRowIndex();
+                    exec.setProgress(currRowIndex / (double)totalNumRows,
+                        () -> "Appending columns (row " + currRowIndex + "/" + totalNumRows + ")");
+                }
+                exec.checkCanceled();
+                output.consume(iters.next());
             }
-            exec.checkCanceled();
-            output.consume(iters.next());
+            differingTableSizeMsg(iters);
+        } finally {
+            iters.close();
         }
-        differingTableSizeMsg(iters);
     }
 
     /**
      * A helper method that checks if the configured mode equals the provided mode.
      *
      * @param toCheck the mode to check if it equals the configured mode
-     * @return true if configured equals provided mode
+     * @return {@code true} if configured equals provided mode
      */
     private final boolean isSelectedMode(final RowKeyMode toCheck) {
         return RowKeyMode.valueOf(m_rowIDModeSettings.getStringValue()) == toCheck;
@@ -329,7 +338,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * A helper method that gets the selected table index used for getting row keys.
      *
-     * @return the selected table index, if keys are taken from a selected table, -1 otherwise.
+     * @return the selected table index, if keys are taken from a selected table, -1 otherwise
      */
     private final int getDecidingTableIndex() {
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
@@ -344,26 +353,40 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * some of the input tables are shorter or longer than the deciding table. In the case of generating rowIDs, the
      * longest table is used for comparison.
      *
-     * @param iters a wrapped array of RowIterators.
+     * @param iters a wrapped array of RowIterators
      * @throws InterruptedException - If the execution is canceled by the user
      */
     private void differingTableSizeMsg(final MultipleRowIterators iters) throws InterruptedException {
-        // In the case of generating rowIDs, the longest table is used for comparison
-        String msgPart = " longest table";
-        if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            msgPart = " selected table (Table " + (iters.m_decidingTableIdx + 1) + ")";
+        final int[] overUsedTables = iters.overUsedTables();
+        final int[] underUsedTables = iters.underUsedTables();
+        if (overUsedTables.length > 0 || underUsedTables.length > 0) {
+            // In the case of generating rowIDs, the longest table is used as a reference for comparison
+            final String refTable = isSelectedMode(RowKeyMode.KEY_TABLE)
+                ? "the selected table " + (iters.m_decidingTableIdx + 1) + "" : "the longest table";
+
+            String warningMsg = "";
+
+            // shorter tables can happen if with rowkeymode equals table or generate
+            if (overUsedTables.length == 1) {
+                warningMsg += "Table " + overUsedTables[0] + " is shorter than " + refTable
+                    + ". Corresponding columns were filled using missing values.";
+            } else if (overUsedTables.length > 1) {
+                warningMsg += "Tables " + Arrays.toString(overUsedTables) + " are shorter than " + refTable
+                    + ". Corresponding columns were filled using missing values.";
+            }
+            // longer tables can only happen if with rowkeymode equals table
+            if (underUsedTables.length == 1) {
+                warningMsg += warningMsg.isEmpty() ? "" : " ";
+                warningMsg +=
+                    "Table " + underUsedTables[0] + " is longer than " + refTable + ". Extra rows were ignored.";
+            } else if (underUsedTables.length > 1) {
+                warningMsg += warningMsg.isEmpty() ? "" : " ";
+                warningMsg += "Tables " + Arrays.toString(underUsedTables) + " are longer than " + refTable
+                    + ". Extra rows were ignored.";
+            }
+            setWarningMessage(warningMsg);
         }
 
-        // Display warning about shorter tables that filled with missing values.
-        if (!iters.overUsedTables().equals("")) {
-            setWarningMessage("Table(s) [" + iters.overUsedTables() + "] is/are shorter than the" + msgPart
-                + "! Missing values have been added accordingly.");
-        }
-        // Display warning about longer tables that are truncated.
-        if (!iters.underUsedTables().equals("")) {
-            setWarningMessage("Table(s) [" + iters.underUsedTables() + "] is/are longer than the " + msgPart
-                + "! Extra rows are ignored.");
-        }
     }
 
     /**
@@ -396,6 +419,11 @@ final class ColumnAppender2NodeModel extends NodeModel {
          * @return flag indicating that {@link #next()} has been invoked though no more elements where available
          */
         boolean isOverused();
+
+        /**
+         * Closes the iterator.
+         */
+        void close();
     }
 
     /**
@@ -405,7 +433,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     private static final class SimpleDataRowIterator implements DataRowIterator {
 
-        private final RowIterator m_rowIt;
+        private final CloseableRowIterator m_rowIt;
 
         private final int m_numCol;
 
@@ -413,7 +441,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         private boolean m_overused = false;
 
-        SimpleDataRowIterator(final RowIterator rowIt, final int numCol) {
+        SimpleDataRowIterator(final CloseableRowIterator rowIt, final int numCol) {
             m_rowIt = rowIt;
             m_numCol = numCol;
             m_emptyRow = new DefaultRow("NoRowID",
@@ -438,6 +466,11 @@ final class ColumnAppender2NodeModel extends NodeModel {
         @Override
         public boolean isOverused() {
             return m_overused;
+        }
+
+        @Override
+        public void close() {
+            m_rowIt.close();
         }
     }
 
@@ -492,6 +525,11 @@ final class ColumnAppender2NodeModel extends NodeModel {
         public boolean isOverused() {
             return m_overused;
         }
+
+        @Override
+        public void close() {
+            m_rowInput.close();
+        }
     }
 
     /**
@@ -514,8 +552,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
         /**
          * Constructor.
          *
-         * @param rowIterators an array of row iterators.
-         * @param keyMode the way to handle the row keys.
+         * @param rowIterators an array of row iterators
+         * @param keyMode the way to handle the row keys
          * @param decidingTableIdx the table deciding the the rowID and output table length
          */
         private MultipleRowIterators(final DataRowIterator[] rowIterators, final int decidingTableIdx,
@@ -527,11 +565,13 @@ final class ColumnAppender2NodeModel extends NodeModel {
             m_currentPos = 0;
         }
 
-        private MultipleRowIterators(final RowInput[] rowInArray, final int decidingTblIdx,
+        private MultipleRowIterators(final PortInput[] rowInArray, final int decidingTblIdx,
             final boolean identicalKeys) {
-            this(IntStream.range(0, rowInArray.length)//
-                .mapToObj(
-                    i -> new StreamableDataRowIterator(rowInArray[i], rowInArray[i].getDataTableSpec().getNumColumns()))//
+            this(Arrays.stream(rowInArray)//
+                .map(i -> {
+                    final RowInput rowIn = (RowInput)i;//
+                    return new StreamableDataRowIterator(rowIn, rowIn.getDataTableSpec().getNumColumns());
+                })//
                 .toArray(DataRowIterator[]::new)//
                 , decidingTblIdx, identicalKeys);
         }
@@ -558,9 +598,9 @@ final class ColumnAppender2NodeModel extends NodeModel {
             }
             // If tables suppose to have identical keys all/none should have a next. Streaming case only.
             if (m_identicalKeys) {
-                if (count == m_iterCount) { // All have next.
+                if (count == m_iterCount) { // all have next.
                     return true;
-                } else if (count == 0) { // None has next.
+                } else if (count == 0) { // none has next.
                     return false;
                 } else {
                     throw new IllegalArgumentException("Tables contain non-matching row counts!");
@@ -579,7 +619,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
             for (int i = 0; i < m_iterCount; i++) {
                 final DataRow currRow = m_iterators[i].next();
-                for (DataCell cell : currRow) {
+                for (final DataCell cell : currRow) {
                     cells.add(cell);
                 }
                 if (i == m_decidingTableIdx) {
@@ -607,25 +647,29 @@ final class ColumnAppender2NodeModel extends NodeModel {
             return res;
         }
 
-        private String overUsedTables() {
+        private int[] overUsedTables() {
             return IntStream.range(0, m_iterCount)//
                 .filter(i -> m_iterators[i].isOverused())//
-                .mapToObj(i -> (i + 1) + "")//
-                .collect(Collectors.joining(","));
+                .map(i -> i + 1)//
+                .toArray();
         }
 
-        private String underUsedTables() throws InterruptedException {
-            final StringJoiner j = new StringJoiner(",");
+        private int[] underUsedTables() throws InterruptedException {
+            final ArrayList<Integer> indices = new ArrayList<Integer>();
             for (int i = 0; i < m_iterCount; i++) {
                 if (m_iterators[i].hasNext()) {
-                    j.add("" + i + 1);
+                    indices.add(i + 1);
                 }
             }
-            return j.toString();
+            return indices.stream().mapToInt(i -> i).toArray();
         }
 
         private long getCurrentRowIndex() {
             return m_currentPos;
+        }
+
+        private void close() {
+            Arrays.stream(m_iterators).forEach(DataRowIterator::close);
         }
 
     }
@@ -635,6 +679,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
      *
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
+    @FunctionalInterface
     private static interface RowConsumer {
         void consume(DataRow row) throws InterruptedException;
     }
@@ -706,19 +751,14 @@ final class ColumnAppender2NodeModel extends NodeModel {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                final RowInput[] rowInArray = new RowInput[inputs.length];
                 final int decidingTblIdx = getDecidingTableIndex();
                 /* Number of rows will be -1 for all inputs in case of streaming. */
                 final long[] rowCounts = new long[m_numInPorts];
                 Arrays.fill(rowCounts, -1);
                 final MultipleRowIterators multiIters =
-                    new MultipleRowIterators(rowInArray, decidingTblIdx, isSelectedMode(RowKeyMode.IDENTICAL));
+                    new MultipleRowIterators(inputs, decidingTblIdx, isSelectedMode(RowKeyMode.IDENTICAL));
                 final RowOutput rowOut = (RowOutput)outputs[0];
                 compute(exec, rowOut::push, multiIters, -1);
-
-                for (int i = 0; i < inputs.length; i++) {
-                    rowInArray[i].close();
-                }
                 rowOut.close();
             }
         };

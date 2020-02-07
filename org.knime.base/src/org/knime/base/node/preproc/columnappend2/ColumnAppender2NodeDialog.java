@@ -79,7 +79,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 
-public class ColumnAppender2NodeDialog extends NodeDialogPane {
+final class ColumnAppender2NodeDialog extends NodeDialogPane {
 
     private final int m_numInputPorts;
 
@@ -100,7 +100,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
     /**
      * Constructor for dynamic ports.
      *
-     * @param portsConfiguration the ports configuration.
+     * @param portsConfiguration the ports configuration
      */
     public ColumnAppender2NodeDialog(final PortsConfiguration portsConfiguration) {
 
@@ -210,7 +210,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
     /**
      * A helper method that checks the current mode of getting row keys.
      *
-     * @return true if keys are taken from a selected table, false otherwise.
+     * @return {@code true} if keys are taken from a selected table, {@code false} otherwise
      */
     private final boolean isKeyFromTableMode() {
         return ColumnAppender2NodeModel.RowKeyMode
