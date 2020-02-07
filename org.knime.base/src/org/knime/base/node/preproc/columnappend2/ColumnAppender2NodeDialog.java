@@ -80,6 +80,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 
 public class ColumnAppender2NodeDialog extends NodeDialogPane {
+
     private final int m_numInputPorts;
 
     private final SettingsModelString m_rowKeyModeModel;
@@ -99,7 +100,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
     /**
      * Constructor for dynamic ports.
      *
-     * @param portsConfiguration The ports configuration.
+     * @param portsConfiguration the ports configuration.
      */
     public ColumnAppender2NodeDialog(final PortsConfiguration portsConfiguration) {
 
@@ -165,7 +166,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
         controlTableSelect();
     }
 
-    /* Trick borrowed from  LDA2NodeDialog. */
+    /* Trick borrowed from LDA2NodeDialog. */
     /**
      * A way to prevent overwriting on existing settings when the selected table is no more there, e.g., when the input
      * port providing the table is deleted.
@@ -191,9 +192,6 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
         }
     }
 
-    /**
-     * This makes sure the load
-     */
     private void controlTableSelect() {
         final JSpinner spinner = (JSpinner)m_selectedTableIndexComponent.getComponentPanel().getComponent(1);
         final JFormattedTextField spinnerTextField = ((DefaultEditor)spinner.getEditor()).getTextField();
@@ -215,7 +213,7 @@ public class ColumnAppender2NodeDialog extends NodeDialogPane {
      * @return true if keys are taken from a selected table, false otherwise.
      */
     private final boolean isKeyFromTableMode() {
-        return ColumnAppender2NodeModel.RowKeyMode.valueOf(m_rowKeyModeModel.getStringValue())
-            .equals(ColumnAppender2NodeModel.RowKeyMode.KEY_TABLE);
+        return ColumnAppender2NodeModel.RowKeyMode
+            .valueOf(m_rowKeyModeModel.getStringValue()) == (ColumnAppender2NodeModel.RowKeyMode.KEY_TABLE);
     }
 }
