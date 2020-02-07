@@ -43,31 +43,73 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject.writer;
+package org.knime.filehandling.core.node.portobject;
 
-import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeFactory;
+import java.util.Optional;
+
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory;
+import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFactory;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
- * Abstract node factory for port object writer nodes.
+ * Abstract node factory for port object reader and writer nodes.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <M> the node model of the node
  * @param <D> the node dialog of the node
+ * @noextend extend either {@link PortObjectReaderNodeFactory} or {@link PortObjectWriterNodeFactory}
  */
-public abstract class AbstractPortObjectWriterNodeFactory<M extends AbstractPortObjectWriterNodeModel<?>,
-        D extends PortObjectWriterNodeDialog<?>> extends AbstractPortObjectIONodeFactory<M, D> {
+public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>,
+        D extends PortObjectIONodeDialog<?>> extends ConfigurableNodeFactory<M> {
 
     @Override
-    protected void addAdditionalPorts(final PortsConfigurationBuilder b) {
-        b.addFixedInputPortGroup("Port Object", getInputPortType());
+    protected final D createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        final D dia = createDialog(creationConfig);
+        dia.finalizeOptionsPanel();
+        return dia;
+    }
+
+    @Override
+    public int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    public NodeView<M> createNodeView(final int viewIndex, final M nodeModel) {
+        return null;
+    }
+
+    @Override
+    public final boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
+        b.addOptionalInputPortGroup(PortObjectIONodeModel.CONNECTION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        addAdditionalPorts(b);
+        return Optional.of(b);
     }
 
     /**
-     * Returns the {@link PortType type} of input the node receives.
+     * Creates and returns a new node dialog pane, if {@link #hasDialog()} returns <code>true</code>.
      *
-     * @return the type of input the node receives
+     * @param creationConfig the node creation configuration
+     * @return a new {@link NodeModel}
      */
-    protected abstract PortType getInputPortType();
+    protected abstract D createDialog(final NodeCreationConfiguration creationConfig);
+
+    /**
+     * Allows to add additional input and output ports. Note that the first input port is occupied by an optional
+     * connection port.
+     *
+     * @param b the ports configuration builder
+     */
+    protected abstract void addAdditionalPorts(final PortsConfigurationBuilder b);
 
 }

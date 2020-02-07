@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,67 +40,34 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * -------------------------------------------------------------------
  *
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
+import org.knime.core.node.port.PortType;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeFactory;
 
 /**
- * Configuration class for port object writer nodes that can be extended with additional configurations.
+ * Abstract node factory for port object writer nodes.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @param <M> the node model of the node
+ * @param <D> the node dialog of the node
  */
-public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
+public abstract class PortObjectWriterNodeFactory<M extends PortObjectToPathWriterNodeModel<?>,
+        D extends PortObjectWriterNodeDialog<?>> extends PortObjectIONodeFactory<M, D> {
 
-    /** Config key for overwrite checkbox. */
-    private static final String CFG_OVERWRITE = "overwrite";
-
-    private final SettingsModelBoolean m_overwriteModel = new SettingsModelBoolean(CFG_OVERWRITE, false);
-
-    /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
-     */
-    protected PortObjectWriterNodeConfig() {
-        super();
+    @Override
+    protected void addAdditionalPorts(final PortsConfigurationBuilder b) {
+        b.addFixedInputPortGroup("Port Object", getInputPortType());
     }
 
     /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     * Returns the {@link PortType type} of input the node receives.
      *
-     * @param fileSuffixes the suffixes to filter on
+     * @return the type of input the node receives
      */
-    protected PortObjectWriterNodeConfig(final String[] fileSuffixes) {
-        super(fileSuffixes);
-    }
+    protected abstract PortType getInputPortType();
 
-    /**
-     * @return the overwriteModel
-     */
-    public SettingsModelBoolean getOverwriteModel() {
-        return m_overwriteModel;
-    }
-
-    @Override
-    protected void validateConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.validateConfigurationForModel(settings);
-        m_overwriteModel.validateSettings(settings);
-    }
-
-    @Override
-    protected void saveConfigurationForModel(final NodeSettingsWO settings) {
-        super.saveConfigurationForModel(settings);
-        m_overwriteModel.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.loadConfigurationForModel(settings);
-        m_overwriteModel.loadSettingsFrom(settings);
-    }
 }

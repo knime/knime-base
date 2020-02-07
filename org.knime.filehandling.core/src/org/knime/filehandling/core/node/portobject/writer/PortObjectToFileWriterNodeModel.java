@@ -43,31 +43,62 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject.reader;
+package org.knime.filehandling.core.node.portobject.writer;
 
-import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeFactory;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortObject;
 
 /**
- * Abstract node factory for port object reader nodes.
+ * Abstract node model for port object writer nodes that write directly to a file.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @param <M> the node model of the node
- * @param <D> the node dialog of the node
+ * @param <C> the config used by the node
  */
-public abstract class AbstractPortObjectReaderNodeFactory<M extends AbstractPortObjectReaderNodeModel<?>,
-        D extends PortObjectReaderNodeDialog<?>> extends AbstractPortObjectIONodeFactory<M, D> {
+public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriterNodeConfig>
+    extends PortObjectToPathWriterNodeModel<C> {
+
+    /** The don't overwrite open options. */
+    private static final OpenOption[] NO_OVERWRITE_OPTIONS = new OpenOption[]{StandardOpenOption.CREATE};
+
+    /** The overwrite open options. */
+    private static final OpenOption[] OVERWRITE_OPTIONS =
+        new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
+
+    /**
+     * Constructor.
+     *
+     * @param creationConfig the node creation configuration
+     * @param config the config
+     */
+    protected PortObjectToFileWriterNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
+        super(creationConfig, config);
+    }
 
     @Override
-    protected void addAdditionalPorts(final PortsConfigurationBuilder b) {
-        b.addFixedOutputPortGroup("Port Object", getOutputPortType());
+    protected final void writeToPath(final PortObject object, final Path outputPath, final ExecutionContext exec)
+        throws Exception {
+        try (final OutputStream outputStream = Files.newOutputStream(outputPath,
+            getConfig().getOverwriteModel().getBooleanValue() ? OVERWRITE_OPTIONS : NO_OVERWRITE_OPTIONS)) {
+            write(object, outputStream, exec);
+        }
     }
 
     /**
-     * Returns the {@link PortType type} of output the node produces.
+     * Writes the object out.
      *
-     * @return the type of output the node produces
+     * @param object the port object that should be written
+     * @param outputStream the output stream
+     * @param exec the execution context
+     * @throws Exception if any exception occurs
      */
-    protected abstract PortType getOutputPortType();
+    protected abstract void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
+        throws Exception;
 
 }

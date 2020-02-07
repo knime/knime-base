@@ -43,73 +43,50 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject;
+package org.knime.filehandling.core.node.portobject.reader;
 
-import java.util.Optional;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.knime.core.node.ConfigurableNodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.node.portobject.reader.AbstractPortObjectReaderNodeFactory;
-import org.knime.filehandling.core.node.portobject.writer.AbstractPortObjectWriterNodeFactory;
-import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.core.node.port.PortObject;
 
 /**
- * Abstract node factory for port object reader and writer nodes.
+ * Abstract node model for port object reader nodes that read directly from a file.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @param <M> the node model of the node
- * @param <D> the node dialog of the node
- * @noextend extend either {@link AbstractPortObjectReaderNodeFactory} or {@link AbstractPortObjectWriterNodeFactory}
+ * @param <C> the config used by the node
  */
-public abstract class AbstractPortObjectIONodeFactory<M extends AbstractPortObjectIONodeModel<?>,
-        D extends AbstractPortObjectIONodeDialog<?>> extends ConfigurableNodeFactory<M> {
-
-    @Override
-    protected final D createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final D dia = createDialog(creationConfig);
-        dia.finalizeOptionsPanel();
-        return dia;
-    }
-
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<M> createNodeView(final int viewIndex, final M nodeModel) {
-        return null;
-    }
-
-    @Override
-    public final boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(AbstractPortObjectIONodeModel.CONNECTION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        addAdditionalPorts(b);
-        return Optional.of(b);
-    }
+public abstract class PortObjectFromFileReaderNodeModel<C extends PortObjectReaderNodeConfig>
+    extends PortObjectFromPathReaderNodeModel<C> {
 
     /**
-     * Creates and returns a new node dialog pane, if {@link #hasDialog()} returns <code>true</code>.
+     * Constructor.
      *
      * @param creationConfig the node creation configuration
-     * @return a new {@link NodeModel}
+     * @param config the config
      */
-    protected abstract D createDialog(final NodeCreationConfiguration creationConfig);
+    protected PortObjectFromFileReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
+        super(creationConfig, config);
+    }
+
+    @Override
+    protected final PortObject[] readFromPath(final Path inputPath, final ExecutionContext exec) throws Exception {
+        try (final InputStream inputStream = Files.newInputStream(inputPath)) {
+            return read(inputStream, exec);
+        }
+    }
 
     /**
-     * Allows to add additional input and output ports. Note that the first input port is occupied by an optional
-     * connection port.
+     * Reads the object in.
      *
-     * @param b the ports configuration builder
+     * @param inputStream the input stream of the object
+     * @param exec the execution context
+     * @return the read in port object(s)
+     * @throws Exception if any exception occurs
      */
-    protected abstract void addAdditionalPorts(final PortsConfigurationBuilder b);
+    protected abstract PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception;
 
 }

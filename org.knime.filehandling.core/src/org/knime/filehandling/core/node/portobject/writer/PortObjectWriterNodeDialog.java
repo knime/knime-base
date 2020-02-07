@@ -49,6 +49,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -58,7 +59,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeDialog;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
 
 /**
  * Node dialog for port object writer nodes that can be extended with additional settings components.
@@ -66,8 +67,7 @@ import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeDialo
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the config of the node
  */
-public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig>
-    extends AbstractPortObjectIONodeDialog<C> {
+public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> extends PortObjectIONodeDialog<C> {
 
     private final DialogComponentBoolean m_overwriteCheckbox;
 
@@ -76,10 +76,14 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig>
      *
      * @param config the config
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
+     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
+     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
+     *            {@link JFileChooser#DIRECTORIES_ONLY}
      */
-    public PortObjectWriterNodeDialog(final C config, final String fileChooserHistoryId) {
-        super(config, fileChooserHistoryId, false);
-        m_overwriteCheckbox = new DialogComponentBoolean(m_config.getOverwriteModel(), "Overwrite");
+    public PortObjectWriterNodeDialog(final C config, final String fileChooserHistoryId,
+        final int fileChooserSelectionMode) {
+        super(config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
+        m_overwriteCheckbox = new DialogComponentBoolean(getConfig().getOverwriteModel(), "Overwrite");
         addAdditionalPanel(createOverwriteSettingsPanel());
     }
 

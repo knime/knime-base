@@ -80,12 +80,10 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDi
  * @noextend extend either {@link PortObjectReaderNodeDialog} or {@link PortObjectWriterNodeDialog}
  */
 @SuppressWarnings("deprecation")
-public abstract class AbstractPortObjectIONodeDialog<C extends AbstractPortObjectIONodeConfig> extends NodeDialogPane {
+public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> extends NodeDialogPane {
 
     /** The config. */
-    protected final C m_config;
-
-    private final boolean m_isReader;
+    private final C m_config;
 
     private final List<JPanel> m_additionalPanels = new ArrayList<>();
 
@@ -98,37 +96,23 @@ public abstract class AbstractPortObjectIONodeDialog<C extends AbstractPortObjec
      *
      * @param config the config
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
-     * @param isReader {@code true} if the node is a reader, {@code false} if the node is a writer
-     */
-    protected AbstractPortObjectIONodeDialog(final C config, final String fileChooserHistoryId,
-        final boolean isReader) {
-        this(config, fileChooserHistoryId, isReader, isReader ? JFileChooser.OPEN_DIALOG : JFileChooser.SAVE_DIALOG,
-            JFileChooser.FILES_ONLY);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param config the config
-     * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
-     * @param isReader true if the node is a reader, false if the node is a writer
      * @param fileChooserDialogType integer defining the file chooser dialog type (see {@link JFileChooser#OPEN_DIALOG},
      *            {@link JFileChooser#SAVE_DIALOG})
      * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
      *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
      *            {@link JFileChooser#DIRECTORIES_ONLY}
      */
-    protected AbstractPortObjectIONodeDialog(final C config, final String fileChooserHistoryId, final boolean isReader,
-        final int fileChooserDialogType, final int fileChooserSelectionMode) {
+    protected PortObjectIONodeDialog(final C config, final String fileChooserHistoryId, final int fileChooserDialogType,
+        final int fileChooserSelectionMode) {
         m_config = config;
-        m_isReader = isReader;
         final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
-        m_filePanel = new DialogComponentFileChooser2(isReader ? 0 : 1, fileChooserModel, fileChooserHistoryId,
-            fileChooserDialogType, fileChooserSelectionMode, fvm);
+        m_filePanel = new DialogComponentFileChooser2(PortObjectIONodeModel.CONNECTION_PORT_IDX, fileChooserModel,
+            fileChooserHistoryId, fileChooserDialogType, fileChooserSelectionMode, fvm);
         final String[] defaultSuffixes = fileChooserModel.getDefaultSuffixes();
-        if (!m_isReader && (defaultSuffixes != null && defaultSuffixes.length > 0)) {
+        final boolean isReaerdDialog = fileChooserDialogType == JFileChooser.OPEN_DIALOG;
+        if (!isReaerdDialog && (defaultSuffixes != null && defaultSuffixes.length > 0)) {
             m_filePanel.setForceExtensionOnSave(defaultSuffixes[0]);
         }
 
@@ -137,7 +121,7 @@ public abstract class AbstractPortObjectIONodeDialog<C extends AbstractPortObjec
         m_timeoutSpinner.setToolTipText("Timeout to connect to the server in milliseconds");
         timeoutModel.addChangeListener(l -> m_filePanel.setTimeout(timeoutModel.getIntValue()));
         fileChooserModel.addChangeListener(l -> updateTimeoutEnabledness());
-        m_additionalPanels.add(createInputLocationPanel());
+        m_additionalPanels.add(createInputLocationPanel(isReaerdDialog ? "Input location" : "Output location"));
         m_additionalPanels.add(createConnectionPanel());
     }
 
@@ -188,10 +172,9 @@ public abstract class AbstractPortObjectIONodeDialog<C extends AbstractPortObjec
         addTab("Options", panel);
     }
 
-    private JPanel createInputLocationPanel() {
+    private JPanel createInputLocationPanel(final String borderTitle) {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            m_isReader ? "Input location" : "Output location"));
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), borderTitle));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 5, 0, 5);
@@ -221,6 +204,15 @@ public abstract class AbstractPortObjectIONodeDialog<C extends AbstractPortObjec
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.weightx = 1;
         return gbc;
+    }
+
+    /**
+     * Method to obtain the PortObjectIONodeConfig of this node dialog.
+     *
+     * @return the config of this node dialog
+     */
+    protected C getConfig() {
+        return m_config;
     }
 
     @Override

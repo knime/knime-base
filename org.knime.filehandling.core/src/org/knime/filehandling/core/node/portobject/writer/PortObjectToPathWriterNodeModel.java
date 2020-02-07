@@ -43,29 +43,25 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject.reader;
+package org.knime.filehandling.core.node.portobject.writer;
 
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeModel;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
- * Abstract node model for port object reader nodes.
+ * Abstract node model for port object writer nodes that write to a {@link Path}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <C> the config used by the node
  */
-public abstract class AbstractPortObjectReaderNodeModel<C extends PortObjectReaderNodeConfig>
-    extends AbstractPortObjectIONodeModel<C> {
+public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONodeConfig>
+    extends PortObjectIONodeModel<C> {
 
     /**
      * Constructor.
@@ -73,34 +69,27 @@ public abstract class AbstractPortObjectReaderNodeModel<C extends PortObjectRead
      * @param creationConfig the node creation configuration
      * @param config the config
      */
-    protected AbstractPortObjectReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
+    protected PortObjectToPathWriterNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
         super(creationConfig.getPortConfig().get(), config);
-        // Check if a URL is already configured and set it if so.
-        // This is, e.g., the case when a file has been dropped into AP and the node has automatically been created.
-        final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            m_config.getFileChooserModel().setPathOrURL(urlConfig.get().getUrl().getPath().toString());
-        }
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
+    protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final FileChooserHelper fch = createFileChooserHelper(data);
-        final List<Path> paths = fch.getPaths();
-        assert paths.size() == 1;
-        try (final InputStream inputStream = Files.newInputStream(paths.get(0))) {
-            return read(inputStream, exec);
-        }
+        final Path path = fch.getPathFromSettings();
+        writeToPath(data[0], path, exec);
+        return null;
     }
 
     /**
-     * Reads the object in.
+     * Writes the object to a path.
      *
-     * @param inputStream the input stream of the object
+     * @param object the port object that should be written
+     * @param outputPath the output path
      * @param exec the execution context
-     * @return the read in port object(s)
      * @throws Exception if any exception occurs
      */
-    protected abstract PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception;
+    protected abstract void writeToPath(final PortObject object, final Path outputPath, final ExecutionContext exec)
+        throws Exception;
 
 }

@@ -51,19 +51,19 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
 /**
  * Configuration class for port object reader and writer nodes that can be extended with additional configurations.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @noextend extend either {@link PortObjectReaderNodeConfig} or {@link PortObjectWriterNodeConfig}
+ * @noextend extend either {@link PortObject} or {@link PortObjectWriterNodeConfig}
  */
-public abstract class AbstractPortObjectIONodeConfig {
+public abstract class PortObjectIONodeConfig {
 
     /** Config key for file chooser. */
     private static final String CFG_FILE_CHOOSER = "filechooser";
@@ -81,7 +81,7 @@ public abstract class AbstractPortObjectIONodeConfig {
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
      */
-    protected AbstractPortObjectIONodeConfig() {
+    protected PortObjectIONodeConfig() {
         m_fileChooserModel = new SettingsModelFileChooser2(CFG_FILE_CHOOSER);
     }
 
@@ -90,7 +90,7 @@ public abstract class AbstractPortObjectIONodeConfig {
      *
      * @param fileSuffixes the suffixes to filter on
      */
-    protected AbstractPortObjectIONodeConfig(final String[] fileSuffixes) {
+    protected PortObjectIONodeConfig(final String[] fileSuffixes) {
         m_fileChooserModel = new SettingsModelFileChooser2(CFG_FILE_CHOOSER, fileSuffixes);
     }
 

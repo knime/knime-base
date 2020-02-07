@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,67 +40,63 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject.writer;
+package org.knime.filehandling.core.node.portobject.reader;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
- * Configuration class for port object writer nodes that can be extended with additional configurations.
+ * Abstract node model for port object reader nodes that read from a {@link Path}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @param <C> the config used by the node
  */
-public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
-
-    /** Config key for overwrite checkbox. */
-    private static final String CFG_OVERWRITE = "overwrite";
-
-    private final SettingsModelBoolean m_overwriteModel = new SettingsModelBoolean(CFG_OVERWRITE, false);
+public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectReaderNodeConfig>
+    extends PortObjectIONodeModel<C> {
 
     /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
-     */
-    protected PortObjectWriterNodeConfig() {
-        super();
-    }
-
-    /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     * Constructor.
      *
-     * @param fileSuffixes the suffixes to filter on
+     * @param creationConfig the node creation configuration
+     * @param config the config
      */
-    protected PortObjectWriterNodeConfig(final String[] fileSuffixes) {
-        super(fileSuffixes);
+    protected PortObjectFromPathReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
+        super(creationConfig.getPortConfig().get(), config);
+        // Check if a URL is already configured and set it if so.
+        // This is, e.g., the case when a file has been dropped into AP and the node has automatically been created.
+        final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            getConfig().getFileChooserModel().setPathOrURL(urlConfig.get().getUrl().getPath().toString());
+        }
+    }
+
+    @Override
+    protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
+        final FileChooserHelper fch = createFileChooserHelper(data);
+        final List<Path> paths = fch.getPaths();
+        assert paths.size() == 1;
+        return readFromPath(paths.get(0), exec);
     }
 
     /**
-     * @return the overwriteModel
+     * Reads the object from a path.
+     *
+     * @param inputPath the input path of the object
+     * @param exec the execution context
+     * @return the read in port object(s)
+     * @throws Exception if any exception occurs
      */
-    public SettingsModelBoolean getOverwriteModel() {
-        return m_overwriteModel;
-    }
+    protected abstract PortObject[] readFromPath(final Path inputPath, final ExecutionContext exec) throws Exception;
 
-    @Override
-    protected void validateConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.validateConfigurationForModel(settings);
-        m_overwriteModel.validateSettings(settings);
-    }
-
-    @Override
-    protected void saveConfigurationForModel(final NodeSettingsWO settings) {
-        super.saveConfigurationForModel(settings);
-        m_overwriteModel.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.loadConfigurationForModel(settings);
-        m_overwriteModel.loadSettingsFrom(settings);
-    }
 }

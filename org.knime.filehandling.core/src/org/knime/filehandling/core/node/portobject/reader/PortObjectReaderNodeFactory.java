@@ -43,61 +43,31 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.node.portobject.writer;
+package org.knime.filehandling.core.node.portobject.reader;
 
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.port.PortObject;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeModel;
+import org.knime.core.node.port.PortType;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeFactory;
 
 /**
- * Abstract node model for port object writer nodes.
+ * Abstract node factory for port object reader nodes.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @param <C> the config used by the node
+ * @param <M> the node model of the node
+ * @param <D> the node dialog of the node
  */
-public abstract class AbstractPortObjectWriterNodeModel<C extends PortObjectWriterNodeConfig>
-    extends AbstractPortObjectIONodeModel<C> {
-
-    /**
-     * Constructor.
-     *
-     * @param creationConfig the node creation configuration
-     * @param config the config
-     */
-    protected AbstractPortObjectWriterNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
-        super(creationConfig.getPortConfig().get(), config);
-    }
+public abstract class PortObjectReaderNodeFactory<M extends PortObjectFromPathReaderNodeModel<?>,
+        D extends PortObjectReaderNodeDialog<?>> extends PortObjectIONodeFactory<M, D> {
 
     @Override
-    protected PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
-        final FileChooserHelper fch = createFileChooserHelper(data);
-        final Path path = fch.getPathFromSettings();
-        if (!m_config.getOverwriteModel().getBooleanValue() && Files.exists(path)) {
-            throw new InvalidSettingsException(
-                "Output file '" + path + "' exists and must not be overwritten due to user settings.");
-        }
-        try (final OutputStream inputStream = Files.newOutputStream(path)) {
-            write(data[0], inputStream, exec);
-        }
-        return null;
+    protected void addAdditionalPorts(final PortsConfigurationBuilder b) {
+        b.addFixedOutputPortGroup("Port Object", getOutputPortType());
     }
 
     /**
-     * Writes the object out.
+     * Returns the {@link PortType type} of output the node produces.
      *
-     * @param object the port object that should be written
-     * @param outputStream the output stream
-     * @param exec the execution context
-     * @throws Exception if any exception occurs
+     * @return the type of output the node produces
      */
-    protected abstract void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
-        throws Exception;
+    protected abstract PortType getOutputPortType();
 
 }

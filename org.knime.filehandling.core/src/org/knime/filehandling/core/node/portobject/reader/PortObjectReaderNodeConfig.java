@@ -46,14 +46,14 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
-import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeConfig;
+import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
 
 /**
  * Configuration class for port object reader nodes that can be extended with additional configurations.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public class PortObjectReaderNodeConfig extends AbstractPortObjectIONodeConfig {
+public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig {
 
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.

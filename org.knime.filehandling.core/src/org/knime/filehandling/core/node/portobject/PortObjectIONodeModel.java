@@ -61,8 +61,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.node.portobject.reader.AbstractPortObjectReaderNodeModel;
-import org.knime.filehandling.core.node.portobject.writer.AbstractPortObjectWriterNodeModel;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectFromPathReaderNodeModel;
+import org.knime.filehandling.core.node.portobject.writer.PortObjectToPathWriterNodeModel;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
@@ -70,15 +70,19 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the config used by the node
- * @noextend extend either {@link AbstractPortObjectReaderNodeModel} or {@link AbstractPortObjectWriterNodeModel}
+ * @noextend extend either {@link PortObjectFromPathReaderNodeModel} or {@link PortObjectToPathWriterNodeModel}
  */
-public abstract class AbstractPortObjectIONodeModel<C extends AbstractPortObjectIONodeConfig> extends NodeModel {
-
-    /** The config. */
-    protected final C m_config;
+public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> extends NodeModel {
 
     /** The name of the optional connection port group. */
     protected static final String CONNECTION_PORT_GRP_NAME = "File System Connection";
+
+    /** The optional file system connection port index. */
+    static final int CONNECTION_PORT_IDX = 0;
+
+    /** The config. */
+    private final C m_config;
+
 
     /**
      * Constructor.
@@ -86,7 +90,7 @@ public abstract class AbstractPortObjectIONodeModel<C extends AbstractPortObject
      * @param portsConfig the node creation configuration
      * @param config the config
      */
-    protected AbstractPortObjectIONodeModel(final PortsConfiguration portsConfig, final C config) {
+    protected PortObjectIONodeModel(final PortsConfiguration portsConfig, final C config) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
     }
@@ -110,8 +114,17 @@ public abstract class AbstractPortObjectIONodeModel<C extends AbstractPortObject
     protected FileChooserHelper createFileChooserHelper(final PortObject[] data) throws IOException {
         final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
         // can be safely set to 0 since we know that this is the ports object position
-        final Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(data, 0);
+        final Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(data, CONNECTION_PORT_IDX);
         return new FileChooserHelper(fs, fileChooserModel, m_config.getTimeoutModel().getIntValue());
+    }
+
+    /**
+     * Method to obtain the PortObjectIONodeConfig of this node model.
+     *
+     * @return the config of this node model
+     */
+    protected C getConfig() {
+        return m_config;
     }
 
     @Override
