@@ -44,15 +44,19 @@
  */
 package org.knime.base.node.io.pmml.write;
 
+import org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * 
+ *
  * @author Fabian Dill, University of Konstanz
+ *
+ * @deprecated see {@link PMMLWriterNodeFactory2}
  */
-public class PMMLWriterNodeFactory 
+@Deprecated
+public class PMMLWriterNodeFactory
     extends NodeFactory<PMMLWriterNodeModel> {
 
     /**

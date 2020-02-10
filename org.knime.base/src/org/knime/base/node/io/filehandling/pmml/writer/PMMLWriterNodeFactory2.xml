@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="writer.png" type="Sink"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>PMML Writer</name>
+
+	<shortDescription>
+		Writes a PMML model into a PMML compliant file.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This nodes writes a PMML model from a PMML model port into a PMML
+			v4.2 compliant
+			file or to a remote location denoted by an URL. If a
+			PMML file from
+			another version is read by the PMML Reader and
+			directly
+			written by this node, it is converted into PMML v4.2.
+			If the model is
+			not valid (unknown data types, etc.) an exception is
+			thrown during
+			execution.
+			<br />
+			Note that if the destination location is a remote URL, not all
+			options
+			are available because in general it's
+			not possible to determine
+			whether the remote location exists. In this
+			case it will always be
+			overwritten.
+		</intro>
+		<option name="Write to">
+			Select a file system in which you want to store the file. There
+			are
+			four default file system options to choose from:
+			<br />
+			<ul>
+				<li>Local File System: Allows you to select a location in your
+					local
+					system.
+				</li>
+				<li>Relative to: Allows you to choose whether to resolve the path
+					relative to the workflow, mountpoint or node.
+				</li>
+				<li>Mountpoint: Allows you to choose a mountpoint. Whenever this is
+					selected, a new drop-down menu appears to choose from available
+					mountpoints.
+				</li>
+				<li>Custom URL: Uses the standard URL handler providing the ability
+					to write a file to URLs (e.g. file, http or KNIME protocol).
+					Browsing is disabled for this option.
+				</li>
+			</ul>
+			It is possible to use other file systems with this node. Therefore,
+			you have to enable the file system connection input port of this node
+			by clicking the
+			<b>...</b>
+			in the bottom left corner of the node's icon and choose
+			<i>Add File System Connection port</i>
+			.
+			<br />
+			Afterwards, you can simply connect the desired connector node to the
+			reader node. The file system connection will then be shown in the
+			drop down menu.
+		</option>
+		<option name="File/URL">
+			Enter a valid destination. Depending on the selected file system this
+			is either a path (used by
+			<i>Local File System</i>
+			,
+			<i>Relative to</i>
+			,
+			<i>Mountpoint</i>
+			options and custom file systems added by specific connector nodes) or
+			a URL (used by
+			<i>Custom URL</i>
+			option).
+			<br />
+			A path usually starts with a slash (/) character and does not contain
+			a protocol.
+			You can also choose a previously selected file from
+			the
+			drop-down list, or select a destination from the
+			&quot;Browse...&quot; dialog (browsing is not available for custom
+			URLs).
+		</option>
+		<option name="Timeout (ms)">
+			Timeout in milliseconds when writing remote files.
+			<tt>0</tt>
+			means no
+			timeout. In case it takes longer to connect to the host, the
+			node fails to
+			execute.
+			<br />
+			<i>Note</i>
+			: This option is only active in case that the
+			<i>Custom URL</i>
+			or
+			<i>Relative to</i>
+			file system is selected. Other file
+			systems don't use a timeout or the
+			timeout is set directly in the specific
+			connector node.
+		</option>
+		<option name="Overwrite file if exists">Select when existing files should be
+			overwritten.
+			If this option is unchecked, the node will fail if a
+			file already
+			exists.
+		</option>
+		<option name="Create directories if not exist">Select when the directories of the selected output
+			location should be created if they do not already exist. If this
+			option is unchecked, the node will fail if a directory does not
+			exist.
+		</option>
+		<option name="Validate PMML before export">Select to validate the PMML document that should
+			be written. If it is not compliant with the schema, the node will
+			fail before actually writing.
+		</option>
+	</fullDescription>
+
+
+	<ports>
+		<inPort index="0" name="PMML Model">The PMML model to write.</inPort>
+		<dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+	</ports>
+</knimeNode>

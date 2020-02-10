@@ -21,7 +21,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -40,31 +40,67 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   29.10.2005 (mb): created
+ *   Feb 3, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.predictor;
+package org.knime.base.node.io.filehandling.pmml.writer;
 
-import org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory;
-import org.knime.base.node.io.portobject.PortObjectWriterNodeFactory;
-import org.knime.core.node.port.PortObject;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
-/** Node that connects to arbitrary model ports and writes the model as
- * ModelContent to a chosen file.
+/**
+ * Node config of the PMML writer node.
  *
- * @author M. Berthold, University of Konstanz
- *
- * @deprecated see {@link ModelWriterNodeFactory}
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-@Deprecated
-public class PredictorWriterNodeFactory extends PortObjectWriterNodeFactory {
+final class PMMLWriterNodeConfig2 extends PortObjectWriterNodeConfig {
+
+    /** The pmml file extension/suffix. */
+    private static final String[] PMML_SUFFIX = new String[]{".pmml"};
+
+    /** Config key for validate PMML checkbox. */
+    private static final String CFG_VALIDATE_PMML = "validate_PMML";
+
+    /** Settings model storing the validate pmml flag. */
+    private final SettingsModelBoolean m_validatePMMLModel = new SettingsModelBoolean(CFG_VALIDATE_PMML, true);
 
     /**
-     *
+     * Constructor.
      */
-    public PredictorWriterNodeFactory() {
-        super(PortObject.TYPE);
+    PMMLWriterNodeConfig2() {
+        super(PMML_SUFFIX);
     }
+
+    /**
+     * Returns the model storing the validate pmml flag.
+     *
+     * @return the validatePMMLModel
+     */
+    SettingsModelBoolean getValidatePMMLModel() {
+        return m_validatePMMLModel;
+    }
+
+    @Override
+    protected void validateConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_validatePMMLModel.validateSettings(settings);
+        super.validateConfigurationForModel(settings);
+    }
+
+    @Override
+    protected void saveConfigurationForModel(final NodeSettingsWO settings) {
+        m_validatePMMLModel.saveSettingsTo(settings);
+        super.saveConfigurationForModel(settings);
+    }
+
+    @Override
+    protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_validatePMMLModel.loadSettingsFrom(settings);
+        super.loadConfigurationForModel(settings);
+    }
+
 }

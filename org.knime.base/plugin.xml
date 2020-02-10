@@ -1180,12 +1180,14 @@
       <node
             after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
             category-path="/io/write"
+            deprecated="true"
             factory-class="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
             >
       </node>
       <node
             after="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
             category-path="/io/write"
+            deprecated="true"
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
@@ -2180,6 +2182,16 @@
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
+      </node>
+      <node
+            category-path="/io/write"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory">
+      </node>
+      <node
+            category-path="/io/write"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2">
       </node>
    </extension>
    

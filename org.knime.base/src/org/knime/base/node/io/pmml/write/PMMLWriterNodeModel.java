@@ -71,7 +71,10 @@ import org.knime.core.util.FileUtil;
 /**
  *
  * @author Fabian Dill, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeModel2}
  */
+@Deprecated
 public class PMMLWriterNodeModel extends NodeModel {
 
 

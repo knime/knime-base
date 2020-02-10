@@ -54,6 +54,7 @@ import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
@@ -64,7 +65,10 @@ import org.knime.core.util.FileUtil;
 /**
  *
  * @author Fabian Dill, University of Konstanz
+ *
+ * @deprecated see {@link PMMLWriterNodeFactory2}
  */
+@Deprecated
 public class PMMLWriterNodeDialog extends DefaultNodeSettingsPane {
 
     /**

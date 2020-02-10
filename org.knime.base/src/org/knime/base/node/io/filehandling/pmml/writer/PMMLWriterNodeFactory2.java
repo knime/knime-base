@@ -41,30 +41,36 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
- * History
- *   29.10.2005 (mb): created
  */
-package org.knime.base.node.io.predictor;
+package org.knime.base.node.io.filehandling.pmml.writer;
 
-import org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory;
-import org.knime.base.node.io.portobject.PortObjectWriterNodeFactory;
-import org.knime.core.node.port.PortObject;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFactory;
 
-/** Node that connects to arbitrary model ports and writes the model as
- * ModelContent to a chosen file.
+/**
+ * Node factory of the PMML writer node.
  *
- * @author M. Berthold, University of Konstanz
- *
- * @deprecated see {@link ModelWriterNodeFactory}
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @since 4.2
  */
-@Deprecated
-public class PredictorWriterNodeFactory extends PortObjectWriterNodeFactory {
+public final class PMMLWriterNodeFactory2
+    extends PortObjectWriterNodeFactory<PMMLWriterNodeModel2, PMMLWriterNodeDialog2> {
 
-    /**
-     *
-     */
-    public PredictorWriterNodeFactory() {
-        super(PortObject.TYPE);
+    @Override
+    protected PMMLWriterNodeModel2 createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new PMMLWriterNodeModel2(creationConfig);
     }
+
+    @Override
+    protected PortType getInputPortType() {
+        return PMMLPortObject.TYPE;
+    }
+
+    @Override
+    protected PMMLWriterNodeDialog2 createDialog(final NodeCreationConfiguration creationConfig) {
+        return new PMMLWriterNodeDialog2("pmml_writer");
+    }
+
 }

@@ -21,7 +21,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -40,31 +40,48 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   29.10.2005 (mb): created
+ *   Feb 3, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.predictor;
+package org.knime.base.node.io.filehandling.pmml.writer;
 
-import org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory;
-import org.knime.base.node.io.portobject.PortObjectWriterNodeFactory;
+import java.io.OutputStream;
+
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.filehandling.core.node.portobject.writer.PortObjectToFileWriterNodeModel;
 
-/** Node that connects to arbitrary model ports and writes the model as
- * ModelContent to a chosen file.
+/**
+ * Node model of the PMML writer node.
  *
- * @author M. Berthold, University of Konstanz
- *
- * @deprecated see {@link ModelWriterNodeFactory}
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-@Deprecated
-public class PredictorWriterNodeFactory extends PortObjectWriterNodeFactory {
+final class PMMLWriterNodeModel2 extends PortObjectToFileWriterNodeModel<PMMLWriterNodeConfig2> {
 
     /**
+     * Constructor.
      *
+     * @param creationConfig the node creation configuration
      */
-    public PredictorWriterNodeFactory() {
-        super(PortObject.TYPE);
+    PMMLWriterNodeModel2(final NodeCreationConfiguration creationConfig) {
+        super(creationConfig, new PMMLWriterNodeConfig2());
     }
+
+    @Override
+    protected void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
+        throws Exception {
+        if (!(object instanceof PMMLPortObject)) {
+            throw new IllegalArgumentException("The input object is not a PMML port object.");
+        }
+        final PMMLPortObject pmml = (PMMLPortObject)object;
+        if (getConfig().getValidatePMMLModel().getBooleanValue()) {
+            pmml.validate();
+        }
+        pmml.save(outputStream);
+    }
+
 }
