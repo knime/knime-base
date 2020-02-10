@@ -43,80 +43,37 @@
  * -------------------------------------------------------------------
  *
  * History
- *   29.10.2005 (mb): created
+ *   30.10.2005 (mb): created
  */
 package org.knime.base.node.io.portobject;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortType;
+import javax.swing.JFileChooser;
 
-/** Node that connects to arbitrary model ports and writes the model as
- * ModelContent to a chosen file.
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+
+/**
+ * Dialog for the ModelContent Reader Node - allows user to choose file name and
+ * directory.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog}
  */
-public class PortObjectWriterNodeFactory
-        extends NodeFactory<PortObjectWriterNodeModel> {
-
-    private final PortType m_type;
-
-    /** @param type The type of input port. */
-    public PortObjectWriterNodeFactory(final PortType type) {
-        if (type == null) {
-            throw new NullPointerException();
-        }
-        m_type = type;
-    }
-
+@Deprecated
+public class PortObjectReaderNodeDialog extends DefaultNodeSettingsPane {
     /**
-     *
+     * Constructor: create NodeDialog with just one default component, the file
+     * chooser entry.
      */
-    public PortObjectWriterNodeFactory() {
-        this(PortObject.TYPE);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PortObjectWriterNodeModel createNodeModel() {
-        return new PortObjectWriterNodeModel(m_type);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<PortObjectWriterNodeModel> createNodeView(
-            final int viewIndex, final PortObjectWriterNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new PortObjectWriterNodeDialog();
+    public PortObjectReaderNodeDialog() {
+        SettingsModelString settingsModelString = new SettingsModelString(PortObjectReaderNodeModel.FILENAME, "");
+        DialogComponentFileChooser fileChooser =
+            new DialogComponentFileChooser(settingsModelString, PortObjectReaderNodeDialog.class.getName(),
+                JFileChooser.OPEN_DIALOG, false, createFlowVariableModel(settingsModelString), ".zip");
+        fileChooser.setBorderTitle("Input location");
+        addDialogComponent(fileChooser);
     }
 
 }

@@ -70,12 +70,15 @@ import org.knime.core.node.port.PortUtil;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
 
-
 /**
  * Write ModelContent object into file.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.writer.PortObjectToPathWriterNodeModel} and
+ *             {@link org.knime.filehandling.core.node.portobject.writer.PortObjectToFileWriterNodeModel}
  */
+@Deprecated
 class PortObjectWriterNodeModel extends NodeModel {
 
     /** key for filename entry in config object. */
@@ -84,14 +87,13 @@ class PortObjectWriterNodeModel extends NodeModel {
     /** Config identifier for overwrite OK. */
     static final String CFG_OVERWRITE_OK = "overwriteOK";
 
-    private final SettingsModelString m_fileName =
-        new SettingsModelString(FILENAME, null);
+    private final SettingsModelString m_fileName = new SettingsModelString(FILENAME, null);
 
-    private final SettingsModelBoolean m_overwriteOK =
-        new SettingsModelBoolean(CFG_OVERWRITE_OK, false);
+    private final SettingsModelBoolean m_overwriteOK = new SettingsModelBoolean(CFG_OVERWRITE_OK, false);
 
     /**
      * Constructor: Create new NodeModel with only one Model Input Port.
+     *
      * @param writeType The type of the input port.
      */
     PortObjectWriterNodeModel(final PortType writeType) {
@@ -111,8 +113,7 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileName.validateSettings(settings);
         // must not verify overwriteOK (added in v2.1)
     }
@@ -121,8 +122,7 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileName.loadSettingsFrom(settings);
         try {
             // property added in v2.1 -- if missing (old flow), set it to true
@@ -138,8 +138,7 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] portObject,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] portObject, final ExecutionContext exec) throws Exception {
         CheckUtils.checkDestinationFile(m_fileName.getStringValue(), m_overwriteOK.getBooleanValue());
 
         URL url = FileUtil.toURL(m_fileName.getStringValue());
@@ -171,8 +170,7 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         String warning = CheckUtils.checkDestinationFile(m_fileName.getStringValue(), m_overwriteOK.getBooleanValue());
         if (warning != null) {
             setWarningMessage(warning);
@@ -184,9 +182,8 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do here
     }
 
@@ -194,9 +191,8 @@ class PortObjectWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do here
     }
 

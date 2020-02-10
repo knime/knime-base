@@ -43,69 +43,81 @@
  * -------------------------------------------------------------------
  *
  * History
- *   29.10.2005 (mb): created
+ *   30.10.2005 (mb): created
  */
 package org.knime.base.node.io.portobject;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortType;
 
-import javax.swing.JFileChooser;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.workflow.FlowVariable.Type;
-import org.knime.core.util.FileUtil;
-
-
-/** Dialog for the Predictor Writer Node - allows user to choose file name and
- * directory.
+/** Node that connects to arbitrary model ports and reads the model as
+ * ModelContent from a chosen file.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory}
  */
-public class PortObjectWriterNodeDialog extends DefaultNodeSettingsPane {
+@Deprecated
+public class PortObjectReaderNodeFactory
+        extends NodeFactory<PortObjectReaderNodeModel> {
 
-    /** Constructor: create NodeDialog with default components,
-     * the file chooser entry.
-     */
-    public PortObjectWriterNodeDialog() {
-        final DialogComponentFileChooser fileChooser =
-            new DialogComponentFileChooser(new SettingsModelString(PortObjectWriterNodeModel.FILENAME, ""),
-                PortObjectWriterNodeDialog.class.getName(), JFileChooser.SAVE_DIALOG, false,
-                createFlowVariableModel(PortObjectWriterNodeModel.FILENAME, Type.STRING), ".zip");
-        fileChooser.setDialogTypeSaveWithExtension(".zip");
+    private final PortType m_type;
 
-        final DialogComponentBoolean overwriteOK = new DialogComponentBoolean(new SettingsModelBoolean(
-            PortObjectWriterNodeModel.CFG_OVERWRITE_OK, false),
-            "Overwrite OK");
-
-        fileChooser.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                String selFile = ((SettingsModelString) fileChooser.getModel()).getStringValue();
-                if ((selFile != null) && !selFile.isEmpty()) {
-                    try {
-                        URL newUrl = FileUtil.toURL(selFile);
-                        Path path = FileUtil.resolveToPath(newUrl);
-                        overwriteOK.getModel().setEnabled(path != null);
-                    } catch (IOException | URISyntaxException | InvalidPathException ex) {
-                        // ignore
-                    }
-                }
-
-            }
-        });
-        fileChooser.setBorderTitle("Output location");
-
-        addDialogComponent(fileChooser);
-        addDialogComponent(overwriteOK);
+    /** @param type Type of output. */
+    public PortObjectReaderNodeFactory(final PortType type) {
+        if (type == null) {
+            throw new NullPointerException();
+        }
+        m_type = type;
     }
+
+    /** Uses generic output port. */
+    public PortObjectReaderNodeFactory() {
+        this(PortObject.TYPE);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PortObjectReaderNodeModel createNodeModel() {
+        return new PortObjectReaderNodeModel(m_type);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<PortObjectReaderNodeModel> createNodeView(
+            final int viewIndex, final PortObjectReaderNodeModel nodeModel) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new PortObjectReaderNodeDialog();
+    }
+
 }

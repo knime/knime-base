@@ -71,17 +71,21 @@ import org.knime.core.util.FileUtil;
  * Read ModelContent object from file.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.reader.PortObjectFromPathReaderNodeModel} and
+ *             {@link org.knime.filehandling.core.node.portobject.writer.PortObjectToFileWriterNodeModel}
  */
+@Deprecated
 class PortObjectReaderNodeModel extends NodeModel {
 
     /** key for filename entry in config object. */
     static final String FILENAME = "filename";
 
-    private final SettingsModelString m_fileName =
-            new SettingsModelString(FILENAME, null);
+    private final SettingsModelString m_fileName = new SettingsModelString(FILENAME, null);
 
     /**
      * Constructor: Create new NodeModel with only one Model Input Port.
+     *
      * @param type Type of output
      */
     PortObjectReaderNodeModel(final PortType type) {
@@ -100,8 +104,7 @@ class PortObjectReaderNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileName.validateSettings(settings);
     }
 
@@ -109,37 +112,32 @@ class PortObjectReaderNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileName.loadSettingsFrom(settings);
     }
 
     /**
-     * Execute does nothing - the reading of the file and writing to the
-     * NodeSettings object has already happened during savePredictorParams.
+     * Execute does nothing - the reading of the file and writing to the NodeSettings object has already happened during
+     * savePredictorParams.
      *
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] data,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         String fileName = m_fileName.getStringValue();
         InputStream inStream = null;
         try {
             inStream = FileUtil.openInputStream(fileName);
-            return new PortObject[]{
-                    PortUtil.readObjectFromStream(inStream, exec)};
+            return new PortObject[]{PortUtil.readObjectFromStream(inStream, exec)};
         } catch (IOException ioe) {
             throw new InvalidSettingsException(
-                    "Failed to extract object from \""
-                    + fileName + "\": " + ioe.getMessage(), ioe);
+                "Failed to extract object from \"" + fileName + "\": " + ioe.getMessage(), ioe);
         } finally {
             if (inStream != null) {
                 try {
                     inStream.close();
                 } catch (IOException e) {
-                    NodeLogger.getLogger(getClass()).debug(
-                            "Failed closing stream", e);
+                    NodeLogger.getLogger(getClass()).debug("Failed closing stream", e);
                 }
             }
         }
@@ -152,8 +150,7 @@ class PortObjectReaderNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final String fileName = m_fileName.getStringValue();
         String warning = CheckUtils.checkSourceFile(fileName);
         if (warning != null) {
@@ -163,19 +160,16 @@ class PortObjectReaderNodeModel extends NodeModel {
         InputStream inStream = null;
         try {
             inStream = FileUtil.openInputStream(fileName);
-            return new PortObjectSpec[]{
-                    PortUtil.readObjectSpecFromStream(inStream)};
+            return new PortObjectSpec[]{PortUtil.readObjectSpecFromStream(inStream)};
         } catch (IOException ioe) {
             throw new InvalidSettingsException(
-                    "Failed to extract specification from \""
-                    + fileName + "\": " + ioe.getMessage(), ioe);
+                "Failed to extract specification from \"" + fileName + "\": " + ioe.getMessage(), ioe);
         } finally {
             if (inStream != null) {
                 try {
                     inStream.close();
                 } catch (IOException e) {
-                    NodeLogger.getLogger(getClass()).debug(
-                            "Failed closing stream", e);
+                    NodeLogger.getLogger(getClass()).debug("Failed closing stream", e);
                 }
             }
         }
@@ -185,9 +179,8 @@ class PortObjectReaderNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do here
     }
 
@@ -195,9 +188,8 @@ class PortObjectReaderNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do here
     }
 

@@ -43,34 +43,72 @@
  * -------------------------------------------------------------------
  *
  * History
- *   30.10.2005 (mb): created
+ *   29.10.2005 (mb): created
  */
 package org.knime.base.node.io.portobject;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+
 import javax.swing.JFileChooser;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.FileUtil;
 
-/**
- * Dialog for the ModelContent Reader Node - allows user to choose file name and
+
+/** Dialog for the Predictor Writer Node - allows user to choose file name and
  * directory.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDialog}
  */
-public class PortObjectReaderNodeDialog extends DefaultNodeSettingsPane {
-    /**
-     * Constructor: create NodeDialog with just one default component, the file
-     * chooser entry.
-     */
-    public PortObjectReaderNodeDialog() {
-        SettingsModelString settingsModelString = new SettingsModelString(PortObjectReaderNodeModel.FILENAME, "");
-        DialogComponentFileChooser fileChooser =
-            new DialogComponentFileChooser(settingsModelString, PortObjectReaderNodeDialog.class.getName(),
-                JFileChooser.OPEN_DIALOG, false, createFlowVariableModel(settingsModelString), ".zip");
-        fileChooser.setBorderTitle("Input location");
-        addDialogComponent(fileChooser);
-    }
+@Deprecated
+public class PortObjectWriterNodeDialog extends DefaultNodeSettingsPane {
 
+    /** Constructor: create NodeDialog with default components,
+     * the file chooser entry.
+     */
+    public PortObjectWriterNodeDialog() {
+        final DialogComponentFileChooser fileChooser =
+            new DialogComponentFileChooser(new SettingsModelString(PortObjectWriterNodeModel.FILENAME, ""),
+                PortObjectWriterNodeDialog.class.getName(), JFileChooser.SAVE_DIALOG, false,
+                createFlowVariableModel(PortObjectWriterNodeModel.FILENAME, Type.STRING), ".zip");
+        fileChooser.setDialogTypeSaveWithExtension(".zip");
+
+        final DialogComponentBoolean overwriteOK = new DialogComponentBoolean(new SettingsModelBoolean(
+            PortObjectWriterNodeModel.CFG_OVERWRITE_OK, false),
+            "Overwrite OK");
+
+        fileChooser.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(final ChangeEvent e) {
+                String selFile = ((SettingsModelString) fileChooser.getModel()).getStringValue();
+                if ((selFile != null) && !selFile.isEmpty()) {
+                    try {
+                        URL newUrl = FileUtil.toURL(selFile);
+                        Path path = FileUtil.resolveToPath(newUrl);
+                        overwriteOK.getModel().setEnabled(path != null);
+                    } catch (IOException | URISyntaxException | InvalidPathException ex) {
+                        // ignore
+                    }
+                }
+
+            }
+        });
+        fileChooser.setBorderTitle("Output location");
+
+        addDialogComponent(fileChooser);
+        addDialogComponent(overwriteOK);
+    }
 }

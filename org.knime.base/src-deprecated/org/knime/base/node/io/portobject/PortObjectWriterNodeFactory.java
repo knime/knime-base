@@ -43,7 +43,7 @@
  * -------------------------------------------------------------------
  *
  * History
- *   30.10.2005 (mb): created
+ *   29.10.2005 (mb): created
  */
 package org.knime.base.node.io.portobject;
 
@@ -53,26 +53,31 @@ import org.knime.core.node.NodeView;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 
-/** Node that connects to arbitrary model ports and reads the model as
- * ModelContent from a chosen file.
+/** Node that connects to arbitrary model ports and writes the model as
+ * ModelContent to a chosen file.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFactory}
  */
-public class PortObjectReaderNodeFactory
-        extends NodeFactory<PortObjectReaderNodeModel> {
+@Deprecated
+public class PortObjectWriterNodeFactory
+        extends NodeFactory<PortObjectWriterNodeModel> {
 
     private final PortType m_type;
 
-    /** @param type Type of output. */
-    public PortObjectReaderNodeFactory(final PortType type) {
+    /** @param type The type of input port. */
+    public PortObjectWriterNodeFactory(final PortType type) {
         if (type == null) {
             throw new NullPointerException();
         }
         m_type = type;
     }
 
-    /** Uses generic output port. */
-    public PortObjectReaderNodeFactory() {
+    /**
+     *
+     */
+    public PortObjectWriterNodeFactory() {
         this(PortObject.TYPE);
     }
 
@@ -80,8 +85,8 @@ public class PortObjectReaderNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public PortObjectReaderNodeModel createNodeModel() {
-        return new PortObjectReaderNodeModel(m_type);
+    public PortObjectWriterNodeModel createNodeModel() {
+        return new PortObjectWriterNodeModel(m_type);
     }
 
     /**
@@ -96,8 +101,8 @@ public class PortObjectReaderNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<PortObjectReaderNodeModel> createNodeView(
-            final int viewIndex, final PortObjectReaderNodeModel nodeModel) {
+    public NodeView<PortObjectWriterNodeModel> createNodeView(
+            final int viewIndex, final PortObjectWriterNodeModel nodeModel) {
         return null;
     }
 
@@ -114,7 +119,7 @@ public class PortObjectReaderNodeFactory
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new PortObjectReaderNodeDialog();
+        return new PortObjectWriterNodeDialog();
     }
 
 }
