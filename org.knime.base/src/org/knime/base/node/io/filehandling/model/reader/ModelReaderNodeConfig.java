@@ -21,7 +21,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -40,76 +40,29 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 3, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.pmml.read;
+package org.knime.base.node.io.filehandling.model.reader;
 
-import org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3;
-import org.knime.core.node.ContextAwareNodeFactory;
-import org.knime.core.node.NodeCreationContext;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeView;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 
 /**
+ * Node config of the model reader node.
  *
- * @author Fabian Dill, University of Konstanz
- * @since 3.2
- *
- * @deprecated see {@link PMMLReaderNodeFactory3}
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-@Deprecated
-public class PMMLReaderNodeFactory2
-    extends ContextAwareNodeFactory<PMMLReaderNodeModel> {
+final class ModelReaderNodeConfig extends PortObjectReaderNodeConfig {
+
+    /** The model file extension/suffix. */
+    private static final String[] MODEL_SUFFIX = new String[]{".model", ".zip"};
 
     /**
-     * {@inheritDoc}
+     * Constructor.
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PMMLReaderNodeDialog();
+    ModelReaderNodeConfig() {
+        super(MODEL_SUFFIX);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PMMLReaderNodeModel createNodeModel() {
-        return new PMMLReaderNodeModel(false);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<PMMLReaderNodeModel> createNodeView(
-            final int viewIndex,
-            final PMMLReaderNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PMMLReaderNodeModel createNodeModel(
-            final NodeCreationContext context) {
-        return new PMMLReaderNodeModel(context);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
 }

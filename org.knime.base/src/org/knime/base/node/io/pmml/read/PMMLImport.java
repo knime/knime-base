@@ -136,18 +136,23 @@ public class PMMLImport {
         } else {
             urlToString = url.toString();
         }
+        try (InputStream inStream = url.openStream()) {
+            importPMMLFromStream(inStream, forceVersionUpdate, urlToString);
+        }
+    }
+
+    private void importPMMLFromStream(final InputStream inStream, final boolean forceVersionUpdate,
+        final String urlToString) throws XmlException, IOException {
         PMMLDocument pmmlDoc = null;
         XmlObject xmlDoc;
-        try (InputStream inStream = url.openStream()) {
-            // see bug 6306 - XML 1.1 features not parsed 'correctly'
-            XmlOptions o = new XmlOptions();
-            try {
-                o.setLoadUseXMLReader( SAXParserFactory.newInstance().newSAXParser().getXMLReader() );
-            } catch (ParserConfigurationException | SAXException e) {
-                LOGGER.error("Unable to create SAX parser, will use default: " + e.getMessage(), e);
-            }
-            xmlDoc = XmlObject.Factory.parse(inStream, o);
+        // see bug 6306 - XML 1.1 features not parsed 'correctly'
+        XmlOptions o = new XmlOptions();
+        try {
+            o.setLoadUseXMLReader(SAXParserFactory.newInstance().newSAXParser().getXMLReader());
+        } catch (ParserConfigurationException | SAXException e) {
+            LOGGER.error("Unable to create SAX parser, will use default: " + e.getMessage(), e);
         }
+        xmlDoc = XmlObject.Factory.parse(inStream, o);
         if (xmlDoc instanceof PMMLDocument) {
             pmmlDoc = (PMMLDocument)xmlDoc;
         } else {
@@ -194,8 +199,23 @@ public class PMMLImport {
     }
 
     /**
-     * Reads and validates the passed file and creates the
-     * {@link PMMLPortObjectSpec} from the content of the file.
+     * Reads and validates the passed {@link InputStream} and creates the {@link PMMLPortObjectSpec} from the content of
+     * the file.
+     *
+     * @param inStream the input stream of PMML file
+     * @param path the file path
+     * @throws IOException if something goes wrong reading the file
+     * @throws XmlException if an invalid PMML file is passed
+     * @throws IllegalArgumentException if the input file is invalid or has invalid content
+     * @since 4.2
+     */
+    public PMMLImport(final InputStream inStream, final String path)
+        throws IOException, XmlException, IllegalArgumentException {
+        importPMMLFromStream(inStream, false, path);
+    }
+
+    /**
+     * Reads and validates the passed file and creates the {@link PMMLPortObjectSpec} from the content of the file.
      *
      * @param file containing the PMML model
      * @throws IOException if something goes wrong reading the file

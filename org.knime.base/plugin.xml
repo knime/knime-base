@@ -738,6 +738,7 @@
             factory-class="org.knime.base.node.mine.neural.mlp.MLPPredictorNodeFactory"/>
       <node
             after="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2"
+            deprecated="true"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.predictor.PredictorReaderNodeFactory"/>
       <node
@@ -2030,7 +2031,7 @@
       <node
             after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
             category-path="/io/read"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2">
       </node>
       <node
@@ -2168,6 +2169,18 @@
             deprecated="false"
             factory-class="org.knime.base.node.preproc.filter.row2.RowSplitterNodeFactory">
       </node>
+      <node
+            after="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory3"
+            category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
+            category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
+      </node>
    </extension>
    
       
@@ -2262,9 +2275,15 @@
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2">
+              NodeFactory="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
            <FileExtension
                  extension=".pmml">
+           </FileExtension>
+        </FileExtensionMapping>
+        <FileExtensionMapping
+              NodeFactory="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
+           <FileExtension
+                 extension=".model">
            </FileExtension>
         </FileExtensionMapping>
      </extension>

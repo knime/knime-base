@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.io.predictor;
 
+import org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory;
 import org.knime.base.node.io.portobject.PortObjectReaderNodeFactory;
 import org.knime.core.node.port.PortObject;
 
@@ -54,7 +55,10 @@ import org.knime.core.node.port.PortObject;
  * ModelContent from a chosen file.
  *
  * @author M. Berthold, University of Konstanz
+ *
+ * @deprecated see {@link ModelReaderNodeFactory}
  */
+@Deprecated
 public class PredictorReaderNodeFactory extends PortObjectReaderNodeFactory {
 
     /**

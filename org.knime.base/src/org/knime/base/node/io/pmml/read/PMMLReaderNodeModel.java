@@ -72,7 +72,10 @@ import org.knime.core.node.util.CheckUtils;
 /**
  *
  * @author Fabian Dill, University of Konstanz
+ *
+ * @deprecated see {@link org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeModel3}
  */
+@Deprecated
 public class PMMLReaderNodeModel extends NodeModel {
 
     private final SettingsModelString m_file = PMMLReaderNodeDialog

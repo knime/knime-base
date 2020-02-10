@@ -46,6 +46,7 @@ package org.knime.base.node.io.pmml.read;
 
 import javax.swing.JFileChooser;
 
+import org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -53,7 +54,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 /**
  *
  * @author Fabian Dill, University of Konstanz
+ *
+ * @deprecated see {@link PMMLReaderNodeFactory3}
  */
+@Deprecated
 public class PMMLReaderNodeDialog extends DefaultNodeSettingsPane {
     private final SettingsModelString m_fileNameModel;
 
