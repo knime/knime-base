@@ -45,13 +45,13 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -60,7 +60,7 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <C> the config used by the node
  */
-public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONodeConfig>
+public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriterNodeConfig>
     extends PortObjectIONodeModel<C> {
 
     /** The name of the fixed port object input port group. */
@@ -80,6 +80,13 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONode
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final FileChooserHelper fch = createFileChooserHelper(data);
         final Path path = fch.getPathFromSettings();
+
+	// create parent directories
+	if (getConfig().getCreateDirectoryModel().getBooleanValue()) {
+		Files.createDirectories(path.getParent());
+	}
+
+	// write path
         writeToPath(data[getPortsConfig().getInputPortLocation().get(PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
         return null;
     }
@@ -96,3 +103,5 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONode
         throws Exception;
 
 }
+
+

@@ -72,6 +72,8 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
 
     private final DialogComponentBoolean m_overwriteCheckbox;
 
+    private final DialogComponentBoolean m_createDirectoriesCheckbox;
+
     /**
      * Constructor.
      *
@@ -85,22 +87,27 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
     public PortObjectWriterNodeDialog(final PortsConfiguration portsConfig, final C config,
         final String fileChooserHistoryId, final int fileChooserSelectionMode) {
         super(portsConfig, config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
-        m_overwriteCheckbox = new DialogComponentBoolean(getConfig().getOverwriteModel(), "Overwrite");
+        m_overwriteCheckbox = new DialogComponentBoolean(getConfig().getOverwriteModel(), "Overwrite file if exists");
+        m_createDirectoriesCheckbox =
+            new DialogComponentBoolean(getConfig().getCreateDirectoryModel(), "Create directories if not exist");
         addAdditionalPanel(createOverwriteSettingsPanel());
     }
 
     private JPanel createOverwriteSettingsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "If file exists"));
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Writing"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.weightx = 1;
         panel.add(m_overwriteCheckbox.getComponentPanel(), gbc);
+        gbc.gridy++;
+        panel.add(m_createDirectoriesCheckbox.getComponentPanel(), gbc);
         return panel;
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_overwriteCheckbox.saveSettingsTo(settings);
+        m_createDirectoriesCheckbox.saveSettingsTo(settings);
         super.saveSettingsTo(settings);
     }
 
@@ -108,6 +115,8 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_overwriteCheckbox.loadSettingsFrom(settings, specs);
+        m_createDirectoriesCheckbox.loadSettingsFrom(settings, specs);
         super.loadSettingsFrom(settings, specs);
     }
 }
+

@@ -62,7 +62,12 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
     /** Config key for overwrite checkbox. */
     private static final String CFG_OVERWRITE = "overwrite";
 
+    /** Config key for create directory checkbox. */
+    private static final String CFG_CREATE_DIRECTORY = "create_directory";
+
     private final SettingsModelBoolean m_overwriteModel = new SettingsModelBoolean(CFG_OVERWRITE, false);
+
+    private final SettingsModelBoolean m_createDirectoryModel = new SettingsModelBoolean(CFG_CREATE_DIRECTORY, false);
 
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
@@ -87,21 +92,31 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
         return m_overwriteModel;
     }
 
+    /**
+     * @return the createDirectoryModel
+     */
+    public SettingsModelBoolean getCreateDirectoryModel() {
+        return m_createDirectoryModel;
+    }
+
     @Override
     protected void validateConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.validateConfigurationForModel(settings);
         m_overwriteModel.validateSettings(settings);
+        m_createDirectoryModel.validateSettings(settings);
     }
 
     @Override
     protected void saveConfigurationForModel(final NodeSettingsWO settings) {
         super.saveConfigurationForModel(settings);
         m_overwriteModel.saveSettingsTo(settings);
+        m_createDirectoryModel.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.loadConfigurationForModel(settings);
         m_overwriteModel.loadSettingsFrom(settings);
+        m_createDirectoryModel.loadSettingsFrom(settings);
     }
 }

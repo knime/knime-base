@@ -45,7 +45,9 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -65,7 +67,7 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
     extends PortObjectToPathWriterNodeModel<C> {
 
     /** The don't overwrite open options. */
-    private static final OpenOption[] NO_OVERWRITE_OPTIONS = new OpenOption[]{StandardOpenOption.CREATE};
+    private static final OpenOption[] NO_OVERWRITE_OPTIONS = new OpenOption[]{StandardOpenOption.CREATE_NEW};
 
     /** The overwrite open options. */
     private static final OpenOption[] OVERWRITE_OPTIONS =
@@ -87,6 +89,9 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
         try (final OutputStream outputStream = Files.newOutputStream(outputPath,
             getConfig().getOverwriteModel().getBooleanValue() ? OVERWRITE_OPTIONS : NO_OVERWRITE_OPTIONS)) {
             write(object, outputStream, exec);
+        } catch (FileAlreadyExistsException e) {
+            throw new IOException(
+                "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
         }
     }
 
