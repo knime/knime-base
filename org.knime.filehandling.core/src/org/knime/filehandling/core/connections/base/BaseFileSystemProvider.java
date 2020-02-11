@@ -62,6 +62,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttributeView;
@@ -69,9 +70,11 @@ import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
@@ -129,7 +132,18 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
         checkPath(path);
-        return new BaseInputStream(newInputStreamInternal(path, options), (BaseFileSystem)path.getFileSystem());
+        checkOpenOptionsForReading(options);
+
+        return new BaseInputStream(newInputStreamInternal(path, options),
+            (BaseFileSystem)path.getFileSystem());
+    }
+
+    private static void checkOpenOptionsForReading(final OpenOption[] options) {
+        for (OpenOption option : options) {
+            if (option == StandardOpenOption.APPEND || option == StandardOpenOption.WRITE) {
+                throw new UnsupportedOperationException("'" + option + "' not allowed");
+            }
+        }
     }
 
     /**
@@ -142,10 +156,32 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      */
     protected abstract InputStream newInputStreamInternal(Path path, OpenOption... options) throws IOException;
 
+
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
         checkPath(path);
-        return new BaseOutputStream(newOutputStreamInternal(path, options), (BaseFileSystem)path.getFileSystem());
+        final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
+
+        return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions),
+            (BaseFileSystem)path.getFileSystem());
+    }
+
+    private static OpenOption[] ensureValidAndDefaultOpenOptionsForWriting(final OpenOption[] options) {
+
+        if (options.length == 0) {
+            return new OpenOption[]{StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING};
+        } else {
+            final Set<OpenOption> opts = new HashSet<>(options.length + 3);
+            for (OpenOption option : options) {
+                if (option == StandardOpenOption.READ) {
+                    throw new IllegalArgumentException("READ not allowed");
+                }
+                opts.add(option);
+            }
+            opts.add(StandardOpenOption.WRITE);
+            return opts.toArray(new OpenOption[opts.size()]);
+        }
     }
 
     /**
