@@ -783,7 +783,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
 
-        if (getLastTableSpecs() != null && getLastTableSpecs().length > m_inPort) {
+        if (getLastTableSpecs() != null && getLastTableSpecs().length > m_inPort
+            && getLastTableSpec(m_inPort) instanceof FileSystemPortObjectSpec) {
             final FileSystemPortObjectSpec fspos = (FileSystemPortObjectSpec)getLastTableSpec(m_inPort);
             if (fspos != null) {
                 final FileSystemChoice choice =
