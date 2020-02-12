@@ -70,7 +70,7 @@ public final class PMMLWriterNodeFactory2
 
     @Override
     protected PMMLWriterNodeDialog2 createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PMMLWriterNodeDialog2("pmml_writer");
+        return new PMMLWriterNodeDialog2(creationConfig.getPortConfig().get(), "pmml_writer");
     }
 
 }

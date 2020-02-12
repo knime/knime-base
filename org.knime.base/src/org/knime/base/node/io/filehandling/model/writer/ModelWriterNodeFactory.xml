@@ -93,7 +93,7 @@
 			file already
 			exists.
 		</option>
-		<option name="Create directories if not exist">Select when the directories of the selected output
+		<option name="Create parent directories if required">Select when the directories of the selected output
 			location should be created if they do not already exist. If this
 			option is unchecked, the node will fail if a directory does not
 			exist.

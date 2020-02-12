@@ -74,7 +74,8 @@ public final class ModelReaderNodeFactory
     @Override
     protected PortObjectReaderNodeDialog<ModelReaderNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<>(new ModelReaderNodeConfig(), "model_reader", JFileChooser.FILES_ONLY);
+        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), new ModelReaderNodeConfig(),
+            "model_reader", JFileChooser.FILES_ONLY);
     }
 
 }

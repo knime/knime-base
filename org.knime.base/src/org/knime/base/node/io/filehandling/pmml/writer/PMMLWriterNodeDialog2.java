@@ -58,6 +58,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
@@ -70,15 +71,16 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDi
  */
 final class PMMLWriterNodeDialog2 extends PortObjectWriterNodeDialog<PMMLWriterNodeConfig2> {
 
-    private DialogComponentBoolean m_validatePMMLCheckbox;
+    private final DialogComponentBoolean m_validatePMMLCheckbox;
 
     /**
      * Constructor.
      *
+     * @param portsConfig the ports configuration
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
      */
-    PMMLWriterNodeDialog2(final String fileChooserHistoryId) {
-        super(new PMMLWriterNodeConfig2(), fileChooserHistoryId, JFileChooser.FILES_ONLY);
+    PMMLWriterNodeDialog2(final PortsConfiguration portsConfiguration, final String fileChooserHistoryId) {
+        super(portsConfiguration, new PMMLWriterNodeConfig2(), fileChooserHistoryId, JFileChooser.FILES_ONLY);
         m_validatePMMLCheckbox =
             new DialogComponentBoolean(getConfig().getValidatePMMLModel(), "Validate PMML before export");
         addAdditionalPanel(createValidationSettingsPanel());

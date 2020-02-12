@@ -75,7 +75,8 @@ public final class PMMLReaderNodeFactory3
     @Override
     protected PortObjectReaderNodeDialog<PMMLReaderNodeConfig3>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<>(new PMMLReaderNodeConfig3(), "pmml_reader", JFileChooser.FILES_ONLY);
+        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), new PMMLReaderNodeConfig3(),
+            "pmml_reader", JFileChooser.FILES_ONLY);
     }
 
 }

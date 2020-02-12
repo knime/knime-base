@@ -74,7 +74,8 @@ public final class ModelWriterNodeFactory
     @Override
     protected PortObjectWriterNodeDialog<ModelWriterNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeDialog<>(new ModelWriterNodeConfig(), "model_writer", JFileChooser.FILES_ONLY);
+        return new PortObjectWriterNodeDialog<>(creationConfig.getPortConfig().get(), new ModelWriterNodeConfig(),
+            "model_writer", JFileChooser.FILES_ONLY);
     }
 
 }

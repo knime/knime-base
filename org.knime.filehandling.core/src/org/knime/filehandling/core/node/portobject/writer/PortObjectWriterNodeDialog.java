@@ -87,10 +87,29 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
     public PortObjectWriterNodeDialog(final PortsConfiguration portsConfig, final C config,
         final String fileChooserHistoryId, final int fileChooserSelectionMode) {
         super(portsConfig, config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
-        m_overwriteCheckbox = new DialogComponentBoolean(getConfig().getOverwriteModel(), "Overwrite file if exists");
+        m_overwriteCheckbox =
+            new DialogComponentBoolean(getConfig().getOverwriteModel(), getOverwriteLabel(fileChooserSelectionMode));
         m_createDirectoriesCheckbox =
-            new DialogComponentBoolean(getConfig().getCreateDirectoryModel(), "Create directories if not exist");
+            new DialogComponentBoolean(getConfig().getCreateDirectoryModel(), "Create parent directories if required");
         addAdditionalPanel(createOverwriteSettingsPanel());
+    }
+
+    /**
+     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
+     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
+     *            {@link JFileChooser#DIRECTORIES_ONLY}
+     *
+     * @return the label of the overwrite checkbox w.r.t. the selection mode
+     */
+    private static String getOverwriteLabel(final int fileChooserSelectionMode) {
+        if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
+            return "Overwrite file if exists";
+        } else if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
+            return "Overwrite folder content if exists";
+        } else if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
+            return "Overwrite folder content/file if exists";
+        }
+        throw new IllegalArgumentException("The provided selection mode is not invalid.");
     }
 
     private JPanel createOverwriteSettingsPanel() {
@@ -119,4 +138,3 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
         super.loadSettingsFrom(settings, specs);
     }
 }
-
