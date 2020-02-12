@@ -59,8 +59,8 @@ public abstract class PortObjectReaderNodeFactory<M extends PortObjectFromPathRe
         D extends PortObjectReaderNodeDialog<?>> extends PortObjectIONodeFactory<M, D> {
 
     @Override
-    protected void addAdditionalPorts(final PortsConfigurationBuilder b) {
-        b.addFixedOutputPortGroup("Port Object", getOutputPortType());
+    protected final void addAdditionalPorts(final PortsConfigurationBuilder b) {
+        b.addFixedOutputPortGroup(PortObjectFromPathReaderNodeModel.PORT_OBJECT_OUTPUT_GRP_NAME, getOutputPortType());
     }
 
     /**

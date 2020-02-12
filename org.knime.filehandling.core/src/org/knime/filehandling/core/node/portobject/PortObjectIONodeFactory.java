@@ -63,8 +63,8 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @param <D> the node dialog of the node
  * @noextend extend either {@link PortObjectReaderNodeFactory} or {@link PortObjectWriterNodeFactory}
  */
-public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>,
-        D extends PortObjectIONodeDialog<?>> extends ConfigurableNodeFactory<M> {
+public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>, D extends PortObjectIONodeDialog<?>>
+    extends ConfigurableNodeFactory<M> {
 
     @Override
     protected final D createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
@@ -91,7 +91,7 @@ public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>
     @Override
     protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(PortObjectIONodeModel.CONNECTION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
         addAdditionalPorts(b);
         return Optional.of(b);
     }

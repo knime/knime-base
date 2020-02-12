@@ -74,24 +74,24 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  */
 public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> extends NodeModel {
 
-    /** The name of the optional connection port group. */
-    protected static final String CONNECTION_PORT_GRP_NAME = "File System Connection";
+    /** The name of the optional connection input port group. */
+    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
-    /** The optional file system connection port index. */
-    static final int CONNECTION_PORT_IDX = 0;
+    /** The ports configuration. */
+    private final PortsConfiguration m_portsConfig;
 
     /** The config. */
     private final C m_config;
 
-
     /**
      * Constructor.
      *
-     * @param portsConfig the node creation configuration
+     * @param portsConfig the ports configuration
      * @param config the config
      */
     protected PortObjectIONodeModel(final PortsConfiguration portsConfig, final C config) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
+        m_portsConfig = portsConfig;
         m_config = config;
     }
 
@@ -113,9 +113,22 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
      */
     protected FileChooserHelper createFileChooserHelper(final PortObject[] data) throws IOException {
         final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
-        // can be safely set to 0 since we know that this is the ports object position
-        final Optional<FSConnection> fs = FileSystemPortObject.getFileSystemConnection(data, CONNECTION_PORT_IDX);
+
+        // get the fs connection if it exists
+        final Optional<FSConnection> fs =
+            Optional.ofNullable(getPortsConfig().getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)) //
+                .map(arr -> FileSystemPortObject.getFileSystemConnection(data, arr[0]).get()); // save due to framework
+
         return new FileChooserHelper(fs, fileChooserModel, m_config.getTimeoutModel().getIntValue());
+    }
+
+    /**
+     * Returns the ports configuration used to create this node.
+     *
+     * @return the ports configuration
+     */
+    protected final PortsConfiguration getPortsConfig() {
+        return m_portsConfig;
     }
 
     /**
@@ -123,7 +136,7 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
      *
      * @return the config of this node model
      */
-    protected C getConfig() {
+    protected final C getConfig() {
         return m_config;
     }
 

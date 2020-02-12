@@ -63,6 +63,9 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONodeConfig>
     extends PortObjectIONodeModel<C> {
 
+    /** The name of the fixed port object input port group. */
+    static final String PORT_OBJECT_INPUT_GRP_NAME = "Port Object";
+
     /**
      * Constructor.
      *
@@ -77,7 +80,7 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectIONode
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final FileChooserHelper fch = createFileChooserHelper(data);
         final Path path = fch.getPathFromSettings();
-        writeToPath(data[0], path, exec);
+        writeToPath(data[getPortsConfig().getInputPortLocation().get(PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
         return null;
     }
 

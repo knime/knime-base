@@ -47,6 +47,7 @@ package org.knime.filehandling.core.node.portobject.reader;
 
 import javax.swing.JFileChooser;
 
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
 
@@ -61,15 +62,16 @@ public class PortObjectReaderNodeDialog<C extends PortObjectReaderNodeConfig> ex
     /**
      * Constructor.
      *
+     * @param portsConfig the ports configuration
      * @param config the config
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
      * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
      *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
      *            {@link JFileChooser#DIRECTORIES_ONLY}
      */
-    public PortObjectReaderNodeDialog(final C config, final String fileChooserHistoryId,
-        final int fileChooserSelectionMode) {
-        super(config, fileChooserHistoryId, JFileChooser.OPEN_DIALOG, fileChooserSelectionMode);
+    public PortObjectReaderNodeDialog(final PortsConfiguration portsConfig, final C config,
+        final String fileChooserHistoryId, final int fileChooserSelectionMode) {
+        super(portsConfig, config, fileChooserHistoryId, JFileChooser.OPEN_DIALOG, fileChooserSelectionMode);
     }
 
 }

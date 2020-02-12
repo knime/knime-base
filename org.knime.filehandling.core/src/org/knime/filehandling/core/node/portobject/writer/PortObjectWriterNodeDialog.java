@@ -56,6 +56,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
@@ -74,15 +75,16 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
     /**
      * Constructor.
      *
+     * @param portsConfig the ports configuration
      * @param config the config
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
      * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
      *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
      *            {@link JFileChooser#DIRECTORIES_ONLY}
      */
-    public PortObjectWriterNodeDialog(final C config, final String fileChooserHistoryId,
-        final int fileChooserSelectionMode) {
-        super(config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
+    public PortObjectWriterNodeDialog(final PortsConfiguration portsConfig, final C config,
+        final String fileChooserHistoryId, final int fileChooserSelectionMode) {
+        super(portsConfig, config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
         m_overwriteCheckbox = new DialogComponentBoolean(getConfig().getOverwriteModel(), "Overwrite");
         addAdditionalPanel(createOverwriteSettingsPanel());
     }

@@ -50,6 +50,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
@@ -61,6 +62,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.port.PortObjectSpec;
@@ -94,6 +96,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
     /**
      * Constructor.
      *
+     * @param portsConfig the ports configuration
      * @param config the config
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
      * @param fileChooserDialogType integer defining the file chooser dialog type (see {@link JFileChooser#OPEN_DIALOG},
@@ -102,13 +105,19 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
      *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
      *            {@link JFileChooser#DIRECTORIES_ONLY}
      */
-    protected PortObjectIONodeDialog(final C config, final String fileChooserHistoryId, final int fileChooserDialogType,
-        final int fileChooserSelectionMode) {
+    protected PortObjectIONodeDialog(final PortsConfiguration portsConfig, final C config,
+        final String fileChooserHistoryId, final int fileChooserDialogType, final int fileChooserSelectionMode) {
         m_config = config;
         final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
-        m_filePanel = new DialogComponentFileChooser2(PortObjectIONodeModel.CONNECTION_PORT_IDX, fileChooserModel,
+
+        // TODO: has to be changed to -1 once we fixed AP-13672
+        final int fsPortIdx = Optional
+            .ofNullable(portsConfig.getInputPortLocation().get(PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME)) //
+            .map(arr -> arr[0]).orElse(0); // correctness ensured by framework
+
+        m_filePanel = new DialogComponentFileChooser2(fsPortIdx, fileChooserModel,
             fileChooserHistoryId, fileChooserDialogType, fileChooserSelectionMode, fvm);
         final String[] defaultSuffixes = fileChooserModel.getDefaultSuffixes();
         final boolean isReaerdDialog = fileChooserDialogType == JFileChooser.OPEN_DIALOG;
