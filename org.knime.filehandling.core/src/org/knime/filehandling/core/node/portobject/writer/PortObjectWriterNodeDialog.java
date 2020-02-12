@@ -104,9 +104,9 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
     private static String getOverwriteLabel(final int fileChooserSelectionMode) {
         if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
             return "Overwrite file if exists";
-        } else if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
+        } else if (fileChooserSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
             return "Overwrite folder content if exists";
-        } else if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
+        } else if (fileChooserSelectionMode == JFileChooser.FILES_AND_DIRECTORIES) {
             return "Overwrite folder content/file if exists";
         }
         throw new IllegalArgumentException("The provided selection mode is not invalid.");
