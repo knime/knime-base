@@ -22,14 +22,6 @@
 			not valid (unknown data types, etc.) an exception is
 			thrown during
 			execution.
-			<br />
-			Note that if the destination location is a remote URL, not all
-			options
-			are available because in general it's
-			not possible to determine
-			whether the remote location exists. In this
-			case it will always be
-			overwritten.
 		</intro>
 		<option name="Write to">
 			Select a file system in which you want to store the file. There

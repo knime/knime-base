@@ -1191,7 +1191,7 @@
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
-            after="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
+            after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
             >
@@ -2172,7 +2172,7 @@
             factory-class="org.knime.base.node.preproc.filter.row2.RowSplitterNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory3"
+            after="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">

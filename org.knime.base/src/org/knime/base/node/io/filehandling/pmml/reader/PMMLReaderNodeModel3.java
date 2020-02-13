@@ -45,8 +45,10 @@
  */
 package org.knime.base.node.io.filehandling.pmml.reader;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.xmlbeans.XmlException;
 import org.knime.base.node.io.pmml.read.PMMLImport;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
@@ -72,9 +74,13 @@ final class PMMLReaderNodeModel3 extends PortObjectFromFileReaderNodeModel<PMMLR
 
     @Override
     protected PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception {
-        final PMMLPortObject pmmlPortObject =
-            new PMMLImport(inputStream, getConfig().getFileChooserModel().getPathOrURL()).getPortObject();
-        return new PortObject[]{pmmlPortObject};
+        try {
+            final PMMLPortObject pmmlPortObject =
+                new PMMLImport(inputStream, getConfig().getFileChooserModel().getPathOrURL()).getPortObject();
+            return new PortObject[]{pmmlPortObject};
+        } catch (XmlException e) {
+            throw new IOException("The model is not a valid PMML document and could not be read.", e);
+        }
     }
 
 }
