@@ -318,8 +318,11 @@ public class URIPath implements Path {
         }
 
         try {
-            final Path otherPath =
-                new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null));
+
+            // if the other path is relative, it must not have a scheme; see Javadoc of {@link URI}
+            final Path otherPath = other.startsWith("/")
+                ? new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null))
+                : new URIPath(m_fileSystem, new URI(null, null, other, null, null));
 
             return resolve(otherPath);
 
