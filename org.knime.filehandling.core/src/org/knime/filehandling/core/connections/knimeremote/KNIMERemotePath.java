@@ -401,7 +401,12 @@ public class KNIMERemotePath implements Path {
     }
 
     private String encodedPath() {
-        return UnixStylePathUtil.asUnixStylePath(m_path).replaceAll(" ", "%20");
+        /* We have to encode some reserved characters like # here. Otherwise, a path with a # will be interpreted as a a
+         * path and fragment, where really it is just a path. At the same time, we have to make sure not to encode other
+         * reserved characters such as the file separator. Therefore, we cannot rely solely on
+         * {@link URLEncoder#encode(String, String)}. */
+        // TODO: find more systematic approach to encoding paths (see AP-13670)
+        return UnixStylePathUtil.asUnixStylePath(m_path).replace(" ", "%20").replace("#", "%23");
     }
 
     /**

@@ -427,8 +427,14 @@ public class KNIMEPath implements Path {
         String schemeAndHost = m_fileSystem.getConnectionType().getSchemeAndHost();
 
         // TODO TU: check apache for URL encoding
-        String unixStylePath = UnixStylePathUtil.asUnixStylePath(m_path.toString()).replaceAll(" ", "%20");
-        URI create = URI.create(schemeAndHost + m_fileSystem.getSeparator() + unixStylePath);
+        String unixStylePath = UnixStylePathUtil.asUnixStylePath(m_path.toString());
+        /* We have to encode some reserved characters like # here. Otherwise, a path with a # will be interpreted as a a
+         * path and fragment, where really it is just a path. At the same time, we have to make sure not to encode other
+         * reserved characters such as the file separator. Therefore, we cannot rely solely on
+         * {@link URLEncoder#encode(String, String)}. */
+        // TODO: find more systematic approach to encoding paths (see AP-13670)
+        String escapedPath = unixStylePath.replace(" ", "%20").replace("#", "%23");
+        URI create = URI.create(schemeAndHost + m_fileSystem.getSeparator() + escapedPath);
         try {
             URL url = create.toURL();
             return url;
