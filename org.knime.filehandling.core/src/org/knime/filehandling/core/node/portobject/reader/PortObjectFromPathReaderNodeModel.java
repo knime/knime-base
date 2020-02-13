@@ -45,6 +45,8 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -89,7 +91,12 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
         final FileChooserHelper fch = createFileChooserHelper(data);
         final List<Path> paths = fch.getPaths();
         assert paths.size() == 1;
-        return readFromPath(paths.get(0), exec);
+        final Path path = paths.get(0);
+        try {
+            return readFromPath(path, exec);
+        } catch (NoSuchFileException e) {
+            throw new IOException("The file '" + path + "' does not exist.");
+        }
     }
 
     /**

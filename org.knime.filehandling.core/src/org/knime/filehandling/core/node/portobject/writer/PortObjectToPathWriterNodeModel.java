@@ -45,11 +45,15 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.port.PortObject;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
@@ -81,13 +85,23 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
         final FileChooserHelper fch = createFileChooserHelper(data);
         final Path path = fch.getPathFromSettings();
 
-	// create parent directories
-	if (getConfig().getCreateDirectoryModel().getBooleanValue()) {
-		Files.createDirectories(path.getParent());
-	}
+        // create parent directories
+        final Path parentPath = path.getParent();
+        final SettingsModelBoolean createDirectoryModel = getConfig().getCreateDirectoryModel();
+        if (createDirectoryModel.isEnabled() && createDirectoryModel.getBooleanValue() && !Files.exists(parentPath)) {
+            Files.createDirectories(parentPath);
+        }
 
-	// write path
-        writeToPath(data[getPortsConfig().getInputPortLocation().get(PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
+        // write path
+        try {
+            writeToPath(data[getPortsConfig().getInputPortLocation().get(PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
+        } catch (FileAlreadyExistsException e) {
+            throw new IOException(
+                "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
+        } catch (NoSuchFileException e) {
+            throw new IOException(
+                "The directory '" + parentPath + "' does not exist and must not be created due to user settings.");
+        }
         return null;
     }
 
@@ -103,5 +117,3 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
         throws Exception;
 
 }
-
-

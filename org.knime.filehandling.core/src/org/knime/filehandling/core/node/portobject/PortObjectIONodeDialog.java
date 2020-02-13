@@ -117,8 +117,8 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
             .ofNullable(portsConfig.getInputPortLocation().get(PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME)) //
             .map(arr -> arr[0]).orElse(0); // correctness ensured by framework
 
-        m_filePanel = new DialogComponentFileChooser2(fsPortIdx, fileChooserModel,
-            fileChooserHistoryId, fileChooserDialogType, fileChooserSelectionMode, fvm);
+        m_filePanel = new DialogComponentFileChooser2(fsPortIdx, fileChooserModel, fileChooserHistoryId,
+            fileChooserDialogType, fileChooserSelectionMode, fvm);
         final String[] defaultSuffixes = fileChooserModel.getDefaultSuffixes();
         final boolean isReaerdDialog = fileChooserDialogType == JFileChooser.OPEN_DIALOG;
         if (!isReaerdDialog && (defaultSuffixes != null && defaultSuffixes.length > 0)) {
@@ -129,7 +129,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         m_timeoutSpinner = new DialogComponentNumber(timeoutModel, "Timeout (ms)", 500, 6);
         m_timeoutSpinner.setToolTipText("Timeout to connect to the server in milliseconds");
         timeoutModel.addChangeListener(l -> m_filePanel.setTimeout(timeoutModel.getIntValue()));
-        fileChooserModel.addChangeListener(l -> updateTimeoutEnabledness());
+        fileChooserModel.addChangeListener(l -> updateFileChooserBasedEnabledness(fileChooserModel));
         m_additionalPanels.add(createInputLocationPanel(isReaerdDialog ? "Input location" : "Output location"));
         m_additionalPanels.add(createConnectionPanel());
     }
@@ -157,9 +157,15 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         m_additionalPanels.add(index, panel);
     }
 
-    private void updateTimeoutEnabledness() {
+    /**
+     * Enables/disables components based on the file chooser state. This method is called during loading and whenever
+     * the file chooser notifies the change listener. Can be extended by overwriting it. Don't forget to call the super
+     * method in this case.
+     *
+     * @param model the model of the file chooser dialog component
+     */
+    protected void updateFileChooserBasedEnabledness(final SettingsModelFileChooser2 model) {
         // Enable/Disable timeout spinner
-        final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)m_filePanel.getModel();
         final FileSystemChoice choice = model.getFileSystemChoice();
         m_timeoutSpinner.getModel().setEnabled(FileSystemChoice.getCustomFsUrlChoice().equals(choice)
             || FileSystemChoice.getKnimeFsChoice().equals(choice));
@@ -245,7 +251,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         m_timeoutSpinner.loadSettingsFrom(settings, specs);
 
         // update the spinner
-        updateTimeoutEnabledness();
+        updateFileChooserBasedEnabledness((SettingsModelFileChooser2)m_filePanel.getModel());
     }
 
 }

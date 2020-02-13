@@ -59,7 +59,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
 
 /**
@@ -124,6 +126,13 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
         gbc.gridy++;
         panel.add(m_createDirectoriesCheckbox.getComponentPanel(), gbc);
         return panel;
+    }
+
+    @Override
+    protected void updateFileChooserBasedEnabledness(final SettingsModelFileChooser2 model) {
+        super.updateFileChooserBasedEnabledness(model);
+        final FileSystemChoice choice = model.getFileSystemChoice();
+        m_createDirectoriesCheckbox.getModel().setEnabled(!FileSystemChoice.getCustomFsUrlChoice().equals(choice));
     }
 
     /**
