@@ -74,6 +74,8 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
 
     private final DialogComponentBoolean m_createDirectoriesCheckbox;
 
+    private final PortsConfiguration m_portsConfig;
+
     /**
      * Constructor.
      *
@@ -92,6 +94,7 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
         m_createDirectoriesCheckbox =
             new DialogComponentBoolean(getConfig().getCreateDirectoryModel(), "Create parent directories if required");
         addAdditionalPanel(createOverwriteSettingsPanel());
+        m_portsConfig = portsConfig;
     }
 
     /**
@@ -121,6 +124,15 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
         gbc.gridy++;
         panel.add(m_createDirectoriesCheckbox.getComponentPanel(), gbc);
         return panel;
+    }
+
+    /**
+     * Method to obtain the index of port object written by this writer.
+     *
+     * @return the index of the to be-written port object
+     */
+    protected int getPortObjectIndex() {
+        return m_portsConfig.getInputPortLocation().get(PortObjectToPathWriterNodeModel.PORT_OBJECT_INPUT_GRP_NAME)[0];
     }
 
     @Override
