@@ -74,9 +74,6 @@ final class PMMLWriterNodeModel2 extends PortObjectToFileWriterNodeModel<PMMLWri
     @Override
     protected void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
         throws Exception {
-        if (!(object instanceof PMMLPortObject)) {
-            throw new IllegalArgumentException("The input object is not a PMML port object.");
-        }
         final PMMLPortObject pmml = (PMMLPortObject)object;
         if (getConfig().getValidatePMMLModel().getBooleanValue()) {
             pmml.validate();
