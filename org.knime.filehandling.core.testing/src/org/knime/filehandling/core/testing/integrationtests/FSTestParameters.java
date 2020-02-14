@@ -3,6 +3,7 @@ package org.knime.filehandling.core.testing.integrationtests;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -61,17 +63,17 @@ public class FSTestParameters {
 		return Arrays.asList(fsTestInitializers);
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Map<String, String> readConfiguration(final String fsType) {
 		final Properties testProperties = readProperties();
 
 		final Map<String, String> configuration = new HashMap<>();
-		@SuppressWarnings("unchecked")
-		Enumeration<String> propertyNames = (Enumeration<String>) testProperties.propertyNames();
-		while (propertyNames.hasMoreElements()) {
-			final String key = propertyNames.nextElement();
-			if (key.startsWith(fsType)) {
+		final String fsTypePrefix = fsType + ".";
+		
+		for (String key: Collections.list((Enumeration<String>) testProperties.propertyNames())) {
+			if (key.startsWith(fsTypePrefix)) {
 				final String value = testProperties.getProperty(key);
-				final String keyWithoutFSType = key.replace(fsType + ".", "");
+				final String keyWithoutFSType = key.substring(fsTypePrefix.length());
 				configuration.put(keyWithoutFSType, value);
 			}
 		}
@@ -96,7 +98,7 @@ public class FSTestParameters {
 			properties.load(propertiesStream);
 			return properties;
 		} catch (IOException e) {
-			throw new RuntimeIOException(String.format("Could not read properties from: '%s'", propertiesPath), e);
+			throw new UncheckedIOException(String.format("Could not read properties from: '%s'", propertiesPath), e);
 		}
 	}
 

@@ -58,6 +58,8 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  * Manager which knows all registered {@link FSTestInitializerProvider} instances and can instantiate a configured

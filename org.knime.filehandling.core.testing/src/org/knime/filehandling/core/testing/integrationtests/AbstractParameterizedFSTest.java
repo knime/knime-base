@@ -1,8 +1,10 @@
 package org.knime.filehandling.core.testing.integrationtests;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -19,6 +21,9 @@ import org.knime.filehandling.core.testing.FSTestInitializer;
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractParameterizedFSTest {
+	
+	protected static final String LOCAL = "local";
+	protected static final String S3 = "s3";
 	
 	@Parameters(name = "File System: {0}")
 	public static Collection<Object[]> allFileSystemTestInitializers() {
@@ -37,6 +42,7 @@ public abstract class AbstractParameterizedFSTest {
 	
 	protected final FSTestInitializer m_testInitializer;
 	protected final FSConnection m_connection;
+	protected final String m_fsType;
 	
 	/**
 	 * Creates a new instance for a file system.
@@ -47,6 +53,33 @@ public abstract class AbstractParameterizedFSTest {
 	public AbstractParameterizedFSTest(final String fsType, final FSTestInitializer testInitializer) {
 		m_testInitializer = testInitializer;
 		m_connection = m_testInitializer.getFSConnection();
+		m_fsType = fsType;
+	}
+	
+	/**
+	 * Ignores a test case for the specified file systems.
+	 * 
+	 * This is helpful in the case where a general test case is true for most file system, but not all. Every file 
+	 * system given as a parameter will be ignored.
+	 * 
+	 * @param fileSystems the file systems to be ignored for this test case
+	 */
+	public void ignore(String... fileSystems) {
+		final boolean shouldBeIgnored = Arrays.stream(fileSystems).anyMatch(fileSystem -> fileSystem.equals(m_fsType));
+		final String errMsg = String.format("Test case has been ignored for the file system '%s'", m_fsType);
+		Assume.assumeFalse(errMsg, shouldBeIgnored);
+	}
+	
+	/**
+	 * Ignores a test case for the specified file system and provides a reason why.
+	 * 
+	 * This is helpful in the case where a general test case is true for most file systems, but not all.
+	 * 
+	 * @param fileSystem the file system to be ignored for this test case
+	 */
+	public void ignoreWithReason(String reason, String fileSystem) {
+		final boolean shouldBeIgnored = fileSystem.equals(m_fsType);
+		Assume.assumeFalse(reason, shouldBeIgnored);
 	}
 	
 }
