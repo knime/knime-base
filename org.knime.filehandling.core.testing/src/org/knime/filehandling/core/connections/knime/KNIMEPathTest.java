@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -387,6 +389,28 @@ public class KNIMEPathTest {
 		
 		assertFalse(localPath.equals(absoluteLocalPath));
 		assertEquals(expected, localPath);
+	}
+	
+	@Test
+	public void get_url_when_hash_sign_in_path() throws URISyntaxException {
+		get_url_from_path("somepathwith#hashsign");
+	}
+	
+	@Test
+	public void get_url_when_hash_signs_in_path() throws URISyntaxException {
+		get_url_from_path("some#path#with#hash#signs");
+	}
+	
+	private void get_url_from_path(String path) throws URISyntaxException {
+		final KNIMEPath knimePath = new KNIMEPath(workflowRelativeFS(), path);
+		final URL url = knimePath.getURL();
+		final URI uri = url.toURI();
+		final String absPath = uri.getPath();
+		// since the uri has a scheme and authority (knime://knime.workflow), its path must be absolute
+		// (see Javadoc of {@link URI}) and we have to relativize it again.
+		assert uri.isAbsolute() && absPath.length() > 0 && absPath.startsWith("/") ;
+		final String relPath = absPath.substring(1);
+		assertEquals(path, relPath);
 	}
 	
 	private KNIMEFileSystem localMountPointRelativeFS() {
