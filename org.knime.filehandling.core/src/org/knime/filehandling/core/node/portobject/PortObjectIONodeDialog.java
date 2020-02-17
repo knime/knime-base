@@ -184,7 +184,8 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         final JPanel additionalSettingsPanel =
             m_additionalPanels.isEmpty() ? new JPanel() : m_additionalPanels.remove(0);
         panel.add(additionalSettingsPanel, gbc);
-        addTab("Options", panel);
+        addTabAt(0, "Options", panel);
+        setSelected("Options");
     }
 
     private JPanel createInputLocationPanel(final String borderTitle) {
