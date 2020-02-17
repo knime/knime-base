@@ -58,6 +58,11 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.StreamableOperator;
 
 /**
  * The NodeModel for the Number to String Node that converts numbers to StringValues.
@@ -123,22 +128,21 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
             final ExecutionContext exec) throws Exception {
         StringBuilder warnings = new StringBuilder();
         // find indices to work on.
-        DataTableSpec inspec = inData[0].getDataTableSpec();
-        String[] inclCols = getStoredInclCols(inspec);
+        DataTableSpec inSpec = inData[0].getDataTableSpec();
+        String[] inclCols = getStoredInclCols(inSpec);
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected,"
                     + " returning input DataTable.");
             return new BufferedDataTable[]{inData[0]};
         }
-        int[] indices = findColumnIndices(inData[0].getSpec());
-        ConverterFactory converterFac = new ConverterFactory(indices, inspec);
-        ColumnRearranger colre = new ColumnRearranger(inspec);
-        colre.replace(converterFac, indices);
+
+        ConverterFactory converterFactory = createConverterFactory(inSpec);
+        ColumnRearranger colre = createColumnRearranger(converterFactory, inSpec);
 
         BufferedDataTable resultTable =
                 exec.createColumnRearrangeTable(inData[0], colre, exec);
-        String errorMessage = converterFac.getErrorMessage();
+        String errorMessage = converterFactory.getErrorMessage();
 
         if (errorMessage.length() > 0) {
             warnings.append("Problems occurred, see Console messages.\n");
@@ -148,5 +152,33 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
             setWarningMessage(warnings.toString());
         }
         return new BufferedDataTable[]{resultTable};
+    }
+
+    private ConverterFactory createConverterFactory(final DataTableSpec inSpec) throws InvalidSettingsException {
+        return new ConverterFactory(findColumnIndices(inSpec), inSpec);
+    }
+
+    private ColumnRearranger createColumnRearranger(final ConverterFactory converterFactory, final DataTableSpec inSpec) throws InvalidSettingsException {
+        ColumnRearranger colre = new ColumnRearranger(inSpec);
+        colre.replace(converterFactory, findColumnIndices(inSpec));
+        return colre;
+    }
+
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[0];
+        final ColumnRearranger colRearranger = createColumnRearranger(createConverterFactory(inSpec), inSpec);
+        return colRearranger.createStreamableFunction();
     }
 }
