@@ -406,8 +406,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     private void setFileFolderLabel() {
         final SettingsModelString model = ((SettingsModelFileChooser2)getModel()).getFileOrFolderSettingsModel();
-        m_fileFolderLabel.setText(
-            FileOrFolderEnum.valueOf(model.getStringValue()).equals(FileOrFolderEnum.FILE) ? FILE_LABEL : FOLDER_LABEL);
+        m_fileFolderLabel.setText(isFileSelected(model) ? FILE_LABEL : FOLDER_LABEL);
+    }
+
+    private boolean isFileSelected(final SettingsModelString model) {
+        if (m_fileSelectionMode == FileSelectionMode.DIRECTORIES_ONLY) {
+            return false;
+        }
+        return FileOrFolderEnum.valueOf(model.getStringValue()).equals(FileOrFolderEnum.FILE);
     }
 
     private void handleHistoryPanelUpdate() {
@@ -606,8 +612,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** Method to update enabledness of components */
     private void updateEnabledness() {
         final SettingsModelString fileOrFolderModel = (SettingsModelString)m_fileOrFolderButtonGroup.getModel();
-        final boolean fileSelected =
-            FileOrFolderEnum.valueOf(fileOrFolderModel.getStringValue()).equals(FileOrFolderEnum.FILE);
+        final boolean fileSelected = isFileSelected(fileOrFolderModel);
         if (excutedOnServer()
             && !((FileSystemChoice)m_connections.getSelectedItem()).getType().equals(Choice.CONNECTED_FS)) {
             //We are on the server, and do not have a connected connection
