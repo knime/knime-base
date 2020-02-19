@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -21,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -43,23 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 19, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.pmml.reader;
+package org.knime.filehandling.core.node.portobject.writer;
 
-import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
+import javax.swing.JFileChooser;
+
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 
 /**
- * Node config of the PMML reader node.
+ * Abstract node factory for simple port object writer nodes.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class PMMLReaderNodeConfig3 extends PortObjectReaderNodeConfig {
+public abstract class SimplePortObjectWriterNodeFactory extends
+    PortObjectWriterNodeFactory<SimplePortObjectWriterNodeModel, PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>>
+{
 
-    /** The pmml file extension/suffix. */
-    private static final String[] PMML_SUFFIX = new String[]{".pmml"};
+    /** The file chooser history id. */
+    private final String m_fileChooserHistoryId;
 
-    PMMLReaderNodeConfig3() {
-        super(PMML_SUFFIX);
+    /** the file suffixes to filter on. */
+    private final String[] m_fileSuffixes;
+
+    /**
+     * Constructor.
+     *
+     * @param fileChooserHistoryId id used to store file history used by {@link PortObjectReaderNodeDialog}
+     * @param fileSuffixes the file suffixes to filter on
+     *
+     */
+    protected SimplePortObjectWriterNodeFactory(final String fileChooserHistoryId, final String[] fileSuffixes) {
+        super();
+        m_fileChooserHistoryId = fileChooserHistoryId;
+        m_fileSuffixes = fileSuffixes;
+    }
+
+    @Override
+    protected final PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>
+        createDialog(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>(creationConfig.getPortConfig().get(),
+            getConfig(), m_fileChooserHistoryId, JFileChooser.FILES_ONLY);
+    }
+
+    @Override
+    protected final SimplePortObjectWriterNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new SimplePortObjectWriterNodeModel(creationConfig, getConfig());
+    }
+
+    /**
+     * Returns the port object writer node configuration.
+     *
+     * @return the writer configuration
+     */
+    private PortObjectWriterNodeConfig getConfig() {
+        return new PortObjectWriterNodeConfig(m_fileSuffixes);
     }
 }

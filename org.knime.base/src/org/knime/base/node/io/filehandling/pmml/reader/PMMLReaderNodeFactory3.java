@@ -50,6 +50,7 @@ import javax.swing.JFileChooser;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory;
 
@@ -60,11 +61,24 @@ import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFa
  * @since 4.2
  */
 public final class PMMLReaderNodeFactory3
-    extends PortObjectReaderNodeFactory<PMMLReaderNodeModel3, PortObjectReaderNodeDialog<PMMLReaderNodeConfig3>> {
+    extends PortObjectReaderNodeFactory<PMMLReaderNodeModel3, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>> {
+
+    /** File chooser history Id. */
+    private static final String HISTORY_ID = "pmml_model_reader_writer";
+
+    /** The pmml file extension/suffix. */
+    private static final String[] PMML_SUFFIX = new String[]{".pmml"};
 
     @Override
     protected PMMLReaderNodeModel3 createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new PMMLReaderNodeModel3(creationConfig);
+        return new PMMLReaderNodeModel3(creationConfig, getConfig());
+    }
+
+    @Override
+    protected PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>
+        createDialog(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), getConfig(), HISTORY_ID,
+            JFileChooser.FILES_ONLY);
     }
 
     @Override
@@ -72,11 +86,12 @@ public final class PMMLReaderNodeFactory3
         return PMMLPortObject.TYPE;
     }
 
-    @Override
-    protected PortObjectReaderNodeDialog<PMMLReaderNodeConfig3>
-        createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), new PMMLReaderNodeConfig3(),
-            "pmml_reader", JFileChooser.FILES_ONLY);
+    /**
+     * Returns the port object reader node configuration.
+     *
+     * @return the reader configuration
+     */
+    private static PortObjectReaderNodeConfig getConfig() {
+        return new PortObjectReaderNodeConfig(PMML_SUFFIX);
     }
-
 }

@@ -72,7 +72,7 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
      */
-    protected PortObjectWriterNodeConfig() {
+    public PortObjectWriterNodeConfig() {
         super();
     }
 
@@ -81,7 +81,7 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
      *
      * @param fileSuffixes the suffixes to filter on
      */
-    protected PortObjectWriterNodeConfig(final String[] fileSuffixes) {
+    public PortObjectWriterNodeConfig(final String[] fileSuffixes) {
         super(fileSuffixes);
     }
 

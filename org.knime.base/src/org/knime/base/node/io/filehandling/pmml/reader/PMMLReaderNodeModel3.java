@@ -55,21 +55,23 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectFromFileReaderNodeModel;
+import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 
 /**
  * Node model of the PMML reader node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class PMMLReaderNodeModel3 extends PortObjectFromFileReaderNodeModel<PMMLReaderNodeConfig3> {
+final class PMMLReaderNodeModel3 extends PortObjectFromFileReaderNodeModel<PortObjectReaderNodeConfig> {
 
     /**
      * Constructor.
      *
      * @param creationConfig the node creation configuration
+     * @param config the reader configuration
      */
-    PMMLReaderNodeModel3(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, new PMMLReaderNodeConfig3());
+    PMMLReaderNodeModel3(final NodeCreationConfiguration creationConfig, final PortObjectReaderNodeConfig config) {
+        super(creationConfig, config);
     }
 
     @Override
@@ -79,7 +81,7 @@ final class PMMLReaderNodeModel3 extends PortObjectFromFileReaderNodeModel<PMMLR
                 new PMMLImport(inputStream, getConfig().getFileChooserModel().getPathOrURL()).getPortObject();
             return new PortObject[]{pmmlPortObject};
         } catch (XmlException e) {
-            throw new IOException("The model is not a valid PMML document and could not be read.", e);
+            throw new IOException("The provided file does not contain a valid PMML document.", e);
         }
     }
 

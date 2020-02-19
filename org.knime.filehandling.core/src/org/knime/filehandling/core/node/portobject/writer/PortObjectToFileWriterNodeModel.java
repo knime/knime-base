@@ -75,7 +75,7 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
      * Constructor.
      *
      * @param creationConfig the node creation configuration
-     * @param config the config
+     * @param config the writer configuration
      */
     protected PortObjectToFileWriterNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
         super(creationConfig, config);

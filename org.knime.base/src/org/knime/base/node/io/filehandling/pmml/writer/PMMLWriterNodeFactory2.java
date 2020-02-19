@@ -58,10 +58,8 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFa
 public final class PMMLWriterNodeFactory2
     extends PortObjectWriterNodeFactory<PMMLWriterNodeModel2, PMMLWriterNodeDialog2> {
 
-    @Override
-    protected PMMLWriterNodeModel2 createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new PMMLWriterNodeModel2(creationConfig);
-    }
+    /** File chooser history Id. */
+    private static final String HISTORY_ID = "pmml_model_reader_writer";
 
     @Override
     protected PortType getInputPortType() {
@@ -70,7 +68,12 @@ public final class PMMLWriterNodeFactory2
 
     @Override
     protected PMMLWriterNodeDialog2 createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PMMLWriterNodeDialog2(creationConfig.getPortConfig().get(), "pmml_writer");
+        return new PMMLWriterNodeDialog2(creationConfig.getPortConfig().get(), HISTORY_ID);
+    }
+
+    @Override
+    protected PMMLWriterNodeModel2 createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new PMMLWriterNodeModel2(creationConfig);
     }
 
 }

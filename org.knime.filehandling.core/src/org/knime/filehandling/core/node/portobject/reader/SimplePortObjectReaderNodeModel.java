@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,27 +41,48 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Feb 19, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.model.writer;
+package org.knime.filehandling.core.node.portobject.reader;
 
-import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
+import java.io.InputStream;
+
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortUtil;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Node config of the model writer node.
+ * Port object reader utilizing {@link PortUtil#readObjectFromFile(java.io.File, org.knime.core.node.ExecutionMonitor)}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ModelWriterNodeConfig extends PortObjectWriterNodeConfig {
-
-    /** The model file extension/suffix. */
-    private static final String[] MODEL_SUFFIX = new String[]{".model", ".zip"};
+final class SimplePortObjectReaderNodeModel extends PortObjectFromFileReaderNodeModel<PortObjectReaderNodeConfig> {
 
     /**
      * Constructor.
+     *
+     * @param creationConfig the node creation configuration
+     * @param config the config
      */
-    ModelWriterNodeConfig() {
-        super(MODEL_SUFFIX);
+    SimplePortObjectReaderNodeModel(final NodeCreationConfiguration creationConfig,
+        final PortObjectReaderNodeConfig config) {
+        super(creationConfig, config);
     }
+
+    @Override
+    protected PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception {
+        PortObject portObject = PortUtil.readObjectFromStream(inputStream, exec);
+        // save since we only have a single output port, i.e., the port object we read
+        final PortType modelPortType = getPortsConfig().getOutputPorts()[0];
+        CheckUtils.checkArgument(modelPortType.getPortObjectClass().isInstance(portObject),
+            "The file provided does not contain a valid %s.", modelPortType.getName());
+        return new PortObject[]{portObject};
+    }
+
 }

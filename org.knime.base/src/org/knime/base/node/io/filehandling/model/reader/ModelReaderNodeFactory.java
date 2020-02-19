@@ -45,37 +45,33 @@
  */
 package org.knime.base.node.io.filehandling.model.reader;
 
-import javax.swing.JFileChooser;
-
-import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
-import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory;
+import org.knime.filehandling.core.node.portobject.reader.SimplePortObjectReaderNodeFactory;
 
 /**
  * Node factory of the model reader node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ModelReaderNodeFactory
-    extends PortObjectReaderNodeFactory<ModelReaderNodeModel, PortObjectReaderNodeDialog<ModelReaderNodeConfig>> {
+public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFactory {
 
-    @Override
-    protected ModelReaderNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new ModelReaderNodeModel(creationConfig);
+    /** The mode file extensions/suffixes. */
+    private static final String[] MODEL_SUFFIXES = new String[]{".model", ".zip"};
+
+    /** File chooser history Id. */
+    private static final String HISTORY_ID = "model_reader_writer";
+
+    /**
+     * Constructor.
+     */
+    public ModelReaderNodeFactory() {
+        super(HISTORY_ID, MODEL_SUFFIXES);
     }
 
     @Override
     protected PortType getOutputPortType() {
         return PortObject.TYPE;
-    }
-
-    @Override
-    protected PortObjectReaderNodeDialog<ModelReaderNodeConfig>
-        createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), new ModelReaderNodeConfig(),
-            "model_reader", JFileChooser.FILES_ONLY);
     }
 
 }

@@ -74,7 +74,7 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
      * Constructor.
      *
      * @param creationConfig the node creation configuration
-     * @param config the config
+     * @param config the reader configuration
      */
     protected PortObjectFromPathReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
         super(creationConfig.getPortConfig().get(), config);

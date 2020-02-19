@@ -58,16 +58,16 @@ public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig {
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
      */
-    protected PortObjectReaderNodeConfig() {
+    public PortObjectReaderNodeConfig() {
         super();
     }
 
     /**
      * Constructor for configs in which the file chooser filters on a set of file suffixes.
      *
-     * @param fileSuffixes the suffixes to filter on
+     * @param fileSuffixes the file suffixes to filter on
      */
-    protected PortObjectReaderNodeConfig(final String[] fileSuffixes) {
+    public PortObjectReaderNodeConfig(final String[] fileSuffixes) {
         super(fileSuffixes);
     }
 

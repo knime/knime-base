@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,38 +41,43 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Feb 19, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.model.reader;
+package org.knime.filehandling.core.node.portobject.writer;
 
-import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortUtil;
-import org.knime.filehandling.core.node.portobject.reader.PortObjectFromFileReaderNodeModel;
 
 /**
- * Node model of the model reader node.
+ * Port object writer utilizing
+ * {@link PortUtil#writeObjectToStream(PortObject, OutputStream, org.knime.core.node.ExecutionMonitor)}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ModelReaderNodeModel extends PortObjectFromFileReaderNodeModel<ModelReaderNodeConfig> {
+final class SimplePortObjectWriterNodeModel extends PortObjectToFileWriterNodeModel<PortObjectWriterNodeConfig> {
 
     /**
      * Constructor.
      *
-     * @param creationConfig the node creation config
+     * @param creationConfig the node creation configuration
+     * @param config the writer configuration
      */
-    ModelReaderNodeModel(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, new ModelReaderNodeConfig());
+    SimplePortObjectWriterNodeModel(final NodeCreationConfiguration creationConfig,
+        final PortObjectWriterNodeConfig config) {
+        super(creationConfig, config);
     }
 
     @Override
-    protected PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception {
-        return new PortObject[]{PortUtil.readObjectFromStream(inputStream, exec)};
+    protected void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
+        throws Exception {
+        PortUtil.writeObjectToStream(object, outputStream, exec);
     }
 
 }

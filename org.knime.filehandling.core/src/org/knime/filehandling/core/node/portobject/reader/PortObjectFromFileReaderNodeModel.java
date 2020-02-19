@@ -66,7 +66,7 @@ public abstract class PortObjectFromFileReaderNodeModel<C extends PortObjectRead
      * Constructor.
      *
      * @param creationConfig the node creation configuration
-     * @param config the config
+     * @param config the reader configuration
      */
     protected PortObjectFromFileReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
         super(creationConfig, config);

@@ -45,37 +45,33 @@
  */
 package org.knime.base.node.io.filehandling.model.writer;
 
-import javax.swing.JFileChooser;
-
-import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
-import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDialog;
-import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFactory;
+import org.knime.filehandling.core.node.portobject.writer.SimplePortObjectWriterNodeFactory;
 
 /**
  * Node factory of the model writer node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class ModelWriterNodeFactory
-    extends PortObjectWriterNodeFactory<ModelWriterNodeModel, PortObjectWriterNodeDialog<ModelWriterNodeConfig>> {
+public final class ModelWriterNodeFactory extends SimplePortObjectWriterNodeFactory {
 
-    @Override
-    protected ModelWriterNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new ModelWriterNodeModel(creationConfig);
+    /** The mode file extensions/suffixes. */
+    private static final String[] MODEL_SUFFIXES = new String[]{".model", ".zip"};
+
+    /** File chooser history Id. */
+    private static final String HISTORY_ID = "model_reader_writer";
+
+    /**
+     * Constructor.
+     */
+    public ModelWriterNodeFactory() {
+        super(HISTORY_ID, MODEL_SUFFIXES);
     }
 
     @Override
     protected PortType getInputPortType() {
         return PortObject.TYPE;
-    }
-
-    @Override
-    protected PortObjectWriterNodeDialog<ModelWriterNodeConfig>
-        createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeDialog<>(creationConfig.getPortConfig().get(), new ModelWriterNodeConfig(),
-            "model_writer", JFileChooser.FILES_ONLY);
     }
 
 }

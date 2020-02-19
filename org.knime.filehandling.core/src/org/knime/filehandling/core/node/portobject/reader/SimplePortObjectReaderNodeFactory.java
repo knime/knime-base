@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -21,7 +22,7 @@
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
  *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
- *  KNIME and ECLIPSE being a combined program, KNIME GMBH herewith grants
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
@@ -43,26 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 19, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.model.reader;
+package org.knime.filehandling.core.node.portobject.reader;
 
-import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
+import javax.swing.JFileChooser;
+
+import org.knime.core.node.context.NodeCreationConfiguration;
 
 /**
- * Node config of the model reader node.
+ * Abstract node factory for simple port object reader nodes.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ModelReaderNodeConfig extends PortObjectReaderNodeConfig {
+public abstract class SimplePortObjectReaderNodeFactory extends
+    PortObjectReaderNodeFactory<SimplePortObjectReaderNodeModel, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>>
+{
 
-    /** The model file extension/suffix. */
-    private static final String[] MODEL_SUFFIX = new String[]{".model", ".zip"};
+    /** The file chooser history id. */
+    private final String m_fileChooserHistoryId;
+
+    /** the file suffixes to filter on. */
+    private final String[] m_fileSuffixes;
 
     /**
      * Constructor.
+     *
+     * @param fileChooserHistoryId id used to store file history used by {@link PortObjectReaderNodeDialog}
+     * @param fileSuffixes the file suffixes to filter on
+     *
      */
-    ModelReaderNodeConfig() {
-        super(MODEL_SUFFIX);
+    protected SimplePortObjectReaderNodeFactory(final String fileChooserHistoryId, final String[] fileSuffixes) {
+        super();
+        m_fileChooserHistoryId = fileChooserHistoryId;
+        m_fileSuffixes = fileSuffixes;
     }
+
+    @Override
+    protected final PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>
+        createDialog(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>(creationConfig.getPortConfig().get(),
+            getConfig(), m_fileChooserHistoryId, JFileChooser.FILES_ONLY);
+    }
+
+    @Override
+    protected final SimplePortObjectReaderNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new SimplePortObjectReaderNodeModel(creationConfig, getConfig());
+    }
+
+    /**
+     * Returns the port object reader node configuration.
+     *
+     * @return the reader configuration
+     */
+    private PortObjectReaderNodeConfig getConfig() {
+        return new PortObjectReaderNodeConfig(m_fileSuffixes);
+    }
+
 }
