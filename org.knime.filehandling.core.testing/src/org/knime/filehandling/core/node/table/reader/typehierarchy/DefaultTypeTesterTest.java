@@ -44,81 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 17, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 19, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.typehierarchy;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import org.knime.core.node.util.CheckUtils;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+
+import org.junit.Test;
 
 /**
- * Represents a {@link TypeHierarchy} that can be seen as simple path from the most specific to the most general type.
+ * Unit tests for {@link DefaultTypeTester}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify data types
- * @param <V> the type of values
  */
-public final class PathTypeHierarchy<T, V> implements TypeHierarchy<T, V> {
+public class DefaultTypeTesterTest {
 
-    private final List<TypeTester<T, V>> m_hierarchy;
+	@Test
+	public void testNullAllowed() throws Exception {
+		testTypeTester(DefaultTypeTester::new, true);
+		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, true), true);
+	}
 
-    /**
-     * Constructor for a PathTypeHierarchy.
-     *
-     * @param tester ordered from most specific to most general
-     */
-    public PathTypeHierarchy(final List<TypeTester<T, V>> tester) {
-        CheckUtils.checkArgument(!tester.isEmpty(), "The list of testers must not be empty.");
-        m_hierarchy = new ArrayList<>(tester);
-    }
+	@Test
+	public void testNullRejected() throws Exception {
+		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, false), false);
+	}
 
-    @Override
-    public TypeResolver<T, V> createResolver() {
-        return new LinearTypeResolver();
-    }
-
-    private final class LinearTypeResolver implements TypeResolver<T, V> {
-        private final Iterator<TypeTester<T, V>> m_iterator = m_hierarchy.iterator();
-
-        private TypeTester<T, V> m_current = null;
-
-        @Override
-        public T getMostSpecificType() {
-            if (m_current == null) {
-                // we haven't seen anything therefore we should assume
-                // the most generic type i.e. the top of the hierarchy
-                return m_hierarchy.get(m_hierarchy.size() - 1).getType();
-            } else {
-                return m_current.getType();
-            }
-        }
-
-        @Override
-        public void accept(final V value) {
-            if (m_current == null) {
-                // this is the first value we observe, so we start evaluating at the most specific type
-                m_current = m_iterator.next();
-            }
-            while (!m_current.test(value)) {
-                CheckUtils.checkState(m_iterator.hasNext(),
-                    "The top most type in the type hierarchy (%s) has to accept all incoming values but rejected %s.",
-                    m_current.getType(), value);
-                nextTester();
-            }
-        }
-
-        private void nextTester() {
-            m_current = m_iterator.next();
-        }
-
-        @Override
-        public boolean reachedTop() {
-            return !m_iterator.hasNext();
-        }
-
-    }
+	static void testTypeTester(
+			final BiFunction<String, Predicate<Integer>, TypeTester<String, Integer>> typeTesterProvider,
+			final boolean nullAllowed) {
+		TypeTester<String, Integer> elfriede = typeTesterProvider.apply("elfriede", i -> i < 2);
+		assertTrue(elfriede.test(1));
+		assertFalse(elfriede.test(2));
+		assertEquals(nullAllowed, elfriede.test(null));
+		assertEquals("elfriede", elfriede.getType());
+	}
 
 }

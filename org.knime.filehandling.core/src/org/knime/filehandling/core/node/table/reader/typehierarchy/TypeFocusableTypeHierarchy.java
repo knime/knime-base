@@ -44,44 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 13, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.typehierarchy;
 
-import java.util.function.Predicate;
-
 /**
- * Utility class for {@link TypeTester TypeTesters}.
+ * A {@link TypeHierarchy} that allows to create a type-focused copy of itself. Type-focused means that the copy uses T
+ * also as V but mirrors the original hierarchy of types.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify external data types
+ * @param <V> the type of values
  */
-public final class TypeTesterUtil {
-
-    private TypeTesterUtil() {
-        // static utility class
-    }
+public interface TypeFocusableTypeHierarchy<T, V> extends TypeHierarchy<T, V> {
 
     /**
-     * Creates a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
+     * Creates a type-focused copy of this hierarchy that uses the specified T also as values and has the same
+     * hierarchical structure as this hierarchy.
      *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
-     * @return the created TypeTester
+     * @return a type-focused copy of this hierarchy
      */
-    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate,
-        final boolean allowNull) {
-        return new DefaultTypeTester<>(type, predicate, allowNull);
-    }
+    TypeHierarchy<T, T> createTypeFocusedHierarchy();
 
-    /**
-     * Creates a {@link TypeTester} that accepts <code>null</code> as value.
-     *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @return the created TypeTester
-     */
-    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate) {
-        return new DefaultTypeTester<>(type, predicate);
-    }
 }

@@ -68,21 +68,21 @@ final class DefaultTypeTester<T, V> implements TypeTester<T, V> {
     private final boolean m_allowNull;
 
     /**
-     * Constructs a TypeTester that accepts <code>null</code> as value.
+     * Constructs a {@link TypeTester} that accepts {code null} as value.
      *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
+     * @param type the <b>type</b> that {@link Predicate predicate} tests for
+     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
      */
     public DefaultTypeTester(final T type, final Predicate<V> predicate) {
         this(type, predicate, true);
     }
 
     /**
-     * Constructs a TypeTester that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
+     * Constructs a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects {@code null} values.
      *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
+     * @param type the <b>type</b> that {@link Predicate predicate} tests for
+     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
+     * @param allowNull set to {@code false} if {@code null} values should be rejected
      */
     public DefaultTypeTester(final T type, final Predicate<V> predicate, final boolean allowNull) {
         m_type = type;
@@ -91,11 +91,11 @@ final class DefaultTypeTester<T, V> implements TypeTester<T, V> {
     }
 
     @Override
-    public boolean test(final V t) {
-        if (t == null) {
+    public boolean test(final V value) {
+        if (value == null) {
             return m_allowNull;
         }
-        return m_predicate.test(t);
+        return m_predicate.test(value);
     }
 
     @Override

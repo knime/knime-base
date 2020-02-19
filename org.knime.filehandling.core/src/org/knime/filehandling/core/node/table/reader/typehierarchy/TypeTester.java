@@ -60,10 +60,10 @@ import java.util.function.Predicate;
 public interface TypeTester<T, V> extends Predicate<V> {
 
     /**
-     * Checks if the provided value <b>t</b> is compatible with the type associated with this tester.
+     * Checks if the provided value <b>value</b> is compatible with the type associated with this tester.
      */
     @Override
-    boolean test(final V t);
+    boolean test(final V value);
 
     /**
      * Returns the type associated with this tester.
@@ -71,4 +71,28 @@ public interface TypeTester<T, V> extends Predicate<V> {
      * @return the type associated with this tester
      */
     T getType();
+
+    /**
+     * Creates a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
+     *
+     * @param type the type that <b>predicate</b> tests for
+     * @param predicate that tests if a value can be converted to <b>type</b>
+     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
+     * @return the created TypeTester
+     */
+    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate,
+        final boolean allowNull) {
+        return new DefaultTypeTester<>(type, predicate, allowNull);
+    }
+
+    /**
+     * Creates a {@link TypeTester} that accepts <code>null</code> as value.
+     *
+     * @param type the type that <b>predicate</b> tests for
+     * @param predicate that tests if a value can be converted to <b>type</b>
+     * @return the created TypeTester
+     */
+    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate) {
+        return new DefaultTypeTester<>(type, predicate);
+    }
 }
