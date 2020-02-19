@@ -79,7 +79,11 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Sebastian Peter, University of Konstanz
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany - Deprecated
+ *
+ * @deprecated because of a newer node based on a new file handling frame work
  */
+@Deprecated
 final class WriteImageNodeModel extends NodeModel {
 
     private final SettingsModelString m_fileOutSettings;

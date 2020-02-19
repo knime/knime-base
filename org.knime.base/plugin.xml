@@ -1191,7 +1191,7 @@
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
-            after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
+            deprecated="true"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
             >

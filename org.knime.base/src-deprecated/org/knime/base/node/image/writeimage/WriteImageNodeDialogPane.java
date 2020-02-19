@@ -67,30 +67,29 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Sebastian Peter, University of Konstanz
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany - Deprecated
+ *
+ * @deprecated because of a newer node based on a new file handling framework
  */
+@Deprecated
 final class WriteImageNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**
      *
      */
     WriteImageNodeDialogPane() {
-        SettingsModelString fileOutSettings =
-            WriteImageNodeModel.createFileOutSettings();
-        FlowVariableModel fvmModel =
-            super.createFlowVariableModel(fileOutSettings);
-        SettingsModelBoolean overwriteOKSettings =
-            WriteImageNodeModel.createOverwriteOKSettings();
+        SettingsModelString fileOutSettings = WriteImageNodeModel.createFileOutSettings();
+        FlowVariableModel fvmModel = super.createFlowVariableModel(fileOutSettings);
+        SettingsModelBoolean overwriteOKSettings = WriteImageNodeModel.createOverwriteOKSettings();
 
         final DialogComponentFileChooser fileChooser =
             new DialogComponentFileChooser(fileOutSettings, "write_png", JFileChooser.SAVE_DIALOG, false, fvmModel);
-        final DialogComponentBoolean overwriteOK = new DialogComponentBoolean(
-            overwriteOKSettings, "Overwrite OK");
-
+        final DialogComponentBoolean overwriteOK = new DialogComponentBoolean(overwriteOKSettings, "Overwrite OK");
 
         fileChooser.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(final ChangeEvent e) {
-                String selFile = ((SettingsModelString) fileChooser.getModel()).getStringValue();
+                String selFile = ((SettingsModelString)fileChooser.getModel()).getStringValue();
                 if ((selFile != null) && !selFile.isEmpty()) {
                     try {
                         URL newUrl = FileUtil.toURL(selFile);
