@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.Validate;
 import org.knime.filehandling.core.connections.base.attributes.AttributesCache;
@@ -198,7 +199,24 @@ public abstract class BaseFileSystem extends FileSystem {
      */
     @Override
     public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        throw new UnsupportedOperationException();
+        final int splitPosition = syntaxAndPattern.indexOf(':');
+
+        if (splitPosition == -1 || splitPosition == syntaxAndPattern.length()) {
+            throw new IllegalArgumentException("No valid input. Must be of form syntax:pattern");
+        }
+
+        final String syntax = syntaxAndPattern.substring(0, splitPosition);
+        final String pattern = syntaxAndPattern.substring(splitPosition + 1);
+
+        Pattern expr;
+        if (syntax.equalsIgnoreCase("glob")) {
+            expr = GlobToRegexConverter.convert(pattern, getSeparator().charAt(0));
+        } else if (syntax.equalsIgnoreCase("regex")) {
+            expr = Pattern.compile(pattern);
+        } else {
+            throw new UnsupportedOperationException(String.format("Syntax %s not supported", syntax));
+        }
+        return path -> expr.matcher(path.toString()).matches();
     }
 
     /**
