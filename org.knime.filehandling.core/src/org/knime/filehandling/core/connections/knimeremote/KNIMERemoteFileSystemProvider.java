@@ -199,14 +199,6 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public void delete(final Path path) throws IOException {
-        MountPointIDProviderService.instance().deleteFile(path.toUri());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
         MountPointIDProviderService.instance().copyFile(source.toUri(), target.toUri());
     }
@@ -323,6 +315,14 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
     @Override
     protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
         return MountPointIDProviderService.instance().getFileAttributes(path.toUri());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void deleteInternal(final Path path) throws IOException {
+        MountPointIDProviderService.instance().deleteFile(path.toUri());
     }
 
 }

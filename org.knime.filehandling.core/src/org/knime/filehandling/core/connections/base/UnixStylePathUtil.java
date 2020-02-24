@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.connections.base;
 
-import java.util.LinkedList;
-
 /**
  * Utility class to implement basic logic for dealing with UNIX-style paths, in order to avoid reimplementing the logic
  * for each file system.
@@ -104,50 +102,6 @@ public class UnixStylePathUtil {
         final String resolvedPath =
             (resolveToAbsolute ? SEPARATOR : "") + String.join(SEPARATOR, resolvedPathComponents);
         return resolvedPath;
-    }
-
-    public static String relativize(final String[] baseComponents, final String[] toRelativize) {
-        final String[] normalizedBase = normalize(baseComponents);
-        final String[] normalizedToRelativize = normalize(toRelativize);
-
-        int commonPrefixLength = getLengthOfCommonPrefix(normalizedBase, normalizedToRelativize);
-
-        return "" + commonPrefixLength;
-    }
-
-    public static String[] normalize(final String[] pathComponents) {
-        final LinkedList<String> normalized = new LinkedList<>();
-
-        for (String pathComponent : pathComponents) {
-            if (pathComponent.isEmpty() || pathComponent.equals(".")) {
-                continue;
-            } else if (pathComponent.equals("..")) {
-                if (normalized.isEmpty() || normalized.getLast().equals("..")) {
-                    normalized.add(pathComponent);
-                } else {
-                    normalized.removeLast();
-                }
-            } else {
-                normalized.add(pathComponent);
-            }
-        }
-
-        return normalized.toArray(new String[normalized.size()]);
-    }
-
-    /**
-     * @param baseComponents
-     * @param toRelativize
-     * @return
-     */
-    private static int getLengthOfCommonPrefix(final String[] baseComponents, final String[] toRelativize) {
-        final int maxCommonPrefixLength = Math.min(baseComponents.length, toRelativize.length);
-        int commonPrefixLength = 0;
-        while (commonPrefixLength <= maxCommonPrefixLength
-            && baseComponents[commonPrefixLength].equals(toRelativize[commonPrefixLength])) {
-            commonPrefixLength++;
-        }
-        return commonPrefixLength;
     }
 
     /**

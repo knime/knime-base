@@ -53,11 +53,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
@@ -289,7 +291,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
             FSFileAttributes attributes;
             final Optional<FSFileAttributes> cachedAttributes = ((BaseFileSystem)path.getFileSystem())
-                .getCachedAttributes(path.normalize().toAbsolutePath().toString());
+                .getCachedAttributes(path.normalize().toString());
 
             if (!cachedAttributes.isPresent()) {
                 if (!exists(path)) {
@@ -330,6 +332,25 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
             attributes);
     }
+
+    @Override
+    public void delete(final Path path) throws IOException {
+        checkPath(path);
+        deleteInternal(path);
+        m_fileSystem.removeFromAttributeCache(path.normalize().toAbsolutePath().toString());
+    }
+
+    /**
+     * Deletes a file. This method works in exactly the manner specified by the {@link Files#delete} method.
+     *
+     * @param path the path to the file to delete
+     *
+     * @throws NoSuchFileException if the file does not exist <i>(optional specific exception)</i>
+     * @throws DirectoryNotEmptyException if the file is a directory and could not otherwise be deleted because the
+     *             directory is not empty <i>(optional specific exception)</i>
+     * @throws IOException if an I/O error occurs
+     */
+    protected abstract void deleteInternal(Path path) throws IOException;
 
     private void checkPath(final Path path) {
         if (path.getFileSystem().provider() != this) {

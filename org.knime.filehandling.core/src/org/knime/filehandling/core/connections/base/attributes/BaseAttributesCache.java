@@ -112,4 +112,12 @@ public class BaseAttributesCache implements AttributesCache {
         m_attributesCache.invalidateAll();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeAttribute(final String path) {
+        m_attributesCache.invalidate(path);
+    }
+
 }

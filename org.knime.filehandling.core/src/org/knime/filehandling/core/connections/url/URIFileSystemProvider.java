@@ -158,15 +158,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public void delete(final Path path) throws IOException {
-        throw new UnsupportedOperationException("Deleting files is not supported for custom URLs");
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
 
         try (final SeekableByteChannel sourceChannel = Files.newByteChannel(source, StandardOpenOption.READ)) {
@@ -399,5 +390,13 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
                     0L, false, false));
         }
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void deleteInternal(final Path path) throws IOException {
+        throw new UnsupportedOperationException("Deleting files is not supported for custom URLs");
     }
 }

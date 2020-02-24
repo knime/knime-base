@@ -143,4 +143,22 @@ public class KNIMEFileSystem extends BaseFileSystem {
     public void prepareClose() {
         //Nothing to do
     }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSchemeString() {
+        return m_key.getScheme();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getHostString() {
+        return m_key.getHost();
+    }
 }

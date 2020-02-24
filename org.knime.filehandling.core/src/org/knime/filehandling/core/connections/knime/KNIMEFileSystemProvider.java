@@ -238,15 +238,6 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public void delete(final Path path) throws IOException {
-        //FIXME This might not work on the server
-        Files.delete(toLocalPath(path));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public boolean deleteIfExists(final Path path) throws IOException {
         final Optional<WorkflowContext> serverContext = getServerContext();
         if (serverContext.isPresent()) {
@@ -588,6 +579,15 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
     protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
       //provider methods overrides get attributes methods
         return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void deleteInternal(final Path path) throws IOException {
+        //FIXME This might not work on the server
+        Files.delete(toLocalPath(path));
     }
 
 }

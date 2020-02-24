@@ -132,4 +132,20 @@ public class URIFileSystem extends BaseFileSystem {
         // Nothing to do
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSchemeString() {
+        return m_uri.getScheme();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getHostString() {
+        return m_uri.getHost();
+    }
+
 }

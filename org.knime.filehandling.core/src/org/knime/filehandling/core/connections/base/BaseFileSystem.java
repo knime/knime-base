@@ -177,10 +177,9 @@ public abstract class BaseFileSystem extends FileSystem {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     @Override
     public Iterable<FileStore> getFileStores() {
-        return (Iterable<FileStore>)Collections.singletonList(new BaseFileStore(m_type, m_name)).iterator();
+        return Collections.singletonList(new BaseFileStore(m_type, m_name));
     }
 
     /**
@@ -246,6 +245,15 @@ public abstract class BaseFileSystem extends FileSystem {
     }
 
     /**
+     * Removes an attribute for the path with the given URI from the attribute cache.
+     *
+     * @param path the path as String
+     */
+    public void removeFromAttributeCache(final String path) {
+        m_cache.removeAttribute(path);
+    }
+
+    /**
      * Returns an Optional containing the cached file-attributes for a path if present.
      *
      * @param path the path as String
@@ -282,5 +290,15 @@ public abstract class BaseFileSystem extends FileSystem {
     public void addCloseable(final Closeable closeable) {
         m_closeables.put(closeable.hashCode(), closeable);
     }
+
+    /**
+     * @return a String for the scheme to build a URI for this path
+     */
+    public abstract String getSchemeString();
+
+    /**
+     * @return a String for the host to build a URI for this path may be null
+     */
+    public abstract String getHostString();
 
 }

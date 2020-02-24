@@ -79,7 +79,15 @@ public class NoOpAttributesCache implements AttributesCache {
      */
     @Override
     public void clearCache() {
-        // Nothing to do
+        //Nothing to do
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeAttribute(final String path) {
+        //Nothing to do
     }
 
 }

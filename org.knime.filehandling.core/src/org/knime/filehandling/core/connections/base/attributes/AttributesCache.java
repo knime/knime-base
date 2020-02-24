@@ -51,7 +51,7 @@ package org.knime.filehandling.core.connections.base.attributes;
 import java.util.Optional;
 
 /**
- *  Interface for the attributes cache
+ * Interface for the attributes cache
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
@@ -77,5 +77,12 @@ public interface AttributesCache {
      * Clears all data from the cache.
      */
     void clearCache();
+
+    /**
+     * Removes the given path from the attributes cache.
+     * 
+     * @param path the path as string
+     */
+    void removeAttribute(String path);
 
 }

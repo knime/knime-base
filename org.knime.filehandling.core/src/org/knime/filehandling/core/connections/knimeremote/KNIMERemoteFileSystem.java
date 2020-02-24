@@ -138,5 +138,21 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
         //Nothing to do.
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSchemeString() {
+        return m_mountpoint.getScheme();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getHostString() {
+        return m_mountpoint.getHost();
+    }
+
 
 }
