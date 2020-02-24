@@ -70,11 +70,11 @@ public class FileSystemHelper {
     /**
      * Method to obtain the file system for a given settings model.
      *
-     * @param fs optional {@link FSConnection}
-     * @param settings {@link SettingsModelFileChooser2} instance
-     * @param timeoutInMillis timeout in milliseconds for the custom URL file system
-     * @return {@link FileSystem} to use
-     * @throws IOException if custom URL is invalid
+     * @param fs optional {@link FSConnection}.
+     * @param settings {@link SettingsModelFileChooser2} instance.
+     * @param timeoutInMillis timeout in milliseconds, or -1 if not applicable.
+     * @return {@link FileSystem} to use.
+     * @throws IOException if custom URL is invalid.
      */
     @SuppressWarnings("resource")
     public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
