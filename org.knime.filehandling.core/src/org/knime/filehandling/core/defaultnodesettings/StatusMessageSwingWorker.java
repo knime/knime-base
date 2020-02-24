@@ -70,6 +70,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -99,7 +100,11 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
 
     private static final Color SUCCESS_GREEN = new Color(136, 170, 0);
 
-    private final FileChooserHelper m_helper;
+    private final Optional<FSConnection> m_fsConnection;
+
+    private final int m_timeoutInMillis;
+
+    private final SettingsModelFileChooser2 m_settingsModelFileChooser;
 
     private final JLabel m_statusMessageLabel;
 
@@ -108,13 +113,22 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
     private final FileSelectionMode m_fileSelectionMode;
 
     /**
-     * Creates a new instance of {@code StatusLineSwingWorker}.
+     * Creates a new instance of {@code StatusMessageSwingWorker}.
      *
-     * @param the label to update
+     * @param fsConnection optional file system connection.
+     * @param model the settings model of the file chooser.
+     * @param timeoutInMillis the connection time out in milliseconds, or -1 if not applicable.
+     * @param statusMessageLabel the label to update.
+     * @param dialogType the type of the dialog.
+     * @param fileSelectionMode the file selection mode.
      */
-    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel,
-        final DialogType dialogType, final FileSelectionMode fileSelectionMode) {
-        m_helper = helper;
+    public StatusMessageSwingWorker(final Optional<FSConnection> fsConnection, final SettingsModelFileChooser2 model,
+        final int timeoutInMillis, final JLabel statusMessageLabel, final DialogType dialogType,
+        final FileSelectionMode fileSelectionMode) {
+
+        m_fsConnection = fsConnection;
+        m_timeoutInMillis = timeoutInMillis;
+        m_settingsModelFileChooser = model;
         m_statusMessageLabel = statusMessageLabel;
         m_dialogType = dialogType;
         m_fileSelectionMode = fileSelectionMode;
@@ -122,16 +136,18 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
 
     @Override
     protected Pair<Color, String> doInBackgroundWithContext() throws Exception {
-        final SettingsModelFileChooser2 model = m_helper.getSettingsModel();
 
-        if (model.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
+        final FileChooserHelper helper = new FileChooserHelper(m_fsConnection, m_settingsModelFileChooser, m_timeoutInMillis);
+
+        if (m_settingsModelFileChooser.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             return mkSuccess("");
         }
 
-        if (model.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())
-            && m_helper.getSettingsModel().getKnimeMountpointFileSystem() != null) {
+        if (m_settingsModelFileChooser.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())
+            && helper.getSettingsModel().getKnimeMountpointFileSystem() != null) {
+
             final KNIMEConnection knimeConnection =
-                KNIMEConnection.getConnection(m_helper.getSettingsModel().getKnimeMountpointFileSystem());
+                KNIMEConnection.getConnection(helper.getSettingsModel().getKnimeMountpointFileSystem());
             if (knimeConnection.getType() == KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE) {
                 final boolean isReadable =
                     MountPointIDProviderService.instance().isReadable(URI.create(knimeConnection.getSchemeAndHost()));
@@ -141,8 +157,8 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
             }
         }
 
-        final String pathOrUrl = model.getPathOrURL();
-        if (pathOrUrl.trim().isEmpty()) {
+        final String pathOrUrl = m_settingsModelFileChooser.getPathOrURL();
+        if (pathOrUrl == null || pathOrUrl.trim().isEmpty()) {
             return mkError("Please specify a location");
         }
 
@@ -154,7 +170,7 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
         // instantiate a path
         final Path fileOrFolder;
         try {
-            fileOrFolder = m_helper.getPathFromSettings();
+            fileOrFolder = helper.getPathFromSettings();
         } catch (final Exception e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
@@ -181,7 +197,7 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
             if ((m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
                 || m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES))
                 && basicAttributes.isDirectory()) {
-                return scanFolder(m_helper);
+                return scanFolder(helper);
             }
             return mkSuccess("");
         } else {
