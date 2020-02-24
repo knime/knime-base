@@ -25,5 +25,31 @@
             specSerializer="org.knime.filehandling.core.port.FileSystemPortObjectSpec$Serializer">
       </portType>
    </extension>
+   <extension
+         point="org.knime.core.DataType">
+      <DataType
+            cellClass="org.knime.filehandling.core.data.path.cell.FSPathCell">
+         <serializer
+               cellClass="org.knime.filehandling.core.data.path.cell.FSPathCell"
+               serializerClass="org.knime.filehandling.core.data.path.cell.FSPathCell$PathSerializer">
+         </serializer>
+      </DataType>
+   </extension>
+   <extension
+         point="org.knime.core.DataColumnMetaDataType">
+      <DataColumnMetaData
+            dataColumnMetaDataExtension="org.knime.filehandling.core.data.path.FSPathValueMetaDataExtension">
+      </DataColumnMetaData>
+   </extension>
+   <extension
+         point="org.knime.core.DataValueRenderer">
+      <dataValue
+            valueClass="org.knime.filehandling.core.data.path.FSPathValue">
+         <renderer
+               rendererFactoryClass="org.knime.filehandling.core.data.path.FSPathValueRenderer$DefaultRendererFactory"
+               suggestAsDefault="true">
+         </renderer>
+      </dataValue>
+   </extension>
 
 </plugin>
