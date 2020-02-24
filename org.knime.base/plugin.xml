@@ -1191,13 +1191,19 @@
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
+            after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
+            category-path="/io/write"
+            factory-class="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
+            >
+      </node>
+      <node
             deprecated="true"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
             >
       </node>
       <node
-            after="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
+            after="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.imagecolwriter.ImageColumnWriterNodeFactory"
             >
