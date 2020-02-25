@@ -128,7 +128,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      * @throws IOException if I/O error occurs
      */
     public synchronized FileSystem getOrCreateFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        return m_fileSystem != null ? m_fileSystem : createFileSystem(uri, env);
+        return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
     @Override
@@ -136,12 +136,11 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         checkPath(path);
         checkOpenOptionsForReading(options);
 
-        return new BaseInputStream(newInputStreamInternal(path, options),
-            (BaseFileSystem)path.getFileSystem());
+        return new BaseInputStream(newInputStreamInternal(path, options), getFileSystemInternal());
     }
 
     private static void checkOpenOptionsForReading(final OpenOption[] options) {
-        for (OpenOption option : options) {
+        for (final OpenOption option : options) {
             if (option == StandardOpenOption.APPEND || option == StandardOpenOption.WRITE) {
                 throw new UnsupportedOperationException("'" + option + "' not allowed");
             }
@@ -158,14 +157,12 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      */
     protected abstract InputStream newInputStreamInternal(Path path, OpenOption... options) throws IOException;
 
-
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
         checkPath(path);
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
 
-        return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions),
-            (BaseFileSystem)path.getFileSystem());
+        return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions), getFileSystemInternal());
     }
 
     private static OpenOption[] ensureValidAndDefaultOpenOptionsForWriting(final OpenOption[] options) {
@@ -175,7 +172,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
                 StandardOpenOption.TRUNCATE_EXISTING};
         } else {
             final Set<OpenOption> opts = new HashSet<>(options.length + 3);
-            for (OpenOption option : options) {
+            for (final OpenOption option : options) {
                 if (option == StandardOpenOption.READ) {
                     throw new IllegalArgumentException("READ not allowed");
                 }
@@ -204,7 +201,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
         checkPath(dir);
-        return new BaseDirectoryStream(createPathIterator(dir, filter), (BaseFileSystem)dir.getFileSystem());
+        return new BaseDirectoryStream(createPathIterator(dir, filter), getFileSystemInternal());
     }
 
     /**
@@ -225,7 +222,16 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public synchronized FileSystem getFileSystem(final URI uri) {
+        return getFileSystemInternal();
+    }
 
+    /**
+     * Returns the {@code FileSystem} created by this provider if it exists. If no {@code FileSystem} was created yet,
+     * or the {@code FileSystem} is closed a {@link FileSystemNotFoundException} is thrown.
+     *
+     * @return the {@code FileSystem} created by this provider if it exists.
+     */
+    protected final synchronized BaseFileSystem getFileSystemInternal() {
         if (m_fileSystem == null) {
             throw new FileSystemNotFoundException();
         }
@@ -290,16 +296,15 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
 
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
             FSFileAttributes attributes;
-            final Optional<FSFileAttributes> cachedAttributes = ((BaseFileSystem)path.getFileSystem())
-                .getCachedAttributes(path.normalize().toString());
+            final Optional<FSFileAttributes> cachedAttributes =
+                getFileSystemInternal().getCachedAttributes(path.normalize().toString());
 
             if (!cachedAttributes.isPresent()) {
                 if (!exists(path)) {
                     throw new NoSuchFileException(String.format("No such file %s", path.toString()));
                 }
                 attributes = fetchAttributesInternal(path, type);
-                ((BaseFileSystem)path.getFileSystem()).addToAttributeCache(path.normalize().toAbsolutePath().toString(),
-                    attributes);
+                getFileSystemInternal().addToAttributeCache(path.normalize().toAbsolutePath().toString(), attributes);
             } else {
                 attributes = cachedAttributes.get();
             }
@@ -337,7 +342,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
     public void delete(final Path path) throws IOException {
         checkPath(path);
         deleteInternal(path);
-        m_fileSystem.removeFromAttributeCache(path.normalize().toAbsolutePath().toString());
+        getFileSystemInternal().removeFromAttributeCache(path.normalize().toAbsolutePath().toString());
     }
 
     /**
