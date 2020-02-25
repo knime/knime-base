@@ -76,26 +76,19 @@ import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 
 /**
+ *  The {@link Path} implementation for custom URLs
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
 public class URIPath implements FSPath {
 
-    /**
-     * The file system of this path.
-     */
-    protected final FileSystem m_fileSystem;
+    private final FileSystem m_fileSystem;
 
-    /**
-     * The URI this path wraps.
-     */
-    protected final URI m_uri;
+    private final URI m_uri;
 
     private final String[] m_pathComponents;
 
     private final boolean m_isAbsolute;
-
-    private final boolean m_hasRootPathComponent;
 
     /**
      * Constructs a new URIPath.
@@ -108,9 +101,7 @@ public class URIPath implements FSPath {
 
         m_uri = uri;
 
-        m_hasRootPathComponent = UnixStylePathUtil.hasRootComponent(uri.getPath());
-
-        m_isAbsolute = m_uri.getPath() != null && m_hasRootPathComponent;
+        m_isAbsolute = UnixStylePathUtil.hasRootComponent(uri.getPath());
 
         m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_uri.getPath());
     }
@@ -138,7 +129,7 @@ public class URIPath implements FSPath {
     public Path getRoot() {
         final URIPath toReturn = null;
 
-        if (m_hasRootPathComponent) {
+        if (m_isAbsolute) {
             try {
                 return new URIPath(m_fileSystem,
                     new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null));
@@ -303,7 +294,7 @@ public class URIPath implements FSPath {
         }
 
         final String resolvedPathString =
-            UnixStylePathUtil.resolve(m_pathComponents, otherUriPath.m_pathComponents, m_hasRootPathComponent);
+            UnixStylePathUtil.resolve(m_pathComponents, otherUriPath.m_pathComponents, m_isAbsolute);
 
         try {
             return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), resolvedPathString,
