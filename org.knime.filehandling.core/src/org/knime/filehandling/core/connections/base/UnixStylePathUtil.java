@@ -69,6 +69,9 @@ public class UnixStylePathUtil {
      * @return array containing the path components.
      */
     public static String[] toPathComponentsArray(String path) {
+        if(path == null) {
+            return new String[0];
+        }
         // remove leading slash if present (this may leave us with an empty string)
         if (path.startsWith(SEPARATOR)) {
             path = path.substring(1);
@@ -87,7 +90,7 @@ public class UnixStylePathUtil {
     }
 
     public static boolean hasRootComponent(final String path) {
-        return path.startsWith(SEPARATOR);
+        return path != null && path.startsWith(SEPARATOR);
     }
 
     public static String resolve(final String[] baseComponents, final String[] toResolveComponents,

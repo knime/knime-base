@@ -67,7 +67,7 @@ public class URIFileSystem extends BaseFileSystem {
 
 
     URIFileSystem(final URI uri, final int timeoutInMillis) {
-        super(new URIFileSystemProvider(timeoutInMillis), uri, getName(uri), uri.getScheme(), 0);
+        super(new URIFileSystemProvider(timeoutInMillis), uri, getName(uri), getName(uri), 0);
         m_uri = uri;
     }
 
