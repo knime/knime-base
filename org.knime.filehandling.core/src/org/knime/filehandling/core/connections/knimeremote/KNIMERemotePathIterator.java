@@ -74,27 +74,23 @@ public class KNIMERemotePathIterator implements Iterator<Path> {
      *
      * @param path destination to iterate over
      * @param filter
+     * @throws IOException
      * @throws UncheckedIOException on I/O errors
      */
-    public KNIMERemotePathIterator(final Path path, final Filter<? super Path> filter) {
+    public KNIMERemotePathIterator(final Path path, final Filter<? super Path> filter) throws IOException {
         final KNIMERemotePath knimePath = (KNIMERemotePath)path;
         m_fileSystem = (KNIMERemoteFileSystem)knimePath.getFileSystem();
 
-        final List<URI> uriList;
-        try {
-            uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
-            m_iterator = uriList.stream()
-                .map(p -> new KNIMERemotePath(m_fileSystem, p))
-                .filter(p -> {
-                    try {
-                        return filter.accept(p);
-                    } catch (final IOException ex) {
-                        throw new UncheckedIOException(ex);
-                    }})
-                .iterator();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        final List<URI> uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
+        m_iterator = uriList.stream()
+            .map(p -> new KNIMERemotePath(m_fileSystem, p))
+            .filter(p -> {
+                try {
+                    return filter.accept(p);
+                } catch (final IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }})
+            .iterator();
     }
 
     /**
