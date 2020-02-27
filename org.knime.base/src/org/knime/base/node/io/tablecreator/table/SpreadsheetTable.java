@@ -51,10 +51,12 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -109,21 +111,36 @@ class SpreadsheetTable extends JTable {
     /** the border for the focues cell. */
     private static final Color FOCUS_BORDER_COLOR = Color.DARK_GRAY;
 
+    private static final int ACCELERATOR_MODIFIER_VK;
+    static {
+        final int fromToolkit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+        if (fromToolkit == Event.META_MASK) {
+            ACCELERATOR_MODIFIER_VK = KeyEvent.VK_META;
+        } else if (fromToolkit == Event.CTRL_MASK) {
+            ACCELERATOR_MODIFIER_VK = KeyEvent.VK_CONTROL;
+        } else {
+            ACCELERATOR_MODIFIER_VK = KeyEvent.VK_ALT;
+        }
+    }
+
+
     private ColumnHeaderRenderer m_colHeaderRenderer;
 
     private int m_focusedRow;
 
     private int m_focusedColumn;
 
-    private JTextField m_editorTextField;
+    private final JTextField m_editorTextField;
 
-    private MyCellEditor m_cellEditor;
+    private final MyCellEditor m_cellEditor;
 
-    private CellRenderer m_cellRenderer;
+    private final CellRenderer m_cellRenderer;
 
     /**
      * Create a new instance.
      */
+    @SuppressWarnings("serial")
     public SpreadsheetTable() {
         m_focusedRow = -1;
         m_focusedColumn = -1;
@@ -134,10 +151,10 @@ class SpreadsheetTable extends JTable {
 
         getTableHeader().setPreferredSize(new Dimension(getTableHeader().getPreferredSize().width, getRowHeight()));
 
-        Color gridColor = getGridColor();
         // brighten the grid color
-        setGridColor(new Color((gridColor.getRed() + 255) / 2, (gridColor.getGreen() + 255) / 2,
-            (gridColor.getBlue() + 255) / 2));
+        setGridColor(new Color((gridColor.getRed() + 255) / 2,
+                               (gridColor.getGreen() + 255) / 2,
+                               (gridColor.getBlue() + 255) / 2));
 
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         getTableHeader().setReorderingAllowed(false);
@@ -149,29 +166,29 @@ class SpreadsheetTable extends JTable {
         // Workaround by bridgehajen (Submitted On 26-SEP-2002)
         m_editorTextField = new JTextField() {
             @Override
-            protected boolean processKeyBinding(final KeyStroke ks, final java.awt.event.KeyEvent e,
-                final int condition, final boolean pressed) {
-                if (hasFocus()) {
-                    return super.processKeyBinding(ks, e, condition, pressed);
-                } else { // you get in this state when key was typed in a cell
-                         // without active editor
+            protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent ke, final int condition,
+                                                final boolean pressed) {
+                if (hasFocus() || ((pressed && (ACCELERATOR_MODIFIER_VK == ke.getKeyCode())))) {
+                    return super.processKeyBinding(ks, ke, condition, pressed);
+                } else if (pressed) {
+                    // you get in this state when key was typed in a cell without active editor
                     // clear cell in this case
                     this.setText("");
                     // different cell editor behavior in this case
                     m_cellEditor.setStopEditingWidthArrows(true);
+
                     // request focus
                     this.requestFocus();
 
                     // this call must really be invoked later otherwise we have an endless recursion
                     // the focus does not seem to the changed until this event handler finished
-                    ViewUtils.invokeLaterInEDT(new Runnable() {
-                        @Override
-                        public void run() {
-                            processKeyBinding(ks, e, condition, pressed);
-                        }
+                    ViewUtils.invokeLaterInEDT(() -> {
+                        processKeyBinding(ks, ke, condition, pressed);
                     });
                     return true;
                 }
+
+                return false;
             }
         };
 
@@ -368,17 +385,14 @@ class SpreadsheetTable extends JTable {
      *
      * @author Heiko Hofer
      */
+    @SuppressWarnings("serial")
     private static class MyCellEditor extends DefaultCellEditor {
-        private JTextField m_editorField;
-
-        private KeyListener m_keyListener;
-
-        private MouseListener m_mouseListener;
+        private final JTextField m_editorField;
+        private final KeyListener m_keyListener;
+        private final MouseListener m_mouseListener;
 
         private JTable m_table;
-
         private int m_row;
-
         private int m_col;
 
         MyCellEditor(final JTextField editorField) {
@@ -446,7 +460,7 @@ class SpreadsheetTable extends JTable {
          */
         @Override
         public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
-            final int row, final int column) {
+                                                     final int row, final int column) {
             m_table = table;
             m_row = row;
             m_col = column;
@@ -610,6 +624,7 @@ class SpreadsheetTable extends JTable {
      *
      * @author Heiko Hofer
      */
+    @SuppressWarnings("serial")
     private static class ColumnHeaderRenderer extends HeaderRenderer {
         private JTable m_table;
 
@@ -720,8 +735,8 @@ class SpreadsheetTable extends JTable {
             resizeAndRepaint();
             return;
         }
+
         super.tableChanged(e);
-
     }
-
 }
+
