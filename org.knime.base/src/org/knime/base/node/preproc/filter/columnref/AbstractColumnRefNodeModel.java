@@ -46,7 +46,9 @@ package org.knime.base.node.preproc.filter.columnref;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -192,6 +194,9 @@ public class AbstractColumnRefNodeModel extends NodeModel {
             cr = new ColumnRearranger[]{new ColumnRearranger(oSpec)};
         }
 
+        final List<String> removeFromTable1 = new ArrayList<>();
+        final List<String> removeFromTable2 = new ArrayList<>();
+
         boolean exclude = isInvertInclusion();
 
         for (DataColumnSpec cspec : oSpec) {
@@ -201,22 +206,29 @@ public class AbstractColumnRefNodeModel extends NodeModel {
                 if (filterSpec.containsName(name)) {
                     DataType fType = filterSpec.getColumnSpec(name).getType();
                     if (!m_typeComp.getBooleanValue() || cspec.getType().isASuperTypeOf(fType)) {
-                        cr[0].remove(name);
+                        removeFromTable1.add(name);
                     }
                 }
             } else {
                 if (!filterSpec.containsName(name)) {
-                    cr[0].remove(name);
+                    removeFromTable1.add(name);
                 } else {
                     DataType fType = filterSpec.getColumnSpec(name).getType();
                     if (m_typeComp.getBooleanValue() && !cspec.getType().isASuperTypeOf(fType)) {
-                        cr[0].remove(name);
+                        removeFromTable1.add(name);
                     } else if (m_isSplitter) {
-                        cr[1].remove(name);
+                        removeFromTable2.add(name);
                     }
                 }
             }
         }
+
+        cr[0].remove(removeFromTable1.stream().toArray(String[]::new));
+        if (!removeFromTable2.isEmpty()) {
+            assert m_isSplitter;
+            cr[1].remove(removeFromTable2.stream().toArray(String[]::new));
+        }
+
         return cr;
 
     }
