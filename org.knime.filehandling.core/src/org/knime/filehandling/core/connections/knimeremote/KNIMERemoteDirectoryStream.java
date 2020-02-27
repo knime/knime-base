@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 
@@ -60,14 +61,17 @@ import org.knime.filehandling.core.connections.FSDirectoryStream;
  */
 public class KNIMERemoteDirectoryStream extends FSDirectoryStream {
 
+    private final Iterator<Path> m_iterator;
+
     /**
      * Constructs a new directory stream for the given path.
      *
      * @param path the path to be iterated over
      * @param filter the filter to be applied to the content
      */
-    public KNIMERemoteDirectoryStream(final Path path, final Filter<? super Path> filter) {
+    public KNIMERemoteDirectoryStream(final Path path, final Filter<? super Path> filter) throws IOException {
         super(path, filter);
+        m_iterator = new KNIMERemotePathIterator(path, filter);
     }
 
     /**
@@ -75,7 +79,7 @@ public class KNIMERemoteDirectoryStream extends FSDirectoryStream {
      */
     @Override
     protected Iterator<Path> getIterator(final Path path, final Filter<? super Path> filter) {
-        return new KNIMERemotePathIterator(path, filter);
+        return m_iterator;
     }
 
 }

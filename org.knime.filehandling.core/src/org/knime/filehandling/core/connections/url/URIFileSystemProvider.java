@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.url;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,6 +78,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
@@ -156,8 +159,27 @@ public class URIFileSystemProvider extends FileSystemProvider {
         }
 
         final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection(getTimeout()).getInputStream();
 
+        try {
+            return uriPath.openURLConnection(getTimeout()).getInputStream();
+        } catch (IOException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof FileNotFoundException) {
+                throw new NoSuchFileException(path.toString());
+            } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
+                throw new NoSuchFileException(path.toString());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private static boolean isNoSuchFileOnServerMountpoint(final Throwable rootCause) {
+        return rootCause instanceof CoreException && (
+                rootCause.getMessage().endsWith("file does not exist.") // reported by RestServerExplorerFileStore
+                || rootCause.getMessage().endsWith("file has already been deleted.") // reported by RestServerExplorerFileStore
+                || rootCause.getMessage().endsWith(" It doesn't exist.") // reported by EjbServerExplorerFileStore
+                );
     }
 
     @Override
@@ -302,7 +324,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
         if (!exists((URIPath)path)) {
-            throw new NoSuchFileException(String.format("File %s does not exist.", path.toString()));
+            throw new NoSuchFileException(path.toString());
         }
 
         if (Arrays.asList(modes).contains(AccessMode.READ)) {
@@ -366,7 +388,9 @@ public class URIFileSystemProvider extends FileSystemProvider {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.
                 return true;
             }
-            uriPath.openURLConnection(m_timeoutInMillis).getInputStream();
+            try (final InputStream in = uriPath.openURLConnection(m_timeoutInMillis).getInputStream()) {
+                // yes, do nothing.
+            }
             return true;
         } catch (final Exception e) {
             return false;

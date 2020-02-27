@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,6 +63,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -72,6 +74,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
@@ -171,8 +175,26 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         }
 
         final KNIMERemotePath uriPath = (KNIMERemotePath)path;
-        return uriPath.openURLConnection(getTimeout()).getInputStream();
+        try {
+            return uriPath.openURLConnection(getTimeout()).getInputStream();
+        } catch (IOException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof FileNotFoundException) {
+                throw new NoSuchFileException(path.toString());
+            } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
+                throw new NoSuchFileException(path.toString());
+            } else {
+                throw e;
+            }
+        }
+    }
 
+    private static boolean isNoSuchFileOnServerMountpoint(final Throwable rootCause) {
+        return rootCause instanceof CoreException && (
+                rootCause.getMessage().endsWith("file does not exist.") // reported by RestServerExplorerFileStore
+                || rootCause.getMessage().endsWith("file has already been deleted.") // reported by RestServerExplorerFileStore
+                || rootCause.getMessage().endsWith(" It doesn't exist.") // reported by EjbServerExplorerFileStore
+                );
     }
 
     @Override
