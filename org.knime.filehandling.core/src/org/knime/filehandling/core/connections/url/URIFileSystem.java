@@ -65,9 +65,8 @@ public class URIFileSystem extends BaseFileSystem {
 
     private final URI m_uri;
 
-
-    URIFileSystem(final URI uri, final int timeoutInMillis) {
-        super(new URIFileSystemProvider(timeoutInMillis), uri, getName(uri), getName(uri), 0);
+    URIFileSystem(final URIFileSystemProvider provider, final URI uri) {
+        super(provider, uri, getName(uri), getName(uri), 0);
         m_uri = uri;
     }
 
@@ -79,7 +78,6 @@ public class URIFileSystem extends BaseFileSystem {
             return String.format("%s://%s", uri.getScheme(), uri.getAuthority());
         }
     }
-
 
     /**
      * {@inheritDoc}
@@ -97,11 +95,10 @@ public class URIFileSystem extends BaseFileSystem {
         try {
             return Collections.singletonList(new URIPath(this,
                 new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to create URI for root directory", ex);
         }
     }
-
 
     /**
      * {@inheritDoc}

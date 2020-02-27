@@ -216,7 +216,7 @@ public final class FileChooserHelper {
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(m_settings.getPathOrURL().replace(" ", "%20"));
                 validateCustomURL(uri);
-                pathOrUrl = m_fileSystem.provider().getPath(uri);
+                pathOrUrl = m_fileSystem.getPath(uri.toString());
                 break;
             case KNIME_FS:
                 pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());

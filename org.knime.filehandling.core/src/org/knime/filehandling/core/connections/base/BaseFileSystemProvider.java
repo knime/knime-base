@@ -139,7 +139,12 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         return new BaseInputStream(newInputStreamInternal(path, options), getFileSystemInternal());
     }
 
-    private static void checkOpenOptionsForReading(final OpenOption[] options) {
+    /**
+     * Checks whether the open options are valid for reading.
+     *
+     * @param options the options to check
+     */
+    protected static void checkOpenOptionsForReading(final OpenOption[] options) {
         for (final OpenOption option : options) {
             if (option == StandardOpenOption.APPEND || option == StandardOpenOption.WRITE) {
                 throw new UnsupportedOperationException("'" + option + "' not allowed");
@@ -165,7 +170,13 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions), getFileSystemInternal());
     }
 
-    private static OpenOption[] ensureValidAndDefaultOpenOptionsForWriting(final OpenOption[] options) {
+    /**
+     * Checks whether the open options are valid for writing and adds default options if necessary.
+     *
+     * @param options the options to check
+     * @return validated open options
+     */
+    protected static OpenOption[] ensureValidAndDefaultOpenOptionsForWriting(final OpenOption[] options) {
 
         if (options.length == 0) {
             return new OpenOption[]{StandardOpenOption.WRITE, StandardOpenOption.CREATE,
@@ -357,7 +368,12 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      */
     protected abstract void deleteInternal(Path path) throws IOException;
 
-    private void checkPath(final Path path) {
+    /**
+     * Checks whether the given path belongs to this provider.
+     *
+     * @param path the path to check
+     */
+    protected void checkPath(final Path path) {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException(PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }

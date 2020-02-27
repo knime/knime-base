@@ -90,6 +90,8 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.IRemoteFileUtilsService;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.BaseInputStream;
+import org.knime.filehandling.core.connections.base.BaseOutputStream;
 import org.knime.filehandling.core.connections.base.attributes.FSBasicAttributes;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
@@ -588,6 +590,38 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
     protected void deleteInternal(final Path path) throws IOException {
         //FIXME This might not work on the server
         Files.delete(toLocalPath(path));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void delete(final Path path) throws IOException {
+        checkPath(path);
+        deleteInternal(path);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
+        checkPath(path);
+        checkOpenOptionsForReading(options);
+
+        return new BaseInputStream(newInputStreamInternal(path, options), (BaseFileSystem)path.getFileSystem());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
+        checkPath(path);
+        final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
+
+        return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions),
+            (BaseFileSystem)path.getFileSystem());
     }
 
 }

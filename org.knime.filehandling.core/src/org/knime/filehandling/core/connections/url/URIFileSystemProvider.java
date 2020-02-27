@@ -123,7 +123,17 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
     @SuppressWarnings("resource")
     @Override
     public Path getPath(final URI uri) {
-        return new URIPath(new URIFileSystem(uri, getTimeout()), uri);
+        final BaseFileSystem fileSystem = getFileSystemInternal();
+        if (fileSystem.getSchemeString().equalsIgnoreCase(uri.getScheme())
+            && fileSystem.getHostString().equalsIgnoreCase(uri.getHost())) {
+            return new URIPath(fileSystem, uri);
+        } else {
+            try {
+                return new URIPath(new URIFileSystemProvider(m_timeoutInMillis).newFileSystem(uri, null), uri);
+            } catch (final IOException ex) {
+                throw new IllegalArgumentException(String.format("Cannot create path for uri: %s", uri.toString()), ex);
+            }
+        }
     }
 
     /**
@@ -336,7 +346,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new URIFileSystem(uri, getTimeout());
+        return new URIFileSystem(this, uri);
     }
 
     /**
