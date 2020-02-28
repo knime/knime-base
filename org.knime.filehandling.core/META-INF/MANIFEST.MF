@@ -25,5 +25,5 @@ Require-Bundle: org.apache.commons.lang3,
  org.apache.commons.httpclient;bundle-version="[3.1.0,4.0.0)"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: org.knime.filehandling.core.connections.FSPluginActivator
+Bundle-Activator: org.knime.filehandling.core.FSPluginActivator
 Bundle-ClassPath: .

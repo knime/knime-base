@@ -68,6 +68,7 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knime.KNIMEPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -264,7 +265,7 @@ public final class FileChooserHelper {
             throw new InvalidSettingsException("No workflow context available");
         }
 
-        if (isOnServer(workflowContext)) {
+        if (isOnServer(workflowContext) && !FSPluginConfig.load().allowLocalFsAccessOnServer()) {
             throw new InvalidSettingsException("Direct access to the local file system is not allowed on KNIME Server.");
         }
     }
