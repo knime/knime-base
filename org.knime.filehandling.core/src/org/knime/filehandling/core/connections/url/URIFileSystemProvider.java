@@ -69,6 +69,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -247,9 +248,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPath(path);
         // there is only every one file store
         return path.getFileSystem().getFileStores().iterator().next();
     }
@@ -259,9 +258,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPath(path);
 
         if (!exists(path)) {
             throw new NoSuchFileException(path.toString());
@@ -286,12 +283,14 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPath(path);
 
-        return (V)new FSFileAttributeView(path.getFileName().toString(),
-            () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class));
+        if (type == BasicFileAttributeView.class) {
+            return (V)new FSFileAttributeView(path.getFileName().toString(),
+                () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -302,13 +301,11 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPath(path);
 
         final URIPath uriPath = (URIPath)path;
         if (!exists(uriPath)) {
-            throw new NoSuchFileException(String.format("File %s does not exist.", uriPath.toString()));
+            throw new NoSuchFileException(uriPath.toString());
         }
 
         if (type == BasicFileAttributes.class) {
@@ -331,8 +328,8 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public boolean exists(final Path path) {
-        final URIPath uriPath = (URIPath)path;
+    protected boolean exists(final Path path) {
+        final URIPath uriPath = (URIPath) path;
         try {
             if (uriPath.isDirectory()) {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.

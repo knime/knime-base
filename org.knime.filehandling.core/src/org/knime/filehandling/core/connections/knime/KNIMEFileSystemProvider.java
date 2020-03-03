@@ -69,9 +69,12 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -362,12 +365,15 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
-        if (onServer()) {
-            return (V)new FSFileAttributeView(path.getFileName().toString(),
-                () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class, options));
-        }
 
-        return Files.getFileAttributeView(toLocalPath(path), type, options);
+        checkPath(path);
+
+        if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class) {
+            return (V)new FSFileAttributeView(path.getFileName().toString(),
+                () -> (FSFileAttributes)readAttributes(path, PosixFileAttributes.class, options));
+        } else {
+            return null;
+        }
     }
 
     private static Optional<WorkflowContext> getServerContext() {
@@ -402,11 +408,13 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
-        final Optional<WorkflowContext> serverContext = getServerContext();
+
+        checkPath(path);
+        final KNIMEPath knimePath = (KNIMEPath) path;
+
+        Optional<WorkflowContext> serverContext = getServerContext();
         if (serverContext.isPresent()) {
-            final WorkflowContext context = serverContext.get();
-            if (path instanceof KNIMEPath) {
-                final KNIMEPath knimePath = (KNIMEPath)path;
+            WorkflowContext context = serverContext.get();
                 final URL knimeURL = knimePath.getURL();
                 boolean isRegularFile = false;
                 try {
@@ -417,7 +425,6 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
 
                 return (A)new FSFileAttributes(isRegularFile, path,
                     p -> new FSBasicAttributes(null, null, null, 0, false, false));
-            }
         }
 
         return Files.readAttributes(toLocalPath(path), type, options);
@@ -520,10 +527,6 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
         final KNIMEPath knimePath = (KNIMEPath)path;
         return knimePath.openURLConnection(getTimeout()).getInputStream();
     }
@@ -533,10 +536,6 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
-
         final KNIMEPath knimePath = (KNIMEPath)path;
         if (onServer()) {
             return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
@@ -623,5 +622,4 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
         return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions),
             (BaseFileSystem)path.getFileSystem());
     }
-
 }

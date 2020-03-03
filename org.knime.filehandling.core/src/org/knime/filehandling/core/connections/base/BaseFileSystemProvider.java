@@ -275,7 +275,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      * @return whether the path exists
      * @throws IOException if IO error occurs
      */
-    public abstract boolean exists(final Path path) throws IOException;
+    protected abstract boolean exists(final Path path) throws IOException;
 
     /**
      * {@inheritDoc}
