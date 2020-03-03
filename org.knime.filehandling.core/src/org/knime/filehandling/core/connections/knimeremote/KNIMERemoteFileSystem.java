@@ -62,7 +62,6 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.Set;
 
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
@@ -76,8 +75,6 @@ public class KNIMERemoteFileSystem extends FileSystem {
 
     private final URI m_mountpoint;
 
-    private final NodeContext m_nodeContext;
-
     /**
      *
      *
@@ -87,8 +84,6 @@ public class KNIMERemoteFileSystem extends FileSystem {
     public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation) {
         m_provider = provider;
         m_mountpoint = baseLocation;
-
-        m_nodeContext = NodeContext.getContext();
     }
 
     /**
@@ -245,13 +240,6 @@ public class KNIMERemoteFileSystem extends FileSystem {
      */
     public String getMountpoint() {
         return m_mountpoint.getHost();
-    }
-
-    /**
-     * @return the nodeContext
-     */
-    public NodeContext getNodeContext() {
-        return m_nodeContext;
     }
 
     /**
