@@ -68,6 +68,7 @@ import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
@@ -375,16 +376,10 @@ public class KNIMERemotePath implements Path {
      * @return the KNIME URL of this remote path
      */
     public URL toURL() {
-        final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem) m_fileSystem;
-
-        final String mountpoint = knimeFS.getMountpoint();
-        final String encodedPath = encodedPath();
-        final URI uri = URI.create("knime://" + mountpoint + encodedPath);
         try {
-            return uri.toURL();
-        } catch (MalformedURLException ex) {
-            // this should not happen!
-            return null;
+            return toUri().toURL();
+        } catch (final MalformedURLException ex) {
+            throw new IllegalStateException("Failed to create valid URL: " + ex.getMessage(), ex);
         }
     }
 
@@ -394,19 +389,13 @@ public class KNIMERemotePath implements Path {
     @Override
     public URI toUri() {
         try {
-            return toURL().toURI();
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException(ex);
+            final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem) m_fileSystem;
+            final String mountpoint = knimeFS.getMountpoint();
+            final String encodedPath = URIUtil.encodePath(UnixStylePathUtil.asUnixStylePath(m_path));
+            return URI.create("knime://" + mountpoint + encodedPath);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to create valid URI: " + ex.getMessage(), ex);
         }
-    }
-
-    private String encodedPath() {
-        /* We have to encode some reserved characters like # here. Otherwise, a path with a # will be interpreted as a a
-         * path and fragment, where really it is just a path. At the same time, we have to make sure not to encode other
-         * reserved characters such as the file separator. Therefore, we cannot rely solely on
-         * {@link URLEncoder#encode(String, String)}. */
-        // TODO: find more systematic approach to encoding paths (see AP-13670)
-        return UnixStylePathUtil.asUnixStylePath(m_path).replace(" ", "%20").replace("#", "%23");
     }
 
     /**
