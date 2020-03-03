@@ -230,7 +230,7 @@ public final class FileChooserHelper {
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(m_settings.getPathOrURL().replace(" ", "%20"));
                 validateCustomURL(uri);
-                pathOrUrl = getFileSystem().getPath(uri.getPath());
+                pathOrUrl = getFileSystem().getPath(getURIPathQueryAndFragment(uri));
                 break;
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
@@ -254,6 +254,21 @@ public final class FileChooserHelper {
         }
 
         return pathOrUrl;
+    }
+
+    private String getURIPathQueryAndFragment(final URI uri) {
+        final StringBuilder toReturn = new StringBuilder(uri.getPath());
+
+        if (uri.getQuery() != null) {
+            toReturn.append("?");
+            toReturn.append(uri.getQuery());
+        }
+
+        if (uri.getFragment() != null) {
+            toReturn.append("#");
+            toReturn.append(uri.getFragment());
+        }
+        return toReturn.toString();
     }
 
     private void validateCustomURL(final URI uri) throws InvalidSettingsException {
