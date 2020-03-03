@@ -15,27 +15,44 @@
 			single string data cell in a single row. The row prefix and column header 
 			can be specified in the dialog.
 		</intro>
-		<option name="File or files in folder">
-			Select whether you want to read a file or multiple files within a folder.
+		<option name="File or Files in folder">
+			Select whether you want to read a file or multiple files in a folder.
+			When reading files in a folder, you can set filters to specify which
+			files to include (see below).
 		</option>
-		<option name="Read from..."> 
-			Select a file system which stores the data you want to read. There are four default file system options to choose from:<br/>
+		<option name="Read from...">
+			Select a file system which stores the data you want to read. There are
+			three default file system options to choose from:
+			<br />
 			<ul>
-				<li>Local File System: Allows you to select a file/folder from your local system.</li>
-				<li>Relative to: Allows you to choose whether to resolve the path relative to the workflow, mountpoint or node.</li>
-				<li>Mountpoint: Allows you to choose a mountpoint. Whenever this is selected, a new drop-down menu appears to choose from available mountpoints.</li>
-				<li>Custom URL: Uses the standard URL handler providing the ability to read a file from URLs (e.g. file, http or KNIME protocol). Browsing and reading folders are disabled for this option.</li>
+                <li><i>Local File System:</i> Allows you to select a file/folder from your
+                    local system.
+                </li>
+                <li><i>Mountpoint:</i> Allows you to choose a mountpoint. When
+                    selected, a new drop-down menu appears to choose the
+                    mountpoint.
+                </li>
+                <li><i>Custom URL:</i> Allows to specify a URL (e.g. file://, http://
+                    or knime:// protocol). Browsing is disabled for this option.
+                </li>
 			</ul>
-			It is possible to use other file systems with this node. Therefore, you have to enable the file system connection input port of this node by clicking the <b>...</b> in the bottom left corner of the node's icon and choose <i>Add File System Connection port</i>.<br/>
-			Afterwards, you can simply connect the desired connector node to the reader node. The file system connection will then be shown in the drop down menu.
-		</option>	
-		<option name="File/folder or URL">
-			Enter a valid destination. Depending on the selected file system this is either a path (used by <i>Local File System</i>, <i>Relative to</i>, <i>Mountpoint</i> options and custom file systems added by specific connector nodes) or a URL (used by <i>Custom URL</i> option).<br/>
-			A path usually starts with a slash (/) character and does not contain a protocol.
-			You can also choose a previously selected file/folder from the drop-down list, or select a destination from	the &quot;Browse...&quot; dialog (browsing is not available for custom URLs).
+			To read from other file systems, click on
+            <b>...</b> in the bottom left corner of the node icon followed by
+            <i>Add File System Connection port</i>. Afterwards, connect the desired file system connection
+            node to the newly added input port. The file system connection will then be shown in the drop
+            down menu.
+		</option>
+		<option name="File, Folder or URL">
+			Enter a URL when reading from <i>Custom URL</i>, otherwise enter a path to a file or folder. The
+			required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+			File System on Windows) or  &quot;/path/to/file&quot; (Local
+            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+            description of the respective connector node describes the required path format.
+			You can also choose a previously selected file/folder from the drop-down list, or select a destination from	the &quot;Browse...&quot; dialog 
+			(browsing is not available for the Custom URL file system).
 		</option>
 		<option name="Include subfolders">
-			Check if you want to include all matching files from subfolders of the defined location.
+			When reading files from a folder, check this to include all matching files from subfolders of the defined folder.
 		</option>
 		<option name="Filter options">
 			Press this button for file filtering options.
@@ -50,7 +67,7 @@
 			Additionally, there is an option to choose whether the filter should work in a case sensitive or insensitive manner.
 		</option>
 		<option name="File filtering options: Filter hidden files">
-			Select if hidden files should be filtered.
+			Select if hidden files should be excluded.
 		</option>
 		<option name="Row header prefix">
 			The prefix of the row headers (amended by a running index).
