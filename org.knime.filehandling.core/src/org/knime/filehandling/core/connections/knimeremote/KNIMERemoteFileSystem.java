@@ -52,7 +52,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
@@ -65,8 +64,6 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
 
     private final URI m_mountpoint;
 
-    private final NodeContext m_nodeContext;
-
     /**
      *
      *
@@ -76,8 +73,6 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
     public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation) {
         super(provider, baseLocation, "KNIME Remote FileStore", "KNIME Remote FileStore", 0);
         m_mountpoint = baseLocation;
-
-        m_nodeContext = NodeContext.getContext();
     }
 
     /**
@@ -115,13 +110,6 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
     }
 
     /**
-     * @return the nodeContext
-     */
-    public NodeContext getNodeContext() {
-        return m_nodeContext;
-    }
-
-    /**
      * Returns the default directory of this file system.
      *
      * @return the default directory of this file system
@@ -153,6 +141,4 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
     public String getHostString() {
         return m_mountpoint.getHost();
     }
-
-
 }
