@@ -324,7 +324,18 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
     @Override
     protected Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter)
             throws IOException {
-        return new KNIMERemotePathIterator(dir, filter);
+        try {
+            return new KNIMERemotePathIterator(dir, filter);
+        } catch (IOException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof FileNotFoundException) {
+                throw new NoSuchFileException(dir.toString());
+            } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
+                throw new NoSuchFileException(dir.toString());
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**

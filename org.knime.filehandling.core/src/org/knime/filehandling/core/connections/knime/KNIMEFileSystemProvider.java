@@ -67,6 +67,7 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -336,12 +337,8 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
             final KNIMEPath knimePath = (KNIMEPath)path;
             final URL knimeURL = knimePath.getURL();
 
-            final KNIMEFileSystem fileSystem = (KNIMEFileSystem)knimePath.getFileSystem();
-            if (fileSystem.getConnectionType() == KNIMEConnection.Type.NODE_RELATIVE) {
-                throw new IOException("Node relative paths cannot be executed on the server.");
-            }
-
             boolean exists = false;
+
             try {
                 exists = makeRestCall((s) -> s.exists(knimeURL), context);
             } catch (final Exception ex) {
@@ -350,7 +347,7 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
 
             if (!exists) {
                 // Throw IOException to make Files.exist fail!
-                throw new IOException("The file does not exist: '" + knimeURL.toString() + "'.");
+                throw new NoSuchFileException(knimeURL.toString());
             }
         } else {
             final Path localPath = toLocalPath(path);
