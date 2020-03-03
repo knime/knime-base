@@ -70,6 +70,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -308,9 +309,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPathProvider(path);
         // there is only every one file store
         return path.getFileSystem().getFileStores().iterator().next();
     }
@@ -320,9 +319,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPathProvider(path);
         if (!exists((URIPath)path)) {
             throw new NoSuchFileException(path.toString());
         }
@@ -346,14 +343,11 @@ public class URIFileSystemProvider extends FileSystemProvider {
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPathProvider(path);
 
-        try {
-            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                readAttributes(path, BasicFileAttributes.class));
-        } catch (final IOException ex) {
+        if (type == BasicFileAttributeView.class) {
+            return (V)new FSBasicFileAttributeView(path, "basic");
+        } else {
             return null;
         }
     }
@@ -366,19 +360,23 @@ public class URIFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a CustomURIPath");
-        }
+        checkPathProvider(path);
 
         final URIPath uriPath = (URIPath)path;
         if (!exists(uriPath)) {
-            throw new NoSuchFileException(String.format("File %s does not exist.", uriPath.toString()));
+            throw new NoSuchFileException(uriPath.toString());
         }
 
         if (type == BasicFileAttributes.class) {
             return (A)uriPath.getFileAttributes(type);
         } else {
             throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
+        }
+    }
+
+    private void checkPathProvider(final Path path) {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different provider");
         }
     }
 

@@ -139,10 +139,6 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
 
         final FileChooserHelper helper = new FileChooserHelper(m_fsConnection, m_settingsModelFileChooser, m_timeoutInMillis);
 
-        if (m_settingsModelFileChooser.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
-            return mkSuccess("");
-        }
-
         if (m_settingsModelFileChooser.getFileSystemChoice().equals(FileSystemChoice.getKnimeMountpointChoice())
             && helper.getSettingsModel().getKnimeMountpointFileSystem() != null) {
 
@@ -180,8 +176,7 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
             // and whether it is file or folder
             final BasicFileAttributes basicAttributes;
             try {
-                basicAttributes =
-                    Files.getFileAttributeView(fileOrFolder, BasicFileAttributeView.class).readAttributes();
+                basicAttributes = Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
             } catch (final IOException e) {
                 return mkError(
                     format(FILE_FOLDER_ACCESS_FAILURE_MESSAGE, ExceptionUtil.getDeepestErrorMessage(e, false)));

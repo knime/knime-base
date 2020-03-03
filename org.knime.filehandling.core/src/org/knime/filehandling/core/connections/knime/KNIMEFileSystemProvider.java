@@ -69,6 +69,7 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -378,16 +379,14 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     @SuppressWarnings("unchecked")
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type, final LinkOption... options) {
-        if (onServer()) {
-            try {
-                return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                    readAttributes(path, BasicFileAttributes.class, options));
-            } catch (final IOException ex) {
-                return null;
-            }
-        }
 
-        return Files.getFileAttributeView(toLocalPath(path), type, options);
+        checkPathProvider(path);
+
+        if (type == BasicFileAttributeView.class) {
+            return (V)new FSBasicFileAttributeView(path, "basic");
+        } else {
+            return null;
+        }
     }
 
     private static Optional<WorkflowContext> getServerContext() {
@@ -424,11 +423,13 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options)
         throws IOException {
+
+        checkPathProvider(path);
+        final KNIMEPath knimePath = (KNIMEPath) path;
+
         Optional<WorkflowContext> serverContext = getServerContext();
         if (serverContext.isPresent()) {
             WorkflowContext context = serverContext.get();
-            if (path instanceof KNIMEPath) {
-                final KNIMEPath knimePath = (KNIMEPath) path;
                 final URL knimeURL = knimePath.getURL();
                 boolean isRegularFile = false;
                 try {
@@ -439,7 +440,6 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
 
                 return (A) new FSFileAttributes(isRegularFile, path,
                     p -> new FSBasicAttributes(null, null, null, 0, false, false));
-            }
         }
 
         return Files.readAttributes(toLocalPath(path), type, options);
@@ -517,9 +517,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
+        checkPathProvider(path);
 
         final KNIMEPath knimePath = (KNIMEPath)path;
         return knimePath.openURLConnection(getTimeout()).getInputStream();
@@ -527,9 +525,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
 
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
+        checkPathProvider(path);
 
         final KNIMEPath knimePath = (KNIMEPath)path;
         if (onServer()) {
@@ -563,4 +559,9 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
         }
     }
 
+    private void checkPathProvider(final Path path) {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different provider");
+        }
+    }
 }

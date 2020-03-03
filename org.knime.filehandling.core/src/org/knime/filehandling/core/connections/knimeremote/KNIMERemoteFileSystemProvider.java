@@ -66,6 +66,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -170,9 +171,7 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
+        checkPathProvider(path);
 
         final KNIMERemotePath uriPath = (KNIMERemotePath)path;
         try {
@@ -199,9 +198,7 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
 
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Path is from a different file system provider");
-        }
+        checkPathProvider(path);
 
         final KNIMERemotePath knimePath = (KNIMERemotePath)path;
         final URL knimeURL = toURL(knimePath);
@@ -294,10 +291,11 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
-        try {
-            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
-                readAttributes(path, BasicFileAttributes.class, options));
-        } catch (final IOException ex) {
+        checkPathProvider(path);
+
+        if (type == BasicFileAttributeView.class) {
+            return (V)new FSBasicFileAttributeView(path, "basic");
+        } else {
             return null;
         }
     }
@@ -310,9 +308,7 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
-        if (path.getFileSystem().provider() != this) {
-            throw new IllegalArgumentException("Provided path is not a KNIMERemotePath");
-        }
+        checkPathProvider(path);
 
         final FSPath fsPath = (FSPath)path;
         if (type == BasicFileAttributes.class) {
@@ -349,4 +345,9 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         }
     }
 
+    private void checkPathProvider(final Path path) {
+        if (path.getFileSystem().provider() != this) {
+            throw new IllegalArgumentException("Path is from a different provider");
+        }
+    }
 }

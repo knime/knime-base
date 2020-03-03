@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.attributes;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
@@ -61,16 +62,16 @@ public class FSBasicFileAttributeView implements BasicFileAttributeView {
 
     private final String m_name;
 
-    private final BasicFileAttributes m_attributes;
+    private final Path m_path;
 
     /**
      * Constructs a file attribute view
      * @param name the name of the attribute view
-     * @param attributes the fileAttributes
+     * @param path the path object
      */
-    public FSBasicFileAttributeView(final String name, final BasicFileAttributes attributes) {
+    public FSBasicFileAttributeView(final Path path, final String name) {
         m_name = name;
-        m_attributes = attributes;
+        m_path = path;
     }
 
     /**
@@ -86,7 +87,7 @@ public class FSBasicFileAttributeView implements BasicFileAttributeView {
      */
     @Override
     public BasicFileAttributes readAttributes() throws IOException {
-        return m_attributes;
+        return m_path.getFileSystem().provider().readAttributes(m_path, BasicFileAttributes.class);
     }
 
     /**
