@@ -63,11 +63,31 @@ import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
  */
 public class URIFileSystem extends BaseFileSystem {
 
-    private final URI m_uri;
+    private final URI m_baseUri;
 
     URIFileSystem(final URIFileSystemProvider provider, final URI uri) {
         super(provider, uri, getName(uri), getName(uri), 0);
-        m_uri = uri;
+        m_baseUri = toBaseURI(uri);
+    }
+
+    /**
+     * Retains the scheme and authority from the URL and removes everything else. The path of the returned base URI is
+     * simply "/".
+     *
+     * @return the base URI (same scheme and authority, but no path, query or fragment.
+     */
+    private static URI toBaseURI(final URI uri) {
+        try {
+            // special case: file:/path/to/file
+            // here authority is null and the scheme-specific-part is /path/to/file
+            if (uri.getAuthority() == null) {
+                return new URI(uri.getScheme() + ":///");
+            } else {
+                return new URI(uri.getScheme(), uri.getAuthority(), "/", null, null);
+            }
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static String getName(final URI uri) {
@@ -94,7 +114,7 @@ public class URIFileSystem extends BaseFileSystem {
     public Iterable<Path> getRootDirectories() {
         try {
             return Collections.singletonList(new URIPath(this,
-                new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
+                new URI(m_baseUri.getScheme(), m_baseUri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
         } catch (final URISyntaxException ex) {
             throw new RuntimeException("Failed to create URI for root directory", ex);
         }
@@ -118,7 +138,13 @@ public class URIFileSystem extends BaseFileSystem {
             path += UnixStylePathUtil.SEPARATOR + String.join(UnixStylePathUtil.SEPARATOR, more);
         }
 
-        return new URIPath(this, URI.create(path));
+        String baseURI = m_baseUri.toString();
+        if (baseURI.endsWith("/") && path.startsWith("/")) {
+            baseURI = baseURI.substring(0, baseURI.length() - 1);
+        }
+
+        final URI newURI = URI.create(baseURI + path.replace(" ", "%20"));
+        return new URIPath(this, newURI);
     }
 
     /**
@@ -134,7 +160,7 @@ public class URIFileSystem extends BaseFileSystem {
      */
     @Override
     public String getSchemeString() {
-        return m_uri.getScheme();
+        return m_baseUri.getScheme();
     }
 
     /**
@@ -142,7 +168,6 @@ public class URIFileSystem extends BaseFileSystem {
      */
     @Override
     public String getHostString() {
-        return m_uri.getHost();
+        return m_baseUri.getAuthority();
     }
-
 }
