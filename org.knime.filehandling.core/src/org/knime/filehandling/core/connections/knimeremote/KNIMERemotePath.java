@@ -68,6 +68,7 @@ import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.attributes.FSFileAttributes;
@@ -377,16 +378,10 @@ public class KNIMERemotePath implements FSPath {
      * @return the KNIME URL of this remote path
      */
     public URL toURL() {
-        final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem) m_fileSystem;
-
-        final String mountpoint = knimeFS.getMountpoint();
-        final String encodedPath = encodedPath();
-        final URI uri = URI.create("knime://" + mountpoint + encodedPath);
         try {
-            return uri.toURL();
-        } catch (MalformedURLException ex) {
-            // this should not happen!
-            return null;
+            return toUri().toURL();
+        } catch (final MalformedURLException ex) {
+            throw new IllegalStateException("Failed to create valid URL: " + ex.getMessage(), ex);
         }
     }
 
@@ -396,14 +391,13 @@ public class KNIMERemotePath implements FSPath {
     @Override
     public URI toUri() {
         try {
-            return toURL().toURI();
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException(ex);
+            final KNIMERemoteFileSystem knimeFS = (KNIMERemoteFileSystem) m_fileSystem;
+            final String mountpoint = knimeFS.getMountpoint();
+            final String encodedPath = URIUtil.encodePath(UnixStylePathUtil.asUnixStylePath(m_path));
+            return URI.create("knime://" + mountpoint + encodedPath);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to create valid URI: " + ex.getMessage(), ex);
         }
-    }
-
-    private String encodedPath() {
-        return UnixStylePathUtil.asUnixStylePath(m_path).replaceAll(" ", "%20");
     }
 
     /**
