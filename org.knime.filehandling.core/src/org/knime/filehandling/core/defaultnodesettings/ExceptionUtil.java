@@ -82,5 +82,19 @@ public class ExceptionUtil {
            return null;
        }
    }
+
+   /**
+    *
+    * @param msg The message to limit in length.
+    * @param maxLen Maximum requested length of the message.
+    * @return the truncated messaged, with "..." as a replacement text if something has been truncated.
+    */
+   public static String limitMessageLength(final String msg, final int maxLen) {
+       if (msg.length() > maxLen) {
+           return msg.substring(0, maxLen) + "...";
+       } else {
+           return msg;
+       }
+   }
 }
 

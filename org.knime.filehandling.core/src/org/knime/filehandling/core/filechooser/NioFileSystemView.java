@@ -51,8 +51,10 @@ package org.knime.filehandling.core.filechooser;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -61,13 +63,17 @@ import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
  *
  * @author Julian Bunzel, KNIME
  */
 public class NioFileSystemView extends FileSystemView {
+
+    private static final String UNABLE_TO_LIST_FILES_MSG = "Unable to list files";
 
     /**
      * The base root directory. e.g. "/" for Unix. Might also be set to the first directory in the
@@ -143,9 +149,31 @@ public class NioFileSystemView extends FileSystemView {
             new NioFile(dir.getPath(), m_fileSystem).listFiles(f -> !useFileHiding || !isHiddenFile(f));
 
         if (result == null) {
-            JOptionPane.showMessageDialog(m_parentComponent,
-                "Error in directory listing, see KNIME console/log.", "Unable to list files.",
-                JOptionPane.ERROR_MESSAGE);
+            final Exception e = NioFile.popThreadLocalException();
+
+            if (e != null) {
+                if (e instanceof NoSuchFileException) {
+                    JOptionPane.showMessageDialog(m_parentComponent,
+                        ExceptionUtil.limitMessageLength(String.format("No such file or folder: %s", e.getMessage()), 120),
+                        UNABLE_TO_LIST_FILES_MSG,
+                        JOptionPane.ERROR_MESSAGE);
+                } else if (e instanceof AccessDeniedException) {
+                    JOptionPane.showMessageDialog(m_parentComponent,
+                        ExceptionUtil.limitMessageLength(String.format("Access denied: %s", e.getMessage()), 120),
+                        UNABLE_TO_LIST_FILES_MSG,
+                        JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(m_parentComponent,
+                        ExceptionUtil.limitMessageLength(ExceptionUtils.getMessage(ExceptionUtils.getRootCause(e)), 120),
+                        UNABLE_TO_LIST_FILES_MSG,
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(m_parentComponent,
+                    "Error in directory listing, see KNIME console/log.", UNABLE_TO_LIST_FILES_MSG,
+                    JOptionPane.ERROR_MESSAGE);
+            }
+
             return new File[0];
         } else {
             return result;

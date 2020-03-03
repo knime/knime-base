@@ -77,6 +77,11 @@ import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
  */
 public final class NioFile extends File {
 
+    /**
+     * Thread local exception that allows us to pass exceptions from the underlying NIO file system implementation
+     */
+    private static final ThreadLocal<Exception> THREAD_LOCAL_EXCEPTION = ThreadLocal.withInitial(() -> null);
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(NioFile.class);
 
     private static final long serialVersionUID = -5343680976176201255L;
@@ -185,12 +190,14 @@ public final class NioFile extends File {
 
     @Override
     public File[] listFiles() {
-
         return listFiles((d, f) -> true);
     }
 
     @Override
     public File[] listFiles(final FilenameFilter filter) {
+
+        // make sure there is no stale thread local exception
+        popThreadLocalException();
 
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(m_path,
             p -> filter.accept(new NioFile(p.getParent()), p.getFileName().toString()))) {
@@ -201,6 +208,7 @@ public final class NioFile extends File {
 
         } catch (final Exception ex) {
             LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+            setThreadLocalException(ex);
             return null;
         }
 
@@ -208,6 +216,9 @@ public final class NioFile extends File {
 
     @Override
     public File[] listFiles(final FileFilter filter) {
+        // make sure there is no stale thread local exception
+        popThreadLocalException();
+
         try (DirectoryStream<Path> directoryStream =
             Files.newDirectoryStream(m_path, p -> filter.accept(new NioFile(p)))) {
 
@@ -217,6 +228,7 @@ public final class NioFile extends File {
 
         } catch (final Exception ex) {
             LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+            setThreadLocalException(ex);
             return null;
         }
     }
@@ -228,6 +240,9 @@ public final class NioFile extends File {
 
     @Override
     public String[] list(final FilenameFilter filter) {
+        // make sure there is no stale thread local exception
+        popThreadLocalException();
+
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(m_path,
             p -> filter.accept(new NioFile(p.getParent()), p.getFileName().toString()))) {
 
@@ -236,7 +251,9 @@ public final class NioFile extends File {
             return files.stream().toArray(String[]::new);
 
         } catch (final Exception ex) {
+            ex.printStackTrace();
             LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+            setThreadLocalException(ex);
             return null;
         }
     }
@@ -571,6 +588,28 @@ public final class NioFile extends File {
      */
     public NioFile withFileExtension(final String fileExtension) {
         return new NioFile(getPath().concat(fileExtension), m_fileSys);
+    }
+
+    /**
+     * Stores the given exception in a thread-local variable that can be retrieved with
+     * {@link #popThreadLocalException()}. Methods that call this method should make sure to pop any stale exceptions
+     * before doing anything that could cause an exception.
+     *
+     * @param e
+     */
+    private static void setThreadLocalException(final Exception e) {
+        THREAD_LOCAL_EXCEPTION.set(e);
+    }
+
+    /**
+     * Retrieves the current thread-local exception, if any. A thread-local exception can only be retrieved once.
+     *
+     * @return the current thread-local exception, or null.
+     */
+    static Exception popThreadLocalException() {
+        final Exception toReturn = THREAD_LOCAL_EXCEPTION.get();
+        THREAD_LOCAL_EXCEPTION.remove();
+        return toReturn;
     }
 
 }
