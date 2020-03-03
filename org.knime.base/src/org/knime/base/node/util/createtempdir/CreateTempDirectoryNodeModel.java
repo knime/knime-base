@@ -76,6 +76,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.pathresolve.ResolverUtil;
 
 /**
  *
@@ -84,8 +85,6 @@ import org.knime.core.util.FileUtil;
 final class CreateTempDirectoryNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateTempDirectoryNodeModel.class);
-
-    private static final String TMP = "tmp";
 
     private static final String KNIME_PROTOCOL = "knime";
 
@@ -136,14 +135,16 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
 
     private void pushVariables(final File f) throws MalformedURLException  {
         final String path = f.getAbsolutePath();
-        pushFlowVariableString(m_configuration.getVariableName(), m_configuration.isRelativeTmpFolder()
-            ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW, "/" + TMP + "/" + m_configuration.getBaseName() + m_id).toString()
-            : path);
+        pushFlowVariableString(m_configuration.getVariableName(),
+            m_configuration.isRelativeTmpFolder()
+                ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW,
+                    "/" + ResolverUtil.IN_WORKFLOW_TEMP_DIR + "/" + m_configuration.getBaseName() + m_id).toString()
+                : path);
         for (VarNameFileNamePair p : m_configuration.getPairs()) {
             pushFlowVariableString(p.getVariableName(),
                 m_configuration.isRelativeTmpFolder()
-                    ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW,
-                        "/" + TMP + "/" + m_configuration.getBaseName() + m_id + "/" + p.getFileName()).toString()
+                    ? new URL(KNIME_PROTOCOL, KNIME_WORKFLOW, "/" + ResolverUtil.IN_WORKFLOW_TEMP_DIR + "/"
+                        + m_configuration.getBaseName() + m_id + "/" + p.getFileName()).toString()
                     : new File(f, p.getFileName()).getAbsolutePath());
         }
     }
@@ -155,7 +156,8 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
         if (nodeContext != null) {
             WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
             if (workflowContext != null) {
-                rootDir = m_configuration.isRelativeTmpFolder() ? new File(workflowContext.getCurrentLocation(), TMP)
+                rootDir = m_configuration.isRelativeTmpFolder()
+                    ? new File(workflowContext.getCurrentLocation(), ResolverUtil.IN_WORKFLOW_TEMP_DIR)
                     : workflowContext.getTempLocation();
             }
         }
