@@ -70,16 +70,30 @@ import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
  */
 public class URIFileSystem extends FileSystem {
 
-    private final URI m_uri;
+    private final URI m_baseUri;
 
     private final List<FileStore> m_fileStores;
 
     private final URIFileSystemProvider m_provider;
 
     URIFileSystem(final URI uri, final int timeoutInMillis) {
-        m_uri = uri;
-        m_fileStores = Collections.unmodifiableList(Collections.singletonList(new URIFileStore(uri)));
+        m_baseUri = toBaseURI(uri);
+        m_fileStores = Collections.unmodifiableList(Collections.singletonList(new URIFileStore(toBaseURI(uri))));
         m_provider = new URIFileSystemProvider(timeoutInMillis);
+    }
+
+    /**
+     * Retains the scheme and authority from the URL and removes everything else. The path of the returned base URI is
+     * simply "/".
+     *
+     * @return the base URI (same scheme and authority, but no path, query or fragment.
+     */
+    private static URI toBaseURI(final URI uri) {
+        try {
+            return new URI(uri.getScheme(), uri.getAuthority(), "", null, null);
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -129,7 +143,7 @@ public class URIFileSystem extends FileSystem {
     public Iterable<Path> getRootDirectories() {
         try {
             return Collections.singletonList(new URIPath(this,
-                new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
+                new URI(m_baseUri.getScheme(), m_baseUri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
         } catch (URISyntaxException ex) {
             throw new RuntimeException("Failed to create URI for root directory", ex);
         }
@@ -161,7 +175,8 @@ public class URIFileSystem extends FileSystem {
             path += UnixStylePathUtil.SEPARATOR + String.join(UnixStylePathUtil.SEPARATOR, more);
         }
 
-        return new URIPath(this, URI.create(path));
+        final URI newURI = URI.create(m_baseUri.toString() + path.replace(" ", "%20"));
+        return new URIPath(this, newURI);
     }
 
     /**
