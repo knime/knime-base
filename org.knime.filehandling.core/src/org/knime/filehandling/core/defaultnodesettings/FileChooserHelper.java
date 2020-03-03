@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
@@ -101,8 +100,7 @@ public final class FileChooserHelper {
      * Creates a new instance of {@link FileChooserHelper} that uses the default url timeout
      * {@link FileUtil#getDefaultURLTimeoutMillis()} for custom URLs.
      *
-     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable if
-     *            necessary
+     * @param fs the {@link FSConnection} used to retrieve a file system if necessary.
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
