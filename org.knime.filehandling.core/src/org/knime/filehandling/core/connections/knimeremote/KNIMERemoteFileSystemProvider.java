@@ -78,6 +78,7 @@ import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.FSDirectoryStream;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
@@ -216,7 +217,21 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
-        return new KNIMERemoteDirectoryStream(dir, filter);
+
+        checkPathProvider(dir);
+
+        try {
+            return new FSDirectoryStream(new KNIMERemotePathIterator(dir, filter));
+        } catch (IOException e) {
+            final Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof FileNotFoundException) {
+                throw new NoSuchFileException(dir.toString());
+            } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
+                throw new NoSuchFileException(dir.toString());
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**

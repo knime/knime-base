@@ -72,12 +72,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -210,32 +209,29 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("resource")
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
-        Optional<WorkflowContext> serverContext = getServerContext();
-        if (serverContext.isPresent()) {
-            return new FSDirectoryStream(dir, filter) {
 
-                @SuppressWarnings("resource")
-                @Override
-                protected Iterator<Path> getIterator(final Path path, final Filter<? super Path> filter1) {
-                    final KNIMEPath knimePath = (KNIMEPath) dir;
-                    final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
-                    final URL knimeURL = knimePath.getURL();
-                    try {
-                        final List<URL> listFiles = FileUtil.listFiles(knimeURL , p -> true, false);
-                        final List<Path> paths = new ArrayList<>();
-                        for (URL fileURL : listFiles) {
-                            paths.add(new KNIMEPath(fileSystem, fileURL.getPath()));
-                        }
-                        return paths.iterator();
-                    } catch (IOException | URISyntaxException ex) {
-                        LOGGER.debug("Error when listing files at '" + knimeURL.toString() +"'.", ex);
-                        return Collections.emptyIterator();
-                    }
-                }
-            };
+        Optional<WorkflowContext> serverContext = getServerContext();
+
+        if (serverContext.isPresent()) {
+            final KNIMEPath knimePath = (KNIMEPath) dir;
+            final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
+            final URL knimeURL = knimePath.getURL();
+
+            try {
+                final List<URL> fileList = FileUtil.listFiles(knimeURL , p -> true, false);
+                final Iterator<Path> pathIter =  fileList.stream()//
+                        .map(fileURL -> (Path) new KNIMEPath(fileSystem, fileURL.getPath()))//
+                        .iterator();
+
+                return new FSDirectoryStream(pathIter);
+            } catch (URISyntaxException ex) {
+                throw new IOException(ex.getMessage(), ex);
+            }
+
         } else {
             return Files.newDirectoryStream(toLocalPath(dir), filter);
         }
@@ -350,13 +346,8 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
             final WorkflowContext context = serverContext.get();
             final KNIMEPath knimePath = (KNIMEPath) path;
             final URL knimeURL = knimePath.getURL();
-
-            final KNIMEFileSystem fileSystem = (KNIMEFileSystem) knimePath.getFileSystem();
-            if (fileSystem.getConnectionType() == KNIMEConnection.Type.NODE_RELATIVE) {
-                throw new IOException("Node relative paths cannot be executed on the server.");
-            }
-
             boolean exists = false;
+
             try {
                 exists = makeRestCall((s) -> s.exists(knimeURL), context);
             } catch (Exception ex) {
@@ -365,7 +356,7 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
 
             if (!exists) {
                 // Throw IOException to make Files.exist fail!
-                throw new IOException("The file does not exist: '" + knimeURL.toString() + "'.");
+                throw new NoSuchFileException(knimeURL.toString());
             }
         } else {
             Path localPath = toLocalPath(path);

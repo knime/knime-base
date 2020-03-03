@@ -58,11 +58,7 @@ import java.util.Iterator;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class FSDirectoryStream implements DirectoryStream<Path> {
-
-    private final Path m_path;
-
-    private final Filter<? super Path> m_filter;
+public class FSDirectoryStream implements DirectoryStream<Path> {
 
     private Iterator<Path> m_iterator;
 
@@ -71,12 +67,10 @@ public abstract class FSDirectoryStream implements DirectoryStream<Path> {
     /**
      * Constructs a new instance of a {@link FSDirectoryStream} for the given path
      *
-     * @param path the path to iterate over
-     * @param filter the filter to apply to the output
+     * @param iterator The path iterator.
      */
-    public FSDirectoryStream(final Path path, final Filter<? super Path> filter) {
-        m_path = path;
-        m_filter = filter;
+    public FSDirectoryStream(final Iterator<Path> iterator) {
+        m_iterator = iterator;
     }
 
     /**
@@ -85,7 +79,7 @@ public abstract class FSDirectoryStream implements DirectoryStream<Path> {
     @Override
     public void close() throws IOException {
         m_isClosed = true;
-
+        m_iterator = null;
     }
 
     /**
@@ -97,22 +91,13 @@ public abstract class FSDirectoryStream implements DirectoryStream<Path> {
             throw new IllegalStateException("Directory stream is already closed.");
         }
 
-        if (m_iterator != null) {
+        if (m_iterator == null) {
             throw new IllegalStateException("DirectoryStream supports only a single Iterator.");
         }
 
-        m_iterator = getIterator(m_path, m_filter);
-        return m_iterator;
+        final Iterator<Path> toReturn = m_iterator;
+        m_iterator = null;
 
+        return toReturn;
     }
-
-    /**
-     * Returns a Iterator over the files in the folder.
-     *
-     * @param path the path of the folder
-     * @param filter the filter to apply to the content
-     * @return Returns a Iterator over the files in the folder.
-     */
-    protected abstract Iterator<Path> getIterator(Path path, Filter<? super Path> filter);
-
 }
