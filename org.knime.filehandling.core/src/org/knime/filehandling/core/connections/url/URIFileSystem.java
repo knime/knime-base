@@ -181,7 +181,12 @@ public class URIFileSystem extends FileSystem {
             path += UnixStylePathUtil.SEPARATOR + String.join(UnixStylePathUtil.SEPARATOR, more);
         }
 
-        final URI newURI = URI.create(m_baseUri.toString() + path.replace(" ", "%20"));
+        String baseURI = m_baseUri.toString();
+        if (baseURI.endsWith("/") && path.startsWith("/")) {
+            baseURI = baseURI.substring(0, baseURI.length() - 1);
+        }
+
+        final URI newURI = URI.create(baseURI + path.replace(" ", "%20"));
         return new URIPath(this, newURI);
     }
 
