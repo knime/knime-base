@@ -90,7 +90,13 @@ public class URIFileSystem extends FileSystem {
      */
     private static URI toBaseURI(final URI uri) {
         try {
-            return new URI(uri.getScheme(), uri.getAuthority(), "", null, null);
+            // special case: file:/path/to/file
+            // here authority is null and the scheme-specific-part is /path/to/file
+            if (uri.getAuthority() == null) {
+                return new URI(uri.getScheme() + ":///");
+            } else {
+                return new URI(uri.getScheme(), uri.getAuthority(), "/", null, null);
+            }
         } catch (URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
