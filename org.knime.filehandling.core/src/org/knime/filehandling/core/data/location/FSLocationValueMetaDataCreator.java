@@ -46,7 +46,7 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path;
+package org.knime.filehandling.core.data.location;
 
 import java.util.Objects;
 
@@ -55,34 +55,34 @@ import org.knime.core.data.meta.DataColumnMetaDataCreator;
 import org.knime.core.node.util.CheckUtils;
 
 /**
- * {@link DataColumnMetaDataCreator} for {@link FSPathValueMetaData}. The {@link #update(DataCell)},
- * {@link #merge(DataColumnMetaDataCreator)} and {@link #merge(FSPathValueMetaData)} throw exceptions if the file system
- * type and specifier, respectively, do not match.
+ * {@link DataColumnMetaDataCreator} for {@link FSLocationValueMetaData}. The {@link #update(DataCell)},
+ * {@link #merge(DataColumnMetaDataCreator)} and {@link #merge(FSLocationValueMetaData)} throw exceptions if the file
+ * system type and specifier, respectively, do not match.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathValueMetaDataCreator implements DataColumnMetaDataCreator<FSPathValueMetaData> {
+public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataCreator<FSLocationValueMetaData> {
 
     private String m_fileSystemType;
 
     private String m_fileSystemSpecifier;
 
-    FSPathValueMetaDataCreator() {
+    FSLocationValueMetaDataCreator() {
         this(null, null);
     }
 
-    private FSPathValueMetaDataCreator(final String fileSystemType, final String fileSystemSpecifier) {
+    private FSLocationValueMetaDataCreator(final String fileSystemType, final String fileSystemSpecifier) {
         m_fileSystemType = fileSystemType;
         m_fileSystemSpecifier = fileSystemSpecifier;
     }
 
     @Override
     public void update(final DataCell cell) {
-        if (cell.isMissing() || !(cell instanceof FSPathValue)) {
+        if (cell.isMissing() || !(cell instanceof FSLocationValue)) {
             return;
         }
-        final FSPathValue value = (FSPathValue)cell;
+        final FSLocationValue value = (FSLocationValue)cell;
         checkCompatibilityAndSet(value.getFSLocation().getFileSystemType(),
             value.getFSLocation().getFileSystemSpecifier().orElse(null));
     }
@@ -90,10 +90,10 @@ public final class FSPathValueMetaDataCreator implements DataColumnMetaDataCreat
     private void checkCompatibilityAndSet(final String fileSystemType, final String fileSystemSpecifier) {
         if (fileSystemType != null && m_fileSystemType != null) {
             CheckUtils.checkArgument(Objects.equals(m_fileSystemType, fileSystemType),
-                "Paths with incompatible file system types cannot be in the same data column: %s vs. %s.",
+                "Locations with incompatible file system types cannot be in the same data column: %s vs. %s.",
                 m_fileSystemType, fileSystemType);
             CheckUtils.checkArgument(Objects.equals(m_fileSystemSpecifier, fileSystemSpecifier),
-                "Paths with incompatible file system specifiers cannot be in the same data column: %s vs. %s.",
+                "Locations with incompatible file system specifiers cannot be in the same data column: %s vs. %s.",
                 m_fileSystemSpecifier, fileSystemSpecifier);
         } else {
             m_fileSystemType = fileSystemType;
@@ -102,33 +102,34 @@ public final class FSPathValueMetaDataCreator implements DataColumnMetaDataCreat
     }
 
     @Override
-    public FSPathValueMetaData create() {
-        return new FSPathValueMetaData(m_fileSystemType, m_fileSystemSpecifier);
+    public FSLocationValueMetaData create() {
+        return new FSLocationValueMetaData(m_fileSystemType, m_fileSystemSpecifier);
     }
 
     @Override
-    public FSPathValueMetaDataCreator copy() {
-        return new FSPathValueMetaDataCreator(m_fileSystemType, m_fileSystemSpecifier);
+    public FSLocationValueMetaDataCreator copy() {
+        return new FSLocationValueMetaDataCreator(m_fileSystemType, m_fileSystemSpecifier);
     }
 
     @Override
-    public FSPathValueMetaDataCreator merge(final DataColumnMetaDataCreator<FSPathValueMetaData> other) {
-        CheckUtils.checkArgument(other instanceof FSPathValueMetaDataCreator,
-            "Can only merge with PathValueMetaDataCreator but received object of type %s.", other.getClass().getName());
-        final FSPathValueMetaDataCreator otherCreator = (FSPathValueMetaDataCreator)other;
+    public FSLocationValueMetaDataCreator merge(final DataColumnMetaDataCreator<FSLocationValueMetaData> other) {
+        CheckUtils.checkArgument(other instanceof FSLocationValueMetaDataCreator,
+            "Can only merge with FSLocationValueMetaDataCreator but received object of type %s.",
+            other.getClass().getName());
+        final FSLocationValueMetaDataCreator otherCreator = (FSLocationValueMetaDataCreator)other;
         checkCompatibilityAndSet(otherCreator.m_fileSystemType, otherCreator.m_fileSystemSpecifier);
         return this;
     }
 
     @Override
-    public FSPathValueMetaDataCreator merge(final FSPathValueMetaData other) {
+    public FSLocationValueMetaDataCreator merge(final FSLocationValueMetaData other) {
         checkCompatibilityAndSet(other.getFileSystemType(), other.getFileSystemSpecifier());
         return this;
     }
 
     @Override
-    public Class<FSPathValueMetaData> getMetaDataClass() {
-        return FSPathValueMetaData.class;
+    public Class<FSLocationValueMetaData> getMetaDataClass() {
+        return FSLocationValueMetaData.class;
     }
 
 }

@@ -53,12 +53,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.data.path.cell.FSPathCell;
+import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
- * Object encapsulation all information required to convert between {@link Path} and {@link FSPathCell}.
+ * Object encapsulation all information required to convert between {@link Path} and {@link FSLocationCell}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */

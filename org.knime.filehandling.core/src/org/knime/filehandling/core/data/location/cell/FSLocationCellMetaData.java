@@ -46,7 +46,7 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path.cell;
+package org.knime.filehandling.core.data.location.cell;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -62,12 +62,12 @@ import org.knime.core.data.filestore.FileStoreKey;
 import org.knime.core.data.filestore.FileStoreUtil;
 
 /**
- * Holds information shared by multiple {@link FSPathCell}s created by the same process as the file system type and
+ * Holds information shared by multiple {@link FSLocationCell}s created by the same process as the file system type and
  * specifier.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class FSPathCellMetaData {
+final class FSLocationCellMetaData {
 
     private static final MemoryAlertAwareGuavaCache CACHE = new MemoryAlertAwareGuavaCache();
 
@@ -75,7 +75,7 @@ final class FSPathCellMetaData {
 
     private final String m_fileSystemSpecifier;
 
-    FSPathCellMetaData(final FileStoreKey key, final String fileSystemType, final String fileSystemSpecifier) {
+    FSLocationCellMetaData(final FileStoreKey key, final String fileSystemType, final String fileSystemSpecifier) {
         this(fileSystemType, fileSystemSpecifier);
         CACHE.put(key, this);
     }
@@ -83,7 +83,7 @@ final class FSPathCellMetaData {
     /**
      * Constructor for the use during deserialization.
      */
-    private FSPathCellMetaData(final String fileSystemType, final String fileSystemSpecifier) {
+    private FSLocationCellMetaData(final String fileSystemType, final String fileSystemSpecifier) {
         m_fileSystemType = fileSystemType;
         m_fileSystemSpecifier = fileSystemSpecifier;
     }
@@ -118,19 +118,19 @@ final class FSPathCellMetaData {
         }
     }
 
-    static FSPathCellMetaData read(final FileStore fileStore) throws ExecutionException {
+    static FSLocationCellMetaData read(final FileStore fileStore) throws ExecutionException {
         return CACHE.get(FileStoreUtil.getFileStoreKey(fileStore), () -> readFromFileStore(fileStore));
     }
 
-    private static FSPathCellMetaData readFromFileStore(final FileStore fileStore) throws IOException {
+    private static FSLocationCellMetaData readFromFileStore(final FileStore fileStore) throws IOException {
         try (final DataInputStream is = new DataInputStream(new FileInputStream(fileStore.getFile()))) {
             final String fileSystemType = is.readUTF();
             final boolean specifierIsNull = is.readBoolean();
             if (specifierIsNull) {
-                return new FSPathCellMetaData(fileSystemType, null);
+                return new FSLocationCellMetaData(fileSystemType, null);
             }
             final String fileSystemSpecifier = is.readUTF();
-            return new FSPathCellMetaData(fileSystemType, fileSystemSpecifier);
+            return new FSLocationCellMetaData(fileSystemType, fileSystemSpecifier);
         }
     }
 
@@ -139,8 +139,8 @@ final class FSPathCellMetaData {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof FSPathCellMetaData) {
-            final FSPathCellMetaData other = (FSPathCellMetaData)obj;
+        if (obj instanceof FSLocationCellMetaData) {
+            final FSLocationCellMetaData other = (FSLocationCellMetaData)obj;
             return m_fileSystemType.equals(other.m_fileSystemType)
                 && Objects.equals(m_fileSystemSpecifier, other.m_fileSystemSpecifier);
         }

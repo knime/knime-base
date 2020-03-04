@@ -46,58 +46,39 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path;
-
-import javax.swing.Icon;
+package org.knime.filehandling.core.data.location;
 
 import org.knime.core.data.DataValue;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.node.util.SharedIcons;
-import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.core.data.meta.DataColumnMetaDataCreator;
+import org.knime.core.data.meta.DataColumnMetaDataExtension;
+import org.knime.core.data.meta.DataColumnMetaDataSerializer;
 
 /**
- * Value definition for a cell representing a {@link FSLocation}, i.e., a path and information about the file system as
- * type and specifier.
+ * {@link DataColumnMetaDataExtension} for {@link FSLocationValueMetaDataCreator} objects.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public interface FSPathValue extends DataValue {
+public final class FSLocationValueMetaDataExtension implements DataColumnMetaDataExtension<FSLocationValueMetaData> {
 
-    /**
-     * Meta information on {@link FSPathValue}s.
-     *
-     * @see DataValue#UTILITY
-     */
-    UtilityFactory UTILITY = new PathUtilityFactory();
-
-    /**
-     * Returns the file system location object that comprises a path and information about the file system.
-     *
-     * @return the file system location
-     */
-    FSLocation getFSLocation();
-
-    /** Implementations of the meta information of this value class. */
-    class PathUtilityFactory extends ExtensibleUtilityFactory {
-        /** Singleton icon to be used to display this cell type. */
-        // TODO change icon, see https://knime-com.atlassian.net/browse/AP-13751
-        private static final Icon ICON = SharedIcons.TYPE_DEFAULT.get();
-
-        /** Only subclasses are allowed to instantiate this class. */
-        protected PathUtilityFactory() {
-            super(FSPathValue.class);
-        }
-
-        @Override
-        public Icon getIcon() {
-            return ICON;
-        }
-
-        @Override
-        public String getName() {
-            return "Path";
-        }
-
+    @Override
+    public DataColumnMetaDataCreator<FSLocationValueMetaData> create() {
+        return new FSLocationValueMetaDataCreator();
     }
+
+    @Override
+    public Class<? extends DataValue> getDataValueClass() {
+        return FSLocationValue.class;
+    }
+
+    @Override
+    public Class<FSLocationValueMetaData> getMetaDataClass() {
+        return FSLocationValueMetaData.class;
+    }
+
+    @Override
+    public DataColumnMetaDataSerializer<FSLocationValueMetaData> createSerializer() {
+        return new FSLocationValueMetaData.PathValueMetaDataSerializer();
+    }
+
 }

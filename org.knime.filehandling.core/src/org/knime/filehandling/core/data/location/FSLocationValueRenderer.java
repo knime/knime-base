@@ -46,39 +46,58 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path;
+package org.knime.filehandling.core.data.location;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.data.meta.DataColumnMetaDataCreator;
-import org.knime.core.data.meta.DataColumnMetaDataExtension;
-import org.knime.core.data.meta.DataColumnMetaDataSerializer;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.renderer.AbstractDataValueRendererFactory;
+import org.knime.core.data.renderer.DataValueRenderer;
+import org.knime.core.data.renderer.DefaultDataValueRenderer;
 
 /**
- * {@link DataColumnMetaDataExtension} for {@link FSPathValueMetaDataCreator} objects.
+ * Generic renderer for {@link FSLocationValue} which prints the path.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathValueMetaDataExtension implements DataColumnMetaDataExtension<FSPathValueMetaData> {
+public final class FSLocationValueRenderer extends DefaultDataValueRenderer {
 
+    private static final long serialVersionUID = 1L;
+
+    private static final String DESCRIPTION_PATH = "Location";
+
+    private FSLocationValueRenderer(final DataColumnSpec colSpec) {
+        super(colSpec);
+    }
+
+    /**
+     * @return "Path" {@inheritDoc}
+     */
     @Override
-    public DataColumnMetaDataCreator<FSPathValueMetaData> create() {
-        return new FSPathValueMetaDataCreator();
+    public String getDescription() {
+        return DESCRIPTION_PATH;
     }
 
     @Override
-    public Class<? extends DataValue> getDataValueClass() {
-        return FSPathValue.class;
+    protected void setValue(final Object value) {
+        if (value instanceof FSLocationValue) {
+            final FSLocationValue pathValue = (FSLocationValue)value;
+            super.setValue(pathValue.getFSLocation());
+        } else {
+            super.setValue(value);
+        }
     }
 
-    @Override
-    public Class<FSPathValueMetaData> getMetaDataClass() {
-        return FSPathValueMetaData.class;
-    }
+    /** Renderer factory registered through extension point. */
+    public static final class DefaultRendererFactory extends AbstractDataValueRendererFactory {
 
-    @Override
-    public DataColumnMetaDataSerializer<FSPathValueMetaData> createSerializer() {
-        return new FSPathValueMetaData.PathValueMetaDataSerializer();
-    }
+        @Override
+        public String getDescription() {
+            return DESCRIPTION_PATH;
+        }
 
+        @Override
+        public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
+            return new FSLocationValueRenderer(colSpec);
+        }
+    }
 }

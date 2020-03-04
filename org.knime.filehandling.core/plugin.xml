@@ -28,25 +28,25 @@
    <extension
          point="org.knime.core.DataType">
       <DataType
-            cellClass="org.knime.filehandling.core.data.path.cell.FSPathCell">
+            cellClass="org.knime.filehandling.core.data.location.cell.FSLocationCell">
          <serializer
-               cellClass="org.knime.filehandling.core.data.path.cell.FSPathCell"
-               serializerClass="org.knime.filehandling.core.data.path.cell.FSPathCell$PathSerializer">
+               cellClass="org.knime.filehandling.core.data.location.cell.FSLocationCell"
+               serializerClass="org.knime.filehandling.core.data.location.cell.FSLocationCell$PathSerializer">
          </serializer>
       </DataType>
    </extension>
    <extension
          point="org.knime.core.DataColumnMetaDataType">
       <DataColumnMetaData
-            dataColumnMetaDataExtension="org.knime.filehandling.core.data.path.FSPathValueMetaDataExtension">
+            dataColumnMetaDataExtension="org.knime.filehandling.core.data.location.FSLocationValueMetaDataExtension">
       </DataColumnMetaData>
    </extension>
    <extension
          point="org.knime.core.DataValueRenderer">
       <dataValue
-            valueClass="org.knime.filehandling.core.data.path.FSPathValue">
+            valueClass="org.knime.filehandling.core.data.location.FSLocationValue">
          <renderer
-               rendererFactoryClass="org.knime.filehandling.core.data.path.FSPathValueRenderer$DefaultRendererFactory"
+               rendererFactoryClass="org.knime.filehandling.core.data.location.FSLocationValueRenderer$DefaultRendererFactory"
                suggestAsDefault="true">
          </renderer>
       </dataValue>

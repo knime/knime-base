@@ -46,7 +46,7 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path.cell;
+package org.knime.filehandling.core.data.location.cell;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -60,34 +60,34 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.data.filestore.FileStoreCell;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.path.FSPathValue;
+import org.knime.filehandling.core.data.location.FSLocationValue;
 
 /**
- * Implementation of {@link FSPathValue} that stores the path within a {@link FSLocation} object.
+ * Implementation of {@link FSLocationValue} that stores the path within a {@link FSLocation} object.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathCell extends FileStoreCell implements FSPathValue {
+public final class FSLocationCell extends FileStoreCell implements FSLocationValue {
 
-    static final DataType TYPE = DataType.getType(FSPathCell.class);
+    static final DataType TYPE = DataType.getType(FSLocationCell.class);
 
     private static final long serialVersionUID = 1L;
 
-    private FSPathCellMetaData m_metaData;
+    private FSLocationCellMetaData m_metaData;
 
     private FSLocation m_location;
 
     private final String m_path;
 
-    FSPathCell(final FSPathCellMetaData metaData, final FileStore fileStore, final FSLocation location) {
+    FSLocationCell(final FSLocationCellMetaData metaData, final FileStore fileStore, final FSLocation location) {
         super(fileStore);
         m_metaData = metaData;
         m_path = location.getPath();
         m_location = location;
     }
 
-    private FSPathCell(final String path) {
+    private FSLocationCell(final String path) {
         m_path = path;
     }
 
@@ -103,7 +103,7 @@ public final class FSPathCell extends FileStoreCell implements FSPathValue {
 
     @Override
     protected boolean equalsDataCell(final DataCell dc) {
-        final FSPathCell other = (FSPathCell)dc;
+        final FSLocationCell other = (FSLocationCell)dc;
         return m_metaData.equals(other.m_metaData) && m_location.equals(other.m_location);
     }
 
@@ -115,7 +115,7 @@ public final class FSPathCell extends FileStoreCell implements FSPathValue {
     @Override
     protected void postConstruct() throws IOException {
         try {
-            m_metaData = FSPathCellMetaData.read(getFileStores()[0]);
+            m_metaData = FSLocationCellMetaData.read(getFileStores()[0]);
             m_location = new FSLocation(m_metaData.getFileSystemType(), m_metaData.getFileSystemSpecifier(), m_path);
         } catch (ExecutionException ex) {
             throw new IOException("The meta data cannot be read.", ex);
@@ -128,22 +128,22 @@ public final class FSPathCell extends FileStoreCell implements FSPathValue {
     }
 
     /**
-     * Serializer for {@link FSPathCell}s.
+     * Serializer for {@link FSLocationCell}s.
      *
      * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
      * @noreference This class is not intended to be referenced by clients.
      */
-    public static final class PathSerializer implements DataCellSerializer<FSPathCell> {
+    public static final class PathSerializer implements DataCellSerializer<FSLocationCell> {
 
         @Override
-        public void serialize(final FSPathCell cell, final DataCellDataOutput output) throws IOException {
+        public void serialize(final FSLocationCell cell, final DataCellDataOutput output) throws IOException {
             output.writeUTF(cell.m_location.getPath());
         }
 
         @Override
-        public FSPathCell deserialize(final DataCellDataInput input) throws IOException {
+        public FSLocationCell deserialize(final DataCellDataInput input) throws IOException {
             final String path = input.readUTF();
-            return new FSPathCell(path);
+            return new FSLocationCell(path);
         }
 
     }

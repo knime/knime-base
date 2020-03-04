@@ -46,84 +46,57 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path;
+package org.knime.filehandling.core.data.location;
 
-import org.knime.core.data.meta.DataColumnMetaData;
-import org.knime.core.data.meta.DataColumnMetaDataSerializer;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.config.ConfigRO;
-import org.knime.core.node.config.ConfigWO;
-import org.knime.core.node.util.CheckUtils;
+import javax.swing.Icon;
+
+import org.knime.core.data.DataValue;
+import org.knime.core.data.ExtensibleUtilityFactory;
+import org.knime.core.node.util.SharedIcons;
+import org.knime.filehandling.core.connections.FSLocation;
 
 /**
- * Holds the information about the file system type and specifier in form of Strings.
+ * Value definition for a cell representing a {@link FSLocation}, i.e., a path and information about the file system as
+ * type and specifier.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathValueMetaData implements DataColumnMetaData {
-
-    static final String CFG_FS_TYPE = "fs_type";
-
-    static final String CFG_FS_SPECIFIER = "fs_specifier";
-
-    private final String m_fileSystemType;
-
-    private final String m_fileSystemSpecifier;
+public interface FSLocationValue extends DataValue {
 
     /**
-     * Creates a {@link FSPathValueMetaData} instance.
+     * Meta information on {@link FSLocationValue}s.
      *
-     * @param fileSystemType the file system type
-     * @param fileSystemSpecifier the file system specifier, can be {@code null}
+     * @see DataValue#UTILITY
      */
-    public FSPathValueMetaData(final String fileSystemType, final String fileSystemSpecifier) {
-        m_fileSystemType = fileSystemType;
-        m_fileSystemSpecifier = fileSystemSpecifier;
-    }
+    UtilityFactory UTILITY = new PathUtilityFactory();
 
     /**
-     * Returns the file system type.
+     * Returns the file system location object that comprises a path and information about the file system.
      *
-     * @return the file system type
+     * @return the file system location
      */
-    public String getFileSystemType() {
-        return m_fileSystemType;
-    }
+    FSLocation getFSLocation();
 
-    /**
-     * Returns the file system specifier.
-     *
-     * @return the file system specifier, can be {@code null}
-     */
-    public String getFileSystemSpecifier() {
-        return m_fileSystemSpecifier;
-    }
+    /** Implementations of the meta information of this value class. */
+    class PathUtilityFactory extends ExtensibleUtilityFactory {
+        /** Singleton icon to be used to display this cell type. */
+        // TODO change icon, see https://knime-com.atlassian.net/browse/AP-13751
+        private static final Icon ICON = SharedIcons.TYPE_DEFAULT.get();
 
-    /**
-     * Serializer for {@link FSPathValueMetaData} objects.
-     *
-     * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
-     */
-    public static final class PathValueMetaDataSerializer implements DataColumnMetaDataSerializer<FSPathValueMetaData> {
-
-        @Override
-        public void save(final FSPathValueMetaData metaData, final ConfigWO config) {
-            CheckUtils.checkNotNull(metaData, "The meta data provided to the serializer was null.");
-            config.addString(CFG_FS_TYPE, metaData.getFileSystemType());
-            config.addString(CFG_FS_SPECIFIER, metaData.getFileSystemSpecifier());
+        /** Only subclasses are allowed to instantiate this class. */
+        protected PathUtilityFactory() {
+            super(FSLocationValue.class);
         }
 
         @Override
-        public FSPathValueMetaData load(final ConfigRO config) throws InvalidSettingsException {
-            final String fileSystemType = config.getString(CFG_FS_TYPE);
-            final String fileSystemSpecifier = config.getString(CFG_FS_SPECIFIER);
-            return new FSPathValueMetaData(fileSystemType, fileSystemSpecifier);
+        public Icon getIcon() {
+            return ICON;
         }
 
         @Override
-        public Class<FSPathValueMetaData> getMetaDataClass() {
-            return FSPathValueMetaData.class;
+        public String getName() {
+            return "Location";
         }
 
     }

@@ -46,58 +46,85 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path;
+package org.knime.filehandling.core.data.location;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.renderer.AbstractDataValueRendererFactory;
-import org.knime.core.data.renderer.DataValueRenderer;
-import org.knime.core.data.renderer.DefaultDataValueRenderer;
+import org.knime.core.data.meta.DataColumnMetaData;
+import org.knime.core.data.meta.DataColumnMetaDataSerializer;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.config.ConfigRO;
+import org.knime.core.node.config.ConfigWO;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Generic renderer for {@link FSPathValue} which prints the path.
+ * Holds the information about the file system type and specifier in form of Strings.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathValueRenderer extends DefaultDataValueRenderer {
+public final class FSLocationValueMetaData implements DataColumnMetaData {
 
-    private static final long serialVersionUID = 1L;
+    static final String CFG_FS_TYPE = "fs_type";
 
-    private static final String DESCRIPTION_PATH = "Path";
+    static final String CFG_FS_SPECIFIER = "fs_specifier";
 
-    private FSPathValueRenderer(final DataColumnSpec colSpec) {
-        super(colSpec);
+    private final String m_fileSystemType;
+
+    private final String m_fileSystemSpecifier;
+
+    /**
+     * Creates a {@link FSLocationValueMetaData} instance.
+     *
+     * @param fileSystemType the file system type
+     * @param fileSystemSpecifier the file system specifier, can be {@code null}
+     */
+    public FSLocationValueMetaData(final String fileSystemType, final String fileSystemSpecifier) {
+        m_fileSystemType = fileSystemType;
+        m_fileSystemSpecifier = fileSystemSpecifier;
     }
 
     /**
-     * @return "Path" {@inheritDoc}
+     * Returns the file system type.
+     *
+     * @return the file system type
      */
-    @Override
-    public String getDescription() {
-        return DESCRIPTION_PATH;
+    public String getFileSystemType() {
+        return m_fileSystemType;
     }
 
-    @Override
-    protected void setValue(final Object value) {
-        if (value instanceof FSPathValue) {
-            final FSPathValue pathValue = (FSPathValue)value;
-            super.setValue(pathValue.getFSLocation());
-        } else {
-            super.setValue(value);
-        }
+    /**
+     * Returns the file system specifier.
+     *
+     * @return the file system specifier, can be {@code null}
+     */
+    public String getFileSystemSpecifier() {
+        return m_fileSystemSpecifier;
     }
 
-    /** Renderer factory registered through extension point. */
-    public static final class DefaultRendererFactory extends AbstractDataValueRendererFactory {
+    /**
+     * Serializer for {@link FSLocationValueMetaData} objects.
+     *
+     * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+     */
+    public static final class PathValueMetaDataSerializer implements DataColumnMetaDataSerializer<FSLocationValueMetaData> {
 
         @Override
-        public String getDescription() {
-            return DESCRIPTION_PATH;
+        public void save(final FSLocationValueMetaData metaData, final ConfigWO config) {
+            CheckUtils.checkNotNull(metaData, "The meta data provided to the serializer was null.");
+            config.addString(CFG_FS_TYPE, metaData.getFileSystemType());
+            config.addString(CFG_FS_SPECIFIER, metaData.getFileSystemSpecifier());
         }
 
         @Override
-        public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
-            return new FSPathValueRenderer(colSpec);
+        public FSLocationValueMetaData load(final ConfigRO config) throws InvalidSettingsException {
+            final String fileSystemType = config.getString(CFG_FS_TYPE);
+            final String fileSystemSpecifier = config.getString(CFG_FS_SPECIFIER);
+            return new FSLocationValueMetaData(fileSystemType, fileSystemSpecifier);
         }
+
+        @Override
+        public Class<FSLocationValueMetaData> getMetaDataClass() {
+            return FSLocationValueMetaData.class;
+        }
+
     }
 }

@@ -46,7 +46,7 @@
  * History
  *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.data.path.cell;
+package org.knime.filehandling.core.data.location.cell;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -60,30 +60,30 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocation;
 
 /**
- * Factory for {@link FSPathCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
+ * Factory for {@link FSLocationCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSPathCellFactory {
+public final class FSLocationCellFactory {
 
     /**
      * The {@link DataType} of cells created by this factory.
      */
-    public static final DataType TYPE = FSPathCell.TYPE;
+    public static final DataType TYPE = FSLocationCell.TYPE;
 
-    private final FSPathCellMetaData m_metaData;
+    private final FSLocationCellMetaData m_metaData;
 
     private final FileStore m_fileStore;
 
     /**
-     * Constructs a {@link FSPathCellFactory} for the creation of {@link FSPathCell}s.
+     * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fileSystemType the file system type
      * @param fileSystemSpecifier the file system specifier, can be {@code null}
      */
-    public FSPathCellFactory(final FileStoreFactory fileStoreFactory, final String fileSystemType,
+    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final String fileSystemType,
         final String fileSystemSpecifier) {
         // Check null
         CheckUtils.checkNotNull(fileStoreFactory, "The file store factory must not be null.");
@@ -91,32 +91,32 @@ public final class FSPathCellFactory {
         try {
             m_fileStore = fileStoreFactory.createFileStore(UUID.randomUUID().toString());
         } catch (IOException ex) {
-            throw new IllegalStateException("Can't create file store for path cells.", ex);
+            throw new IllegalStateException("Can't create file store for location cells.", ex);
         }
         m_metaData =
-            new FSPathCellMetaData(FileStoreUtil.getFileStoreKey(m_fileStore), fileSystemType, fileSystemSpecifier);
+            new FSLocationCellMetaData(FileStoreUtil.getFileStoreKey(m_fileStore), fileSystemType, fileSystemSpecifier);
     }
 
     /**
-     * Constructs a {@link FSPathCellFactory} for the creation of {@link FSPathCell}s.
+     * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fsLocation the file system location object holding the type and specifier of the file system
      */
-    public FSPathCellFactory(final FileStoreFactory fileStoreFactory, final FSLocation fsLocation) {
+    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocation fsLocation) {
         this(fileStoreFactory, fsLocation.getFileSystemType(), fsLocation.getFileSystemSpecifier().orElse(null));
     }
 
     /**
-     * Create a new {@link FSPathCell}.
+     * Create a new {@link FSLocationCell}.
      *
      * @param fsLocation the file system location
-     * @return a {@link FSPathCell} containing a path and information about the file system
+     * @return a {@link FSLocationCell} containing a path and information about the file system
      * @throws NullPointerException if {@code fsLocation} is null
      * @throws IllegalArgumentException if the path is null or the file system type and specifier do not match the ones
      *             in the meta data
      */
-    public FSPathCell createCell(final FSLocation fsLocation) {
+    public FSLocationCell createCell(final FSLocation fsLocation) {
         // Check null
         CheckUtils.checkNotNull(fsLocation, "The file system location must not be null.");
         CheckUtils.checkArgumentNotNull(fsLocation.getPath(), "The path must not be null.");
@@ -129,20 +129,20 @@ public final class FSPathCellFactory {
         CheckUtils.checkArgument(Objects.equals(fileSystemSpecifier, m_metaData.getFileSystemSpecifier()),
             "The file system specifier (%s) must match the file system specifier in the meta data (%s).",
             fileSystemSpecifier, m_metaData.getFileSystemSpecifier());
-        return new FSPathCell(m_metaData, m_fileStore, fsLocation);
+        return new FSLocationCell(m_metaData, m_fileStore, fsLocation);
     }
 
     /**
-     * Create a new {@link FSPathCell}.
+     * Create a new {@link FSLocationCell}.
      *
      * @param path the path
-     * @return a {@link FSPathCell} containing a path and information about the file system
+     * @return a {@link FSLocationCell} containing a path and information about the file system
      * @throws NullPointerException if {@code path} is null
      */
-    public FSPathCell createCell(final String path) {
+    public FSLocationCell createCell(final String path) {
         // Check null
         CheckUtils.checkNotNull(path, "The path must not be null.");
-        return new FSPathCell(m_metaData, m_fileStore,
+        return new FSLocationCell(m_metaData, m_fileStore,
             new FSLocation(m_metaData.getFileSystemType(), m_metaData.getFileSystemSpecifier(), path));
     }
 }

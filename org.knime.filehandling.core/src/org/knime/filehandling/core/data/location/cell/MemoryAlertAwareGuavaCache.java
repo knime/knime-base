@@ -46,7 +46,7 @@
  * History
  *   30.05.2017 (David Kolb): created
  */
-package org.knime.filehandling.core.data.path.cell;
+package org.knime.filehandling.core.data.location.cell;
 
 import java.util.Optional;
 import java.util.UUID;
