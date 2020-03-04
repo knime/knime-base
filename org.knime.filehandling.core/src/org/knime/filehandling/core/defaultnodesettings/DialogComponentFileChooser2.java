@@ -444,6 +444,11 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
         if (fsChoice != null) {
+
+            if (fsChoice.equals(FileSystemChoice.getCustomFsUrlChoice())) {
+                model.getFileOrFolderSettingsModel().setStringValue(FileOrFolderEnum.FILE.getActionCommand());
+            }
+
             model.setFileSystem(fsChoice.getId());
             if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())
                 || fsChoice.equals(FileSystemChoice.getKnimeMountpointChoice())) {
