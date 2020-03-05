@@ -48,16 +48,19 @@
  */
 package org.knime.base.node.preproc.sorter.dialog;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.Box;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.core.node.util.CheckUtils;
@@ -78,7 +81,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
 
     private final JPanel m_outerPanelsArea;
 
-    private final JLabel m_addItemLabel;
+    private final OpacityButton m_addButton;
 
     private DynamicItemContext<T> m_itemContext;
 
@@ -92,33 +95,49 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
      */
     public DynamicOrderPanel(final DynamicItemContext<T> itemContext) {
         m_itemContext = itemContext;
-
         m_outerPanels = new ArrayList<>();
 
-        m_addItemLabel = new JLabel(SharedIcons.ADD_PLUS_FILLED.get());
-        m_addItemLabel.addMouseListener(new MouseAdapter() {
+        m_panel = new JPanel(new GridBagLayout());
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.weightx = 1;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+
+        c.gridy = 0;
+        c.weighty = 0;
+        m_outerPanelsArea = new JPanel();
+        m_outerPanelsArea.setLayout(new BoxLayout(m_outerPanelsArea, BoxLayout.Y_AXIS));
+        m_panel.add(m_outerPanelsArea, c);
+
+        c.gridy = 1;
+        c.weighty = 1;
+        m_addItemArea = new JPanel(new GridBagLayout());
+        m_panel.add(m_addItemArea, c);
+
+        m_addButton = new OpacityButton();
+        m_addButton.setIcon(SharedIcons.ADD_PLUS.get());
+        m_addButton.setBackground(Color.WHITE);
+        m_addButton.setContentAreaFilled(false);
+        m_addButton.setOpaque(true);
+        m_addButton.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY),
+            BorderFactory.createEmptyBorder(3, 10, 3, 10)));
+        m_addButton.setText("Add Rule");
+        m_addButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                if (m_addItemLabel.isEnabled()) {
+                if (m_addButton.isRolloverEnabled()) {
                     addItem();
                 }
             }
         });
-        m_addItemLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        m_addButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        m_panel = new JPanel();
-        m_panel.setLayout(new BoxLayout(m_panel, BoxLayout.Y_AXIS));
-
-        m_outerPanelsArea = new JPanel();
-        m_outerPanelsArea.setLayout(new BoxLayout(m_outerPanelsArea, BoxLayout.Y_AXIS));
-        m_panel.add(m_outerPanelsArea);
-
-        m_addItemArea = new JPanel();
-        m_addItemArea.setLayout(new BoxLayout(m_addItemArea, BoxLayout.Y_AXIS));
-        m_addItemArea.add(Box.createVerticalStrut(10));
-        m_addItemArea.add(m_addItemLabel);
-        m_addItemArea.add(Box.createVerticalStrut(30));
-        m_panel.add(m_addItemArea);
+        c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.CENTER;
+        c.insets = new Insets(20, 0, 20, 0);
+        m_addItemArea.add(m_addButton, c);
     }
 
     /**
@@ -128,12 +147,18 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         return m_panel;
     }
 
-    /**
-     *
-     * @param enabled set the enabled state of the button to add new criteria to this values
-     */
-    private void setAddButtonEnabled(final boolean enabled) {
-        m_addItemLabel.setEnabled(enabled);
+    private void enableAddButton(final boolean enabled) {
+        m_addButton.setRolloverEnabled(enabled);
+        m_addButton.setFocusable(enabled);
+        m_addButton.setFocusPainted(enabled);
+        m_addButton.setOpaque(enabled);
+
+        if(enabled) {
+            m_addButton.setOpacity(1);
+        }
+        else {
+            m_addButton.setOpacity(0.2f);
+        }
     }
 
     /**
@@ -157,11 +182,12 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         }
 
         final int numOfOuterPanels = m_outerPanels.size();
-        m_outerPanels.get(0).showArrowUp(false);
-        m_outerPanels.get(0).showArrowDown(numOfOuterPanels > 1);
-        m_outerPanels.get(numOfOuterPanels - 1).showArrowDown(false);
+        m_outerPanels.get(0).enableUpButton(false);
+        m_outerPanels.get(0).enableDownButton(numOfOuterPanels > 1);
+        m_outerPanels.get(0).enableDeleteButton(numOfOuterPanels > 1);
+        m_outerPanels.get(numOfOuterPanels - 1).enableDownButton(false);
 
-        setAddButtonEnabled(m_itemContext.canCreateItem());
+        enableAddButton(m_itemContext.canCreateItem());
 
         m_panel.revalidate();
         m_panel.repaint();
@@ -191,11 +217,12 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
 
     private void addItem() {
         createDefault();
-        setAddButtonEnabled(m_itemContext.canCreateItem());
+        enableAddButton(m_itemContext.canCreateItem());
 
         final int numOfOuterPanels = m_outerPanels.size();
-        m_outerPanels.get(numOfOuterPanels - 2).showArrowDown(true);
-        m_outerPanels.get(numOfOuterPanels - 1).showArrowDown(false);
+        m_outerPanels.get(numOfOuterPanels - 2).enableDownButton(true);
+        m_outerPanels.get(numOfOuterPanels - 1).enableDownButton(false);
+        m_outerPanels.get(0).enableDeleteButton(numOfOuterPanels > 1);
 
         m_panel.revalidate();
         m_panel.repaint();
@@ -239,11 +266,15 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
                 iterator.next().setIdx(i);
             }
 
-            m_outerPanels.get(0).showArrowUp(false);
-            m_outerPanels.get(0).showArrowDown(numOfOuterPanels > 1);
-            m_outerPanels.get(numOfOuterPanels - 1).showArrowDown(false);
+            m_outerPanels.get(0).enableUpButton(false);
+            m_outerPanels.get(0).enableDownButton(numOfOuterPanels > 1);
+            m_outerPanels.get(0).enableDeleteButton(numOfOuterPanels > 1);
+            m_outerPanels.get(numOfOuterPanels - 1).enableDownButton(false);
 
-            setAddButtonEnabled(m_itemContext.canCreateItem());
+            enableAddButton(m_itemContext.canCreateItem());
+
+            m_panel.revalidate();
+            m_panel.repaint();
         }
     }
 }

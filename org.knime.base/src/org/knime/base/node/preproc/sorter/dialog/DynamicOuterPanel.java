@@ -51,12 +51,12 @@ package org.knime.base.node.preproc.sorter.dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
@@ -74,13 +74,15 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
 
     private T m_item;
 
-    private final JPanel m_panel;
+    private final JPanel m_panel = new JPanel(new GridBagLayout());
 
-    private final JPanel m_contentPanel;
+    private final JPanel m_contentPanel = new JPanel(new GridBagLayout());
 
-    private final JLabel m_arrowUp;
+    private final OpacityButton m_upButton = createOpacityButton(SharedIcons.MOVE_UP.get());
 
-    private final JLabel m_arrowDown;
+    private final OpacityButton m_downButton = createOpacityButton(SharedIcons.MOVE_DOWN.get());
+
+    private final OpacityButton m_deleteButton = createOpacityButton(SharedIcons.DELETE_TRASH.get());
 
     private int m_idx;
 
@@ -97,7 +99,13 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
     public void setItem(final T item) {
         m_contentPanel.removeAll();
         m_item = item;
-        m_contentPanel.add(m_item.getPanel());
+
+        final GridBagConstraints c = new GridBagConstraints();
+        c.weightx = 1;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+
+        m_contentPanel.add(m_item.getPanel(), c);
         m_contentPanel.repaint();
     }
 
@@ -123,83 +131,83 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
      * @param idx the current index of the DynamicOuterPanel
      */
     public DynamicOuterPanel(final DynamicOrderPanel<T> parent, final T item, final int idx) {
+        m_parent = parent;
+        m_item = item;
+        m_idx = idx;
 
-        this.m_parent = parent;
-        this.m_item = item;
-        this.m_idx = idx;
 
-        this.m_arrowUp = new JLabel(SharedIcons.SMALL_ARROW_UP_DARK.get());
-        this.m_arrowDown = new JLabel(SharedIcons.SMALL_ARROW_DOWN_DARK.get());
-
-        this.m_panel = new JPanel(new GridBagLayout());
-
-        m_panel.setMinimumSize(new Dimension(Integer.MAX_VALUE, 70));
-        m_panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-
-        this.m_contentPanel = new JPanel();
-        this.m_contentPanel.setLayout(new BoxLayout(m_contentPanel, BoxLayout.Y_AXIS));
-        m_contentPanel.add(item.getPanel());
+        m_panel.setMinimumSize(new Dimension(Integer.MAX_VALUE, 125));
+        m_panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 125));
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = 1;
-        c.insets = new Insets(0, 10, 0, 10);
+
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        m_contentPanel.add(item.getPanel(), c);
 
         c.anchor = GridBagConstraints.NORTHEAST;
         c.fill = GridBagConstraints.NONE;
         c.gridy = 0;
+        c.insets = new Insets(20, 10, 0, 10);
         m_panel.add(createControlPanel(), c);
 
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridy = 1;
+        c.insets = new Insets(0, 10, 20, 10);
         m_panel.add(m_contentPanel, c);
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         c.anchor = GridBagConstraints.NORTH;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridy = 2;
-        c.insets = new Insets(5, 10, 5, 10);
+        c.insets = new Insets(0, 10, 0, 10);
         m_panel.add(separator, c);
     }
 
+    private static OpacityButton createOpacityButton(final Icon icon) {
+        final OpacityButton button = new OpacityButton();
+        button.setIcon(icon);
+        button.setOpaque(false);
+        button.setFocusable(false);
+        return button;
+    }
+
     private JPanel createControlPanel() {
-        final JPanel controlPanel = new JPanel(new GridBagLayout());
-
-        GridBagConstraints c = new GridBagConstraints();
-
         final DynamicOuterPanel<T> outerPanel = this;
-        m_arrowUp.addMouseListener(new MouseAdapter() {
+        m_upButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                m_parent.moveItem(outerPanel, true);
+                if (m_upButton.isRolloverEnabled()) {
+                    m_parent.moveItem(outerPanel, true);
+                }
             }
         });
 
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridx = 0;
-        controlPanel.add(m_arrowUp, c);
-
-
-        m_arrowDown.addMouseListener(new MouseAdapter() {
+        m_downButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                m_parent.moveItem(outerPanel, false);
+                if (m_downButton.isRolloverEnabled()) {
+                    m_parent.moveItem(outerPanel, false);
+                }
             }
         });
 
-        c.gridx = 1;
-        controlPanel.add(m_arrowDown, c);
-
-        JLabel delete = new JLabel(SharedIcons.DELETE_CROSS.get());
-        delete.addMouseListener(new MouseAdapter() {
+        m_deleteButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                m_parent.removeItem(outerPanel);
+                if (m_deleteButton.isRolloverEnabled()) {
+                    m_parent.removeItem(outerPanel);
+                }
             }
         });
 
-        c.gridx = 2;
-        controlPanel.add(delete, c);
+        final JPanel controlPanel = new JPanel(new GridLayout(0, 3));
+        controlPanel.add(m_upButton);
+        controlPanel.add(m_downButton);
+        controlPanel.add(m_deleteButton);
+        controlPanel.setPreferredSize(new Dimension(80, 20));
 
         return controlPanel;
     }
@@ -212,20 +220,34 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
     }
 
     /**
-     * Set the visibility of the arrow to move an item up
+     * Set the button to move items upwards enabled/disabled.
      *
-     * @param visible <code>true</code> for visible, <code>false</code> for invisible
+     * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
      */
-    public void showArrowUp(final boolean visible) {
-        m_arrowUp.setVisible(visible);
+    public void enableUpButton(final boolean enabled) {
+        enableButton(m_upButton, enabled);
     }
 
     /**
-     * Set the visibility of the arrow to move an item down
+     * Set the button to move items downwards enabled/disabled.
      *
-     * @param visible <code>true</code> for visible, <code>false</code> for invisible
+     * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
      */
-    public void showArrowDown(final boolean visible) {
-        m_arrowDown.setVisible(visible);
+    public void enableDownButton(final boolean enabled) {
+        enableButton(m_downButton, enabled);
+    }
+
+    /**
+     * Set the button to remove items enabled/disabled.
+     *
+     * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
+     */
+    public void enableDeleteButton(final boolean enabled) {
+        enableButton(m_deleteButton, enabled);
+    }
+
+    private static void enableButton(final OpacityButton button, final boolean enabled) {
+        button.setRolloverEnabled(enabled);
+        button.setOpacity(enabled ? 1f : 0.2f);
     }
 }

@@ -87,8 +87,8 @@ final class DynamicSorterItemContext
      *
      */
     public DynamicSorterItemContext(final String includeListKey, final String sortOrderKey) {
-        this.m_includeListKey = includeListKey;
-        this.m_sortOrderKey = sortOrderKey;
+        m_includeListKey = includeListKey;
+        m_sortOrderKey = sortOrderKey;
     }
 
     @Override

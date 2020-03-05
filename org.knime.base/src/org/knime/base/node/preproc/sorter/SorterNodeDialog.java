@@ -88,7 +88,7 @@ public class SorterNodeDialog extends NodeDialogPane {
         m_panel = new DynamicSorterPanel(SorterNodeModel.INCLUDELIST_KEY, SorterNodeModel.SORTORDER_KEY);
         m_advancedSettings = new AdvancedSettings();
         JScrollPane scrollPane = new JScrollPane(m_panel.getPanel());
-        scrollPane.setPreferredSize(new Dimension(100, 200));
+        scrollPane.setPreferredSize(new Dimension(100, 400));
         super.addTab(TAB, scrollPane);
 
         scrollPane = new JScrollPane(m_advancedSettings.getPanel());

@@ -50,12 +50,13 @@ package org.knime.base.node.preproc.sorter.dialog;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -131,8 +132,6 @@ final class DynamicSortItem implements DynamicPanelItem {
 
         m_listeners = new LinkedList<>();
 
-        m_panel = new JPanel();
-        m_panel.setLayout(new BoxLayout(m_panel, BoxLayout.X_AXIS));
         m_combo = new JComboBox<>(m_combovalues.toArray(new DataColumnSpec[0]));
         ColumnComboBoxRenderer renderer = new ColumnComboBoxRenderer();
         renderer.attachTo(m_combo);
@@ -142,25 +141,42 @@ final class DynamicSortItem implements DynamicPanelItem {
         m_combo.setAlignmentX(Component.LEFT_ALIGNMENT);
         m_combo.addItemListener(this::notifyListener);
 
-        JPanel comboPanel = new JPanel();
         String bordertext = (id == 0) ? "Sort by:" : "Next by:";
         textLabel = new JLabel(bordertext);
         textLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         textLabel.setFont(new Font("AvantGarde", Font.BOLD, 12));
 
-        comboPanel.setLayout(new BoxLayout(comboPanel, BoxLayout.Y_AXIS));
-        comboPanel.add(textLabel);
-        comboPanel.add(Box.createVerticalStrut(2));
-        comboPanel.add(m_combo);
+        
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        
+        final JPanel comboPanel = new JPanel(new GridBagLayout());
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        c.gridy = 0;
+        c.insets = new Insets(0, 0, 5, 0);
+        comboPanel.add(textLabel, c);
+
+        c.gridy = 1;
+        c.weightx = 1;
+        c.insets = new Insets(0, 0, 0, 0);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        comboPanel.add(m_combo, c);
+
+        final JPanel buttonPanel = new JPanel(new GridBagLayout());
+        c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+
         ButtonGroup group = new ButtonGroup();
         group.add(m_ascRB);
         group.add(m_descRB);
-        buttonPanel.add(m_ascRB);
-        buttonPanel.add(m_descRB);
-        buttonPanel.add(Box.createVerticalGlue());
+
+        c.gridy = 0;
+        buttonPanel.add(m_ascRB, c);
+
+        c.gridy = 1;
+        buttonPanel.add(m_descRB, c);
+
 
         if (sortOrder) {
             m_ascRB.setSelected(true);
@@ -168,9 +184,19 @@ final class DynamicSortItem implements DynamicPanelItem {
             m_descRB.setSelected(true);
         }
 
-        m_panel.add(comboPanel);
-        m_panel.add(Box.createHorizontalStrut(20));
-        m_panel.add(buttonPanel);
+        m_panel = new JPanel(new GridBagLayout());
+        c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.gridy = 0;
+
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        m_panel.add(comboPanel, c);
+
+        c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+        c.insets = new Insets(15, 20, 0, 50);
+        m_panel.add(buttonPanel, c);
     }
 
     private void notifyListener(final ItemEvent e) {
@@ -206,7 +232,7 @@ final class DynamicSortItem implements DynamicPanelItem {
     }
 
     void setID(final int id) {
-        this.m_id = id;
+        m_id = id;
         String bordertext = (id == 0) ? "Sort by:" : "Next by:";
 
         textLabel.setText(bordertext);
