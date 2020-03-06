@@ -1,7 +1,5 @@
 package org.knime.filehandling.core.connections;
 
-import java.nio.file.FileSystem;
-
 import org.knime.core.node.util.FileSystemBrowser;
 
 /**
@@ -16,7 +14,7 @@ public interface FSConnection {
 	 *
 	 * @return a file system for this connection
 	 */
-	public FileSystem getFileSystem();
+	public FSFileSystem<?> getFileSystem();
 
 	/**
 	 * Returns a file system browser for this connection.

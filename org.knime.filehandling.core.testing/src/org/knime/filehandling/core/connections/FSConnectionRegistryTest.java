@@ -221,7 +221,7 @@ public class FSConnectionRegistryTest {
     private static class TestConnection implements FSConnection {
 
 		@Override
-		public FileSystem getFileSystem() {
+		public FSFileSystem<?> getFileSystem() {
 			return null;
 		}
 
