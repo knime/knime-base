@@ -59,17 +59,12 @@ import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -80,7 +75,6 @@ import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -90,19 +84,11 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  */
 public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
 
-    private static final KNIMERemoteFileSystemProvider SINGLETON_INSTANCE = new KNIMERemoteFileSystemProvider();
-
     private static final String SCHEME = "knime";
 
-    private final Map<URI, BaseFileSystem> m_fileSystems = Collections.synchronizedMap(new HashMap<>());
-
-    /**
-     * Returns the singleton instance of this provider.
-     *
-     * @return the singleton instance of this provider
-     */
-    public static KNIMERemoteFileSystemProvider getInstance() {
-        return SINGLETON_INSTANCE;
+    @Override
+    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+        return new KNIMERemoteFileSystem(this, uri);
     }
 
     /**
@@ -117,65 +103,8 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        if (m_fileSystems.containsKey(uri)) {
-            throw new FileSystemAlreadyExistsException();
-        }
-        final BaseFileSystem fileSystem = createFileSystem(uri, env);
-        m_fileSystems.put(uri, fileSystem);
-        return fileSystem;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public synchronized FileSystem getFileSystem(final URI uri) {
-        final FileSystem fileSystem = m_fileSystems.get(uri);
-        if (fileSystem == null) {
-            throw new FileSystemNotFoundException();
-        }
-        return fileSystem;
-    }
-
-    /**
-     * Removes the file system for the given URI from the list of file systems.
-     *
-     * @param uri the URI to the file system
-     */
-    @Override
-    public synchronized void removeFileSystem(final URI uri) {
-        m_fileSystems.remove(uri);
-    }
-
-    /**
-     * Returns whether a file system for the given URI exists in the list of file systems.
-     *
-     * @param uri the URI to the file system
-     * @return whether a file system for the uri exists
-     */
-    @Override
-    public synchronized boolean isOpen(final URI uri) {
-        return m_fileSystems.containsKey(uri);
-    }
-
-    /**
-     * Gets or creates a new {@link KNIMEFileSystem} based on the input fsKey.
-     *
-     * @param fsKey the key that either retrieves or creates a new file system.
-     * @return a file system for the key
-     * @throws IOException
-     */
-    public FileSystem getOrCreateFileSystem(final URI fsKey) throws IOException {
-        return isOpen(fsKey) ? getFileSystem(fsKey) : newFileSystem(fsKey, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Path getPath(final URI uri) {
-        return getFileSystem(uri).getPath(uri.getPath());
+        return getFileSystemInternal().getPath(uri.getPath());
     }
 
     /**
@@ -228,6 +157,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
      */
     @Override
     public boolean isHidden(final Path path) throws IOException {
+        checkPath(path);
         return false;
     }
 
@@ -261,13 +191,6 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
         return ((KNIMERemotePath)path).toURL();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new KNIMERemoteFileSystem(this, uri);
-    }
 
     /**
      * {@inheritDoc}

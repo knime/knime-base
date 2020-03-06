@@ -519,7 +519,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 try {
                     @SuppressWarnings("resource")
                     final KNIMERemoteFileSystem fileSystem =
-                        (KNIMERemoteFileSystem)KNIMERemoteFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
+                        (KNIMERemoteFileSystem) new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(fsKey, null);
 
                     final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(fileSystem);
                     final KNIMERemoteFileSystemBrowser fsBrowser = new KNIMERemoteFileSystemBrowser(fsView);

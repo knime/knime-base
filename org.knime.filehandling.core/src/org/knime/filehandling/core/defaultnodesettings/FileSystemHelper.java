@@ -101,7 +101,7 @@ public class FileSystemHelper {
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
 
                 final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
-                toReturn = KNIMERemoteFileSystemProvider.getInstance().getOrCreateFileSystem(remoteFsKey);
+                toReturn = new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(remoteFsKey, null);
                 break;
             case KNIME_FS:
                 final String knimeFileSystemHost = settings.getKNIMEFileSystem();
