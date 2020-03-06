@@ -56,7 +56,6 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Optional;
@@ -205,7 +204,7 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
                 BasicFileAttributes basicAttributes = null;
                 try {
                     basicAttributes =
-                        Files.getFileAttributeView(fileOrFolder, BasicFileAttributeView.class).readAttributes();
+                        Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
                 } catch (final IOException e) {
                     // do nothing
                 }
