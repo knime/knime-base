@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -71,7 +72,6 @@ class PasteAction extends AbstractAction {
     private SpreadsheetTable m_table;
     private int m_endRow;
     private int m_endCol;
-    private SpreadsheetTableModel m_tempModel;
 
     /**
      * Creates a new instance.
@@ -83,6 +83,7 @@ class PasteAction extends AbstractAction {
         m_table = table;
         m_table.getSelectionModel().addListSelectionListener(
                 new ListSelectionListener() {
+            @Override
             public void valueChanged(final ListSelectionEvent e) {
                 setEnabled(!m_table.getSelectionModel().isSelectionEmpty());
             }
@@ -92,41 +93,44 @@ class PasteAction extends AbstractAction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void actionPerformed(final ActionEvent e) {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        int startRow = m_table.getFocusedRow();
-        int startCol = m_table.getFocusedColumn();
+        final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        final int startRow = m_table.getFocusedRow();
+        final int startCol = m_table.getFocusedColumn();
         m_endRow = startRow;
         m_endCol = startCol;
-        m_tempModel = new SpreadsheetTableModel();
+        final SpreadsheetTableModel temporaryTableModel = new SpreadsheetTableModel();
+        String firstCellValue = null;
         try {
-            String trstring =
-                    (String)(clipboard.getContents(this)
-                            .getTransferData(DataFlavor.stringFlavor));
-            StringTokenizer rows = new StringTokenizer(trstring, "\n", true);
+            final String trstring = (String)(clipboard.getContents(this).getTransferData(DataFlavor.stringFlavor));
+            final StringTokenizer rows = new StringTokenizer(trstring, "\n", true);
             for (int i = 0; rows.hasMoreTokens(); i++) {
-                String row = rows.nextToken();
+                final String row = rows.nextToken();
                 if (!row.equals("\n")) {
-                    StringTokenizer cells = new StringTokenizer(row, "\t",
-                            true);
+                    final StringTokenizer cells = new StringTokenizer(row, "\t", true);
                     for (int j = 0; cells.hasMoreTokens(); j++) {
-                        String value = cells.nextToken();
-                        if (!value.equals("\t")) {
-                            setValueAt(value, startRow + i, startCol + j);
+                        final String cell = cells.nextToken();
+                        if (!cell.equals("\t")) {
+                            if (firstCellValue == null) {
+                                firstCellValue = cell;
+                            }
+                            setValueAt(temporaryTableModel, cell, (startRow + i), (startCol + j));
                             if (cells.hasMoreTokens()) {
                                 cells.nextToken();
                                 // When row ends with a delimiter
                                 if (!cells.hasMoreTokens()) {
-                                    setValueAt("", startRow + i,
-                                            startCol + j + 1);
+                                    setValueAt(temporaryTableModel, "", (startRow + i), (startCol + j + 1));
                                 }
                             }
                         } else { // a empty cell
-                            setValueAt("", startRow + i, startCol + j);
+                            if (firstCellValue == null) {
+                                firstCellValue = "";
+                            }
+                            setValueAt(temporaryTableModel, "", (startRow + i), (startCol + j));
                             // When row ends with a delimiter
                             if (!cells.hasMoreTokens()) {
-                                setValueAt("", startRow + i,
-                                        startCol + j + 1);
+                                setValueAt(temporaryTableModel, "", (startRow + i), (startCol + j + 1));
                             }
                         }
                     }
@@ -134,30 +138,35 @@ class PasteAction extends AbstractAction {
                         rows.nextToken();
                     }
                 } else { // a empty row
-                    m_table.setValueAt("", startRow + i, startCol);
+                    if (firstCellValue == null) {
+                        firstCellValue = "";
+                    }
+                    m_table.setValueAt("", (startRow + i), startCol);
                 }
             }
-            m_table.getSpreadsheetModel().addValues(
-                    m_tempModel.getTableValues());
-            m_tempModel.setData(new HashMap<Integer, ColProperty>(),
-                    new int[0], new int[0], new String[0]);
-            m_tempModel = null;
-            m_table.getSelectionModel().setSelectionInterval(startRow,
-                    m_endRow);
-            m_table.getColumnModel().getSelectionModel()
-                    .setSelectionInterval(startCol, m_endCol);
+            m_table.getSpreadsheetModel().addValues(temporaryTableModel.getTableValues());
+            m_table.getSelectionModel().setSelectionInterval(startRow, m_endRow);
+            m_table.getColumnModel().getSelectionModel().setSelectionInterval(startCol, m_endCol);
+
+            // I can think of no good reason why we do this, but i'm leaving it in. ldq. March 2020
+            temporaryTableModel.setData(new HashMap<Integer, ColProperty>(), new int[0], new int[0], new String[0]);
+
+            if (SpreadsheetTable.IS_MAC && (firstCellValue != null)) {
+                final String cellValue = firstCellValue;
+                SwingUtilities.invokeLater(() -> {
+                    m_table.getEditorTextField().setText(cellValue);
+                });
+            }
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex.getMessage());
         }
     }
 
-    private void setValueAt(final Object value, final int row, final int col) {
-        if (row < m_table.getRowCount()
-                && col < m_table.getColumnCount()) {
+    private void setValueAt(final SpreadsheetTableModel model, final Object value, final int row, final int col) {
+        if ((row < m_table.getRowCount()) && (col < m_table.getColumnCount())) {
             m_endRow = Math.max(m_endRow, row);
             m_endCol = Math.max(m_endCol, col);
-            m_tempModel.setValueAt(value, row, col);
+            model.setValueAt(value, row, col);
         }
     }
-
 }

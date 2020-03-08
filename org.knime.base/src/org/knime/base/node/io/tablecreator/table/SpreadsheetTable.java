@@ -85,6 +85,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 
+import org.eclipse.core.runtime.Platform;
 import org.knime.base.node.io.filereader.ColProperty;
 import org.knime.core.data.ConfigurableDataCellFactory;
 import org.knime.core.data.DataCellFactory;
@@ -100,7 +101,7 @@ import org.knime.core.node.util.ViewUtils;
  * @author Heiko Hofer
  */
 class SpreadsheetTable extends JTable {
-    private static final long serialVersionUID = 4270519208349907535L;
+    static final boolean IS_MAC = Platform.OS_MACOSX.equals(Platform.getOS());
 
     /** Property fired when the focused row has changed. */
     static final String PROP_FOCUSED_ROW = "spreadsheet_focused_row";
@@ -110,6 +111,8 @@ class SpreadsheetTable extends JTable {
 
     /** the border for the focues cell. */
     private static final Color FOCUS_BORDER_COLOR = Color.DARK_GRAY;
+
+    private static final long serialVersionUID = 4270519208349907535L;
 
     private static final int ACCELERATOR_MODIFIER_VK;
     static {
