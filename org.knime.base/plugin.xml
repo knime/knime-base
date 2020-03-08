@@ -617,8 +617,16 @@
             factory-class="org.knime.base.node.preproc.joiner.Joiner2NodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
+            factory-class="org.knime.base.node.preproc.joiner.NewJoinerNodeFactory"
+            deprecated="true"/>
+      <node
+            category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.crossjoin.CrossJoinerNodeFactory"
             after="org.knime.base.node.preproc.joiner.Joiner2NodeFactory" />
+      <node
+            category-path="/manipulation/column/column-split+combine"
+            factory-class="org.knime.base.node.preproc.split.SplitNodeFactory"
+            deprecated="true"/>
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.split2.SplitNodeFactory2"/>
@@ -661,8 +669,12 @@
             after="org.knime.base.node.viz.crosstable.CrosstabNodeFactory"/>
       <node
             category-path="/manipulation/column/column-transform"
+            factory-class="org.knime.base.node.preproc.normalize.NormalizerNodeFactory"
+            deprecated="true" />
+      <node
+            category-path="/manipulation/column/column-transform"
             factory-class="org.knime.base.node.preproc.normalize3.Normalizer3NodeFactory"/>
-     <node
+      <node
            category-path="/manipulation/pmml"
            deprecated="true"
            factory-class="org.knime.base.node.preproc.pmml.normalize.NormalizerPMMLNodeFactory"/>
@@ -723,7 +735,12 @@
       <node
             category-path="/analytics/mining/clustering"
             factory-class="org.knime.base.node.mine.cluster.fuzzycmeans.FuzzyClusterNodeFactory2"/>
-      <node deprecated="true"
+      <node 
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.missingval.MissingValueHandling2NodeFactory"
+            category-path="/manipulation/column/column-transform"/>
+      <node 
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.missingval.MissingValueHandling3NodeFactory"
             category-path="/manipulation/column/column-transform"/>
       <node
@@ -1247,6 +1264,13 @@
             >
       </node>  
       <node
+            after="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory"
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.columnlist.ColumnListLoopStartNodeFactory"
+            deprecated="true"
+            >
+      </node>  
+      <node
             after="org.knime.base.node.meta.looper.columnlist2.ColumnListLoopStartNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
@@ -1311,6 +1335,12 @@
             deprecated="true"
             factory-class="org.knime.base.node.meta.feature.backwardelim.BWElimFilterNodeFactory">
       </node>
+       <node
+             category-path="/flowcontrol/variables"
+             deprecated="true"
+             factory-class="org.knime.base.node.flowvariable.appendvariabletotable.AppendVariableToTableNodeFactory"
+             >
+       </node>
        <node
              after="org.knime.base.node.flowvariable.tablerowtovariable.TableToVariableNodeFactory"
              category-path="/flowcontrol/variables"
@@ -1559,6 +1589,12 @@
       </node>        
       <node
             category-path="/flowcontrol/loopsupport"
+            deprecated="true"
+            factory-class="org.knime.base.node.meta.looper.LoopEndJoinNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/loopsupport"
             deprecated="false"
             factory-class="org.knime.base.node.meta.looper.LoopEndJoin2NodeFactory"
             >
@@ -1639,8 +1675,12 @@
       </node>
       <node
             category-path="/manipulation/column/column-filter"
-            factory-class="org.knime.base.node.preproc.filter.column.DataColumnSpecFilterNodeFactory"
-            >
+            factory-class="org.knime.base.node.preproc.filter.column.FilterColumnNodeFactory"
+            deprecated="true">
+      </node> 
+      <node
+            category-path="/manipulation/column/column-filter"
+            factory-class="org.knime.base.node.preproc.filter.column.DataColumnSpecFilterNodeFactory">
       </node> 
       <node
             category-path="//manipulation/column/column-convert+replace"
@@ -2198,6 +2238,11 @@
             category-path="/io/write"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2">
+      </node>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            deprecated="true"
+            factory-class="org.knime.base.node.preproc.domain.DomainNodeFactory">
       </node>
    </extension>
    
