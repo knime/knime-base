@@ -64,6 +64,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectToFileWriterNodeModel;
 
 /**
+ * Node model of the Image Port writer node.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
@@ -91,11 +92,19 @@ public class ImagePortWriterNodeModel extends PortObjectToFileWriterNodeModel<Im
         imgValue.getImageContent().save(outputStream);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Additionally, it checks the compatibility of the input port DataType with ImageValue. </p>
+     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        ImagePortObjectSpec imgObject = (ImagePortObjectSpec)inSpecs[0];
-        DataType dataType = imgObject.getDataType();
 
+        super.configure(inSpecs);
+
+        // Check for the compatibility of the DataType at the input ports.
+        final ImagePortObjectSpec imgObject = (ImagePortObjectSpec)inSpecs[0];
+        final DataType dataType = imgObject.getDataType();
         CheckUtils.checkSetting(dataType.isCompatible(ImageValue.class),
             "The image provided by the connected port is not supported.");
 

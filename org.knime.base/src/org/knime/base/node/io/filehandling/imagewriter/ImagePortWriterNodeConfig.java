@@ -51,13 +51,14 @@ package org.knime.base.node.io.filehandling.imagewriter;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
 /**
+ * Node config of the Image Port writer node.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 final class ImagePortWriterNodeConfig  extends PortObjectWriterNodeConfig {
 
     /** The model file extension/suffix. */
-    private static final String[] MODEL_SUFFIX = new String[]{".png", ".svg"};
+    private static final String[] MODEL_SUFFIX = new String[]{".svg", ".png"};
 
     /**
      * Constructor.

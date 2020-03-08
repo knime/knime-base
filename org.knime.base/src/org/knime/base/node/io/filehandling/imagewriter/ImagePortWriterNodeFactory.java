@@ -57,6 +57,7 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDi
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFactory;
 
 /**
+ * Node factory of the Image Port writer node.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
