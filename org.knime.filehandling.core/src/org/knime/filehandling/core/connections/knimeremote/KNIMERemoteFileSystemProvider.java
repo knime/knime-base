@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +73,7 @@ import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
@@ -82,7 +84,7 @@ import org.knime.filehandling.core.util.MountPointIDProviderService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
+public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implements WorkflowAware {
 
     private static final String SCHEME = "knime";
 
@@ -276,4 +278,11 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider {
     protected void deleteInternal(final Path path) throws IOException {
         MountPointIDProviderService.instance().deleteFile(path.toUri());
     }
+
+    @Override
+    public void deployWorkflow(final File source, final Path dest, final boolean attemptOpen)
+        throws IOException {
+        MountPointIDProviderService.instance().deployWorkflow(source, dest.toUri(), attemptOpen);
+    }
+
 }
