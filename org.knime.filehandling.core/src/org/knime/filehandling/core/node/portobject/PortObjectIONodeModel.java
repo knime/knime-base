@@ -49,6 +49,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -96,12 +98,27 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final String pathOrURL = m_config.getFileChooserModel().getPathOrURL();
         if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location.");
         }
+        configureInternal(inSpecs);
         return null;
+    }
+
+    /**
+     * Additional configure time check specific to subclasses implementing this method.
+     *
+     * @param inSpecs The input data table specs. Items of the array could be null if no spec is available from the
+     *            corresponding input port (i.e. not connected or upstream node does not produce an output spec). If a
+     *            port is of type {@link BufferedDataTable#TYPE} and no spec is available the framework will replace
+     *            null by an empty {@link DataTableSpec} (no columns) unless the port is marked as optional as per
+     *            constructor.
+     * @throws InvalidSettingsException If this node can't be configured.
+     */
+    protected void configureInternal(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        // nothing to do here
     }
 
     /**
