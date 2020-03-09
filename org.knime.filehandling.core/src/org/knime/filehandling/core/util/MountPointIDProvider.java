@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -130,6 +131,18 @@ public interface MountPointIDProvider {
      * @throws IOException if the directory could not be created
      */
     void createDirectory(URI uri) throws IOException;
+
+    /**
+     * Deploys a workflow from a local file source to a target URI. Also provides the option of attempting to open the
+     * workflow at the target location once it has been deployed.
+     *
+     * @param source the local file representing the to-be-deployed workflow
+     * @param target where to deploy the workflow
+     * @param attemptOpen if true, attempt to open the workflow after deployment
+     *
+     * @throws IOException if this method fails for any reason
+     */
+    void deployWorkflow(File source, URI target, boolean attemptOpen) throws IOException;
 
     /**
      * Checks whether a file at the given URI location is readable.
