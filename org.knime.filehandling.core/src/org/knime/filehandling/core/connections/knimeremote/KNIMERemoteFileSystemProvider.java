@@ -280,9 +280,9 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
     }
 
     @Override
-    public void deployWorkflow(final File source, final Path dest, final boolean attemptOpen)
+    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
-        MountPointIDProviderService.instance().deployWorkflow(source, dest.toUri(), attemptOpen);
+        MountPointIDProviderService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
     }
 
 }

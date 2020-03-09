@@ -236,12 +236,14 @@ public class MountPointIDProviderService {
      *
      * @param source the local file representing the to-be-deployed workflow
      * @param target where to deploy the workflow
+     * @param overwrite overwrite workflow if it already exists
      * @param attemptOpen if true, attempt to open the workflow after deployment
      *
      * @throws IOException if this method fails for any reason
      */
-    public void deployWorkflow(final File source, final URI target, final boolean attemptOpen) throws IOException {
-        getProvider().deployWorkflow(source, target, attemptOpen);
+    public void deployWorkflow(final File source, final URI target, final boolean overwrite, final boolean attemptOpen)
+        throws IOException {
+        getProvider().deployWorkflow(source, target, overwrite, attemptOpen);
     }
 
     /**

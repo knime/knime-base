@@ -138,11 +138,12 @@ public interface MountPointIDProvider {
      *
      * @param source the local file representing the to-be-deployed workflow
      * @param target where to deploy the workflow
+     * @param overwrite overwrite workflow if it already exists
      * @param attemptOpen if true, attempt to open the workflow after deployment
      *
      * @throws IOException if this method fails for any reason
      */
-    void deployWorkflow(File source, URI target, boolean attemptOpen) throws IOException;
+    void deployWorkflow(File source, URI target, boolean overwrite, boolean attemptOpen) throws IOException;
 
     /**
      * Checks whether a file at the given URI location is readable.

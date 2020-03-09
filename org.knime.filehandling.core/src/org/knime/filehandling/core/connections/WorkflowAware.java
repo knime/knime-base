@@ -67,10 +67,11 @@ public interface WorkflowAware {
      *
      * @param source the local file representing the to-be-deployed workflow
      * @param dest where to deploy the workflow
+     * @param overwrite overwrite workflow if it already exists
      * @param attemptOpen if true, attempt to open the workflow after deployment
      *
      * @throws IOException if this method fails for any reason
      */
-    void deployWorkflow(File source, Path dest, boolean attemptOpen) throws IOException;
+    void deployWorkflow(File source, Path dest, final boolean overwrite, boolean attemptOpen) throws IOException;
 
 }
