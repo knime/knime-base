@@ -51,6 +51,7 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
@@ -112,10 +113,9 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
 
-        // TODO: has to be changed to -1 once we fixed AP-13672
-        final int fsPortIdx = Optional
+        final IntSupplier fsPortIdx = () -> Optional
             .ofNullable(portsConfig.getInputPortLocation().get(PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME)) //
-            .map(arr -> arr[0]).orElse(0); // correctness ensured by framework
+            .map(arr -> arr[0]).orElse(-1); // correctness ensured by framework
 
         m_filePanel = new DialogComponentFileChooser2(fsPortIdx, fileChooserModel, fileChooserHistoryId,
             fileChooserDialogType, fileChooserSelectionMode, fvm);

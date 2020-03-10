@@ -136,12 +136,22 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
 
     /**
      * @param inData {@link PortObjectSpec} array to search for optional {@link FileSystemPortObjectSpec} at given index
-     * @param i index of optional {@link FileSystemPortObjectSpec}
+     * @param i index of optional {@link FileSystemPortObjectSpec} or -1
      * @return {@link FSConnection} if available
      */
     public static Optional<FSConnection> getFileSystemConnection(final PortObjectSpec[] inData, final int i) {
-        return (inData != null && inData.length > i && (inData[i] instanceof FileSystemPortObjectSpec))
+        return (inData != null && i >= 0 && inData.length > i && (inData[i] instanceof FileSystemPortObjectSpec))
                 ? ((FileSystemPortObjectSpec) inData[i]).getFileSystemConnection() : Optional.empty();
+    }
+
+    /**
+     * @param inData {@link PortObjectSpec} array to search for optional {@link FileSystemPortObjectSpec} at given index
+     * @param i index of optional {@link FileSystemPortObjectSpec} or -1
+     * @return file system type if available
+     */
+    public static Optional<String> getFileSystemType(final PortObjectSpec[] inData, final int i) {
+        return (inData != null && i >= 0 && inData.length > i && (inData[i] instanceof FileSystemPortObjectSpec))
+                ? Optional.of(((FileSystemPortObjectSpec) inData[i]).getFileSystemType()) : Optional.empty();
     }
 
     /**
