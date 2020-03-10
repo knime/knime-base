@@ -66,6 +66,7 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
 import org.knime.filehandling.core.node.portobject.reader.PortObjectFromPathReaderNodeModel;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectToPathWriterNodeModel;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Abstract node model for port object reader and writer nodes.
@@ -102,6 +103,17 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
         final String pathOrURL = m_config.getFileChooserModel().getPathOrURL();
         if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location.");
+        }
+        // Check if the connected file system is actually available. Could be unavailable if, e.g., the S3 node has been
+        // loaded and not re-executed.
+        final int[] inputPortIdx = getPortsConfig().getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME);
+        if (inputPortIdx != null) {
+            final Optional<FSConnection> fileSystemConnection =
+                FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, inputPortIdx[0]);
+            if (!fileSystemConnection.isPresent()) {
+                throw new InvalidSettingsException(
+                    "The file system connection is not available. Re-executing the preceding node might fix this.");
+            }
         }
         configureInternal(inSpecs);
         return null;
