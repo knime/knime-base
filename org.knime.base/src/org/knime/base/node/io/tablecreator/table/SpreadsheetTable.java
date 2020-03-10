@@ -67,6 +67,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
@@ -143,7 +144,6 @@ class SpreadsheetTable extends JTable {
     /**
      * Create a new instance.
      */
-    @SuppressWarnings("serial")
     public SpreadsheetTable() {
         m_focusedRow = -1;
         m_focusedColumn = -1;
@@ -167,36 +167,7 @@ class SpreadsheetTable extends JTable {
         //m_table.setDefaultRenderer(String.class, new SpreadsheetCellRenderer());
         // see Bug: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4256006
         // Workaround by bridgehajen (Submitted On 26-SEP-2002)
-        m_editorTextField = new JTextField() {
-            @Override
-            protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent ke, final int condition,
-                                                final boolean pressed) {
-                if (hasFocus() || ((pressed && (ACCELERATOR_MODIFIER_VK == ke.getKeyCode())))) {
-                    return super.processKeyBinding(ks, ke, condition, pressed);
-                } else if (pressed) {
-                    // you get in this state when key was typed in a cell without active editor
-                    // clear cell in this case
-                    this.setText("");
-                    // different cell editor behavior in this case
-                    m_cellEditor.setStopEditingWidthArrows(true);
-
-                    // request focus
-                    this.requestFocus();
-
-                    // this call must really be invoked later otherwise we have an endless recursion
-                    // the focus does not seem to the changed until this event handler finished
-                    ViewUtils.invokeLaterInEDT(() -> {
-                        processKeyBinding(ks, ke, condition, pressed);
-                    });
-                    return true;
-                }
-
-                return false;
-            }
-        };
-
-        m_editorTextField.setBorder(BorderFactory.createLineBorder(ColorAttr.BACKGROUND));
-
+        m_editorTextField = new EditorTextField();
         m_cellEditor = new MyCellEditor(m_editorTextField);
         setDefaultEditor(Object.class, m_cellEditor);
         m_cellRenderer = new CellRenderer(getSpreadsheetModel());
@@ -307,6 +278,142 @@ class SpreadsheetTable extends JTable {
     }
 
     /**
+     * Getter for the focused column
+     *
+     * @return the focused column
+     */
+    public int getFocusedColumn() {
+        return m_focusedColumn;
+    }
+
+    /**
+     * Getter for the focused row
+     *
+     * @return the focused row
+     */
+    public int getFocusedRow() {
+        return m_focusedRow;
+    }
+
+    /**
+     * Resets focused row and focused column
+     */
+    public void clearFocusedCell() {
+        if (m_focusedRow != -1) {
+            int val = m_focusedRow;
+            m_focusedRow = -1;
+            firePropertyChange(PROP_FOCUSED_ROW, val, m_focusedRow);
+        }
+        if (m_focusedColumn != -1) {
+            int val = m_focusedColumn;
+            m_focusedColumn = -1;
+            firePropertyChange(PROP_FOCUSED_COLUMN, val, m_focusedColumn);
+        }
+    }
+
+    /**
+     * Use this to stop editing from outside of the table.
+     */
+    public void stopCellEditing() {
+        m_cellEditor.stopCellEditing();
+    }
+
+    /**
+     * Overriden to prevent the clearance of selection when columns are added or removed. This is not perfect since the
+     * table column model recreates the columns which resets the selection as well. However, with this code the editing
+     * cell is displayed correctly. {@inheritDoc}
+     */
+    @Override
+    public void tableChanged(final TableModelEvent e) {
+        if (e == null || e.getFirstRow() == TableModelEvent.HEADER_ROW) {
+            if (getAutoCreateColumnsFromModel()) {
+                // This will effect invalidation of the JTable and JTableHeader.
+                createDefaultColumnsFromModel();
+                return;
+            }
+
+            resizeAndRepaint();
+            return;
+        }
+
+        super.tableChanged(e);
+    }
+
+
+    @SuppressWarnings("serial")
+    private class EditorTextField extends JTextField implements KeyListener {
+        private final AtomicBoolean m_expectingReleaseDueToPasteCutOrCopy;
+
+        private EditorTextField() {
+            setBorder(BorderFactory.createLineBorder(ColorAttr.BACKGROUND));
+            m_expectingReleaseDueToPasteCutOrCopy = new AtomicBoolean(false);
+            SpreadsheetTable.this.addKeyListener(this);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void keyTyped(final KeyEvent ke) { }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void keyPressed(final KeyEvent ke) {
+            m_expectingReleaseDueToPasteCutOrCopy.set(((ke.getModifiers() & ACCELERATOR_MODIFIER_VK) != 0)
+                                                            && ((ke.getKeyChar() == 'v')
+                                                                    || (ke.getKeyChar() == 'c')
+                                                                    || (ke.getKeyChar() == 'x')));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void keyReleased(final KeyEvent ke) { }
+
+        @Override
+        protected boolean processKeyBinding(final KeyStroke ks, final KeyEvent ke, final int condition,
+                                            final boolean pressed) {
+            if (hasFocus() || ((pressed && (ACCELERATOR_MODIFIER_VK == ke.getKeyCode())))) {
+                return super.processKeyBinding(ks, ke, condition, pressed);
+            } else if (!vetoKeyPress(ke, pressed)) {
+                // you get in this state when key was typed in a cell without active editor
+                // clear cell in this case
+                this.setText("");
+                // different cell editor behavior in this case
+                m_cellEditor.setStopEditingWidthArrows(true);
+
+                // request focus
+                this.requestFocus();
+
+                // this call must really be invoked later otherwise we have an endless recursion
+                // the focus does not seem to the changed until this event handler finished
+                ViewUtils.invokeLaterInEDT(() -> {
+                    processKeyBinding(ks, ke, condition, pressed);
+                });
+                return true;
+            }
+
+            return false;
+        }
+
+        /*
+         * This key processing causes all sorts of heartburn under macOS; if the user pastes into a cell, or
+         *  copies from a cell, the key-release cycle varies between whether that column had pre-existing
+         *  data or not, and in either case, we don't want to accept the action of the key release because
+         *  it then sets the text of that cell to an empty string per the logic of processKeyBindingBelow.
+         */
+        private boolean vetoKeyPress(final KeyEvent ke, final boolean pressed) {
+            return ((m_expectingReleaseDueToPasteCutOrCopy.get() && !pressed))
+                        || (ACCELERATOR_MODIFIER_VK == ke.getKeyCode())
+                        || ((ke.getModifiers() & ACCELERATOR_MODIFIER_VK) != 0);
+        }
+    }
+
+
+    /**
      * Shows popup menu of the table.
      *
      * @author Heiko Hofer
@@ -382,6 +489,7 @@ class SpreadsheetTable extends JTable {
         }
 
     }
+
 
     /**
      * The cell editor.
@@ -477,6 +585,7 @@ class SpreadsheetTable extends JTable {
             return c;
         }
     }
+
 
     /**
      * Does column selection when clicking on the tables header. Show the popup menu of the tables header.
@@ -622,6 +731,7 @@ class SpreadsheetTable extends JTable {
 
     }
 
+
     /**
      * The renderer of the tables header
      *
@@ -678,68 +788,6 @@ class SpreadsheetTable extends JTable {
             }
             return this;
         }
-    }
-
-    /**
-     * Getter for the focused column
-     *
-     * @return the focused column
-     */
-    public int getFocusedColumn() {
-        return m_focusedColumn;
-    }
-
-    /**
-     * Getter for the focused row
-     *
-     * @return the focused row
-     */
-    public int getFocusedRow() {
-        return m_focusedRow;
-    }
-
-    /**
-     * Resets focused row and focused column
-     */
-    public void clearFocusedCell() {
-        if (m_focusedRow != -1) {
-            int val = m_focusedRow;
-            m_focusedRow = -1;
-            firePropertyChange(PROP_FOCUSED_ROW, val, m_focusedRow);
-        }
-        if (m_focusedColumn != -1) {
-            int val = m_focusedColumn;
-            m_focusedColumn = -1;
-            firePropertyChange(PROP_FOCUSED_COLUMN, val, m_focusedColumn);
-        }
-    }
-
-    /**
-     * Use this to stop editing from outside of the table.
-     */
-    public void stopCellEditing() {
-        m_cellEditor.stopCellEditing();
-    }
-
-    /**
-     * Overriden to prevent the clearance of selection when columns are added or removed. This is not perfect since the
-     * table column model recreates the columns which resets the selection as well. However, with this code the editing
-     * cell is displayed correctly. {@inheritDoc}
-     */
-    @Override
-    public void tableChanged(final TableModelEvent e) {
-        if (e == null || e.getFirstRow() == TableModelEvent.HEADER_ROW) {
-            if (getAutoCreateColumnsFromModel()) {
-                // This will effect invalidation of the JTable and JTableHeader.
-                createDefaultColumnsFromModel();
-                return;
-            }
-
-            resizeAndRepaint();
-            return;
-        }
-
-        super.tableChanged(e);
     }
 }
 
