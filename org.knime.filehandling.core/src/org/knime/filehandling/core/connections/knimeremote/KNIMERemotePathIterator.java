@@ -56,7 +56,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Iterates over all the files and folders of the path on a remote KNIME mount point.
@@ -81,7 +81,7 @@ public class KNIMERemotePathIterator implements Iterator<Path> {
         final KNIMERemotePath knimePath = (KNIMERemotePath)path;
         m_fileSystem = (KNIMERemoteFileSystem)knimePath.getFileSystem();
 
-        final List<URI> uriList = MountPointIDProviderService.instance().listFiles(path.toUri());
+        final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toUri());
         m_iterator = uriList.stream()
             .map(p -> new KNIMERemotePath(m_fileSystem, p))
             .filter(p -> {

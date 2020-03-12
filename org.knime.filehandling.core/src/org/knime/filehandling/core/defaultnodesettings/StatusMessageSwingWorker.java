@@ -70,7 +70,7 @@ import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Swing worker used to update the status message of the file chooes dialog component.
@@ -145,7 +145,8 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
                 KNIMEConnection.getConnection(helper.getSettingsModel().getKnimeMountpointFileSystem());
             if (knimeConnection.getType() == KNIMEConnection.Type.MOUNTPOINT_ABSOLUTE) {
                 final boolean isReadable =
-                    MountPointIDProviderService.instance().isReadable(URI.create(knimeConnection.getSchemeAndHost()));
+                    MountPointFileSystemAccessService.instance()
+                        .isReadable(URI.create(knimeConnection.getSchemeAndHost()));
                 if (!isReadable) {
                     return mkError("Not connected to Server. Please login in the explorer.");
                 }

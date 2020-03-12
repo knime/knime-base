@@ -57,11 +57,11 @@ import java.util.List;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 
 /**
- * Interface for MountPointIdProvider instances.
+ * Interface for MountPointFileSystemAccess instances.
  *
  * @author Gabriel Einsdorf
  */
-public interface MountPointIDProvider {
+public interface MountPointFileSystemAccess {
 
     /**
      * @return The ids of all mounted mountpoints

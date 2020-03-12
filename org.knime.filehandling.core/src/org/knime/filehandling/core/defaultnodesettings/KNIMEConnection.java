@@ -54,7 +54,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Class encapsulating the different types of KNIME file system connections.
@@ -252,7 +252,7 @@ public class KNIMEConnection {
     public boolean isConnected() {
         try {
             return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
-                || MountPointIDProviderService.instance().isReadable(URI.create(getSchemeAndHost()));
+                || MountPointFileSystemAccessService.instance().isReadable(URI.create(getSchemeAndHost()));
         } catch (final IOException ex) {
             return false;
         }
@@ -263,7 +263,7 @@ public class KNIMEConnection {
      */
     public boolean isValid() {
         return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
-            || MountPointIDProviderService.instance().getAllMountedIDs().contains(m_key);
+            || MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(m_key);
     }
 
 }

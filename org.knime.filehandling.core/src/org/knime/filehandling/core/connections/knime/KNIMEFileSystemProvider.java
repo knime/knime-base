@@ -101,7 +101,7 @@ import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeVi
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -181,7 +181,7 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
     }
 
     private static URI createFSKey(final URI uri) throws IOException {
-        final URL baseLocation = MountPointIDProviderService.instance().resolveKNIMEURL(uri.toURL());
+        final URL baseLocation = MountPointFileSystemAccessService.instance().resolveKNIMEURL(uri.toURL());
         try {
             return baseLocation.toURI();
         } catch (final URISyntaxException ex) {

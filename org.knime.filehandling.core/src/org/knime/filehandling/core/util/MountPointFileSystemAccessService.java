@@ -64,16 +64,16 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 
 /**
- * Service that provides access to the ids of mounted mountpoints.
+ * Service that provides access to the file systems of mounted mountpoints.
  *
  * </p>
  * NB This exists to prevent a dependency on org.knime.workbench.explorer.view
  *
  * @author Gabriel Einsdorf
  */
-public class MountPointIDProviderService {
+public class MountPointFileSystemAccessService {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(MountPointIDProviderService.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(MountPointFileSystemAccessService.class);
 
     /** The id of the mountpoint id provider extension point. */
     public static final String EXT_POINT_ID = "org.knime.filehandling.core.MountPointIDProvider";
@@ -81,11 +81,11 @@ public class MountPointIDProviderService {
     /** The attribute of the extension point. */
     public static final String EXT_POINT_ATTR_DF = "MountPointIDProvider";
 
-    private static MountPointIDProviderService m_instance;
+    private static MountPointFileSystemAccessService m_instance;
 
-    private final List<MountPointIDProvider> m_providers = new ArrayList<>();
+    private final List<MountPointFileSystemAccess> m_providers = new ArrayList<>();
 
-    private MountPointIDProviderService() {
+    private MountPointFileSystemAccessService() {
         try {
             final IExtensionRegistry registry = Platform.getExtensionRegistry();
             final IExtensionPoint point = registry.getExtensionPoint(EXT_POINT_ID);
@@ -104,7 +104,7 @@ public class MountPointIDProviderService {
                     continue;
                 }
                 try {
-                    m_providers.add((MountPointIDProvider)elem.createExecutableExtension(EXT_POINT_ATTR_DF));
+                    m_providers.add((MountPointFileSystemAccess)elem.createExecutableExtension(EXT_POINT_ATTR_DF));
                 } catch (final Throwable t) {
                     LOGGER.error("Problems during initialization of provider operator (with id '" + operator + "'.)",
                         t);
@@ -119,11 +119,11 @@ public class MountPointIDProviderService {
     }
 
     /**
-     * @return get the sole instance of the {@link MountPointIDProviderService}
+     * @return get the sole instance of the {@link MountPointFileSystemAccessService}
      */
-    public static MountPointIDProviderService instance() {
+    public static MountPointFileSystemAccessService instance() {
         if (m_instance == null) {
-            m_instance = new MountPointIDProviderService();
+            m_instance = new MountPointFileSystemAccessService();
         }
         return m_instance;
     }
@@ -133,7 +133,7 @@ public class MountPointIDProviderService {
      */
     public List<String> getAllMountedIDs() {
         final List<String> mountpointIDs = new ArrayList<>();
-        for (final MountPointIDProvider p : m_providers) {
+        for (final MountPointFileSystemAccess p : m_providers) {
             mountpointIDs.addAll(p.getMountedIDs());
         }
         return mountpointIDs;
@@ -147,15 +147,15 @@ public class MountPointIDProviderService {
      * @throws IOException if the KNIME URL cannot be resolved
      */
     public URL resolveKNIMEURL(final URL url) throws IOException {
-        final Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
+        final Optional<MountPointFileSystemAccess> findFirst = m_providers.stream().findFirst();
         if (findFirst.isPresent()) {
             return findFirst.get().resolveKNIMEURL(url);
         }
         throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
     }
 
-    private MountPointIDProvider getProvider() {
-        final Optional<MountPointIDProvider> findFirst = m_providers.stream().findFirst();
+    private MountPointFileSystemAccess getProvider() {
+        final Optional<MountPointFileSystemAccess> findFirst = m_providers.stream().findFirst();
         if (findFirst.isPresent()) {
             return findFirst.get();
         }

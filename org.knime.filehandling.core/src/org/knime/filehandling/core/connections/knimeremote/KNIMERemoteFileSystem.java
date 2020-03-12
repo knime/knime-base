@@ -54,7 +54,7 @@ import java.util.Collections;
 
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  *
@@ -115,7 +115,8 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
      * @return the default directory of this file system
      */
     public Path getDefaultDirectory() {
-        return new KNIMERemotePath(this, MountPointIDProviderService.instance().getDefaultDirectory(m_mountpoint));
+        return new KNIMERemotePath(this,
+            MountPointFileSystemAccessService.instance().getDefaultDirectory(m_mountpoint));
     }
 
     /**

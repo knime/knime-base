@@ -103,7 +103,7 @@ import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
@@ -549,7 +549,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
                     m_fileHistoryPanel.setFileSystemBrowser(fsBrowser);
                     m_statusMessage.setText("");
-                    final boolean isReadable = MountPointIDProviderService.instance().isReadable(fsKey);
+                    final boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(fsKey);
                     m_fileHistoryPanel.setEnabled(true);
                     m_fileHistoryPanel.setBrowseable(isReadable);
                 } catch (final IOException ex) {
@@ -835,7 +835,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         knimeConnectionsModel.removeAllElements();
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         if (fsChoice.equals(FileSystemChoice.getKnimeMountpointChoice())) {
-            MountPointIDProviderService.instance().getAllMountedIDs().stream().forEach(
+            MountPointFileSystemAccessService.instance().getAllMountedIDs().stream().forEach(
                 id -> knimeConnectionsModel.addElement(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(id)));
             final String modelMountpointValue = model.getKnimeMountpointFileSystem();
 

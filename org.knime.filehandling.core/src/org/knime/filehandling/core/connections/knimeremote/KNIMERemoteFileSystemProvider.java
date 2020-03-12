@@ -77,7 +77,7 @@ import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Implementation of {@link FileSystemProvider} for KNIME Mountpoints
@@ -127,7 +127,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
-        MountPointIDProviderService.instance().createDirectory(dir.toUri());
+        MountPointFileSystemAccessService.instance().createDirectory(dir.toUri());
     }
 
     /**
@@ -135,7 +135,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
-        MountPointIDProviderService.instance().copyFile(source.toUri(), target.toUri());
+        MountPointFileSystemAccessService.instance().copyFile(source.toUri(), target.toUri());
     }
 
     /**
@@ -143,7 +143,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
-        MountPointIDProviderService.instance().moveFile(source.toUri(), target.toUri());
+        MountPointFileSystemAccessService.instance().moveFile(source.toUri(), target.toUri());
     }
 
     /**
@@ -176,7 +176,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        MountPointIDProviderService.instance().getFileAttributes(path.toUri());
+        MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
     }
 
     /**
@@ -200,7 +200,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
     @Override
     protected boolean exists(final Path path) {
         try {
-            MountPointIDProviderService.instance().getFileAttributes(path.toUri());
+            MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
             return true;
         } catch (final IOException ex) {
             return false;
@@ -268,7 +268,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
-        return MountPointIDProviderService.instance().getFileAttributes(path.toUri());
+        return MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
     }
 
     /**
@@ -276,13 +276,13 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      */
     @Override
     protected void deleteInternal(final Path path) throws IOException {
-        MountPointIDProviderService.instance().deleteFile(path.toUri());
+        MountPointFileSystemAccessService.instance().deleteFile(path.toUri());
     }
 
     @Override
     public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
-        MountPointIDProviderService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
+        MountPointFileSystemAccessService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
     }
 
 }

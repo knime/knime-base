@@ -73,7 +73,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.filechooser.NioFile;
-import org.knime.filehandling.core.util.MountPointIDProviderService;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Paths to a remote KNIME Server.
@@ -523,6 +523,6 @@ public class KNIMERemotePath implements Path {
     }
 
     public boolean isWorkflow() {
-        return MountPointIDProviderService.instance().isWorkflow(toUri());
+        return MountPointFileSystemAccessService.instance().isWorkflow(toUri());
     }
 }
