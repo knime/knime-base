@@ -89,7 +89,7 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystemProvider extends BaseFileSystemProvider {
+public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem> {
 
     private final int m_timeoutInMillis;
 
@@ -326,7 +326,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+    public URIFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
         return new URIFileSystem(this, uri);
     }
 

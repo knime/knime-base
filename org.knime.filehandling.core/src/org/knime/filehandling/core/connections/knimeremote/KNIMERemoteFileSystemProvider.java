@@ -74,7 +74,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
@@ -84,12 +83,13 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implements WorkflowAware {
+public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemoteFileSystem>
+    implements WorkflowAware {
 
     private static final String SCHEME = "knime";
 
     @Override
-    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+    public KNIMERemoteFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
         return new KNIMERemoteFileSystem(this, uri);
     }
 

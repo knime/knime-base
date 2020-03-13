@@ -104,7 +104,7 @@ import org.osgi.framework.ServiceReference;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
+public class KNIMEFileSystemProvider extends BaseFileSystemProvider<KNIMEFileSystem> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMEFileSystemProvider.class);
 
@@ -160,7 +160,7 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    public BaseFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+    public KNIMEFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
         if (!uri.getScheme().equalsIgnoreCase(getScheme())) {
             throw new IllegalArgumentException("The URI must have scheme '" + getScheme() + "'");
         }

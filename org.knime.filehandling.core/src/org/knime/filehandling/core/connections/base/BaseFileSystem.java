@@ -79,7 +79,7 @@ import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCac
  */
 public abstract class BaseFileSystem extends FileSystem {
 
-    private final BaseFileSystemProvider m_fileSystemProvider;
+    private final BaseFileSystemProvider<?> m_fileSystemProvider;
 
     private final URI m_uri;
 
@@ -102,7 +102,7 @@ public abstract class BaseFileSystem extends FileSystem {
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      */
-    public BaseFileSystem(final BaseFileSystemProvider fileSystemProvider, final URI uri, final String name,
+    public BaseFileSystem(final BaseFileSystemProvider<?> fileSystemProvider, final URI uri, final String name,
         final String type, final long cacheTTL) {
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
         Validate.notNull(uri, "URI must not be null.");

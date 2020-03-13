@@ -85,13 +85,15 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
 /**
  * Base implementation of the {@link FileSystemProvider} class.
  *
+ * @param <T> {@link BaseFileSystem} implementation of this provider
+ *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class BaseFileSystemProvider extends FileSystemProvider {
+public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends FileSystemProvider {
 
     private static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different file system provider";
 
-    private BaseFileSystem m_fileSystem;
+    private T m_fileSystem;
 
     /**
      * {@inheritDoc}
@@ -115,7 +117,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      * @return the new file system
      * @throws IOException if I/O error occurs
      */
-    protected abstract BaseFileSystem createFileSystem(URI uri, Map<String, ?> env) throws IOException;
+    protected abstract T createFileSystem(URI uri, Map<String, ?> env) throws IOException;
 
     /**
      *
@@ -242,7 +244,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      *
      * @return the {@code FileSystem} created by this provider if it exists.
      */
-    protected final synchronized BaseFileSystem getFileSystemInternal() {
+    protected final synchronized T getFileSystemInternal() {
         if (m_fileSystem == null) {
             throw new FileSystemNotFoundException();
         }
