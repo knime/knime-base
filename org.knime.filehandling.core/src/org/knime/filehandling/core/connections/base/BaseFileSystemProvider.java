@@ -308,21 +308,19 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
 
             BaseFileAttributes attributes;
-            final Optional<BaseFileAttributes> cachedAttributes = ((BaseFileSystem)path.getFileSystem())
-                .getCachedAttributes(path.normalize().toAbsolutePath().toString());
+            final Optional<BaseFileAttributes> cachedAttributes = getFileSystemInternal().getCachedAttributes(path);
 
             if (!cachedAttributes.isPresent()) {
                 if (!exists(path)) {
                     throw new NoSuchFileException(String.format("No such file %s", path.toString()));
                 }
                 attributes = fetchAttributesInternal(path, type);
-                getFileSystemInternal().addToAttributeCache(path.normalize().toAbsolutePath().toString(), attributes);
+                getFileSystemInternal().addToAttributeCache(path, attributes);
             } else {
                 attributes = cachedAttributes.get();
                 if (type == PosixFileAttributes.class && !attributes.hasPosixAttributesSet()) {
                     attributes = attributes.generatePosixAttributes();
-                    getFileSystemInternal().addToAttributeCache(path.normalize().toAbsolutePath().toString(),
-                        attributes);
+                    getFileSystemInternal().addToAttributeCache(path, attributes);
                 }
             }
             return (A)attributes;
@@ -359,7 +357,7 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
     public void delete(final Path path) throws IOException {
         checkPath(path);
         deleteInternal(path);
-        getFileSystemInternal().removeFromAttributeCache(path.normalize().toAbsolutePath().toString());
+        getFileSystemInternal().removeFromAttributeCache(path);
     }
 
     /**

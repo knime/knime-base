@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
@@ -237,40 +238,50 @@ public abstract class BaseFileSystem extends FileSystem {
     /**
      * Stores an attribute for the path with the given URI in the attribute cache.
      *
-     * @param path the path as String
+     * @param path the path
      * @param attributes the attributes object to store
      */
-    public void addToAttributeCache(final String path, final BaseFileAttributes attributes) {
-        m_cache.storeAttributes(path, attributes);
+    public void addToAttributeCache(final Path path, final BaseFileAttributes attributes) {
+        m_cache.storeAttributes(getCachedAttributesKey(path), attributes);
     }
 
     /**
      * Removes an attribute for the path with the given URI from the attribute cache.
      *
-     * @param path the path as String
+     * @param path the path
      */
-    public void removeFromAttributeCache(final String path) {
-        m_cache.removeAttribute(path);
+    public void removeFromAttributeCache(final Path path) {
+        m_cache.removeAttribute(getCachedAttributesKey(path));
     }
 
     /**
      * Returns an Optional containing the cached file-attributes for a path if present.
      *
-     * @param path the path as String
+     * @param path the path
      * @return optional file attributes from cache
      */
-    public Optional<BaseFileAttributes> getCachedAttributes(final String path) {
-        return m_cache.getAttributes(path);
+    public Optional<BaseFileAttributes> getCachedAttributes(final Path path) {
+        return m_cache.getAttributes(getCachedAttributesKey(path));
     }
 
     /**
      * If a valid cache entry for this path with the given URI in the provider cache.
      *
-     * @param path the path as String
+     * @param path the path
      * @return whether a valid entry is in the cache
      */
-    public boolean hasCachedAttributes(final String path) {
-        return m_cache.getAttributes(path).isPresent();
+    public boolean hasCachedAttributes(final Path path) {
+        return m_cache.getAttributes(getCachedAttributesKey(path)).isPresent();
+    }
+
+    /**
+     * Generates a attributes cache key for the given path.
+     *
+     * @param path the path to generate the key for
+     * @return attributes cache key
+     */
+    protected String getCachedAttributesKey(final Path path) {
+        return path.normalize().toAbsolutePath().toString();
     }
 
     /**
