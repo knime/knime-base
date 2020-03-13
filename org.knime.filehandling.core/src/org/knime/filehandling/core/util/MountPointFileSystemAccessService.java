@@ -76,10 +76,10 @@ public class MountPointFileSystemAccessService {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(MountPointFileSystemAccessService.class);
 
     /** The id of the mountpoint id provider extension point. */
-    public static final String EXT_POINT_ID = "org.knime.filehandling.core.MountPointIDProvider";
+    public static final String EXT_POINT_ID = "org.knime.filehandling.core.MountPointFileSystemAccess";
 
     /** The attribute of the extension point. */
-    public static final String EXT_POINT_ATTR_DF = "MountPointIDProvider";
+    public static final String EXT_POINT_ATTR_DF = "MountPointFileSystemAccess";
 
     private static MountPointFileSystemAccessService m_instance;
 
