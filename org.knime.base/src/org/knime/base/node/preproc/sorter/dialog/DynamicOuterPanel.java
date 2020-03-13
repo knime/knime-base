@@ -56,7 +56,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
@@ -78,11 +78,11 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
 
     private final JPanel m_contentPanel = new JPanel(new GridBagLayout());
 
-    private final OpacityButton m_upButton = createOpacityButton(SharedIcons.MOVE_UP.get());
+    private final JButton m_upButton;
 
-    private final OpacityButton m_downButton = createOpacityButton(SharedIcons.MOVE_DOWN.get());
+    private final JButton m_downButton;
 
-    private final OpacityButton m_deleteButton = createOpacityButton(SharedIcons.DELETE_TRASH.get());
+    private final JButton m_deleteButton;
 
     private int m_idx;
 
@@ -135,15 +135,23 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
         m_item = item;
         m_idx = idx;
 
+        m_upButton = new JButton();
+        m_upButton.setIcon(SharedIcons.MOVE_UP.get());
+        m_upButton.setFocusable(false);
 
-        m_panel.setMinimumSize(new Dimension(Integer.MAX_VALUE, 125));
-        m_panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 125));
+        m_downButton = new JButton();
+        m_downButton.setIcon(SharedIcons.MOVE_DOWN.get());
+        m_downButton.setFocusable(false);
+
+        m_deleteButton = new JButton();
+        m_deleteButton.setIcon(SharedIcons.DELETE_TRASH.get());
 
         GridBagConstraints c = new GridBagConstraints();
         c.weightx = 1;
 
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.HORIZONTAL;
+
         m_contentPanel.add(item.getPanel(), c);
 
         c.anchor = GridBagConstraints.NORTHEAST;
@@ -166,20 +174,12 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
         m_panel.add(separator, c);
     }
 
-    private static OpacityButton createOpacityButton(final Icon icon) {
-        final OpacityButton button = new OpacityButton();
-        button.setIcon(icon);
-        button.setOpaque(false);
-        button.setFocusable(false);
-        return button;
-    }
-
     private JPanel createControlPanel() {
         final DynamicOuterPanel<T> outerPanel = this;
         m_upButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                if (m_upButton.isRolloverEnabled()) {
+                if (m_upButton.isEnabled()) {
                     m_parent.moveItem(outerPanel, true);
                 }
             }
@@ -188,7 +188,7 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
         m_downButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                if (m_downButton.isRolloverEnabled()) {
+                if (m_downButton.isEnabled()) {
                     m_parent.moveItem(outerPanel, false);
                 }
             }
@@ -197,7 +197,7 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
         m_deleteButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                if (m_deleteButton.isRolloverEnabled()) {
+                if (m_deleteButton.isEnabled()) {
                     m_parent.removeItem(outerPanel);
                 }
             }
@@ -225,7 +225,7 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
      * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
      */
     public void enableUpButton(final boolean enabled) {
-        enableButton(m_upButton, enabled);
+        m_upButton.setEnabled(enabled);
     }
 
     /**
@@ -234,7 +234,7 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
      * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
      */
     public void enableDownButton(final boolean enabled) {
-        enableButton(m_downButton, enabled);
+        m_downButton.setEnabled(enabled);
     }
 
     /**
@@ -243,11 +243,6 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
      * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
      */
     public void enableDeleteButton(final boolean enabled) {
-        enableButton(m_deleteButton, enabled);
-    }
-
-    private static void enableButton(final OpacityButton button, final boolean enabled) {
-        button.setRolloverEnabled(enabled);
-        button.setOpacity(enabled ? 1f : 0.2f);
+        m_deleteButton.setEnabled(enabled);
     }
 }

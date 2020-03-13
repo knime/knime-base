@@ -141,11 +141,10 @@ final class DynamicSortItem implements DynamicPanelItem {
         m_combo.setAlignmentX(Component.LEFT_ALIGNMENT);
         m_combo.addItemListener(this::notifyListener);
 
-        String bordertext = (id == 0) ? "Sort by:" : "Next by:";
+        String bordertext = (id == 0) ? "Sort by" : "Next by";
         textLabel = new JLabel(bordertext);
         textLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         textLabel.setFont(new Font("AvantGarde", Font.BOLD, 12));
-
         
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -233,7 +232,7 @@ final class DynamicSortItem implements DynamicPanelItem {
 
     void setID(final int id) {
         m_id = id;
-        String bordertext = (id == 0) ? "Sort by:" : "Next by:";
+        String bordertext = (id == 0) ? "Sort by" : "Next by";
 
         textLabel.setText(bordertext);
     }

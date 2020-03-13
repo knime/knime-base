@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.sorter.dialog;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -59,8 +58,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import org.knime.core.node.util.CheckUtils;
@@ -81,7 +80,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
 
     private final JPanel m_outerPanelsArea;
 
-    private final OpacityButton m_addButton;
+    private final JButton m_addButton;
 
     private DynamicItemContext<T> m_itemContext;
 
@@ -116,18 +115,13 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         m_addItemArea = new JPanel(new GridBagLayout());
         m_panel.add(m_addItemArea, c);
 
-        m_addButton = new OpacityButton();
+        m_addButton = new JButton();
         m_addButton.setIcon(SharedIcons.ADD_PLUS.get());
-        m_addButton.setBackground(Color.WHITE);
-        m_addButton.setContentAreaFilled(false);
-        m_addButton.setOpaque(true);
-        m_addButton.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY),
-            BorderFactory.createEmptyBorder(3, 10, 3, 10)));
         m_addButton.setText("Add Rule");
         m_addButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                if (m_addButton.isRolloverEnabled()) {
+                if (m_addButton.isEnabled()) {
                     addItem();
                 }
             }
@@ -148,17 +142,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
     }
 
     private void enableAddButton(final boolean enabled) {
-        m_addButton.setRolloverEnabled(enabled);
-        m_addButton.setFocusable(enabled);
-        m_addButton.setFocusPainted(enabled);
-        m_addButton.setOpaque(enabled);
-
-        if(enabled) {
-            m_addButton.setOpacity(1);
-        }
-        else {
-            m_addButton.setOpacity(0.2f);
-        }
+        m_addButton.setEnabled(enabled);
     }
 
     /**
@@ -272,6 +256,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
             m_outerPanels.get(numOfOuterPanels - 1).enableDownButton(false);
 
             enableAddButton(m_itemContext.canCreateItem());
+            m_panel.requestFocusInWindow();
 
             m_panel.revalidate();
             m_panel.repaint();
