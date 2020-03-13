@@ -78,9 +78,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributeView;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
 
 /**
  * Base implementation of the {@link FileSystemProvider} class.
@@ -288,9 +288,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
             || type == FileOwnerAttributeView.class) {
 
-            return (V)new FSFileAttributeView(path.toString(),
-                () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class));
-
+            return (V)new BaseFileAttributeView(path, type);
         }
         return null;
     }
@@ -306,9 +304,10 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
         checkPath(path);
 
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
-            FSFileAttributes attributes;
-            final Optional<FSFileAttributes> cachedAttributes =
-                getFileSystemInternal().getCachedAttributes(path.normalize().toString());
+
+            BaseFileAttributes attributes;
+            final Optional<BaseFileAttributes> cachedAttributes = ((BaseFileSystem)path.getFileSystem())
+                .getCachedAttributes(path.normalize().toAbsolutePath().toString());
 
             if (!cachedAttributes.isPresent()) {
                 if (!exists(path)) {
@@ -318,6 +317,11 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
                 getFileSystemInternal().addToAttributeCache(path.normalize().toAbsolutePath().toString(), attributes);
             } else {
                 attributes = cachedAttributes.get();
+                if (type == PosixFileAttributes.class && !attributes.hasPosixAttributesSet()) {
+                    attributes = attributes.generatePosixAttributes();
+                    getFileSystemInternal().addToAttributeCache(path.normalize().toAbsolutePath().toString(),
+                        attributes);
+                }
             }
             return (A)attributes;
         }
@@ -327,7 +331,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
     }
 
     /**
-     * Returns the {@link FSFileAttributes} for this path.
+     * Returns the {@link BaseFileAttributes} for this path.
      *
      * @param path the Path to fetch the attributes for
      * @param type the type of the requested FileAttributes
@@ -335,7 +339,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      * @return FSFileAttribute for this path
      * @throws IOException if an I/O error occurs while fetching the attributes.
      */
-    protected abstract FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type)
+    protected abstract BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type)
         throws IOException;
 
     /**

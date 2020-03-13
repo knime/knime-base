@@ -63,7 +63,7 @@ public class BaseAttributesCache implements AttributesCache {
 
     private final long m_timeTolive;
 
-    private final Cache<String, FSFileAttributes> m_attributesCache;
+    private final Cache<String, BaseFileAttributes> m_attributesCache;
 
     /**
      * Constructs a attribute cache with the given time to live in milliseconds.
@@ -81,7 +81,7 @@ public class BaseAttributesCache implements AttributesCache {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void storeAttributes(final String path, final FSFileAttributes attributes) {
+    public synchronized void storeAttributes(final String path, final BaseFileAttributes attributes) {
         m_attributesCache.put(path, attributes);
     }
 
@@ -89,9 +89,9 @@ public class BaseAttributesCache implements AttributesCache {
      * {@inheritDoc}
      */
     @Override
-    public synchronized Optional<FSFileAttributes> getAttributes(final String path) {
+    public synchronized Optional<BaseFileAttributes> getAttributes(final String path) {
 
-        Optional<FSFileAttributes> attributes = Optional.ofNullable(m_attributesCache.getIfPresent(path));
+        Optional<BaseFileAttributes> attributes = Optional.ofNullable(m_attributesCache.getIfPresent(path));
         if (attributes.isPresent() && isExpired(attributes.get())) {
             m_attributesCache.invalidate(path);
             attributes = Optional.empty();
@@ -100,7 +100,7 @@ public class BaseAttributesCache implements AttributesCache {
 
     }
 
-    private boolean isExpired(final FSFileAttributes attributes) {
+    private boolean isExpired(final BaseFileAttributes attributes) {
         return (System.currentTimeMillis() - attributes.getFetchTime()) > m_timeTolive;
     }
 

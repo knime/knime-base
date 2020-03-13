@@ -54,7 +54,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
  * Interface for MountPointFileSystemAccess instances.
@@ -87,13 +87,13 @@ public interface MountPointFileSystemAccess {
     List<URI> listFiles(final URI uri) throws IOException;
 
     /**
-     * Gets the {@link FSFileAttributes} for the Mountpoint object represented by the given URI.
+     * Gets the {@link BaseFileAttributes} for the Mountpoint object represented by the given URI.
      *
      * @param uri he uri of the object
-     * @return the {@link FSFileAttributes}
+     * @return the {@link BaseFileAttributes}
      * @throws IOException if the attributes could not be build
      */
-    FSFileAttributes getFileAttributes(URI uri) throws IOException;
+    BaseFileAttributes getFileAttributes(URI uri) throws IOException;
 
     /**
      * Copies a file from the source to the target.

@@ -69,10 +69,8 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -84,9 +82,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
-import org.knime.filehandling.core.connections.base.attributes.FSBasicAttributes;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
  * Special file system provider that provides file handling functionality for a single (!) URL.
@@ -280,24 +276,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
-        final LinkOption... options) {
-
-        checkPath(path);
-
-        if (type == BasicFileAttributeView.class) {
-            return (V)new FSFileAttributeView(path.getFileName().toString(),
-                () -> (FSFileAttributes)readAttributes(path, BasicFileAttributes.class));
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
@@ -408,12 +386,12 @@ public class URIFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
         final URIPath uriPath = (URIPath)path;
         if (type == BasicFileAttributes.class) {
-            return new FSFileAttributes(!uriPath.isDirectory(), uriPath,
-                p -> new FSBasicAttributes(FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
-                    0L, false, false));
+            return new BaseFileAttributes(!uriPath.isDirectory(), uriPath,
+                FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
+                    0L, false, false, null);
         }
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
     }

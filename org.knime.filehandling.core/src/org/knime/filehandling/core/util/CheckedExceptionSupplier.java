@@ -44,69 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   28.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   02.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.base.attributes;
-
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.HashSet;
-import java.util.Set;
+package org.knime.filehandling.core.util;
 
 /**
- * This class provides POSIX file attributes for the {@link FSFileAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @param <R> The return type of the function
+ * @param <E> The exception thrown by the function
  */
-public class FSPosixAttributes {
-
-    private final UserPrincipal m_owner;
-
-    private final GroupPrincipal m_group;
-
-    private final Set<PosixFilePermission> m_permissions;
+@FunctionalInterface
+public interface CheckedExceptionSupplier <R, E extends Exception> {
 
     /**
-     * Constructs a {@link FSPosixAttributes} class with the given owner, group and permissions.
-     *
-     * @param owner the owner of the files
-     * @param group the group of the file
-     * @param permissions the permissions to the file
+     * Applies the function and returns an object of type <R>.
+     * Might throw an exception <E>
+     * @return object of type <R>
+     * @throws E <E>
      */
-    public FSPosixAttributes(final UserPrincipal owner, final GroupPrincipal group,
-        final Set<PosixFilePermission> permissions) {
-        m_owner = owner;
-        m_group = group;
-        m_permissions = new HashSet<>(permissions);
-    }
-
-    /**
-     * @return the file owner
-     */
-    public UserPrincipal owner() {
-        return m_owner;
-    }
-
-    /**
-     * @return the file group owner
-     */
-    public GroupPrincipal group() {
-        return m_group;
-    }
-
-    /**
-     * Returns the permissions of the file. The file permissions are returned
-     * as a set of {@link PosixFilePermission} elements. The returned set is a
-     * copy of the file permissions and is modifiable. This allows the result
-     * to be modified and passed to the {@link PosixFileAttributeView#setPermissions
-     * setPermissions} method to update the file's permissions.
-     *
-     * @return  the file permissions
-     */
-    public Set<PosixFilePermission> permissions() {
-        return new HashSet<>(m_permissions);
-    }
+    R apply() throws E;
 
 }

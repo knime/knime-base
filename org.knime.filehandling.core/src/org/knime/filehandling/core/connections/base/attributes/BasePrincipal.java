@@ -44,91 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   12.02.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.connections.base.attributes;
 
-import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.GroupPrincipal;
 
 /**
- * Basic attributes provider for the {@link FSFileAttributes}.
+ * Principal implementation for the usage with {@link PosixAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class FSBasicAttributes {
+public class BasePrincipal implements GroupPrincipal {
 
-    private final FileTime m_lastModifiedTime;
-
-    private final FileTime m_lastAccessTime;
-
-    private final FileTime m_creationTime;
-
-    private final long m_size;
-
-    private final boolean m_isSymbolicLink;
-
-    private final boolean m_isOther;
+    private final String m_name;
 
     /**
-     * Constructs a basic attribute instance.
+     * Constructs a principal with the given name.
      *
-     * @param lastModifiedTime last modified time of the file
-     * @param lastAccessTime last access time of the file
-     * @param creationTime creation time of the file
-     * @param size size of the file
-     * @param isSymbolic whether file is a symbolic link
-     * @param isOther whether file is other
+     * @param name the name of the principal
      */
-    public FSBasicAttributes(final FileTime lastModifiedTime, final FileTime lastAccessTime,
-        final FileTime creationTime, final long size, final boolean isSymbolic, final boolean isOther) {
-        m_lastModifiedTime = lastModifiedTime;
-        m_lastAccessTime = lastAccessTime;
-        m_creationTime = creationTime;
-        m_size = size;
-        m_isSymbolicLink = isSymbolic;
-        m_isOther = isOther;
+    public BasePrincipal(final String name) {
+        m_name = name;
     }
 
     /**
-     * @return lastModifiedTime
+     * {@inheritDoc}
      */
-    public FileTime lastModifiedTime() {
-        return m_lastModifiedTime;
+    @Override
+    public String getName() {
+        return m_name;
     }
 
     /**
-     * @return lastAccessTime
+     * {@inheritDoc}
      */
-    public FileTime lastAccessTime() {
-        return m_lastAccessTime;
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null) {
+            return false;
+        }
+
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof BasePrincipal)) {
+            return false;
+        }
+        final BasePrincipal other = (BasePrincipal)o;
+
+        return this.getName().equals(other.getName());
     }
 
     /**
-     * @return m_creationTime
+     * {@inheritDoc}
      */
-    public FileTime creationTime() {
-        return m_creationTime;
-    }
-
-    /**
-     * @return isSymbolicLink
-     */
-    public boolean isSymbolicLink() {
-        return m_isSymbolicLink;
-    }
-
-    /**
-     * @return isOther
-     */
-    public boolean isOther() {
-        return m_isOther;
-    }
-
-    /**
-     * @return size
-     */
-    public long size() {
-        return m_size;
+    @Override
+    public int hashCode() {
+        return m_name.hashCode();
     }
 
 }

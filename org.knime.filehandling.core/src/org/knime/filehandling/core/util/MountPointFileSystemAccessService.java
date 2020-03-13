@@ -61,7 +61,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
  * Service that provides access to the file systems of mounted mountpoints.
@@ -181,7 +181,7 @@ public class MountPointFileSystemAccessService {
      * @throws IOException if attributes could not be created
      *
      */
-    public FSFileAttributes getFileAttributes(final URI uri) throws IOException {
+    public BaseFileAttributes getFileAttributes(final URI uri) throws IOException {
         return getProvider().getFileAttributes(uri);
     }
 

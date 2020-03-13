@@ -76,7 +76,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -267,7 +267,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider implem
      * {@inheritDoc}
      */
     @Override
-    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
         return MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
     }
 

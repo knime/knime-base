@@ -63,7 +63,7 @@ public interface AttributesCache {
      * @param path the path as string
      * @param attributes file attributes to cache
      */
-    void storeAttributes(final String path, FSFileAttributes attributes);
+    void storeAttributes(final String path, BaseFileAttributes attributes);
 
     /**
      * Returns an Optional containing the cached file-attributes for a path if present.
@@ -71,7 +71,7 @@ public interface AttributesCache {
      * @param path the path as string
      * @return optional file attributes from cache
      */
-    Optional<FSFileAttributes> getAttributes(final String path);
+    Optional<BaseFileAttributes> getAttributes(final String path);
 
     /**
      * Clears all data from the cache.

@@ -44,100 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   03.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   28.08.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.connections.base.attributes;
 
-import java.io.IOException;
-import java.nio.file.attribute.BasicFileAttributeView;
-import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.UserPrincipal;
+import java.util.HashSet;
 import java.util.Set;
 
-import org.knime.filehandling.core.util.CheckedExceptionFunction;
-
 /**
- * Basic implementation of <{@link BasicFileAttributeView}.
+ * This class provides POSIX file attributes for the {@link BaseFileAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class FSFileAttributeView implements PosixFileAttributeView {
+public class PosixAttributes {
 
-    private final String m_name;
+    private final UserPrincipal m_owner;
 
-    private final CheckedExceptionFunction<FSFileAttributes, IOException> m_readAttributesFunction;
+    private final GroupPrincipal m_group;
+
+    private final Set<PosixFilePermission> m_permissions;
 
     /**
-     * Constructs a file attribute view
+     * Constructs a {@link PosixAttributes} class with the given owner, group and permissions.
      *
-     * @param name the name of the attribute view
-     * @param readAttributesFunction function that reads attributes
+     * @param owner the owner of the files
+     * @param group the group of the file
+     * @param permissions the permissions to the file
      */
-    public FSFileAttributeView(final String name,
-        final CheckedExceptionFunction<FSFileAttributes, IOException> readAttributesFunction) {
-        m_name = name;
-        m_readAttributesFunction = readAttributesFunction;
+    public PosixAttributes(final UserPrincipal owner, final GroupPrincipal group,
+        final Set<PosixFilePermission> permissions) {
+        m_owner = owner;
+        m_group = group;
+        m_permissions = new HashSet<>(permissions);
     }
 
     /**
-     * {@inheritDoc}
+     * @return the file owner
      */
-    @Override
-    public String name() {
-        return m_name;
+    public UserPrincipal owner() {
+        return m_owner;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the file group owner
      */
-    @Override
-    public void setTimes(final FileTime lastModifiedTime, final FileTime lastAccessTime, final FileTime createTime)
-        throws IOException {
-        throw new UnsupportedOperationException();
+    public GroupPrincipal group() {
+        return m_group;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the permissions of the file. The file permissions are returned
+     * as a set of {@link PosixFilePermission} elements. The returned set is a
+     * copy of the file permissions and is modifiable. This allows the result
+     * to be modified and passed to the {@link PosixFileAttributeView#setPermissions
+     * setPermissions} method to update the file's permissions.
+     *
+     * @return  the file permissions
      */
-    @Override
-    public UserPrincipal getOwner() throws IOException {
-        return readAttributes().owner();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setOwner(final UserPrincipal owner) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PosixFileAttributes readAttributes() throws IOException {
-        return m_readAttributesFunction.apply();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setPermissions(final Set<PosixFilePermission> perms) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setGroup(final GroupPrincipal group) throws IOException {
-        throw new UnsupportedOperationException();
+    public Set<PosixFilePermission> permissions() {
+        return new HashSet<>(m_permissions);
     }
 
 }

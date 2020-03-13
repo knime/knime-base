@@ -44,50 +44,102 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   03.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.connections.base.attributes;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.UserPrincipal;
+import java.util.Set;
 
 /**
- * Dummy implementation for the attributes cache used if not caching is required.
+ * Basic implementation of <{@link BasicFileAttributeView}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public class NoOpAttributesCache implements AttributesCache {
+public class BaseFileAttributeView implements PosixFileAttributeView {
+
+    private final Path m_path;
+
+    private final Class<? extends FileAttributeView> m_type;
 
     /**
-     * {@inheritDoc}
+     * Constructs a file attribute view for a path.
+     *
+     * @param path the path this attributes view belongs to
+     * @param type the Class object corresponding to the file attribute view
      */
-    @Override
-    public void storeAttributes(final String path, final BaseFileAttributes attributes) {
-        //Nothing to do
+    public BaseFileAttributeView(final Path path, final Class<? extends FileAttributeView> type) {
+        m_path = path;
+        m_type = type;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Optional<BaseFileAttributes> getAttributes(final String path) {
-        //Nothing to do
-        return Optional.empty();
+    public String name() {
+        return "posix";
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void clearCache() {
-        //Nothing to do
+    public void setTimes(final FileTime lastModifiedTime, final FileTime lastAccessTime, final FileTime createTime)
+        throws IOException {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void removeAttribute(final String path) {
-        //Nothing to do
+    public UserPrincipal getOwner() throws IOException {
+        return readAttributes().owner();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setOwner(final UserPrincipal owner) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PosixFileAttributes readAttributes() throws IOException {
+        final Class<? extends BasicFileAttributes> type =
+            m_type == PosixFileAttributeView.class ? PosixFileAttributes.class : BaseFileAttributes.class;
+        return (PosixFileAttributes)m_path.getFileSystem().provider().readAttributes(m_path, type);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setPermissions(final Set<PosixFilePermission> perms) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setGroup(final GroupPrincipal group) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
 }

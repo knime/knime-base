@@ -70,12 +70,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,9 +92,7 @@ import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.BaseInputStream;
 import org.knime.filehandling.core.connections.base.BaseOutputStream;
-import org.knime.filehandling.core.connections.base.attributes.FSBasicAttributes;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributeView;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
@@ -355,24 +349,6 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
-        final LinkOption... options) {
-
-        checkPath(path);
-
-        if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class) {
-            return (V)new FSFileAttributeView(path.getFileName().toString(),
-                () -> (FSFileAttributes)readAttributes(path, PosixFileAttributes.class, options));
-        } else {
-            return null;
-        }
-    }
-
     private static Optional<WorkflowContext> getServerContext() {
         final WorkflowContextUI workflowContext = getWorkflowContext();
         if (wraps(workflowContext, WorkflowContext.class)) {
@@ -420,9 +396,9 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
                     LOGGER.debug("Error when making 'isDirectory' rest call", e);
                 }
 
-                return (A)new FSFileAttributes(isRegularFile, path,
-                    p -> new FSBasicAttributes(null, null, null, 0, false, false));
-        }
+                return (A)new BaseFileAttributes(isRegularFile, path,
+                    null, null, null, 0, false, false, null);
+            }
 
         return Files.readAttributes(toLocalPath(path), type, options);
     }
@@ -574,7 +550,7 @@ public class KNIMEFileSystemProvider extends BaseFileSystemProvider {
      * {@inheritDoc}
      */
     @Override
-    protected FSFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
       //provider methods overrides get attributes methods
         return null;
     }

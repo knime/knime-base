@@ -69,7 +69,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.Validate;
 import org.knime.filehandling.core.connections.base.attributes.AttributesCache;
 import org.knime.filehandling.core.connections.base.attributes.BaseAttributesCache;
-import org.knime.filehandling.core.connections.base.attributes.FSFileAttributes;
+import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCache;
 
 /**
@@ -240,7 +240,7 @@ public abstract class BaseFileSystem extends FileSystem {
      * @param path the path as String
      * @param attributes the attributes object to store
      */
-    public void addToAttributeCache(final String path, final FSFileAttributes attributes) {
+    public void addToAttributeCache(final String path, final BaseFileAttributes attributes) {
         m_cache.storeAttributes(path, attributes);
     }
 
@@ -259,7 +259,7 @@ public abstract class BaseFileSystem extends FileSystem {
      * @param path the path as String
      * @return optional file attributes from cache
      */
-    public Optional<FSFileAttributes> getCachedAttributes(final String path) {
+    public Optional<BaseFileAttributes> getCachedAttributes(final String path) {
         return m_cache.getAttributes(path);
     }
 

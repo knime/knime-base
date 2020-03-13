@@ -44,18 +44,19 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   12.02.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.util;
 
 /**
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @param <T> The input type of the function
  * @param <R> The return type of the function
- * @param <E> The Exception thrown by the function
+ * @param <E> The exception thrown by the function
  */
 @FunctionalInterface
-public interface CheckedExceptionFunction <R, E extends Exception> {
+public interface CheckedExceptionFunction <T, R, E extends Exception> {
 
     /**
      * Apply the function to the input t and returns an Object of type <R>.
@@ -64,6 +65,8 @@ public interface CheckedExceptionFunction <R, E extends Exception> {
      * @return object of type <R>
      * @throws E <E>
      */
-    R apply() throws E;
+    R apply(T t) throws E;
 
 }
+
+
