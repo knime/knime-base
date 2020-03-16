@@ -1,6 +1,7 @@
 package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -101,6 +102,21 @@ public class PathTest extends AbstractParameterizedFSTest {
         final Path path = fileSystem.getPath("de/..");
 
         assertEquals("", path.normalize().toString());
+    }
+
+    @Test
+    public void testPathEquals() {
+		final FileSystem fileSystem = m_connection.getFileSystem();
+		final Path first = fileSystem.getPath("some-dir", "first-file.txt");
+		final Path sameFirst = fileSystem.getPath("some-dir", "first-file.txt");
+		final Path second = fileSystem.getPath("some-dir", "other-file.txt");
+		final Path third = fileSystem.getPath("other-dir", "first-file.txt");
+
+		assertEquals(first, first);
+		assertEquals(first, sameFirst);
+		assertNotEquals(first, second);
+		assertNotEquals(first, third);
+		assertNotEquals(second, third);
     }
 
 }

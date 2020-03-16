@@ -46,73 +46,74 @@
  * History
  *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.testing;
+package org.knime.filehandling.core.testing.local;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import org.knime.filehandling.core.connections.FSConnection;
+import org.apache.commons.io.FileUtils;
+import org.knime.filehandling.core.testing.FSTestInitializer;
 
 /**
- * Interface defining the life cycle management of file system test environments. <br>
- * <br>
- * The parts of the life cycle managed are: <br>
- *  - Open a connection to the file system under test (constructor)<br>
- *  - Create files resolved from the configured test-root<br>
- *  - Setup before the execution of a single test case<br>
- *  - Clean up after the execution of a single test case<br>
- * <br>
- * {@link FSTestInitializer} is only meant to be instantiated from corresponding {@link FSTestInitializerProvider}.
+ * Implementation of a test initializer using the local file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public interface FSTestInitializer {
+public abstract class BasicLocalTestInitializer implements FSTestInitializer {
 
-    /**
-     * Hook called before each test case, allowing each implementation to modify the initializer before each test case.
-     */
-    default public void beforeTestCase() throws IOException {
-        // default: do nothing
-    }
+	private final String m_rootFolder;
+	private Path m_currTempFolder;
 
-    /**
-     * Hook called after each test case, allowing each implementation to modify the initializer after each test case.
-     */
-    default public void afterTestCase() throws IOException {
-        // default: do nothing
-    }
+	protected BasicLocalTestInitializer(final String root) {
+		m_rootFolder = root;
+	}
 
-    /**
-     * Returns the file system connection of this test initializer.
-     *
-     * @return file system connection
-     */
-    public FSConnection getFSConnection();
+	@Override
+	public void beforeTestCase() throws IOException {
+		m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
+	}
 
-    /**
-     * Returns the test root from which all test directories and files are resolved from. The root is read from the
-     * test configuration.
-     *
-     * @return the test root
-     */
-    public Path getRoot();
+	@Override
+	public void afterTestCase() throws IOException {
+		FileUtils.deleteDirectory(m_currTempFolder.toFile());
+	}
 
-    /**
-     * Creates a file with the provided path, starting from the configured root directory.
-     *
-     * @param pathComponents the path components of the file to be created
-     * @return the path to the created file
-     */
-    public Path createFile(String... pathComponents);
+	@Override
+	public Path getRoot() {
+		return m_currTempFolder;
+	}
 
-    /**
-     * Creates a file at the provided path destination, starting from the configured root directory, with the provided
-     * content.
-     *
-     * @param content content to be written to the file
-     * @param pathComponents the path
-     * @return the path to the created file
-     */
-    public Path createFileWithContent(String content, String... pathComponents);
+	@Override
+	public Path createFile(final String... pathComponents) {
+		return createFileWithContent("", pathComponents);
+	}
 
+	@Override
+	public Path createFileWithContent(final String content, final String... pathComponents) {
+		if (pathComponents == null || pathComponents.length == 0) {
+			throw new IllegalArgumentException("path components can not be empty or null");
+		}
+
+		Path directories = m_currTempFolder;
+		for (int i = 0; i < pathComponents.length - 1; i++) {
+			directories = directories.resolve(pathComponents[i]);
+		}
+
+		final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
+		try {
+			Files.createDirectories(directories);
+			Path createdPath = Files.createFile(file);
+			try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
+				writer.write(content);
+			}
+
+			return createdPath;
+		} catch (IOException e) {
+			throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
+		}
+	}
 }

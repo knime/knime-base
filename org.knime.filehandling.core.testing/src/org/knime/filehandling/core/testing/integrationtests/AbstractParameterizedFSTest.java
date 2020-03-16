@@ -1,5 +1,6 @@
 package org.knime.filehandling.core.testing.integrationtests;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -31,12 +32,12 @@ public abstract class AbstractParameterizedFSTest {
 	}
 	
 	@Before
-	public void beforeTestCase() {
+	public void beforeTestCase() throws IOException {
 		m_testInitializer.beforeTestCase();
 	}
 	
 	@After
-	public void afterTestCase() {
+	public void afterTestCase() throws IOException {
 		m_testInitializer.afterTestCase();
 	}
 	

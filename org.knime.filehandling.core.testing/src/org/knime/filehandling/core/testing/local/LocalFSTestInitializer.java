@@ -48,93 +48,28 @@
  */
 package org.knime.filehandling.core.testing.local;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.apache.commons.io.FileUtils;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.LocalFSConnection;
-import org.knime.filehandling.core.testing.FSTestInitializer;
 
 /**
  * Implementation of a local file system test initializer.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalFSTestInitializer implements FSTestInitializer {
+public class LocalFSTestInitializer extends BasicLocalTestInitializer {
 
-	private final String m_rootFolder;
-	private final LocalFSConnection m_connection;
-	private Path m_currTempFolder;
+	private final FSConnection m_connection;
 
     /**
      * Creates a new instance with a test root folder in the systems temporary directory.
      */
     public LocalFSTestInitializer(final String root) {
-    	m_rootFolder = root;
+    	super(root);
     	m_connection = new LocalFSConnection();
     }
-    
-    @Override
-    public void beforeTestCase() {
-    	try {
-    		m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
-    	} catch (IOException e) {
-    		throw new UncheckedIOException("Exception while creating temp folder in the test-root folder", e);
-    	}
-    }
-    
-	@Override
-	public void afterTestCase() {
-		try {
-			FileUtils.deleteDirectory(m_currTempFolder.toFile());
-		} catch (IOException e) {
-			throw new UncheckedIOException("Exception when deleting temp folder in the test-root folder", e);
-		}
-	}
 
     @Override
     public FSConnection getFSConnection() {
         return m_connection;
     }
-    
-    @Override
-    public Path getRoot() {
-    	return m_currTempFolder;
-    }
-
-    @Override
-    public Path createFile(final String... pathComponents) {
-        return createFileWithContent("", pathComponents);
-    }
-    
-    @Override
-    public Path createFileWithContent(final String content, final String... pathComponents) {
-    	if (pathComponents == null || pathComponents.length == 0) {
-    		throw new IllegalArgumentException("path components can not be empty or null");
-    	}
-    	
-    	Path directories = m_currTempFolder;
-    	for (int i = 0; i < pathComponents.length - 1; i++) {
-    		directories = directories.resolve(pathComponents[i]);
-    	}
-    	
-    	final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
-    	try {
-    		Files.createDirectories(directories);
-    		Path createdPath = Files.createFile(file);
-    		try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
-    			writer.write(content);
-    		}
-    		
-    		return createdPath;
-    	} catch (IOException e) {
-    		throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
-    	}
-    }
-
 }
