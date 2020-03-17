@@ -42,48 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knimeremote;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.File;
-import java.nio.file.Path;
+import java.util.Map;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.filechooser.NioFileView;
-import org.osgi.framework.FrameworkUtil;
+import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * FileView that shows a KNIME icon for workflows
+ * Test initializer provider for the local workflow relative file system.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class KNIMERemoteFileView extends NioFileView {
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(KNIMERemoteFileView.class);
+public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    @Override
-    public Icon getIcon(final File f) {
-        final Path path = f.toPath();
-        if (path instanceof KNIMERemotePath) {
-            final KNIMERemotePath knimeRemotePath = (KNIMERemotePath)path;
-            if (knimeRemotePath.isWorkflow()) {
-                try {
-                    final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(getClass()));
-                    final File workflowImage = new File(bundle, "icons/knime_default.png");
-                    return new ImageIcon(workflowImage.getPath());
-                } catch (final Exception e) {
-                    LOGGER.debug(e);
-                }
-            }
-        }
+	private static final String FS_NAME = "relativeToWorkflow";
+	private static final String KNIME_FS_HOST = "knime.workflow";
 
-        return super.getIcon(f);
-    }
+	@Override
+	public FSTestInitializer setup(final Map<String, String> configuration) {
+		return new LocalRelativeToFSTestInitializer(configuration.get("root"), KNIME_FS_HOST);
+	}
 
+	@Override
+	public String getFSType() {
+		return FS_NAME;
+	}
 }

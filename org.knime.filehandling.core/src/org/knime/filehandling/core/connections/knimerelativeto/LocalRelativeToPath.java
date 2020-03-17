@@ -44,55 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23.10.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.filechooser;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import javax.swing.Icon;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileView;
+import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
+ * Local KNIME relative to File System path.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class NioFileView extends FileView {
+public class LocalRelativeToPath extends UnixStylePath<LocalRelativeToFileSystem> {
 
-    /** Directory icon */
-    protected static final Icon DIR_ICON = UIManager.getIcon("FileView.directoryIcon");
-
-    /** File icon */
-    protected static final Icon FILE_ICON = UIManager.getIcon("FileView.fileIcon");
+    /**
+     * Creates an UnixStylePath from the given bucket name and object key
+     *
+     * @param fileSystem the file system
+     * @param first first part of the path
+     * @param more subsequent parts of the path
+     */
+    public LocalRelativeToPath(final LocalRelativeToFileSystem fileSystem, final String first,
+        final String... more) {
+        super(fileSystem, first, more);
+    }
 
     @Override
-    public String getName(final File f) {
-        String name = f.getName();
-        if (name == null || name.length() == 0) {
-            name = f.getPath(); // e.g. "/"
+    public LocalRelativeToPath toAbsolutePath() {
+        if (isAbsolute()) {
+            return this;
+        } else {
+            return (LocalRelativeToPath) getFileSystem().getWorkingDirectory().resolve(this);
         }
-        return name;
     }
 
     @Override
-    public String getDescription(final File f) {
-        return getName(f);
+    public LocalRelativeToPath createPath(final String pathString, final String... more) {
+        return new LocalRelativeToPath(m_fileSystem, pathString, more);
     }
 
-    @Override
-    public String getTypeDescription(final File f) {
-        return null;
+    /**
+     * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
+     */
+    public Path toAbsoluteLocalPath() {
+        final Path absolutePath = toAbsolutePath();
+        return Paths.get(getFileSystem().getCurrentMountpointFolder().toString(), absolutePath.toString());
     }
-
-    @Override
-    public Icon getIcon(final File f) {
-        return f.isDirectory() ? DIR_ICON : FILE_ICON;
-    }
-
-    @Override
-    public Boolean isTraversable(final File f) {
-        return f.isDirectory();
-    }
-
 }

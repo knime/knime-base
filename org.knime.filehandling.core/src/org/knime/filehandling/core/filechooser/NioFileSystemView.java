@@ -257,8 +257,12 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public File createNewFolder(final File containingDir) throws IOException {
-        final Path newFolder = m_fileSystem.getPath(containingDir.getPath(), "newFolder/");
-        Files.createDirectory(newFolder);
+        final Path newFolder = m_fileSystem.getPath(containingDir.getPath(), "newFolder");
+        if (Files.exists(newFolder)) {
+            throw new IOException("Directory 'newFolder' already exists.");
+        } else {
+            Files.createDirectory(newFolder);
+        }
         return newFolder.toFile();
     }
 

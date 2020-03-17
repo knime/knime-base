@@ -44,45 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 16, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knime;
+package org.knime.filehandling.core.connections.base;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
-import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToPath;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
+import org.knime.filehandling.core.filechooser.NioFileView;
+import org.osgi.framework.FrameworkUtil;
 
 /**
- * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a KNIME File System.
+ * FileView that shows a KNIME icon for workflows
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH, Konstanz, Germany
  */
-public class KNIMEFileSystemBrowser extends NioFileSystemBrowser {
+public class BaseFileView extends NioFileView {
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(BaseFileView.class);
 
-    private final Path m_baseLocation;
+    private Icon m_workflowIcon = null;
 
-    /**
-     * Creates a new KNIME File System Browser with a view and base location.
-     *
-     * @param fileSystemView the view of the file system
-     * @param baseLocation the base location, i.e. workflow location or mount point location
-     */
-    public KNIMEFileSystemBrowser(final NioFileSystemView fileSystemView, final Path baseLocation) {
-        super(fileSystemView);
-        m_baseLocation = baseLocation;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected String postprocessSelectedFilePath(final String selectedFile) {
-        Path path = Paths.get(selectedFile);
-        Path relativized = m_baseLocation.relativize(path);
-        return relativized.toString();
+    public Icon getIcon(final File f) {
+        try {
+            final Icon workflowIcon = getWorkflowIcon();
+            final Path path = f.toPath();
+
+            if (workflowIcon != null && path instanceof LocalRelativeToPath) {
+                final LocalRelativeToPath relativePath = (LocalRelativeToPath)path;
+                if (relativePath.getFileSystem().isWorkflow(relativePath)) {
+                    return workflowIcon;
+                }
+
+            } else if (workflowIcon != null && path instanceof KNIMERemotePath) {
+                final KNIMERemotePath knimeRemotePath = (KNIMERemotePath)path;
+                if (knimeRemotePath.isWorkflow()) {
+                    return workflowIcon;
+                }
+            }
+
+        } catch (final IOException e) {
+            // something went wrong, use default icon
+            LOGGER.debug(e);
+            throw new UncheckedIOException(e);
+        }
+
+        return super.getIcon(f);
     }
 
+    /**
+     * Try to load the workflow icon from the bundle.
+     *
+     * @return Workflow icon or {@code null}
+     */
+    private synchronized Icon getWorkflowIcon() throws IOException {
+        if (m_workflowIcon == null) {
+            final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(BaseFileView.class));
+            final File workflowImage = new File(bundle, "icons/knime_default.png");
+            m_workflowIcon = new ImageIcon(workflowImage.getPath());
+        }
+
+        return m_workflowIcon;
+    }
 }

@@ -55,7 +55,7 @@ import java.nio.file.FileSystems;
 import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemProvider;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
 import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
@@ -108,7 +108,7 @@ public class FileSystemHelper {
                 final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
 
                 final URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
-                toReturn = KNIMEFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
+                toReturn = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsKey);
                 break;
             case CONNECTED_FS:
                 toReturn = fs

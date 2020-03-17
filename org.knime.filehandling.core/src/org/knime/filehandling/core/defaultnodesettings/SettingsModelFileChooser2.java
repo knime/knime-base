@@ -421,10 +421,16 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
             throw new InvalidSettingsException("No location provided! Please enter a valid location.");
         }
         config.getString(FILE_SYSTEM_KEY);
-        config.getString(KNIME_FILESYSTEM_KEY);
+        final String knimeFs = config.getString(KNIME_FILESYSTEM_KEY);
         config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY);
         config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
         m_fileFilterSettings.validate(config);
+
+        // node relative path support was removed in AP-13650
+        if (knimeFs != null && knimeFs.equals("knime.node")) {
+            throw new InvalidSettingsException(
+                "Path relative to node is not supported anymore, use a workflow relative path instead.");
+        }
     }
 
     @Override

@@ -42,57 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   23.10.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.filechooser;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.File;
+import java.util.Map;
 
-import javax.swing.Icon;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileView;
+import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
+ * Test initializer provider for the local mountpoint relative file system.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class NioFileView extends FileView {
+public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    /** Directory icon */
-    protected static final Icon DIR_ICON = UIManager.getIcon("FileView.directoryIcon");
+	private static final String FS_NAME = "relativeToMountpoint";
+	private static final String KNIME_FS_HOST = "knime.mountpoint";
 
-    /** File icon */
-    protected static final Icon FILE_ICON = UIManager.getIcon("FileView.fileIcon");
+	@Override
+	public FSTestInitializer setup(final Map<String, String> configuration) {
+		return new LocalRelativeToFSTestInitializer(configuration.get("root"), KNIME_FS_HOST);
+	}
 
-    @Override
-    public String getName(final File f) {
-        String name = f.getName();
-        if (name == null || name.length() == 0) {
-            name = f.getPath(); // e.g. "/"
-        }
-        return name;
-    }
-
-    @Override
-    public String getDescription(final File f) {
-        return getName(f);
-    }
-
-    @Override
-    public String getTypeDescription(final File f) {
-        return null;
-    }
-
-    @Override
-    public Icon getIcon(final File f) {
-        return f.isDirectory() ? DIR_ICON : FILE_ICON;
-    }
-
-    @Override
-    public Boolean isTraversable(final File f) {
-        return f.isDirectory();
-    }
-
+	@Override
+	public String getFSType() {
+		return FS_NAME;
+	}
 }

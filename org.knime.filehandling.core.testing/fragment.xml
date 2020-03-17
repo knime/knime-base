@@ -13,5 +13,16 @@
             ProviderClass="org.knime.filehandling.core.testing.local.LocalFSTestInitializerProvider">
       </FSTestInitializerProvider>
    </extension>
-
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
 </fragment>

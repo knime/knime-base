@@ -45,9 +45,11 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 	@Test
 	public void test_list_emtpy_directory() throws Exception {
 		Path directory = m_testInitializer.getRoot();
+		// root directory might contains files (e.g. workflows), use a fresh empty directory
+		Path emptyDirectory = Files.createDirectories(directory.resolve("empty-directory"));
 		
 		List<Path> paths = new ArrayList<>();
-		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory, (path) -> true)) {
+		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(emptyDirectory, (path) -> true)) {
 			directoryStream.forEach(paths::add);
 		}
 		

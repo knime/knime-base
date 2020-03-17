@@ -109,14 +109,13 @@ public class NioFileSystemBrowser extends AbstractJFileChooserBrowser {
     }
 
     /**
-     * {@inheritDoc}
+     * Create a file with a normalized absolute path, this ensures that a path equals and
+     * sun.awt.shell.ShellFolder#getNormalizedFile(File) does not create a new {@link File} using an URI.
      */
     @Override
     protected File createFileFromPath(final String filePath) {
         try {
-            File file = m_fileSystemView.createFileObject(filePath);
-            file.getAbsolutePath(); // This is called to verify that the created file is absolute
-            return file;
+            return m_fileSystemView.createFileObject(filePath).toPath().toAbsolutePath().normalize().toFile();
         } catch (Exception ex) {
             // returning null instead of throwing an exception will ensure the default directory is opened on browse
             return null;

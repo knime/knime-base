@@ -58,7 +58,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
 import java.util.Optional;
 import java.util.function.IntSupplier;
 
@@ -88,17 +87,15 @@ import org.knime.core.ui.node.workflow.RemoteWorkflowContext;
 import org.knime.core.ui.node.workflow.WorkflowManagerUI;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystem;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystemBrowser;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystemProvider;
-import org.knime.filehandling.core.connections.knime.KNIMEFileSystemView;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemBrowser;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemProvider;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystem;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemBrowser;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemView;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2.FileOrFolderEnum;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
 import org.knime.filehandling.core.filefilter.FileFilterPanel;
 import org.knime.filehandling.core.port.FileSystemPortObject;
@@ -516,11 +513,13 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 break;
             case KNIME_FS:
                 final KNIMEConnection knimeConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
+                final URI fsUri = URI.create(knimeConnection.getType().getSchemeAndHost());
 
-                try (FileSystem fileSystem = getFileSystem(knimeConnection)) {
-                    final NioFileSystemView fsView = new KNIMEFileSystemView((KNIMEFileSystem)fileSystem);
-                    m_fileHistoryPanel.setFileSystemBrowser(
-                        new KNIMEFileSystemBrowser(fsView, ((KNIMEFileSystem)fileSystem).getBasePath()));
+                try {
+                    @SuppressWarnings("resource")
+                    final LocalRelativeToFileSystem fileSystem =
+                        LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsUri);
+                    m_fileHistoryPanel.setFileSystemBrowser(new LocalRelativeToFileSystemBrowser(fileSystem));
                     m_statusMessage.setText("");
                     m_fileHistoryPanel.setEnabled(true);
                     m_fileHistoryPanel.setBrowseable(true);
@@ -595,11 +594,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             m_statusMessage.setText(
                 String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
         }
-    }
-
-    private static FileSystem getFileSystem(final KNIMEConnection knimeConnection) throws IOException {
-        final URI fsKey = URI.create(knimeConnection.getType().getSchemeAndHost());
-        return KNIMEFileSystemProvider.getInstance().getOrCreateFileSystem(fsKey);
     }
 
     /** Method called if file filter configuration button is clicked */
@@ -849,8 +843,6 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         } else if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
             knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
             knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
-            knimeConnectionsModel.addElement(KNIMEConnection.NODE_RELATIVE_CONNECTION);
-
             knimeConnectionsModel.setSelectedItem(KNIMEConnection.getConnection(model.getKNIMEFileSystem()));
         }
         m_ignoreUpdates = false;

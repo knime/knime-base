@@ -42,57 +42,64 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   23.10.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.filechooser;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.File;
-
-import javax.swing.Icon;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileView;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
+import java.nio.file.Path;
+import java.util.Iterator;
 
 /**
+ * Iterates over all the files and folders of the path on a local KNIME relative to File System.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class NioFileView extends FileView {
+public class LocalRelativeToPathIterator implements Iterator<Path> {
 
-    /** Directory icon */
-    protected static final Icon DIR_ICON = UIManager.getIcon("FileView.directoryIcon");
+    private Iterator<LocalRelativeToPath> m_iterator;
 
-    /** File icon */
-    protected static final Icon FILE_ICON = UIManager.getIcon("FileView.fileIcon");
+    /**
+     * Creates an iterator over all the files and folder in the given paths location.
+     *
+     * @param knimePath destination to iterate over
+     * @param filter
+     * @throws IOException on I/O errors
+     */
+    public LocalRelativeToPathIterator(final LocalRelativeToPath knimePath, final Filter<? super Path> filter) throws IOException {
 
-    @Override
-    public String getName(final File f) {
-        String name = f.getName();
-        if (name == null || name.length() == 0) {
-            name = f.getPath(); // e.g. "/"
+        if (!Files.isDirectory(knimePath)) {
+            throw new NotDirectoryException(knimePath.toString());
         }
-        return name;
+
+        try {
+            m_iterator = Files.list(knimePath.toAbsoluteLocalPath())
+                .map(p -> (LocalRelativeToPath)knimePath.resolve(p.getFileName().toString())).filter(p -> {
+                    try {
+                        return filter.accept(p);
+                    } catch (final IOException ex) { // wrap exception
+                        throw new UncheckedIOException(ex);
+                    }
+                }).iterator();
+        } catch (final UncheckedIOException ex) { // unwrap exception
+            if (ex.getCause() != null) {
+                throw ex.getCause();
+            } else {
+                throw ex;
+            }
+        }
     }
 
     @Override
-    public String getDescription(final File f) {
-        return getName(f);
+    public boolean hasNext() {
+        return m_iterator.hasNext();
     }
 
     @Override
-    public String getTypeDescription(final File f) {
-        return null;
+    public Path next() {
+        return m_iterator.next();
     }
-
-    @Override
-    public Icon getIcon(final File f) {
-        return f.isDirectory() ? DIR_ICON : FILE_ICON;
-    }
-
-    @Override
-    public Boolean isTraversable(final File f) {
-        return f.isDirectory();
-    }
-
 }

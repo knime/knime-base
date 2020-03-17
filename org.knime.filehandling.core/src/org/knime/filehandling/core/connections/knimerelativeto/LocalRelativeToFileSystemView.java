@@ -44,55 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23.10.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.filechooser;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.File;
-
-import javax.swing.Icon;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileView;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
+ * Local KNIME relative to File System view.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class NioFileView extends FileView {
+public class LocalRelativeToFileSystemView extends NioFileSystemView {
 
-    /** Directory icon */
-    protected static final Icon DIR_ICON = UIManager.getIcon("FileView.directoryIcon");
-
-    /** File icon */
-    protected static final Icon FILE_ICON = UIManager.getIcon("FileView.fileIcon");
-
-    @Override
-    public String getName(final File f) {
-        String name = f.getName();
-        if (name == null || name.length() == 0) {
-            name = f.getPath(); // e.g. "/"
-        }
-        return name;
+    /**
+     * Constructs a new local KNIME relative to File System View.
+     *
+     * @param fileSystem the file system to wrap the view around
+     */
+    public LocalRelativeToFileSystemView(final LocalRelativeToFileSystem fileSystem) {
+        super(fileSystem, fileSystem.getWorkingDirectory());
     }
-
-    @Override
-    public String getDescription(final File f) {
-        return getName(f);
-    }
-
-    @Override
-    public String getTypeDescription(final File f) {
-        return null;
-    }
-
-    @Override
-    public Icon getIcon(final File f) {
-        return f.isDirectory() ? DIR_ICON : FILE_ICON;
-    }
-
-    @Override
-    public Boolean isTraversable(final File f) {
-        return f.isDirectory();
-    }
-
 }

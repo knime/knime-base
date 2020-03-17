@@ -70,11 +70,6 @@ public class KNIMEConnection {
      */
     public enum Type {
             /**
-             * knime://knime.node/
-             */
-            NODE_RELATIVE("knime://knime.node"),
-
-            /**
              * knime://knime.workflow/
              */
             WORKFLOW_RELATIVE("knime://knime.workflow"),
@@ -105,10 +100,6 @@ public class KNIMEConnection {
         }
     }
 
-    /** KNIME node relative connection */
-    public static final KNIMEConnection NODE_RELATIVE_CONNECTION =
-        new KNIMEConnection(Type.NODE_RELATIVE, "Current node", "knime.node");
-
     /** KNIME workflow relative connection */
     public static final KNIMEConnection WORKFLOW_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Current workflow", "knime.workflow");
@@ -120,7 +111,6 @@ public class KNIMEConnection {
     /** Map of all available connections */
     private static final Map<String, KNIMEConnection> CONNECTIONS = new HashMap<>();
     static {
-        CONNECTIONS.put(NODE_RELATIVE_CONNECTION.getId(), NODE_RELATIVE_CONNECTION);
         CONNECTIONS.put(WORKFLOW_RELATIVE_CONNECTION.getId(), WORKFLOW_RELATIVE_CONNECTION);
         CONNECTIONS.put(MOUNTPOINT_RELATIVE_CONNECTION.getId(), MOUNTPOINT_RELATIVE_CONNECTION);
     }
@@ -222,8 +212,6 @@ public class KNIMEConnection {
      */
     public static KNIMEConnection.Type connectionTypeForHost(final String host) {
         switch (host) {
-            case "knime.node":
-                return KNIMEConnection.Type.NODE_RELATIVE;
             case "knime.workflow":
                 return KNIMEConnection.Type.WORKFLOW_RELATIVE;
             case "knime.mountpoint":

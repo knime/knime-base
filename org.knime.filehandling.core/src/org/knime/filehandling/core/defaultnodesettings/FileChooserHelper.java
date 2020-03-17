@@ -50,8 +50,6 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -69,7 +67,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knime.KNIMEPath;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
@@ -232,7 +230,7 @@ public final class FileChooserHelper {
                 break;
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
-                validateKNIMERelativePath(pathOrUrl);
+                validateKNIMERelativePath((LocalRelativeToFileSystem)getFileSystem(), pathOrUrl);
                 break;
             case KNIME_MOUNTPOINT:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
@@ -305,25 +303,13 @@ public final class FileChooserHelper {
         }
     }
 
-    private static void validateKNIMERelativePath(final Path path) throws InvalidSettingsException {
-        if (path instanceof KNIMEPath) {
-            final String pathAsString = path.toString();
-            if (pathAsString.startsWith("\\") || pathAsString.startsWith("/")) {
-                throw new InvalidSettingsException("The path must be relative (cannot start with a leading slash).");
-            }
-
-            if (path.isAbsolute()) {
-                throw new InvalidSettingsException("The path must be relative");
-            }
-
-            final KNIMEPath knimePath = (KNIMEPath)path;
-            final URL url = knimePath.getURL();
-            try {
-                // This called to check if the URL can be resolved, will throw an exception if not!
-                FileUtil.resolveToPath(url);
-            } catch (IOException | URISyntaxException ex) {
-                throw new InvalidSettingsException(ex.getMessage());
-            }
+    private static void validateKNIMERelativePath(final LocalRelativeToFileSystem fs, final Path path) throws InvalidSettingsException {
+        if (fs.isWorkflowRelativeFileSystem() && path.isAbsolute()) {
+            throw new InvalidSettingsException(
+                "Workflow relative path must be relative (cannot start with a leading slash).");
+        } else if (!fs.isWorkflowRelativeFileSystem() && !path.isAbsolute()) {
+            throw new InvalidSettingsException(
+                "Mountpoint relative path must be absolute (start with a leading slash).");
         }
     }
 
@@ -334,17 +320,6 @@ public final class FileChooserHelper {
      */
     public final SettingsModelFileChooser2 getSettingsModel() {
         return m_settings.clone();
-    }
-
-    /**
-     * Checks whether a given path is a {@link KNIMEPath}.
-     *
-     * @param path path under test
-     * @return true if the path is an instance of KNIMEPath
-     */
-    @SuppressWarnings("static-method")
-    public boolean isKNIMERelativePath(final Path path) {
-        return path instanceof KNIMEPath;
     }
 
     private static boolean isOnServer(final WorkflowContext context) {

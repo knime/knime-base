@@ -44,26 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 16, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.knime;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+import javax.swing.filechooser.FileView;
+
+import org.knime.filehandling.core.connections.base.BaseFileView;
+import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 
 /**
- * This class is needed to handle the creation of file objects resolved against the file systems base location.
+ * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative to File System.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class KNIMEFileSystemView extends NioFileSystemView {
+public class LocalRelativeToFileSystemBrowser extends NioFileSystemBrowser {
+    private final LocalRelativeToFileSystem m_fileSystem;
 
     /**
-     * Constructs a new KNIME File System View.
+     * Creates a new local KNIME relative to File System Browser with a view and base location.
      *
-     * @param fileSystem the file system to wrap the view around
+     * @param fileSystem the file system to use
      */
-    public KNIMEFileSystemView(final KNIMEFileSystem fileSystem) {
-        super(fileSystem, fileSystem.getBasePath());
+    public LocalRelativeToFileSystemBrowser(final LocalRelativeToFileSystem fileSystem) {
+        super(new LocalRelativeToFileSystemView(fileSystem));
+        m_fileSystem = fileSystem;
     }
 
+    @Override
+    protected FileView getFileView() {
+        return new BaseFileView();
+    }
+
+    /**
+     * Convert the selected file to a relative path in workflow relative mode.
+     */
+    @Override
+    protected String postprocessSelectedFilePath(final String selectedFile) {
+        if (m_fileSystem.isWorkflowRelativeFileSystem()) {
+            return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+        } else {
+            return selectedFile;
+        }
+    }
 }

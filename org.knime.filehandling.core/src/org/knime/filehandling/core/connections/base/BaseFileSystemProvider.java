@@ -275,7 +275,7 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
      *
      * @param path the path to check
      * @return whether the path exists
-     * @throws IOException if IO error occurs
+     * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
      */
     protected abstract boolean exists(final Path path) throws IOException;
 

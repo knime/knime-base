@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections.knimeremote;
 
 import javax.swing.filechooser.FileView;
 
+import org.knime.filehandling.core.connections.base.BaseFileView;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
@@ -73,6 +74,6 @@ public class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
      */
     @Override
     protected FileView getFileView() {
-        return new KNIMERemoteFileView();
+        return new BaseFileView();
     }
 }
