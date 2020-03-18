@@ -55,7 +55,9 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -88,16 +90,17 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
      */
     public FSTempFileSeekableByteChannel(final T file, final Set<? extends OpenOption> options) throws IOException {
         m_file = file;
-        m_tempFile =
-            Files.createTempFile(String.format("tempFSfile-%s-", UUID.randomUUID().toString().replace('-', '_')),
-                m_file.getFileName().toString());
-        //FIXME we just need a path here.
-        Files.delete(m_tempFile);
-        if (options.contains(StandardOpenOption.APPEND)) {
+        final String tmpDir = System.getProperty("java.io.tmpdir");
+        m_tempFile = Paths.get(tmpDir, String.format("tempFSfile-%s-%s", UUID.randomUUID().toString().replace('-', '_'),
+            m_file.getFileName().toString()));
+
+        if (options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.READ)) {
             copyFromRemote(m_file, m_tempFile);
         }
-        m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, options);
-        if(file.getFileSystem() instanceof BaseFileSystem) {
+        final Set<OpenOption> opts = new HashSet<>(options);
+        opts.add(StandardOpenOption.CREATE);
+        m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, opts);
+        if (file.getFileSystem() instanceof BaseFileSystem) {
             ((BaseFileSystem)file.getFileSystem()).addCloseable(this);
         }
     }
