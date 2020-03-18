@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
@@ -73,6 +74,19 @@ public final class FSLocation {
     /** The actual path to the file/folder. */
     private final String m_path;
 
+    private Integer m_hashCode;
+
+    /**
+     * Represents the null object for {@link FSLocation}.
+     */
+    public static final FSLocation NULL = new FSLocation();
+
+    private FSLocation() {
+        m_fileSystemType = null;
+        m_fileSystemSpecifier = Optional.empty();
+        m_path = null;
+    }
+
     /**
      * Constructor.
      *
@@ -92,11 +106,9 @@ public final class FSLocation {
      * @throws IllegalArgumentException if {@code fsType} or {@code path} is {@code null}
      */
     public FSLocation(final String fsType, final String fsSpecifier, final String path) {
-        CheckUtils.checkArgumentNotNull(fsType, "The file system type must not be null.");
-        CheckUtils.checkArgumentNotNull(fsType, "The path must not be null.");
-        m_fileSystemType = fsType;
+        m_fileSystemType = CheckUtils.checkArgumentNotNull(fsType, "The file system type must not be null.");
         m_fileSystemSpecifier = Optional.ofNullable(fsSpecifier);
-        m_path = path;
+        m_path = CheckUtils.checkArgumentNotNull(path, "The path must not be null.");
     }
 
     /**
@@ -137,17 +149,16 @@ public final class FSLocation {
 
     @Override
     public String toString() {
-        return m_path;
+        return this == NULL ? "NULL" : m_path;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + m_fileSystemSpecifier.map(s -> s.hashCode()).orElse(0);
-        result = prime * result + ((m_fileSystemType == null) ? 0 : m_fileSystemType.hashCode());
-        result = prime * result + ((m_path == null) ? 0 : m_path.hashCode());
-        return result;
+        if (m_hashCode == null) {
+            m_hashCode = new HashCodeBuilder().append(m_fileSystemType).append(m_fileSystemSpecifier).append(m_path)
+                .toHashCode();
+        }
+        return m_hashCode;
     }
 
     @Override
