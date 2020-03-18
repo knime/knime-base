@@ -51,5 +51,11 @@
          </renderer>
       </dataValue>
    </extension>
+   <extension
+         point="org.knime.core.FlowVariableType">
+      <VariableType
+            extension="org.knime.filehandling.core.data.location.variable.FSLocationVariableType$FSLocationVariableTypeExtension">
+      </VariableType>
+   </extension>
 
 </plugin>
