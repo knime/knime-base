@@ -67,18 +67,18 @@
 			URLs).
 		</option>
 		<option name="Timeout (ms)">
-			Timeout in milliseconds when reading remote files.
+			Timeout in milliseconds when connecting to remote resources / reading
+			remote files.
 			<tt>0</tt>
 			means no
-			timeout. In case it takes longer to connect to the host, the
+			timeout. In case it takes longer to connect to the host /
+			read the file, the
 			node fails to
 			execute.
 			<br />
 			<i>Note</i>
 			: This option is only active in case that the
 			<i>Custom URL</i>
-			or
-			<i>Relative to</i>
 			file system is selected. Other file
 			systems don't use a timeout or the
 			timeout is set directly in the specific

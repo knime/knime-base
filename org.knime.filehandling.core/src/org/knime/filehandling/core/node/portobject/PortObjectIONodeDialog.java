@@ -167,8 +167,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
     protected void updateFileChooserBasedEnabledness(final SettingsModelFileChooser2 model) {
         // Enable/Disable timeout spinner
         final FileSystemChoice choice = model.getFileSystemChoice();
-        m_timeoutSpinner.getModel().setEnabled(FileSystemChoice.getCustomFsUrlChoice().equals(choice)
-            || FileSystemChoice.getKnimeFsChoice().equals(choice));
+        m_timeoutSpinner.getModel().setEnabled(FileSystemChoice.getCustomFsUrlChoice().equals(choice));
     }
 
     final void finalizeOptionsPanel() {
