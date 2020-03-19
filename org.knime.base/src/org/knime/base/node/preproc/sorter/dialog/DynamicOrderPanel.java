@@ -52,8 +52,6 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -118,12 +116,9 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
         m_addButton = new JButton();
         m_addButton.setIcon(SharedIcons.ADD_PLUS.get());
         m_addButton.setText("Add Rule");
-        m_addButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                if (m_addButton.isEnabled()) {
-                    addItem();
-                }
+        m_addButton.addActionListener(e -> {
+            if (m_addButton.isEnabled()) {
+                addItem();
             }
         });
         m_addButton.setAlignmentX(Component.CENTER_ALIGNMENT);

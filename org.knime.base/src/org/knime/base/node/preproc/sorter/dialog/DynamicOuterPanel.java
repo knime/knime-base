@@ -53,8 +53,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -176,30 +174,22 @@ final class DynamicOuterPanel<T extends DynamicPanelItem> {
 
     private JPanel createControlPanel() {
         final DynamicOuterPanel<T> outerPanel = this;
-        m_upButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                if (m_upButton.isEnabled()) {
-                    m_parent.moveItem(outerPanel, true);
-                }
+
+        m_upButton.addActionListener(e -> {
+            if (m_upButton.isEnabled()) {
+                m_parent.moveItem(outerPanel, true);
             }
         });
 
-        m_downButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                if (m_downButton.isEnabled()) {
-                    m_parent.moveItem(outerPanel, false);
-                }
+        m_downButton.addActionListener(e -> {
+            if (m_downButton.isEnabled()) {
+                m_parent.moveItem(outerPanel, false);
             }
         });
 
-        m_deleteButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                if (m_deleteButton.isEnabled()) {
-                    m_parent.removeItem(outerPanel);
-                }
+        m_deleteButton.addActionListener(e -> {
+            if (m_deleteButton.isEnabled()) {
+                m_parent.removeItem(outerPanel);
             }
         });
 
