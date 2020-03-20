@@ -310,13 +310,16 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        final UnixStylePath<T> unixPath = (UnixStylePath<T>)other;
-        int otherIndex = other.getNameCount();
-        int index = getNameCount();
-        if (index < otherIndex) {
+        if (other.getNameCount() == 0 && getNameCount() > 0) {
             return false;
         }
+
+        @SuppressWarnings("unchecked")
+        final UnixStylePath<T> unixPath = (UnixStylePath<T>)other;
+
+        int otherIndex = other.getNameCount();
+        int index = getNameCount();
+
         boolean endsWith = true;
         while (otherIndex > 0) {
             index--;

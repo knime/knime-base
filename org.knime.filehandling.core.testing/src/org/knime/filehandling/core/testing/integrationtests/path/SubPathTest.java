@@ -16,7 +16,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void testesubPath() {
+    public void testSubpath() {
         final String that = "/0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -25,7 +25,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void testesubPath2() {
+    public void testSubpath2() {
         final String that = "/0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -34,7 +34,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void testesubPath2a() {
+    public void testSubpath2a() {
         final String that = "0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -43,7 +43,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void testesubPath3() {
+    public void testSubpath3() {
         final String that = "/ii";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -52,7 +52,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testesubPath4() {
+    public void testSubpath4() {
         final String that = "/0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -61,7 +61,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testesubPath5() {
+    public void testSubpathBeginAfterEnd() {
         final String that = "/0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -69,13 +69,31 @@ public class SubPathTest extends AbstractParameterizedFSTest {
         path.subpath(2, 1);
     }
 
-    @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
-    public void testesubPath6() {
+    public void testSubpathBeginAfterEnd2() {
         final String that = "/0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
 
         path.subpath(4, 0);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testSubpathBeginEqualsEnd() {
+        final String that = "/0/1/2/3";
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath(that);
+
+        path.subpath(0, 0);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testSubpathEndTooHigh() {
+        final String that = "/0/1/2/3";
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath(that);
+
+        path.subpath(0, 5);
+    }
+
 }
