@@ -122,7 +122,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
 
     /**
      * Concatenates the given path segments with the path separator as delimiter, ignoring empty segments.
-     * 
+     *
      * @param separator the file system specific separator
      * @param first first part of the path
      * @param more subsequent parts of the path
@@ -314,15 +314,18 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         final UnixStylePath<T> unixPath = (UnixStylePath<T>)other;
         int otherIndex = other.getNameCount();
         int index = getNameCount();
-
+        if (index < otherIndex) {
+            return false;
+        }
         boolean endsWith = true;
-        while (otherIndex >= 0) {
+        while (otherIndex > 0) {
+            index--;
+            otherIndex--;
             if (!m_pathParts.get(index).equals(unixPath.m_pathParts.get(otherIndex))) {
                 endsWith = false;
                 break;
             }
-            index--;
-            otherIndex--;
+
         }
 
         return endsWith;

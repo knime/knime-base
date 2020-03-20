@@ -89,15 +89,73 @@ public class PathTest extends AbstractParameterizedFSTest {
     }
 
     @Test
+    public void testRealtivizeRealtiveWithEmptyPath() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = "as/de/";
+        final String other = "";
+        final Path path = fileSystem.getPath(that);
+        final Path otherPath = fileSystem.getPath(other);
+
+        final Path backForth = path.relativize(path.resolve(other));
+        assertEquals(otherPath, backForth);
+    }
+
+    @Test
+    public void testRealtivizeRealtiveEmptyPath() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = "";
+        final String other = "as/de/";
+        final Path path = fileSystem.getPath(that);
+        final Path otherPath = fileSystem.getPath(other);
+
+        final Path backForth = path.relativize(path.resolve(other));
+        assertEquals(otherPath.toString(), backForth.toString());
+    }
+
+    @Test
     public void testNormalize() {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath("/a/b/../../abc/././de/");
+        final Path path = fileSystem.getPath("/a/b/../../abc/././de");
 
         assertEquals("/abc/de", path.normalize().toString());
     }
 
     @Test
+    public void testNormalizeAbsolute() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/../b");
+
+        assertEquals("/b", path.normalize().toString());
+    }
+
+    @Test
+    public void testNormalizeAbsolute2() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/../../b");
+
+        assertEquals("/b", path.normalize().toString());
+    }
+
+    @Test
+    public void testNormalizeRelative() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("../b");
+
+        assertEquals("../b", path.normalize().toString());
+    }
+
+    @Test
+    public void testNormalizeRelative2() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("../../b");
+
+        assertEquals("../../b", path.normalize().toString());
+    }
+
+    @Test
     public void testNormalizeToEmpty() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath("de/..");
 
@@ -106,17 +164,127 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testPathEquals() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
-		final Path first = fileSystem.getPath("some-dir", "first-file.txt");
-		final Path sameFirst = fileSystem.getPath("some-dir", "first-file.txt");
-		final Path second = fileSystem.getPath("some-dir", "other-file.txt");
-		final Path third = fileSystem.getPath("other-dir", "first-file.txt");
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path first = fileSystem.getPath("some-dir", "first-file.txt");
+        final Path sameFirst = fileSystem.getPath("some-dir", "first-file.txt");
+        final Path second = fileSystem.getPath("some-dir", "other-file.txt");
+        final Path third = fileSystem.getPath("other-dir", "first-file.txt");
 
-		assertEquals(first, first);
-		assertEquals(first, sameFirst);
-		assertNotEquals(first, second);
-		assertNotEquals(first, third);
-		assertNotEquals(second, third);
+        assertEquals(first, first);
+        assertEquals(first, sameFirst);
+        assertNotEquals(first, second);
+        assertNotEquals(first, third);
+        assertNotEquals(second, third);
+    }
+
+    public void testNormalizeToEmpty2() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath(".");
+
+        assertEquals("", path.normalize().toString());
+    }
+
+    public void testNormalizeToEmpty2BlobStore() {
+        ignoreAllExcept(S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath(".");
+
+        assertEquals("/", path.normalize().toString());
+    }
+
+    @Test
+    public void testEquals() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = "as/de/";
+        final String other = "as/de";
+        final Path path = fileSystem.getPath(that);
+        final Path otherPath = fileSystem.getPath(other);
+
+        assertEquals(path, otherPath);
+    }
+
+    @Test
+    public void testNotEqualRealtiveAndAbsolutPath() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = "/abcd";
+        final String other = "abcd";
+        final Path path = fileSystem.getPath(that);
+        final Path otherPath = fileSystem.getPath(other);
+
+        assertNotEquals(path, otherPath);
+    }
+
+    @Test
+    public void testGetParent() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/a/b/c/d");
+
+        assertEquals(fileSystem.getPath("/a/b/c/"), path.getParent());
+    }
+
+    @Test
+    public void testGetParentRelative() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("a/b/c/d");
+
+        assertEquals(fileSystem.getPath("a/b/c/"), path.getParent());
+    }
+
+    @Test
+    public void testGetParentRelativeToNull() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("");
+
+        assertEquals(null, path.getParent());
+    }
+
+    @Test
+    public void testGetParentAbsolutToNull2() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/");
+
+        assertEquals(null, path.getParent());
+    }
+
+    @Test
+    public void testGetFileName() {
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/abc/de");
+
+        assertEquals("de", path.getFileName().toString());
+    }
+
+    @Test
+    public void testGetFileNameEmpty() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("");
+
+        assertEquals("", path.getFileName().toString());
+    }
+
+    @Test
+    public void testGetName() {
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/abc/de/fg");
+
+        assertEquals("abc", path.getName(0).toString());
+        assertEquals("de", path.getName(1).toString());
+        assertEquals("fg", path.getName(2).toString());
+    }
+
+    @Test
+    public void testGetNameBlobStore() {
+        ignoreAllExcept(S3);
+        final FileSystem fileSystem = m_connection.getFileSystem();
+        final Path path = fileSystem.getPath("/abc/de/fg");
+
+        assertEquals("abc/", path.getName(0).toString());
+        assertEquals("de/", path.getName(1).toString());
+        assertEquals("fg", path.getName(2).toString());
     }
 
 }

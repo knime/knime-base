@@ -12,7 +12,11 @@ import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.D
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.InputStreamTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.MoveTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.OutputStreamTest;
+import org.knime.filehandling.core.testing.integrationtests.path.CompareTest;
+import org.knime.filehandling.core.testing.integrationtests.path.EndsStartsWithTest;
 import org.knime.filehandling.core.testing.integrationtests.path.PathTest;
+import org.knime.filehandling.core.testing.integrationtests.path.SubPathTest;
+import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
@@ -25,6 +29,11 @@ import org.knime.filehandling.core.testing.integrationtests.path.PathTest;
 	InputStreamTest.class,
 	MoveTest.class,
 	PathTest.class,
+	SubPathTest.class,
+	PathTest.class,
+	ToStringTest.class,
+	EndsStartsWithTest.class,
+	CompareTest.class,
 	OutputStreamTest.class
 })
 public class FSIntegrationTestSuite {

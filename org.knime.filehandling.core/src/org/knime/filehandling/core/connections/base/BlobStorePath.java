@@ -156,7 +156,7 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
     @Override
     public String toString() {
         String toString = super.toString();
-        if (isDirectory() && !toString.isEmpty()) {
+        if (isDirectory() && !m_pathParts.isEmpty()) {
             toString = toString.concat(m_pathSeparator);
         }
         return toString;
