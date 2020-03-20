@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<fragment>
+     <extension
+         point="org.knime.workbench.repository.nodes">
+        <node deprecated="true" factory-class="org.knime.base.node.preproc.discretization.caim.modelcreator.CAIMDiscretizationNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.collection.list.create.CollectionCreateNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.property.color.ColorAppenderNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.property.color.ColorManagerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.colsort.ColumnResorterNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.decisiontree2.learner.DecisionTreeLearnerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.decisiontree.predictor.DecTreePredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.discretization.caim.modelapply.DiscretizationApplyNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.switches.emtpytablereplacer.EmptyTableReplacerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.scorer.entrop.EntropyNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.filter.column.FilterColumnNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.filter.hilite.collector.HiLiteCollectorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.scorer.hilitescorer.HiliteScorerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.join.JoinerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.lowvarfilter.LowVarFilterNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.lowvarfilter.LowVarFilterNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.mds.MDSPivotDataNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.mds.MDSPivotNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.missingval.MissingValueHandlingNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.joiner.NewJoinerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.normalize.NormalizeNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.parcoord.ParallelCoordinatesNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.pivot.PivotNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.correlation.pmcc.PMCCFilterNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.correlation.pmcc.PMCCNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.rowkey.RowKeyNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.rulevis2d.Rule2DNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.scatterplot.ScatterPlotNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.scorer.ScorerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.property.size.SizeManagerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.sota.SotaNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.split.SplitNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics.StatisticsNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.unpivot.UnpivotNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.image.writepng.WritePNGNodeFactory"></node>
+    </extension>
+</fragment>

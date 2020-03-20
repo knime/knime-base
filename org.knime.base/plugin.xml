@@ -2245,8 +2245,42 @@
             factory-class="org.knime.base.node.preproc.domain.DomainNodeFactory">
       </node>
    </extension>
-   
-      
+   <extension
+         name="deprecated nodes without category"
+         point="org.knime.workbench.repository.nodes">
+  	  	<node deprecated="true" factory-class="org.knime.base.node.preproc.autobinner.AutoBinnerLearnNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.autobinner2.AutoBinnerLearnNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.subgroupminer.BitVectorGeneratorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.colconvert.categorytonumber.CategoryToNumberNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.colcombine.ColCombineNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.columntogrid.ColumnToGridNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.io.database.DBGroupByNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.logistic.predict.GeneralRegressionPredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.linear.learn.LinRegLearnerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.linear.predict.LinRegPredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.io.listfiles.ListFilesNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.columnTrans.Many2OneColNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.exp.node.columnTrans.Many2OneColNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.pmml.columnTrans.Many2OneColPMMLNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.bayes.naivebayes.learner.NaiveBayesLearnerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.bayes.naivebayes.predictor2.NaiveBayesPredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.normalize2.Normalizer2NodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.columnTrans.One2ManyColNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.exp.node.columnTrans.One2ManyColNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.pmml.columnTrans.One2ManyColPMMLNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.polynomial.learner.PolyRegLearnerNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.polynomial.predictor.PolyRegPredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.io.portobject.PortObjectReaderNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.io.portobject.PortObjectWriterNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.image.readpng.ReadPNGFromURLNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.predict.RegressionPredictorNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.rules.RuleEngineNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics.Statistics2NodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics2.Statistics3NodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.io.filereader.VariableFileReaderNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.flowvariable.variabletotablerow.VariableToTableNodeFactory"></node> 
+   </extension>
+         
    <extension point="org.knime.workbench.repository.metanode">
        <PersistedMetaNode
              category-path="/analytics/mining/modeleval/meta"
