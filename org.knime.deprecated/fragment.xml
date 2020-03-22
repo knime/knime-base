@@ -38,5 +38,6 @@
 		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics.StatisticsNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.unpivot.UnpivotNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.image.writepng.WritePNGNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.preproc.nominal.NominalValueFactory"></node>
     </extension>
 </fragment>
