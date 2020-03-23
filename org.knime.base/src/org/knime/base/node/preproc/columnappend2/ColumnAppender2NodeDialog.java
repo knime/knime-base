@@ -119,8 +119,8 @@ final class ColumnAppender2NodeDialog extends NodeDialogPane {
 
         m_invalidTableIndexComponent = new DialogComponentLabel("");
 
-        m_tableIndexValueInfo = "<html>The selected port number for row key must be an integer <br> between 1 and "
-            + m_numInputPorts + " (the number of input tables)</html>";
+        m_tableIndexValueInfo = "<html>The selected port number for row key must be an integer <br> between 0 and "
+            + (m_numInputPorts - 1) + " (index of the last port)</html>";
 
         m_panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -149,9 +149,9 @@ final class ColumnAppender2NodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        if (isKeyFromTableMode() && (m_selectedTableIndexModel.getIntValue() < 1
-            || m_selectedTableIndexModel.getIntValue() > m_numInputPorts)) {
-            throw new InvalidSettingsException("Table number should be between 1 and " + m_numInputPorts + "!");
+        if (isKeyFromTableMode() && (m_selectedTableIndexModel.getIntValue() < 0
+            || m_selectedTableIndexModel.getIntValue() > m_numInputPorts - 1)) {
+            throw new InvalidSettingsException("Table number should be between 0 and " + (m_numInputPorts - 1) + "!");
         }
         m_rowKeyModeComponent.saveSettingsTo(settings);
         m_selectedTableIndexComponent.saveSettingsTo(settings);
@@ -178,7 +178,8 @@ final class ColumnAppender2NodeDialog extends NodeDialogPane {
         final JFormattedTextField spinnerTextField = ((DefaultEditor)spinner.getEditor()).getTextField();
         final JLabel errMsgLabel = (JLabel)m_invalidTableIndexComponent.getComponentPanel().getComponent(0);
         errMsgLabel.setPreferredSize(new Dimension(380, 50));
-        if (m_selectedTableIndexModel.getIntValue() < 1 || m_selectedTableIndexModel.getIntValue() > m_numInputPorts) {
+        if (m_selectedTableIndexModel.getIntValue() < 0
+            || m_selectedTableIndexModel.getIntValue() > m_numInputPorts - 1) {
             spinnerTextField.setBackground(Color.RED);
             spinnerTextField.setEnabled(true);
             spinner.setEnabled(true);

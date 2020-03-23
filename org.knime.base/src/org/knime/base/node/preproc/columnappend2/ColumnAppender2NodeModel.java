@@ -112,7 +112,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
     }
 
     static SettingsModelIntegerBounded createRowIDTableSelectModel() {
-        return new SettingsModelIntegerBounded(KEY_SELECTED_ROWID_TABLE, 1, 1, Integer.MAX_VALUE);
+        return new SettingsModelIntegerBounded(KEY_SELECTED_ROWID_TABLE, 0, 0, Integer.MAX_VALUE);
     }
 
     /**
@@ -129,10 +129,10 @@ final class ColumnAppender2NodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         // Sanity check settings even though dialog checks, in case any flow variables went bad.
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            CheckUtils.checkSetting(m_rowIDTableSettings.getIntValue() <= m_numInPorts,
-                "The selected port number for row key must be a number between 1 and "
-                    + "%s (the number of input tables)",
-                m_numInPorts);
+            CheckUtils.checkSetting(m_rowIDTableSettings.getIntValue() < m_numInPorts,
+                "The selected port number for row key must be a number between 0 and "
+                    + "%s (index of the last port)",
+                (m_numInPorts - 1));
         }
         final DataTableSpec spec = combineToSingleSpec(createUniqueSpecs(inSpecs));
         return new DataTableSpec[]{spec};
@@ -287,7 +287,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
      * Calculates the number of rows written to the output.
      *
      * @param inData an array of BufferedDataTable
-     * @param decidingTblIdx the index of the table who provides the RowIDs.
+     * @param decidingTblIdx the index of the table that provides the RowIDs.
      * @return the total number of rows written to the output
      */
     private static long getOutputRowCount(final BufferedDataTable[] inData, final int decidingTblIdx) {
@@ -342,7 +342,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     private final int getDecidingTableIndex() {
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            return m_rowIDTableSettings.getIntValue() - 1;
+            return m_rowIDTableSettings.getIntValue();
         } else {
             return -1;
         }
@@ -362,7 +362,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
         if (overUsedTables.length > 0 || underUsedTables.length > 0) {
             // In the case of generating rowIDs, the longest table is used as a reference for comparison
             final String refTable = isSelectedMode(RowKeyMode.KEY_TABLE)
-                ? "the selected table " + (iters.m_decidingTableIdx + 1) + "" : "the longest table";
+                ? "the selected table " + iters.m_decidingTableIdx + "" : "the longest table";
 
             String warningMsg = "";
 
@@ -650,7 +650,6 @@ final class ColumnAppender2NodeModel extends NodeModel {
         private int[] overUsedTables() {
             return IntStream.range(0, m_iterCount)//
                 .filter(i -> m_iterators[i].isOverused())//
-                .map(i -> i + 1)//
                 .toArray();
         }
 
@@ -658,7 +657,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
             final ArrayList<Integer> indices = new ArrayList<Integer>();
             for (int i = 0; i < m_iterCount; i++) {
                 if (m_iterators[i].hasNext()) {
-                    indices.add(i + 1);
+                    indices.add(i);
                 }
             }
             return indices.stream().mapToInt(i -> i).toArray();
