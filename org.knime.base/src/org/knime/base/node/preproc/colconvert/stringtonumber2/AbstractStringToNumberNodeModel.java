@@ -49,7 +49,7 @@ package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import org.knime.core.data.DataCell;
@@ -219,7 +219,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 		if (inclCols.length == 0) {
 			warnings.append("No columns selected");
 		}
-		Vector<Integer> indicesvec = new Vector<Integer>();
+		ArrayList<Integer> indicesvec = new ArrayList<>();
 		if (isKeepAllSelected()) {
 			for (DataColumnSpec cspec : spec) {
 				if (cspec.getType().isCompatible(StringValue.class)) {
@@ -496,60 +496,21 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                 DataCell dc = row.getCell(m_colindices[i]);
                 // should be a DoubleCell, otherwise copy original cell.
                 if (!dc.isMissing()) {
-                    final String s = ((StringValue)dc).getStringValue();
+                    String s = ((StringValue)dc).getStringValue();
                     if (s.trim().length() == 0) {
                         newcells[i] = DataType.getMissingCell();
                         continue;
                     }
                     try {
-                        String corrected = s;
-                        if (m_thousandsSep != null
-                                && m_thousandsSep.length() > 0) {
-                            // remove thousands separator
-                            corrected = s.replaceAll(
-                                    Pattern.quote(m_thousandsSep),
-                                    "");
-                        }
-                        if (!".".equals(m_decimalSep)) {
-                            if (corrected.contains(".")) {
-                                throw new NumberFormatException(
-                                        "Invalid floating point number");
-                            }
-                            if (m_decimalSep != null
-                                    && m_decimalSep.length() > 0) {
-                                // replace custom separator with standard
-                                corrected =
-                                        corrected.replaceAll(Pattern
-                                                .quote(m_decimalSep), ".");
-                            }
-                        }
-
-                        if (!m_genericParse) {
-                            corrected = check(corrected);
-                        }
-                        if (m_type.equals(DoubleCell.TYPE)) {
-                            double parsedDouble = Double.parseDouble(corrected);
-                            newcells[i] = new DoubleCell(parsedDouble);
-                        } else if (m_type.equals(IntCell.TYPE)) {
-                            int parsedInteger = Integer.parseInt(corrected);
-                            newcells[i] = new IntCell(parsedInteger);
-                        } else if (m_type.equals(LongCell.TYPE)) {
-                            long parsedLong = Long.parseLong(corrected);
-                            newcells[i] = new LongCell(parsedLong);
-                        } else {
-                            m_error = "No valid parse type.";
-                        }
+                        s = prepareString(s);
+                        newcells[i] = convertToNumber(s);
                     } catch (NumberFormatException e) {
                         if (m_parseErrorCount == 0) {
-                            m_error =
-                                    "'" + s + "' (RowKey: "
-                                            + row.getKey().toString()
-                                            + ", Position: " + m_colindices[i]
-                                            + ")";
+                            m_error = "'" + s + "' (RowKey: " + row.getKey().toString() + ", Position: "
+                                + m_colindices[i] + ")";
                             LOGGER.debug(e.getMessage());
                         }
                         m_parseErrorCount++;
-                        newcells[i] = DataType.getMissingCell();
                     }
                 } else {
                     newcells[i] = DataType.getMissingCell();
@@ -558,35 +519,68 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
             return newcells;
         }
 
+        private String prepareString(final String s) {
+            String corrected = s;
+            if (corrected.substring(s.length() - 1).equals("-")) {
+                corrected = String.format("-%s", corrected.substring(0, corrected.length() - 1));
+            }
+            if (m_thousandsSep != null && m_thousandsSep.length() > 0) {
+                // remove thousands separator
+                corrected = corrected.replaceAll(Pattern.quote(m_thousandsSep), "");
+            }
+            if (!".".equals(m_decimalSep)) {
+                if (corrected.contains(".")) {
+                    throw new NumberFormatException("Invalid floating point number");
+                }
+                if (m_decimalSep != null && m_decimalSep.length() > 0) {
+                    // replace custom separator with standard
+                    corrected = corrected.replaceAll(Pattern.quote(m_decimalSep), ".");
+                }
+            }
+
+            if (!m_genericParse) {
+                check(corrected);
+            }
+            return corrected;
+        }
+
+        private DataCell convertToNumber(final String s) {
+            if (m_type.equals(DoubleCell.TYPE)) {
+                double parsedDouble = Double.parseDouble(s);
+                return new DoubleCell(parsedDouble);
+            } else if (m_type.equals(IntCell.TYPE)) {
+                int parsedInteger = Integer.parseInt(s);
+                return new IntCell(parsedInteger);
+            } else if (m_type.equals(LongCell.TYPE)) {
+                long parsedLong = Long.parseLong(s);
+                return new LongCell(parsedLong);
+            } else {
+                m_error = "No valid parse type.";
+                return DataType.getMissingCell();
+            }
+        }
+
         /**
          * {@inheritDoc}
          */
         @Override
         public DataColumnSpec[] getColumnSpecs() {
-            DataColumnSpec[] newcolspecs =
-                    new DataColumnSpec[m_colindices.length];
+            DataColumnSpec[] newcolspecs = new DataColumnSpec[m_colindices.length];
             for (int i = 0; i < newcolspecs.length; i++) {
                 DataColumnSpec colspec = m_spec.getColumnSpec(m_colindices[i]);
                 DataColumnSpecCreator colspeccreator = null;
                 if (m_type.equals(DoubleCell.TYPE)) {
                     // change DataType to DoubleCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    DoubleCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), DoubleCell.TYPE);
                 } else if (m_type.equals(IntCell.TYPE)) {
                     // change DataType to IntCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    IntCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), IntCell.TYPE);
                 } else if (m_type.equals(LongCell.TYPE)) {
                     // change DataType to LongCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                LongCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), LongCell.TYPE);
                 } else {
                     colspeccreator =
-                            new DataColumnSpecCreator("Invalid parse mode",
-                                    DataType.getMissingCell().getType());
+                        new DataColumnSpecCreator("Invalid parse mode", DataType.getMissingCell().getType());
                 }
                 newcolspecs[i] = colspeccreator.createSpec();
             }
@@ -607,13 +601,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                     message = "Could not parse cell with value " + m_error;
                     break;
                 default:
-                    message = "Values in " + m_parseErrorCount
-                            + " cells could not be parsed, first error: " + m_error;
+                    message = "Values in " + m_parseErrorCount + " cells could not be parsed, first error: " + m_error;
             }
             m_internals.getConfig().addString(CFG_KEY_ERROR_MESSAGES, message);
         }
-
-
 
     } // end ConverterFactory
 
