@@ -196,16 +196,10 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
             }
             return mkSuccess("");
         } else {
-            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
-                && (pathOrUrl.endsWith("/") || pathOrUrl.endsWith("\\"))) {
-                final String msg = "Output location '" + pathOrUrl + "' is a directory";
-                return mkError(msg);
-            }
             if (Files.exists(fileOrFolder)) {
                 BasicFileAttributes basicAttributes = null;
                 try {
-                    basicAttributes =
-                        Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
+                    basicAttributes = Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
                 } catch (final IOException e) {
                     // do nothing
                 }
@@ -213,6 +207,11 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
                 if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
                     && (basicAttributes != null && !basicAttributes.isDirectory())) {
                     warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
+                }
+                if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
+                    && (basicAttributes != null && basicAttributes.isDirectory())) {
+                    final String msg = "Output location '" + pathOrUrl + "' is a directory.";
+                    return mkError(msg);
                 }
                 if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
                     && (basicAttributes != null && basicAttributes.isDirectory())) {

@@ -698,7 +698,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         if (model.getPathOrURL() != null) {
             try {
                 final FileSelectionMode fileOrFolder =
-                    model.readFilesFromFolder() ? FileSelectionMode.DIRECTORIES_ONLY : FileSelectionMode.FILES_ONLY;
+                    model.readFilesFromFolder() || m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
+                        ? FileSelectionMode.DIRECTORIES_ONLY : FileSelectionMode.FILES_ONLY;
 
                 m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_fs, model.clone(), m_timeoutInMillis,
                     m_statusMessage, m_dialogType, fileOrFolder);
