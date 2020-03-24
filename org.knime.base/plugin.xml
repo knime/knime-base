@@ -2244,6 +2244,11 @@
             deprecated="true"
             factory-class="org.knime.base.node.preproc.domain.DomainNodeFactory">
       </node>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            hidden="true"
+            factory-class="org.knime.base.node.preproc.colconvert.ColConvertNodeFactory">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"
