@@ -177,7 +177,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
+    protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
         final Path localPath = toLocalPathWithAccessibilityCheck(path);
@@ -195,12 +195,12 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void copyInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
         Files.copy(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
     }
 
     @Override
-    public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void moveInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
         Files.move(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
     }
 

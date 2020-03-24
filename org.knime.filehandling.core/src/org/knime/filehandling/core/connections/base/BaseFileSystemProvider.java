@@ -53,9 +53,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
@@ -64,14 +67,17 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -89,7 +95,7 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends FileSystemProvider {
+public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends FileSystemProvider {
 
     private static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different file system provider";
 
@@ -133,6 +139,42 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
         return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
+        final FileAttribute<?>... attrs) throws IOException {
+        if (exists(path) && options.contains(StandardOpenOption.CREATE_NEW)) {
+            throw new FileAlreadyExistsException(path.toString());
+        }
+        if (!exists(path) && options.contains(StandardOpenOption.READ)) {
+            throw new NoSuchFileException(path.toString());
+        }
+        if ((options.contains(StandardOpenOption.CREATE_NEW) || options.contains(StandardOpenOption.CREATE))
+            && !exists(path.getParent())) {
+            throw new NoSuchFileException(path.getParent().toString());
+        }
+        if ((options.contains(StandardOpenOption.READ) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
+            && options.contains(StandardOpenOption.APPEND)) {
+            throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
+        }
+        return new BaseSeekableByteChannel(newByteChannelInternal(path, options, attrs), m_fileSystem);
+    }
+
+    /**
+     * Opens or creates a file, returning a seekable byte channel to access the file. This method works in exactly the
+     * manner specified by the {@link Files#newByteChannel(Path,Set,FileAttribute[])} method.
+     *
+     * @param path the path to the file to open or create
+     * @param options options specifying how the file is opened
+     * @param attrs an optional list of file attributes to set atomically when creating the file
+     *
+     * @return a new seekable byte channel
+     */
+    protected abstract SeekableByteChannel newByteChannelInternal(final Path path,
+        final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException;
+
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
         checkPath(path);
@@ -153,6 +195,64 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
             }
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+        checkPath(source);
+        checkPath(target);
+        if (exists(target) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+            throw new FileAlreadyExistsException(target.toString());
+        }
+        if (!exists(target.getParent())) {
+            throw new NoSuchFileException(target.getParent().toString());
+        }
+
+        moveInternal(source, target, options);
+        getFileSystemInternal().removeFromAttributeCache(source);
+    }
+
+    /**
+     * Move or rename a file to a target file. This method works in exactly the manner specified by the
+     * {@link Files#move} method except that both the source and target paths must be associated with this provider.
+     *
+     * @param source the path to the file to move
+     * @param target the path to the target file
+     * @param options options specifying how the move should be done
+     * @throws IOException if I/O error occurs
+     */
+    protected abstract void moveInternal(Path source, Path target, final CopyOption... options) throws IOException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+        checkPath(source);
+        checkPath(target);
+        if (isSameFile(source, target)) {
+            return;
+        }
+        if (exists(target) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+            throw new FileAlreadyExistsException(String.format("Target file %s already exists.", target.toString()));
+        }
+        copyInternal(source, target, options);
+    }
+
+    /**
+     * Copy a file to a target file. This method works in exactly the manner specified by the
+     * {@link Files#copy(Path,Path,CopyOption[])} method except that both the source and target paths must be associated
+     * with this provider.
+     *
+     * @param source the path to the file to copy
+     * @param target the path to the target file
+     * @param options options specifying how the copy should be done
+     * @throws IOException if I/O error occurs
+     */
+    protected abstract void copyInternal(final Path source, final Path target, final CopyOption... options)
+        throws IOException;
 
     /**
      * Opens a file, returning an input stream to read from the file.
@@ -214,6 +314,9 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
         checkPath(dir);
+        if (!exists(dir)) {
+            throw new NoSuchFileException(dir.toString());
+        }
         return new BaseDirectoryStream(createPathIterator(dir, filter), getFileSystemInternal());
     }
 
@@ -356,6 +459,9 @@ public abstract class BaseFileSystemProvider <T extends BaseFileSystem> extends 
     @Override
     public void delete(final Path path) throws IOException {
         checkPath(path);
+        if (!exists(path)) {
+            throw new NoSuchFileException(path.toString());
+        }
         deleteInternal(path);
         getFileSystemInternal().removeFromAttributeCache(path);
     }

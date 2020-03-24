@@ -465,18 +465,31 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         }
 
         @SuppressWarnings("unchecked")
-        final UnixStylePath<T> unixOther = (UnixStylePath<T>)other;
+        UnixStylePath<T> unixOther = (UnixStylePath<T>)other;
 
         if (unixOther.startsWith(this)) {
             return unixOther.subpath(getNameCount(), unixOther.getNameCount());
         }
+        if (this.startsWith(unixOther)) {
+            final String[] toParentArray = new String[getNameCount() - unixOther.getNameCount() - 1];
+            Arrays.fill(toParentArray, TO_PARENT);
+            return createPath(TO_PARENT, toParentArray);
+        }
+
+        int equalPathPartsCount = 0;
+        while ((Math.max(this.getNameCount(), unixOther.getNameCount()) > equalPathPartsCount)
+            && unixOther.m_pathParts.get(equalPathPartsCount).equals(m_pathParts.get(equalPathPartsCount))) {
+            equalPathPartsCount++;
+        }
+
+        unixOther = (UnixStylePath<T>)unixOther.subpath(equalPathPartsCount, unixOther.getNameCount());
 
         int r = 0;
         while (unixOther.m_pathParts.get(r).equals(TO_PARENT)) {
             r++;
         }
 
-        final int parentStepsCount = getNameCount();
+        final int parentStepsCount = getNameCount() - equalPathPartsCount;
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parentStepsCount; i++) {
             sb.append(TO_PARENT);

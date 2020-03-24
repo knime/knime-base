@@ -214,6 +214,9 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
         if (isDirectory() && !normalized.isEmpty()) {
             normalized.add(m_pathSeparator);
         }
+        if (normalized.isEmpty() && !m_isAbsolute) {
+            return createPath(".");
+        }
 
         //Ensure absolute paths stay absolute
         final String first = m_isAbsolute ? m_pathSeparator : "";

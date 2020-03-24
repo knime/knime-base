@@ -113,7 +113,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
      * {@inheritDoc}
      */
     @Override
-    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
+    protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -134,7 +134,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
      * {@inheritDoc}
      */
     @Override
-    public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void copyInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
         MountPointFileSystemAccessService.instance().copyFile(source.toUri(), target.toUri());
     }
 
@@ -142,7 +142,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
      * {@inheritDoc}
      */
     @Override
-    public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void moveInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
         MountPointFileSystemAccessService.instance().moveFile(source.toUri(), target.toUri());
     }
 
