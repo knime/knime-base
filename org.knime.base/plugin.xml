@@ -2284,6 +2284,7 @@
 		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics2.Statistics3NodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.io.filereader.VariableFileReaderNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.flowvariable.variabletotablerow.VariableToTableNodeFactory"></node> 
+		<node deprecated="true" factory-class="org.knime.base.node.viz.enrichment.EnrichmentPlotterFactory"></node> 
    </extension>
          
    <extension point="org.knime.workbench.repository.metanode">
@@ -2555,5 +2556,11 @@
               specClass="org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec"
               specSerializer="org.knime.base.node.mine.transformation.port.TransformationPortObjectSpec$Serializer">
         </portType>
+     </extension>
+     <extension
+           point="org.knime.core.NodeFactoryClassMapper">
+        <NodeFactoryClassMapper
+              classMapper="org.knime.base.node.preproc.valcount.ValueCounterNodeFactoryClassMapper">
+        </NodeFactoryClassMapper>
      </extension>   
 </plugin>
