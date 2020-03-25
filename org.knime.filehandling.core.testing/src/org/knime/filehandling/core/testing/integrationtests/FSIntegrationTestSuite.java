@@ -3,6 +3,7 @@ package org.knime.filehandling.core.testing.integrationtests;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.knime.filehandling.core.testing.integrationtests.filesystem.GetPathTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.ByteChannelTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.CheckAccessTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.CopyTest;
@@ -20,6 +21,7 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+    GetPathTest.class,
 	ByteChannelTest.class,
 	CheckAccessTest.class,
 	CopyTest.class,
