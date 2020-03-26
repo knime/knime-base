@@ -59,7 +59,6 @@ import java.awt.Insets;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
-import java.util.function.IntSupplier;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -75,6 +74,7 @@ import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -201,8 +201,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /** String used as button label */
     private static final String CONFIGURE_BUTTON_LABEL = "Filter options";
 
-    /** Function that returns the input port index or -1 if port is not connected */
-    private final IntSupplier m_inPort;
+    /** Index of optional input port or -1 if port is not connected */
+    private final int m_inPort;
 
     /** Timeout in milliseconds */
     private int m_timeoutInMillis = FileUtil.getDefaultURLTimeoutMillis();
@@ -214,7 +214,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
      *
-     * @param inPort function that returns the index of the optional {@link FileSystemPortObject} or -1 if not connected
+     * @param inPort the index of the optional {@link FileSystemPortObject}
      * @param settingsModel the settings model storing all the necessary information
      * @param historyId id used to store file history used by {@link FilesHistoryPanel}
      * @param dialogType integer defining the dialog type (see {@link JFileChooser#OPEN_DIALOG},
@@ -223,7 +223,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      *            {@link JFileChooser#FILES_AND_DIRECTORIES} and {@link JFileChooser#DIRECTORIES_ONLY}
      * @param fvm {@link FlowVariableModel} to use
      */
-    public DialogComponentFileChooser2(final IntSupplier inPort, final SettingsModelFileChooser2 settingsModel,
+    public DialogComponentFileChooser2(final int inPort, final SettingsModelFileChooser2 settingsModel,
         final String historyId, final int dialogType, final int selectionMode, final FlowVariableModel fvm) {
         super(settingsModel);
         m_inPort = inPort;
@@ -274,7 +274,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
      *
-     * @param inPort the index of the optional {@link FileSystemPortObject}
+     * @param portsConfig ports configuration
+     * @param inPortIdentifier group name of the optional input {@link FileSystemPortObject}
      * @param settingsModel the settings model storing all the necessary information
      * @param historyId id used to store file history used by {@link FilesHistoryPanel}
      * @param dialogType integer defining the dialog type (see {@link JFileChooser#OPEN_DIALOG},
@@ -283,9 +284,12 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      *            {@link JFileChooser#FILES_AND_DIRECTORIES} and {@link JFileChooser#DIRECTORIES_ONLY}
      * @param fvm {@link FlowVariableModel} to use
      */
-    public DialogComponentFileChooser2(final int inPort, final SettingsModelFileChooser2 settingsModel,
-        final String historyId, final int dialogType, final int selectionMode, final FlowVariableModel fvm) {
-        this(() -> inPort, settingsModel, historyId, dialogType, selectionMode, fvm);
+    public DialogComponentFileChooser2(final PortsConfiguration portsConfig, final String inPortIdentifier,
+        final SettingsModelFileChooser2 settingsModel, final String historyId, final int dialogType,
+        final int selectionMode, final FlowVariableModel fvm) {
+
+        this(Optional.ofNullable(portsConfig.getInputPortLocation().get(inPortIdentifier)) //
+            .map(arr -> arr[0]).orElse(-1), settingsModel, historyId, dialogType, selectionMode, fvm);
     }
 
     /** Converts the string array containing file extensions to a concatenated String used for the FilesHistoryPanel */
@@ -508,7 +512,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
                 break;
             case CONNECTED_FS:
                 final Optional<FSConnection> fs =
-                    FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort.getAsInt());
+                    FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
                 applySettingsForConnection(fsChoice, fs);
                 break;
             case KNIME_FS:
@@ -730,7 +734,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     @Override
     protected void updateComponent() {
 
-        m_fs = FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort.getAsInt());
+        m_fs = FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
         m_connections.setRenderer(new FileSystemChoiceRenderer(m_fs));
 
         final boolean filesAndDirectories = m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES);
@@ -805,7 +809,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         final DefaultComboBoxModel<FileSystemChoice> connectionsModel =
             (DefaultComboBoxModel<FileSystemChoice>)m_connections.getModel();
         final Optional<String> fileSystemType =
-            FileSystemPortObjectSpec.getFileSystemType(getLastTableSpecs(), m_inPort.getAsInt());
+            FileSystemPortObjectSpec.getFileSystemType(getLastTableSpecs(), m_inPort);
 
         if (fileSystemType.isPresent()) {
             final FileSystemChoice choice = FileSystemChoice.createConnectedFileSystemChoice(fileSystemType.get());
