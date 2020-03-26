@@ -40,5 +40,6 @@
 		<node deprecated="true" factory-class="org.knime.base.node.image.writepng.WritePNGNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.nominal.NominalValueFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.mine.subgroupminer.SubgroupMinerFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.viz.enrich.EnrichmentPlotterFactory"></node>
     </extension>
 </fragment>
