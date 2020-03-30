@@ -66,6 +66,7 @@
         			receives a rank that is only incremented by one.
         		</li>
         		<li>
+        		    Ordinal:
         			The ranking is consecutive, even rows with the same values in the ranking attributes receive unique ranks.
         		</li>
         	</ul>
