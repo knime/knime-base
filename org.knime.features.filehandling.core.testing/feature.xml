@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.knime.features.base.testing"
-      label="KNIME Base Testing"
+      id="org.knime.features.filehandling.core.testing"
+      label="KNIME File Handling Testing"
       version="4.2.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
 
    <description>
-      This feature is used for testing the Base extension
+      This feature is used for testing the core file handling extension
    </description>
 
    <copyright>
@@ -728,19 +728,11 @@
    </license>
 
    <includes
-         id="org.knime.features.base"
+         id="org.knime.features.filehandling.core"
          version="0.0.0"/>
 
    <plugin
-         id="org.knime.base.testing"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"
-         unpack="false"/>
-
-   <plugin
-         id="org.knime.time.testing"
+         id="org.knime.filehandling.core.testing"
          download-size="0"
          install-size="0"
          version="0.0.0"

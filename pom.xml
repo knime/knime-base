@@ -7,33 +7,32 @@
 
 	<parent>
 		<groupId>org.knime.maven</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>4.1.0-SNAPSHOT</version>
+		<artifactId>ap.parent</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
 	<groupId>org.knime</groupId>
 	<artifactId>knime-base</artifactId>
-    <version>${revision}${changelist}</version>
+  <version>${revision}${changelist}</version>
 	<packaging>pom</packaging>
 
-    <properties>
-		<revision>4.1.0</revision>
-		<changelist>-SNAPSHOT</changelist>
-	    <feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
-	    <feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
-        
-	</properties>
-
+  <properties>
+    <revision>4.2.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
+    <feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
+  </properties>
 
 	<modules>
 		<module>org.knime.base</module>
-		<module>org.knime.filehandling.core</module>
-		<module>org.knime.filehandling.core.testing</module>
 		<module>org.knime.base.testing</module>
 		<module>org.knime.deprecated</module>
 		<module>org.knime.features.base</module>
-		<module>org.knime.features.filehandling.core</module>
 		<module>org.knime.features.base.testing</module>
+		<module>org.knime.features.filehandling.core</module>
+		<module>org.knime.features.filehandling.core.testing</module>
+		<module>org.knime.filehandling.core</module>
+		<module>org.knime.filehandling.core.testing</module>
 		<module>org.knime.time</module>
 		<module>org.knime.time.testing</module>
 		<module>org.knime.update.base</module>

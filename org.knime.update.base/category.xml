@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
+   <feature id="org.knime.features.base" version="0.0.0">
+      <category name="knime-base"/>
+   </feature>
    <feature id="org.knime.features.base.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
@@ -9,7 +12,16 @@
    <feature id="org.knime.features.base.testing.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
-   <feature id="org.knime.features.base" version="0.0.0">
+   <feature id="org.knime.features.filehandling.core" version="0.0.0">
+      <category name="knime-base"/>
+   </feature>
+   <feature id="org.knime.features.filehandling.core.source" version="0.0.0">
+      <category name="knime-base"/>
+   </feature>
+   <feature id="org.knime.features.filehandling.core.testing" version="0.0.0">
+      <category name="knime-base"/>
+   </feature>
+   <feature id="org.knime.features.filehandling.core.testing.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
    <category-def name="knime-base" label="Build artifacts from knime-base">

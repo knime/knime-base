@@ -47,7 +47,7 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 		final Path directory = m_testInitializer.getRoot();
 		// root directory might contains files (e.g. workflows), use a fresh empty
 		// directory
-		final Path emptyDirectory = Files.createDirectories(directory.resolve("empty-directory/"));
+		final Path emptyDirectory = Files.createDirectories(directory.resolve("empty-directory"));
 
 		final List<Path> paths = new ArrayList<>();
 		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(emptyDirectory, (path) -> true)) {
@@ -59,7 +59,7 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
 	@Test(expected = NoSuchFileException.class)
 	public void test_non_existent_directory() throws Exception {
-		final Path directory = m_testInitializer.getRoot().resolve("doesnotexist/");
+		final Path directory = m_testInitializer.getRoot().resolve("doesnotexist");
 
 		final List<Path> paths = new ArrayList<>();
 		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory, (path) -> true)) {

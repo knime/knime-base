@@ -17,8 +17,8 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringRoot() {
-        final String that = "/";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = fileSystem.getSeparator();
         final Path path = fileSystem.getPath(that);
 
         assertEquals(that, path.toString());
@@ -27,8 +27,8 @@ public class ToStringTest extends AbstractParameterizedFSTest {
     @Test
     public void testToStringTrailingSlash() {
         ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        final String that = "qwehekweq/";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String that = "qwehekweq" + fileSystem.getSeparator();
         final Path path = fileSystem.getPath(that);
 
         assertEquals("qwehekweq", path.toString());
@@ -37,11 +37,12 @@ public class ToStringTest extends AbstractParameterizedFSTest {
     @Test
     public void testToStringTrailingSlash2() {
         ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        final String that = "/ab/cd/ef/g/";
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
+        final String sep = fileSystem.getSeparator();
+        final String that = String.join(sep, "", "ab", "cd", "ef", "g");
+        final Path path = fileSystem.getPath(that + sep);
 
-        assertEquals("/ab/cd/ef/g", path.toString());
+        assertEquals(that, path.toString());
     }
 
     @Test
