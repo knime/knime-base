@@ -152,8 +152,8 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
             throw new NoSuchFileException(path.toString());
         }
         if ((options.contains(StandardOpenOption.CREATE_NEW) || options.contains(StandardOpenOption.CREATE))
-            && !exists(path.getParent())) {
-            throw new NoSuchFileException(path.getParent().toString());
+            && !exists(path.toAbsolutePath().getParent())) {
+            throw new NoSuchFileException(path.toAbsolutePath().getParent().toString());
         }
         if ((options.contains(StandardOpenOption.READ) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
             && options.contains(StandardOpenOption.APPEND)) {
@@ -232,9 +232,19 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
         checkPath(source);
         checkPath(target);
-        if (isSameFile(source, target)) {
-            return;
+
+        if (!exists(source)) {
+            throw new NoSuchFileException(source.toString());
         }
+
+        try {
+            if (isSameFile(source, target)) {
+                return;
+            }
+        } catch (NoSuchFileException e) {
+            // target file might not exists
+        }
+
         if (exists(target) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
             throw new FileAlreadyExistsException(String.format("Target file %s already exists.", target.toString()));
         }

@@ -110,7 +110,7 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
      * @param connectionType {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
      */
     protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider,
-        final URI uri, final KNIMEConnection.Type connectionType) {
+        final URI uri, final KNIMEConnection.Type connectionType) throws IOException {
 
         super(fileSystemProvider, uri, FS_NAME, FS_TYPE, CACHE_TTL);
         m_type = connectionType;
@@ -132,14 +132,11 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
         m_localWorkflowFolder = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
         if (isWorkflowRelativeFileSystem()) {
-            m_workingDirectory = getPath(getSeparator(), m_localMountpointFolder.relativize(m_localWorkflowFolder).toString());
+            m_workingDirectory = toAbsoluteLocalRelativeToPath(m_localWorkflowFolder);
         } else {
             m_workingDirectory = getPath(getSeparator());
         }
     }
-
-
-
 
     /**
      * @return a local, absolute, normalized path (from the default FS provider) that points to the folder of the
@@ -165,6 +162,27 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
      */
     protected LocalRelativeToPath getWorkingDirectory() {
         return m_workingDirectory;
+    }
+
+    /**
+     * Convert a given local file system path into a virtual absolute relative to path.
+     * @param localPath path in local file system
+     * @return absolute path in virtual relative to file system
+     * @throws IOException
+     */
+    protected LocalRelativeToPath toAbsoluteLocalRelativeToPath(final Path localPath) throws IOException {
+        if (localPath instanceof LocalRelativeToPath) {
+            throw new IllegalArgumentException("Given path is already a local relative to path, this is a bug.");
+        } else if (!isLocalPathAccessible(localPath)) {
+            throw new IOException("Given path is not accessible or outside of mountpoint: " + localPath);
+        } else {
+            final Path relativePath = m_localMountpointFolder.relativize(localPath);
+            final String[] parts = new String[relativePath.getNameCount()];
+            for (int i = 0; i < parts.length; i++) {
+                parts[i] = relativePath.getName(i).toString();
+            }
+            return getPath(getSeparator(), parts);
+        }
     }
 
     @Override

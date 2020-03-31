@@ -90,7 +90,9 @@ public class LocalRelativeToPath extends UnixStylePath<LocalRelativeToFileSystem
      * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
      */
     public Path toAbsoluteLocalPath() {
-        final Path absolutePath = toAbsolutePath();
-        return Paths.get(getFileSystem().getCurrentMountpointFolder().toString(), absolutePath.toString());
+        // FS specific separator: combine local FS path with separator independent path parts
+        final LocalRelativeToPath absolutePath = toAbsolutePath();
+        final String[] absolutePathParts = absolutePath.m_pathParts.toArray(new String[0]);
+        return Paths.get(getFileSystem().getCurrentMountpointFolder().toString(), absolutePathParts);
     }
 }

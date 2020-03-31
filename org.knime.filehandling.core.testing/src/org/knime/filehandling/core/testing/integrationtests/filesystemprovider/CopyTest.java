@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -40,6 +41,14 @@ public class CopyTest extends AbstractParameterizedFSTest {
 		assertEquals(testContent, copiedContent.get(0));
 	}
 
+	@Test (expected = NoSuchFileException.class)
+	public void test_copy_non_existing_file() throws Exception {
+		final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
+		final Path target = source.getParent().resolve("copiedFile");
+
+		Files.copy(source, target);
+	}
+
 	@Test (expected = FileAlreadyExistsException.class)
 	public void test_copy_file_to_existing_target_without_replace_option() throws Exception {
 		final String testContent = "Some simple test content";
@@ -64,20 +73,13 @@ public class CopyTest extends AbstractParameterizedFSTest {
 		assertEquals(sourceContent, copiedContent.get(0));
 	}
 	
-	@Test
+	@Test (expected = NoSuchFileException.class)
 	public void test_copy_file_to_non_existing_directory() throws Exception {
 		final String testContent = "Some simple test content";
 		final Path source = m_testInitializer.createFileWithContent(testContent, "dir", "file");
 		final Path target = source.getParent().resolve("newDir").resolve("copiedFile");
 		
-		// On a local system all directories must be created, otherwise a NoSuchFileException will be thrown.
-		Files.createDirectories(target.getParent());
 		Files.copy(source, target);
-		
-		assertTrue(Files.exists(target));
-		final List<String> copiedContent = Files.readAllLines(target);
-		assertEquals(1, copiedContent.size());
-		assertEquals(testContent, copiedContent.get(0));
 	}
 
 	@Test (expected = DirectoryNotEmptyException.class)

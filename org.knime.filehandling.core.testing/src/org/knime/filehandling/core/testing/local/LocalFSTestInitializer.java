@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.testing.local;
 
+import java.nio.file.Path;
+
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.LocalFSConnection;
 
@@ -69,7 +71,22 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
     }
 
     @Override
+    public Path getRoot() {
+        return getTempFolder();
+    }
+
+    @Override
     public FSConnection getFSConnection() {
         return m_connection;
+    }
+
+    @Override
+    public Path createFile(final String... pathComponents) {
+        return createFileWithContent("", pathComponents);
+    }
+
+    @Override
+    public Path createFileWithContent(final String content, final String... pathComponents) {
+        return createLocalFileWithContent(content, pathComponents);
     }
 }

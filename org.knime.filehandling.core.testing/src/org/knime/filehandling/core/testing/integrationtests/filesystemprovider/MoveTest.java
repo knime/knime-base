@@ -40,7 +40,15 @@ public class MoveTest extends AbstractParameterizedFSTest {
 		List<String> movedContent = Files.readAllLines(target);
 		assertEquals(sourceContent, movedContent.get(0));
 	}
-	
+
+	@Test (expected = NoSuchFileException.class)
+	public void test_move_non_existing_file() throws Exception {
+		final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
+		final Path target = source.getParent().resolve("movedFile");
+
+		Files.move(source, target);
+	}
+
 	@Test (expected = FileAlreadyExistsException.class)
 	public void test_move_file_to_already_existing_file_without_replace_throws_exception() throws Exception {
 		String sourceContent = "The source content";

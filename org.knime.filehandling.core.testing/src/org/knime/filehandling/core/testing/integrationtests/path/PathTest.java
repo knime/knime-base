@@ -1,7 +1,9 @@
 package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -98,6 +100,17 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 		final Path backForth = path.relativize(path.resolve(other));
 		assertEquals(otherPath, backForth);
+	}
+
+	@Test
+	public void testRelativizeAgainstRootPath() {
+		final FileSystem fileSystem = m_connection.getFileSystem();
+		final Path root = fileSystem.getPath("/");
+		final Path somePath = fileSystem.getPath("/some/path");
+		final Path relativePath = root.relativize(somePath);
+		assertTrue(somePath.isAbsolute());
+		assertFalse(relativePath.isAbsolute());
+		assertEquals("some/path", relativePath.toString());
 	}
 
 	@Test

@@ -460,12 +460,16 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             throw new IllegalArgumentException("Cannot relativize an absolute path with a relative path.");
         }
 
-        if (m_pathParts.isEmpty() || (m_pathParts.size() == 1 && m_pathParts.get(0).isEmpty())) {
-            return other;
+        if (!(other instanceof UnixStylePath)) {
+            throw new IllegalArgumentException("Unknown path implementation, only unix style path can be relativize.");
         }
 
         @SuppressWarnings("unchecked")
         UnixStylePath<T> unixOther = (UnixStylePath<T>)other;
+
+        if (m_pathParts.isEmpty() || (m_pathParts.size() == 1 && m_pathParts.get(0).isEmpty())) {
+            return createPath(String.join(unixOther.m_pathSeparator, unixOther.m_pathParts));
+        }
 
         if (unixOther.startsWith(this)) {
             return unixOther.subpath(getNameCount(), unixOther.getNameCount());

@@ -82,18 +82,11 @@ public abstract class BasicLocalTestInitializer implements FSTestInitializer {
 		FileUtils.deleteDirectory(m_currTempFolder.toFile());
 	}
 
-	@Override
-	public Path getRoot() {
+	protected Path getTempFolder() {
 		return m_currTempFolder;
 	}
 
-	@Override
-	public Path createFile(final String... pathComponents) {
-		return createFileWithContent("", pathComponents);
-	}
-
-	@Override
-	public Path createFileWithContent(final String content, final String... pathComponents) {
+	protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
 		if (pathComponents == null || pathComponents.length == 0) {
 			throw new IllegalArgumentException("path components can not be empty or null");
 		}

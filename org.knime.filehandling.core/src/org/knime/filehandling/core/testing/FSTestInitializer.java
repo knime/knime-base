@@ -102,8 +102,9 @@ public interface FSTestInitializer {
      *
      * @param pathComponents the path components of the file to be created
      * @return the path to the created file
+     * @throws IOException
      */
-    public Path createFile(String... pathComponents);
+    public Path createFile(String... pathComponents) throws IOException;
 
     /**
      * Creates a file at the provided path destination, starting from the configured root directory, with the provided
@@ -112,7 +113,8 @@ public interface FSTestInitializer {
      * @param content content to be written to the file
      * @param pathComponents the path
      * @return the path to the created file
+     * @throws IOException
      */
-    public Path createFileWithContent(String content, String... pathComponents);
+    public Path createFileWithContent(String content, String... pathComponents) throws IOException;
 
 }

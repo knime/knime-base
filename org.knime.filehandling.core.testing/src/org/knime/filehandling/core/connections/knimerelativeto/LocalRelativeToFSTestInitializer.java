@@ -100,6 +100,11 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 		return new LocalRelativeToFSConnection(this);
 	}
 
+	@Override
+	public Path getRoot() {
+		return m_fileSystem.getRootDirectories().iterator().next();
+	}
+
 	protected LocalRelativeToFileSystem getFileSystem() {
 		return m_fileSystem;
 	}
@@ -145,8 +150,8 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 	public void beforeTestCase() throws IOException {
 		super.beforeTestCase();
 
-		final Path currentWorkflow = createWorkflowDir(getRoot(), "current-workflow");
-		m_workflowManager = getWorkflowManager(getRoot().toFile(), currentWorkflow, false);
+		final Path currentWorkflow = createWorkflowDir(getTempFolder(), "current-workflow");
+		m_workflowManager = getWorkflowManager(getTempFolder().toFile(), currentWorkflow, false);
 		NodeContext.pushContext(m_workflowManager);
 		m_fileSystem = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(m_fileSystemUri);
 	}
@@ -159,5 +164,16 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 		} finally {
 			NodeContext.removeLastContext();
 		}
+	}
+
+	@Override
+	public LocalRelativeToPath createFile(final String... pathComponents) throws IOException {
+		return createFileWithContent("", pathComponents);
+	}
+
+	@Override
+	public LocalRelativeToPath createFileWithContent(final String content, final String... pathComponents)
+			throws IOException {
+		return m_fileSystem.toAbsoluteLocalRelativeToPath(super.createLocalFileWithContent(content, pathComponents));
 	}
 }

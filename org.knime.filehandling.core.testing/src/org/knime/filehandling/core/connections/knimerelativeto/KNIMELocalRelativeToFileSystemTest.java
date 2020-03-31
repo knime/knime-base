@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 import org.junit.After;
@@ -172,12 +174,105 @@ public class KNIMELocalRelativeToFileSystemTest {
 	public void equalsOnDifferentFS() throws IOException {
 		final String filename = "/some-dir/some-file.txt";
 		final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
-		final Path mountpointPath = mountpointFS.getPath(filename);
+		final LocalRelativeToPath mountpointPath = mountpointFS.getPath(filename);
 		final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
-		final Path workflowPath = workflowFS.getPath(filename);
+		final LocalRelativeToPath workflowPath = workflowFS.getPath(filename);
 		assertFalse(mountpointPath.equals(workflowPath));
 		assertTrue(mountpointFS.getPath(filename).equals(mountpointPath));
 		assertTrue(workflowFS.getPath(filename).equals(workflowPath));
+
+		final Path localPath = Paths.get(filename);
+		assertFalse(localPath.equals(mountpointPath));
+		assertFalse(localPath.equals(workflowPath));
+		assertFalse(mountpointPath.equals(localPath));
+		assertFalse(workflowPath.equals(localPath));
+	}
+
+	@Test
+	public void testIsSame() throws IOException {
+		final String filename = "/some-dir/some-file.txt";
+		final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+		final LocalRelativeToPath mountpointPath = mountpointFS.getPath(filename);
+		final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+		final LocalRelativeToPath workflowPath = workflowFS.getPath(filename);
+
+		final Path localPath = Paths.get(filename);
+		assertFalse(Files.isSameFile(localPath, mountpointPath));
+		assertFalse(Files.isSameFile(localPath, workflowPath));
+		assertFalse(Files.isSameFile(mountpointPath, localPath));
+		assertFalse(Files.isSameFile(workflowPath, localPath));
+	}
+
+	/**
+	 * Ensure that {@link LocalRelativeToPath#toAbsoluteLocalPath()} uses separator
+	 * from local filesystem.
+	 */
+	@Test
+	public void testToAbsoluteLocalPath() throws IOException {
+		final String filename = "/some-dir/some-file.txt";
+		final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+		final LocalRelativeToPath mountpointPath = mountpointFS.getPath(filename);
+		final Path convertedLocalPath = mountpointPath.toAbsoluteLocalPath();
+		final Path realLocalPath = mountpointFS //
+				.getCurrentMountpointFolder().resolve("some-dir").resolve("some-file.txt");
+		assertEquals(realLocalPath, convertedLocalPath);
+	}
+
+	/**
+	 * Test conversion from virtual to local and back to virtual file system.
+	 */
+	@Test
+	public void testLocalFSConversion() throws IOException {
+		final String filename = "/some-dir/some-file.txt";
+		final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+		final LocalRelativeToPath mountpointPath = mountpointFS.getPath(filename);
+		final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+		final LocalRelativeToPath workflowPath = workflowFS.getPath(filename);
+
+		final Path localMountpointPath = mountpointPath.toAbsoluteLocalPath();
+		final Path localWorkflowPath = workflowPath.toAbsoluteLocalPath();
+		assertEquals(localMountpointPath, localWorkflowPath);
+
+		final LocalRelativeToPath convertedMountpointPath = //
+				mountpointFS.toAbsoluteLocalRelativeToPath(localMountpointPath);
+		assertTrue(convertedMountpointPath.isAbsolute());
+		assertEquals(mountpointPath, convertedMountpointPath);
+
+		final LocalRelativeToPath convertedWorkflowPath = //
+				workflowFS.toAbsoluteLocalRelativeToPath(localWorkflowPath);
+		assertTrue(convertedWorkflowPath.isAbsolute());
+		assertEquals(workflowPath, convertedWorkflowPath);
+	}
+
+	@Test
+	public void testExistsMountpointRelative() throws IOException {
+		final String filename = "some-file.txt";
+		final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+		final LocalRelativeToPath mountpointPath = mountpointFS.getPath(filename);
+		assertFalse(Files.exists(mountpointPath));
+		Files.createFile(mountpointPath);
+		assertTrue(Files.exists(mountpointPath));
+	}
+
+	@Test
+	public void testExistsWorkflowRelative() throws IOException {
+		final String filename = "some-file.txt";
+		final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+		final LocalRelativeToPath workflowPath = workflowFS.getPath(filename);
+		assertFalse(Files.exists(workflowPath));
+		Files.createFile(workflowPath);
+		assertTrue(Files.exists(workflowPath));
+	}
+
+	@Test
+	public void testCreateFileOnRelativePath() throws IOException {
+		final String filename = "some-file.txt";
+		final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+		final LocalRelativeToPath relativePath = workflowFS.getPath(filename);
+
+		assertFalse(Files.exists(relativePath));
+		Files.createFile(relativePath);
+		assertTrue(Files.exists(relativePath));
 	}
 
 	@Test

@@ -1,5 +1,6 @@
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ public class CreateTest extends AbstractParameterizedFSTest {
 	public void test_create_file() throws IOException {
 		Path path = m_testInitializer.getRoot().resolve("file");
 		
+		assertFalse(Files.exists(path));
 		Files.createFile(path);
 		assertTrue(Files.exists(path));
 	}

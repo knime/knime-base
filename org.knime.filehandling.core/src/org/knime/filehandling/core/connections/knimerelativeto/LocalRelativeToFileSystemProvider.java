@@ -158,7 +158,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     @Override
     public boolean exists(final Path path) throws IOException {
         final Path localPath = toRelativePath(path).toAbsoluteLocalPath();
-        return getFileSystemInternal().isLocalPathAccessible(localPath);
+        return getFileSystemInternal().isLocalPathAccessible(localPath) && Files.exists(localPath);
     }
 
     @Override
@@ -191,7 +191,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
 
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
-        Files.createDirectories(toLocalPathWithAccessibilityCheck(dir), attrs);
+        Files.createDirectory(toLocalPathWithAccessibilityCheck(dir), attrs);
     }
 
     @Override
@@ -206,7 +206,11 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
 
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        return Files.isSameFile(toLocalPathWithAccessibilityCheck(path), toLocalPathWithAccessibilityCheck(path2));
+        if (path instanceof LocalRelativeToPath && path2 instanceof LocalRelativeToPath) {
+            return Files.isSameFile(toLocalPathWithAccessibilityCheck(path), toLocalPathWithAccessibilityCheck(path2));
+        } else { // one path contains an unknown implementation
+            return false;
+        }
     }
 
     @Override
