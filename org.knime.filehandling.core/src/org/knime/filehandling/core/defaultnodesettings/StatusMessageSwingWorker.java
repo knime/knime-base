@@ -85,11 +85,11 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
     private static final String SCANNING_MESSAGE = "Scanning...";
 
     /** String used for the label in case of an IOException while scanning */
-    private static final String FOLDER_SCAN_EXCEPTION_FAILURE_MESSAGE = "<html>Failed to scan folder: </br>%s</html>";
+    private static final String FOLDER_SCAN_EXCEPTION_FAILURE_MESSAGE = "Failed to scan folder: </br>%s";
 
     /** String used for the label in case the selected file does not exist */
     private static final String FILE_FOLDER_ACCESS_FAILURE_MESSAGE =
-        "<html>Selected file/folder does not exist or cannot be accessed: <br>%s</html>";
+        "Selected file/folder does not exist or cannot be accessed: <br>%s";
 
     /** String used for the label in case no files matched the selected filters */
     private static final String NO_FILES_MATCHED_FILTER_MESSAGE = "No files matched the filters";

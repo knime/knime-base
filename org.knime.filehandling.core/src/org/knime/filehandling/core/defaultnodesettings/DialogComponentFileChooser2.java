@@ -160,7 +160,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private FileFilterDialog m_fileFilterDialog;
 
     /** Label containing status messages */
-    private final JLabel m_statusMessage;
+    private final WordWrapJLabel m_statusMessage;
 
     /** Swing worker used to do file scanning in the background */
     private StatusMessageSwingWorker m_statusMessageSwingWorker;
@@ -259,7 +259,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         setFileFolderLabel();
         setFileFilterPanelVisibility();
 
-        m_statusMessage = new JLabel(EMPTY_STRING);
+        m_statusMessage = new WordWrapJLabel(EMPTY_STRING);
 
         m_statusMessageSwingWorker = null;
 
