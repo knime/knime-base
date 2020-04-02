@@ -48,6 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.table.csv;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.CellValueProducer;
 import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.convert.map.DoubleCellValueProducer;
@@ -58,9 +63,14 @@ import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.PrimitiveCellValueProducer;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
-import org.knime.filehandling.core.node.table.reader.read.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 
 /**
  * Factory for StringReadAdapter objects.
@@ -69,7 +79,22 @@ import org.knime.filehandling.core.node.table.reader.read.ReadAdapterFactory;
  */
 final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
 
-    static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
+    private static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
+
+    private static final Map<Class<?>, DataType> DEFAULT_TYPES = createDefaultTypeMap();
+
+    private static Map<Class<?>, DataType> createDefaultTypeMap() {
+        final Map<Class<?>, DataType> defaultTypes = new HashMap<>();
+        defaultTypes.put(Boolean.class, BooleanCell.TYPE);
+        defaultTypes.put(Byte.class, IntCell.TYPE);
+        defaultTypes.put(Short.class, IntCell.TYPE);
+        defaultTypes.put(Integer.class, IntCell.TYPE);
+        defaultTypes.put(Long.class, LongCell.TYPE);
+        defaultTypes.put(Float.class, DoubleCell.TYPE);
+        defaultTypes.put(Double.class, DoubleCell.TYPE);
+        defaultTypes.put(String.class, StringCell.TYPE);
+        return Collections.unmodifiableMap(defaultTypes);
+    }
 
     private static ProducerRegistry<Class<?>, StringReadAdapter> initializeProducerRegistry() {
         final ProducerRegistry<Class<?>, StringReadAdapter> registry =
@@ -146,6 +171,11 @@ final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     @Override
     public ProducerRegistry<Class<?>, StringReadAdapter> getProducerRegistry() {
         return PRODUCER_REGISTRY;
+    }
+
+    @Override
+    public Map<Class<?>, DataType> getDefaultTypeMap() {
+        return DEFAULT_TYPES;
     }
 
 }

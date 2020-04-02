@@ -57,8 +57,5 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapter;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class StringReadAdapter extends ReadAdapter<Class<?>, String> {
-
-    protected StringReadAdapter() {
-    }
-
+    // yes this class needs to be empty
 }
