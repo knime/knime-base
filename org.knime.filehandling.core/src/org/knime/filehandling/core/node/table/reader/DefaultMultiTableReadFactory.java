@@ -44,46 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader;
 
-import java.util.function.Function;
+import java.nio.file.Path;
+import java.util.Map;
 
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.core.data.DataTableSpec;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Default implementation of {@code MultiTableReadFactory}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type representing external data types
+ * @param <V> the type representing values
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<T, V> {
 
-    private final Function<V, String> m_rowKeyExtractor;
+    private final TypeMappingFactory<T, V> m_typeMappingFactory;
 
-    private final int m_colIdx;
+    private final TypeHierarchy<T, T> m_typeHierarchy;
+
+    private final RowKeyGeneratorContextFactory<V> m_rowKeyGeneratorFactory;
 
     /**
-     * Constructor.
-     *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param typeMappingFactory creates a {@link TypeMapping} from {@link ReaderTableSpec}
+     * @param typeHierarchy
+     * @param rowKeyGeneratorFactory
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
+    DefaultMultiTableReadFactory(final TypeMappingFactory<T, V> typeMappingFactory,
+        final TypeHierarchy<T, T> typeHierarchy, final RowKeyGeneratorContextFactory<V> rowKeyGeneratorFactory) {
+        m_typeMappingFactory = typeMappingFactory;
+        m_typeHierarchy = typeHierarchy;
+        m_rowKeyGeneratorFactory = rowKeyGeneratorFactory;
     }
 
     @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    public MultiTableRead<V> create(final Map<Path, ReaderTableSpec<T>> individualSpecs,
+        final MultiTableReadConfig<?> config) {
+        final ReaderTableSpec<T> mergedSpec =
+            config.getSpecMergeMode().mergeSpecs(individualSpecs.values(), m_typeHierarchy);
+        final TypeMapping<V> typeMapping = m_typeMappingFactory.create(mergedSpec);
+        final DataTableSpec outputSpec = typeMapping.map(mergedSpec);
+        final RowKeyGeneratorContext<V> keyGenFn = m_rowKeyGeneratorFactory.createContext(config.getTableReadConfig());
+        return new DefaultMultiTableRead<>(individualSpecs, outputSpec, typeMapping, keyGenFn);
     }
 
 }

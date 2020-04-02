@@ -44,95 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 25, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.read;
 
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.Source;
+import java.io.IOException;
+
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
- * Serves as adapter between a {@link Read} and the mapping framework by representing a {@link Source}.</br>
- *
- * An extending class should look as follows:
- *
- * <pre>
- * final class ExampleReadAdapter extends ReadAdapter<Type, Value> {
- * }
- * </pre>
- *
- * That is, it should not contain any implementation and should only define the class to be used when creating a
- * {@link ProducerRegistry} via {@link MappingFramework#forSourceType(Class)}.
+ * A {@link Read} decorator that ensures that all {@link RandomAccessible RandomAccessibles} returned by the underlying
+ * {@link Read} have the same size.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify data types
- * @param <V> type of tokens read by the reader
- * @noreference not meant to be referenced by clients
  */
-public abstract class ReadAdapter<T, V> implements Source<T> {
+final class CheckSameSizeRead<V> extends AbstractReadDecorator<V> {
 
-    private RandomAccessible<V> m_current;
+    private int m_size = -1;
 
     /**
-     * Constructor to be called by extending classes.
+     * Constructor.
+     *
+     * @param source the {@link Read} to decorate
      */
-    protected ReadAdapter() {
+    CheckSameSizeRead(final Read<V> source) {
+        super(source);
     }
 
-
-    /**
-     * Sets a {@link RandomAccessible} that serves as new source.
-     *
-     * @param current
-     */
-    public void setSource(final RandomAccessible<V> current) {
-        m_current = current;
-    }
-
-    /**
-     * Returns the value identified by the provided {@link ReadAdapterParams}. When implementing your
-     * CellValueProducers, call this method to access the values.
-     *
-     * @param params read parameters
-     * @return the value identified by params
-     */
-    public final V get(final ReadAdapterParams<?> params) {
-        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
-        return m_current.get(params.getIdx());
-    }
-
-    /**
-     * Used to identify values in {@link ReadAdapter#get(ReadAdapterParams)}.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     * @param <A> the concrete ReadAdapter implementation (only necessary to satisfy the compiler)
-     * @noreference not meant to be referenced by clients
-     */
-    public static final class ReadAdapterParams<A extends ReadAdapter<?, ?>> implements ProducerParameters<A> {
-
-        private final int m_idx;
-
-        /**
-         * Constructor.
-         *
-         * @param idx of the corresponding column
-         */
-        public ReadAdapterParams(final int idx) {
-            m_idx = idx;
+    @Override
+    public RandomAccessible<V> next() throws IOException {
+        final RandomAccessible<V> current = getSource().next();
+        if (m_size == -1 && current != null) {
+            m_size = current.size();
+        } else if (current != null) {
+            CheckUtils.checkArgument(m_size == current.size(), "Not all rows have the same number of cells.");
+        } else {
+            // either we are at the end of the read or the size matched
         }
-
-        private int getIdx() {
-            return m_idx;
-        }
-
-        @Override
-        public String toString() {
-            return Integer.toString(m_idx);
-        }
+        return current;
     }
 
 }

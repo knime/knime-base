@@ -44,46 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.util;
 
-import java.util.function.Function;
+import java.nio.file.Path;
+import java.util.Collection;
 
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Encapsulates information needed by the MultiTableReader to read tables from multiple {@link Path paths}. Note:
+ * Implementations of this class don't perform any I/O.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type representing values
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+public interface MultiTableRead<V> {
 
     /**
-     * Constructor.
+     * Returns the {@link DataTableSpec} of the currently read table.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @return the {@link DataTableSpec} of the currently read table
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
+    DataTableSpec getOutputSpec();
 
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
-    }
+    /**
+     * Checks if the provided <b>paths</b> match the paths used to instantiate this MultiTableRead.
+     *
+     * @param paths to read from
+     * @return {@code true} if the provided <b>paths</b> are valid
+     */
+    boolean isValidFor(final Collection<Path> paths);
+
+    /**
+     * Creates an {@link IndividualTableReader} to read the contents stored at {@link Path path}.
+     *
+     * @param path to read from
+     * @param config user provided {@link TableReadConfig}
+     * @param fsFactory for creating certain types of DataCells
+     * @return an {@link IndividualTableReader} configured for {@link Path path}
+     */
+    IndividualTableReader<V> createIndividualTableReader(Path path, TableReadConfig<?> config,
+        FileStoreFactory fsFactory);
 
 }

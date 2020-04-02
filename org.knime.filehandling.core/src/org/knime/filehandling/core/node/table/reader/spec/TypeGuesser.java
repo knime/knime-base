@@ -44,34 +44,79 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 23, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.spec;
 
-import org.knime.core.data.RowKey;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
 
 /**
- * Generates {@link RowKey RowKeys} by combining a fixed prefix with increasing ids starting from 0.
+ * Guesses the types of columns by maintaining a list of {@link TypeResolver TypeResolvers} that are incrementally
+ * updated.</br>
+ * Also provides an early stopping mechanism since no more updates are necessary if all TypeResolvers reached their most
+ * general type.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class CountingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+final class TypeGuesser<T, V> {
 
-    private long m_counter = -1;
+    private final List<TypeResolver<T, V>> m_resolvers = new LinkedList<>();
+
+    private final TypeHierarchy<T, V> m_typeHierarchy;
+
+    private final boolean m_enableEarlyStopping;
+
+    private boolean m_canStop = false;
+
+    TypeGuesser(final TypeHierarchy<T, V> typeHierarchy,
+        final boolean enableEarlyStopping) {
+        m_typeHierarchy = typeHierarchy;
+        m_enableEarlyStopping = enableEarlyStopping;
+    }
+
+    void update(final RandomAccessible<V> row) {
+        ensureEnoughResolvers(row.size());
+        boolean canStop = true;
+        final Iterator<TypeResolver<T, V>> resolverIterator = m_resolvers.iterator();
+        for (int i = 0; i < row.size(); i++) {
+            final TypeResolver<T, V> resolver = resolverIterator.next();
+            resolver.accept(row.get(i));
+            canStop &= resolver.reachedTop();
+        }
+        m_canStop = canStop;
+    }
+
+    private void ensureEnoughResolvers(final long neededResolvers) {
+        if (m_resolvers.size() < neededResolvers) {
+            Stream.generate(m_typeHierarchy::createResolver)//
+                .limit(neededResolvers - m_resolvers.size())//
+                .forEach(m_resolvers::add);
+        }
+    }
+
+    boolean canStop() {
+        return m_enableEarlyStopping && m_canStop;
+    }
 
     /**
-     * Constructor.
+     * Returns the list of most specific types whose contains at least <b>minimumExpected</b> types
+     * but may contain more if more columns were observed by this TypeGuesser.
      *
-     * @param prefix for the generated {@link RowKey keys}
+     * @param minimumExpected the minimum number of types expected to be returned
+     * @return the most specific types observed in the table (filled up to minimum expected if necessary)
      */
-    CountingRowKeyGenerator(final String prefix) {
-        super(prefix);
+    List<T> getMostSpecificTypes(final int minimumExpected) {
+        ensureEnoughResolvers(minimumExpected);
+        return m_resolvers.stream().map(TypeResolver::getMostSpecificType).collect(toList());
     }
 
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        m_counter++;
-        return new RowKey(getPrefix() + m_counter);
-    }
 }

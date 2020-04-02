@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.randomaccess;
 
+import org.knime.core.node.util.CheckUtils;
+
 /**
  * A {@link RandomAccessible} based on arrays.
  *
@@ -71,7 +73,7 @@ final class ArrayRandomAccessible<V> implements RandomAccessible<V> {
      * @return a new instance of ArrayRandomAccessible with <b>data</b>
      */
     public static <V> ArrayRandomAccessible<V> createSafe(final V[] data) {
-        return new ArrayRandomAccessible<>(data.clone());
+        return new ArrayRandomAccessible<>(CheckUtils.checkArgumentNotNull(data).clone());
     }
 
     /**
@@ -82,7 +84,7 @@ final class ArrayRandomAccessible<V> implements RandomAccessible<V> {
      * @return a new instance of ArrayRandomAccessible with <b>data</b>
      */
     public static <V> ArrayRandomAccessible<V> createUnsafe(final V[] data) {
-        return new ArrayRandomAccessible<>(data);
+        return new ArrayRandomAccessible<>(CheckUtils.checkArgumentNotNull(data));
     }
 
     @Override

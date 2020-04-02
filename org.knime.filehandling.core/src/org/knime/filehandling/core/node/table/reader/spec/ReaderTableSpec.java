@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,13 +57,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.knime.core.node.util.CheckUtils;
+
 /**
  * Representation of a table as a collection of {@link ReaderColumnSpec ReaderColumnSpecs}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify types
+ * @param <T> type used to identify data types
  */
 public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
+
+    private static final String TYPES = "types";
 
     private final List<ReaderColumnSpec<T>> m_columns;
 
@@ -70,8 +76,14 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
      *
      * @param columns the table contains
      */
-    public ReaderTableSpec(final ReaderColumnSpec<T>[] columns) {
-        m_columns = Arrays.asList(columns.clone());
+    @SafeVarargs // because the varargs array is neither modified nor exposed
+    public ReaderTableSpec(final ReaderColumnSpec<T>... columns) {
+        this(Arrays.asList(notEmpty(notNull(columns, "columns"))), false);
+    }
+
+    private static <T> ReaderColumnSpec<T>[] notEmpty(final ReaderColumnSpec<T>[] columns) {
+        CheckUtils.checkArgument(columns.length > 0, "At least one column must be provided.");
+        return columns;
     }
 
     /**
@@ -80,7 +92,72 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
      * @param columns the table contains
      */
     public ReaderTableSpec(final Collection<ReaderColumnSpec<T>> columns) {
-        m_columns = new ArrayList<>(columns);
+        this(new ArrayList<>(notEmpty(notNull(columns, "c"))), false);
+    }
+
+    private static <T> Collection<T> notEmpty(final Collection<T> collection) {
+        CheckUtils.checkArgument(!collection.isEmpty(), "At least one column must be provided.");
+        return collection;
+    }
+
+    private ReaderTableSpec(final List<ReaderColumnSpec<T>> columns, final boolean copy) {
+        if (copy) {
+            m_columns = new ArrayList<>(columns);
+        } else {
+            m_columns = columns;
+        }
+    }
+
+    private static <T> T notNull(final T argument, final String name) {
+        return CheckUtils.checkArgumentNotNull(argument, "The %s argument must not be null.", name);
+    }
+
+    /**
+     * Creates a {@link ReaderTableSpec} from a collection of <b>names</b> and <b>types</b></br>
+     * Note that <b>names</b> may contain {@code null} elements while <b>types</b> may not.
+     *
+     * @param names the column names (may contain {@code null})
+     * @param types the column types (must NOT contain {@code null}
+     * @return a {@link ReaderTableSpec} with columns according to the provided arguments
+     */
+    public static <T> ReaderTableSpec<T> create(final Collection<String> names, final Collection<T> types) {
+        CheckUtils.checkArgumentNotNull(names, "The names argument must not be null.");
+        CheckUtils.checkArgumentNotNull(types, "The types argument must not be null.");
+        CheckUtils.checkArgument(!names.isEmpty(), "At least one name and type must be provided.");
+        CheckUtils.checkArgument(names.size() == types.size(), "Names and types must have the same size.");
+        final Iterator<String> nameIterator = names.iterator();
+        final Iterator<T> typesIterator = types.iterator();
+        final List<ReaderColumnSpec<T>> cols = new ArrayList<>(names.size());
+        while (nameIterator.hasNext()) {
+            final String name = nameIterator.next();
+            final T type = CheckUtils.checkArgumentNotNull(typesIterator.next(), "A type must not be null.");
+            cols.add(ReaderColumnSpec.createWithName(name, type));
+        }
+        return new ReaderTableSpec<>(cols, false);
+    }
+
+    /**
+     * Creates a {@link ReaderTableSpec} with nameless columns whose types are given by <b>types</b>.
+     *
+     * @param types of the columns (must NOT be or contain {@code null})
+     * @return a {@link ReaderTableSpec} with nameless columns of the types provided
+     */
+    public static <T> ReaderTableSpec<T> create(@SuppressWarnings("unchecked") final T... types) {
+        return create(Arrays.asList(notNull(types, TYPES)));
+    }
+
+    /**
+     * Creates a {@link ReaderTableSpec} with nameless columns whose types are given by <b>types</b>.
+     *
+     * @param types of the columns (must NOT be or contain {@code null})
+     * @return a {@link ReaderTableSpec} with nameless columns of the types provided types
+     */
+    public static <T> ReaderTableSpec<T> create(final Collection<T> types) {
+        notNull(types, TYPES);
+        CheckUtils.checkArgument(!types.isEmpty(), "The list of types must contain at least one element.");
+        return new ReaderTableSpec<>(types.stream()//
+            .map(ReaderColumnSpec::create)//
+            .collect(toList()), false);
     }
 
     @Override

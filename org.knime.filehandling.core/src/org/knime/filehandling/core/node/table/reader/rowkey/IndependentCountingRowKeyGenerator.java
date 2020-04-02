@@ -44,36 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 30, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.read;
+package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.core.data.RowKey;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Factory that bundles a concrete {@link ReadAdapter} implementation with a compatible {@link ProducerRegistry}.
+ * Generates {@link RowKey RowKeys} by combining a fixed prefix with increasing ids starting from 0.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify data types
- * @param <V> the type of values
  */
-public interface ReadAdapterFactory<T, V> {
+final class IndependentCountingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+
+    private long m_counter = -1;
 
     /**
-     * Creates a {@link ReadAdapter} that is used to map from individual tables to a common global table.
-     * It is also used by the framework to perform type-mapping.
+     * Constructor.
      *
-     * @return a read adapter that represents {@link Read read} as source consumable by the mapping framework
+     * @param prefix for the generated {@link RowKey keys}
      */
-    ReadAdapter<T, V> createReadAdapter();
+    IndependentCountingRowKeyGenerator(final String prefix) {
+        super(prefix);
+    }
 
-    /**
-     * Returns a {@link ProducerRegistry} compatible with the {@link ReadAdapter ReadAdapters} created by
-     * {@link #createReadAdapter()}.
-     *
-     * @return a compatible {@link ProducerRegistry}
-     */
-    ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();
-
+    @Override
+    public RowKey createKey(final RandomAccessible<V> tokens) {
+        m_counter++;
+        return new RowKey(getPrefix() + m_counter);
+    }
 }

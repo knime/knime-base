@@ -44,46 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import java.util.function.Function;
-
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Represents a mapping from external types to KNIME types.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of values
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+public interface TypeMapping<V> {
 
     /**
-     * Constructor.
+     * Creates a {@link TypeMapper} for mapping from external types to KNIME types.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param fsFactory used to create DataCells backed by file stores
+     * @return a {@link TypeMapper} that performs the actual mapping
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
+    TypeMapper<V> createTypeMapper(FileStoreFactory fsFactory);
 
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
-    }
+    /**
+     * Creates the {@link DataTableSpec} that corresponds to {@link ReaderTableSpec spec} according to this
+     * {@link TypeMapping}.
+     *
+     * @param spec the {@link ReaderTableSpec} to map to a {@link DataTableSpec}
+     * @return the {@link DataTableSpec} corresponding to {@link ReaderTableSpec spec} and this {@link TypeMapping}
+     */
+    DataTableSpec map(ReaderTableSpec<?> spec);
 
 }

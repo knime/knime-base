@@ -44,95 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 16, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.type.hierarchy;
 
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.Source;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
+import java.util.function.Consumer;
 
 /**
- * Serves as adapter between a {@link Read} and the mapping framework by representing a {@link Source}.</br>
- *
- * An extending class should look as follows:
- *
- * <pre>
- * final class ExampleReadAdapter extends ReadAdapter<Type, Value> {
- * }
- * </pre>
- *
- * That is, it should not contain any implementation and should only define the class to be used when creating a
- * {@link ProducerRegistry} via {@link MappingFramework#forSourceType(Class)}.
+ * Defines how different types relate to each other.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify data types
- * @param <V> type of tokens read by the reader
- * @noreference not meant to be referenced by clients
+ * @param <T> type that is used to identify types (e.g. Class)
+ * @param <V> type of values that are tested for being of a certain type
  */
-public abstract class ReadAdapter<T, V> implements Source<T> {
-
-    private RandomAccessible<V> m_current;
+public interface TypeHierarchy<T, V> {
 
     /**
-     * Constructor to be called by extending classes.
-     */
-    protected ReadAdapter() {
-    }
-
-
-    /**
-     * Sets a {@link RandomAccessible} that serves as new source.
+     * Creates a {@link TypeResolver resolver} that is based on this {@link TypeHierarchy hierarchy}.
      *
-     * @param current
+     * @return a resolver that is based on this hierarchy
      */
-    public void setSource(final RandomAccessible<V> current) {
-        m_current = current;
-    }
+    TypeResolver<T, V> createResolver();
 
     /**
-     * Returns the value identified by the provided {@link ReadAdapterParams}. When implementing your
-     * CellValueProducers, call this method to access the values.
-     *
-     * @param params read parameters
-     * @return the value identified by params
-     */
-    public final V get(final ReadAdapterParams<?> params) {
-        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
-        return m_current.get(params.getIdx());
-    }
-
-    /**
-     * Used to identify values in {@link ReadAdapter#get(ReadAdapterParams)}.
+     * Allows to find the common supertype of values by following a type hierarchy.
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     * @param <A> the concrete ReadAdapter implementation (only necessary to satisfy the compiler)
-     * @noreference not meant to be referenced by clients
+     * @param <T> type that is used to identify types (e.g. Class)
+     * @param <V> type of values that are tested for being of a certain type
      */
-    public static final class ReadAdapterParams<A extends ReadAdapter<?, ?>> implements ProducerParameters<A> {
-
-        private final int m_idx;
+    public interface TypeResolver<T, V> extends Consumer<V> {
 
         /**
-         * Constructor.
-         *
-         * @param idx of the corresponding column
+         * @return the preferred type of this hierarchy
          */
-        public ReadAdapterParams(final int idx) {
-            m_idx = idx;
-        }
+        T getMostSpecificType();
 
-        private int getIdx() {
-            return m_idx;
-        }
-
+        /**
+         * Observes the given value.
+         * If <b>value</b> is compatible with the currently most specific type nothing changes,
+         * otherwise the hierarchy is traversed until a type is found that is compatible with <b>value</b>
+         *
+         * @param value to observe
+         */
         @Override
-        public String toString() {
-            return Integer.toString(m_idx);
-        }
+        void accept(V value);
+
+        /**
+         * Indicates whether the top of the hierarchy i.e. the most generic type has been reached.
+         * Once the top of the hierarchy is reached, there is no point in further
+         * search since there is no more generic type.
+         *
+         * @return true if the top of the hierarchy is reached
+         */
+        boolean reachedTop();
     }
 
 }

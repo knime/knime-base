@@ -48,6 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+
 /**
  * Static utility class for modifying {@link Read} objects.
  *
@@ -78,7 +81,7 @@ public final class ReadUtils {
      * @return a read that skips over the first <b>skip</b> rows
      */
     public static <V> Read<V> skip(final Read<V> read, final long skip) {
-        return new IntervalRead<>(read, skip, 0);
+        return new IntervalRead<>(read, skip, Long.MAX_VALUE);
     }
 
     /**
@@ -91,6 +94,104 @@ public final class ReadUtils {
      */
     public static <V> Read<V> range(final Read<V> read, final long from, final long to) {
         return new IntervalRead<>(read, from, to);
+    }
+
+    /**
+     * Returns a {@link Read} that skips empty rows, i.e. rows where {@link RandomAccessible#size()} is 0.
+     *
+     * @param read the read to decorate
+     * @return a {@link Read} that skips empty rows in {@link Read read}
+     */
+    public static <V> Read<V> skipEmptyRows(final Read<V> read) {
+        return new SkipEmptyRead<>(read);
+    }
+
+    /**
+     * Decorates the provided {@link Read} for reading actual the spec according to the provided {@link TableReadConfig}.</br>
+     * Following decorators are added if necessary:</br>
+     * - Skipping empty rows.</br>
+     * - Validate that all rows have the same size if short rows aren't allowed.</br>
+     *
+     * @param read to decorated
+     * @param config for reading
+     * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
+     */
+    @SuppressWarnings("resource") // that's the point
+    public static <V> Read<V> decorateForSpecGuessing(final Read<V> read, final TableReadConfig<?> config) {
+        Read<V> decorated = read;
+        decorated = decorateSkipEmpty(decorated, config);
+        decorated = decorateAllowShortRows(decorated, config);
+        return decorated;
+    }
+
+    /**
+     * Decorates the provided {@link Read} for reading actual rows according to the provided {@link TableReadConfig}.</br>
+     * Following decorators are added if necessary:</br>
+     * - Skipping empty rows.</br>
+     * - Validate that all rows have the same size if short rows aren't allowed.</br>
+     * - Skip the column header if it lies within the range of read rows.</br>
+     *
+     * @param read to decorated
+     * @param config for reading
+     * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
+     */
+    @SuppressWarnings("resource") // that's the point...
+    public static <V> Read<V> decorateForReading(final Read<V> read, final TableReadConfig<?> config) {
+        Read<V> decorated = read;
+        decorated = decorateSkipEmpty(decorated, config);
+        decorated = decorateAllowShortRows(decorated, config);
+        decorated = decorateSkipHeader(decorated, config);
+        return decorated;
+    }
+
+    private static <V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
+        if (config.skipEmptyRows()) {
+            return new SkipEmptyRead<>(read);
+        } else {
+            return read;
+        }
+    }
+
+    private static <V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
+        if (!config.allowShortRows()) {
+            return new CheckSameSizeRead<>(read);
+        } else {
+            return read;
+        }
+    }
+
+    /**
+     * Figures out if the column header needs to be skipped and decorates the read if necessary.
+     *
+     * @param read {@link Read} in which the column header potentially needs to be skipped
+     * @param config {@link TableReadConfig} from which to figure out if the column read needs to be skipped
+     * @return a {@link Read} without a column header (one way or the other)
+     */
+    private static <V> Read<V> decorateSkipHeader(final Read<V> read, final TableReadConfig<?> config) {
+        if (needToSkipColumnHeader(config)) {
+            // we only end up here if there is a column header index and it is in [readStartIdx, readEndIdx)
+            final long offset = config.getColumnHeaderIdx() - getStartIdx(config);
+            return new SkipIdxRead<>(read, offset);
+        } else {
+            return read;
+        }
+    }
+
+    private static boolean needToSkipColumnHeader(final TableReadConfig<?> config) {
+        if (!config.useColumnHeaderIdx()) {
+            return false;
+        }
+        final long readStartIdx = getStartIdx(config);
+        final long columnHeaderIdx = config.getColumnHeaderIdx();
+        if (config.limitRows()) {
+            return columnHeaderIdx >= readStartIdx && columnHeaderIdx < readStartIdx + config.getMaxRows();
+        } else {
+            return columnHeaderIdx >= readStartIdx;
+        }
+    }
+
+    private static long getStartIdx(final TableReadConfig<?> config) {
+        return config.skipRows() ? config.getNumRowsToSkip() : 0;
     }
 
 }

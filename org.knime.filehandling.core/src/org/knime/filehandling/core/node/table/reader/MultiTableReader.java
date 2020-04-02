@@ -48,49 +48,35 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.getNameAfterInit;
-
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.read.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorUtils;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.typehierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
-import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
+import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
  * Uses a {@link TableReader} to read tables from multiple paths, combines them according to the user settings and
  * performs type mapping.
+ *
+ * All I/O is performed in this class and the IndividualTableReader.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used by the reader to identify individual data types
@@ -98,52 +84,29 @@ import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.Def
  */
 final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
-    private final TypeHierarchy<T, T> m_typeHierarchy;
-
-    private final ProducerRegistry<T, ? extends ReadAdapter<T, V>> m_producerRegistry;
-
-    private final ReadAdapterFactory<T, V> m_readAdapterFactory;
-
     private final TableReader<C, T, V> m_reader;
 
-    private final Map<T, DataType> m_defaultKnimeTypes;
+    private final MultiTableReadFactory<T, V> m_multiTableReadFactory;
 
-    private final Function<V, String> m_rowKeyExtractor;
-
-    /**
-     * Stores for each path the spec of the table stored at this path.
-     */
-    private Map<Path, ReaderTableSpec<T>> m_individualSpecs;
-
-    /**
-     * The combined {@link ReaderTableSpec} of all individual specs.
-     */
-    private ReaderTableSpec<T> m_mergedReaderTableSpec;
+    private MultiTableRead<V> m_currentMultiRead;
 
     /**
      * Constructor.
      *
-     * @param typeHierarchy provides {@link TypeHierarchy} objects that are used to find the common most specific type
-     *            of the individual read specs
-     * @param readAdapterFactory a factory that creates concrete implementations of {@link ReadAdapter}
      * @param reader the {@link TableReader} implementation to use for reading
-     * @param defaultKnimeTypes provides the default {@link DataType} for each external type
-     * @param rowKeyExtractor to extract row keys from values
+     * @param multiTableReadFactory for creating MultiTableRead objects
      */
-    public MultiTableReader(final TypeHierarchy<T, T> typeHierarchy, final ReadAdapterFactory<T, V> readAdapterFactory,
-        final TableReader<C, T, V> reader, final Map<T, DataType> defaultKnimeTypes,
-        final Function<V, String> rowKeyExtractor) {
-        m_typeHierarchy = typeHierarchy;
-        m_producerRegistry = readAdapterFactory.getProducerRegistry();
-        m_readAdapterFactory = readAdapterFactory;
+    MultiTableReader(final TableReader<C, T, V> reader, final MultiTableReadFactory<T, V> multiTableReadFactory) {
         m_reader = reader;
-        m_defaultKnimeTypes = new HashMap<>(defaultKnimeTypes);
-        m_rowKeyExtractor = rowKeyExtractor;
+        m_multiTableReadFactory = multiTableReadFactory;
     }
 
-    void reset() {
-        m_individualSpecs = null;
-        m_mergedReaderTableSpec = null;
+    /**
+     * Resets the spec read by {@code createSpec}, {@code fillRowOutput} or {@code readTable} i.e. a subsequent call to
+     * {@code fillRowOutput} or {@code readTable} will read the spec again.
+     */
+    public void reset() {
+        m_currentMultiRead = null;
     }
 
     /**
@@ -157,48 +120,19 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      */
     public DataTableSpec createTableSpec(final List<Path> paths, final MultiTableReadConfig<C> config)
         throws IOException {
-        return readSpecs(paths, config).getOutputSpec();
+        return createMultiRead(paths, config).getOutputSpec();
     }
 
-    private RunConfig readSpecs(final List<Path> paths, final MultiTableReadConfig<C> config) throws IOException {
+    private MultiTableRead<V> createMultiRead(final List<Path> paths, final MultiTableReadConfig<C> config)
+        throws IOException {
         final Map<Path, ReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
         // TODO parallelize
         for (Path path : paths) {
             final ReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
-            specs.put(path, assignNamesIfMissing(spec));
+            specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
         }
-        // remember the specs to avoid calculating them again during the actual reading
-        m_individualSpecs = specs;
-        m_mergedReaderTableSpec = config.getSpecMergeMode().mergeSpecs(specs.values(), m_typeHierarchy);
-        return new RunConfig(m_mergedReaderTableSpec, config);
-    }
-
-    private ReaderTableSpec<T> assignNamesIfMissing(final ReaderTableSpec<T> spec) {
-        return new ReaderTableSpec<>(IntStream.range(0, spec.size())
-            .mapToObj(i -> assignNameIfMissing(i, spec.getColumnSpec(i))).collect(Collectors.toList()));
-    }
-
-    private ReaderColumnSpec<T> assignNameIfMissing(final int idx, final ReaderColumnSpec<T> spec) {
-        final Optional<String> name = spec.getName();
-        if (name.isPresent()) {
-            return spec;
-        } else {
-            return ReaderColumnSpec.createWithName(createDefaultColumnName(idx), spec.getType());
-        }
-    }
-
-    // TODO add once we have a column filter config
-    //    private ColumnFilterConfig getColumnFilter(final TableReadConfig<?> config) {
-    //        final ColumnFilterConfig columnFilter = config.getColumnFilter();
-    //        if (columnFilter.canAccess()) {
-    //            return columnFilter;
-    //        } else {
-    //            return ConfigUtil.createAllAcceptingColumnFilterConfig(m_jointReaderTableSpec.size());
-    //        }
-    //    }
-
-    private static String createDefaultColumnName(final int iFinal) {
-        return "Column" + iFinal;
+        m_currentMultiRead = m_multiTableReadFactory.create(specs, config);
+        return m_currentMultiRead;
     }
 
     /**
@@ -213,7 +147,7 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public BufferedDataTable readTable(final List<Path> paths, final MultiTableReadConfig<C> config,
         final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final RunConfig runConfig = createRunConfig(paths, config);
+        final MultiTableRead<V> runConfig = getMultiRead(paths, config);
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(runConfig.getOutputSpec()));
         fillRowOutput(runConfig, paths, config, output, exec);
@@ -235,169 +169,40 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public void fillRowOutput(final List<Path> paths, final MultiTableReadConfig<C> config, final RowOutput output,
         final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final RunConfig runConfig = createRunConfig(paths, config);
-        fillRowOutput(runConfig, paths, config, output, exec);
+        final MultiTableRead<V> multiRead = getMultiRead(paths, config);
+        fillRowOutput(multiRead, paths, config, output, exec);
     }
 
-    private RunConfig createRunConfig(final List<Path> paths, final MultiTableReadConfig<C> config) throws IOException {
-        if (m_mergedReaderTableSpec == null || m_individualSpecs == null || notAllPathsContained(paths)) {
-            return readSpecs(paths, config);
+    private MultiTableRead<V> getMultiRead(final List<Path> paths, final MultiTableReadConfig<C> config)
+        throws IOException {
+        if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(paths)) {
+            return createMultiRead(paths, config);
         } else {
-            return new RunConfig(m_mergedReaderTableSpec, config);
+            return m_currentMultiRead;
         }
     }
 
-    private boolean notAllPathsContained(final List<Path> paths) {
-        assert m_individualSpecs != null : "Only call this method if the individual specs have been initialized.";
-        return !paths.stream().allMatch(m_individualSpecs::containsKey);
-    }
-
-    private void fillRowOutput(final RunConfig runConfig, final List<Path> paths, final MultiTableReadConfig<C> config,
-        final RowOutput output, final ExecutionContext exec) throws Exception {
+    private void fillRowOutput(final MultiTableRead<V> multiTableRead, final List<Path> paths,
+        final MultiTableReadConfig<C> config, final RowOutput output, final ExecutionContext exec) throws Exception {
         exec.setMessage("Reading table");
         // TODO parallelize
+        final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
         for (Path path : paths) {
             final ExecutionMonitor progress = exec.createSubProgress(1.0 / paths.size());
-            final ReaderTableSpec<T> pathSpec = m_individualSpecs.get(path);
-            final TableReadConfig<C> pathSpecificConfig =
-                createIndividualConfig(runConfig.getOutputSpec(), pathSpec, config.getTableReadConfig());
-            try (Read<V> read = m_reader.read(path, pathSpecificConfig)) {
-                if (pathSpecificConfig.useColumnHeaderIdx()) {
-                    read.next();
-                }
-                final IndividualTableReader<ReadAdapter<T, V>> reader = new IndividualTableReader<>(
-                    createReadAdapter(read, runConfig.getOutputSpec(), pathSpec,
-                        createKeyGenerator(path, pathSpecificConfig), pathSpecificConfig),
-                    FileStoreFactory.createFileStoreFactory(exec), runConfig.getProductionPaths());
-                reader.fillOutput(output, progress);
+            final TableReadConfig<C> pathSpecificConfig = createIndividualConfig(config.getTableReadConfig());
+            final IndividualTableReader<V> reader =
+                multiTableRead.createIndividualTableReader(path, pathSpecificConfig, fsFactory);
+            try (Read<V> read =
+                ReadUtils.decorateForReading(m_reader.read(path, pathSpecificConfig), pathSpecificConfig)) {
+                reader.fillOutput(read, output, progress);
             }
             progress.setProgress(1.0);
         }
         output.close();
     }
 
-    private TableReadConfig<C> createIndividualConfig(final DataTableSpec outputSpec,
-        final ReaderTableSpec<T> individualSpec, final TableReadConfig<C> generalConfig) {
-        /*
-         * Adjust the filtering and possibly other settings that vary with differing table specs
-         */
-        // TODO add once we have a column filter config
-        //        final ColumnFilterConfig generalColumnFilter = getColumnFilter(generalConfig);
-        //        final boolean[] individualColumnFilter = new boolean[individualSpec.size()];
-        //        for (int i = 0; i < individualSpec.size(); i++) {
-        //            final ReaderColumnSpec<?> colSpec = individualSpec.getColumnSpec(i);
-        //            final int jointIdx = outputSpec.findColumnIndex(TableReaderUtil.getNameAfterInit(colSpec));
-        //            individualColumnFilter[i] = jointIdx != -1 && generalColumnFilter.test(jointIdx);
-        //        }
-        final TableReadConfig<C> individualConfig = generalConfig.copy();
-        //        individualConfig.setColumnFilter(ConfigUtil.createColumnFilterConfig(individualColumnFilter));
-        return individualConfig;
+    private TableReadConfig<C> createIndividualConfig(final TableReadConfig<C> generalConfig) {
+        return generalConfig.copy();
     }
 
-    private ReadAdapter<T, V> createReadAdapter(final Read<V> read, final DataTableSpec outputSpec,
-        final ReaderTableSpec<T> individualSpec, final RowKeyGenerator<V> keyGenerator,
-        final TableReadConfig<?> config) {
-        final IndexMapper indexMapper = createIndexMapper(outputSpec, individualSpec, config);
-        final ReadAdapter<T, V> readAdapter = m_readAdapterFactory.createReadAdapter();
-        readAdapter.setIndexMapper(indexMapper);
-        readAdapter.setRowKeyGenerator(keyGenerator);
-        readAdapter.setRead(read);
-        return readAdapter;
-    }
-
-    private IndexMapper createIndexMapper(final DataTableSpec outputSpec,
-        final ReaderTableSpec<T> individualSpec, final TableReadConfig<?> config) {
-        final int rowIDIdx = config.getRowIDIdx();
-        final boolean useRowIDIdx = config.useRowIDIdx();
-        final DefaultIndexMapperBuilder mapperBuilder =
-            useRowIDIdx ? new DefaultIndexMapperBuilder(outputSpec.getNumColumns(), rowIDIdx)
-                : new DefaultIndexMapperBuilder(outputSpec.getNumColumns());
-        for (int i = 0; i < individualSpec.size(); i++) {
-            final ReaderColumnSpec<T> colSpec = individualSpec.getColumnSpec(i);
-            final int jointIdx = outputSpec.findColumnIndex(getNameAfterInit(colSpec));
-            if (jointIdx >= 0) {
-                mapperBuilder.addMapping(jointIdx, i);
-            }
-        }
-        return mapperBuilder.build();
-    }
-
-    private RowKeyGenerator<V> createKeyGenerator(final Path path, final TableReadConfig<?> config) {
-        if (config.useRowIDIdx()) {
-            return RowKeyGeneratorUtils.createExtractingRowKeyGenerator(path.toString(), m_rowKeyExtractor,
-                config.getRowIDIdx());
-        } else {
-            return RowKeyGeneratorUtils.createCountingRowKeyGenerator(path.toString());
-        }
-    }
-
-    private static IntStream createFilteredRange(/* TODO final ColumnFilterConfig filter*/ final int numColumns) {
-        //        return IntStream.range(0, filter.getNumColumns()).filter(filter);
-        return IntStream.range(0, numColumns);
-    }
-
-    /**
-     * Stores the output {@link DataTableSpec} alongside the {@link ProductionPath ProductionPaths} used to create it.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    private final class RunConfig {
-        private final DataTableSpec m_outputSpec;
-
-        private final ProductionPath[] m_productionPaths;
-
-        RunConfig(final ReaderTableSpec<T> jointSpec, final MultiTableReadConfig<?> config) {
-            m_productionPaths = getFinalProductionPaths(config);
-            //            final ColumnFilterConfig columnFilter = getColumnFilter(config.getTableReadConfig());
-            //            final Iterator<ReaderColumnSpec<T>> specIter =
-            //                createFilteredRange(columnFilter).mapToObj(jointSpec::getColumnSpec).iterator();
-            final Iterator<ReaderColumnSpec<T>> specIter = jointSpec.iterator();
-            final DataColumnSpec[] colSpecs = new DataColumnSpec[m_productionPaths.length];
-            for (int i = 0; i < m_productionPaths.length; i++) {
-                assert specIter.hasNext();
-                final DataType type = m_productionPaths[i].getConverterFactory().getDestinationType();
-                final String name = getNameAfterInit(specIter.next());
-                colSpecs[i] = new DataColumnSpecCreator(name, type).createSpec();
-            }
-            m_outputSpec = new DataTableSpec(colSpecs);
-        }
-
-        DataTableSpec getOutputSpec() {
-            return m_outputSpec;
-        }
-
-        ProductionPath[] getProductionPaths() {
-            return m_productionPaths;
-        }
-
-        private ProductionPath[] getFinalProductionPaths(final MultiTableReadConfig<?> config) {
-            //            final ColumnFilterConfig columnFilter = getColumnFilter(config.getTableReadConfig());
-            //            return getDefaultProductionPaths(columnFilter);
-            return getDefaultProductionPaths();
-        }
-
-        private ProductionPath[] getDefaultProductionPaths(/* final ColumnFilterConfig columnFilter*/) {
-            assert m_mergedReaderTableSpec != null : //
-            "Joint reader table spec must be initialized before calling this method.";
-            //            assert m_jointReaderTableSpec.size() == columnFilter
-            //                .getNumColumns() : "Column filter doesn't match number of columns";
-            //            return createFilteredRange(columnFilter).mapToObj(m_jointReaderTableSpec::getColumnSpec)
-            //                .map(this::getDefaultProductionPath).toArray(ProductionPath[]::new);
-            return m_mergedReaderTableSpec.stream() //
-                .map(this::getDefaultProductionPath) //
-                .toArray(ProductionPath[]::new);
-        }
-
-        private ProductionPath getDefaultProductionPath(final ReaderColumnSpec<T> spec) {
-            final T type = spec.getType();
-            final List<ProductionPath> availablePaths = m_producerRegistry.getAvailableProductionPaths(type);
-            CheckUtils.checkState(!availablePaths.isEmpty(), "No production path available for type %s.", type);
-            final DataType defaultKnimeType = m_defaultKnimeTypes.get(type);
-            CheckUtils.checkState(defaultKnimeType != null, "No default type for type %s provided.", type);
-            return availablePaths.stream()
-                .filter(p -> p.getConverterFactory().getDestinationType().equals(defaultKnimeType)).findAny()
-                .orElseThrow(() -> new IllegalStateException(String
-                    .format("There exists no production path from type %s to KNIME type %s.", type, defaultKnimeType)));
-        }
-    }
 }

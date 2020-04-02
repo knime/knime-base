@@ -44,46 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.util.function.Function;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * A {@link RowKeyGeneratorContext} that creates {@link RowKeyGenerator RowKeyGenerators} that produce a continuous set
+ * of key over multiple paths.</br>
+ * As an example if our first path has two rows, they will receive keys <i>Row0, Row1<i> and the first row of the second
+ * path receives key <i>Row2</i>.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+final class ContinuousCountingRowKeyGeneratorContext<V> implements RowKeyGeneratorContext<V> {
 
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
-
-    /**
-     * Constructor.
-     *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
-     */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
+    private AtomicLong m_currentIdx = new AtomicLong(-1);
 
     @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    public RowKeyGenerator<V> createKeyGenerator(final Path path) {
+        return r -> RowKey.createRowKey(m_currentIdx.incrementAndGet());
     }
 
 }

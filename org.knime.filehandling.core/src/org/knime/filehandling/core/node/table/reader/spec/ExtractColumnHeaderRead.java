@@ -44,95 +44,91 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 23, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.spec;
 
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.Source;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Function;
+
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.AbstractReadDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
- * Serves as adapter between a {@link Read} and the mapping framework by representing a {@link Source}.</br>
- *
- * An extending class should look as follows:
- *
- * <pre>
- * final class ExampleReadAdapter extends ReadAdapter<Type, Value> {
- * }
- * </pre>
- *
- * That is, it should not contain any implementation and should only define the class to be used when creating a
- * {@link ProducerRegistry} via {@link MappingFramework#forSourceType(Class)}.
+ * A read that extracts the row containing the table headers from the provided {@link Read source}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify data types
- * @param <V> type of tokens read by the reader
- * @noreference not meant to be referenced by clients
  */
-public abstract class ReadAdapter<T, V> implements Source<T> {
+final class ExtractColumnHeaderRead<V> extends AbstractReadDecorator<V> {
 
-    private RandomAccessible<V> m_current;
+    private final long m_columnHeaderIdx;
+
+    private final Function<V, String> m_nameExtractor;
+
+    private String[] m_columnHeaders = null;
+
+    private long m_rowIdx = -1;
 
     /**
-     * Constructor to be called by extending classes.
-     */
-    protected ReadAdapter() {
-    }
-
-
-    /**
-     * Sets a {@link RandomAccessible} that serves as new source.
+     * Constructor.
      *
-     * @param current
+     * @param source the underlying read to extract the column header from
+     * @param nameExtractor function that turns a V into a column name
+     * @param columnHeaderIdx index of the column header row (set to -1 if no column header is contained)
      */
-    public void setSource(final RandomAccessible<V> current) {
-        m_current = current;
-    }
-
-    /**
-     * Returns the value identified by the provided {@link ReadAdapterParams}. When implementing your
-     * CellValueProducers, call this method to access the values.
-     *
-     * @param params read parameters
-     * @return the value identified by params
-     */
-    public final V get(final ReadAdapterParams<?> params) {
-        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
-        return m_current.get(params.getIdx());
+    ExtractColumnHeaderRead(final Read<V> source, final Function<V, String> nameExtractor, final long columnHeaderIdx) {
+        super(source);
+        m_columnHeaderIdx = columnHeaderIdx;
+        m_nameExtractor = nameExtractor;
     }
 
     /**
-     * Used to identify values in {@link ReadAdapter#get(ReadAdapterParams)}.
+     * If necessary keeps reading until the headers are read and returns them.
      *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     * @param <A> the concrete ReadAdapter implementation (only necessary to satisfy the compiler)
-     * @noreference not meant to be referenced by clients
+     * @return the extracted column headers
+     * @throws IOException if there I/O problems while reading the headers
      */
-    public static final class ReadAdapterParams<A extends ReadAdapter<?, ?>> implements ProducerParameters<A> {
-
-        private final int m_idx;
-
-        /**
-         * Constructor.
-         *
-         * @param idx of the corresponding column
-         */
-        public ReadAdapterParams(final int idx) {
-            m_idx = idx;
+    Optional<String[]> getColumnHeaders() throws IOException {
+        if (m_columnHeaderIdx >= 0 && m_columnHeaders == null) {
+            // make sure that the column headers are read
+            while (next() != null && m_columnHeaders == null) {
+                // all the action is in the header
+            }
         }
+        return Optional.ofNullable(m_columnHeaders);
+    }
 
-        private int getIdx() {
-            return m_idx;
+    private String[] extractNames(final RandomAccessible<V> values) {
+        final String[] names = new String[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            V value = values.get(i);
+            if (value != null) {
+                names[i] = m_nameExtractor.apply(value);
+            }
         }
+        return names;
+    }
 
-        @Override
-        public String toString() {
-            return Integer.toString(m_idx);
+    /**
+     * @return true if the next row contains the column headers
+     */
+    private boolean isColumnHeaderRow() {
+        return m_rowIdx == m_columnHeaderIdx;
+    }
+
+    @Override
+    public RandomAccessible<V> next() throws IOException {
+        m_rowIdx++;
+        if (isColumnHeaderRow()) {
+            RandomAccessible<V> colHeaderRow = getSource().next();
+            CheckUtils.checkState(colHeaderRow != null,
+                "The row containing the column headers is not part of the table.");
+            m_columnHeaders = extractNames(colHeaderRow);
         }
+        return getSource().next();
     }
 
 }

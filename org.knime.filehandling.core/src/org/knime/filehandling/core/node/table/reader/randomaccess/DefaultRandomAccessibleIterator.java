@@ -79,7 +79,7 @@ final class DefaultRandomAccessibleIterator<V> implements Iterator<V> {
 
     @Override
     public V next() {
-        if (hasNext()) {
+        if (!hasNext()) {
             throw new NoSuchElementException("There are no more elements in the RandomAccessible.");
         }
         m_idx++;

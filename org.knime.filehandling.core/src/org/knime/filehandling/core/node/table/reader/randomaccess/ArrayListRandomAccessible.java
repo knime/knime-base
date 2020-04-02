@@ -50,6 +50,8 @@ package org.knime.filehandling.core.node.table.reader.randomaccess;
 
 import java.util.ArrayList;
 
+import org.knime.core.node.util.CheckUtils;
+
 /**
  * An {@link ArrayList} based implementation of {@link RandomAccessible}.
  *
@@ -60,7 +62,7 @@ final class ArrayListRandomAccessible<V> implements RandomAccessible<V> {
     private final ArrayList<V> m_data;
 
     ArrayListRandomAccessible(final ArrayList<V> data) {
-        m_data = data;
+        m_data = CheckUtils.checkArgumentNotNull(data, "Data must not be null.");
     }
 
     @Override

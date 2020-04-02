@@ -44,46 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 1, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.read;
 
-import java.util.function.Function;
+import java.io.IOException;
 
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * A {@link Read} that skips the provided index in the underlying read.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+final class SkipIdxRead<V> extends AbstractReadDecorator<V> {
 
-    private final Function<V, String> m_rowKeyExtractor;
+    private final long m_idxToSkip;
 
-    private final int m_colIdx;
+    private long m_current = -1;
 
     /**
      * Constructor.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param source the underlying {@link Read}
+     * @param idxToSkip the index to skip (0 based indexing i.e. the first row has index 0)
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
+    SkipIdxRead(final Read<V> source, final long idxToSkip) {
+        super(source);
+        m_idxToSkip = idxToSkip;
     }
 
     @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    public RandomAccessible<V> next() throws IOException {
+        m_current++;
+        if (m_current == m_idxToSkip) {
+            getSource().next();
+        }
+        return getSource().next();
     }
 
 }

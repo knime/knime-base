@@ -48,93 +48,87 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.util.stream.IntStream;
+import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
-import org.knime.core.data.convert.map.DataRowProducer;
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.data.RowKey;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 
 /**
- * Coordinates reading and {@link DataRow} creation via the {@link MappingFramework}.
+ * Default implementation of {@link IndividualTableReader}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <A> the concrete type of {@link ReadAdapter}
+ * @param <V> the type representing values
  */
-final class IndividualTableReader<A extends ReadAdapter<?, ?>> {
+final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> {
 
-    private final DataRowProducer<ReadAdapterParams<A>> m_rowProducer;
+    private final RowKeyGenerator<V> m_rowKeyGenerator;
 
-    private final A m_readAdapter;
+    private final IndexMappingRandomAccessibleDecorator<V> m_mapper;
 
-    private final ReadAdapterParams<A>[] m_params;
+    private final TypeMapper<V> m_typeMapper;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param readAdapter to create rows from
-     * @param fsFactory required by the mapping framework
-     * @param productionPaths defining how to map all columns
+     * @param typeMapper maps from {@link RandomAccessible RandomAccessibles} to {@link DataRow DataRows} given a
+     *            {@link RowKey}
+     * @param idxMapper represents the mapping from the global columns to the columns in the individual table
+     * @param rowKeyGenerator creates {@link RowKey RowKeys} from {@link RandomAccessible RandomAccessibles.}
      */
-    IndividualTableReader(final A readAdapter, final FileStoreFactory fsFactory,
-        final ProductionPath[] productionPaths) {
-        m_readAdapter = readAdapter;
-        // ReadAdapterParams are compatible with any ReadAdapter, the generics
-        // are only necessary to shut up the compiler
-        @SuppressWarnings("unchecked")
-        final ReadAdapterParams<A>[] params = IntStream.range(0, productionPaths.length)
-            .mapToObj(ReadAdapterParams::new).toArray(ReadAdapterParams[]::new);
-        m_params = params;
-        m_rowProducer = MappingFramework.createDataRowProducer(fsFactory, m_readAdapter, productionPaths);
+    DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final IndexMapper idxMapper,
+        final RowKeyGenerator<V> rowKeyGenerator) {
+        m_mapper = new IndexMappingRandomAccessibleDecorator<>(idxMapper);
+        m_rowKeyGenerator = rowKeyGenerator;
+        m_typeMapper = typeMapper;
     }
 
-    private DataRow next() throws Exception {
-        if (m_readAdapter.next() == null) {
-            return null;
-        }
+    private DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception {
+        m_mapper.set(randomAccessible);
+        final RowKey key = m_rowKeyGenerator.createKey(randomAccessible);
         // reads the tokens from m_readAdapter and converts them into a DataRow
-        return m_rowProducer.produceDataRow(m_readAdapter.getKey(), m_params);
+        return m_typeMapper.map(key, m_mapper);
     }
 
-    /**
-     * Pushes all rows contained in the {@link ReadAdapter} provided in the constructor to {@link RowOutput output}.
-     *
-     * @param output to push to (must be compatible i.e. have the same spec)
-     * @param progress used for cancelation and progress reporting (provided the size of the read is known)
-     * @throws Exception if something goes astray
-     */
-    void fillOutput(final RowOutput output, final ExecutionMonitor progress) throws Exception {
-        if (m_readAdapter.getEstimatedSizeInBytes().isPresent()) {
-            fillOutputWithProgress(output, progress);
+    @Override
+    public void fillOutput(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
+        throws Exception {
+        final OptionalLong estimatedSizeInBytes = read.getEstimatedSizeInBytes();
+        if (estimatedSizeInBytes.isPresent()) {
+            fillOutputWithProgress(read, output, progress, estimatedSizeInBytes.getAsLong());
         } else {
-            fillOutputWithoutProgress(output, progress);
+            fillOutputWithoutProgress(read, output, progress);
         }
     }
 
-    private void fillOutputWithoutProgress(final RowOutput output, final ExecutionMonitor progress) throws Exception {
-        DataRow next;
-        for (long i = 1; (next = next()) != null; i++) {
+    private void fillOutputWithoutProgress(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
+        throws Exception {
+        RandomAccessible<V> next;
+        for (long i = 1; (next = read.next()) != null; i++) {
             progress.checkCanceled();
             final long finalI = i;
             progress.setMessage(() -> String.format("Reading row %s", finalI));
-            output.push(next);
+            output.push(toRow(next));
         }
     }
 
-    private void fillOutputWithProgress(final RowOutput output, final ExecutionMonitor progress) throws Exception {
-        final long size = m_readAdapter.getEstimatedSizeInBytes().orElseThrow(() -> new IllegalStateException(
-            "Coding error! Only call this method if the estimated size of the read is known."));
+    private void fillOutputWithProgress(final Read<V> read, final RowOutput output, final ExecutionMonitor progress,
+        final double size) throws Exception {
         final double doubleSize = size;
-        DataRow next;
-        for (long i = 1; (next = next()) != null; i++) {
+        RandomAccessible<V> next;
+        for (long i = 1; (next = read.next()) != null; i++) {
             progress.checkCanceled();
             final long finalI = i;
-            progress.setProgress(i / doubleSize, () -> String.format("Reading row %s/%s", finalI, size));
-            output.push(next);
+            // TODO discuss how to report progress if rows are filtered
+            progress.setProgress(read.readBytes() / doubleSize, () -> String.format("Reading row %s", finalI));
+            output.push(toRow(next));
         }
     }
 

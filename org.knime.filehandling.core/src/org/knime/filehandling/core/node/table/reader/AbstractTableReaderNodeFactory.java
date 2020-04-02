@@ -48,20 +48,22 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.util.Map;
 import java.util.Optional;
 
-import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.read.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.typehierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.mapping.DefaultTypeMappingFactory;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
@@ -97,20 +99,6 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     protected abstract ReadAdapterFactory<T, V> getReadAdapterFactory();
 
     /**
-     * Returns the {@link TypeHierarchy} for the external types.
-     *
-     * @return the type hierarchy of the external types
-     */
-    protected abstract TypeHierarchy<T, T> getTypeHierarchy();
-
-    /**
-     * Returns the map of default {@link DataType DataTypes}.
-     *
-     * @return the map of default types
-     */
-    protected abstract Map<T, DataType> getDefaultTypeMap();
-
-    /**
      * Creates the {@link TableReader} for this reader node.
      *
      * @return a new table reader
@@ -125,15 +113,23 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      */
     protected abstract String extractRowKey(V value);
 
+    /**
+     * Returns the {@link TypeHierarchy} of the external types.
+     *
+     * @return the type hierarchy of the external types
+     */
+    protected abstract TypeHierarchy<T, T> getTypeHierarchy();
+
     @Override
     public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadConfig<C> config = createConfig();
         final SettingsModelFileChooser2 fileChooserModel = createFileChooserModel();
-        final TypeHierarchy<T, T> typeHierarchy = getTypeHierarchy();
-        final Map<T, DataType> defaultTypes = getDefaultTypeMap();
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        final MultiTableReader<C, T, V> reader = new MultiTableReader<>(typeHierarchy, readAdapterFactory,
-            createReader(), defaultTypes, this::extractRowKey);
+        final TypeMappingFactory<T, V> typeMappingFactory = new DefaultTypeMappingFactory<>(readAdapterFactory);
+        final RowKeyGeneratorContextFactory<V> rowKeyGenFactory = new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
+        final MultiTableReadFactory<T, V> multiTableReadFactory =
+            new DefaultMultiTableReadFactory<>(typeMappingFactory, getTypeHierarchy(), rowKeyGenFactory);
+        final MultiTableReader<C, T, V> reader = new MultiTableReader<>(createReader(), multiTableReadFactory);
         return new TableReaderNodeModel<>(config, fileChooserModel, reader,
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
@@ -147,7 +143,12 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
         return Optional.of(builder);
     }
 
-    private MultiTableReadConfig<C> createConfig() {
+    /**
+     * Creates a {@link MultiTableReadConfig} for use in a reader node model.
+     *
+     * @return {@link MultiTableReadConfig} for a node model
+     */
+    protected MultiTableReadConfig<C> createConfig() {
         return ReaderConfigUtils.createMultiTableReadConfig(createReaderSpecificConfig(),
             getReadAdapterFactory().getProducerRegistry());
     }

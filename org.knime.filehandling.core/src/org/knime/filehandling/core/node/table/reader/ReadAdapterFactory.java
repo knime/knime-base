@@ -44,46 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 30, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader;
 
-import java.util.function.Function;
+import java.util.Map;
 
-import org.knime.core.data.RowKey;
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
- * Utility class for {@link RowKeyGenerator RowKeyGenerators}.
+ * Factory that bundles a concrete {@link ReadAdapter} implementation with a compatible {@link ProducerRegistry}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify data types
+ * @param <V> the type of values
  */
-public final class RowKeyGeneratorUtils {
-
-    private RowKeyGeneratorUtils() {
-        // static utility class
-    }
+public interface ReadAdapterFactory<T, V> {
 
     /**
-     * Creates a {@link RowKeyGenerator} that creates unique {@link RowKey RowKeys} by appending an index to the provided <b>prefix</b>.
+     * Creates a {@link ReadAdapter} that is used to map from individual tables to a common global table. It is also
+     * used by the framework to perform type-mapping.
      *
-     * @param prefix for the generated keys
-     * @return a counting RowKeyGenerator
+     * @return a read adapter that represents {@link Read read} as source consumable by the mapping framework
      */
-    public static <V> RowKeyGenerator<V> createCountingRowKeyGenerator(final String prefix) {
-        return new CountingRowKeyGenerator<>(prefix);
-    }
+    ReadAdapter<T, V> createReadAdapter();
 
     /**
-     * Creates a {@link RowKeyGenerator} that extracts the key from a row and combines it with the provided <b>prefix</b>.
+     * Returns a {@link ProducerRegistry} compatible with the {@link ReadAdapter ReadAdapters} created by
+     * {@link #createReadAdapter()}.
      *
-     * @param prefix for the generated keys
-     * @param rowKeyExtractor extracts the key from a row
-     * @param column the index of the column that contains the key
-     * @return a RowKeyGenerator that extracts the keys from rows
+     * @return a compatible {@link ProducerRegistry}
      */
-    public static <V> RowKeyGenerator<V> createExtractingRowKeyGenerator(final String prefix,
-        final Function<V, String> rowKeyExtractor, final int column) {
-        return new ExtractingRowKeyGenerator<>(prefix, rowKeyExtractor, column);
-    }
+    ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();
+
+    /**
+     * Returns the map of default {@link DataType DataTypes}.
+     *
+     * @return the map of default types
+     */
+    Map<T, DataType> getDefaultTypeMap();
 
 }

@@ -44,46 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.util.function.Function;
-
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Creates the {@link RowKeyGeneratorContext} for an individual reader node execution.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of value to extract the row keys from
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+@FunctionalInterface
+public interface RowKeyGeneratorContextFactory<V> {
 
     /**
-     * Constructor.
+     * Creates a {@link RowKeyGeneratorContext} that corresponds to the provided user settings.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param config {@link TableReadConfig} provided by the user
+     * @return a {@link RowKeyGeneratorContext}
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
-
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
-    }
-
+    RowKeyGeneratorContext<V> createContext(TableReadConfig<?> config);
 }

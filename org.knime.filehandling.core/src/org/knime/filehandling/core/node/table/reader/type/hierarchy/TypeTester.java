@@ -44,46 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.type.hierarchy;
 
-import java.util.function.Function;
-
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import java.util.function.Predicate;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * A TypeTester evaluates if a value can be converted into the type associated with the tester.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify data types
+ * @param <V> the type of value to test
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+public interface TypeTester<T, V> extends Predicate<V> {
 
     /**
-     * Constructor.
-     *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * Checks if the provided value <b>value</b> is compatible with the type associated with this tester.
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
-
     @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    boolean test(final V value);
+
+    /**
+     * Returns the type associated with this tester.
+     *
+     * @return the type associated with this tester
+     */
+    T getType();
+
+    /**
+     * Creates a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
+     *
+     * @param type the type that <b>predicate</b> tests for
+     * @param predicate that tests if a value can be converted to <b>type</b>
+     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
+     * @return the created TypeTester
+     */
+    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate,
+        final boolean allowNull) {
+        return new DefaultTypeTester<>(type, predicate, allowNull);
     }
 
+    /**
+     * Creates a {@link TypeTester} that accepts <code>null</code> as value.
+     *
+     * @param type the type that <b>predicate</b> tests for
+     * @param predicate that tests if a value can be converted to <b>type</b>
+     * @return the created TypeTester
+     */
+    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate) {
+        return new DefaultTypeTester<>(type, predicate);
+    }
 }

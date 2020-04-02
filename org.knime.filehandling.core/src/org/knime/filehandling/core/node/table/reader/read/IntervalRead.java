@@ -71,7 +71,7 @@ final class IntervalRead<V> extends AbstractReadDecorator<V> {
      *
      * @param source the {@link Read} to limit
      * @param startIdx the index to start reading at (zero based)
-     * @param endIdx the index to stop reading at (zero based)
+     * @param endIdx the index to stop reading at (zero based, exclusive)
      */
     IntervalRead(final Read<V> source, final long startIdx, final long endIdx) {
         super(source);

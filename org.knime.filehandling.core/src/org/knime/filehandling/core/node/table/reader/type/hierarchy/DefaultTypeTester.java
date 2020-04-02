@@ -44,55 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 13, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.type.hierarchy;
 
 import java.util.function.Predicate;
 
 /**
- * A TypeTester evaluates if a value can be converted into the type associated with the tester.
+ * A default implementation of {@link TypeTester} that allows to easily instantiate testers by passing the type and a
+ * lambda function to the constructor. It also allows specifying whether null values should be considered as a match
+ * (this is often the case because <code>null</b> is used to represent missing values).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify data types
- * @param <V> the type of value to test
+ * @param <T> type used to identify external data types
+ * @param <V> type of values to test
  */
-public interface TypeTester<T, V> extends Predicate<V> {
+final class DefaultTypeTester<T, V> implements TypeTester<T, V> {
+
+    private final T m_type;
+
+    private final Predicate<V> m_predicate;
+
+    private final boolean m_allowNull;
 
     /**
-     * Checks if the provided value <b>value</b> is compatible with the type associated with this tester.
+     * Constructs a {@link TypeTester} that accepts {code null} as value.
+     *
+     * @param type the <b>type</b> that {@link Predicate predicate} tests for
+     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
      */
+    public DefaultTypeTester(final T type, final Predicate<V> predicate) {
+        this(type, predicate, true);
+    }
+
+    /**
+     * Constructs a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects {@code null} values.
+     *
+     * @param type the <b>type</b> that {@link Predicate predicate} tests for
+     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
+     * @param allowNull set to {@code false} if {@code null} values should be rejected
+     */
+    public DefaultTypeTester(final T type, final Predicate<V> predicate, final boolean allowNull) {
+        m_type = type;
+        m_predicate = predicate;
+        m_allowNull = allowNull;
+    }
+
     @Override
-    boolean test(final V value);
-
-    /**
-     * Returns the type associated with this tester.
-     *
-     * @return the type associated with this tester
-     */
-    T getType();
-
-    /**
-     * Creates a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
-     *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
-     * @return the created TypeTester
-     */
-    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate,
-        final boolean allowNull) {
-        return new DefaultTypeTester<>(type, predicate, allowNull);
+    public boolean test(final V value) {
+        if (value == null) {
+            return m_allowNull;
+        }
+        return m_predicate.test(value);
     }
 
-    /**
-     * Creates a {@link TypeTester} that accepts <code>null</code> as value.
-     *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @return the created TypeTester
-     */
-    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate) {
-        return new DefaultTypeTester<>(type, predicate);
+    @Override
+    public T getType() {
+        return m_type;
     }
+
 }

@@ -60,12 +60,12 @@ import java.util.stream.Collectors;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.typehierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.typehierarchy.TypeHierarchy.TypeResolver;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Enum of the available merge modes for combining multiple {@link ReaderTableSpec ReaderTableSpecs.}
+ * Enum of the available merge modes for combining multiple {@link ReaderTableSpec ReaderTableSpecs}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -81,11 +81,12 @@ public enum SpecMergeMode {
                 final TypeHierarchy<T, T> typeHierarchy) {
                 final Iterator<ReaderTableSpec<T>> iterator = individualSpecs.iterator();
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
-                assert iterator.hasNext();
+                assert iterator.hasNext() : "No specs provided.";
                 addAllColumnsInSpec(resolversByName, iterator.next(), typeHierarchy);
                 while (iterator.hasNext()) {
                     final ReaderTableSpec<T> individualSpec = iterator.next();
-                    CheckUtils.checkArgument(resolversByName.size() == individualSpec.size(), "Specs differ.");
+                    CheckUtils.checkArgument(resolversByName.size() == individualSpec.size(),
+                        "Specs have varying number of columns.");
                     for (ReaderColumnSpec<T> colSpec : individualSpec) {
                         final String name = MultiTableUtils.getNameAfterInit(colSpec);
                         final TypeResolver<T, T> resolver = resolversByName.get(name);
@@ -96,7 +97,7 @@ public enum SpecMergeMode {
                         T hierarchyType = resolver.getMostSpecificType();
                         T colType = colSpec.getType();
                         CheckUtils.checkArgument(hierarchyType.equals(colType),
-                            "The type of column %s varies between files %s vs. %s.", name, hierarchyType, colType);
+                            "The type of column %s varies between files: %s vs. %s.", name, hierarchyType, colType);
                     }
                 }
                 return toReaderTableSpec(resolversByName);
@@ -112,7 +113,7 @@ public enum SpecMergeMode {
             <T> ReaderTableSpec<T> mergeSpecs(final Collection<ReaderTableSpec<T>> individualSpecs,
                 final TypeHierarchy<T, T> typeHierarchy) {
                 final Iterator<ReaderTableSpec<T>> iterator = individualSpecs.iterator();
-                assert iterator.hasNext();
+                assert iterator.hasNext() : "No specs provided.";
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
                 addAllColumnsInSpec(resolversByName, iterator.next(), typeHierarchy);
                 while (iterator.hasNext()) {
@@ -140,6 +141,7 @@ public enum SpecMergeMode {
             @Override
             <T> ReaderTableSpec<T> mergeSpecs(final Collection<ReaderTableSpec<T>> individualSpecs,
                 final TypeHierarchy<T, T> typeHierarchy) {
+                assert !individualSpecs.isEmpty() : "No specs provided.";
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
                 for (ReaderTableSpec<T> individualSpec : individualSpecs) {
                     addAllColumnsInSpec(resolversByName, individualSpec, typeHierarchy);

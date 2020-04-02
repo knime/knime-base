@@ -71,7 +71,7 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      * @return the column filter configuration
      */
     // TODO add once we actually have a UI and a concrete config
-//    ColumnFilterConfig getColumnFilter();
+    //    ColumnFilterConfig getColumnFilter();
 
     /**
      * Sets a new column filter
@@ -79,77 +79,7 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      * @param filter to set must not be <code>null</code>
      */
     // TODO add once we actually have a UI and a concrete config
-//    void setColumnFilter(final ColumnFilterConfig filter);
-
-    /**
-     * Returns the index to start reading from
-     *
-     * @return the index to start reading from
-     */
-    long getReadStartIdx();
-
-    /**
-     * Sets the index to start reading from.
-     *
-     * @param value the index to start reading from, must be non-negative
-     */
-    void setReadStartIdx(final long value);
-
-    /**
-     * Returns the index of the last row to be read.
-     *
-     * @return the index of the last row to read
-     */
-    long getReadEndIdx();
-
-    /**
-     * Returns whether the read should be limited.
-     *
-     * @return <code>true</code> if the read should be limited to row read end idx
-     */
-    boolean useReadEndIdx();
-
-    /**
-     * Sets whether the read should be limited.
-     *
-     * @param useReadEndIdx whether the read should be limited
-     */
-    void setUseReadEndIdx(final boolean useReadEndIdx);
-
-    /**
-     * Sets the index of the last row to be read.
-     *
-     * @param value the index of the last row to read or a negative value if all rows should be read
-     */
-    void setReadEndIdx(final long value);
-
-    /**
-     * Returns the index of the last row to read during spec creation.
-     *
-     * @return the index of the last row to read during spec creation
-     */
-    long getSpecReadEndIdx();
-
-    /**
-     * Returns whether the read during spec creation should be limited.
-     *
-     * @return <code>true</code> if the read should be limited during spec creation
-     */
-    boolean useSpecReadEndIdx();
-
-    /**
-     * Sets whether the read should be limited during spec creation.
-     *
-     * @param useSpecReadEndIdx whether the read should be limited during spec creation
-     */
-    void setUseSpecReadEndIdx(final boolean useSpecReadEndIdx);
-
-    /**
-     * Sets the index of the last row to read during spec creation. Set a negative value if all rows should be read.
-     *
-     * @param value the index of the last row to be read
-     */
-    void setSpecReadEndIdx(final long value);
+    //    void setColumnFilter(final ColumnFilterConfig filter);
 
     /**
      * Returns the index of the row containing the column headers.
@@ -207,4 +137,126 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      * @param useRowIDIdx whether the row id index should be used
      */
     void setUseRowIDIdx(final boolean useRowIDIdx);
+
+    /**
+     * Returns whether empty rows should be skipped.
+     *
+     * @return {@code true} if empty rows should be skipped
+     */
+    boolean skipEmptyRows();
+
+    /**
+     * Sets whether empty rows should be skipped.
+     *
+     * @param skipEmptyRows whether empty rows should be skipped
+     */
+    void setSkipEmptyRows(boolean skipEmptyRows);
+
+    /**
+     * Returns whether all rows are allowed to have fewer columns than the other rows in the table.</br>
+     * The missing columns are filled up with missing values.
+     *
+     * @return {@code true} if not all rows must have the same size
+     */
+    boolean allowShortRows();
+
+    /**
+     * Sets whether short rows are supported.
+     *
+     * @param allowShortRows whether short rows are supported
+     */
+    void setAllowShortRows(final boolean allowShortRows);
+
+    /**
+     * Returns whether a certain number of rows are skipped at the beginning. If <code>true</code> the actual number is
+     * determined by using <code>setNumRowsToSkip()</code>.
+     *
+     * @return <code>true</code> if a certain number of rows are skipped at the beginning.
+     */
+    boolean skipRows();
+
+    /**
+     * Sets whether rows should be skipped/omitted in the beginning.
+     *
+     * @param skipRows whether rows should be skipped/omitted in the beginning.
+     */
+    void setSkipRows(final boolean skipRows);
+
+    /**
+     * Returns the number of rows that should be skipped/omitted in the beginning. Used only if {@link #skipRows()} is
+     * set <code>true</code>.
+     *
+     * @return the number of rows that should be skipped/omitted in the beginning.
+     */
+    long getNumRowsToSkip();
+
+    /**
+     * Sets the number of rows that should be skipped/omitted in the beginning. Used only if {@link #skipRows()} is set
+     * <code>true</code>.
+     *
+     * @param numRowsToSkip the number of rows that should be
+     */
+    void setNumRowsToSkip(final long numRowsToSkip);
+
+    /**
+     * Returns whether to limit the number of rows to a certain maximum. If <code>true</code> the actual number is
+     * determined by using <code>setMaxRows()</code>.
+     *
+     * @return <code>true</code> if number of rows is limited to a certain maximum
+     */
+    boolean limitRows();
+
+    /**
+     * Sets whether to limit the number of rows to a certain maximum.
+     *
+     * @param limitRows whether to limit the number of rows to a certain maximum.
+     */
+    void setLimitRows(final boolean limitRows);
+
+    /**
+     * Returns the maximum number of rows that should be read. Used only if {@link #limitRows()} is set
+     * <code>true</code>.
+     *
+     * @return the number of rows that should be skipped/omitted in the beginning.
+     */
+    long getMaxRows();
+
+    /**
+     * Sets the maximum number of rows that should be read. Used only if {@link #limitRows()} is set <code>true</code>.
+     *
+     * @param maxRows the number of rows that should be
+     */
+    void setMaxRows(final long maxRows);
+
+    /**
+     * Returns whether to limit the number of rows for the purpose of defining the table specifications. If
+     * <code>true</code> the actual number is determined by using <code>setMaxRowsForSpec()</code>.
+     *
+     * @return <code>true</code> if number of rows is limited to a certain maximum
+     */
+    boolean limitRowsForSpec();
+
+    /**
+     * Sets whether to limit the number of rows for the purpose of defining the table specifications.
+     *
+     * @param limitRowsForSpec whether to limit the number of rows for the purpose of defining the table specifications.
+     */
+    void setLimitRowsForSpec(final boolean limitRowsForSpec);
+
+    /**
+     * Returns the maximum number of rows that should be read for the purpose of defining the table specifications. Used
+     * only if {@link #limitRowsForSpec()} is set <code>true</code>.
+     *
+     * @return the number of rows that should be skipped/omitted in the beginning.
+     */
+    long getMaxRowsForSpec();
+
+    /**
+     * Sets the maximum number of rows that should be read for the purpose of defining the table specifications. Used
+     * only if {@link #limitRowsForSpec()} is set <code>true</code>.
+     *
+     * @param maxRowsForSpec the number of rows that should be
+     */
+    void setMaxRowsForSpec(final long maxRowsForSpec);
+
 }

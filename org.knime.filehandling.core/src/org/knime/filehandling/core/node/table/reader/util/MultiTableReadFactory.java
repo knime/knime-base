@@ -44,46 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.util;
 
-import java.util.function.Function;
+import java.nio.file.Path;
+import java.util.Map;
 
-import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link ReaderTableSpec} representing tables
+ * that should be read together.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type representing external data types
+ * @param <V> the type representing values
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+@FunctionalInterface
+public interface MultiTableReadFactory<T, V> {
 
     /**
-     * Constructor.
+     * Creates a {@link MultiTableRead} from the provided {@link ReaderTableSpec individualSpecs} and
+     * {@link MultiTableReadConfig config}.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param individualSpecs a {@link Map} from {@link Path} to {@link ReaderTableSpec} where each
+     *            {@link ReaderTableSpec} corresponds to the table stored in its corresponding {@link Path}
+     * @param config user provided {@link MultiTableReadConfig}
+     * @return a {@link MultiTableRead} for reading the tables stored in the keys of <b>individualSpecs</b>
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
-
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
-    }
+    MultiTableRead<V> create(Map<Path, ReaderTableSpec<T>> individualSpecs, MultiTableReadConfig<?> config);
 
 }

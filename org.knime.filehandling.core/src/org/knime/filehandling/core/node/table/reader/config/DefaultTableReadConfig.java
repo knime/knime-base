@@ -59,17 +59,11 @@ import org.knime.core.node.NodeSettingsWO;
  */
 final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
 
+    private static final String CFG_ALLOW_SHORT_ROWS = "allow_short_rows";
+
+    private static final String CFG_SKIP_EMPTY_ROWS = "skip_empty_rows";
+
     private static final String CFG_USE_ROW_ID_IDX = "use_row_id_idx";
-
-    private static final String CFG_USE_SPEC_READ_END_IDX = "use_spec_read_end_idx";
-
-    private static final String CFG_USE_READ_END_IDX = "use_read_end_idx";
-
-    private static final String CFG_SPEC_READ_END_IDX = "spec_read_end_idx";
-
-    private static final String CFG_READ_END_IDX = "read_end_idx";
-
-    private static final String CFG_READ_START_IDX = "read_start_idx";
 
     private static final String CFG_READER_SPECIFIC_CONFIG = "reader_specific_config";
 
@@ -81,25 +75,43 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private static final String CFG_USE_COLUMN_HEADER_IDX = "use_column_header_idx";
 
+    private static final String CFG_SKIP_ROWS = "skip_rows";
+
+    private static final String CFG_NUM_ROWS_TO_SKIP = "num_rows_to_skip";
+
+    private static final String CFG_LIMIT_ROWS = "limit_rows";
+
+    private static final String CFG_MAX_ROWS = "max_rows";
+
+    private static final String CFG_LIMIT_ROWS_FOR_SPEC = "limit_rows_for_spec";
+
+    private static final String CFG_MAX_ROWS_FOR_SPEC = "max_rows_for_spec";
+
     private final C m_readerSpecificConfig;
 
     private long m_columnHeaderIdx = -1;
 
     private int m_rowIDIdx = -1;
 
-    private long m_readStartIdx = -1;
-
-    private long m_readEndIdx = -1;
-
-    private boolean m_useReadEndIdx = false;
-
-    private long m_specReadEndIdx = -1;
-
-    private boolean m_useSpecReadEndIdx = false;
-
-    private boolean m_useColumnHeaderIdx = false;
+    private boolean m_useColumnHeaderIdx = true;
 
     private boolean m_useRowIDIdx = false;
+
+    private boolean m_allowShortRows;
+
+    private boolean m_skipEmptyRows;
+
+    private boolean m_skipRows = false;
+
+    private long m_numRowsToSkip = 0;
+
+    private boolean m_limitRows = false;
+
+    private long m_maxRows = 0;
+
+    private boolean m_limitRowsForSpec = false;
+
+    private long m_maxRowsForSpec = 0;
 
     DefaultTableReadConfig(final C readerSpecificConfig) {
         m_readerSpecificConfig = readerSpecificConfig;
@@ -109,13 +121,21 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_readerSpecificConfig = toCopy.m_readerSpecificConfig.copy();
         m_columnHeaderIdx = toCopy.m_columnHeaderIdx;
         m_rowIDIdx = toCopy.m_rowIDIdx;
-        m_readStartIdx = toCopy.m_readStartIdx;
-        m_readEndIdx = toCopy.m_readEndIdx;
-        m_specReadEndIdx = toCopy.m_specReadEndIdx;
-        m_useSpecReadEndIdx = toCopy.m_useSpecReadEndIdx;
-        m_useReadEndIdx = toCopy.m_useReadEndIdx;
         m_useColumnHeaderIdx = toCopy.m_useColumnHeaderIdx;
         m_useRowIDIdx = toCopy.m_useRowIDIdx;
+
+        m_allowShortRows = toCopy.m_allowShortRows;
+
+        m_skipEmptyRows = toCopy.m_skipEmptyRows;
+
+        m_skipRows = toCopy.m_skipRows;
+        m_numRowsToSkip = toCopy.m_numRowsToSkip;
+
+        m_limitRows = toCopy.m_limitRows;
+        m_maxRows = toCopy.m_maxRows;
+
+        m_limitRowsForSpec = toCopy.m_limitRowsForSpec;
+        m_maxRowsForSpec = toCopy.m_maxRowsForSpec;
     }
 
     @Override
@@ -126,31 +146,6 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
     @Override
     public C getReaderSpecificConfig() {
         return m_readerSpecificConfig;
-    }
-
-    @Override
-    public long getReadStartIdx() {
-        return m_readStartIdx;
-    }
-
-    @Override
-    public long getReadEndIdx() {
-        return m_readEndIdx;
-    }
-
-    @Override
-    public boolean useReadEndIdx() {
-        return m_useReadEndIdx;
-    }
-
-    @Override
-    public long getSpecReadEndIdx() {
-        return m_specReadEndIdx;
-    }
-
-    @Override
-    public boolean useSpecReadEndIdx() {
-        return m_useSpecReadEndIdx;
     }
 
     @Override
@@ -179,13 +174,19 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         settings.getLong(CFG_COLUMN_HEADER_IDX);
         settings.getBooleanArray(CFG_COLUMN_FILTER);
         m_readerSpecificConfig.validate(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        settings.getLong(CFG_READ_START_IDX);
-        settings.getLong(CFG_READ_END_IDX);
-        settings.getLong(CFG_SPEC_READ_END_IDX);
-        settings.getBoolean(CFG_USE_READ_END_IDX);
-        settings.getBoolean(CFG_USE_SPEC_READ_END_IDX);
         settings.getBoolean(CFG_USE_ROW_ID_IDX);
         settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
+        settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
+        settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
+
+        settings.getBoolean(CFG_SKIP_ROWS);
+        settings.getLong(CFG_NUM_ROWS_TO_SKIP);
+
+        settings.getBoolean(CFG_LIMIT_ROWS);
+        settings.getLong(CFG_MAX_ROWS);
+
+        settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC);
+        settings.getLong(CFG_MAX_ROWS_FOR_SPEC);
     }
 
     @Override
@@ -193,13 +194,19 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_rowIDIdx = settings.getInt(CFG_ROW_ID_IDX);
         m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX);
         m_readerSpecificConfig.loadInModel(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        m_readStartIdx = settings.getLong(CFG_READ_START_IDX);
-        m_readEndIdx = settings.getLong(CFG_READ_END_IDX);
-        m_specReadEndIdx = settings.getLong(CFG_SPEC_READ_END_IDX);
-        m_useReadEndIdx = settings.getBoolean(CFG_USE_READ_END_IDX);
-        m_useSpecReadEndIdx = settings.getBoolean(CFG_USE_SPEC_READ_END_IDX);
         m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX);
         m_useColumnHeaderIdx = settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
+        m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
+        m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
+
+        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS);
+        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP);
+
+        m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS);
+        m_maxRows = settings.getLong(CFG_MAX_ROWS);
+
+        m_limitRowsForSpec = settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC);
+        m_maxRowsForSpec = settings.getLong(CFG_MAX_ROWS_FOR_SPEC);
     }
 
     @Override
@@ -207,13 +214,19 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_rowIDIdx = settings.getInt(CFG_ROW_ID_IDX, -1);
         m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX, -1);
         m_readerSpecificConfig.loadInDialog(ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG));
-        m_readStartIdx = settings.getLong(CFG_READ_START_IDX, -1);
-        m_readEndIdx = settings.getLong(CFG_READ_END_IDX, -1);
-        m_specReadEndIdx = settings.getLong(CFG_SPEC_READ_END_IDX, -1);
-        m_useReadEndIdx = settings.getBoolean(CFG_USE_READ_END_IDX, false);
-        m_useSpecReadEndIdx = settings.getBoolean(CFG_USE_SPEC_READ_END_IDX, false);
         m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX, false);
-        m_useColumnHeaderIdx = settings.getBoolean(CFG_COLUMN_HEADER_IDX, false);
+        m_useColumnHeaderIdx = settings.getBoolean(CFG_COLUMN_HEADER_IDX, true);
+        m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false);
+        m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS, false);
+
+        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS, false);
+        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP, 0);
+
+        m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS, false);
+        m_maxRows = settings.getLong(CFG_MAX_ROWS, 0);
+
+        m_limitRowsForSpec = settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC, false);
+        m_maxRowsForSpec = settings.getLong(CFG_MAX_ROWS_FOR_SPEC, 0);
     }
 
     @Override
@@ -221,13 +234,19 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         settings.addInt(CFG_ROW_ID_IDX, m_rowIDIdx);
         settings.addLong(CFG_COLUMN_HEADER_IDX, m_columnHeaderIdx);
         m_readerSpecificConfig.save(settings.addNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        settings.addLong(CFG_READ_START_IDX, m_readStartIdx);
-        settings.addLong(CFG_READ_END_IDX, m_readEndIdx);
-        settings.addLong(CFG_SPEC_READ_END_IDX, m_specReadEndIdx);
-        settings.addBoolean(CFG_USE_READ_END_IDX, m_useReadEndIdx);
-        settings.addBoolean(CFG_USE_SPEC_READ_END_IDX, m_useSpecReadEndIdx);
         settings.addBoolean(CFG_USE_COLUMN_HEADER_IDX, m_useColumnHeaderIdx);
         settings.addBoolean(CFG_USE_ROW_ID_IDX, m_useRowIDIdx);
+        settings.addBoolean(CFG_ALLOW_SHORT_ROWS, m_allowShortRows);
+        settings.addBoolean(CFG_SKIP_EMPTY_ROWS, m_skipEmptyRows);
+
+        settings.addBoolean(CFG_SKIP_ROWS, m_skipRows);
+        settings.addLong(CFG_NUM_ROWS_TO_SKIP, m_numRowsToSkip);
+
+        settings.addBoolean(CFG_LIMIT_ROWS, m_limitRows);
+        settings.addLong(CFG_MAX_ROWS, m_maxRows);
+
+        settings.addBoolean(CFG_LIMIT_ROWS_FOR_SPEC, m_limitRowsForSpec);
+        settings.addLong(CFG_MAX_ROWS_FOR_SPEC, m_maxRowsForSpec);
     }
 
     @Override
@@ -241,31 +260,6 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
     }
 
     @Override
-    public void setReadStartIdx(final long value) {
-        m_readStartIdx = value > -1 ? value : -1;
-    }
-
-    @Override
-    public void setReadEndIdx(final long value) {
-        m_readEndIdx = value > -1 ? value : -1;
-    }
-
-    @Override
-    public void setSpecReadEndIdx(final long value) {
-        m_specReadEndIdx = value > -1 ? value : -1;
-    }
-
-    @Override
-    public void setUseReadEndIdx(final boolean useReadEndIdx) {
-        m_useReadEndIdx = useReadEndIdx;
-    }
-
-    @Override
-    public void setUseSpecReadEndIdx(final boolean useSpecReadEndIdx) {
-        m_useSpecReadEndIdx = useSpecReadEndIdx;
-    }
-
-    @Override
     public boolean useColumnHeaderIdx() {
         return m_useColumnHeaderIdx;
     }
@@ -273,6 +267,86 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
     @Override
     public void setUseColumnHeaderIdx(final boolean useColumnHeaderIdx) {
         m_useColumnHeaderIdx = useColumnHeaderIdx;
+    }
+
+    @Override
+    public boolean skipEmptyRows() {
+        return m_skipEmptyRows;
+    }
+
+    @Override
+    public boolean allowShortRows() {
+        return m_allowShortRows;
+    }
+
+    @Override
+    public boolean skipRows() {
+        return m_skipRows;
+    }
+
+    @Override
+    public void setSkipRows(final boolean skipRows) {
+        m_skipRows = skipRows;
+    }
+
+    @Override
+    public long getNumRowsToSkip() {
+        return m_numRowsToSkip;
+    }
+
+    @Override
+    public void setNumRowsToSkip(final long numRowsToSkip) {
+        m_numRowsToSkip = numRowsToSkip;
+    }
+
+    @Override
+    public boolean limitRows() {
+        return m_limitRows;
+    }
+
+    @Override
+    public void setLimitRows(final boolean limitRows) {
+        m_limitRows = limitRows;
+    }
+
+    @Override
+    public long getMaxRows() {
+        return m_maxRows;
+    }
+
+    @Override
+    public void setMaxRows(final long maxRows) {
+        m_maxRows = maxRows;
+    }
+
+    @Override
+    public boolean limitRowsForSpec() {
+        return m_limitRowsForSpec;
+    }
+
+    @Override
+    public void setLimitRowsForSpec(final boolean limitRowsForSpec) {
+        m_limitRowsForSpec = limitRowsForSpec;
+    }
+
+    @Override
+    public long getMaxRowsForSpec() {
+        return m_maxRowsForSpec;
+    }
+
+    @Override
+    public void setMaxRowsForSpec(final long maxRowsForSpec) {
+        m_maxRowsForSpec = maxRowsForSpec;
+    }
+
+    @Override
+    public void setSkipEmptyRows(final boolean skipEmptyRows) {
+        m_skipEmptyRows = skipEmptyRows;
+    }
+
+    @Override
+    public void setAllowShortRows(final boolean allowShortRows) {
+        m_allowShortRows = allowShortRows;
     }
 
 }

@@ -44,63 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 13, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.util.function.Predicate;
+import java.nio.file.Path;
+
+import org.knime.core.data.RowKey;
 
 /**
- * A default implementation of {@link TypeTester} that allows to easily instantiate testers by passing the type and a
- * lambda function to the constructor. It also allows specifying whether null values should be considered as a match
- * (this is often the case because <code>null</b> is used to represent missing values).
+ * Represents the context for key generators concerned with reading a single table reader node execution.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify external data types
- * @param <V> type of values to test
+ * @param <V> the type of values to turn into {@link RowKey}
  */
-final class DefaultTypeTester<T, V> implements TypeTester<T, V> {
-
-    private final T m_type;
-
-    private final Predicate<V> m_predicate;
-
-    private final boolean m_allowNull;
+@FunctionalInterface
+public interface RowKeyGeneratorContext<V> {
 
     /**
-     * Constructs a {@link TypeTester} that accepts {code null} as value.
+     * Creates a {@link RowKeyGenerator} for the provided {@link Path path}.
      *
-     * @param type the <b>type</b> that {@link Predicate predicate} tests for
-     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
+     * @param path the path the created {@link RowKeyGenerator} receives rows from
+     * @return a {@link RowKeyGenerator} for path
      */
-    public DefaultTypeTester(final T type, final Predicate<V> predicate) {
-        this(type, predicate, true);
-    }
-
-    /**
-     * Constructs a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects {@code null} values.
-     *
-     * @param type the <b>type</b> that {@link Predicate predicate} tests for
-     * @param predicate the {@link Predicate} that tests if a value can be converted to <b>type</b>
-     * @param allowNull set to {@code false} if {@code null} values should be rejected
-     */
-    public DefaultTypeTester(final T type, final Predicate<V> predicate, final boolean allowNull) {
-        m_type = type;
-        m_predicate = predicate;
-        m_allowNull = allowNull;
-    }
-
-    @Override
-    public boolean test(final V value) {
-        if (value == null) {
-            return m_allowNull;
-        }
-        return m_predicate.test(value);
-    }
-
-    @Override
-    public T getType() {
-        return m_type;
-    }
-
+    RowKeyGenerator<V> createKeyGenerator(final Path path);
 }

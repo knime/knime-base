@@ -44,26 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.type.mapping;
+
+import java.util.stream.IntStream;
+
+import org.knime.core.data.DataRow;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.convert.map.DataRowProducer;
+import org.knime.core.data.convert.map.MappingFramework;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * A {@link TypeHierarchy} that allows to create a type-focused copy of itself. Type-focused means that the copy uses T
- * also as V but mirrors the original hierarchy of types.
+ * Handles mapping from {@link RandomAccessible RandomAccessibles} to {@link DataRow DataRows}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
- * @param <V> the type of values
+ * @param <V> the type of values mapped to cells
  */
-public interface TypeFocusableTypeHierarchy<T, V> extends TypeHierarchy<T, V> {
+final class DefaultTypeMapper<V> implements TypeMapper<V> {
 
-    /**
-     * Creates a type-focused copy of this hierarchy that uses the specified T also as values and has the same
-     * hierarchical structure as this hierarchy.
-     *
-     * @return a type-focused copy of this hierarchy
-     */
-    TypeHierarchy<T, T> createTypeFocusedHierarchy();
+    private final ReadAdapter<?, V> m_readAdapter;
+
+    private final ReadAdapterParams<ReadAdapter<?, V>>[] m_params;
+
+    private final DataRowProducer<ReadAdapterParams<ReadAdapter<?, V>>> m_rowProducer;
+
+    DefaultTypeMapper(final ReadAdapter<?, V> readAdapter, final ProductionPath[] productionPaths,
+        final FileStoreFactory fsFactory) {
+        m_readAdapter = readAdapter;
+        m_rowProducer = MappingFramework.createDataRowProducer(fsFactory, m_readAdapter, productionPaths);
+        // ReadAdapterParams are compatible with any ReadAdapter, the generics
+        // are only necessary to shut up the compiler
+        @SuppressWarnings("unchecked")
+        final ReadAdapterParams<ReadAdapter<?, V>>[] params = IntStream.range(0, productionPaths.length)
+            .mapToObj(ReadAdapterParams::new).toArray(ReadAdapterParams[]::new);
+        m_params = params;
+    }
+
+    @Override
+    public DataRow map(final RowKey key, final RandomAccessible<V> randomAccessible) throws Exception {
+        CheckUtils.checkArgumentNotNull(key != null, "The row key must not be null.");
+        CheckUtils.checkArgumentNotNull(randomAccessible, "The randomAccessible must not be null.");
+        final int size = randomAccessible.size();
+        CheckUtils.checkArgument(size == m_params.length,
+            "The size of the randomAccessible is wrong. Expected %s but got %s.", size,
+            m_params.length);
+        m_readAdapter.setSource(randomAccessible);
+        return m_rowProducer.produceDataRow(key, m_params);
+    }
 
 }

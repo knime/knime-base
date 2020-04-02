@@ -44,46 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.knime.core.data.RowKey;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Default implementation of {@link TypeMapping} that is based on KNIME's type mapping framework.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+final class DefaultTypeMapping<V> implements TypeMapping<V> {
 
-    private final Function<V, String> m_rowKeyExtractor;
+    private final Supplier<ReadAdapter<?, V>> m_readAdapterSupplier;
 
-    private final int m_colIdx;
+    private final ProductionPath[] m_productionPaths;
 
-    /**
-     * Constructor.
-     *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
-     */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
+    DefaultTypeMapping(final Supplier<ReadAdapter<?, V>> readAdapterSupplier, final ProductionPath[] productionPaths) {
+        m_productionPaths = productionPaths;
+        m_readAdapterSupplier = readAdapterSupplier;
     }
 
     @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    public TypeMapper<V> createTypeMapper(final FileStoreFactory fsFactory) {
+        return new DefaultTypeMapper<>(m_readAdapterSupplier.get(), m_productionPaths, fsFactory);
     }
 
+    @Override
+    public DataTableSpec map(final ReaderTableSpec<?> spec) {
+        CheckUtils.checkArgument(spec.size() == m_productionPaths.length,
+            "The provided spec %s has not the expected number of columns (%s).", spec, m_productionPaths.length);
+        final DataColumnSpec[] columns = new DataColumnSpec[m_productionPaths.length];
+        for (int i = 0; i < m_productionPaths.length; i++) {
+            final ProductionPath productionPath = m_productionPaths[i];
+            final ReaderColumnSpec<?> column = spec.getColumnSpec(i);
+            final Object expectedType = productionPath.getProducerFactory().getSourceType();
+            final Object actualType = column.getType();
+            CheckUtils.checkArgument(expectedType.equals(actualType),
+                "The type of column %s doesn't match the expected type %s.", actualType, expectedType);
+            columns[i] = new DataColumnSpecCreator(MultiTableUtils.getNameAfterInit(column),
+                productionPath.getConverterFactory().getDestinationType()).createSpec();
+        }
+        return new DataTableSpec(columns);
+    }
 }

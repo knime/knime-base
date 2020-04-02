@@ -46,7 +46,7 @@
  * History
  *   Jan 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.type.hierarchy;
 
 import java.util.ArrayList;
 import java.util.Collection;

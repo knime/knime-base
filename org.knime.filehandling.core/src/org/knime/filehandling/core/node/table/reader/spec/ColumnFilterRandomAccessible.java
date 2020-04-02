@@ -44,60 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 16, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.util.function.Consumer;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Defines how different types relate to each other.
+ * Filters out a single column from an underlying {@link RandomAccessible}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type that is used to identify types (e.g. Class)
- * @param <V> type of values that are tested for being of a certain type
  */
-public interface TypeHierarchy<T, V> {
+final class ColumnFilterRandomAccessible<V> implements RandomAccessible<V> {
+
+    private RandomAccessible<V> m_decoratee;
+
+    private final int m_columnToFilter;
 
     /**
-     * Creates a {@link TypeResolver resolver} that is based on this {@link TypeHierarchy hierarchy}.
+     * Constructor.
      *
-     * @return a resolver that is based on this hierarchy
+     * @param columnToFilter the index of the column to filter out (indices start at 0)
      */
-    TypeResolver<T, V> createResolver();
+    ColumnFilterRandomAccessible(final int columnToFilter) {
+        m_columnToFilter = columnToFilter;
+    }
 
-    /**
-     * Allows to find the common supertype of values by following a type hierarchy.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     * @param <T> type that is used to identify types (e.g. Class)
-     * @param <V> type of values that are tested for being of a certain type
-     */
-    public interface TypeResolver<T, V> extends Consumer<V> {
+    void setDecoratee(final RandomAccessible<V> decoratee) {
+        m_decoratee = decoratee;
+    }
 
-        /**
-         * @return the preferred type of this hierarchy
-         */
-        T getMostSpecificType();
+    private void checkDecorateeIsPresent() {
+        CheckUtils.checkState(m_decoratee != null, "Either next hasn't been called or it has returned null.");
+    }
 
-        /**
-         * Observes the given value.
-         * If <b>value</b> is compatible with the currently most specific type nothing changes,
-         * otherwise the hierarchy is traversed until a type is found that is compatible with <b>value</b>
-         *
-         * @param value to observe
-         */
-        @Override
-        void accept(V value);
+    @Override
+    public int size() {
+        checkDecorateeIsPresent();
+        final int underlyingSize = m_decoratee.size();
+        return underlyingSize > m_columnToFilter ? underlyingSize - 1 : underlyingSize;
+    }
 
-        /**
-         * Indicates whether the top of the hierarchy i.e. the most generic type has been reached.
-         * Once the top of the hierarchy is reached, there is no point in further
-         * search since there is no more generic type.
-         *
-         * @return true if the top of the hierarchy is reached
-         */
-        boolean reachedTop();
+    @Override
+    public V get(final int idx) {
+        checkDecorateeIsPresent();
+        final int filteredIdx = idx < m_columnToFilter ? idx : idx + 1;
+        return m_decoratee.get(filteredIdx);
     }
 
 }

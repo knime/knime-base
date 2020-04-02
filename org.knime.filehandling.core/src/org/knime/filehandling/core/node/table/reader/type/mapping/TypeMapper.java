@@ -44,46 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import java.util.function.Function;
-
+import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Maps from {@link RandomAccessible RandomAccessibles} to {@link DataRow DataRows}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of values
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
-
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
+@FunctionalInterface
+public interface TypeMapper<V> {
 
     /**
-     * Constructor.
+     * Maps from the provided {@link RowKey} and {@link RandomAccessible} to a {@link DataRow}.
      *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * @param key the {@link RowKey} of the resulting {@link DataRow}
+     * @param randomAccessible the {@link RandomAccessible} containing the data of the {@link DataRow}
+     * @return the {@link DataRow} with the mapped values from {@link RandomAccessible randomAccessible} and key
+     *         {@link RowKey key}
+     * @throws Exception if the mapping fails
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
-    }
-
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
-    }
+    DataRow map(RowKey key, RandomAccessible<V> randomAccessible) throws Exception;
 
 }

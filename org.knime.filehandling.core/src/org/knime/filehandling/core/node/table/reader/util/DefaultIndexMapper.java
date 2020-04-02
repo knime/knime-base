@@ -48,11 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
-import static java.util.stream.Collectors.joining;
-
 import java.util.Arrays;
 import java.util.OptionalInt;
-import java.util.stream.IntStream;
 
 import org.knime.core.node.util.CheckUtils;
 
@@ -72,6 +69,28 @@ public final class DefaultIndexMapper implements IndexMapper {
         m_rowIDIdx = rowIDIdx;
     }
 
+    /**
+     * Creates a {@link DefaultIndexMapperBuilder} that allows to add mappings for indices in the range [0, size).
+     *
+     * @param size the maximum number of mappings
+     * @return a {@link DefaultIndexMapperBuilder} for building {@link DefaultIndexMapper} objects
+     */
+    public static DefaultIndexMapperBuilder builder(final int size) {
+        return new DefaultIndexMapperBuilder(size);
+    }
+
+    /**
+     * Creates a {@link DefaultIndexMapperBuilder} that allows to add mapping for indices in the range [0, size). The
+     * second argument identifies the rowID column which is skipped when adding mappings to the builder.
+     *
+     * @param size the maximum number of mappings
+     * @param rowIDIdx the index of the rowID column (skipped when adding mappings)
+     * @return a {@link DefaultIndexMapperBuilder} for building {@link DefaultIndexMapper} objects
+     */
+    public static DefaultIndexMapperBuilder builder(final int size, final int rowIDIdx) {
+        return new DefaultIndexMapperBuilder(size, rowIDIdx);
+    }
+
     @Override
     public int map(final int idx) {
         final int mapped = m_mapping[idx];
@@ -86,14 +105,7 @@ public final class DefaultIndexMapper implements IndexMapper {
 
     @Override
     public OptionalInt getIndexRangeEnd() {
-        return OptionalInt.of(m_mapping.length);
-    }
-
-    @Override
-    public String toString() {
-        return IntStream.range(0, m_mapping.length) //
-            .mapToObj(i -> i + "->" + m_mapping[i]) //
-            .collect(joining(", ", "[", "]"));
+        return OptionalInt.of(m_mapping.length - 1);
     }
 
     @Override
@@ -117,7 +129,7 @@ public final class DefaultIndexMapper implements IndexMapper {
          *
          * @param size number of columns of the merged table
          */
-        public DefaultIndexMapperBuilder(final int size) {
+        private DefaultIndexMapperBuilder(final int size) {
             this(size, -1);
         }
 
@@ -127,8 +139,8 @@ public final class DefaultIndexMapper implements IndexMapper {
          * @param size number of columns of the merged table (excluding the row id column)
          * @param rowIDIdx the index of the row id column
          */
-        public DefaultIndexMapperBuilder(final int size, final int rowIDIdx) {
-            m_mapping = new int[size + (rowIDIdx == -1 ? 0 : 1)];
+        private DefaultIndexMapperBuilder(final int size, final int rowIDIdx) {
+            m_mapping = new int[size];
             Arrays.fill(m_mapping, -1);
             m_rowIDIdx = rowIDIdx;
         }

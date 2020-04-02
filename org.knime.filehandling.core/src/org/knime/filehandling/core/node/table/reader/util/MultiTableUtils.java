@@ -48,8 +48,20 @@
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
+import static java.util.stream.Collectors.toSet;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.node.table.reader.TableReader;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
 
 /**
  * Utility class for dealing with {@link TableReader TableReaders}.
@@ -72,6 +84,66 @@ public final class MultiTableUtils {
     public static String getNameAfterInit(final ReaderColumnSpec<?> spec) {
         return spec.getName().orElseThrow(() -> new IllegalStateException(
             "Coding error. After initialization all column specs must be fully qualified."));
+    }
+
+    /**
+     * Creates an {@link IndexMapper} that maps from the indices of the {@link DataTableSpec outputSpec} to the indices
+     * of {@link ReaderTableSpec individualSpec}. This is necessary because the columns in the {@link ReaderTableSpec
+     * individualSpec} might be in a different order and some columns might even be missing.
+     *
+     * @param globalSpec {@link DataTableSpec} of the output table
+     * @param individualSpec {@link ReaderTableSpec} of the table stored in a single file
+     * @param config {@link TableReadConfig} containing the user's configuration
+     * @return an {@link IndexMapper} that maps from indices in {@link DataTableSpec globalSpec} to indices in
+     *         {@link ReaderTableSpec individualSpec}
+     */
+    public static IndexMapper createIndexMapper(final DataTableSpec globalSpec, final ReaderTableSpec<?> individualSpec,
+        final TableReadConfig<?> config) {
+        final int rowIDIdx = config.getRowIDIdx();
+        final boolean useRowIDIdx = config.useRowIDIdx();
+        final DefaultIndexMapperBuilder mapperBuilder =
+            useRowIDIdx ? DefaultIndexMapper.builder(globalSpec.getNumColumns(), rowIDIdx)
+                : DefaultIndexMapper.builder(globalSpec.getNumColumns());
+        for (int i = 0; i < individualSpec.size(); i++) {
+            final ReaderColumnSpec<?> colSpec = individualSpec.getColumnSpec(i);
+            final int jointIdx = globalSpec.findColumnIndex(getNameAfterInit(colSpec));
+            if (jointIdx >= 0) {
+                mapperBuilder.addMapping(jointIdx, i);
+            }
+        }
+        return mapperBuilder.build();
+    }
+
+    /**
+     * Assigns names to the columns in {@link ReaderTableSpec spec} if they don't contain a name already. The naming
+     * scheme is Column0, Column1 and so on.
+     *
+     * @param spec {@link ReaderTableSpec} containing columns to assign names if they are missing
+     * @return a {@link ReaderTableSpec} with the same types as {@link ReaderTableSpec spec} in which all columns are
+     *         named
+     */
+    public static <T> ReaderTableSpec<T> assignNamesIfMissing(final ReaderTableSpec<T> spec) {
+        final UniqueNameGenerator nameGen = new UniqueNameGenerator(spec.stream()//
+            .map(ReaderColumnSpec::getName)//
+            .map(n -> n.orElse(null))//
+            .filter(Objects::nonNull)//
+            .collect(toSet()));
+        return new ReaderTableSpec<>(IntStream.range(0, spec.size())
+            .mapToObj(i -> assignNameIfMissing(i, spec.getColumnSpec(i), nameGen)).collect(Collectors.toList()));
+    }
+
+    private static <T> ReaderColumnSpec<T> assignNameIfMissing(final int idx, final ReaderColumnSpec<T> spec,
+        final UniqueNameGenerator nameGen) {
+        final Optional<String> name = spec.getName();
+        if (name.isPresent()) {
+            return spec;
+        } else {
+            return ReaderColumnSpec.createWithName(nameGen.newName(createDefaultColumnName(idx)), spec.getType());
+        }
+    }
+
+    private static String createDefaultColumnName(final int iFinal) {
+        return "Column" + iFinal;
     }
 
 }
