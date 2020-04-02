@@ -44,45 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 19, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.typehierarchy;
+package org.knime.filehandling.core.node.table.reader.read;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
+import java.io.IOException;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.CheckSameSizeRead;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Unit tests for {@link DefaultTypeTester}.
+ * Unit tests for CheckSameSizeRead.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DefaultTypeTesterTest {
+@RunWith(MockitoJUnitRunner.class)
+public class CheckSameSizeReadTest {
 
-	@Test
-	public void testNullAllowed() throws Exception {
-		testTypeTester(DefaultTypeTester::new, true);
-		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, true), true);
-	}
+    @Mock
+    private Read<String> m_source;
 
-	@Test
-	public void testNullRejected() throws Exception {
-		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, false), false);
-	}
+    @Mock
+    private RandomAccessible<String> m_randomAccessible;
 
-	static void testTypeTester(
-			final BiFunction<String, Predicate<Integer>, TypeTester<String, Integer>> typeTesterProvider,
-			final boolean nullAllowed) {
-		TypeTester<String, Integer> elfriede = typeTesterProvider.apply("elfriede", i -> i < 2);
-		assertTrue(elfriede.test(1));
-		assertFalse(elfriede.test(2));
-		assertEquals(nullAllowed, elfriede.test(null));
-		assertEquals("elfriede", elfriede.getType());
-	}
+    private CheckSameSizeRead<String> m_testInstance;
+
+    /**
+     * Initializes the test instance.
+     */
+    @Before
+    public void init() {
+        m_testInstance = new CheckSameSizeRead<>(m_source);
+    }
+
+    /**
+     * Tests if the {@code next} method behaves as expected if the underlying read returns {@link RandomAccessible
+     * RandomAccessibles} of the same size.
+     *
+     * @throws IOException never thrown
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testNextWithSameSize() throws IOException {
+        when(m_source.next()).thenReturn(m_randomAccessible, m_randomAccessible, null);
+        when(m_randomAccessible.size()).thenReturn(3);
+        assertEquals(m_randomAccessible, m_testInstance.next());
+        assertEquals(m_randomAccessible, m_testInstance.next());
+        assertEquals(null, m_testInstance.next());
+    }
+
+    /**
+     * Tests the behavior of {@code next} if the source is empty.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testNextEmptySource() throws IOException {
+        when(m_source.next()).thenReturn(null);
+        assertEquals(null, m_testInstance.next());
+    }
+
+    /**
+     * Verifies that {@code next} if the sizes of the {@link RandomAccessible RandomAccessibles} returned by the source
+     * vary.
+     *
+     * @throws IOException never thrown
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testNextWithDifferingSize() throws IOException {
+        when(m_source.next()).thenReturn(m_randomAccessible);
+        when(m_randomAccessible.size()).thenReturn(3);
+        m_testInstance.next();
+        when(m_randomAccessible.size()).thenReturn(4);
+        m_testInstance.next();
+    }
 
 }
