@@ -722,7 +722,7 @@ public abstract class RegressionContent {
                 //In this context "- 1" is caused by the additional constant in the beginning of m_beta.
                 //The indexes above "size" are for higher exponents for the same columns in the same order
                 //So we use modulo to compute the column's index
-                int index = size < i - 1 ? (i - 1) % size : i - 1;
+                int index = (i - 1) % size;
                 //The exponent is computed by dividing (and adding 1 as for the constant we do not have it).
                 int exponent = (i - 1) / size + 1;
                 buf.append(m_outSpec.getLearningFields().get(index));
