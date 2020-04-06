@@ -51,7 +51,8 @@ package org.knime.filehandling.core.testing.local;
 import java.nio.file.Path;
 
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.LocalFSConnection;
+import org.knime.filehandling.core.connections.local.LocalFSConnection;
+import org.knime.filehandling.core.connections.local.LocalPath;
 
 /**
  * Implementation of a local file system test initializer.
@@ -72,7 +73,7 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
 
     @Override
     public Path getRoot() {
-        return getTempFolder();
+        return new LocalPath(getTempFolder());
     }
 
     @Override

@@ -46,35 +46,27 @@
  * History
  *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections;
-
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+package org.knime.filehandling.core.connections.local;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.LocalFileSystemBrowser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
 
 /**
  * Creates a local file system.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
 public class LocalFSConnection implements FSConnection {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public FileSystem getFileSystem() {
-        return FileSystems.getDefault();
+    public FSFileSystem<?> getFileSystem() {
+        return LocalFileSystem.INSTANCE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return new LocalFileSystemBrowser();
     }
-
 }

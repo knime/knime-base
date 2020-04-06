@@ -44,70 +44,104 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Apr 6, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.local;
+package org.knime.filehandling.core.connections.local;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.knime.filehandling.core.connections.local.LocalPath;
-import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
- * Implementation of a test initializer using the local file system.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-public abstract class BasicLocalTestInitializer implements FSTestInitializer {
+class LocalFileSystem extends FSFileSystem<LocalPath> {
 
-	private final String m_rootFolder;
-	private Path m_currTempFolder;
+    public static final LocalFileSystem INSTANCE = new LocalFileSystem();
 
-	protected BasicLocalTestInitializer(final String root) {
-		m_rootFolder = root;
-	}
+    private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
 
-	@Override
-	public void beforeTestCase() throws IOException {
-		m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
-	}
+    private LocalFileSystem() {
+        super(Choice.LOCAL_FS, Optional.empty());
+    }
 
-	@Override
-	public void afterTestCase() throws IOException {
-		FileUtils.deleteDirectory(m_currTempFolder.toFile());
-	}
+    @Override
+    public FSFileSystemProvider provider() {
+        return LocalFileSystemProvider.INSTANCE;
+    }
 
-	protected Path getTempFolder() {
-		return m_currTempFolder;
-	}
+    @Override
+    public LocalPath getPath(final String first, final String... more) {
+        return new LocalPath(Paths.get(first, more));
+    }
 
-	protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
-		if (pathComponents == null || pathComponents.length == 0) {
-			throw new IllegalArgumentException("path components can not be empty or null");
-		}
+    @Override
+    public void close() throws IOException {
+        // do nothing
 
-		Path directories = m_currTempFolder;
-		for (int i = 0; i < pathComponents.length - 1; i++) {
-			directories = directories.resolve(pathComponents[i]);
-		}
+    }
 
-		final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
-		try {
-			Files.createDirectories(directories);
-			Path createdPath = Files.createFile(file);
-			try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
-				writer.write(content);
-			}
+    @Override
+    public boolean isOpen() {
+        return DEFAULT_FS.isOpen();
+    }
 
-			return new LocalPath(createdPath);
-		} catch (IOException e) {
-			throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
-		}
-	}
+    @Override
+    public boolean isReadOnly() {
+        return DEFAULT_FS.isReadOnly();
+    }
+
+    @Override
+    public String getSeparator() {
+        return DEFAULT_FS.getSeparator();
+    }
+
+    @Override
+    public Iterable<Path> getRootDirectories() {
+        final List<Path> roots = new ArrayList<>();
+        for (Path localRoot : DEFAULT_FS.getRootDirectories()) {
+            roots.add(new LocalPath(localRoot));
+        }
+        return roots;
+    }
+
+    @Override
+    public Iterable<FileStore> getFileStores() {
+        return DEFAULT_FS.getFileStores();
+    }
+
+    @Override
+    public Set<String> supportedFileAttributeViews() {
+        return DEFAULT_FS.supportedFileAttributeViews();
+    }
+
+    @Override
+    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
+        return DEFAULT_FS.getPathMatcher(syntaxAndPattern);
+    }
+
+    @Override
+    public UserPrincipalLookupService getUserPrincipalLookupService() {
+        return DEFAULT_FS.getUserPrincipalLookupService();
+    }
+
+    @Override
+    public WatchService newWatchService() throws IOException {
+        return DEFAULT_FS.newWatchService();
+    }
 }
