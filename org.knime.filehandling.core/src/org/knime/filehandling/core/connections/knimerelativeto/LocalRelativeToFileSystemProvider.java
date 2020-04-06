@@ -80,7 +80,7 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<LocalRelativeToFileSystem> {
+public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<LocalRelativeToPath, LocalRelativeToFileSystem> {
 
     private static final String SCHEME = "knime";
 
@@ -92,7 +92,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
         switch (connectionType) {
             case WORKFLOW_RELATIVE:
             case MOUNTPOINT_RELATIVE:
-                return new LocalRelativeToFileSystem(this, uri, connectionType);
+                return new LocalRelativeToFileSystem(this, uri, connectionType, false);
             default:
                 throw new IllegalArgumentException("Unsupported file system type: '" + uri.getHost() + "'.");
         }
@@ -107,19 +107,11 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
      */
     public static LocalRelativeToFileSystem getOrCreateFileSystem(final URI uri) throws IOException {
         final LocalRelativeToFileSystemProvider provider = new LocalRelativeToFileSystemProvider();
-        return (LocalRelativeToFileSystem)provider.getOrCreateFileSystem(uri, null);
+        return provider.getOrCreateFileSystem(uri, null);
     }
 
-    private static LocalRelativeToPath toRelativePath(final Path path) {
-        if (path instanceof LocalRelativeToPath) {
-            return (LocalRelativeToPath)path;
-        } else {
-            throw new IllegalArgumentException("Unsupported path implementation: " + path.getClass());
-        }
-    }
-
-    private Path toLocalPathWithAccessibilityCheck(final Path path) throws NoSuchFileException {
-        final Path localPath = toRelativePath(path).toAbsoluteLocalPath();
+    private Path toLocalPathWithAccessibilityCheck(final LocalRelativeToPath path) throws NoSuchFileException {
+        final Path localPath = path.toAbsoluteLocalPath();
 
         if (!getFileSystemInternal().isLocalPathAccessible(localPath)) {
             throw new NoSuchFileException(path.toString());
@@ -129,7 +121,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    protected InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+    protected InputStream newInputStreamInternal(final LocalRelativeToPath path, final OpenOption... options) throws IOException {
         final Path localPath = toLocalPathWithAccessibilityCheck(path);
 
         if (LocalRelativeToFileSystem.isLocalWorkflowFolder(localPath)) {
@@ -140,7 +132,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    protected OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+    protected OutputStream newOutputStreamInternal(final LocalRelativeToPath path, final OpenOption... options) throws IOException {
         final Path localPath = toLocalPathWithAccessibilityCheck(path);
 
         if (LocalRelativeToFileSystem.isLocalWorkflowFolder(localPath)) {
@@ -151,18 +143,18 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    protected Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter) throws IOException {
-        return new LocalRelativeToPathIterator(toRelativePath(dir), filter);
+    protected Iterator<LocalRelativeToPath> createPathIterator(final LocalRelativeToPath dir, final Filter<? super Path> filter) throws IOException {
+        return new LocalRelativeToPathIterator(dir, filter);
     }
 
     @Override
-    public boolean exists(final Path path) throws IOException {
-        final Path localPath = toRelativePath(path).toAbsoluteLocalPath();
+    protected boolean exists(final LocalRelativeToPath path) throws IOException {
+        final Path localPath = path.toAbsoluteLocalPath();
         return getFileSystemInternal().isLocalPathAccessible(localPath) && Files.exists(localPath);
     }
 
     @Override
-    protected void deleteInternal(final Path path) throws IOException {
+    protected void deleteInternal(final LocalRelativeToPath path) throws IOException {
         Files.delete(toLocalPathWithAccessibilityCheck(path));
     }
 
@@ -172,15 +164,10 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    public Path getPath(final URI uri) {
-        return new LocalRelativeToPath(getFileSystemInternal(), uri.getPath());
-    }
-
-    @Override
     protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
-        final Path localPath = toLocalPathWithAccessibilityCheck(path);
+        final Path localPath = toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(path));
 
         if (LocalRelativeToFileSystem.isLocalWorkflowFolder(localPath)) {
             throw new IOException("Workflows cannot be opened for reading/writing");
@@ -191,26 +178,25 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
 
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
-        Files.createDirectory(toLocalPathWithAccessibilityCheck(dir), attrs);
+        Files.createDirectory(toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 
     @Override
-    protected void copyInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void copyInternal(final LocalRelativeToPath source, final LocalRelativeToPath target,
+        final CopyOption... options) throws IOException {
         Files.copy(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
     }
 
     @Override
-    protected void moveInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void moveInternal(final LocalRelativeToPath source, final LocalRelativeToPath target,
+        final CopyOption... options) throws IOException {
         Files.move(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
     }
 
     @Override
-    public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        if (path instanceof LocalRelativeToPath && path2 instanceof LocalRelativeToPath) {
-            return Files.isSameFile(toLocalPathWithAccessibilityCheck(path), toLocalPathWithAccessibilityCheck(path2));
-        } else { // one path contains an unknown implementation
-            return false;
-        }
+    public boolean isSameFileInternal(final LocalRelativeToPath path, final LocalRelativeToPath path2)
+        throws IOException {
+        return Files.isSameFile(toLocalPathWithAccessibilityCheck(path), toLocalPathWithAccessibilityCheck(path2));
     }
 
     @Override
@@ -218,7 +204,7 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
         if (path.getFileName().toString().equals(WorkflowPersistor.METAINFO_FILE)) {
             return true;
         } else {
-            return Files.isHidden(toLocalPathWithAccessibilityCheck(path));
+            return Files.isHidden(toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(path)));
         }
     }
 
@@ -228,18 +214,17 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
+    protected void checkAccessInternal(final LocalRelativeToPath path, final AccessMode... modes) throws IOException {
         final Path localPath = toLocalPathWithAccessibilityCheck(path);
         localPath.getFileSystem().provider().checkAccess(localPath);
     }
 
     @Override
-    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+    protected BaseFileAttributes fetchAttributesInternal(final LocalRelativeToPath path, final Class<?> type) throws IOException {
         if (type == BasicFileAttributes.class) {
             final Path localPath = toLocalPathWithAccessibilityCheck(path);
-            final LocalRelativeToPath relativePath = toRelativePath(path);
 
-            final boolean isRegularFile = getFileSystemInternal().isRegularFile(relativePath);
+            final boolean isRegularFile = getFileSystemInternal().isRegularFile(path);
 
             final BasicFileAttributes localAttributes =
                 Files.readAttributes(localPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);

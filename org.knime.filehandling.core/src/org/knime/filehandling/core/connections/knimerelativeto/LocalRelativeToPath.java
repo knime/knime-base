@@ -58,7 +58,7 @@ import org.knime.filehandling.core.connections.base.UnixStylePath;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToPath extends UnixStylePath<LocalRelativeToFileSystem> {
+public class LocalRelativeToPath extends UnixStylePath {
 
     /**
      * Creates an UnixStylePath from the given bucket name and object key
@@ -73,17 +73,17 @@ public class LocalRelativeToPath extends UnixStylePath<LocalRelativeToFileSystem
     }
 
     @Override
+    public LocalRelativeToFileSystem getFileSystem() {
+        return (LocalRelativeToFileSystem) super.getFileSystem();
+    }
+
+    @Override
     public LocalRelativeToPath toAbsolutePath() {
         if (isAbsolute()) {
             return this;
         } else {
             return (LocalRelativeToPath) getFileSystem().getWorkingDirectory().resolve(this);
         }
-    }
-
-    @Override
-    public LocalRelativeToPath createPath(final String pathString, final String... more) {
-        return new LocalRelativeToPath(m_fileSystem, pathString, more);
     }
 
     /**

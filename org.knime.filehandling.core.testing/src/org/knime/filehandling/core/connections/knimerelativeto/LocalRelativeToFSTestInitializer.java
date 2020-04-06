@@ -97,7 +97,7 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 
 	@Override
 	public FSConnection getFSConnection() {
-		return new LocalRelativeToFSConnection(this);
+		return new TestLocalRelativeToFSConnection(this);
 	}
 
 	@Override

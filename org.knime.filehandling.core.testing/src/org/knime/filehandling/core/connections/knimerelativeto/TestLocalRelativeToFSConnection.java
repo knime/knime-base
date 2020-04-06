@@ -45,61 +45,29 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Files;
-import java.nio.file.NotDirectoryException;
-import java.nio.file.Path;
-import java.util.Iterator;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
 
 /**
- * Iterates over all the files and folders of the path on a local KNIME relative to File System.
+ * Connection providing a local relative to file system.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToPathIterator implements Iterator<LocalRelativeToPath> {
+public class TestLocalRelativeToFSConnection implements FSConnection {
+	private final LocalRelativeToFSTestInitializer m_fileSystemInitializer;
 
-    private Iterator<LocalRelativeToPath> m_iterator;
+	public TestLocalRelativeToFSConnection(final LocalRelativeToFSTestInitializer fileSystemInitializer) {
+		m_fileSystemInitializer = fileSystemInitializer;
+	}
 
-    /**
-     * Creates an iterator over all the files and folder in the given paths location.
-     *
-     * @param knimePath destination to iterate over
-     * @param filter
-     * @throws IOException on I/O errors
-     */
-    public LocalRelativeToPathIterator(final LocalRelativeToPath knimePath, final Filter<? super Path> filter) throws IOException {
+	@Override
+	public FSFileSystem<?> getFileSystem() {
+		return m_fileSystemInitializer.getFileSystem();
+	}
 
-        if (!Files.isDirectory(knimePath)) {
-            throw new NotDirectoryException(knimePath.toString());
-        }
-
-        try {
-            m_iterator = Files.list(knimePath.toAbsoluteLocalPath())
-                .map(p -> (LocalRelativeToPath)knimePath.resolve(p.getFileName().toString())).filter(p -> {
-                    try {
-                        return filter.accept(p);
-                    } catch (final IOException ex) { // wrap exception
-                        throw new UncheckedIOException(ex);
-                    }
-                }).iterator();
-        } catch (final UncheckedIOException ex) { // unwrap exception
-            if (ex.getCause() != null) {
-                throw ex.getCause();
-            } else {
-                throw ex;
-            }
-        }
-    }
-
-    @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
-    }
-
-    @Override
-    public LocalRelativeToPath next() {
-        return m_iterator.next();
-    }
+	@Override
+	public FileSystemBrowser getFileSystemBrowser() {
+		return new LocalRelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
+	}
 }

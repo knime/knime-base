@@ -54,6 +54,7 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.apache.commons.lang3.Validate;
 import org.knime.core.node.workflow.NodeContext;
@@ -61,7 +62,7 @@ import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -70,7 +71,10 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFileSystem extends BaseFileSystem {
+public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPath> {
+
+    private static final String PATH_SEPARATOR = "/";
+
     private static final long CACHE_TTL = 0; // = disabled
 
     private static final String FS_NAME = "KNIME relative to FS";
@@ -108,11 +112,20 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
      * @param fileSystemProvider Creator of this FS, holding a reference.
      * @param uri URI without a path
      * @param connectionType {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
+     * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
+     *            ({@link Choice#KNIME_FS})
      */
-    protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider,
-        final URI uri, final KNIMEConnection.Type connectionType) throws IOException {
+    protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider, final URI uri,
+        final Type connectionType, final boolean isConnectedFs) throws IOException  {
 
-        super(fileSystemProvider, uri, FS_NAME, FS_TYPE, CACHE_TTL);
+        super(fileSystemProvider, //
+            uri, //
+            FS_NAME, //
+            FS_TYPE, //
+            CACHE_TTL, //
+            isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_FS,//
+            Optional.of(connectionType == Type.MOUNTPOINT_RELATIVE ? "mountpoint" : "workflow"));
+
         m_type = connectionType;
         m_scheme = uri.getScheme();
         m_hostString = uri.getHost();
@@ -160,7 +173,8 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
      *
      * @return the current working directory (from the relative-to FS).
      */
-    protected LocalRelativeToPath getWorkingDirectory() {
+    @Override
+    public LocalRelativeToPath getWorkingDirectory() {
         return m_workingDirectory;
     }
 
@@ -187,7 +201,7 @@ public class LocalRelativeToFileSystem extends BaseFileSystem {
 
     @Override
     public String getSeparator() {
-        return UnixStylePathUtil.SEPARATOR;
+        return PATH_SEPARATOR;
     }
 
     private static boolean isServerContext(final WorkflowContext context) {

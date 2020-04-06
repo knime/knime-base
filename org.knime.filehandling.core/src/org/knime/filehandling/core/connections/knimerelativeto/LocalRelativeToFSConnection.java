@@ -42,33 +42,44 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Apr 6, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.nio.file.FileSystem;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
-/**
- * Connection providing a local relative to file system.
- *
- * @author Sascha Wolke, KNIME GmbH
- */
 public class LocalRelativeToFSConnection implements FSConnection {
-	private final LocalRelativeToFSTestInitializer m_fileSystemInitializer;
 
-	public LocalRelativeToFSConnection(final LocalRelativeToFSTestInitializer fileSystemInitializer) {
-		m_fileSystemInitializer = fileSystemInitializer;
-	}
+    private final LocalRelativeToFileSystem m_fileSystem;
 
-	@Override
-	public FileSystem getFileSystem() {
-		return m_fileSystemInitializer.getFileSystem();
-	}
+    private final LocalRelativeToFileSystemBrowser m_browser;
 
-	@Override
-	public FileSystemBrowser getFileSystemBrowser() {
-		return new LocalRelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
-	}
+    public LocalRelativeToFSConnection(final Type connectionTypeForHost) {
+        final URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
+        try {
+            m_fileSystem = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsKey);
+            m_browser = new LocalRelativeToFileSystemBrowser(m_fileSystem);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_browser;
+    }
 }
