@@ -56,8 +56,6 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.IOException;
-import java.net.URI;
 import java.util.Optional;
 
 import javax.swing.Box;
@@ -87,13 +85,6 @@ import org.knime.core.ui.node.workflow.RemoteWorkflowContext;
 import org.knime.core.ui.node.workflow.WorkflowManagerUI;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemBrowser;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemProvider;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystem;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemBrowser;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemView;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2.FileOrFolderEnum;
 import org.knime.filehandling.core.filefilter.FileFilterDialog;
@@ -501,86 +492,43 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     }
 
     private void updateFileHistoryPanel() {
-        m_fileHistoryPanel.setEnabled(true);
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
 
-        switch (fsChoice.getType()) {
-            case CUSTOM_URL_FS:
-                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setEnabled(true);
-                m_fileHistoryPanel.setBrowseable(false);
-                break;
-            case CONNECTED_FS:
-                final Optional<FSConnection> fs =
-                    FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
-                applySettingsForConnection(fsChoice, fs);
-                break;
-            case KNIME_FS:
-                final KNIMEConnection knimeConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
-                final URI fsUri = URI.create(knimeConnection.getType().getSchemeAndHost());
-
-                try {
-                    @SuppressWarnings("resource")
-                    final LocalRelativeToFileSystem fileSystem =
-                        LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsUri);
-                    m_fileHistoryPanel.setFileSystemBrowser(new LocalRelativeToFileSystemBrowser(fileSystem));
-                    m_statusMessage.setText("");
-                    m_fileHistoryPanel.setEnabled(true);
-                    m_fileHistoryPanel.setBrowseable(true);
-                } catch (final IOException ex) {
-                    m_statusMessage.setForeground(Color.RED);
-                    m_statusMessage
-                        .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-                    m_fileHistoryPanel.setEnabled(true);
-                    m_fileHistoryPanel.setBrowseable(false);
-                    LOGGER.debug("Exception when creating or closing the file system:", ex);
-                }
-
-                break;
-            case KNIME_MOUNTPOINT:
-                final KNIMEConnection knimeMountConnection = (KNIMEConnection)m_knimeConnections.getSelectedItem();
-                final String schemeAndHost = knimeMountConnection.getSchemeAndHost();
-                final URI fsKey = URI.create(schemeAndHost);
-
-                try {
-                    @SuppressWarnings("resource")
-                    final KNIMERemoteFileSystem fileSystem =
-                        (KNIMERemoteFileSystem) new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(fsKey, null);
-
-                    final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(fileSystem);
-                    final KNIMERemoteFileSystemBrowser fsBrowser = new KNIMERemoteFileSystemBrowser(fsView);
-
-                    m_fileHistoryPanel.setFileSystemBrowser(fsBrowser);
-                    m_statusMessage.setText("");
-                    final boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(fsKey);
-                    m_fileHistoryPanel.setEnabled(true);
-                    m_fileHistoryPanel.setBrowseable(isReadable);
-                } catch (final IOException ex) {
-                    m_statusMessage.setForeground(Color.RED);
-                    m_statusMessage
-                        .setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-                    m_fileHistoryPanel.setEnabled(true);
-                    m_fileHistoryPanel.setBrowseable(false);
-                    LOGGER.debug("Exception when creating or closing the file system:", ex);
-                }
-                break;
-            case LOCAL_FS:
-                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setBrowseable(true);
-                m_fileHistoryPanel.setEnabled(true);
-                break;
-            default:
-                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
-                m_fileHistoryPanel.setBrowseable(false);
-                m_fileHistoryPanel.setEnabled(false);
-        }
-
-        if (excutedOnServer() && !fsChoice.getType().equals(Choice.CONNECTED_FS)) {
+        if (excutedOnServer() && fsChoice.getType() != Choice.CONNECTED_FS) {
             m_fileHistoryPanel.setBrowseable(false);
             m_fileHistoryPanel.setEnabled(false);
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText("Browsing is not supported in job view.");
+            getComponentPanel().repaint();
+            return;
         }
+
+        m_fileHistoryPanel.setEnabled(true);
+        final SettingsModelFileChooser2 settings = (SettingsModelFileChooser2)getModel();
+        final Optional<FSConnection> portObjConnection =
+                FileSystemPortObjectSpec.getFileSystemConnection(getLastTableSpecs(), m_inPort);
+
+        try {
+            final FSConnection connection =
+                FileSystemHelper.retrieveFSConnection(portObjConnection, settings, FileUtil.getDefaultURLTimeoutMillis());
+
+            if (connection.getFileSystemBrowser() != null) {
+                m_fileHistoryPanel.setFileSystemBrowser(connection.getFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(true);
+            } else {
+                m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+                m_fileHistoryPanel.setBrowseable(false);
+            }
+
+            m_statusMessage.setText("");
+        } catch (Exception e) {
+            m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
+            m_fileHistoryPanel.setBrowseable(false);
+            m_statusMessage.setForeground(Color.RED);
+            m_statusMessage.setText(
+                String.format("Connection to %s not available. Please execute the connector node.", fsChoice.getId()));
+        }
+
         getComponentPanel().repaint();
     }
 

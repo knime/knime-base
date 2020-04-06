@@ -48,20 +48,19 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystemProvider;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFileSystemProvider;
-import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
+import org.knime.filehandling.core.connections.local.LocalFSConnection;
+import org.knime.filehandling.core.connections.url.URIFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
- * Utility class to obtain a NIO {@link FileSystem}.
+ * Utility class to obtain a {@link FSConnection}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
@@ -70,54 +69,42 @@ public class FileSystemHelper {
     /**
      * Method to obtain the file system for a given settings model.
      *
-     * @param fs optional {@link FSConnection}.
+     * @param portObjectConnection optional {@link FSConnection}.
      * @param settings {@link SettingsModelFileChooser2} instance.
      * @param timeoutInMillis timeout in milliseconds, or -1 if not applicable.
      * @return {@link FileSystem} to use.
-     * @throws IOException if custom URL is invalid.
      */
-    @SuppressWarnings("resource")
-    public static final FileSystem retrieveFileSystem(final Optional<FSConnection> fs,
-        final SettingsModelFileChooser2 settings, final int timeoutInMillis) throws IOException {
+    public static final FSConnection retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
+        final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
 
         final FileSystemChoice choice = settings.getFileSystemChoice();
-        final FileSystem toReturn;
+        final FSConnection toReturn;
 
         switch (choice.getType()) {
             case LOCAL_FS:
-                toReturn = FileSystems.getDefault();
+                toReturn = new LocalFSConnection();
                 break;
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
-                toReturn =
-                    new URIFileSystemProvider(timeoutInMillis).newFileSystem(uri, null);
+                toReturn = new URIFSConnection(uri, timeoutInMillis);
                 break;
             case KNIME_MOUNTPOINT:
                 final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
-                if (knimeFileSystem == null) {
-                    throw new IOException("Invalid Mountpoint selection");
-                }
                 final KNIMEConnection connection =
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-
-                final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
-                toReturn = new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(remoteFsKey, null);
+                toReturn = new KNIMERemoteFSConnection(connection);
                 break;
             case KNIME_FS:
                 final String knimeFileSystemHost = settings.getKNIMEFileSystem();
                 final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
-
-                final URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
-                toReturn = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsKey);
+                toReturn = new LocalRelativeToFSConnection(connectionTypeForHost);
                 break;
             case CONNECTED_FS:
-                toReturn = fs
-                    .orElseThrow(
-                        () -> new IOException("No file system connection available for \"" + choice.getId() + "\""))
-                    .getFileSystem();
+                toReturn = portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
+                    "No file system connection available for \"" + choice.getId() + "\""));
                 break;
             default:
-                throw new IOException("Unsupported file system choice: " + choice.getType());
+                throw new IllegalArgumentException("Unsupported file system choice: " + choice.getType());
         }
 
         return toReturn;

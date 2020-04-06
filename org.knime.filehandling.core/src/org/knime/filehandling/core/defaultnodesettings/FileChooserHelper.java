@@ -50,7 +50,6 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,7 +66,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
@@ -79,7 +78,7 @@ import org.knime.filehandling.core.filefilter.FileFilter;
 public final class FileChooserHelper {
 
     /** FileSystem used to resolve the path (lazily initialized) */
-    private FileSystem m_fileSystem;
+    private FSConnection m_fsConnection;
 
     /** Settings object containing necessary information about e.g. file filtering */
     private final SettingsModelFileChooser2 m_settings;
@@ -90,7 +89,7 @@ public final class FileChooserHelper {
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
 
-    final Optional<FSConnection> m_fsConnection;
+    final Optional<FSConnection> m_portObjectFSConnection;
 
     final int m_timeoutInMillis;
 
@@ -98,28 +97,27 @@ public final class FileChooserHelper {
      * Creates a new instance of {@link FileChooserHelper} that uses the default url timeout
      * {@link FileUtil#getDefaultURLTimeoutMillis()} for custom URLs.
      *
-     * @param fs the {@link FSConnection} used to retrieve a file system if necessary.
+     * @param portObjectFSConnection the {@link FSConnection} used to retrieve a file system if necessary.
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
-    public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings)
+    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection, final SettingsModelFileChooser2 settings)
         throws IOException {
-        this(fs, settings, FileUtil.getDefaultURLTimeoutMillis());
+        this(portObjectFSConnection, settings, FileUtil.getDefaultURLTimeoutMillis());
     }
 
     /**
      * Creates a new instance of {@link FileChooserHelper}.
      *
-     * @param fs the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable if
-     *            necessary
+     * @param portObjectFSConnection Optional FSConnection coming from a connected port object.
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @param timeoutInMillis timeout in milliseconds, or -1 if not applicable.
      */
-    public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings,
+    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection, final SettingsModelFileChooser2 settings,
         final int timeoutInMillis) {
         m_filter = new FileFilter(settings.getFileFilterSettings());
         m_settings = settings;
-        m_fsConnection = fs;
+        m_portObjectFSConnection = portObjectFSConnection;
         m_timeoutInMillis = timeoutInMillis;
     }
 
@@ -129,11 +127,11 @@ public final class FileChooserHelper {
      * @return the file system
      * @throws IOException thrown when the file system could not be retrieved.
      */
-    public final FileSystem getFileSystem() throws IOException {
-        if (m_fileSystem == null) {
-            m_fileSystem = FileSystemHelper.retrieveFileSystem(m_fsConnection, m_settings, m_timeoutInMillis);
+    public final FSFileSystem<?> getFileSystem() throws IOException {
+        if (m_fsConnection == null) {
+            m_fsConnection = FileSystemHelper.retrieveFSConnection(m_portObjectFSConnection, m_settings, m_timeoutInMillis);
         }
-        return m_fileSystem;
+        return m_fsConnection.getFileSystem();
     }
 
     /**
@@ -230,14 +228,22 @@ public final class FileChooserHelper {
                 break;
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
-                validateKNIMERelativePath((LocalRelativeToFileSystem)getFileSystem(), pathOrUrl);
+                if (pathOrUrl.isAbsolute()) {
+                    throw new InvalidSettingsException("The path must be relative, i.e. it must not start with '/'.");
+                }
                 break;
             case KNIME_MOUNTPOINT:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
+                if (!pathOrUrl.isAbsolute()) {
+                    throw new InvalidSettingsException("The path must be absolute, i.e. it must start with '/'.");
+                }
                 break;
             case LOCAL_FS:
                 validateLocalFsAccess();
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
+                if (!pathOrUrl.isAbsolute()) {
+                    throw new InvalidSettingsException("The path must be absolute.");
+                }
                 break;
             default:
                 final String errMsg =
@@ -245,9 +251,7 @@ public final class FileChooserHelper {
                 throw new RuntimeException(errMsg);
         }
 
-        if (!pathOrUrl.isAbsolute() && fileSystemChoice != Choice.KNIME_FS) {
-            throw new InvalidSettingsException("The path must be absolute.");
-        }
+
 
         return pathOrUrl;
     }
@@ -303,15 +307,6 @@ public final class FileChooserHelper {
         }
     }
 
-    private static void validateKNIMERelativePath(final LocalRelativeToFileSystem fs, final Path path) throws InvalidSettingsException {
-        if (fs.isWorkflowRelativeFileSystem() && path.isAbsolute()) {
-            throw new InvalidSettingsException(
-                "Workflow relative path must be relative (cannot start with a leading slash).");
-        } else if (!fs.isWorkflowRelativeFileSystem() && !path.isAbsolute()) {
-            throw new InvalidSettingsException(
-                "Mountpoint relative path must be absolute (start with a leading slash).");
-        }
-    }
 
     /**
      * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
