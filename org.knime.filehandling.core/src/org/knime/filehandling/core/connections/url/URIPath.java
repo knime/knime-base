@@ -48,399 +48,78 @@
  */
 package org.knime.filehandling.core.connections.url;
 
-import static java.lang.String.format;
-
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.WatchEvent.Kind;
-import java.nio.file.WatchEvent.Modifier;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Arrays;
-import java.util.Iterator;
 
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.base.GenericPathUtil;
-import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
  *  The {@link Path} implementation for custom URLs
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIPath implements Path {
-
-    private final FileSystem m_fileSystem;
+public class URIPath extends UnixStylePath {
 
     private final URI m_uri;
 
-    private final String[] m_pathComponents;
-
-    private final boolean m_isAbsolute;
-
     /**
-     * Constructs a new URIPath.
+     * Constructs a new URIPath. Note that URL query and fragment can be passed through
+     * if included in the first/more arguments. If so, they not become part of the name components,
+     * but are part of the URI returned by {@link #toUri()}.
      *
-     * @param fileSystem the paths file system
-     * @param uri the uri to be wrapped
+     * @param fileSystem the paths file system.
+     * @param first First name component (may contain URL query and fragment in encoded form, if "more" is empty).
+     * @param more More name components (may contain URL query and fragment in encoded form).
      */
-    protected URIPath(final FileSystem fileSystem, final URI uri) {
-        m_fileSystem = fileSystem;
+    protected URIPath(final URIFileSystem fileSystem, final String first, final String...more) {
+        super(fileSystem, extractPathString(fileSystem, first, more));
+        m_uri = buildURI(fileSystem, first, more);
 
-        m_uri = uri;
-
-        m_isAbsolute = UnixStylePathUtil.hasRootComponent(uri.getPath());
-
-        m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_uri.getPath());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FileSystem getFileSystem() {
-        return m_fileSystem;
-    }
+    private static String extractPathString(final URIFileSystem fileSystem, final String first, final String[] more) {
+        //the uri path is always absolute, but it has been separated from query and fragment
+        final String uriPath = buildURI(fileSystem, first, more).getPath();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isAbsolute() {
-        return m_isAbsolute;
-    }
+        // the actual path may actually be relative, but it still may contain query and fragment
+        final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path getRoot() {
-        final URIPath toReturn = null;
-
-        if (m_isAbsolute) {
-            try {
-                return new URIPath(m_fileSystem,
-                    new URI(m_uri.getScheme(), m_uri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null));
-            } catch (final URISyntaxException ex) {
-                throw new RuntimeException("Failed to get root of custom URI file system", ex);
-            }
-        }
-
-        return toReturn;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path getFileName() {
-        if (m_pathComponents.length == 0) {
-            return null;
-        }
-
-        final String filename = m_pathComponents[m_pathComponents.length - 1];
-        try {
-            return new URIPath(m_fileSystem, new URI(null, null, filename, null, null));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to get file name of custom URI", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path getParent() {
-        if (m_pathComponents.length == 0) {
-            return null;
-        }
-        if (m_pathComponents.length == 1) {
-            return getRoot();
-        }
-
-        final StringBuilder parentBuilder = new StringBuilder(m_fileSystem.getSeparator());
-        for (int i = 0; i < m_pathComponents.length - 1; i++) {
-            parentBuilder.append(m_pathComponents[i]);
-            parentBuilder.append(m_fileSystem.getSeparator());
-        }
-
-        try {
-            return new URIPath(m_fileSystem,
-                new URI(m_uri.getScheme(), m_uri.getAuthority(), parentBuilder.toString(), null, null));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to get parent of custom URI", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNameCount() {
-        return m_pathComponents.length;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path getName(final int index) {
-        try {
-            return new URIPath(m_fileSystem, new URI(null, null, m_pathComponents[index], null, null));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to get path component of custom URI", ex);
-        }
-    }
-
-    /**
-     * any watching on on URIs {@inheritDoc}
-     */
-    @Override
-    public Path subpath(final int beginIndex, final int endIndex) {
-        try {
-            final String relativeSubpath = String.join("/", Arrays.copyOfRange(m_pathComponents, beginIndex, endIndex));
-            return new URIPath(m_fileSystem, new URI(null, null, relativeSubpath, null, null));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to get path component of custom URI", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean startsWith(final Path other) {
-        if (other.getFileSystem() != m_fileSystem) {
-            return false;
-        }
-        return GenericPathUtil.startsWith(this, other);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean startsWith(final String other) {
-        final Path otherPath = makeCustomURIPathOnCurrentFileSystem(other);
-        return GenericPathUtil.startsWith(this, otherPath);
-    }
-
-    private URIPath makeCustomURIPathOnCurrentFileSystem(final String otherPath) {
-        try {
-            return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), otherPath, null, null));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed make path", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean endsWith(final Path other) {
-        if (other.getFileSystem() != m_fileSystem) {
-            return false;
-        }
-
-        return GenericPathUtil.endsWith(this, other);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean endsWith(final String other) {
-        final Path otherPath = makeCustomURIPathOnCurrentFileSystem(other);
-        return GenericPathUtil.endsWith(this, otherPath);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path normalize() {
-        return new URIPath(m_fileSystem, m_uri.normalize());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path resolve(final Path other) {
-        if (other.getFileSystem() != m_fileSystem) {
-            throw new IllegalArgumentException("Cannot resolve paths across different file systems");
-        }
-
-        final URIPath otherUriPath = (URIPath)other;
-
-        if (other.isAbsolute()) {
-            return other;
-        }
-
-        if (other.getNameCount() == 0) {
-            return this;
-        }
-
-        final String resolvedPathString =
-            UnixStylePathUtil.resolve(m_pathComponents, otherUriPath.m_pathComponents, m_isAbsolute);
-
-        try {
-            return new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), resolvedPathString,
-                otherUriPath.m_uri.getQuery(), otherUriPath.m_uri.getFragment()));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path resolve(final String other) {
-        if (other.isEmpty()) {
-            return this;
-        }
-
-        try {
-
-            // if the other path is relative, it must not have a scheme; see Javadoc of {@link URI}
-            final Path otherPath = other.startsWith("/")
-                ? new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null))
-                : new URIPath(m_fileSystem, new URI(null, null, other, null, null));
-
-            return resolve(otherPath);
-
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path resolveSibling(final Path other) {
-        if (other.getFileSystem() != m_fileSystem) {
-            throw new IllegalArgumentException("Cannot resolve sibling paths across different file systems");
-        }
-
-        if (other.isAbsolute()) {
-            return other;
-        }
-
-        final Path parent = getParent();
-        if (parent == null) {
-            return other;
+        if (fileSystem.isRelativeKNIMEProtocol() || !concatenatedPath.startsWith(fileSystem.getSeparator())) {
+            return uriPath.substring(1);
         } else {
-            return parent.resolve(other);
+            return uriPath;
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static URI buildURI(final URIFileSystem fileSystem, final String first, final String[] more) {
+        final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
+
+        String baseURI = fileSystem.getBaseURI().toString();
+        if (baseURI.endsWith("/") && concatenatedPath.startsWith("/")) {
+            baseURI = baseURI.substring(0, baseURI.length() - 1);
+        }
+
+        return URI.create(baseURI + concatenatedPath.replace(" ", "%20"));
+    }
+
+
     @Override
-    public Path resolveSibling(final String other) {
-        if (other.isEmpty()) {
-            return this;
-        }
-
-        try {
-            final Path otherPath =
-                new URIPath(m_fileSystem, new URI(m_uri.getScheme(), m_uri.getAuthority(), other, null, null));
-
-            return resolveSibling(otherPath);
-
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to resolve path", ex);
-        }
+    public URIFileSystem getFileSystem() {
+        return (URIFileSystem) super.getFileSystem();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path relativize(final Path other) {
-        // FIXME probably not important, but should be there for completeness
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public URI toUri() {
         return m_uri;
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path toAbsolutePath() {
-        if (m_isAbsolute) {
-            return this;
-        } else {
-            throw new IllegalStateException(format("Relative URI %s cannot be made absolute", m_uri));
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path toRealPath(final LinkOption... options) throws IOException {
-        // just applying normalization here, because there is nothing else that we can do
-        return toAbsolutePath().normalize();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public File toFile() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public WatchKey register(final WatchService watcher, final Kind<?>[] events, final Modifier... modifiers)
-        throws IOException {
-        // cannot do any watching on on URIs
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public WatchKey register(final WatchService watcher, final Kind<?>... events) throws IOException {
-        // cannot do any watching on on URIs
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Iterator<Path> iterator() {
-        // cannot do any file listings on URIs
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Opens a {@link URLConnection} to the resource.
      *
-     * @param openOutputConnection whether the connection should be opened for writing
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
@@ -456,7 +135,7 @@ public class URIPath implements Path {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = FileUtil.toURL(m_uri.toString());
+        final URL url = FileUtil.toURL(toUri().toString());
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
@@ -464,9 +143,6 @@ public class URIPath implements Path {
         return connection;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int compareTo(final Path other) {
         if (other.getFileSystem() != m_fileSystem) {
@@ -499,11 +175,6 @@ public class URIPath implements Path {
         int result = m_fileSystem.hashCode();
         result = 31 * result + m_uri.hashCode();
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return m_uri.toString();
     }
 
     /**

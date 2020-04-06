@@ -52,22 +52,35 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystem extends BaseFileSystem {
+public class URIFileSystem extends BaseFileSystem<URIPath> {
+
+    private static final String PATH_SEPARATOR = "/";
 
     private final URI m_baseUri;
 
-    URIFileSystem(final URIFileSystemProvider provider, final URI uri) {
-        super(provider, uri, getName(uri), getName(uri), 0);
+    private final URIPath m_workingDirectory;
+
+    URIFileSystem(final URIFileSystemProvider provider, final URI uri, final boolean isConnectedFs) {
+        super(provider,//
+            toBaseURI(uri),//
+            getName(uri),//
+            getName(uri),//
+            0L,//
+            isConnectedFs ? Choice.CONNECTED_FS : Choice.CUSTOM_URL_FS,//
+            Optional.empty());
+
         m_baseUri = toBaseURI(uri);
+        m_workingDirectory = getPath(PATH_SEPARATOR);
     }
 
     /**
@@ -90,6 +103,10 @@ public class URIFileSystem extends BaseFileSystem {
         }
     }
 
+    public URI getBaseURI() {
+        return m_baseUri;
+    }
+
     private static String getName(final URI uri) {
 
         if (uri.getScheme() == null && uri.getAuthority() == null) {
@@ -99,73 +116,50 @@ public class URIFileSystem extends BaseFileSystem {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    public boolean isRelativeKNIMEProtocol() {
+        final String hostString = getHostString();
+        return getSchemeString().equalsIgnoreCase("knime")
+                && (hostString.equalsIgnoreCase("knime.mountpoint") //
+                        || getHostString().equalsIgnoreCase("knime.workflow") //
+                        || getHostString().equalsIgnoreCase("knime.node"));
+    }
+
+
     @Override
     public String getSeparator() {
-        return UnixStylePathUtil.SEPARATOR;
+        return PATH_SEPARATOR;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public URIPath getWorkingDirectory() {
+        return m_workingDirectory;
+    }
+
     @Override
     public Iterable<Path> getRootDirectories() {
-        try {
-            return Collections.singletonList(new URIPath(this,
-                new URI(m_baseUri.getScheme(), m_baseUri.getAuthority(), UnixStylePathUtil.SEPARATOR, null, null)));
-        } catch (final URISyntaxException ex) {
-            throw new RuntimeException("Failed to create URI for root directory", ex);
-        }
+        return Collections.singletonList(getPath(PATH_SEPARATOR));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Set<String> supportedFileAttributeViews() {
         return Collections.singleton("basic");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Path getPath(final String first, final String... more) {
-        String path = first;
-        if (more.length > 0) {
-            path += UnixStylePathUtil.SEPARATOR + String.join(UnixStylePathUtil.SEPARATOR, more);
-        }
-
-        String baseURI = m_baseUri.toString();
-        if (baseURI.endsWith("/") && path.startsWith("/")) {
-            baseURI = baseURI.substring(0, baseURI.length() - 1);
-        }
-
-        final URI newURI = URI.create(baseURI + path.replace(" ", "%20"));
-        return new URIPath(this, newURI);
+    public URIPath getPath(final String first, final String... more) {
+        return new URIPath(this, first, more);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void prepareClose() {
         // Nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getSchemeString() {
         return m_baseUri.getScheme();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getHostString() {
         return m_baseUri.getAuthority();

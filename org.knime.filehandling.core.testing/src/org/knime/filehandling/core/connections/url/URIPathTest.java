@@ -23,13 +23,13 @@ public class URIPathTest {
 	@Test
 	public void resolveRelativePath() throws URISyntaxException, IOException {
 		final String scheme = "knime";
-		final String authority = "knime.mountpoint";
+		final String authority = "LOCAL";
 		final String absolute = "/absolute";
 		final String relative = "relative";
 		final URI uri = new URI(scheme, authority, absolute, null, null);
-		final URIPath uriPath = new URIPath(m_fsProvider.getOrCreateFileSystem(uri, Collections.emptyMap()), uri);
+		final URIPath uriPath = new URIPath(m_fsProvider.getOrCreateFileSystem(uri, Collections.emptyMap()), absolute);
 		final Path resolved = uriPath.resolve(relative);
-		assertEquals(resolved.toString(), String.format("%s://%s%s/%s", scheme, authority, absolute, relative));
+		assertEquals(String.format("%s/%s", absolute, relative), resolved.toString());
 	}
 
 }

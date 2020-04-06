@@ -54,12 +54,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
@@ -80,21 +78,20 @@ import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
- * Special file system provider that provides file handling functionality for a single (!) URL.
+ * Special file system provider that provides file handling functionality for a URL.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem> {
+public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSystem> {
 
     private final int m_timeoutInMillis;
 
     /**
-     * This class is a singleton, hence private constructor.
+     * Constructor.
      *
      * @param timeoutInMillis read timeout in milliseconds
      */
@@ -109,36 +106,45 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         return m_timeoutInMillis;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getScheme() {
         return "*";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public URIFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
+        return new URIFileSystem(this, uri, false);
+    }
+
     @SuppressWarnings("resource")
     @Override
-    public Path getPath(final URI uri) {
-        final BaseFileSystem fileSystem = getFileSystemInternal();
+    public URIPath getPath(final URI uri) {
+        final URIFileSystem fileSystem = getFileSystemInternal();
+
         if (fileSystem.getSchemeString().equalsIgnoreCase(uri.getScheme())
             && fileSystem.getHostString().equalsIgnoreCase(uri.getHost())) {
-            return new URIPath(fileSystem, uri);
+            return fileSystem.getPath(getURIPathQueryAndFragment(uri));
         } else {
-            try {
-                return new URIPath(new URIFileSystemProvider(m_timeoutInMillis).newFileSystem(uri, null), uri);
-            } catch (final IOException ex) {
-                throw new IllegalArgumentException(String.format("Cannot create path for uri: %s", uri.toString()), ex);
-            }
+            throw new IllegalArgumentException(String.format("Cannot create path for uri: %s", uri.toString()));
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private String getURIPathQueryAndFragment(final URI uri) {
+        final StringBuilder toReturn = new StringBuilder(uri.getPath());
+
+        if (uri.getQuery() != null) {
+            toReturn.append("?");
+            toReturn.append(uri.getQuery());
+        }
+
+        if (uri.getFragment() != null) {
+            toReturn.append("#");
+            toReturn.append(uri.getFragment());
+        }
+        return toReturn.toString();
+    }
+
+
     @Override
     protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
@@ -146,29 +152,13 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
-        throws IOException {
-
-        throw new UnsupportedOperationException("Folders and folder listings are not supported for custom URLs");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException("Folders and folder listings are not supported for custom URLs");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void copyInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void copyInternal(final URIPath source, final URIPath target, final CopyOption... options) throws IOException {
 
         try (final SeekableByteChannel sourceChannel = Files.newByteChannel(source, StandardOpenOption.READ)) {
             try (final SeekableByteChannel targetChannel = createTargetChannel(target, options)) {
@@ -211,24 +201,9 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void moveInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void moveInternal(final URIPath source, final URIPath target, final CopyOption... options) throws IOException {
         throw new UnsupportedOperationException("Moving files is not supported with custom URLs");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        if (path.getFileSystem().provider() != this || path2.getFileSystem().provider() != this) {
-            return false;
-        }
-
-        return path.toUri().normalize().equals(path2.toUri().normalize());
     }
 
     /**
@@ -239,9 +214,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
         checkPath(path);
@@ -249,71 +221,36 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         return path.getFileSystem().getFileStores().iterator().next();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        checkPath(path);
-
-        if (!exists(path)) {
-            throw new NoSuchFileException(path.toString());
-        }
-
-        if (Arrays.asList(modes).contains(AccessMode.READ)) {
-            final URL url = FileUtil.toURL(path.toString());
-            try (final InputStream in = url.openStream()) {
-                // do nothing
-            } catch (final IOException e) {
-                throw new IOException("Cannot access file: " + e.getMessage(), e);
-            }
-        }
-        // we are ignoring the other access modes because there is nothing we can do
+    protected void checkAccessInternal(final URIPath path, final AccessMode... modes) throws IOException {
+        // there is nothing we can do
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
-        final LinkOption... options) throws IOException {
-
-        checkPath(path);
-
-        final URIPath uriPath = (URIPath)path;
-        if (!exists(uriPath)) {
-            throw new NoSuchFileException(uriPath.toString());
-        }
-
-        if (type == BasicFileAttributes.class) {
-            return (A)fetchAttributesInternal(uriPath, type);
+    private static IOException convertToFileSystemExceptionIfPossible(final Path path, final IOException e) {
+        final Throwable rootCause = ExceptionUtils.getRootCause(e);
+        if (rootCause instanceof FileNotFoundException) {
+            return new NoSuchFileException(path.toString());
+        } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
+            return new NoSuchFileException(path.toString());
         } else {
-            throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
+            return e;
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
         throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean exists(final Path path) {
-        final URIPath uriPath = (URIPath) path;
+    protected boolean exists(final URIPath path) {
         try {
-            if (uriPath.isDirectory()) {
+            if (path.isDirectory()) {
                 //Workaround for the ejb knime server connection. Directories are always assumed to exist.
                 return true;
             }
-            try (final InputStream in = uriPath.openURLConnection(m_timeoutInMillis).getInputStream()) {
+            try (final InputStream in = path.openURLConnection(m_timeoutInMillis).getInputStream()) {
                 // yes, do nothing.
             }
             return true;
@@ -322,29 +259,13 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public URIFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new URIFileSystem(this, uri);
-    }
 
     @Override
-    public InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
-        final URIPath uriPath = (URIPath)path;
-
+    protected InputStream newInputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            return uriPath.openURLConnection(getTimeout()).getInputStream();
+            return path.openURLConnection(getTimeout()).getInputStream();
         } catch (IOException e) {
-            final Throwable rootCause = ExceptionUtils.getRootCause(e);
-            if (rootCause instanceof FileNotFoundException) {
-                throw new NoSuchFileException(path.toString());
-            } else if (isNoSuchFileOnServerMountpoint(rootCause)) {
-                throw new NoSuchFileException(path.toString());
-            } else {
-                throw e;
-            }
+            throw convertToFileSystemExceptionIfPossible(path, e);
         }
     }
 
@@ -356,51 +277,38 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIFileSystem>
                 );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
-        final URIPath uriPath = (URIPath)path;
+    protected OutputStream newOutputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            final Path localURL = FileUtil.resolveToPath(uriPath.toUri().toURL());
+            final Path localURL = FileUtil.resolveToPath(path.toUri().toURL());
             if (localURL != null) {
                 return Files.newOutputStream(localURL, options);
             } else {
-                return FileUtil.openOutputConnection(uriPath.toUri().toURL(), "PUT").getOutputStream();
+                return FileUtil.openOutputConnection(path.toUri().toURL(), "PUT").getOutputStream();
             }
         } catch (final URISyntaxException ex) {
             throw new IOException(ex);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter) throws IOException {
-        return null;
+    protected Iterator<URIPath> createPathIterator(final URIPath dir, final Filter<? super Path> filter) throws IOException {
+        throw new UnsupportedOperationException("Listing folder contents is not supported for URLs");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
-        final URIPath uriPath = (URIPath)path;
+    protected BaseFileAttributes fetchAttributesInternal(final URIPath path, final Class<?> type) throws IOException {
+
         if (type == BasicFileAttributes.class) {
-            return new BaseFileAttributes(!uriPath.isDirectory(), uriPath,
+            return new BaseFileAttributes(!path.isDirectory(), path,
                 FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
                     0L, false, false, null);
         }
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void deleteInternal(final Path path) throws IOException {
+    protected void deleteInternal(final URIPath path) throws IOException {
         throw new UnsupportedOperationException("Deleting files is not supported for custom URLs");
     }
 }
