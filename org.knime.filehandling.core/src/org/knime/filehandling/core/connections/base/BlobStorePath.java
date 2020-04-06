@@ -55,25 +55,27 @@ import java.util.List;
  * Base implementation for blob store paths.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
- * @param <T> The file system implementation for this {@link BlobStorePath}.
  */
-public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStylePath<T> {
+public abstract class BlobStorePath extends UnixStylePath {
 
     private final boolean m_isDirectory;
 
     /**
-     * Creates a BlobStorePath from the given path string.
+     * Creates a BlobStorePath from the given path name components.
      *
-     * Paths that contain a symbolic link (like "{@code ..}" for the parent folder, or "{@code .}" and empty string for
-     * the current folder) as the last component are considered to be directories. This behavior can be adapted by
-     * overriding the {@link #lastComponentSymbolicLink()} method.
+     * Paths that end with a path separator, or contain a relative notation element (like "{@code ..}", "{@code .}" or the empty string)
+     * as the last component are considered to be directories. This behavior can be adapted by
+     * overriding the {@link #lastComponentUsesRelativeNotation()} method.
      *
-     * @param fileSystem the file system
-     * @param pathString the string representing the path
+     * @param fileSystem the file system.
+     * @param first The first name component.
+     * @param more More name components.
      */
-    public BlobStorePath(final T fileSystem, final String pathString) {
-        super(fileSystem, pathString);
-        m_isDirectory = pathString.endsWith(fileSystem.getSeparator()) || lastComponentSymbolicLink();
+    public BlobStorePath(final BaseFileSystem<?> fileSystem, final String first, final String[] more) {
+        super(fileSystem, first, more);
+        m_isDirectory =
+            concatenatePathSegments(fileSystem.getSeparator(), first, more).endsWith(fileSystem.getSeparator())
+                || lastComponentUsesRelativeNotation();
     }
 
     /**
@@ -81,21 +83,21 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
      *
      * Paths that contain a symbolic link (like "{@code ..}" for the parent folder, or "{@code .}" and empty string for
      * the current folder) as the last component are considered to be directories. This behavior can be adapted by
-     * overriding the {@link #lastComponentSymbolicLink()} method.
+     * overriding the {@link #lastComponentUsesRelativeNotation()} method.
      *
      * @param fileSystem the file system
      * @param bucketName the bucket
      * @param blobName the object key
      */
-    public BlobStorePath(final T fileSystem, final String bucketName, final String blobName) {
+    public BlobStorePath(final BaseFileSystem<?> fileSystem, final String bucketName, final String blobName) {
         super(fileSystem, fileSystem.getSeparator() + bucketName + fileSystem.getSeparator() + blobName);
-        m_isDirectory = blobName.endsWith(fileSystem.getSeparator()) || lastComponentSymbolicLink();
+        m_isDirectory = blobName.endsWith(fileSystem.getSeparator()) || lastComponentUsesRelativeNotation();
     }
 
     /**
      * @return whether the last component is considered to by a symbolic link e.g. "{@code ..}" for the parent folder.
      */
-    protected boolean lastComponentSymbolicLink() {
+    protected boolean lastComponentUsesRelativeNotation() {
         final String lastComponent = m_pathParts.get(m_pathParts.size() - 1);
         return lastComponent.equals(".") || lastComponent.equals("..") || lastComponent.isEmpty();
     }
@@ -116,7 +118,7 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
             pathString = pathString + m_pathSeparator;
         }
 
-        return createPath(pathString);
+        return getFileSystem().getPath(pathString);
     }
 
     /**
@@ -139,7 +141,7 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
         if (!isAbsolute()) {
             throw new IllegalStateException("Blob name cannot be determined for relative paths.");
         }
-        if (m_pathParts.size() == 1) {
+        if (m_pathParts.size() <= 1) {
             return null;
         } else {
             return subpath(1, getNameCount()).toString();
@@ -181,7 +183,7 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
             name = name.concat(m_pathSeparator);
         }
 
-        return createPath(name);
+        return getFileSystem().getPath(name);
     }
 
     /**
@@ -197,7 +199,7 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
             //unless it is the last element and not a directory add separator
             name = name.concat(m_pathSeparator);
         }
-        return createPath(name);
+        return getFileSystem().getPath(name);
     }
 
     /**
@@ -215,13 +217,13 @@ public abstract class BlobStorePath<T extends BaseFileSystem> extends UnixStyleP
             normalized.add(m_pathSeparator);
         }
         if (normalized.isEmpty() && !m_isAbsolute) {
-            return createPath(".");
+            return getFileSystem().getPath(".");
         }
 
         //Ensure absolute paths stay absolute
         final String first = m_isAbsolute ? m_pathSeparator : "";
 
-        return createPath(first, normalized.toArray(new String[normalized.size()]));
+        return getFileSystem().getPath(first, normalized.toArray(new String[normalized.size()]));
     }
 
 }

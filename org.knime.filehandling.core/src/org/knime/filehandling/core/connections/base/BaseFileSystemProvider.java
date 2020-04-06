@@ -54,6 +54,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
@@ -65,6 +67,7 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -84,6 +87,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
@@ -91,21 +96,20 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
 /**
  * Base implementation of the {@link FileSystemProvider} class.
  *
- * @param <T> {@link BaseFileSystem} implementation of this provider
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends FileSystemProvider {
+public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFileSystem<P>> extends FSFileSystemProvider<P,F> {
 
     private static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different file system provider";
 
-    private T m_fileSystem;
+    private F m_fileSystem;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+    public synchronized F newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
 
         if (m_fileSystem != null) {
             throw new FileSystemAlreadyExistsException();
@@ -123,7 +127,7 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return the new file system
      * @throws IOException if I/O error occurs
      */
-    protected abstract T createFileSystem(URI uri, Map<String, ?> env) throws IOException;
+    protected abstract F createFileSystem(URI uri, Map<String, ?> env) throws IOException;
 
     /**
      *
@@ -135,24 +139,25 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return a file system for the URI
      * @throws IOException if I/O error occurs
      */
-    public synchronized FileSystem getOrCreateFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+    public synchronized F getOrCreateFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
         return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
-        if (exists(path) && options.contains(StandardOpenOption.CREATE_NEW)) {
+
+        final P checkedPath = checkCastAndAbsolutizePath(path);
+
+        if (existsCached(checkedPath) && options.contains(StandardOpenOption.CREATE_NEW)) {
             throw new FileAlreadyExistsException(path.toString());
         }
-        if (!exists(path) && options.contains(StandardOpenOption.READ)) {
+        if (!existsCached(checkedPath) && options.contains(StandardOpenOption.READ)) {
             throw new NoSuchFileException(path.toString());
         }
         if ((options.contains(StandardOpenOption.CREATE_NEW) || options.contains(StandardOpenOption.CREATE))
-            && !exists(path.toAbsolutePath().getParent())) {
+            && !existsCached((P) path.toAbsolutePath().getParent())) {
             throw new NoSuchFileException(path.toAbsolutePath().getParent().toString());
         }
         if ((options.contains(StandardOpenOption.READ) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
@@ -177,10 +182,9 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        checkPath(path);
         checkOpenOptionsForReading(options);
-
-        return new BaseInputStream(newInputStreamInternal(path, options), getFileSystemInternal());
+        final P checkedPath = checkCastAndAbsolutizePath(path);
+        return new BaseInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
     }
 
     /**
@@ -196,21 +200,24 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
-        checkPath(source);
-        checkPath(target);
-        if (exists(target) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+        final P checkedSource = checkCastAndAbsolutizePath(source);
+        final P checkedTarget = checkCastAndAbsolutizePath(target);
+
+        if (!existsCached(checkedSource)) {
+            throw new NoSuchFileException(source.toString());
+        }
+
+        if (existsCached(checkedTarget) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
             throw new FileAlreadyExistsException(target.toString());
         }
-        if (!exists(target.getParent())) {
+        if (!existsCached((P) checkedTarget.getParent())) {
             throw new NoSuchFileException(target.getParent().toString());
         }
 
-        moveInternal(source, target, options);
+        moveInternal(checkedSource, checkedTarget, options);
         getFileSystemInternal().removeFromAttributeCache(source);
     }
 
@@ -223,32 +230,34 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @param options options specifying how the move should be done
      * @throws IOException if I/O error occurs
      */
-    protected abstract void moveInternal(Path source, Path target, final CopyOption... options) throws IOException;
+    protected abstract void moveInternal(P source, P target, final CopyOption... options) throws IOException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
-        checkPath(source);
-        checkPath(target);
+        final P checkedSource = checkCastAndAbsolutizePath(source);
+        final P checkedTarget = checkCastAndAbsolutizePath(target);
 
-        if (!exists(source)) {
+        if (!existsCached(checkedSource)) {
             throw new NoSuchFileException(source.toString());
         }
 
         try {
-            if (isSameFile(source, target)) {
+            if (isSameFile(checkedSource, checkedTarget)) {
                 return;
             }
         } catch (NoSuchFileException e) {
             // target file might not exists
         }
 
-        if (exists(target) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+        if (!existsCached((P)checkedTarget.getParent())) {
+            throw new NoSuchFileException(checkedTarget.getParent().toString());
+        }
+
+        if (existsCached(checkedTarget) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
             throw new FileAlreadyExistsException(String.format("Target file %s already exists.", target.toString()));
         }
-        copyInternal(source, target, options);
+        copyInternal(checkedSource, checkedTarget, options);
     }
 
     /**
@@ -261,7 +270,7 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @param options options specifying how the copy should be done
      * @throws IOException if I/O error occurs
      */
-    protected abstract void copyInternal(final Path source, final Path target, final CopyOption... options)
+    protected abstract void copyInternal(final P source, final P target, final CopyOption... options)
         throws IOException;
 
     /**
@@ -272,14 +281,14 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return a new input stream
      * @throws IOException if I/O error occurs
      */
-    protected abstract InputStream newInputStreamInternal(Path path, OpenOption... options) throws IOException;
+    protected abstract InputStream newInputStreamInternal(P path, OpenOption... options) throws IOException;
 
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        checkPath(path);
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
+        final P checkedPath = checkCastAndAbsolutizePath(path);
 
-        return new BaseOutputStream(newOutputStreamInternal(path, validatedOpenOptions), getFileSystemInternal());
+        return new BaseOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
     }
 
     /**
@@ -315,19 +324,21 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return a new output stream
      * @throws IOException if an I/O error occurs
      */
-    protected abstract OutputStream newOutputStreamInternal(Path path, OpenOption... options) throws IOException;
+    protected abstract OutputStream newOutputStreamInternal(P path, OpenOption... options) throws IOException;
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("unchecked")
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
-        checkPath(dir);
-        if (!exists(dir)) {
-            throw new NoSuchFileException(dir.toString());
+
+        final P checkedDir = checkCastAndAbsolutizePath(dir);
+
+        // readAttributes() will also throw NoSuchFileException when file does not exist.
+        if (!readAttributes(checkedDir, BasicFileAttributes.class).isDirectory()) {
+            throw new NotDirectoryException(checkedDir.toString());
         }
-        return new BaseDirectoryStream(createPathIterator(dir, filter), getFileSystemInternal());
+
+        return new BaseDirectoryStream((Iterator<Path>)createPathIterator(checkedDir, filter), getFileSystemInternal());
     }
 
     /**
@@ -340,14 +351,14 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return a new {@code Iterator<Path>} object
      * @throws IOException if I/O error occurs
      */
-    protected abstract Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter)
+    protected abstract Iterator<P> createPathIterator(final P dir, final Filter<? super Path> filter)
         throws IOException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public synchronized FileSystem getFileSystem(final URI uri) {
+    public synchronized F getFileSystem(final URI uri) {
         return getFileSystemInternal();
     }
 
@@ -357,7 +368,7 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      *
      * @return the {@code FileSystem} created by this provider if it exists.
      */
-    protected final synchronized T getFileSystemInternal() {
+    protected final synchronized F getFileSystemInternal() {
         if (m_fileSystem == null) {
             throw new FileSystemNotFoundException();
         }
@@ -383,14 +394,34 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
         return m_fileSystem != null;
     }
 
+    @SuppressWarnings("unchecked")
+    protected P checkCastAndAbsolutizePath(final Path path) {
+        checkPath(path);
+        return (P) path.toAbsolutePath();
+    }
+
     /**
-     * Returns whether the given path exists.
+     * Tests whether the given path (after toAbsolute().normalize()) exists, by
+     * first checking for a cache entry, and then invoking {@link #exists(FSPath)}.
      *
-     * @param path the path to check
-     * @return whether the path exists
+     * @param path The path to check.
+     * @return whether the path exists or not.
      * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
      */
-    protected abstract boolean exists(final Path path) throws IOException;
+    final protected boolean existsCached(final P path) throws IOException {
+        final P normalizedAbsolute = (P) path.toAbsolutePath().normalize();
+        return getFileSystemInternal().hasCachedAttributes(normalizedAbsolute) || exists(normalizedAbsolute);
+    }
+
+    /**
+     * Tests whether the given absolute, normalized path exists in the backing file system. Implementations of this
+     * method must not perform a cache lookup (this is done in {@link #existsCached(FSPath)}.
+     *
+     * @param path An absolute and normalized path to check for existence.
+     * @return whether the path exists or not.
+     * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
+     */
+    protected abstract boolean exists(final P path) throws IOException;
 
     /**
      * {@inheritDoc}
@@ -416,24 +447,24 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
-        checkPath(path);
+        final P checkedPath = checkCastAndAbsolutizePath(path);
 
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
 
             BaseFileAttributes attributes;
-            final Optional<BaseFileAttributes> cachedAttributes = getFileSystemInternal().getCachedAttributes(path);
+            final Optional<BaseFileAttributes> cachedAttributes = getFileSystemInternal().getCachedAttributes(checkedPath);
 
             if (!cachedAttributes.isPresent()) {
-                if (!exists(path)) {
-                    throw new NoSuchFileException(String.format("No such file %s", path.toString()));
+                if (!existsCached(checkedPath)) {
+                    throw new NoSuchFileException(checkedPath.toString());
                 }
-                attributes = fetchAttributesInternal(path, type);
-                getFileSystemInternal().addToAttributeCache(path, attributes);
+                attributes = fetchAttributesInternal(checkedPath, type);
+                getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
             } else {
                 attributes = cachedAttributes.get();
                 if (type == PosixFileAttributes.class && !attributes.hasPosixAttributesSet()) {
                     attributes = attributes.generatePosixAttributes();
-                    getFileSystemInternal().addToAttributeCache(path, attributes);
+                    getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
                 }
             }
             return (A)attributes;
@@ -452,7 +483,7 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      * @return FSFileAttribute for this path
      * @throws IOException if an I/O error occurs while fetching the attributes.
      */
-    protected abstract BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type)
+    protected abstract BaseFileAttributes fetchAttributesInternal(final P path, final Class<?> type)
         throws IOException;
 
     /**
@@ -466,13 +497,35 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
             attributes);
     }
 
+
+    @SuppressWarnings("unchecked")
     @Override
-    public void delete(final Path path) throws IOException {
-        checkPath(path);
-        if (!exists(path)) {
+    public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
+        final P checkedPath = (P) checkCastAndAbsolutizePath(path).normalize();
+        if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
         }
-        deleteInternal(path);
+        checkAccessInternal(checkedPath, modes);
+    }
+
+    /**
+     * Optional method that implementations can implement to check the accessibility of a file. The given file can
+     * already be assumed to exist, so it is not necessary to do an additional existence check.
+     *
+     * @param path The file to check (path can be assumed to be absolute and normalized).
+     * @param modes The access modes to check (may have zero elements).
+     * @throws AccessDeniedException If the requested access would be denied or the access cannot be determined.
+     * @throws IOException If an I/O error occurs.
+     */
+    protected abstract void checkAccessInternal(final P path, final AccessMode... modes) throws IOException;
+
+    @Override
+    public void delete(final Path path) throws IOException {
+        final P checkedPath = checkCastAndAbsolutizePath(path);
+        if (!existsCached(checkedPath)) {
+            throw new NoSuchFileException(path.toString());
+        }
+        deleteInternal(checkedPath);
         getFileSystemInternal().removeFromAttributeCache(path);
     }
 
@@ -486,7 +539,7 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
      *             directory is not empty <i>(optional specific exception)</i>
      * @throws IOException if an I/O error occurs
      */
-    protected abstract void deleteInternal(Path path) throws IOException;
+    protected abstract void deleteInternal(P path) throws IOException;
 
     /**
      * Checks whether the given path belongs to this provider.
@@ -496,6 +549,55 @@ public abstract class BaseFileSystemProvider<T extends BaseFileSystem> extends F
     protected void checkPath(final Path path) {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException(PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
+        }
+    }
+
+    @Override
+    public boolean isSameFile(final Path path, final Path path2) throws IOException {
+        if (path.getFileSystem().provider() != this) {
+            return false;
+        }
+
+        if (path2.getFileSystem().provider() != this) {
+            return false;
+        }
+
+        final P checkedPath = checkCastAndAbsolutizePath(path);
+        final P checkedPath2 = checkCastAndAbsolutizePath(path2);
+
+        if (checkedPath == checkedPath2 || checkedPath.normalize().equals(checkedPath2.normalize())) {
+            return true;
+        }
+
+        return isSameFileInternal(checkedPath, checkedPath2);
+    }
+
+    /**
+     * Tests if two paths locate the same file. Assumes that the two paths are from this provider, but not equal (even
+     * when normalized). Subclasses may want to override the default implementation of this method which always returns
+     * false.
+     *
+     * @param path One path.
+     * @param path2 Another path.
+     * @return {@code true} if the two paths locate the same file, false otherwise.
+     * @throws IOException If an I/O error occurs.
+     * @see Files#isSameFile(Path, Path)
+     */
+    protected boolean isSameFileInternal(final P path, final P path2) throws IOException {
+        // Dummy implementation. Most file system won't have to do anything special here.
+        return false;
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public P getPath(final URI uri) {
+        final F fileSystem = getFileSystemInternal();
+
+        if (fileSystem.getSchemeString().equalsIgnoreCase(uri.getScheme())
+            && fileSystem.getHostString().equalsIgnoreCase(uri.getHost())) {
+            return fileSystem.getPath(uri.getPath());
+        } else {
+            throw new IllegalArgumentException(String.format("Cannot create path for URI: %s", uri.toString()));
         }
     }
 }

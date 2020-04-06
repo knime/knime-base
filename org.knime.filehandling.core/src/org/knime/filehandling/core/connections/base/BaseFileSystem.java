@@ -52,12 +52,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,19 +66,22 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.Validate;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.attributes.AttributesCache;
 import org.knime.filehandling.core.connections.base.attributes.BaseAttributesCache;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCache;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Base implementation of {@FileSystem}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-public abstract class BaseFileSystem extends FileSystem {
+public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
-    private final BaseFileSystemProvider<?> m_fileSystemProvider;
+    private final BaseFileSystemProvider<T, BaseFileSystem<T>> m_fileSystemProvider;
 
     private final URI m_uri;
 
@@ -103,14 +104,22 @@ public abstract class BaseFileSystem extends FileSystem {
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      */
-    public BaseFileSystem(final BaseFileSystemProvider<?> fileSystemProvider, final URI uri, final String name,
-        final String type, final long cacheTTL) {
+    public BaseFileSystem(final  BaseFileSystemProvider<T, ?> fileSystemProvider,
+        final URI uri,
+        final String name,
+        final String type,
+        final long cacheTTL,
+        final Choice fsChoice,
+        final Optional<String> fsSpecifier) {
+
+        super(fsChoice, fsSpecifier);
+
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
         Validate.notNull(uri, "URI must not be null.");
         Validate.notNull(name, "Name must not be null.");
         Validate.notNull(type, "Type must not be null.");
 
-        m_fileSystemProvider = fileSystemProvider;
+        m_fileSystemProvider = (BaseFileSystemProvider<T, BaseFileSystem<T>>)fileSystemProvider;
         m_uri = uri;
         m_name = name;
         m_type = type;
@@ -125,9 +134,18 @@ public abstract class BaseFileSystem extends FileSystem {
      * {@inheritDoc}
      */
     @Override
-    public FileSystemProvider provider() {
+    public BaseFileSystemProvider<T, BaseFileSystem<T>> provider() {
         return m_fileSystemProvider;
     }
+
+    /**
+     * This method returns the "working directory" of this file system, which is used to resolve relative paths to
+     * absolute ones.
+     *
+     * @return the working directory of this file system.
+     */
+    public abstract T getWorkingDirectory();
+
 
     /**
      * {@inheritDoc}

@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.connections.base;
 
-import static java.lang.String.format;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -69,15 +67,15 @@ import java.util.List;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.filechooser.NioFile;
 
 /**
  * Base implementation for unix style paths.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
- * @param <T> The file system to the path
  */
-public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
+public abstract class UnixStylePath implements FSPath {
 
     /** Constant for the to parent string */
     protected static final String TO_PARENT = "..";
@@ -89,7 +87,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
     protected final ArrayList<String> m_pathParts;
 
     /** The file system the path belongs to */
-    protected final T m_fileSystem;
+    protected final BaseFileSystem<? extends UnixStylePath> m_fileSystem;
 
     /** Whether the path is absolute */
     protected final boolean m_isAbsolute;
@@ -100,10 +98,11 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      * @param fileSystem the file system
      * @param pathString path String
      */
-    public UnixStylePath(final T fileSystem, final String pathString) {
+    @SuppressWarnings("unchecked")
+    public UnixStylePath(final BaseFileSystem<?> fileSystem, final String pathString) {
         CheckUtils.checkNotNull(fileSystem, "FileSystem must not be null.");
         CheckUtils.checkNotNull(pathString, "Path string must not be null.");
-        m_fileSystem = fileSystem;
+        m_fileSystem = (BaseFileSystem<? extends UnixStylePath>)fileSystem;
         m_pathSeparator = m_fileSystem.getSeparator();
         m_isAbsolute = pathString.startsWith(m_pathSeparator);
         m_pathParts = getPathSplits(pathString);
@@ -116,7 +115,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      * @param first first part of the path
      * @param more subsequent parts of the path
      */
-    public UnixStylePath(final T fileSystem, final String first, final String... more) {
+    public UnixStylePath(final BaseFileSystem<?> fileSystem, final String first, final String... more) {
         this(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
     }
 
@@ -158,20 +157,8 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         return splitList;
     }
 
-    /**
-     * This method is used to create paths in the other methods.
-     *
-     * @param pathString the path String to build the Path from
-     * @param more subsequent parts of the path
-     * @return the path
-     */
-    public abstract Path createPath(final String pathString, final String... more);
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public T getFileSystem() {
+    public BaseFileSystem<? extends UnixStylePath> getFileSystem() {
         return m_fileSystem;
     }
 
@@ -188,7 +175,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      */
     @Override
     public Path getRoot() {
-        return m_isAbsolute ? createPath(m_pathSeparator) : null;
+        return m_isAbsolute ? getFileSystem().getPath(m_pathSeparator) : null;
     }
 
     /**
@@ -199,7 +186,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         if (m_pathParts.isEmpty()) {
             return null;
         }
-        return createPath(m_pathParts.get(m_pathParts.size() - 1));
+        return getFileSystem().getPath(m_pathParts.get(m_pathParts.size() - 1));
     }
 
     /**
@@ -220,7 +207,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             sb.append(m_pathSeparator);
         }
 
-        return createPath(sb.toString());
+        return getFileSystem().getPath(sb.toString());
     }
 
     /**
@@ -240,7 +227,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             throw new IllegalArgumentException();
         }
 
-        return createPath(m_pathParts.get(index));
+        return getFileSystem().getPath(m_pathParts.get(index));
     }
 
     /**
@@ -255,7 +242,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         }
         final String pathString = String.join(m_pathSeparator, m_pathParts.subList(beginIndex, endIndex));
 
-        return createPath(pathString);
+        return getFileSystem().getPath(pathString);
     }
 
     /**
@@ -275,8 +262,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        final UnixStylePath<T> otherUnix = (UnixStylePath<T>)other;
+        final UnixStylePath otherUnix = (UnixStylePath)other;
         boolean startsWith = true;
         for (int i = 0; i < other.getNameCount(); i++) {
             if (!m_pathParts.get(i).equals(otherUnix.m_pathParts.get(i))) {
@@ -293,7 +279,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      */
     @Override
     public boolean startsWith(final String other) {
-        return startsWith(createPath(other));
+        return startsWith(getFileSystem().getPath(other));
     }
 
     /**
@@ -314,8 +300,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        final UnixStylePath<T> unixPath = (UnixStylePath<T>)other;
+        final UnixStylePath unixPath = (UnixStylePath)other;
 
         int otherIndex = other.getNameCount();
         int index = getNameCount();
@@ -339,7 +324,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      */
     @Override
     public boolean endsWith(final String other) {
-        return endsWith(createPath(other));
+        return endsWith(getFileSystem().getPath(other));
     }
 
     /**
@@ -356,7 +341,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         //Ensure absolute paths stay absolute
         final String first = m_isAbsolute ? m_pathSeparator : "";
 
-        return createPath(first, normalized.toArray(new String[normalized.size()]));
+        return getFileSystem().getPath(first, normalized.toArray(new String[normalized.size()]));
     }
 
     /**
@@ -403,7 +388,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             return this;
         }
 
-        return createPath(toString(), other.toString());
+        return getFileSystem().getPath(toString(), other.toString());
     }
 
     /**
@@ -411,7 +396,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      */
     @Override
     public Path resolve(final String other) {
-        return resolve(createPath(other));
+        return resolve(getFileSystem().getPath(other));
     }
 
     /**
@@ -440,7 +425,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
      */
     @Override
     public Path resolveSibling(final String other) {
-        return resolveSibling(createPath(other));
+        return resolveSibling(getFileSystem().getPath(other));
     }
 
     /**
@@ -453,7 +438,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         }
 
         if (this.equals(other)) {
-            return createPath("");
+            return getFileSystem().getPath("");
         }
 
         if (this.isAbsolute() != other.isAbsolute()) {
@@ -464,11 +449,10 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             throw new IllegalArgumentException("Unknown path implementation, only unix style path can be relativize.");
         }
 
-        @SuppressWarnings("unchecked")
-        UnixStylePath<T> unixOther = (UnixStylePath<T>)other;
+        UnixStylePath unixOther = (UnixStylePath) other;
 
         if (m_pathParts.isEmpty() || (m_pathParts.size() == 1 && m_pathParts.get(0).isEmpty())) {
-            return createPath(String.join(unixOther.m_pathSeparator, unixOther.m_pathParts));
+            return getFileSystem().getPath(String.join(unixOther.m_pathSeparator, unixOther.m_pathParts));
         }
 
         if (unixOther.startsWith(this)) {
@@ -477,7 +461,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         if (this.startsWith(unixOther)) {
             final String[] toParentArray = new String[getNameCount() - unixOther.getNameCount() - 1];
             Arrays.fill(toParentArray, TO_PARENT);
-            return createPath(TO_PARENT, toParentArray);
+            return getFileSystem().getPath(TO_PARENT, toParentArray);
         }
 
         int equalPathPartsCount = 0;
@@ -486,7 +470,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             equalPathPartsCount++;
         }
 
-        unixOther = (UnixStylePath<T>)unixOther.subpath(equalPathPartsCount, unixOther.getNameCount());
+        unixOther = (UnixStylePath)unixOther.subpath(equalPathPartsCount, unixOther.getNameCount());
 
         int r = 0;
         while (unixOther.m_pathParts.get(r).equals(TO_PARENT)) {
@@ -501,7 +485,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         }
 
         sb.append(unixOther.subpath(r, unixOther.getNameCount()));
-        return createPath(sb.toString());
+        return getFileSystem().getPath(sb.toString());
     }
 
     /**
@@ -518,15 +502,12 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path toAbsolutePath() {
         if (m_isAbsolute) {
             return this;
         } else {
-            throw new IllegalStateException(format("Relative Path %s cannot be made absolute", toString()));
+            return getFileSystem().getWorkingDirectory().resolve(this);
         }
     }
 
@@ -608,8 +589,7 @@ public abstract class UnixStylePath<T extends BaseFileSystem> implements Path {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        final UnixStylePath<T> path = (UnixStylePath<T>)other;
+        final UnixStylePath path = (UnixStylePath)other;
 
         if (path.getFileSystem() != getFileSystem()) {
             return false;
