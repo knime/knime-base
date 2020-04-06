@@ -51,18 +51,24 @@ package org.knime.filehandling.core.connections.knimeremote;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystem extends BaseFileSystem {
+public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
+
+    private static final String PATH_SEPARATOR = "/";
 
     private final URI m_mountpoint;
+
+    private final KNIMERemotePath m_workingDirectory;
 
     /**
      *
@@ -70,17 +76,26 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
      * @param provider
      * @param baseLocation
      */
-    public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation) {
-        super(provider, baseLocation, "KNIME Remote FileStore", "KNIME Remote FileStore", 0);
+    public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation, final boolean isConnectedFs) {
+        super(provider, //
+            baseLocation, //
+            "KNIME Remote FileStore", //
+            "KNIME Remote FileStore", 0,//
+            isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_MOUNTPOINT,//
+            Optional.of(baseLocation.getHost()));
+
         m_mountpoint = baseLocation;
+        m_workingDirectory = getPath(PATH_SEPARATOR);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getSeparator() {
-        return UnixStylePathUtil.SEPARATOR;
+        return PATH_SEPARATOR;
+    }
+
+    @Override
+    public KNIMERemotePath getWorkingDirectory() {
+        return m_workingDirectory;
     }
 
     /**
@@ -96,7 +111,7 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
      * {@inheritDoc}
      */
     @Override
-    public Path getPath(final String first, final String... more) {
+    public KNIMERemotePath getPath(final String first, final String... more) {
         return new KNIMERemotePath(this, first, more);
     }
 
@@ -114,7 +129,7 @@ public class KNIMERemoteFileSystem extends BaseFileSystem {
      *
      * @return the default directory of this file system
      */
-    public Path getDefaultDirectory() {
+    public KNIMERemotePath getDefaultDirectory() {
         return new KNIMERemotePath(this,
             MountPointFileSystemAccessService.instance().getDefaultDirectory(m_mountpoint));
     }

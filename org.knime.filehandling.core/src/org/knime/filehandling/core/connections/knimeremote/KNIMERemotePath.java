@@ -70,6 +70,8 @@ import java.util.Iterator;
 
 import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.GenericPathUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.filechooser.NioFile;
@@ -80,7 +82,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemotePath implements Path {
+public class KNIMERemotePath implements FSPath {
 
     /**
      * The file system of this path.
@@ -133,12 +135,10 @@ public class KNIMERemotePath implements Path {
         m_pathComponents = UnixStylePathUtil.toPathComponentsArray(m_path);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    public FileSystem getFileSystem() {
-        return m_fileSystem;
+    public FSFileSystem<KNIMERemotePath> getFileSystem() {
+        return (FSFileSystem<KNIMERemotePath>)m_fileSystem;
     }
 
     /**

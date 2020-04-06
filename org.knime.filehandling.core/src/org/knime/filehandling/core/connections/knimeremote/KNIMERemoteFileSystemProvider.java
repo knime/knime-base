@@ -83,35 +83,21 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemoteFileSystem>
+public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemotePath, KNIMERemoteFileSystem>
     implements WorkflowAware {
 
     private static final String SCHEME = "knime";
 
     @Override
     public KNIMERemoteFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new KNIMERemoteFileSystem(this, uri);
+        return new KNIMERemoteFileSystem(this, uri, true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getScheme() {
         return SCHEME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Path getPath(final URI uri) {
-        return getFileSystemInternal().getPath(uri.getPath());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
@@ -122,66 +108,37 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
         return FileUtil.getDefaultURLTimeoutMillis();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
         MountPointFileSystemAccessService.instance().createDirectory(dir.toUri());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void copyInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void copyInternal(final KNIMERemotePath source, final KNIMERemotePath target, final CopyOption... options) throws IOException {
         MountPointFileSystemAccessService.instance().copyFile(source.toUri(), target.toUri());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void moveInternal(final Path source, final Path target, final CopyOption... options) throws IOException {
+    protected void moveInternal(final KNIMERemotePath source, final KNIMERemotePath target, final CopyOption... options) throws IOException {
         MountPointFileSystemAccessService.instance().moveFile(source.toUri(), target.toUri());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        return path.equals(path2);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isHidden(final Path path) throws IOException {
         checkPath(path);
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
         return path.getFileSystem().getFileStores().iterator().next();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
+    protected void checkAccessInternal(final KNIMERemotePath path, final AccessMode... modes) throws IOException {
+        // there is nothing we can do here
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
         throws IOException {
@@ -193,12 +150,8 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
         return ((KNIMERemotePath)path).toURL();
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean exists(final Path path) {
+    protected boolean exists(final KNIMERemotePath path) {
         try {
             MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
             return true;
@@ -208,11 +161,10 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     }
 
     @Override
-    protected InputStream newInputStreamInternal(final Path path, final OpenOption... options) throws IOException {
+    protected InputStream newInputStreamInternal(final KNIMERemotePath path, final OpenOption... options) throws IOException {
 
-        final KNIMERemotePath uriPath = (KNIMERemotePath)path;
         try {
-            return uriPath.openURLConnection(getTimeout()).getInputStream();
+            return path.openURLConnection(getTimeout()).getInputStream();
         } catch (IOException e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             if (rootCause instanceof FileNotFoundException) {
@@ -233,21 +185,15 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
                 );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected OutputStream newOutputStreamInternal(final Path path, final OpenOption... options) throws IOException {
-        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
+    protected OutputStream newOutputStreamInternal(final KNIMERemotePath path, final OpenOption... options) throws IOException {
+        final KNIMERemotePath knimePath = path;
         final URL knimeURL = toURL(knimePath);
         return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected Iterator<Path> createPathIterator(final Path dir, final Filter<? super Path> filter)
+    protected Iterator<KNIMERemotePath> createPathIterator(final KNIMERemotePath dir, final Filter<? super Path> filter)
             throws IOException {
         try {
             return new KNIMERemotePathIterator(dir, filter);
@@ -263,19 +209,13 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected BaseFileAttributes fetchAttributesInternal(final Path path, final Class<?> type) throws IOException {
+    protected BaseFileAttributes fetchAttributesInternal(final KNIMERemotePath path, final Class<?> type) throws IOException {
         return MountPointFileSystemAccessService.instance().getFileAttributes(path.toUri());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void deleteInternal(final Path path) throws IOException {
+    protected void deleteInternal(final KNIMERemotePath path) throws IOException {
         MountPointFileSystemAccessService.instance().deleteFile(path.toUri());
     }
 
@@ -284,5 +224,4 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
         throws IOException {
         MountPointFileSystemAccessService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
     }
-
 }

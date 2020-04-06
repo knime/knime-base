@@ -44,69 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Apr 6, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
 
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
- * Iterates over all the files and folders of the path on a remote KNIME mount point.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-public class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
+public class KNIMERemoteFSConnection implements FSConnection {
 
     private final KNIMERemoteFileSystem m_fileSystem;
 
-    private Iterator<KNIMERemotePath> m_iterator;
+    private final KNIMERemoteFileSystemBrowser m_browser;
 
-    /**
-     * Creates an iterator over all the files and folder in the given paths location.
-     *
-     * @param path destination to iterate over
-     * @param filter
-     * @throws IOException
-     * @throws UncheckedIOException on I/O errors
-     */
-    public KNIMERemotePathIterator(final Path path, final Filter<? super Path> filter) throws IOException {
-        final KNIMERemotePath knimePath = (KNIMERemotePath)path;
-        m_fileSystem = (KNIMERemoteFileSystem)knimePath.getFileSystem();
+    public KNIMERemoteFSConnection(final KNIMEConnection connection) {
+        final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
+        try {
+            m_fileSystem = new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(remoteFsKey, null);
 
-        final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toUri());
-        m_iterator = uriList.stream()
-            .map(p -> new KNIMERemotePath(m_fileSystem, p))
-            .filter(p -> {
-                try {
-                    return filter.accept(p);
-                } catch (final IOException ex) {
-                    throw new UncheckedIOException(ex);
-                }})
-            .iterator();
+            final boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(remoteFsKey);
+            if (isReadable) {
+                final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(m_fileSystem);
+                m_browser = new KNIMERemoteFileSystemBrowser(fsView);
+            } else {
+                m_browser = null;
+            }
+        } catch (IOException ex) {
+            // should never happen
+            throw new UncheckedIOException(ex);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public KNIMERemotePath next() {
-        return m_iterator.next();
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_browser;
     }
-
 }
