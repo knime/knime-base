@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./icon.png" type="Source" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Test File System Connection</name>
+    
+    <shortDescription>
+        Opens a file system connection to a configurable backend file system.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        This node allows to execute the same testflow for a variety of different file systems.
+        This node initiates a connection to a file system. The type of file system as well
+        as its configuration is defined by the fs-test.properties file. This file can be supplied
+        in two ways:
+        <ul>
+	        <li>By putting it into the root of your KNIME workspace</li>
+	        <li>By setting an environment variable called "KNIME_FS_TEST_PROPERTIES", which specifies the file.</li>
+        </ul>
+        </intro>
+    </fullDescription>
+    <ports>
+        <outPort index="0" name="File System Connection">A file system connection which is supposed to be tested.</outPort>
+    </ports>    
+</knimeNode>

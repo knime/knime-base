@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.knime.features.filehandling.core.testing"
-      label="KNIME File Handling Testing"
+      label="KNIME File Handling Testing Framework"
       version="4.2.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
 
    <description>
-      This feature is used for testing the core file handling extension
+      This feature is used for testing the file handling extensions.
    </description>
 
    <copyright>
@@ -727,9 +727,9 @@
  propagated with or for interoperation with KNIME.
    </license>
 
-   <includes
-         id="org.knime.features.filehandling.core"
-         version="0.0.0"/>
+   <requires>
+      <import feature="org.knime.features.filehandling.core" version="0.0.0.qualifier"/>
+   </requires>
 
    <plugin
          id="org.knime.filehandling.core.testing"

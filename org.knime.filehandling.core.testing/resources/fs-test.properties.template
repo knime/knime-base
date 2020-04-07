@@ -8,7 +8,7 @@
 # DO NOT push any user names or secrets to our source control!!!
 #
 # Best practice is to copy this file to any location on your disc 
-# and make a environment variable named 'KNIME_FS_TEST_CONFIGURATION'
+# and make an environment variable named 'KNIME_FS_TEST_PROPERTIES'
 # point to it. This file can be populated with your credentials for
 # testing.
 #
@@ -16,9 +16,12 @@
 # implemented or an existing one has been modified. Then the file 
 # system specific properties should be listed and checked in to 
 # source control with dummy values.
- 
+
+# To test only one specific file system uncomment and adapt this line
+# test-fs = local
 
 local.root = <name-of-the-folder-created-in-temp-directory>
+
 relativeToMountpoint.root = <name-of-the-folder-created-in-temp-directory>
 relativeToWorkflow.root = <name-of-the-folder-created-in-temp-directory>
 

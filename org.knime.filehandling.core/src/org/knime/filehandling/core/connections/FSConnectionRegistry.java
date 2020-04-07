@@ -1,9 +1,11 @@
 package org.knime.filehandling.core.connections;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 
@@ -80,6 +82,24 @@ public class FSConnectionRegistry {
 		return m_connections.remove(key);
 	}
 
+    /**
+     * Deregister connection from the registry.
+     *
+     * @param fsConnection the connection to be deregistered
+     */
+    synchronized void deregister(final FSConnection fsConnection) {
+        keysFor(fsConnection).forEach(key -> m_connections.remove(key));
+    }
+
+    private List<String> keysFor(final FSConnection fsConnection) {
+        return m_connections
+                .entrySet()
+                .stream()
+                .filter(entry -> fsConnection.equals(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
 	/**
 	 * Checks if the provided key has a connection in the registry.
 	 *
@@ -89,5 +109,6 @@ public class FSConnectionRegistry {
 	public synchronized boolean contains(final String key) {
 		return m_connections.containsKey(key);
 	}
+
 
 }

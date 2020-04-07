@@ -25,4 +25,12 @@
             ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSTestInitializerProvider">
       </FSTestInitializerProvider>
    </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            deprecated="false"
+            category-path="/testing"
+            factory-class="org.knime.filehandling.core.testing.node.FSTestEnvironmentNodeFactory">
+      </node>
+   </extension>
 </fragment>
