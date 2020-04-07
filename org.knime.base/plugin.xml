@@ -2254,6 +2254,10 @@
             hidden="true"
             factory-class="org.knime.base.node.preproc.colconvert.ColConvertNodeFactory">
       </node>
+      <node
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"

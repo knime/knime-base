@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="csvreader.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>CSV Reader Prototype</name>
+	<shortDescription>
+		Reads CSV files (Prototype).
+	</shortDescription>
+	<fullDescription>
+		<intro>
+		<p>
+		  Reads CSV files. Use this node if the workflow is used in a server
+		  or batch environment and the input files structure change between
+		  different invocations. In particular, this includes a variable number
+		  of input columns. Upon executing the node will scan the input file
+		  to determine number and types of the columns and output a table with
+		  the auto-guessed structure.  
+        </p>
+        <p>
+          <b>Note:</b> If you are only using the desktop version of KNIME and
+          your workflow is not meant to be used in a batch or server environment
+          use the <b>File Reader</b> node. The file reader node has more
+          configuration options and guesses meaningful default settings as it
+          scans the input file during node configuration (in the dialog).
+        </p>
+		</intro>
+		<tab name="Options">
+			<option name="File or Files in folder">
+				Select whether you want to read a file or multiple files in a folder.
+				When reading files in a folder, you can set filters to specify which
+				files to include (see below).
+			</option>
+			<option name="Read from...">
+				Select a file system which stores the data you want to read. There are
+				three default file system options to choose from:
+				<br />
+				<ul>
+	                <li><i>Local File System:</i> Allows you to select a file/folder from your
+	                    local system.
+	                </li>
+	                <li><i>Mountpoint:</i> Allows you to choose a mountpoint. When
+	                    selected, a new drop-down menu appears to choose the
+	                    mountpoint.
+	                </li>
+	                <li><i>Custom URL:</i> Allows to specify a URL (e.g. file://, http://
+	                    or knime:// protocol). Browsing is disabled for this option.
+	                </li>
+				</ul>
+				To read from other file systems, click on
+	            <b>...</b> in the bottom left corner of the node icon followed by
+	            <i>Add File System Connection port</i>. Afterwards, connect the desired file system connection
+	            node to the newly added input port. The file system connection will then be shown in the drop
+	            down menu.
+			</option>
+			<option name="File, Folder or URL">
+				Enter a URL when reading from <i>Custom URL</i>, otherwise enter a path to a file or folder. The
+				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	            description of the respective connector node describes the required path format.
+				You can also choose a previously selected file/folder from the drop-down list, or select a destination 
+				from	the &quot;Browse...&quot; dialog (browsing is not available for the Custom URL file system).
+			</option>	
+			
+			<option name="Spec merge options">
+			This option is used when reading multiple CSV files via the Files in folder option. It allows you to control
+			how differing table structures are handled.
+				<ul>
+	                <li><i>Fail if specs differ:</i> The execution of the nodes will fail, if all tables do not have 
+	                the same column count and each datatype. 
+	                </li>
+	                <li><i>Intersection:</i> The intersection of the columns among the files will be used. Columns that 
+	                do not exist in all files will be left out
+	                </li>
+	                <li><i>Union:</i> The union of the columns in the files will be used. 
+	                </li>
+	        	</ul>
+			</option>	
+			
+			
+			<option name="Column delimiter">
+			  The character string delimiting columns. Use '\t' for tab character. 
+			</option>
+			<option name="Row delimiter">
+	          The character string delimiting rows. Use '\n' for new line character.  
+			</option>
+			<option name="Quote char">
+	          The quote character.  
+			</option>			
+			<option name="Quote escape char">
+	          The character is used for escaping quotes inside an already quoted value.
+			</option>
+			<option name="Comment char">
+	          A character indicating line comments.
+			</option>
+			<option name="Has column header">
+	          Select this box if the first row contains column name headers.  
+			</option>
+			<option name="Has row header">
+	          Select this box if the first column contains row name headers 
+	          (no duplicates allowed).  
+			</option>
+			<option name="Support short lines">
+	          Select this box if some rows may be shorter than others (filled with missings).  
+			</option>
+			<option name="Skip empty lines">
+	          Select this box if rows without any content should not be in the output.  
+			</option>
+		</tab>
+	    <tab name="Limit Rows">
+			<option name="Skip first lines">
+	          If enabled, the specified number of lines are skipped in the input file before the parsing starts. 
+	          Use this option to skip lines that do not fit in the table structure (e.g. mult-line comments) 
+			</option>
+			<option name="Skip first data rows">
+	          If enabled, the specified number of valid data rows are skipped. This has no effect on which row will be 
+	          chosen as a column header.
+			</option>
+			<option name="Limit data rows">
+	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
+	          not taken into account.    
+			</option>
+			<option name="Limit data rows scanned for spec.">
+	          If enabled, only the specified number of input <i>lines</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> lines are 
+	          representative for the whole file. Scanning will start right after skipping lines. Skip first data rows 
+	          option has no effect on the scanning.
+			</option>
+        </tab>
+        <tab name="CSV Reader Encoding">
+	        <option name="Encoding">
+	            To read a csv file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
+	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
+	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
+	        </option>
+        </tab>	
+	</fullDescription>
+	<ports>
+			<dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+		<outPort index="0" name="File Table">
+		  File being read with number and types of columns guessed automatically.
+		</outPort>
+		
+	</ports>
+</knimeNode>   
+        
+        
+        
+        

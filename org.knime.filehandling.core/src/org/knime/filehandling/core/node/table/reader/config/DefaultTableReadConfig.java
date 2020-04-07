@@ -172,7 +172,7 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getInt(CFG_ROW_ID_IDX);
         settings.getLong(CFG_COLUMN_HEADER_IDX);
-        settings.getBooleanArray(CFG_COLUMN_FILTER);
+//        settings.getBooleanArray(CFG_COLUMN_FILTER);
         m_readerSpecificConfig.validate(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
         settings.getBoolean(CFG_USE_ROW_ID_IDX);
         settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
