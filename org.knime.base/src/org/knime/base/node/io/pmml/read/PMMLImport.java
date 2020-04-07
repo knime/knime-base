@@ -152,7 +152,14 @@ public class PMMLImport {
         } catch (ParserConfigurationException | SAXException e) {
             LOGGER.error("Unable to create SAX parser, will use default: " + e.getMessage(), e);
         }
-        xmlDoc = XmlObject.Factory.parse(inStream, o);
+        Thread current = Thread.currentThread();
+        ClassLoader oldLoader = current.getContextClassLoader();
+        try {
+            current.setContextClassLoader(PMMLDocument.class.getClassLoader());
+            xmlDoc = XmlObject.Factory.parse(inStream, o);
+        } finally {
+            current.setContextClassLoader(oldLoader);
+        }
         if (xmlDoc instanceof PMMLDocument) {
             pmmlDoc = (PMMLDocument)xmlDoc;
         } else {
