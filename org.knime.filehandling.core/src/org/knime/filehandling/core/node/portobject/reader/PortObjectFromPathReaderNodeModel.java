@@ -56,6 +56,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -82,7 +83,9 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
         // This is, e.g., the case when a file has been dropped into AP and the node has automatically been created.
         final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
-            getConfig().getFileChooserModel().setPathOrURL(urlConfig.get().getUrl().getPath().toString());
+            // we get an URL so the file system need sto be custom url
+            getConfig().getFileChooserModel().setFileSystem(FileSystemChoice.getCustomFsUrlChoice().getId());
+            getConfig().getFileChooserModel().setPathOrURL(urlConfig.get().getUrl().toString());
         }
     }
 
