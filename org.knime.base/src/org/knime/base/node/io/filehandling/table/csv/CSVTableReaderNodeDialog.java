@@ -400,7 +400,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         tableReadConfig.setAllowShortRows(m_allowShortLinesChecker.isSelected());
         tableReadConfig.setSkipEmptyRows(m_skipEmptyLinesChecker.isSelected());
-    }
+            }
 
     /**
      * Fill in the setting values in {@link CSVTableReaderConfig} using values from dialog.
@@ -413,10 +413,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setQuoteEscape(m_quoteEscapeField.getText());
         csvReaderConfig.setComment(m_commentStartField.getText());
 
-        csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue(),
-            m_skipFirstLinesChecker.isSelected());
-        csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue(),
-            m_skipFirstLinesChecker.isSelected());
+        csvReaderConfig.setSkipLines( m_skipFirstLinesChecker.isSelected());
+        csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue());
+
         csvReaderConfig.setSkipEmptyLines(m_skipEmptyLinesChecker.isSelected());
     }
 

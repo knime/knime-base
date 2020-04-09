@@ -256,21 +256,21 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     }
 
     /**
-     * Configures the number of lines that should be skipped in univocity's {@link CsvParserSettings}. If the option is
-     * not active, the number will be saved but not injected in {@link CsvParserSettings}.
+     * Sets the flag on whether or not a certain number of lines are skipped at the beginning.
+     *
+     * @param selected flag indicating whether or not line skipping is enforced
+     */
+    public void setSkipLines(final boolean selected) {
+        m_skipLines = selected;
+    }
+
+    /**
+     * Configures the number of lines that should be skipped. Used only when m_skipLines is set to <code>truw</code>.
      *
      * @param numLinesToSkip the number of lines that will be skipped
-     * @param selected flag indicating whether or not skipping is enforced
      */
-    public void setNumLinesToSkip(final long numLinesToSkip, final boolean selected) {
+    public void setNumLinesToSkip(final long numLinesToSkip) {
         m_numLinesToSkip = numLinesToSkip;
-        m_skipLines = selected;
-
-        if (selected) {
-            getSettings().setNumberOfRowsToSkip(numLinesToSkip);
-        } else {
-            getSettings().setNumberOfRowsToSkip(0L);
-        }
     }
 
     @Override
@@ -281,9 +281,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setQuoteEscape(settings.getString(CFG_QOUTE_ESCAPE_CHAR, "\""));
         setComment(settings.getString(CFG_COMMENT_CHAR, "\0"));
 
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L), settings.getBoolean(CFG_SKIP_LINES, false));
+        setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
+        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L));
 
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L), settings.getBoolean(CFG_SKIP_LINES, false));
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, false));
     }
 
@@ -296,7 +296,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setQuoteEscape(settings.getString(CFG_QOUTE_ESCAPE_CHAR));
         setComment(settings.getString(CFG_COMMENT_CHAR));
 
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP), settings.getBoolean(CFG_SKIP_LINES));
+        setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
+        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
+
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES));
     }
 
@@ -338,7 +340,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         configCopy.setQuoteEscape(this.getQuoteEscape());
         configCopy.setComment(this.getComment());
 
-        configCopy.setNumLinesToSkip(this.getNumLinesToSkip(), this.skipLines());
+        configCopy.setSkipLines(this.skipLines());
+        configCopy.setNumLinesToSkip(this.getNumLinesToSkip());
+
         configCopy.setSkipEmptyLines(this.skipEmptyLines());
 
         return configCopy;

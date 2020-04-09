@@ -70,7 +70,6 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 
 import com.google.common.io.CountingInputStream;
 import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
 
 /**
  * Prototype of a {@link TableReader} that reads CSV files.
@@ -94,7 +93,7 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
     private static final TableSpecGuesser<Class<?>, String> SPEC_GUESSER =
         new TableSpecGuesser<>(TYPE_HIERARCHY, Function.identity());
 
-   private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
+    private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
         return TypeTester.createTypeTester(type, consumerToPredicate(tester));
     }
 
@@ -141,7 +140,7 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
     @SuppressWarnings("resource")
     private static Read<String> createDecoratedRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
         final boolean isForSpec) throws IOException {
-        Read<String> read = new CsvRead(path, config.getReaderSpecificConfig().getSettings());
+        Read<String> read = new CsvRead(path, config.getReaderSpecificConfig());
         final long numRowsToSkip = config.skipRows() ? config.getNumRowsToSkip() : 0;
         final long numRowsToKeep = config.limitRows() ? config.getMaxRows() : Long.MAX_VALUE;
         if (!isForSpec) {
@@ -155,7 +154,7 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
     }
 
     /**
-     * A class implementing {@link Read} specific to CSV table reader, based on univocity's {@link CsvParser}.
+     * Implements {@link Read} specific to CSV table reader, based on univocity's {@link CsvParser}.
      *
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
@@ -174,14 +173,16 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
          * Constructor
          *
          * @param path the path of the file to read
-         * @param settings a {@link CsvParserSettings} from univocity
+         * @param csvReaderConfig the CSV reader configuration.
          * @throws IOException if a stream can not be created from the provided file.
          */
-        CsvRead(final Path path, final CsvParserSettings settings) throws IOException {
+        CsvRead(final Path path, final CSVTableReaderConfig csvReaderConfig) throws IOException {
             m_size = Files.size(path);
             m_countingStream = new CountingInputStream(Files.newInputStream(path));
-
-            m_parser = new CsvParser(settings);
+            if (csvReaderConfig.skipLines()) {
+                skipLines(csvReaderConfig.getNumLinesToSkip());
+            }
+            m_parser = new CsvParser(csvReaderConfig.getSettings());
             m_parser.beginParsing(m_countingStream);
         }
 
@@ -204,6 +205,26 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
         @Override
         public long readBytes() {
             return m_countingStream.getCount();
+        }
+
+        /**
+         * Skips n lines from m_countingStream. The method supports different newline schemes (\n \r \r\n)
+         *
+         * @param n the number of lines to skip
+         * @throws IOException if reading from the stream fails
+         */
+        private void skipLines(final long n) throws IOException {
+            long lineCount = 0;
+            int currByte = 0, prevByte = 0;
+            // ASCII value of  \n = 10,  \r = 13
+            while (lineCount < n && currByte != -1) {
+                currByte = m_countingStream.read();
+                if ((currByte == 10 && prevByte != 13) || (currByte == 13 && prevByte != 10)) {
+                    lineCount++;
+                }
+                prevByte = currByte;
+            }
+
         }
     }
 
