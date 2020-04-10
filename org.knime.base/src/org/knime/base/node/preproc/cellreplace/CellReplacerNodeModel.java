@@ -55,6 +55,7 @@ import java.util.Map;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.lang.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -86,6 +87,7 @@ import org.knime.core.node.streamable.PortObjectInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.StreamableFunction;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * This is the model implementation of CellReplacer. Replaces cells in a column
@@ -237,42 +239,41 @@ public class CellReplacerNodeModel extends NodeModel {
 
         final int dictOutputColIndex =
                 dictSpec.findColumnIndex(m_dictOutputColModel.getStringValue());
-        final DataType dictOutputColType;
+        final DataColumnSpec dictColSpec;
         if (m_dictOutputColModel.useRowID()) {
-            dictOutputColType = StringCell.TYPE;
+            // name not relevant, overwritten further down
+            dictColSpec = new DataColumnSpecCreator("rowID", StringCell.TYPE).createSpec();
         } else {
             if (dictOutputColIndex < 0) {
                 throw new InvalidSettingsException("No such column \""
                         + m_dictOutputColModel.getStringValue() + "\"");
             }
-            dictOutputColType =
-                    dictSpec.getColumnSpec(dictOutputColIndex).getType();
+            dictColSpec = dictSpec.getColumnSpec(dictOutputColIndex);
         }
+        DataColumnSpecCreator replaceSpecCreator;
+
         final NoMatchPolicy noMatchPolicy = getNoMatchPolicy();
-        DataType outputType;
         switch (noMatchPolicy) {
         case Input:
-            outputType =
-                    DataType.getCommonSuperType(dictOutputColType,
-                            targetColSpec.getType());
+            DataType outputType = DataType.getCommonSuperType(dictColSpec.getType(), targetColSpec.getType());
+            // resets all properties, element names, color/size/shape handlers etc -- it's a NEW column
+            replaceSpecCreator = new DataColumnSpecCreator(targetColSpec.getName(), outputType);
             break;
         default:
-            outputType = dictOutputColType;
+            // retain all properties, element names, and such
+            replaceSpecCreator = new DataColumnSpecCreator(dictColSpec);
         }
 
         String newColName;
         if (m_appendColumnModel.getBooleanValue()) {
             String newName = m_appendColumnNameModel.getStringValue();
-            if (newName == null || newName.length() == 0) {
-                throw new InvalidSettingsException("No new column name given");
-            }
+            CheckUtils.checkSetting(StringUtils.isNotEmpty(newName), "No new column name given");
             newColName = DataTableSpec.getUniqueColumnName(spec, newName);
         } else {
             newColName = targetColSpec.getName();
         }
+        replaceSpecCreator.setName(newColName);
 
-        DataColumnSpecCreator replaceSpecCreator =
-                new DataColumnSpecCreator(newColName, outputType);
         CellFactory c = new SingleCellFactory(replaceSpecCreator.createSpec()) {
             private Map<DataCell, DataCell> m_dictionaryMap;
 
