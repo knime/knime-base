@@ -268,7 +268,7 @@ final class CollectionSplitNodeModel extends NodeModel {
         if (elementNames.isEmpty()) {
             throw new InvalidSettingsException("Input column \""
                     + colSpec.getName() + "\" does not provide element names; "
-                    + "consider to change option in dialog or make sure that"
+                    + "consider to change option in dialog or make sure "
                     + "the input table contains the necessary information.");
         }
         DataType type = colSpec.getType().getCollectionElementType();
