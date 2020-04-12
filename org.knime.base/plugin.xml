@@ -656,6 +656,11 @@
       <node
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory"/>
+      <node
+            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            category-path="/io/read"
             deprecated="true"
             factory-class="org.knime.base.node.io.linereader.LineReaderNodeFactory">
       </node>
@@ -2253,10 +2258,6 @@
             category-path="/manipulation/column/column-convert+replace"
             hidden="true"
             factory-class="org.knime.base.node.preproc.colconvert.ColConvertNodeFactory">
-      </node>
-      <node
-            deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory">
       </node>
    </extension>
    <extension

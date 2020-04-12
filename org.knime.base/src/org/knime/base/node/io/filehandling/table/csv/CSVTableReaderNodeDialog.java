@@ -440,25 +440,29 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_config.loadInDialog(settings);
 
         m_filePanel.loadSettingsFrom(settings, specs);
-        loadTableReadConfig();
-        loadCSVTableReaderConfig();
+        loadTableReadSettings();
+        loadCSVSettings();
         setSpecMergeMode();
     }
 
     /**
      * Fill in dialog components with TableReadConfig values
      */
-    private void loadTableReadConfig() {
+    private void loadTableReadSettings() {
         // row limit options
         final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
+        m_hasColHeaderChecker.setSelected(tableReadConfig.useColumnHeaderIdx());
+        m_hasRowHeaderChecker.setSelected(tableReadConfig.useRowIDIdx());
+
+        m_allowShortLinesChecker.setSelected(tableReadConfig.allowShortRows());
+        // TODO decide where to save setting. Univocity vs TableReadConfig
+        m_skipEmptyLinesChecker.setSelected(tableReadConfig.skipEmptyRows());
+
         m_skipFirstRowsChecker.setSelected(tableReadConfig.skipRows());
         m_skipFirstRowsSpinner.setValue(tableReadConfig.getNumRowsToSkip());
 
         m_limitRowsChecker.setSelected(tableReadConfig.limitRows());
         m_limitRowsSpinner.setValue(tableReadConfig.getMaxRows());
-
-        // TODO decide where to save setting. Univocity vs TableReadConfig
-        m_skipEmptyLinesChecker.setSelected(tableReadConfig.skipEmptyRows());
 
         m_limitAnalysisChecker.setSelected(tableReadConfig.limitRowsForSpec());
         m_limitAnalysisSpinner.setValue(tableReadConfig.getMaxRowsForSpec());
@@ -467,7 +471,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     /**
      * Fill in dialog components with CSVTableReaderConfig values
      */
-    private void loadCSVTableReaderConfig() {
+    private void loadCSVSettings() {
         // CSV specific options
         CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
         m_colDelimiterField.setText(EscapeUtils.escape(csvReaderConfig.getDelimiter()));
