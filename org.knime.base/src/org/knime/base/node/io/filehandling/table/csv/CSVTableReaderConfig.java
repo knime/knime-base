@@ -92,6 +92,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     /** string key used to save whether or not quoted empty strings are replaced by missing value */
     private static final String CFG_REPLACE_EMPTY_WITH_MISSING = "replace_empty_with_missing";
 
+    /** string key used to save the character set name (encoding) */
+    private static final String CFG_CHAR_SET_NAME = "character_set_name";
+
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
@@ -100,6 +103,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
 
     /** Setting used to decide how many lines are skipped at the beginning */
     private long m_numLinesToSkip = 0L;
+
+    /** Setting used to store the character set name (encoding) */
+    private String m_charSet = null;
 
     /**
      * Constructor
@@ -292,6 +298,24 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         return getSettings().getEmptyValue() == null;
     }
 
+    /**
+     * Gets the character set name (encoding) used to read files.
+     *
+     * @return the character set name (encoding), or <code>null</code> if the default character set should be used.
+     */
+    public String getCharSetName() {
+        return m_charSet;
+    }
+
+    /**
+     * Sets the character set name (encoding) used to read files.
+     *
+     * @param charSet the new character set name (encoding), or <code>null</code> if the default should be used.
+     */
+    void setCharSetName(final String charSet) {
+        m_charSet = charSet;
+    }
+
     @Override
     public void loadInDialog(final NodeSettingsRO settings) {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
@@ -304,7 +328,10 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L));
 
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, false));
+
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, false));
+
+        setCharSetName(settings.getString(CFG_CHAR_SET_NAME, null));
     }
 
     @Override
@@ -316,12 +343,14 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setQuoteEscape(settings.getString(CFG_QOUTE_ESCAPE_CHAR));
         setComment(settings.getString(CFG_COMMENT_CHAR));
 
-        setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
+        setSkipLines(settings.getBoolean(CFG_SKIP_LINES));
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
 
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES));
 
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
+
+        setCharSetName(settings.getString(CFG_CHAR_SET_NAME));
     }
 
     @Override
@@ -338,6 +367,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.getBoolean(CFG_SKIP_EMPTY_LINES);
 
         settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING);
+
+        settings.getString(CFG_CHAR_SET_NAME);
+
     }
 
     @Override
@@ -354,6 +386,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.addBoolean(CFG_SKIP_EMPTY_LINES, skipEmptyLines());
 
         settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
+
+        settings.addString(CFG_CHAR_SET_NAME, getCharSetName());
     }
 
     @Override
@@ -373,6 +407,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
 
         configCopy.setReplaceEmptyWithMissing(this.replaceEmptyWithMissing());
 
+        configCopy.setCharSetName(this.getCharSetName());
+
         return configCopy;
     }
 
@@ -386,12 +422,13 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      * @return the first character in input string if it is not empty, '\0' otherwise
      */
     private static char getFirstChar(final String str, final String fieldName) {
-        if (str.trim() == null || str.trim().isEmpty()) {
+        if (str == null || str.isEmpty() || str.equals("\0")) {
             return '\0';
         } else {
-            CheckUtils.checkArgument(str.trim().length() <= 2,
+            final String cleanStr = str.replace("\0", "");
+            CheckUtils.checkArgument(cleanStr.length() <= 2,
                 "Only a single character is allowed for %s. Escape sequences, such as \\n can be used.", fieldName);
-            return str.trim().charAt(0);
+            return cleanStr.charAt(0);
         }
     }
 

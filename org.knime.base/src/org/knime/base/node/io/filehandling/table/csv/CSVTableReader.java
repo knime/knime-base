@@ -183,7 +183,7 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
             m_parser = new CsvParser(csvReaderConfig.getSettings());
-            m_parser.beginParsing(m_countingStream);
+            m_parser.beginParsing(m_countingStream, csvReaderConfig.getCharSetName());
         }
 
         @Override

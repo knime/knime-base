@@ -69,6 +69,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
 import org.knime.base.node.io.filereader.CharsetNamePanel;
+import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -378,6 +379,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filePanel.saveSettingsTo(settings);
+
         saveTableReadSettings();
         m_config.setSpecMergeMode(getSpecMergeMode());
         saveCsvSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
@@ -407,6 +409,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         tableReadConfig.setAllowShortRows(m_allowShortLinesChecker.isSelected());
         tableReadConfig.setSkipEmptyRows(m_skipEmptyLinesChecker.isSelected());
+
     }
 
     /**
@@ -425,6 +428,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         csvReaderConfig.setSkipEmptyLines(m_skipEmptyLinesChecker.isSelected());
         csvReaderConfig.setReplaceEmptyWithMissing(m_replaceQuotedEmptyStringChecker.isSelected());
+
+        FileReaderNodeSettings s = new FileReaderNodeSettings();
+        m_encodingPanel.overrideSettings(s);
+        csvReaderConfig.setCharSetName(s.getCharsetName());
     }
 
     @Override
@@ -433,15 +440,15 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_config.loadInDialog(settings);
 
         m_filePanel.loadSettingsFrom(settings, specs);
+        loadTableReadConfig();
+        loadCSVTableReaderConfig();
         setSpecMergeMode();
-        fillInDialog();
     }
 
     /**
-     * Fill in dialog components with setting values
+     * Fill in dialog components with TableReadConfig values
      */
-    private void fillInDialog() {
-
+    private void loadTableReadConfig() {
         // row limit options
         final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
         m_skipFirstRowsChecker.setSelected(tableReadConfig.skipRows());
@@ -455,7 +462,12 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         m_limitAnalysisChecker.setSelected(tableReadConfig.limitRowsForSpec());
         m_limitAnalysisSpinner.setValue(tableReadConfig.getMaxRowsForSpec());
+    }
 
+    /**
+     * Fill in dialog components with CSVTableReaderConfig values
+     */
+    private void loadCSVTableReaderConfig() {
         // CSV specific options
         CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
         m_colDelimiterField.setText(EscapeUtils.escape(csvReaderConfig.getDelimiter()));
@@ -472,6 +484,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_skipEmptyLinesChecker.setSelected(csvReaderConfig.skipEmptyLines());
 
         m_replaceQuotedEmptyStringChecker.setSelected(csvReaderConfig.replaceEmptyWithMissing());
+
+        FileReaderSettings fReadSettings = new FileReaderSettings();
+        fReadSettings.setCharsetName(csvReaderConfig.getCharSetName());
+        m_encodingPanel.loadSettings(fReadSettings);
     }
 
     /**
