@@ -89,6 +89,9 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     /** string key used to save the value of number of lines that should be skipped */
     private static final String CFG_NUM_LINES_TO_SKIP = "num_lines_to_skip";
 
+    /** string key used to save whether or not quoted empty strings are replaced by missing value */
+    private static final String CFG_REPLACE_EMPTY_WITH_MISSING = "replace_empty_with_missing";
+
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
@@ -100,8 +103,6 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
 
     /**
      * Constructor
-     *
-     *
      */
     public CSVTableReaderConfig() {
         m_settings = new CsvParserSettings();
@@ -273,6 +274,24 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         m_numLinesToSkip = numLinesToSkip;
     }
 
+    /**
+     * Sets whether empty strings within quotes should be replaced by a missing value or left as they are.
+     *
+     * @param replaceByMissingVal flag that decides if empty strings should be replaced by a missing value
+     */
+    void setReplaceEmptyWithMissing(final boolean replaceByMissingVal) {
+        getSettings().setEmptyValue(replaceByMissingVal ? null : "");
+    }
+
+    /**
+     * Gets whether empty strings within quotes are being replaced by a missing value or left as they are.
+     *
+     * @return {@code true} if empty strings within quotes are being replaced.
+     */
+    public boolean replaceEmptyWithMissing() {
+        return getSettings().getEmptyValue() == null;
+    }
+
     @Override
     public void loadInDialog(final NodeSettingsRO settings) {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
@@ -285,6 +304,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L));
 
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, false));
+        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, false));
     }
 
     @Override
@@ -300,6 +320,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
 
         setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES));
+
+        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
     }
 
     @Override
@@ -314,6 +336,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.getLong(CFG_NUM_LINES_TO_SKIP);
         settings.getBoolean(CFG_SKIP_LINES);
         settings.getBoolean(CFG_SKIP_EMPTY_LINES);
+
+        settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING);
     }
 
     @Override
@@ -328,6 +352,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.addLong(CFG_NUM_LINES_TO_SKIP, getNumLinesToSkip());
         settings.addBoolean(CFG_SKIP_LINES, skipLines());
         settings.addBoolean(CFG_SKIP_EMPTY_LINES, skipEmptyLines());
+
+        settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
     }
 
     @Override
@@ -344,6 +370,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         configCopy.setNumLinesToSkip(this.getNumLinesToSkip());
 
         configCopy.setSkipEmptyLines(this.skipEmptyLines());
+
+        configCopy.setReplaceEmptyWithMissing(this.replaceEmptyWithMissing());
 
         return configCopy;
     }
