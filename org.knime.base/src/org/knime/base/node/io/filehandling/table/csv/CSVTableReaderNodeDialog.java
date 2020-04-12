@@ -379,10 +379,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filePanel.saveSettingsTo(settings);
-
         saveTableReadSettings();
+        saveCsvSettings();
         m_config.setSpecMergeMode(getSpecMergeMode());
-        saveCsvSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
         m_config.save(settings);
     }
 
@@ -415,7 +414,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     /**
      * Fill in the setting values in {@link CSVTableReaderConfig} using values from dialog.
      */
-    private void saveCsvSettings(final CSVTableReaderConfig csvReaderConfig) {
+    private void saveCsvSettings() {
+        CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
+
         csvReaderConfig.setDelimiter(EscapeUtils.unescape(m_colDelimiterField.getText()));
         csvReaderConfig.setLineSeparator(EscapeUtils.unescape(m_rowDelimiterField.getText()));
 
@@ -451,6 +452,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private void loadTableReadSettings() {
         // row limit options
         final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
+
         m_hasColHeaderChecker.setSelected(tableReadConfig.useColumnHeaderIdx());
         m_hasRowHeaderChecker.setSelected(tableReadConfig.useRowIDIdx());
 

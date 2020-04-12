@@ -141,7 +141,8 @@ final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>
     private static Read<String> createDecoratedRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
         final boolean isForSpec) throws IOException {
         Read<String> read = new CsvRead(path, config.getReaderSpecificConfig());
-        final long numRowsToSkip = config.skipRows() ? config.getNumRowsToSkip() : 0;
+        final long numRowsToSkip = config.skipRows()
+            ? (config.useColumnHeaderIdx() ? config.getNumRowsToSkip() + 1 : config.getNumRowsToSkip()) : 0;
         final long numRowsToKeep = config.limitRows() ? config.getMaxRows() : Long.MAX_VALUE;
         if (!isForSpec) {
             read = ReadUtils.skip(read, numRowsToSkip);

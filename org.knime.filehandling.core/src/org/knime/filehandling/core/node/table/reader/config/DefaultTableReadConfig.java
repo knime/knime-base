@@ -215,7 +215,7 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX, -1);
         m_readerSpecificConfig.loadInDialog(ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG));
         m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX, false);
-        m_useColumnHeaderIdx = settings.getBoolean(CFG_COLUMN_HEADER_IDX, true);
+        m_useColumnHeaderIdx = settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX, true);
         m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false);
         m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS, false);
 
