@@ -18,6 +18,7 @@ public class CompareTest extends AbstractParameterizedFSTest {
     @Test
     public void testCompareRoot() {
         ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
         final String that = "/";
         final String other = "";
         final FileSystem fileSystem = m_connection.getFileSystem();

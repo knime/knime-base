@@ -116,6 +116,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testRealtivizeRealtiveEmptyPath() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final String that = "";
 		final String other = "as/de/";
@@ -246,6 +247,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testNormalizeToEmpty() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("de/..");
 
@@ -254,7 +256,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalizeToEmptyObjectStore() {
-		ignoreAllExcept(S3);
+		ignoreAllExcept(S3, GS);
 
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("de/..");
@@ -279,6 +281,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	public void testNormalizeToEmpty2() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
@@ -286,7 +289,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	}
 
 	public void testNormalizeToEmpty2BlobStore() {
-		ignoreAllExcept(S3);
+		ignoreAllExcept(S3, GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
@@ -296,6 +299,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testEquals() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final String that = "as/de/";
 		final String other = "as/de";
@@ -375,6 +379,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testGetFileNameEmpty() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("");
 
@@ -384,6 +389,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testGetFileNameDot() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
@@ -393,6 +399,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testGetFileNameDotSlash() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("./");
 
@@ -402,6 +409,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testGetName() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
+		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("/abc/de/fg");
 
@@ -420,7 +428,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetNameBlobStore() {
-		ignoreAllExcept(S3);
+		ignoreAllExcept(S3, GS);
 		final FileSystem fileSystem = m_connection.getFileSystem();
 		final Path path = fileSystem.getPath("/abc/de/fg");
 
