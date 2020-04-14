@@ -87,10 +87,17 @@ public class FSTestPropertiesResolver {
     }
 
     private static Optional<Path> environmentVariablePath() {
-        final File testPropertiesFromEnv = new File(TEST_PROPERTIES_ENV_VARIABLE_NAME);
+        final String envVariableValue = System.getenv(TEST_PROPERTIES_ENV_VARIABLE_NAME);
+        
+        if (envVariableValue == null) {
+            return Optional.empty();
+        }
+                
+        final File testPropertiesFromEnv = new File(envVariableValue);
         if (testPropertiesFromEnv.exists() && testPropertiesFromEnv.canRead()) {
             return Optional.of(testPropertiesFromEnv.toPath());
         }
+        
         return Optional.empty();
     }
 

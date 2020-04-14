@@ -1,9 +1,11 @@
 package org.knime.filehandling.core.testing.integrationtests;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerManager;
@@ -27,23 +29,26 @@ public class FSTestParameters {
      * @return all registered test initializers in a format suitable for the Parameterized runner
      */
     public static Collection<Object[]> get() {
+        final Properties fsTestProperties = FSTestPropertiesResolver.forIntegrationTests();
+        
         final FSTestInitializerManager manager = FSTestInitializerManager.instance();
-        final List<String> testInitializerKeys = manager.getAllTestInitializerKeys();
-
+        final List<String> testInitializerKeys = new ArrayList<>();
+        if (fsTestProperties.containsKey("test-fs")) {
+            testInitializerKeys.add(fsTestProperties.getProperty("test-fs"));
+        } else {
+            testInitializerKeys.addAll(manager.getAllTestInitializerKeys());
+        }
+        
         final int numberOfFS = testInitializerKeys.size();
         final Object[][] fsTestInitializers = new Object[numberOfFS][2];
 
         for (int i = 0; i < numberOfFS; i++) {
             final String fsType = testInitializerKeys.get(i);
             fsTestInitializers[i][0] = fsType;
-            fsTestInitializers[i][1] = manager.createInitializer(fsType, readConfiguration(fsType));
+            fsTestInitializers[i][1] = manager.createInitializer(fsType,
+                    FSTestConfigurationReader.read(fsType, fsTestProperties));
         }
 
         return Arrays.asList(fsTestInitializers);
     }
-
-    private static Map<String, String> readConfiguration(final String fsType) {
-        return FSTestConfigurationReader.read(fsType, FSTestPropertiesResolver.forIntegrationTests());
-    }
-
 }
