@@ -117,4 +117,14 @@ public interface FSTestInitializer {
      */
     public Path createFileWithContent(String content, String... pathComponents) throws IOException;
 
+    /**
+     * Creates a {@link Path} object for the given name components. This method does not create a file or folder.
+     *
+     * @param pathComponents The path components of the path to create.
+     * @return a {@link Path} object for the given name components.
+     */
+    @SuppressWarnings("resource")
+    public default Path makePath(final String... pathComponents) {
+        return getFSConnection().getFileSystem().getPath(getRoot().toString(), pathComponents);
+    }
 }

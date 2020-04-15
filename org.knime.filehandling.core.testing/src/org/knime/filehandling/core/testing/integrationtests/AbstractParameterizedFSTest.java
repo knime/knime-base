@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 
 /**
@@ -104,6 +105,13 @@ public abstract class AbstractParameterizedFSTest {
         final boolean shouldBeIgnored = !Arrays.stream(fileSystems).anyMatch(fileSystem -> fileSystem.equals(m_fsType));
         final String errMsg = String.format("Test case has been ignored for the file system '%s'", m_fsType);
         Assume.assumeFalse(errMsg, shouldBeIgnored);
+    }
+    
+    /**
+     * @return the underlying file system instance. 
+     */
+    public FSFileSystem<?> getFileSystem() {
+        return m_connection.getFileSystem();
     }
 
 }
