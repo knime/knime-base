@@ -502,10 +502,14 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
         final P checkedPath = (P) checkCastAndAbsolutizePath(path).normalize();
+
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
         }
-        checkAccessInternal(checkedPath, modes);
+
+        if (modes.length > 0) {
+            checkAccessInternal(checkedPath, modes);
+        }
     }
 
     /**
@@ -521,7 +525,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void delete(final Path path) throws IOException {
-        final P checkedPath = checkCastAndAbsolutizePath(path);
+        final P checkedPath = (P) checkCastAndAbsolutizePath(path).normalize();
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
         }
@@ -530,14 +534,16 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     /**
-     * Deletes a file. This method works in exactly the manner specified by the {@link Files#delete} method.
+     * Deletes a file or directory that is provided as an absolute, normalized path, which has been checked for
+     * existence.
      *
-     * @param path the path to the file to delete
+     * @param path The absolute, normalized path to and existing file or directory
      *
      * @throws NoSuchFileException if the file does not exist <i>(optional specific exception)</i>
      * @throws DirectoryNotEmptyException if the file is a directory and could not otherwise be deleted because the
      *             directory is not empty <i>(optional specific exception)</i>
      * @throws IOException if an I/O error occurs
+     * @see Files#delete
      */
     protected abstract void deleteInternal(P path) throws IOException;
 

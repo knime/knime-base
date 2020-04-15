@@ -114,7 +114,7 @@ public abstract class BlobStorePath extends UnixStylePath {
         }
 
         String pathString = String.join(m_pathSeparator, m_pathParts.subList(beginIndex, endIndex));
-        if (endIndex < m_pathParts.size() - 1 || isDirectory()) {
+        if (endIndex < m_pathParts.size() || isDirectory()) {
             pathString = pathString + m_pathSeparator;
         }
 
