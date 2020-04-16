@@ -254,6 +254,10 @@ public class XML2PMMLNodeModel extends NodeModel {
                         String failure = null;
                         XmlObject xmlDoc;
 
+                        Thread current = Thread.currentThread();
+                        ClassLoader oldLoader = current.getContextClassLoader();
+                        current.setContextClassLoader(PMMLDocument.class.getClassLoader());
+
                         try (LockedSupplier<Document> supplier = ((XMLValue<Document>)cell).getDocumentSupplier()) {
                             xmlDoc = XmlObject.Factory.parse(supplier.get().cloneNode(true));
                             if (xmlDoc instanceof PMMLDocument) {
@@ -271,6 +275,8 @@ public class XML2PMMLNodeModel extends NodeModel {
                                 LOGGER.error("Invalid PMML in row " + row.getKey() + ": " + e.getMessage(), e);
                             }
                             failure = e.getMessage();
+                        } finally {
+                            current.setContextClassLoader(oldLoader);
                         }
 
                         if (failure != null) {

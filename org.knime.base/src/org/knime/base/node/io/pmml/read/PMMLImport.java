@@ -154,8 +154,8 @@ public class PMMLImport {
         }
         Thread current = Thread.currentThread();
         ClassLoader oldLoader = current.getContextClassLoader();
+        current.setContextClassLoader(PMMLDocument.class.getClassLoader());
         try {
-            current.setContextClassLoader(PMMLDocument.class.getClassLoader());
             xmlDoc = XmlObject.Factory.parse(inStream, o);
         } finally {
             current.setContextClassLoader(oldLoader);
@@ -167,15 +167,17 @@ public class PMMLImport {
              * was produced by KNIME by just replacing the PMML version and
              * namespace or when the recover flag is set. */
             if (forceVersionUpdate || PMMLUtils.isOldKNIMEPMML(xmlDoc) || PMMLUtils.is4_1PMML(xmlDoc)) {
+                current.setContextClassLoader(PMMLDocument.class.getClassLoader());
                 try {
-                    String updatedPMML
-                            = PMMLUtils.getUpdatedVersionAndNamespace(xmlDoc);
+                    String updatedPMML = PMMLUtils.getUpdatedVersionAndNamespace(xmlDoc);
                     /* Parse the modified document and assign it to a
                      * PMMLDocument.*/
                     pmmlDoc = PMMLDocument.Factory.parse(updatedPMML);
                 } catch (Exception e) {
                     throw new RuntimeException(
                             "Parsing of PMML v 3.x/4.0/4.1 document failed.", e);
+                } finally {
+                    current.setContextClassLoader(oldLoader);
                 }
                 if (!forceVersionUpdate) {
                     LOGGER.info(
