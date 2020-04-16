@@ -58,20 +58,22 @@ import java.io.OutputStream;
  */
 public class BaseOutputStream extends OutputStream {
 
+    private final OutputStream m_outputStream;
+
+    private final BaseFileSystem<?> m_fileSystem;
+
     /**
      * Wraps the given outputStream and registers it at the file system.
-     * 
+     *
      * @param outputStream outputStreamt to wrap
      * @param fileSystem the handling file system
      */
-    public BaseOutputStream(final OutputStream outputStream, final BaseFileSystem fileSystem) {
+    public BaseOutputStream(final OutputStream outputStream, final BaseFileSystem<?> fileSystem) {
         m_outputStream = outputStream;
         m_fileSystem = fileSystem;
+        m_fileSystem.addCloseable(this);
     }
 
-    private final OutputStream m_outputStream;
-
-    private final BaseFileSystem m_fileSystem;
 
     /**
      * {@inheritDoc}
@@ -111,8 +113,11 @@ public class BaseOutputStream extends OutputStream {
      */
     @Override
     public void close() throws IOException {
-        m_outputStream.close();
-        m_fileSystem.notifyClosed(this);
+        try {
+            m_outputStream.close();
+        } finally {
+            m_fileSystem.notifyClosed(this);
+        }
     }
 
 }

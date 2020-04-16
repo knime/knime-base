@@ -60,7 +60,7 @@ public class BaseInputStream extends InputStream {
 
     private final InputStream m_inputStream;
 
-    private final BaseFileSystem m_fileSystem;
+    private final BaseFileSystem<?> m_fileSystem;
 
     /**
      * Wraps the given inputStream and registers it at the file system.
@@ -68,7 +68,7 @@ public class BaseInputStream extends InputStream {
      * @param inputStream the input stream to wrap
      * @param fileSystem the handling file system
      */
-    public BaseInputStream(final InputStream inputStream, final BaseFileSystem fileSystem) {
+    public BaseInputStream(final InputStream inputStream, final BaseFileSystem<?> fileSystem) {
         m_inputStream = inputStream;
         m_fileSystem = fileSystem;
         m_fileSystem.addCloseable(this);
@@ -119,8 +119,11 @@ public class BaseInputStream extends InputStream {
      */
     @Override
     public void close() throws IOException {
-        m_inputStream.close();
-        m_fileSystem.notifyClosed(this);
+        try {
+            m_inputStream.close();
+        } finally {
+            m_fileSystem.notifyClosed(this);
+        }
     }
 
     /**
