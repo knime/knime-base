@@ -88,6 +88,6 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
 
     @Override
     public Path createFileWithContent(final String content, final String... pathComponents) {
-        return createLocalFileWithContent(content, pathComponents);
+        return new LocalPath(createLocalFileWithContent(content, pathComponents));
     }
 }

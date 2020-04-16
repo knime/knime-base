@@ -105,7 +105,7 @@ public abstract class BasicLocalTestInitializer implements FSTestInitializer {
 				writer.write(content);
 			}
 
-			return new LocalPath(createdPath);
+			return createdPath;
 		} catch (IOException e) {
 			throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
 		}

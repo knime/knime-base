@@ -89,7 +89,12 @@ public class LocalPath implements FSPath {
 
     @Override
     public Path getParent() {
-        return new LocalPath(m_wrappedPath.getParent());
+        final Path wrappedPathParent = m_wrappedPath.getParent();
+        if (wrappedPathParent != null) {
+            return new LocalPath(wrappedPathParent);
+        } else {
+            return null;
+        }
     }
 
     @Override

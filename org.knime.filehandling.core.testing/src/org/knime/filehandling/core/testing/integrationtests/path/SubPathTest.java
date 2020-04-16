@@ -18,28 +18,39 @@ public class SubPathTest extends AbstractParameterizedFSTest {
     @Test
     public void testSubpath() {
         final String that = "/0/1/2/3";
+        final String subpath = "0/1/2/3";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
+        final Path expectedSubpath = fileSystem.getPath(subpath);
 
-        assertEquals("0/1/2/3", path.subpath(0, 4).toString());
+        assertEquals(expectedSubpath, path.subpath(0, 4));
+        assertEquals(expectedSubpath.toString(), path.subpath(0, 4).toString());
     }
 
     @Test
     public void testSubpath2() {
         final String that = "/0/1/2/3";
+        final String subpath = "0/1/2/";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
 
-        assertEquals("0/1/2", path.subpath(0, 3).toString());
+        final Path expectedSubpath = fileSystem.getPath(subpath);
+
+        assertEquals(expectedSubpath, path.subpath(0, 3));
+        assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
     }
 
     @Test
     public void testSubpath2a() {
         final String that = "0/1/2/3";
+        final String subpath = "0/1/2/";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
 
-        assertEquals("0/1/2", path.subpath(0, 3).toString());
+        final Path expectedSubpath = fileSystem.getPath(subpath);
+
+        assertEquals(expectedSubpath, path.subpath(0, 3));
+        assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
     }
 
     @Test
