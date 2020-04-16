@@ -1375,7 +1375,7 @@
              >
        </node>
        <node
-             after="org.knime.base.node.flowvariable.tablecoltovariable2.TableColumnToVariable2NodeFactory"
+             after="org.knime.base.node.flowvariable.tablecoltovariable3.TableColumnToVariable3NodeFactory"
              category-path="/flowcontrol/variables"
              factory-class="org.knime.base.node.flowvariable.tablerowtovariable2.TableToVariable2NodeFactory"
              >
@@ -1797,8 +1797,13 @@
       <node
             after="org.knime.base.node.flowvariable.extractvariables.ExtractVariablesDBNodeFactory"
             category-path="/flowcontrol/variables"
-            factory-class="org.knime.base.node.flowvariable.tablecoltovariable2.TableColumnToVariable2NodeFactory"
-            >
+            deprecated="true"
+            factory-class="org.knime.base.node.flowvariable.tablecoltovariable2.TableColumnToVariable2NodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.flowvariable.extractvariables.ExtractVariablesDBNodeFactory"
+            category-path="/flowcontrol/variables"
+            factory-class="org.knime.base.node.flowvariable.tablecoltovariable3.TableColumnToVariable3NodeFactory">
       </node>
       <node
             category-path="/flowcontrol/automation"

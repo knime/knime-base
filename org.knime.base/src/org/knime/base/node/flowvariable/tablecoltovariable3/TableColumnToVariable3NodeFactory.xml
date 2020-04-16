@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./tablecol2variable.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+<knimeNode icon="../tablecoltovariable2/tablecol2variable.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Table Column to Variable</name>
 
 	<shortDescription>
@@ -22,10 +22,8 @@
 
 	<ports>
 		<inPort index="0" name="table">A table</inPort>
-		<!-- possibly more input ports here -->
 		<outPort index="0" name="flow variables">New flow variables with names from the
 			row IDs.
 		</outPort>
-		<!-- possibly more output ports here -->
 	</ports>
 </knimeNode>

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,12 +41,12 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   23.10.2013 (gabor): created
+ *   Apr 16, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.flowvariable.tablecoltovariable2;
+package org.knime.base.node.flowvariable.tablecoltovariable3;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +70,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -77,13 +78,12 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
 /**
- * This is the model implementation of TableColumnToVariable2. Converts the values from a table column to flow variables
- * with the row ids as their variable name.
+ * This node model allows to convert the values from a table column to flow variables. The flow variable names are
+ * derived from the row IDs,
  *
- * @author Gabor Bakos
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-class TableColumnToVariable2NodeModel extends NodeModel {
+final class TableColumnToVariable3NodeModel extends NodeModel {
 
     private static final String CFGKEY_IGNORE_MISSING = "ignore missing";
 
@@ -91,24 +91,22 @@ class TableColumnToVariable2NodeModel extends NodeModel {
 
     private static final String CFGKEY_COLUMN = "column";
 
-    private static final String DEFAULT_COLUMN = "";
-
     static final SettingsModelBoolean createIgnoreMissing() {
         return new SettingsModelBoolean(CFGKEY_IGNORE_MISSING, DEFAULT_IGNORE_MISSING);
     }
 
-    static final SettingsModelColumnName createColumnSettings() {
-        return new SettingsModelColumnName(CFGKEY_COLUMN, DEFAULT_COLUMN);
+    static final SettingsModelString createColumnSettings() {
+        return new SettingsModelString(CFGKEY_COLUMN, null);
     }
 
-    private SettingsModelBoolean m_ignoreMissing = createIgnoreMissing();
+    private final SettingsModelBoolean m_ignoreMissing = createIgnoreMissing();
 
-    private SettingsModelColumnName m_column = createColumnSettings();
+    private final SettingsModelString m_column = createColumnSettings();
 
     /**
      * Constructor for the node model.
      */
-    TableColumnToVariable2NodeModel() {
+    TableColumnToVariable3NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
     }
 
@@ -120,60 +118,62 @@ class TableColumnToVariable2NodeModel extends NodeModel {
             final int colIndex = spec.findColumnIndex(m_column.getStringValue());
             assert colIndex >= 0 : colIndex;
             final DataType type = spec.getColumnSpec(colIndex).getType();
-            for (final DataRow row : table) {
-                final DataCell cell = row.getCell(colIndex);
-                final String name = row.getKey().getString();
-                if (cell.isMissing()) {
-                    if (m_ignoreMissing.getBooleanValue()) {
-                        continue;
-                    }
-                    throw new MissingValueException((MissingValue)cell,
-                        "Missing value in column (" + m_column.getColumnName() + ") in row: " + row.getKey());
-                }
+            if (table.size() > 0) {
 
-                VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
+                for (final DataRow row : table) {
+                    final DataCell cell = row.getCell(colIndex);
+                    final String name = row.getKey().getString();
+                    if (cell.isMissing()) {
+                        if (m_ignoreMissing.getBooleanValue()) {
+                            continue;
+                        }
+                        throw new MissingValueException((MissingValue)cell, String.format(
+                            "Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
+                    }
+
+                    VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
+                }
+            } else {
+                setWarningMessage("Node created no variables since the input data table is empty.");
             }
         }
         return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
     @Override
-    protected void reset() {
-        // Do nothing, no internal state
-    }
-
-    @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (inSpecs[0] instanceof DataTableSpec) {
-            final DataTableSpec spec = (DataTableSpec)inSpecs[0];
-            if (m_column.getColumnName().equals(DEFAULT_COLUMN)) {
-                errorOrDefault(spec, "No column selected");
-            }
-            final int colIndex = spec.findColumnIndex(m_column.getStringValue());
-            if (colIndex < 0) {
-                final String errorMessage =
-                    "Wrong column name, not in input: " + m_column.getStringValue() + " in: " + spec;
-                errorOrDefault(spec, errorMessage);
-            }
-        } else {
-            throw new InvalidSettingsException("Wrong input type: " + inSpecs[0]);
+        final DataTableSpec spec = (DataTableSpec)inSpecs[0];
+        if (m_column.getStringValue() == null) {
+            autoGuess(spec);
+        }
+        // validation
+        final int colIndex = spec.findColumnIndex(m_column.getStringValue());
+        if (colIndex < 0) {
+            throw new InvalidSettingsException(
+                String.format("The selected column '%s' is not part of the input", m_column.getStringValue()));
+        }
+        if (applicableColumns(spec).stream()//
+            .map(DataColumnSpec::getName)//
+            .noneMatch(cName -> cName.equals(m_column.getStringValue()))) {
+            throw new InvalidSettingsException(String
+                .format("The selected column '%s' cannot be converted to a flow variable", m_column.getStringValue()));
         }
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
-    private void errorOrDefault(final DataTableSpec spec, final String errorMessage) throws InvalidSettingsException {
+    private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
         final Collection<DataColumnSpec> applicableColumns = applicableColumns(spec);
-        if (applicableColumns.size() == 1) {
-            final DataColumnSpec column = applicableColumns.iterator().next();
-            m_column.setSelection(column.getName(), false);
-            setWarningMessage("Selected column " + column.getName());
-        } else {
-            throw new InvalidSettingsException(errorMessage);
+        if (applicableColumns.isEmpty()) {
+            throw new InvalidSettingsException("Input contains no column that can be converted to a flow variable");
         }
+        final DataColumnSpec column = applicableColumns.iterator().next();
+        m_column.setStringValue(column.getName());
+        setWarningMessage(String.format("Auto-guessing: Selected column '%s'", column.getName()));
     }
 
     private static Collection<DataColumnSpec> applicableColumns(final DataTableSpec spec) {
-        return spec.stream().filter(s -> VariableAndDataCellUtil.isTypeCompatible(s.getType()))
+        return spec.stream()//
+            .filter(s -> VariableAndDataCellUtil.isTypeCompatible(s.getType()))//
             .collect(Collectors.toList());
     }
 
@@ -207,4 +207,8 @@ class TableColumnToVariable2NodeModel extends NodeModel {
         //No internal state
     }
 
+    @Override
+    protected void reset() {
+        // Do nothing, no internal state
+    }
 }

@@ -41,46 +41,59 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- *
- * History
- *   23.10.2013 (gabor): created
  */
 package org.knime.base.node.flowvariable.tablecoltovariable2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.util.ColumnFilter;
 
 /**
- * <code>NodeFactory</code> for the "TableColumnToVariable2" Node. Converts the values from a table column to flow
+ * <code>NodeDialog</code> for the "TableColumnToVariable2" Node. Converts the values from a table column to flow
  * variables with the row ids as their variable name.
  *
+ * This node dialog derives from {@link DefaultNodeSettingsPane} which allows creation of a simple dialog with standard
+ * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
+ *
  * @author Gabor Bakos
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced by {@code TableColumnToVariable3NodeDialog}
  */
-public class TableColumnToVariable2NodeFactory extends NodeFactory<TableColumnToVariable2NodeModel> {
-    @Override
-    public TableColumnToVariable2NodeModel createNodeModel() {
-        return new TableColumnToVariable2NodeModel();
+@Deprecated
+class TableColumnToVariable2NodeDialog extends DefaultNodeSettingsPane {
+
+    /**
+     * New pane for configuring the TableColumnToVariable2 node.
+     */
+    TableColumnToVariable2NodeDialog() {
+        final ColumnFilter filter = new ColumnFilter() {
+            @Override
+            public boolean includeColumn(final DataColumnSpec colSpec) {
+                return VariableAndDataCellUtil.isTypeCompatible(colSpec.getType());
+            }
+
+            @Override
+            public String allFilteredMsg() {
+                return "No columns compatible with any of the types "
+                    + Arrays.stream(VariableAndDataCellUtil.getSupportedVariableTypes())
+                        .map(t -> t.getIdentifier().toLowerCase()).collect(Collectors.joining(", "))
+                    + ".";
+            }
+        };
+        addDialogComponent(new DialogComponentColumnNameSelection(
+            TableColumnToVariable2NodeModel.createColumnSettings(), "Column name", 0, true, filter));
+
+        final DialogComponentBoolean ignoreMissing =
+            new DialogComponentBoolean(TableColumnToVariable2NodeModel.createIgnoreMissing(), "Skip missing values");
+        ignoreMissing
+            .setToolTipText("When unchecked, the execution fails when a missing value is in the input column.");
+        addDialogComponent(ignoreMissing);
     }
 
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<TableColumnToVariable2NodeModel> createNodeView(final int viewIndex,
-        final TableColumnToVariable2NodeModel nodeModel) {
-        throw new ArrayIndexOutOfBoundsException(viewIndex);
-    }
-
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new TableColumnToVariable2NodeDialog();
-    }
 }
