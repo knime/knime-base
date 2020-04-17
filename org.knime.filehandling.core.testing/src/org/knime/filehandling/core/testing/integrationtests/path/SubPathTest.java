@@ -17,11 +17,9 @@ public class SubPathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testSubpath() {
-        final String that = "/0/1/2/3";
-        final String subpath = "0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-        final Path expectedSubpath = fileSystem.getPath(subpath);
+        final FileSystem fs = getFileSystem();
+        final Path path = fs.getPath(fs.getRootDirectories().iterator().next().toString(), "0", "1", "2", "3");
+        final Path expectedSubpath = fs.getPath("0", "1", "2", "3");
 
         assertEquals(expectedSubpath, path.subpath(0, 4));
         assertEquals(expectedSubpath.toString(), path.subpath(0, 4).toString());
@@ -29,12 +27,9 @@ public class SubPathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testSubpath2() {
-        final String that = "/0/1/2/3";
-        final String subpath = "0/1/2/";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        final Path expectedSubpath = fileSystem.getPath(subpath);
+        final FileSystem fs = getFileSystem();
+        final Path path = fs.getPath(fs.getRootDirectories().iterator().next().toString(), "0", "1", "2", "3");
+        final Path expectedSubpath = fs.getPath("0", "1", "2", fs.getSeparator());
 
         assertEquals(expectedSubpath, path.subpath(0, 3));
         assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
@@ -42,12 +37,9 @@ public class SubPathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testSubpath2a() {
-        final String that = "0/1/2/3";
-        final String subpath = "0/1/2/";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        final Path expectedSubpath = fileSystem.getPath(subpath);
+        final FileSystem fs = getFileSystem();
+        final Path path = fs.getPath("0", "1", "2", "3");
+        final Path expectedSubpath = fs.getPath("0", "1", "2", fs.getSeparator());
 
         assertEquals(expectedSubpath, path.subpath(0, 3));
         assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
@@ -55,56 +47,37 @@ public class SubPathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testSubpath3() {
-        final String that = "/ii";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
+        final FileSystem fs = getFileSystem();
+        final Path path = fs.getPath(fs.getRootDirectories().iterator().next().toString(), "ii");
+        final Path expectedSubpath = fs.getPath("ii");
 
-        assertEquals("ii", path.subpath(0, 1).toString());
+        assertEquals(expectedSubpath, path.subpath(0, 1));
+        assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSubpath4() {
-        final String that = "/0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        path.subpath(-1, 0);
+        getFileSystem().getPath("0", "1").subpath(-1, 0);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSubpathBeginAfterEnd() {
-        final String that = "/0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        path.subpath(2, 1);
+        getFileSystem().getPath("0", "1", "2", "3").subpath(2, 1);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSubpathBeginAfterEnd2() {
-        final String that = "/0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        path.subpath(4, 0);
+        getFileSystem().getPath("0", "1", "2", "3").subpath(4, 0);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testSubpathBeginEqualsEnd() {
-        final String that = "/0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        path.subpath(0, 0);
+        getFileSystem().getPath("0", "1", "2", "3").subpath(0, 0);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testSubpathEndTooHigh() {
-        final String that = "/0/1/2/3";
-        final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path path = fileSystem.getPath(that);
-
-        path.subpath(0, 5);
+        getFileSystem().getPath("0", "1", "2", "3").subpath(0, 5);
     }
 
 }

@@ -79,12 +79,22 @@ public class LocalPath implements FSPath {
 
     @Override
     public Path getRoot() {
-        return new LocalPath(m_wrappedPath.getRoot());
+        final Path wrappedPathRoot = m_wrappedPath.getRoot();
+        if (wrappedPathRoot != null) {
+            return new LocalPath(wrappedPathRoot);
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Path getFileName() {
-        return new LocalPath(m_wrappedPath.getFileName());
+        final Path wrappedPathFileName = m_wrappedPath.getFileName();
+        if (wrappedPathFileName != null) {
+            return new LocalPath(wrappedPathFileName);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -270,5 +280,10 @@ public class LocalPath implements FSPath {
 
         final LocalPath otherLocal = (LocalPath)other;
         return m_wrappedPath.equals(otherLocal.m_wrappedPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return m_wrappedPath.hashCode();
     }
 }

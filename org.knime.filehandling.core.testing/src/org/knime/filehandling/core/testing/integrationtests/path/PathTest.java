@@ -3,10 +3,13 @@ package org.knime.filehandling.core.testing.integrationtests.path;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -20,7 +23,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testFileName() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("path", "to", "file");
 
 		assertEquals("file", path.getFileName().toString());
@@ -28,7 +31,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNameCount() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("path", "to", "file");
 
 		assertEquals(3, path.getNameCount());
@@ -36,7 +39,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNameCountFromString() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath(String.join(fileSystem.getSeparator(), "path", "", "to", "", "file"));
 
 		assertEquals(3, path.getNameCount());
@@ -44,7 +47,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNameCountFromStringSeveralSeparatorsTrailing() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath(String.join(fileSystem.getSeparator(), "path", "to", "file", "", ""));
 
 		assertEquals(3, path.getNameCount());
@@ -52,7 +55,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRealtivize() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path pathToRelativizeTo = fileSystem.getPath("abc/de/");
 		final Path path = fileSystem.getPath("de/fg/");
 		assertEquals(path, pathToRelativizeTo.relativize(pathToRelativizeTo.resolve(path)));
@@ -60,7 +63,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testRealtivizeAbsolutToRelative() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path pathToRelativizeTo = fileSystem.getPath("abc/de/");
 		final Path path = fileSystem.getPath("/de/fg/");
 		assertEquals(path, pathToRelativizeTo.relativize(pathToRelativizeTo.resolve(path)));
@@ -68,7 +71,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRealtivizeRealtiveWithToParent() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path pathToRelativizeTo = fileSystem.getPath("abc/de/");
 		final Path path = fileSystem.getPath("../../de/fg/");
 		assertEquals(path, pathToRelativizeTo.relativize(pathToRelativizeTo.resolve(path)));
@@ -76,7 +79,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRealtivizeRealtiveWithToParentInBasePath() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path pathToRelativizeTo = fileSystem.getPath("abc/de/fg/../../");
 		final Path path = fileSystem.getPath("../../de/fg/");
 		assertEquals(path, pathToRelativizeTo.relativize(pathToRelativizeTo.resolve(path)));
@@ -84,7 +87,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRealtivizeRealtiveWithToParentInBasePath2() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path pathToRelativizeTo = fileSystem.getPath("../../../abc/de/fg/");
 		final Path path = fileSystem.getPath("../../de/fg/");
 		assertEquals(path, pathToRelativizeTo.relativize(pathToRelativizeTo.resolve(path)));
@@ -92,7 +95,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRealtivizeRealtiveWithEmptyPath() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "as/de/";
 		final String other = "";
 		final Path path = fileSystem.getPath(that);
@@ -104,7 +107,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeAgainstRootPath() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path root = fileSystem.getPath("/");
 		final Path somePath = fileSystem.getPath("/some/path");
 		final Path relativePath = root.relativize(somePath);
@@ -117,7 +120,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	public void testRealtivizeRealtiveEmptyPath() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
 		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "";
 		final String other = "as/de/";
 		final Path path = fileSystem.getPath(that);
@@ -129,7 +132,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeRelativePathToEmpty() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "ab/cd";
 		final String other = "ab/cd";
 		final Path path = fileSystem.getPath(that);
@@ -140,7 +143,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeRelativePathSimple() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "ab/cd";
 		final String other = "ab/xy";
 		final Path path = fileSystem.getPath(that);
@@ -151,7 +154,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeAbsolutePathSimple() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "/ab/cd";
 		final String other = "/ab/xy";
 		final Path path = fileSystem.getPath(that);
@@ -162,7 +165,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeRelativePathWithDotDot() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "ab/cd";
 		final String other = "ab/xy/../xv";
 		final Path path = fileSystem.getPath(that);
@@ -173,7 +176,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeAbsolutePathWithDotDot() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "/ab/cd";
 		final String other = "/ab/xy/../xv";
 		final Path path = fileSystem.getPath(that);
@@ -184,7 +187,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeStartsWith() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "/ab/cd";
 		final String other = "/ab/cd/../../xv";
 		final Path path = fileSystem.getPath(that);
@@ -195,7 +198,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testRelativizeStartsWith2() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "/ab/cd/../../xv";
 		final String other = "/ab/cd";
 		final Path path = fileSystem.getPath(that);
@@ -206,7 +209,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalize() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/a/b/../../abc/././de");
 
 		assertEquals("/abc/de", path.normalize().toString());
@@ -214,7 +217,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalizeAbsolute() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/../b");
 
 		assertEquals("/b", path.normalize().toString());
@@ -222,7 +225,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalizeAbsolute2() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/../../b");
 
 		assertEquals("/b", path.normalize().toString());
@@ -230,7 +233,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalizeRelative() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("../b");
 
 		assertEquals("../b", path.normalize().toString());
@@ -238,7 +241,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNormalizeRelative2() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("../../b");
 
 		assertEquals("../../b", path.normalize().toString());
@@ -248,7 +251,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	public void testNormalizeToEmpty() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
 		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("de/..");
 
 		assertEquals("", path.normalize().toString());
@@ -258,7 +261,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	public void testNormalizeToEmptyObjectStore() {
 		ignoreAllExcept(S3, GS);
 
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("de/..");
 
 		assertEquals("./", path.normalize().toString());
@@ -266,7 +269,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testPathEquals() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path first = fileSystem.getPath("some-dir", "first-file.txt");
 		final Path sameFirst = fileSystem.getPath("some-dir", "first-file.txt");
 		final Path second = fileSystem.getPath("some-dir", "other-file.txt");
@@ -282,7 +285,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	public void testNormalizeToEmpty2() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
 		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
 		assertEquals("", path.normalize().toString());
@@ -290,7 +293,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	public void testNormalizeToEmpty2BlobStore() {
 		ignoreAllExcept(S3, GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
 		assertEquals("/", path.normalize().toString());
@@ -300,7 +303,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 	public void testEquals() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
 		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "as/de/";
 		final String other = "as/de";
 		final Path path = fileSystem.getPath(that);
@@ -311,7 +314,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testNotEqualRealtiveAndAbsolutPath() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final String that = "/abcd";
 		final String other = "abcd";
 		final Path path = fileSystem.getPath(that);
@@ -322,7 +325,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParent() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/a/b/c/d");
 
 		assertEquals(fileSystem.getPath("/a/b/c/"), path.getParent());
@@ -330,7 +333,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParentRelative() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("a/b/c/d");
 
 		assertEquals(fileSystem.getPath("a/b/c/"), path.getParent());
@@ -338,7 +341,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParentEmptyPath() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("");
 
 		assertEquals(null, path.getParent());
@@ -346,7 +349,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParentDot() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath(".");
 
 		assertEquals(null, path.getParent());
@@ -354,7 +357,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParentDotSlash() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("./");
 
 		assertEquals(null, path.getParent());
@@ -362,55 +365,17 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test
 	public void testGetParentAbsolutToNull2() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/");
 
 		assertEquals(null, path.getParent());
 	}
 
 	@Test
-	public void testGetFileName() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
-		final Path path = fileSystem.getPath("/abc/de");
-
-		assertEquals("de", path.getFileName().toString());
-	}
-
-	@Test
-	public void testGetFileNameEmpty() {
-		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
-		final Path path = fileSystem.getPath("");
-
-		assertEquals("", path.getFileName().toString());
-	}
-
-	@Test
-	public void testGetFileNameDot() {
-		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
-		final Path path = fileSystem.getPath(".");
-
-		assertEquals(".", path.getFileName().toString());
-	}
-
-	@Test
-	public void testGetFileNameDotSlash() {
-		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
-		final Path path = fileSystem.getPath("./");
-
-		assertEquals(".", path.getFileName().toString());
-	}
-
-	@Test
 	public void testGetName() {
 		ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
 		ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/abc/de/fg");
 
 		assertEquals("abc", path.getName(0).toString());
@@ -420,7 +385,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetNameNonexistent() {
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/abc");
 
 		path.getName(1).toString();
@@ -429,12 +394,27 @@ public class PathTest extends AbstractParameterizedFSTest {
 	@Test
 	public void testGetNameBlobStore() {
 		ignoreAllExcept(S3, GS);
-		final FileSystem fileSystem = m_connection.getFileSystem();
+		final FileSystem fileSystem = getFileSystem();
 		final Path path = fileSystem.getPath("/abc/de/fg");
 
 		assertEquals("abc/", path.getName(0).toString());
 		assertEquals("de/", path.getName(1).toString());
 		assertEquals("fg", path.getName(2).toString());
 	}
+
+    @Test
+    public void testGetRootSimple() {
+        final Path path = m_testInitializer.makePath("a", "b");
+        final Set<Path> roots = new HashSet<>();
+        getFileSystem().getRootDirectories().forEach(roots::add);
+        assertTrue(roots.contains(path.getRoot()));
+    }
+    
+    @Test
+    public void testGetRootNull() {
+        // a relative path should have a null root
+        final Path path = getFileSystem().getPath("a", "b");
+        assertNull(path.getRoot());
+    }
 
 }

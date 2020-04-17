@@ -15,6 +15,7 @@ import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.M
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.OutputStreamTest;
 import org.knime.filehandling.core.testing.integrationtests.path.CompareTest;
 import org.knime.filehandling.core.testing.integrationtests.path.EndsStartsWithTest;
+import org.knime.filehandling.core.testing.integrationtests.path.GetFileNameTest;
 import org.knime.filehandling.core.testing.integrationtests.path.PathTest;
 import org.knime.filehandling.core.testing.integrationtests.path.SubPathTest;
 import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
@@ -35,6 +36,7 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
 	PathTest.class,
 	ToStringTest.class,
 	EndsStartsWithTest.class,
+	GetFileNameTest.class,
 	CompareTest.class,
 	OutputStreamTest.class
 })
