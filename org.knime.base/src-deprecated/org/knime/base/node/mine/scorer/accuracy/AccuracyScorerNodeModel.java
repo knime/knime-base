@@ -44,61 +44,51 @@
  */
 package org.knime.base.node.mine.scorer.accuracy;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * The factory for the hilite scorer node.
- * 
+ * The hilite scorer node's model. The scoring is performed on two given columns set by the dialog. The row keys are
+ * stored for later hiliting purpose.
+ *
  * @author Christoph Sieb, University of Konstanz
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz
+ *
+ * @see AccuracyScorerNodeFactory
+ * @deprecated
  */
-public class AccuracyScorerNodeFactory 
-        extends NodeFactory<AccuracyScorerNodeModel> {
-    
-    /**
-     * {@inheritDoc}
-     */
+@Deprecated
+public class AccuracyScorerNodeModel extends AbstractAccuracyScorerNodeModel {
+
+    private static final DataColumnSpec[] QUALITY_MEASURES_SPECS =
+        new DataColumnSpec[]{new DataColumnSpecCreator("TruePositives", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("FalsePositives", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("TrueNegatives", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("FalseNegatives", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Recall", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Precision", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Sensitivity", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Specifity", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("F-measure", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Accuracy", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Cohen's kappa", DoubleCell.TYPE).createSpec()};
+
     @Override
-    public AccuracyScorerNodeModel createNodeModel() {
-        return new AccuracyScorerNodeModel();
+    DataColumnSpec[] getOutputSpecs() {
+        return QUALITY_MEASURES_SPECS;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public int getNrNodeViews() {
-        return 1;
-    }
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec spec = inSpecs[INPORT];
+        CheckUtils.checkSetting(!(spec.getNumColumns() < 2),
+            "The input table must have at least two colums to compare");
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<AccuracyScorerNodeModel> createNodeView(
-            final int i, final AccuracyScorerNodeModel nodeModel) {
-        if (i == 0) {
-            return new AccuracyScorerNodeView(nodeModel);
-        } else {
-            throw new IllegalArgumentException("No such view");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-
-        return new AccuracyScorerNodeDialog();
+        return super.configure(inSpecs);
     }
 }

@@ -44,31 +44,63 @@
  */
 package org.knime.base.node.mine.scorer.accuracy;
 
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * This implements the {@link AbstractAccuracyScorerNodeView} for the {@link AccuracyScorerNodeModel}.
+ * The factory for the hilite scorer node.
  *
- * @author Ole Ostergaard
+ * @author Christoph Sieb, University of Konstanz
+ * @deprecated
  */
-final class AccuracyScorerNodeView<M extends AbstractAccuracyScorerNodeModel>
-    extends AbstractAccuracyScorerNodeView<M> {
+@Deprecated
+public class AccuracyScorerNodeFactory
+        extends NodeFactory<AccuracyScorerNodeModel> {
 
     /**
-     * Delegates to super class. 
-     * Constructs the {@link NodeView} from the given {@link AccuracyScorerNodeModel}.
-     * 
-     * @param nodeModel
+     * {@inheritDoc}
      */
-    public AccuracyScorerNodeView(final M nodeModel) {
-        super(nodeModel);
+    @Override
+    public AccuracyScorerNodeModel createNodeModel() {
+        return new AccuracyScorerNodeModel();
     }
 
     /**
-     * {@inheritDoc} Returns the ScorerViewData from the {@link AccuracyScorerNodeModel}
+     * {@inheritDoc}
      */
     @Override
-    protected ScorerViewData getScorerViewData() {
-        return getNodeModel().getViewData();
+    public int getNrNodeViews() {
+        return 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<AccuracyScorerNodeModel> createNodeView(
+            final int i, final AccuracyScorerNodeModel nodeModel) {
+        if (i == 0) {
+            return new AccuracyScorerNodeView<AccuracyScorerNodeModel>(nodeModel);
+        } else {
+            throw new IllegalArgumentException("No such view");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+
+        return new AccuracyScorerNodeDialog();
     }
 }

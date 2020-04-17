@@ -1030,15 +1030,20 @@
             >
       </node>
       <node
+      		deprecated="true"
             category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.mine.scorer.accuracy.AccuracyScorerNodeFactory"
             >
       </node>
       <node
             category-path="/analytics/mining/modeleval"
+            factory-class="org.knime.base.node.mine.scorer.accuracy.AccuracyScorer2NodeFactory"
+            >
+      </node>
+      <node
+            category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.mine.scorer.numeric2.NumericScorer2NodeFactory"
-            
-            after="org.knime.base.node.mine.scorer.accuracy.AccuracyScorerNodeFactory"/>
+            after="org.knime.base.node.mine.scorer.accuracy.AccuracyScorer2NodeFactory"/>
       <node
             category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.mine.scorer.numeric.NumericScorerNodeFactory"

@@ -44,31 +44,44 @@
  */
 package org.knime.base.node.mine.scorer.accuracy;
 
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * This implements the {@link AbstractAccuracyScorerNodeView} for the {@link AccuracyScorerNodeModel}.
+ * The factory for the hilite scorer node.
  *
- * @author Ole Ostergaard
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz
+ * @since 4.2
  */
-final class AccuracyScorerNodeView<M extends AbstractAccuracyScorerNodeModel>
-    extends AbstractAccuracyScorerNodeView<M> {
+public final class AccuracyScorer2NodeFactory extends NodeFactory<AccuracyScorer2NodeModel> {
 
-    /**
-     * Delegates to super class. 
-     * Constructs the {@link NodeView} from the given {@link AccuracyScorerNodeModel}.
-     * 
-     * @param nodeModel
-     */
-    public AccuracyScorerNodeView(final M nodeModel) {
-        super(nodeModel);
+    @Override
+    public AccuracyScorer2NodeModel createNodeModel() {
+        return new AccuracyScorer2NodeModel();
     }
 
-    /**
-     * {@inheritDoc} Returns the ScorerViewData from the {@link AccuracyScorerNodeModel}
-     */
     @Override
-    protected ScorerViewData getScorerViewData() {
-        return getNodeModel().getViewData();
+    public int getNrNodeViews() {
+        return 1;
+    }
+
+    @Override
+    public NodeView<AccuracyScorer2NodeModel> createNodeView(final int i, final AccuracyScorer2NodeModel nodeModel) {
+        if (i == 0) {
+            return new AccuracyScorerNodeView<AccuracyScorer2NodeModel>(nodeModel);
+        } else {
+            throw new IllegalArgumentException("No such view");
+        }
+    }
+
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new AccuracyScorer2NodeDialog();
     }
 }

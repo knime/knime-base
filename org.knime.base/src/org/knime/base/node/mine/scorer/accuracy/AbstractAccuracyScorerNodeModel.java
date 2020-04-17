@@ -73,13 +73,13 @@ import org.knime.base.util.SortingStrategy;
 import org.knime.base.util.StringValueComparator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -104,13 +104,15 @@ import org.knime.core.node.workflow.FlowVariable;
  * stored for later hiliting purpose.
  *
  * @author Christoph Sieb, University of Konstanz
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz
  *
  * @see AccuracyScorerNodeFactory
+ * @since 4.2
  */
-public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
+public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implements DataProvider {
 
     /** The node logger for this class. */
-    protected static final NodeLogger LOGGER = NodeLogger.getLogger(AccuracyScorerNodeModel.class);
+    protected static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractAccuracyScorerNodeModel.class);
 
     /** Identifier in model spec to address first column name to compare. */
     static final String FIRST_COMP_ID = "first";
@@ -147,14 +149,10 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
 
     private ScorerViewData m_viewData;
 
-    /**
-     * New instance of a HiLiteHandler return on the confusion matrix out-port.
-     */
+    /** New instance of a HiLiteHandler return on the confusion matrix out-port. */
     private final HiLiteHandler m_cmHiLiteHandler = new HiLiteHandler();
 
-    /**
-     * New instance of a HiLiteHandler return on the accuracy measures out-port.
-     */
+    /** New instance of a HiLiteHandler return on the accuracy measures out-port. */
     private final HiLiteHandler m_amHiLiteHandler = new HiLiteHandler();
 
     /** The name of the first column to compare. */
@@ -163,16 +161,22 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
     /** The name of the second column to compare. */
     private String m_secondCompareColumn;
 
+    /** Sorting order flag */
     private boolean m_sortingReversed;
 
-    private SortingStrategy m_sortingStrategy =  SortingStrategy.InsertionOrder;
+    /** Sorting strategy */
+    private SortingStrategy m_sortingStrategy = SortingStrategy.InsertionOrder;
 
+    /** Missing values flag */
     private boolean m_ignoreMissingValues = true;
 
     /** Inits a new <code>ScorerNodeModel</code> with one in- and one output. */
-    AccuracyScorerNodeModel() {
+    AbstractAccuracyScorerNodeModel() {
         super(1, 2);
     }
+
+    /** Returns the outputspec */
+    abstract DataColumnSpec[] getOutputSpecs();
 
     /**
      * Starts the scoring in the scorer.
@@ -225,41 +229,46 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
         int falseCount = 0;
         int missingCount = 0;
         ExecutionMonitor subExec = exec.createSubProgress(0.5);
-        for (Iterator<DataRow> it = in.iterator(); it.hasNext(); numberOfRows++) {
-            DataRow row = it.next();
-            subExec.setProgress((1.0 + numberOfRows) / rowCnt, "Computing score, row " + numberOfRows + " (\"" + row.getKey()
-                + "\") of " + in.size());
-            try {
-                subExec.checkCanceled();
-            } catch (CanceledExecutionException cee) {
-                reset();
-                throw cee;
-            }
-            DataCell cell1 = row.getCell(index1);
-            DataCell cell2 = row.getCell(index2);
-            valuesInCol2.add(cell2);
-            if (cell1.isMissing() || cell2.isMissing()) {
-                ++missingCount;
-                CheckUtils.checkState(m_ignoreMissingValues, "Missing value in row: " + row.getKey());
-                if (m_ignoreMissingValues) {
-                    continue;
+
+        try (CloseableRowIterator it = in.iterator()) {
+            while (it.hasNext()) {
+                final int curRow = ++numberOfRows;
+
+                DataRow row = it.next();
+                subExec.setProgress((1.0 + numberOfRows) / rowCnt,
+                    () -> "Computing score, row " + curRow + " (\"" + row.getKey() + "\") of " + in.size());
+                try {
+                    subExec.checkCanceled();
+                } catch (CanceledExecutionException cee) {
+                    reset();
+                    throw cee;
                 }
-            }
-            boolean areEqual = cell1.equals(cell2);
+                DataCell cell1 = row.getCell(index1);
+                DataCell cell2 = row.getCell(index2);
+                valuesInCol2.add(cell2);
+                if (cell1.isMissing() || cell2.isMissing()) {
+                    ++missingCount;
+                    CheckUtils.checkState(m_ignoreMissingValues, "Missing value in row: " + row.getKey());
+                    if (m_ignoreMissingValues) {
+                        continue;
+                    }
+                }
+                boolean areEqual = cell1.equals(cell2);
 
-            int i1 = valuesList.indexOf(cell1);
-            int i2 = areEqual ? i1 : valuesList.indexOf(cell2);
-            assert i1 >= 0 : "column spec lacks possible value " + cell1;
-            assert i2 >= 0 : "column spec lacks possible value " + cell2;
-            // i2 must be equal to i1 if cells are equal (implication)
-            assert (!areEqual || i1 == valuesList.indexOf(cell2));
-            keyStore[i1][i2].add(row.getKey());
-            scorerCount[i1][i2]++;
+                int i1 = valuesList.indexOf(cell1);
+                int i2 = areEqual ? i1 : valuesList.indexOf(cell2);
+                assert i1 >= 0 : "column spec lacks possible value " + cell1;
+                assert i2 >= 0 : "column spec lacks possible value " + cell2;
+                // i2 must be equal to i1 if cells are equal (implication)
+                assert (!areEqual || i1 == valuesList.indexOf(cell2));
+                keyStore[i1][i2].add(row.getKey());
+                scorerCount[i1][i2]++;
 
-            if (areEqual) {
-                correctCount++;
-            } else {
-                falseCount++;
+                if (areEqual) {
+                    correctCount++;
+                } else {
+                    falseCount++;
+                }
             }
         }
 
@@ -295,8 +304,7 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
                 targetValues[i] = newName;
                 if (!hasPrintedWarningOnAmbiguousValues) {
                     hasPrintedWarningOnAmbiguousValues = true;
-                    addWarning("Ambiguous value \"" + c.toString()
-                        + "\" encountered. Preserving individual instances;"
+                    addWarning("Ambiguous value \"" + c.toString() + "\" encountered. Preserving individual instances;"
                         + " consider to convert input columns to string");
                 }
             } else {
@@ -320,9 +328,8 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
         }
         container.close();
 
-        ScorerViewData viewData =
-            new ScorerViewData(scorerCount, numberOfRows, falseCount, correctCount, m_firstCompareColumn,
-                m_secondCompareColumn, targetValues, keyStore);
+        ScorerViewData viewData = new ScorerViewData(scorerCount, numberOfRows, falseCount, correctCount,
+            m_firstCompareColumn, m_secondCompareColumn, targetValues, keyStore);
 
         // print info
         int missing = numberOfRows - correctCount - falseCount;
@@ -332,7 +339,7 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
         BufferedDataTable result = container.getTable();
 
         // start creating accuracy statistics
-        BufferedDataContainer accTable = exec.createDataContainer(new DataTableSpec(QUALITY_MEASURES_SPECS));
+        BufferedDataContainer accTable = exec.createDataContainer(new DataTableSpec(getOutputSpecs()));
         for (int r = 0; r < targetValues.length; r++) {
             int tp = viewData.getTP(r); // true positives
             int fp = viewData.getFP(r); // false positives
@@ -358,16 +365,15 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
             }
             final DataCell fmeasure; // 2 * Prec. * Recall / (Prec. + Recall)
             if (recall != null && prec != null) {
-                fmeasure =
-                    new DoubleCell(2.0 * prec.getDoubleValue() * recall.getDoubleValue()
-                        / (prec.getDoubleValue() + recall.getDoubleValue()));
+                fmeasure = new DoubleCell(2.0 * prec.getDoubleValue() * recall.getDoubleValue()
+                    / (prec.getDoubleValue() + recall.getDoubleValue()));
             } else {
                 fmeasure = DataType.getMissingCell();
             }
             // add complete row for class value to table
-            DataRow row =
-                new DefaultRow(new RowKey(targetValues[r]), new DataCell[]{new IntCell(tp), new IntCell(fp),
-                    new IntCell(tn), new IntCell(fn), recall == null ? DataType.getMissingCell() : recall,
+            DataRow row = new DefaultRow(new RowKey(targetValues[r]),
+                new DataCell[]{new IntCell(tp), new IntCell(fp), new IntCell(tn), new IntCell(fn),
+                    recall == null ? DataType.getMissingCell() : recall,
                     prec == null ? DataType.getMissingCell() : prec, sensitivity, specificity, fmeasure,
                     DataType.getMissingCell(), DataType.getMissingCell()});
             accTable.addRowToTable(row);
@@ -379,10 +385,11 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
             overallID = new RowKey("Overall (#" + (uniquifier++) + ")");
         }
         // append additional row for overall accuracy
-        accTable.addRowToTable(new DefaultRow(overallID, new DataCell[]{DataType.getMissingCell(),
-            DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
-            DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
-            new DoubleCell(viewData.getAccuracy()), new DoubleCell(viewData.getCohenKappa())}));
+        accTable.addRowToTable(new DefaultRow(overallID,
+            new DataCell[]{DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
+                DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
+                DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
+                new DoubleCell(viewData.getAccuracy()), new DoubleCell(viewData.getCohenKappa())}));
         accTable.close();
 
         m_viewData = viewData;
@@ -416,9 +423,8 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
         String correctName = prefix + "#Correct";
         String falseName = prefix + "#False";
         String kappaName = prefix + "Cohen's kappa";
-        if (isConfigureOnly
-            && (vars.containsKey(accuracyName) || vars.containsKey(errorName) || vars.containsKey(correctName)
-                || vars.containsKey(falseName) || vars.containsKey(kappaName))) {
+        if (isConfigureOnly && (vars.containsKey(accuracyName) || vars.containsKey(errorName)
+            || vars.containsKey(correctName) || vars.containsKey(falseName) || vars.containsKey(kappaName))) {
             addWarning("A flow variable was replaced!");
         }
 
@@ -462,36 +468,16 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        if (inSpecs[INPORT].getNumColumns() < 2) {
-            throw new InvalidSettingsException("The input table must have at least two colums to compare");
-        }
-        if ((m_firstCompareColumn == null) || (m_secondCompareColumn == null)) {
-            throw new InvalidSettingsException("No columns selected yet.");
-        }
-        if (!inSpecs[INPORT].containsName(m_firstCompareColumn)) {
-            throw new InvalidSettingsException("Column " + m_firstCompareColumn + " not found.");
-        }
-        if (!inSpecs[INPORT].containsName(m_secondCompareColumn)) {
-            throw new InvalidSettingsException("Column " + m_secondCompareColumn + " not found.");
-        }
-
+        final DataTableSpec spec = inSpecs[INPORT];
+        CheckUtils.checkSetting(((m_firstCompareColumn != null) || (m_secondCompareColumn != null)),
+            "No columns selected yet.");
+        CheckUtils.checkSetting((spec.containsName(m_firstCompareColumn)), "Column '%s' not found.",
+            m_firstCompareColumn);
+        CheckUtils.checkSetting((spec.containsName(m_secondCompareColumn)), "Column '%s' not found.",
+            m_secondCompareColumn);
         pushFlowVars(true);
-        return new DataTableSpec[]{null, new DataTableSpec(QUALITY_MEASURES_SPECS)};
+        return new DataTableSpec[]{null, new DataTableSpec(getOutputSpecs())};
     }
-
-    private static final DataColumnSpec[] QUALITY_MEASURES_SPECS = new DataColumnSpec[]{
-        new DataColumnSpecCreator("TruePositives", IntCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("FalsePositives", IntCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("TrueNegatives", IntCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("FalseNegatives", IntCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Recall", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Precision", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Sensitivity", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Specifity", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("F-measure", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Accuracy", DoubleCell.TYPE).createSpec(),
-        new DataColumnSpecCreator("Cohen's kappa", DoubleCell.TYPE).createSpec()};
-
 
     /**
      * Get the correct classification count, i.e. where both columns agree.
@@ -514,7 +500,6 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
     public int getFalseCount() {
         return m_viewData.getFalseCount();
     }
-
 
     /**
      * @return ratio of wrong classified and all patterns
@@ -543,7 +528,6 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
             return 1.0 * getCorrectCount() / (getCorrectCount() + getFalseCount());
         }
     }
-
 
     /**
      * {@inheritDoc}
@@ -763,29 +747,29 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec) throws IOException {
         File f = new File(internDir, "internals.xml.gz");
-        InputStream in = new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)));
-        try {
-            NodeSettingsRO set = NodeSettings.loadFromXML(in);
-            int correctCount = set.getInt("correctCount");
-            int falseCount = set.getInt("falseCount");
-            int nrRows = set.getInt("nrRows");
-            String[] targetValues = set.getStringArray("values");
-            int[][] scorerCount = new int[targetValues.length][];
-            List<RowKey>[][] keyStore = new List[targetValues.length][targetValues.length];
-            for (int i = 0; i < targetValues.length; i++) {
-                NodeSettingsRO sub = set.getNodeSettings(targetValues[i]);
-                scorerCount[i] = sub.getIntArray("scorerCount");
-                NodeSettingsRO subSub = sub.getNodeSettings("hilightMap");
-                for (int j = 0; j < targetValues.length; j++) {
-                    NodeSettingsRO sub3 = subSub.getNodeSettings(targetValues[j]);
-                    keyStore[i][j] = Arrays.asList(sub3.getRowKeyArray("keyStore"));
+        try (InputStream in = new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+            try {
+                NodeSettingsRO set = NodeSettings.loadFromXML(in);
+                int correctCount = set.getInt("correctCount");
+                int falseCount = set.getInt("falseCount");
+                int nrRows = set.getInt("nrRows");
+                String[] targetValues = set.getStringArray("values");
+                int[][] scorerCount = new int[targetValues.length][];
+                List<RowKey>[][] keyStore = new List[targetValues.length][targetValues.length];
+                for (int i = 0; i < targetValues.length; i++) {
+                    NodeSettingsRO sub = set.getNodeSettings(targetValues[i]);
+                    scorerCount[i] = sub.getIntArray("scorerCount");
+                    NodeSettingsRO subSub = sub.getNodeSettings("hilightMap");
+                    for (int j = 0; j < targetValues.length; j++) {
+                        NodeSettingsRO sub3 = subSub.getNodeSettings(targetValues[j]);
+                        keyStore[i][j] = Arrays.asList(sub3.getRowKeyArray("keyStore"));
+                    }
                 }
-            }
-            m_viewData =
-                new ScorerViewData(scorerCount, nrRows, falseCount, correctCount, m_firstCompareColumn,
+                m_viewData = new ScorerViewData(scorerCount, nrRows, falseCount, correctCount, m_firstCompareColumn,
                     m_secondCompareColumn, targetValues, keyStore);
-        } catch (InvalidSettingsException ise) {
-            throw new IOException("Unable to read internals", ise);
+            } catch (InvalidSettingsException ise) {
+                throw new IOException("Unable to read internals", ise);
+            }
         }
     }
 
@@ -812,8 +796,10 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
             }
         }
 
-        set.saveToXML(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(new File(internDir,
-            "internals.xml.gz")))));
+        try (GZIPOutputStream gzs = new GZIPOutputStream(
+            new BufferedOutputStream(new FileOutputStream(new File(internDir, "internals.xml.gz"))))) {
+            set.saveToXML(gzs);
+        }
     }
 
     /**
@@ -883,6 +869,7 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
     }
 
     /**
+     * @return number of rows
      * @deprecated use {@link #getViewData()} instead
      */
     @Deprecated
@@ -891,8 +878,8 @@ public class AccuracyScorerNodeModel extends NodeModel implements DataProvider {
     }
 
     /**
-     * Returns the data that should be displayed in the node's view. May be null if the data has not been computed
-     * in {@link #execute(BufferedDataTable[], ExecutionContext)} yet.
+     * Returns the data that should be displayed in the node's view. May be null if the data has not been computed in
+     * {@link #execute(BufferedDataTable[], ExecutionContext)} yet.
      *
      * @return the view data or <code>null</code>
      */

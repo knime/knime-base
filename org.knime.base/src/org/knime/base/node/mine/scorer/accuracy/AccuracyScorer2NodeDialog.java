@@ -85,7 +85,7 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  * @author Christoph Sieb, University of Konstanz
  * @author Thomas Gabriel, University of Konstanz
  */
-public class AccuracyScorerNodeDialog extends NodeDialogPane {
+class AccuracyScorer2NodeDialog extends NodeDialogPane {
     /*
      * The text field for the first column to compare The first column
      * represents the real classes of the data
@@ -127,7 +127,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * Creates a new {@link NodeDialogPane} for scoring in order to set the two
      * columns to compare.
      */
-    public AccuracyScorerNodeDialog() {
+    public AccuracyScorer2NodeDialog() {
         this(true);
     }
 
@@ -137,7 +137,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * @param missingValueOption whether the missing value option should be shown in the dialogue
      * @since 3.2 Added flag for optional display of the missing value option.
      */
-    public AccuracyScorerNodeDialog(final boolean missingValueOption) {
+    public AccuracyScorer2NodeDialog(final boolean missingValueOption) {
         super();
         m_missingValueOption = missingValueOption;
         JPanel p = new JPanel();
@@ -165,7 +165,6 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
 
         secondColumnPanel.add(flowLayout);
 
-
         m_flowvariableBox = new JCheckBox("Use name prefix");
         m_flowVariablePrefixTextField = new JTextField(10);
         m_flowVariablePrefixTextField.setSize(new Dimension(10, 3));
@@ -184,7 +183,6 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         });
         m_flowvariableBox.doClick(); // sync states
 
-
         JPanel thirdColumnPanel = new JPanel(new GridLayout(1, 1));
         thirdColumnPanel.setBorder(BorderFactory
                 .createTitledBorder("Provide scores as flow variables"));
@@ -192,7 +190,6 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         flowLayout.add(m_flowvariableBox);
         flowLayout.add(m_flowVariablePrefixTextField);
         thirdColumnPanel.add(flowLayout);
-
 
         p.add(firstColumnPanel);
 
@@ -245,7 +242,6 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         }
         super.addTab("Scorer", p);
     } // ScorerNodeDialog(NodeModel)
-
 
     /**
      * Fills the two combo boxes with all column names retrieved from the input
@@ -304,7 +300,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         }
         m_sortingOptions.updateControls();
         if (m_missingValueOption) {
-            boolean ignoreMissingValues = settings.getBoolean(AccuracyScorerNodeModel.ACTION_ON_MISSING_VALUES, AccuracyScorerNodeModel.DEFAULT_IGNORE_MISSING_VALUES);
+            boolean ignoreMissingValues = settings.getBoolean(AbstractAccuracyScorerNodeModel.ACTION_ON_MISSING_VALUES, AbstractAccuracyScorerNodeModel.DEFAULT_IGNORE_MISSING_VALUES);
             m_ignoreMissingValues.setSelected(ignoreMissingValues);
             m_failOnMissingValues.setSelected(!ignoreMissingValues);
         }
@@ -338,7 +334,6 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         settings.addString(getFirstCompID(), firstColumn);
         settings.addString(getSecondCompID(), secondColumn);
 
-
         boolean useFlowVar = m_flowvariableBox.isSelected();
 
         String flowVariableName = m_flowVariablePrefixTextField.getText();
@@ -349,7 +344,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         m_sortingOptions.saveDefault(settings);
 
         if (m_missingValueOption) {
-            settings.addBoolean(AccuracyScorerNodeModel.ACTION_ON_MISSING_VALUES, m_ignoreMissingValues.isSelected());
+            settings.addBoolean(AbstractAccuracyScorerNodeModel.ACTION_ON_MISSING_VALUES, m_ignoreMissingValues.isSelected());
         }
     }
 
@@ -394,7 +389,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * @since 3.2
      */
     protected int getDataInputPortIndex() {
-        return AccuracyScorerNodeModel.INPORT;
+        return AbstractAccuracyScorerNodeModel.INPORT;
     }
 
     /**
@@ -405,7 +400,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * @since 3.2
      */
     protected String getFirstCompID() {
-        return AccuracyScorerNodeModel.FIRST_COMP_ID;
+        return AbstractAccuracyScorerNodeModel.FIRST_COMP_ID;
     }
 
     /**
@@ -416,7 +411,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * @since 3.2
      */
     protected String getSecondCompID() {
-        return AccuracyScorerNodeModel.SECOND_COMP_ID;
+        return AbstractAccuracyScorerNodeModel.SECOND_COMP_ID;
     }
 
     /**
@@ -427,7 +422,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
      * @since 3.2
      */
     protected String getFlowVarPrefix() {
-        return AccuracyScorerNodeModel.FLOW_VAR_PREFIX;
+        return AbstractAccuracyScorerNodeModel.FLOW_VAR_PREFIX;
     }
 
     /**

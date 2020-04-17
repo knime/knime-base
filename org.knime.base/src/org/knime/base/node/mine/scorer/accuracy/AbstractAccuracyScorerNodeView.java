@@ -80,18 +80,18 @@ import org.knime.core.node.property.hilite.HiLiteListener;
 import org.knime.core.node.property.hilite.KeyEvent;
 
 /**
- * This view displays the scoring results. It needs to be hooked up with a
- * scoring model.
- * 
- * It extends the {@link NodeView} and implements the {@link HiLiteListener} for accuracy scorers. 
- * The provided hiliting functionality is optional.
- * 
+ * This view displays the scoring results. It needs to be hooked up with a scoring model.
+ *
+ * It extends the {@link NodeView} and implements the {@link HiLiteListener} for accuracy scorers. The provided hiliting
+ * functionality is optional.
+ *
  * @author Christoph Sieb, University of Konstanz
  * @author Ole Ostergaard
  * @param <M> the extended {@link NodeModel} for the accuracy scorer
  * @since 3.2
  */
-public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extends NodeView<M> implements HiLiteListener {
+public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extends NodeView<M>
+    implements HiLiteListener {
 
     /*
      * Components displaying the scorer table, number of correct/wrong
@@ -116,25 +116,22 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
     /**
      * Creates a new ScorerNodeView displaying the table with the score.
      *
-     * The view consists of the table with the example data and the appropriate
-     * scoring in the upper part and the summary of correct and wrong classified
-     * examples in the lower part.
+     * The view consists of the table with the example data and the appropriate scoring in the upper part and the
+     * summary of correct and wrong classified examples in the lower part.
      *
-     * @param nodeModel
-     *            the underlying <code>NodeModel</code>
+     * @param nodeModel the underlying <code>NodeModel</code>
      */
     public AbstractAccuracyScorerNodeView(final M nodeModel) {
         this(nodeModel, true);
     }
+
     /**
      * Creates a new ScorerNodeView displaying the table with the score.
      *
-     * The view consists of the table with the example data and the appropriate
-     * scoring in the upper part and the summary of correct and wrong classified
-     * examples in the lower part.
+     * The view consists of the table with the example data and the appropriate scoring in the upper part and the
+     * summary of correct and wrong classified examples in the lower part.
      *
-     * @param nodeModel
-     *            the underlying <code>NodeModel</code>
+     * @param nodeModel the underlying <code>NodeModel</code>
      * @param hiLite whether hiliting is enabled
      */
     public AbstractAccuracyScorerNodeView(final M nodeModel, final boolean hiLite) {
@@ -147,8 +144,7 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         m_tableView = new JTable();
         m_tableView.setRowSelectionAllowed(false);
         m_tableView.setCellSelectionEnabled(true);
-        m_tableView.setDefaultRenderer(Object.class,
-                new AttributiveCellRenderer());
+        m_tableView.setDefaultRenderer(Object.class, new AttributiveCellRenderer());
         m_tableView.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         JScrollPane scrollPane = new JScrollPane(m_tableView);
 
@@ -186,7 +182,6 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         labelPanel.add(m_cohenKappa);
         summary.add(labelPanel);
 
-
         JPanel outerPanel = new JPanel(new BorderLayout());
         outerPanel.add(scrollPane, BorderLayout.CENTER);
         outerPanel.add(summary, BorderLayout.SOUTH);
@@ -207,8 +202,8 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
      * @param kappaTooltip the String for the kappa {@link JLabel} tooltip can be {@code null}
      */
     protected void setLabels(final String correctCount, final String wrongCount, final String error,
-        final String errorTooltip, final String accuracy, final String accuracyTooltip,
-        final String kappa, final String kappaTooltip) {
+        final String errorTooltip, final String accuracy, final String accuracyTooltip, final String kappa,
+        final String kappaTooltip) {
         m_correct.setText(correctCount);
         m_wrong.setText(wrongCount);
         m_error.setText(error);
@@ -219,6 +214,7 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         m_cohenKappa.setToolTipText(kappaTooltip);
 
     }
+
     /**
      * Sets the all labels and for the accuracy, error and cohen's kappa it also sets deviated tooltips for the view.
      *
@@ -228,7 +224,8 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
      * @param accuracy the accuracy
      * @param kappa cohen's kappa
      */
-    protected void setLabels(final int correctCount, final int wrongCount, final double error, final double accuracy, final double kappa) {
+    protected void setLabels(final int correctCount, final int wrongCount, final double error, final double accuracy,
+        final double kappa) {
         NumberFormat nf = NumberFormat.getInstance();
         setLabels(nf.format(correctCount), nf.format(wrongCount), nf.format(error), "Error: " + error + " %",
             nf.format(accuracy), "Accuracy: " + accuracy + " %", nf.format(kappa), "Cohen's \u03BA: " + kappa);
@@ -251,7 +248,7 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         m_cellHilited = cellHilited;
     }
 
-     /**
+    /**
      * Get a new menu to control hiliting for this view.
      *
      * @return a new JMenu with hiliting buttons
@@ -371,16 +368,15 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
             updateHilitedCells();
         }
 
-        ConfusionTableModel dataModel = new ConfusionTableModel(viewData.getScorerCount(),
-            viewData.getTargetValues(), rowHeaderDescription, columnHeaderDescription);
+        ConfusionTableModel dataModel = new ConfusionTableModel(viewData.getScorerCount(), viewData.getTargetValues(),
+            rowHeaderDescription, columnHeaderDescription);
 
         setTableViewModel(dataModel);
 
         double error = 100.0 * viewData.getError();
         double accuracy = 100.0 * viewData.getAccuracy();
         double cohenKappa = viewData.getCohenKappa();
-        setLabels(viewData.getCorrectCount(), viewData.getFalseCount(),
-            error , accuracy, cohenKappa);
+        setLabels(viewData.getCorrectCount(), viewData.getFalseCount(), error, accuracy, cohenKappa);
 
     }
 
@@ -469,18 +465,16 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
             setOpaque(true);
         }
 
-        /**{@inheritDoc} */
+        /** {@inheritDoc} */
         @Override
-        public Component getTableCellRendererComponent(final JTable table,
-                final Object value, final boolean isSelected,
-                final boolean hasFocus, final int row, final int column) {
+        public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+            final boolean hasFocus, final int row, final int column) {
 
             // default background is white
             this.setBackground(Color.white);
 
             // first let the parent render this cell
-            super.getTableCellRendererComponent(table, value, isSelected,
-                    hasFocus, row, column);
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
             // the first column is always grey and the text is black
             if (column == 0) {
@@ -523,7 +517,7 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
     }
 
     /**
-     *  Update the hilited cells
+     * Update the hilited cells
      */
     protected void updateHilitedCells() {
         // fix: don't update hilite when the model is not executed
@@ -533,8 +527,7 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         }
 
         if (getNodeModel().getInHiLiteHandler(0) != null) {
-            Set<RowKey> hilitedKeys = getNodeModel().getInHiLiteHandler(0)
-                    .getHiLitKeys();
+            Set<RowKey> hilitedKeys = getNodeModel().getInHiLiteHandler(0).getHiLitKeys();
 
             Point[] completeHilitedCells = viewData.getCompleteHilitedCells(hilitedKeys);
 
@@ -546,9 +539,8 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
     }
 
     /**
-     * Checks for all hilit cells the model. If a key noted as unhilit in the
-     * event occurs in a hilit cell the cell is unhilit (principle of
-     * correctness!!)
+     * Checks for all hilit cells the model. If a key noted as unhilit in the event occurs in a hilit cell the cell is
+     * unhilit (principle of correctness!!)
      *
      * {@inheritDoc}
      */
