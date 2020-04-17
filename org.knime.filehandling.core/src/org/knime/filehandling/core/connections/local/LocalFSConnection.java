@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.connections.local;
 
 import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
 

@@ -43,110 +43,60 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   09.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.filechooser;
+package org.knime.filehandling.core.connections.local;
 
-import java.awt.Component;
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 
+import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
 
-import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 
 /**
- * {@link FileSystemBrowser} implementation for NioFileSystems.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * A file system browser that makes use of the {@link JFileChooser} to browse the local file system.
+ *
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
+public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
-    private final NioFileSystemView m_fileSystemView;
-
-    /**
-     * Constructs a new NioFileSystemBrowser.
-     *
-     * @param connection the connection to create a browser for
-     */
-    public NioFileSystemBrowser(final FSConnection connection) {
-        m_fileSystemView = new NioFileSystemView(connection);
-    }
-
-    /**
-     * Constructs a new NioFileSystemBrowser.
-     *
-     * @param fileSystemView the FileSystemView to create a browser for
-     */
-    public NioFileSystemBrowser(final NioFileSystemView fileSystemView) {
-        m_fileSystemView = fileSystemView;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isCompatible() {
         return NodeContext.getContext().getNodeContainer() != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected FileSystemView getFileSystemView() {
-        return m_fileSystemView;
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected FileView getFileView() {
-        return new NioFileView();
+        return null;
     }
 
-    /**
-     * Create a file with a normalized absolute path, this ensures that a path equals and
-     * sun.awt.shell.ShellFolder#getNormalizedFile(File) does not create a new {@link File} using an URI.
-     */
     @Override
-    protected File createFileFromPath(final String filePath) {
+    protected File createFileFromPath(final String path) {
         try {
-            return m_fileSystemView.createFileObject(filePath).toPath().toAbsolutePath().normalize().toFile();
-        } catch (Exception ex) {
-            // returning null instead of throwing an exception will ensure the default directory is opened on browse
-            return null;
+            URL url = FileUtil.toURL(path);
+            Path localPath = FileUtil.resolveToPath(url);
+            if (localPath != null) {
+                return localPath.toFile();
+            }
+        } catch (IOException | URISyntaxException | InvalidPathException ex) {
+            // ignore
         }
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected File addFileExtension(final File file, final String fileExtension) {
-        if (file instanceof NioFile) {
-            return ((NioFile)file).withFileExtension(fileExtension);
-        }
-
-        return super.addFileExtension(file, fileExtension);
-    }
-
-    @Override
-    public String openDialogAndGetSelectedFileName(final FileSelectionMode fileSelectionMode,
-        final DialogType dialogType, final Component parent, final String forcedFileExtensionOnSave,
-        final String selectedFile, final String[] suffixes) {
-
-        // Provide the parent component to the view to show failure dialogs bounded to parent component.
-        try {
-            m_fileSystemView.setParentView(parent);
-            return super.openDialogAndGetSelectedFileName(fileSelectionMode, dialogType, parent,
-                forcedFileExtensionOnSave, selectedFile, suffixes);
-        } finally {
-            m_fileSystemView.setParentView(null);
-        }
-    }
 }
