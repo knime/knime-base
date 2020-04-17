@@ -61,6 +61,7 @@ import org.knime.core.node.NodeLogger;
  * @author wiswedel, University of Konstanz
  */
 public class BitVectorPerformanceComparisonBug1532 {
+
     @Test
     public void testCompareCreate() throws Throwable {
         int size = 500000;
@@ -92,7 +93,11 @@ public class BitVectorPerformanceComparisonBug1532 {
         long sumOfRuntimesNew = 0;
         long sumOfRuntimesOld = 0;
 
-        for (int runId = 0; runId < nRuns; runId++) {
+        // do a garbage collection and run a couple warmup iterations
+        System.gc();
+        final int warmupRuns = 5;
+
+        for (int runId = 0; runId < nRuns + warmupRuns; runId++) {
             final int length = 16384 + new Random(runId).nextInt(16384);
             DenseBitVectorCell[] newCells = createNewDenseBitVectorCells(size, length, runId);
             BitVectorCell[] oldCells = createOldBitVectorCells(size, length, runId);
@@ -119,8 +124,10 @@ public class BitVectorPerformanceComparisonBug1532 {
             NodeLogger.getLogger(BitVectorPerformanceComparisonBug1532.class).info(
                 "tanimoto calculation new: " + timeForNew);
 
-            sumOfRuntimesNew += timeForNew;
-            sumOfRuntimesOld += timeForOld;
+            if (runId >= warmupRuns) {
+                sumOfRuntimesNew += timeForNew;
+                sumOfRuntimesOld += timeForOld;
+            }
         }
 
         assertTrue("Tanimoto calculation of new bit vector cells takes much "
