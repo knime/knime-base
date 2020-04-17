@@ -47,6 +47,9 @@ package org.knime.base.node.mine.scorer.accuracy;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.NominalValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -83,6 +86,10 @@ final class AccuracyScorer2NodeModel extends AbstractAccuracyScorerNodeModel {
         final DataTableSpec spec = inSpecs[INPORT];
         CheckUtils.checkSetting(!(spec.getNumColumns() < 2),
             "The input table must have at least two colums to compare");
+        CheckUtils.checkSetting(
+            (spec.containsCompatibleType(StringValue.class) || spec.containsCompatibleType(LongValue.class)
+                || spec.containsCompatibleType(NominalValue.class)),
+            "No column in spec compatibile to \"LongValue\", \"StringValue\" or \"NominalValue\"");
 
         return super.configure(inSpecs);
     }
