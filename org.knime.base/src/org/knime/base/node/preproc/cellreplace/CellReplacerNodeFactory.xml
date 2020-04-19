@@ -44,6 +44,12 @@
         <option name="Append/Replace Result Column">Select the checkbox and 
             enter a new column name that will contain the mapped output. 
             If unselected, the result will replace the target column.</option>
+        <option name="Copy metadata from replacement column">Check the box if any meta data
+            from the "replacement" column should be retained in the output. This includes
+            domain information, any color/size/shape handlers, names of the elements if 
+            the column represents a collection, etc. This option can only be selected if
+            non-matches are represented as missing values (as opposed to copy the previous value). 
+            If in doubt, leave this option selected. </option>
     </fullDescription>
     
     <ports>
