@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -117,6 +118,9 @@ public class CellReplacerNodeModel extends NodeModel {
 
     private final SettingsModelString m_appendColumnNameModel;
 
+    /** Added in 4.1.3 as part of AP-14007 (Cell Replacer removes spec of collection columns) */
+    private final SettingsModelBoolean m_retainColumnPropertiesModel;
+
     /**
      * Constructor for the node model.
      */
@@ -127,8 +131,8 @@ public class CellReplacerNodeModel extends NodeModel {
         m_dictInputColModel = createDictInputColModel();
         m_dictOutputColModel = createDictOutputColModel();
         m_appendColumnModel = createAppendColumnModel();
-        m_appendColumnNameModel =
-            createAppendColumnNameModel(m_appendColumnModel);
+        m_appendColumnNameModel = createAppendColumnNameModel(m_appendColumnModel);
+        m_retainColumnPropertiesModel = createRetainColumnPropertiesModel(m_noMatchPolicyModel);
     }
 
     /**
@@ -260,8 +264,12 @@ public class CellReplacerNodeModel extends NodeModel {
             replaceSpecCreator = new DataColumnSpecCreator(targetColSpec.getName(), outputType);
             break;
         default:
-            // retain all properties, element names, and such
-            replaceSpecCreator = new DataColumnSpecCreator(dictColSpec);
+            if (m_retainColumnPropertiesModel.getBooleanValue()) {
+                // retain all properties, element names, and such
+                replaceSpecCreator = new DataColumnSpecCreator(dictColSpec);
+            } else {
+                replaceSpecCreator = new DataColumnSpecCreator(dictColSpec.getName(), dictColSpec.getType());
+            }
         }
 
         String newColName;
@@ -363,6 +371,7 @@ public class CellReplacerNodeModel extends NodeModel {
         m_dictOutputColModel.saveSettingsTo(settings);
         m_appendColumnModel.saveSettingsTo(settings);
         m_appendColumnNameModel.saveSettingsTo(settings);
+        m_retainColumnPropertiesModel.saveSettingsTo(settings);
     }
 
     /**
@@ -377,6 +386,12 @@ public class CellReplacerNodeModel extends NodeModel {
         m_dictOutputColModel.loadSettingsFrom(settings);
         m_appendColumnModel.loadSettingsFrom(settings);
         m_appendColumnNameModel.loadSettingsFrom(settings);
+        try {
+            m_retainColumnPropertiesModel.loadSettingsFrom(settings);
+        } catch (InvalidSettingsException ise) {
+            // added in 4.1.3
+            m_retainColumnPropertiesModel.setBooleanValue(false); // backward compatible
+        }
     }
 
     /**
@@ -398,6 +413,7 @@ public class CellReplacerNodeModel extends NodeModel {
         m_dictOutputColModel.validateSettings(settings);
         m_appendColumnModel.validateSettings(settings);
         m_appendColumnNameModel.validateSettings(settings);
+        // m_retainColumnPropertiesModel.validateSettings(settings); -- not needed, added in 4.1.3
     }
 
     /**
@@ -461,6 +477,15 @@ public class CellReplacerNodeModel extends NodeModel {
         });
         result.setEnabled(appendColumnModel.getBooleanValue());
         return result;
+    }
+
+    static final SettingsModelBoolean createRetainColumnPropertiesModel(final SettingsModelString noMatchPolicyModel) {
+        final SettingsModelBoolean result = new SettingsModelBoolean("retainColumnProperties", true);
+        noMatchPolicyModel.addChangeListener(
+            e -> result.setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.Missing.name())));
+        result.setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.Missing.name()));
+        return result;
+
     }
 
 }

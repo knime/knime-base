@@ -86,6 +86,8 @@ public class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
             CellReplacerNodeModel.createAppendColumnModel();
         SettingsModelString appColumnNameModel =
             CellReplacerNodeModel.createAppendColumnNameModel(appColumnModel);
+        SettingsModelBoolean retainColumnMetadataModel =
+                CellReplacerNodeModel.createRetainColumnPropertiesModel(noMatchPolicyModel);
 
         DialogComponentColumnNameSelection targetColSelector =
                 new DialogComponentColumnNameSelection(targetColModel,
@@ -113,6 +115,9 @@ public class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
         DialogComponentString appendColumnNameField =
                 new DialogComponentString(appColumnNameModel, "");
 
+        DialogComponentBoolean retainColumnMetadataField =
+                new DialogComponentBoolean(retainColumnMetadataModel, "Copy metadata from replacement column");
+
         createNewGroup("Input table");
         addDialogComponent(targetColSelector);
         closeCurrentGroup();
@@ -131,5 +136,8 @@ public class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
         createNewGroup("If no element matches use");
         addDialogComponent(noMatchButtonGroup);
         closeCurrentGroup();
+        setHorizontalPlacement(false);
+        createNewGroup("Metadata in Output");
+        addDialogComponent(retainColumnMetadataField);
     }
 }
