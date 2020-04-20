@@ -85,10 +85,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
     private final URI m_uri;
 
-    private final String m_name;
-
-    private final String m_type;
-
     private final AttributesCache m_cache;
 
     private final Map<Integer, Closeable> m_closeables = Collections.synchronizedMap(new HashMap<>());
@@ -99,30 +95,23 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      *
      * @param fileSystemProvider the provider that the file system belongs to
      * @param uri the uri identifying the file system
-     * @param name the human readable name of the file system
-     * @param type readable type information
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      */
     public BaseFileSystem(final  BaseFileSystemProvider<T, ?> fileSystemProvider,
         final URI uri,
-        final String name,
-        final String type,
         final long cacheTTL,
+        final String workingDirectory,
         final Choice fsChoice,
         final Optional<String> fsSpecifier) {
 
-        super(fsChoice, fsSpecifier);
+        super(fsChoice, fsSpecifier, workingDirectory);
 
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
         Validate.notNull(uri, "URI must not be null.");
-        Validate.notNull(name, "Name must not be null.");
-        Validate.notNull(type, "Type must not be null.");
 
         m_fileSystemProvider = (BaseFileSystemProvider<T, BaseFileSystem<T>>)fileSystemProvider;
         m_uri = uri;
-        m_name = name;
-        m_type = type;
         if (cacheTTL > 0) {
             m_cache = new BaseAttributesCache(cacheTTL);
         } else {
@@ -137,15 +126,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     public BaseFileSystemProvider<T, BaseFileSystem<T>> provider() {
         return m_fileSystemProvider;
     }
-
-    /**
-     * This method returns the "working directory" of this file system, which is used to resolve relative paths to
-     * absolute ones.
-     *
-     * @return the working directory of this file system.
-     */
-    public abstract T getWorkingDirectory();
-
 
     /**
      * {@inheritDoc}
@@ -198,7 +178,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      */
     @Override
     public Iterable<FileStore> getFileStores() {
-        return Collections.singletonList(new BaseFileStore(m_type, m_name));
+        return Collections.singletonList(new BaseFileStore(getSchemeString(), "default_file_store"));
     }
 
     /**

@@ -50,7 +50,6 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import javax.swing.filechooser.FileView;
 
-import org.knime.filehandling.core.connections.base.BaseFileView;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 
@@ -74,7 +73,7 @@ public class LocalRelativeToFileSystemBrowser extends NioFileSystemBrowser {
 
     @Override
     protected FileView getFileView() {
-        return new BaseFileView();
+        return new WorkflowAwareFileView();
     }
 
     /**
@@ -82,10 +81,6 @@ public class LocalRelativeToFileSystemBrowser extends NioFileSystemBrowser {
      */
     @Override
     protected String postprocessSelectedFilePath(final String selectedFile) {
-        if (m_fileSystem.isWorkflowRelativeFileSystem()) {
-            return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
-        } else {
-            return selectedFile;
-        }
+        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
     }
 }

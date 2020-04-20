@@ -77,6 +77,7 @@ public class LocalRelativeToPath extends UnixStylePath {
         return (LocalRelativeToFileSystem) super.getFileSystem();
     }
 
+    @SuppressWarnings("resource")
     @Override
     public LocalRelativeToPath toAbsolutePath() {
         if (isAbsolute()) {
@@ -89,10 +90,11 @@ public class LocalRelativeToPath extends UnixStylePath {
     /**
      * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
      */
+    @SuppressWarnings("resource")
     public Path toAbsoluteLocalPath() {
         // FS specific separator: combine local FS path with separator independent path parts
         final LocalRelativeToPath absolutePath = toAbsolutePath();
         final String[] absolutePathParts = absolutePath.m_pathParts.toArray(new String[0]);
-        return Paths.get(getFileSystem().getCurrentMountpointFolder().toString(), absolutePathParts);
+        return Paths.get(getFileSystem().getPathConfig().getLocalMountpointFolder().toString(), absolutePathParts);
     }
 }

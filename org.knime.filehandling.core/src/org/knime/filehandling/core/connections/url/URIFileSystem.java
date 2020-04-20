@@ -73,9 +73,8 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
     URIFileSystem(final URIFileSystemProvider provider, final URI uri, final boolean isConnectedFs) {
         super(provider,//
             toBaseURI(uri),//
-            getName(uri),//
-            getName(uri),//
             0L,//
+            PATH_SEPARATOR,
             isConnectedFs ? Choice.CONNECTED_FS : Choice.CUSTOM_URL_FS,//
             Optional.empty());
 

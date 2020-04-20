@@ -77,7 +77,7 @@ class LocalFileSystem extends FSFileSystem<LocalPath> {
     private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
 
     private LocalFileSystem() {
-        super(Choice.LOCAL_FS, Optional.empty());
+        super(Choice.LOCAL_FS, Optional.empty(), System.getProperty("user.dir"));
     }
 
     @Override

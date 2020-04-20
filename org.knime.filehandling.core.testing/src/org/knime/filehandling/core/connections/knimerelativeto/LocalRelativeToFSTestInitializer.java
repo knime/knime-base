@@ -174,6 +174,8 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 	@Override
 	public LocalRelativeToPath createFileWithContent(final String content, final String... pathComponents)
 			throws IOException {
-		return m_fileSystem.toAbsoluteLocalRelativeToPath(super.createLocalFileWithContent(content, pathComponents));
+	    final Path localFile = super.createLocalFileWithContent(content, pathComponents);
+	    
+		return m_fileSystem.toAbsoluteLocalRelativeToPath(localFile);
 	}
 }

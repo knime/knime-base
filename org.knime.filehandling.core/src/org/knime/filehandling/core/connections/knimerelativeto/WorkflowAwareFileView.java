@@ -46,7 +46,7 @@
  * History
  *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +58,6 @@ import javax.swing.ImageIcon;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToPath;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
 import org.knime.filehandling.core.filechooser.NioFileView;
 import org.osgi.framework.FrameworkUtil;
@@ -69,11 +68,12 @@ import org.osgi.framework.FrameworkUtil;
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Sascha Wolke, KNIME GmbH, Konstanz, Germany
  */
-public class BaseFileView extends NioFileView {
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(BaseFileView.class);
+public class WorkflowAwareFileView extends NioFileView {
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowAwareFileView.class);
 
     private Icon m_workflowIcon = null;
 
+    @SuppressWarnings("resource")
     @Override
     public Icon getIcon(final File f) {
         try {
@@ -82,7 +82,7 @@ public class BaseFileView extends NioFileView {
 
             if (workflowIcon != null && path instanceof LocalRelativeToPath) {
                 final LocalRelativeToPath relativePath = (LocalRelativeToPath)path;
-                if (relativePath.getFileSystem().isWorkflow(relativePath)) {
+                if (relativePath.getFileSystem().getPathConfig().isWorkflow(relativePath)) {
                     return workflowIcon;
                 }
 
@@ -109,7 +109,7 @@ public class BaseFileView extends NioFileView {
      */
     private synchronized Icon getWorkflowIcon() throws IOException {
         if (m_workflowIcon == null) {
-            final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(BaseFileView.class));
+            final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(WorkflowAwareFileView.class));
             final File workflowImage = new File(bundle, "icons/knime_default.png");
             m_workflowIcon = new ImageIcon(workflowImage.getPath());
         }

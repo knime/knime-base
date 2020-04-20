@@ -52,7 +52,7 @@ public class SubPathTest extends AbstractParameterizedFSTest {
         final Path expectedSubpath = fs.getPath("ii");
 
         assertEquals(expectedSubpath, path.subpath(0, 1));
-        assertEquals(expectedSubpath.toString(), path.subpath(0, 3).toString());
+        assertEquals(expectedSubpath.toString(), path.subpath(0, 1).toString());
     }
 
     @Test(expected = IllegalArgumentException.class)

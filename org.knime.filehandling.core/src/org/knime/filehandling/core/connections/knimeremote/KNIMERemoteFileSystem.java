@@ -79,8 +79,8 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
     public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation, final boolean isConnectedFs) {
         super(provider, //
             baseLocation, //
-            "KNIME Remote FileStore", //
-            "KNIME Remote FileStore", 0,//
+            0,
+            PATH_SEPARATOR,
             isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_MOUNTPOINT,//
             Optional.of(baseLocation.getHost()));
 
