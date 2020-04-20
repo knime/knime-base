@@ -57,7 +57,7 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ArrayListRandomAccessible<V> implements RandomAccessible<V> {
+final class ArrayListRandomAccessible<V> extends AbstractRandomAccessible<V> {
 
     private final ArrayList<V> m_data;
 

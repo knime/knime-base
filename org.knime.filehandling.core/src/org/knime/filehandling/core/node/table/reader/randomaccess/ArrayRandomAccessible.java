@@ -56,7 +56,7 @@ import org.knime.core.node.util.CheckUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of objects stored in the RandomAccessible
  */
-final class ArrayRandomAccessible<V> implements RandomAccessible<V> {
+final class ArrayRandomAccessible<V> extends AbstractRandomAccessible<V> {
 
     private final V[] m_data;
 

@@ -76,7 +76,7 @@ public final class BomEncodingUtils {
     }
 
     /**
-     * Creates a {@link BufferedReader} for the given stream that omits the BOM for UTF encoded files. The caller of
+     * Creates a {@link BufferedReader} for the given path that omits the BOM for UTF encoded files. The caller of
      * this method is responsible for closing the reader and therefore the underlying stream.
      *
      * @param path the path to the file to open
@@ -98,11 +98,11 @@ public final class BomEncodingUtils {
     }
 
     /**
-     * Creates a {@link InputStreamReader} for the given stream that omits the BOM for UTF encoded files. The caller of
+     * Creates a {@link InputStreamReader} for the given path that omits the BOM for UTF encoded files. The caller of
      * this method is responsible for closing the reader and therefore the underlying stream.
      *
      * @param path the path to the file to open
-     * @param charset the used charset
+     * @param charset the used {@link Charset}
      * @param options options specifying how the file is opened
      *
      * @return an {@code InputStreamReader}
@@ -114,14 +114,40 @@ public final class BomEncodingUtils {
      *             {@link SecurityManager#checkRead(String) checkRead} method is invoked to check read access to the
      *             file.
      */
-    @SuppressWarnings("resource")
     public static InputStreamReader createReader(final Path path, final Charset charset, final OpenOption... options)
         throws IOException {
         return createReader(Files.newInputStream(path, options), charset);
     }
 
-    static InputStreamReader createReader(final InputStream input, final Charset charset) {
+    /**
+     * Creates a {@link InputStreamReader} for the given stream that omits the BOM for UTF encoded files. The caller of
+     * this method is responsible for closing the reader and therefore the underlying stream.
+     *
+     * @param input the {@link InputStream} to read from
+     * @param charset the used {@link Charset}
+     * @return an {@code InputStreamReader}
+     *
+     * @throws IllegalArgumentException if an invalid combination of options is specified
+     * @throws UnsupportedOperationException if an unsupported option is specified
+     */
+    public static InputStreamReader createReader(final InputStream input, final Charset charset) {
         return new InputStreamReader(getBomDecodedInputStream(input, charset), charset);
+    }
+
+    /**
+     * Creates a {@link BufferedReader} for the given path that omits the BOM for UTF encoded files. The caller of
+     * this method is responsible for closing the reader and therefore the underlying stream.
+     *
+     * @param input the {@link InputStream} to read from
+     * @param charset the used {@link Charset}
+     *
+     * @return a {@code BufferedReader}
+     *
+     * @throws IllegalArgumentException if an invalid combination of options is specified
+     * @throws UnsupportedOperationException if an unsupported option is specified
+     */
+    public static BufferedReader createBufferedReader(final InputStream input, final Charset charset) {
+        return new BufferedReader(createReader(input, charset));
     }
 
     private static InputStream getBomDecodedInputStream(final InputStream input, final Charset charset) {

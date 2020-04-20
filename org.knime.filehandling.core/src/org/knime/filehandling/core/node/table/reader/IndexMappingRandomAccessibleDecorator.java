@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 
@@ -58,7 +59,7 @@ import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndexMappingRandomAccessibleDecorator<V> implements RandomAccessible<V> {
+final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V> {
 
     private final IndexMapper m_idxMapper;
 

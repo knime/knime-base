@@ -67,8 +67,6 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private static final String CFG_READER_SPECIFIC_CONFIG = "reader_specific_config";
 
-    private static final String CFG_COLUMN_FILTER = "column_filter";
-
     private static final String CFG_COLUMN_HEADER_IDX = "column_header_idx";
 
     private static final String CFG_ROW_ID_IDX = "row_id_idx";
@@ -95,7 +93,7 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private boolean m_useColumnHeaderIdx = true;
 
-    private boolean m_useRowIDIdx = false;
+    private boolean m_useRowIDIdx = true;
 
     private boolean m_allowShortRows;
 
@@ -172,7 +170,6 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getInt(CFG_ROW_ID_IDX);
         settings.getLong(CFG_COLUMN_HEADER_IDX);
-//        settings.getBooleanArray(CFG_COLUMN_FILTER);
         m_readerSpecificConfig.validate(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
         settings.getBoolean(CFG_USE_ROW_ID_IDX);
         settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);

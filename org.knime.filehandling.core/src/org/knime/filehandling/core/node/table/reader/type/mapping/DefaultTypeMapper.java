@@ -93,10 +93,14 @@ final class DefaultTypeMapper<V> implements TypeMapper<V> {
         CheckUtils.checkArgumentNotNull(randomAccessible, "The randomAccessible must not be null.");
         final int size = randomAccessible.size();
         CheckUtils.checkArgument(size == m_params.length,
-            "The size of the randomAccessible is wrong. Expected %s but got %s.", size,
-            m_params.length);
+            "The size of the randomAccessible is wrong. Expected %s but got %s.", size, m_params.length);
         m_readAdapter.setSource(randomAccessible);
-        return m_rowProducer.produceDataRow(key, m_params);
+        try {
+            return m_rowProducer.produceDataRow(key, m_params);
+        } catch (Exception ex) {
+            throw new RuntimeException(String.format(
+                "The following row could not be converted to the specified KNIME types: %s", randomAccessible), ex);
+        }
     }
 
 }

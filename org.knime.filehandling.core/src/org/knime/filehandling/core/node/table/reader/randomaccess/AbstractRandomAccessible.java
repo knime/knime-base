@@ -44,54 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 4, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 20, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.randomaccess;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import static java.util.stream.Collectors.joining;
+
+import java.util.stream.StreamSupport;
 
 /**
- * Represents a collection of values that can be accessed via index in constant time.</br>
- * NOTE: It is recommended to extend {@link AbstractRandomAccessible} instead of implementing RandomAccessible directly.
+ * An abstract implementation of {@link RandomAccessible} that provides implementations for common methods.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of values stored in this RandomAccessible
+ * @param <V> the type of values returned by this {@link RandomAccessible}
  */
-public interface RandomAccessible<V> extends Iterable<V> {
-
-    /**
-     * Returns the number of values stored by this {@link RandomAccessible}.
-     *
-     * @return the number of values stored
-     */
-    int size();
-
-    /**
-     * Returns the element at the specified position in this {@link RandomAccessible}. </br>
-     * Indexing is zero based and the last valid index is <code>{@link #size()}-1</code>.
-     *
-     * @param idx to retrieve the value from
-     * @return the value stored at position <b>idx</b>
-     */
-    V get(int idx);
+public abstract class AbstractRandomAccessible<V> implements RandomAccessible<V> {
 
     @Override
-    default Iterator<V> iterator() {
-        return new DefaultRandomAccessibleIterator<>(this);
-    }
-
-    /**
-     * Creates a shallow copy of this {@link RandomAccessible} i.e. it does not copy the underlying values.
-     *
-     * @return a shallow copy of this {@link RandomAccessible}
-     */
-    default RandomAccessible<V> copy() {
-        final ArrayList<V> list = new ArrayList<>(size());
-        for (V element : this) {
-            list.add(element);
-        }
-        return new ArrayListRandomAccessible<>(list);
+    public String toString() {
+        return StreamSupport.stream(spliterator(), false)//
+                .map(Object::toString)//
+                .collect(joining(", ", "[", "]"));
     }
 
 }
