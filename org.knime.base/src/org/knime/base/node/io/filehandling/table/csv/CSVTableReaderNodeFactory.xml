@@ -125,10 +125,11 @@
 	          not taken into account.    
 			</option>
 			<option name="Limit data rows scanned for spec.">
-	          If enabled, only the specified number of input <i>lines</i> are used to analyze the file (i.e to determine
-	          the column types). This option is recommended for long files where the first <i>n</i> lines are 
-	          representative for the whole file. Scanning will start right after skipping lines. Skip first data rows 
-	          option has no effect on the scanning.
+	          If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
+	          representative for the whole file. The "Skip first data rows"
+	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are independent from each other
+	          i.e. if the value in "Limit data rows" is smaller than the value specified here, we will still read as many rows as specified here.
 			</option>
         </tab>
         <tab name="CSV Reader Encoding">

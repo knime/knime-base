@@ -78,7 +78,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
@@ -90,8 +90,6 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-// suppresses a warning on org.knime.core.node.workflow.FlowVariable.Type
-@SuppressWarnings("deprecation")
 final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final DialogComponentFileChooser2 m_filePanel;
@@ -147,7 +145,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final MultiTableReadConfig<CSVTableReaderConfig> config) {
 
         final FlowVariableModel fvm = createFlowVariableModel(
-            new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
+            new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
+            VariableType.StringType.INSTANCE);
 
         m_filePanel = new DialogComponentFileChooser2(0, fileChooserModel, "csv_reader_prototype",
             JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, fvm);
@@ -223,6 +222,20 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
      * @return a {@link JPanel} filed with dialog components.
      */
     private JPanel initLayout() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(createFilePanel(), gbc);
+        gbc.gridy++;
+        panel.add(createSpecMergePanel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        panel.add(createOptionsPanel(), gbc);
+
+        return panel;
+    }
+
+    private JPanel createFilePanel() {
         final JPanel filePanel = new JPanel();
         filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
         filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input location"));
@@ -230,27 +243,36 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             new Dimension(Integer.MAX_VALUE, m_filePanel.getComponentPanel().getPreferredSize().height));
         filePanel.add(m_filePanel.getComponentPanel());
         filePanel.add(Box.createHorizontalGlue());
+        return filePanel;
+    }
 
+    private JPanel createSpecMergePanel() {
         final JPanel specMergePanel = new JPanel(new GridBagLayout());
         specMergePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
             "Spec merge options (multiple files)"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.insets = new Insets(0, 5, 0, 5);
-        gbc.weighty = 1;
-
+        gbc.weightx = 0;
         specMergePanel.add(m_failOnDifferingSpecs, gbc);
         gbc.gridx = 1;
         specMergePanel.add(m_intersection, gbc);
         gbc.gridx = 2;
+        gbc.weightx = 1.0;
         specMergePanel.add(m_union, gbc);
+        return specMergePanel;
+    }
 
+    private JPanel createOptionsPanel() {
+        final GridBagConstraints gbc = createAndInitGBC();
         JPanel optionsPanel = new JPanel(new GridBagLayout());
         optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options:"));
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         optionsPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column Delimiter ")), gbc);
         gbc.gridx += 1;
@@ -264,6 +286,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.weightx = 0;
         optionsPanel.add(getInFlowLayout(m_quoteField, new JLabel("Quote Char ")), gbc);
         gbc.gridx += 1;
+        gbc.weightx = 1;
         optionsPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote Escape Char ")), gbc);
 
         gbc.gridx = 0;
@@ -273,36 +296,27 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(getInFlowLayout(m_hasColHeaderChecker), gbc);
+        optionsPanel.add(m_hasColHeaderChecker, gbc);
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_hasRowHeaderChecker), gbc);
+        optionsPanel.add(m_hasRowHeaderChecker, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(getInFlowLayout(m_allowShortLinesChecker), gbc);
+        optionsPanel.add(m_allowShortLinesChecker, gbc);
 
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_skipEmptyLinesChecker), gbc);
+        optionsPanel.add(m_skipEmptyLinesChecker, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(getInFlowLayout(m_replaceQuotedEmptyStringChecker), gbc);
+        optionsPanel.add(m_replaceQuotedEmptyStringChecker, gbc);
 
         //empty panel to eat up extra space
         gbc.gridy += 1;
         gbc.gridx = 0;
         gbc.weighty = 1;
         optionsPanel.add(new JPanel(), gbc);
-
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(filePanel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(specMergePanel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(optionsPanel);
-
-        return panel;
+        return optionsPanel;
     }
 
     /**
@@ -317,41 +331,39 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
-        optionsPanel.add(getInFlowLayout(m_skipFirstLinesChecker), gbc);
+        optionsPanel.add(m_skipFirstLinesChecker, gbc);
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_skipFirstLinesSpinner), gbc);
+        gbc.weightx = 1;
+        optionsPanel.add(m_skipFirstLinesSpinner, gbc);
 
         gbc.gridy += 1;
         gbc.gridx = 0;
-        optionsPanel.add(getInFlowLayout(m_skipFirstRowsChecker), gbc);
+        gbc.weightx = 0;
+        optionsPanel.add(m_skipFirstRowsChecker, gbc);
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_skipFirstRowsSpinner), gbc);
+        gbc.weightx = 1;
+        optionsPanel.add(m_skipFirstRowsSpinner, gbc);
 
         gbc.gridy += 1;
         gbc.gridx = 0;
-        optionsPanel.add(getInFlowLayout(m_limitRowsChecker), gbc);
+        gbc.weightx = 0;
+        optionsPanel.add(m_limitRowsChecker, gbc);
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_limitRowsSpinner), gbc);
+        gbc.weightx = 1;
+        optionsPanel.add(m_limitRowsSpinner, gbc);
 
         gbc.gridy += 1;
-        gbc.gridx = 0;
-        optionsPanel.add(getInFlowLayout(m_limitAnalysisChecker), gbc);
-        gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_limitAnalysisSpinner), gbc);
-
-        //empty panel to eat up extra space
-        gbc.gridy += 1;
-        gbc.gridx = 0;
         gbc.weighty = 1;
-        optionsPanel.add(new JPanel(), gbc);
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        optionsPanel.add(m_limitAnalysisChecker, gbc);
+        gbc.gridx += 1;
+        gbc.weightx = 1;
+        optionsPanel.add(m_limitAnalysisSpinner, gbc);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(optionsPanel);
-
-        return panel;
+        return optionsPanel;
     }
 
     private static JPanel getInFlowLayout(final JComponent... comps) {
@@ -367,7 +379,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
      *
      * @return initialized {@link GridBagConstraints}
      */
-    protected static final GridBagConstraints createAndInitGBC() {
+    private static final GridBagConstraints createAndInitGBC() {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;

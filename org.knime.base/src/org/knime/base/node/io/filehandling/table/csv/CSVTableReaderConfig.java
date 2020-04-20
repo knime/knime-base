@@ -65,6 +65,17 @@ import com.univocity.parsers.csv.CsvParserSettings;
  */
 final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderConfig> {
 
+    /**
+     * According to the javadoc a value of -1 allows for auto-expansion of the array which indicates that this value
+     * defines the size of the buffer array hence setting a very large value might cause memory problems
+     */
+    private static final int DEFAULT_MAX_CHARS_PER_COLUMN = -1;
+
+    /**
+     * The default maximum number of columns, used to instantiate an array in univocity.
+     */
+    private static final int DEFAULT_MAX_COLUMNS = 10000;
+
     /** string key used to save the value of column delimiter used to read csv files */
     private static final String CFG_DELIMITER = "column_delimiter";
 
@@ -72,10 +83,10 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     private static final String CFG_LINE_SEPARATOR = "line_separator";
 
     /** string key used to save the value of the character used as qoute */
-    private static final String CFG_QOUTE_CHAR = "qoute_char";
+    private static final String CFG_QUOTE_CHAR = "quote_char";
 
     /** string key used to save the value of the character used as qoute escape */
-    private static final String CFG_QOUTE_ESCAPE_CHAR = "qoute_escape_char";
+    private static final String CFG_QUOTE_ESCAPE_CHAR = "quote_escape_char";
 
     /** string key used to save the value of the character used as comment start */
     private static final String CFG_COMMENT_CHAR = "comment_char";
@@ -108,12 +119,14 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     private String m_charSet = null;
 
     /**
-     * Constructor
+     * Constructor.
      */
     public CSVTableReaderConfig() {
         m_settings = new CsvParserSettings();
         m_settings.setEmptyValue("");
         m_settings.setSkipEmptyLines(false);
+        m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
+        m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
     }
 
     /**
@@ -158,9 +171,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      * @param lineSeparator the line separator used
      */
     void setLineSeparator(final String lineSeparator) {
-        final char sepChar = getFirstChar(lineSeparator, "Line Separator");
         getFormat().setLineSeparator(lineSeparator);
-        getFormat().setNormalizedNewline(sepChar);
     }
 
     /**
@@ -320,8 +331,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
     public void loadInDialog(final NodeSettingsRO settings) {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
         setLineSeparator(settings.getString(CFG_LINE_SEPARATOR, "\n"));
-        setQuote(settings.getString(CFG_QOUTE_CHAR, "\""));
-        setQuoteEscape(settings.getString(CFG_QOUTE_ESCAPE_CHAR, "\""));
+        setQuote(settings.getString(CFG_QUOTE_CHAR, "\""));
+        setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR, "\""));
         setComment(settings.getString(CFG_COMMENT_CHAR, "\0"));
 
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
@@ -339,8 +350,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         setDelimiter(settings.getString(CFG_DELIMITER));
         setLineSeparator(settings.getString(CFG_LINE_SEPARATOR));
 
-        setQuote(settings.getString(CFG_QOUTE_CHAR));
-        setQuoteEscape(settings.getString(CFG_QOUTE_ESCAPE_CHAR));
+        setQuote(settings.getString(CFG_QUOTE_CHAR));
+        setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR));
         setComment(settings.getString(CFG_COMMENT_CHAR));
 
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES));
@@ -358,8 +369,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.getString(CFG_DELIMITER);
         settings.getString(CFG_LINE_SEPARATOR);
 
-        settings.getString(CFG_QOUTE_CHAR);
-        settings.getString(CFG_QOUTE_ESCAPE_CHAR);
+        settings.getString(CFG_QUOTE_CHAR);
+        settings.getString(CFG_QUOTE_ESCAPE_CHAR);
         settings.getString(CFG_COMMENT_CHAR);
 
         settings.getLong(CFG_NUM_LINES_TO_SKIP);
@@ -377,8 +388,8 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
         settings.addString(CFG_DELIMITER, getDelimiter());
         settings.addString(CFG_LINE_SEPARATOR, getLineSeparator());
 
-        settings.addString(CFG_QOUTE_CHAR, getQuote());
-        settings.addString(CFG_QOUTE_ESCAPE_CHAR, getQuoteEscape());
+        settings.addString(CFG_QUOTE_CHAR, getQuote());
+        settings.addString(CFG_QUOTE_ESCAPE_CHAR, getQuoteEscape());
         settings.addString(CFG_COMMENT_CHAR, getComment());
 
         settings.addLong(CFG_NUM_LINES_TO_SKIP, getNumLinesToSkip());
