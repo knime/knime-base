@@ -60,12 +60,10 @@ import static org.knime.filehandling.core.data.location.internal.FSLocationUtils
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.PATH;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.workflow.FlowVariable;
@@ -93,10 +91,12 @@ public class FSLocationVariableTypeTest {
 
 	@Test
 	public void testloadValue() throws InvalidSettingsException {
-		NodeSettingsRO settings = mock(NodeSettingsRO.class);
-		when(settings.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(false);
-		FlowVariable flowVar = FlowVariable.load(settings);
-		assertEquals(NULL, get(flowVar));
+		NodeSettings settings = new NodeSettings("Test");
+		FSLocation location = new FSLocation("foo", "bar", "baz");
+		FlowVariable before = new FlowVariable("var", TEST_INSTANCE, location);
+		before.save(settings);
+		FlowVariable after = FlowVariable.load(settings);
+		assertEquals(location, get(after));
 	}
 
 	@Test
@@ -122,7 +122,7 @@ public class FSLocationVariableTypeTest {
 
 	@Test
 	public void testDefaultValue() {
-		assertEquals(NULL, new FlowVariable("var", TEST_INSTANCE));
+		assertEquals(NULL, get(new FlowVariable("var", TEST_INSTANCE)));
 	}
 
 	@Test
