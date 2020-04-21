@@ -171,7 +171,7 @@ public final class SettingsModelFSLocation extends SettingsModel {
 
     @Override
     public String toString() {
-        return m_location.toString();
+        return getClass().getSimpleName() + " (" + m_configName + ")";
     }
 
 }
