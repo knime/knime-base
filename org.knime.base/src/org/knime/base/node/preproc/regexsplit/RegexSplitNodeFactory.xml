@@ -21,7 +21,7 @@
 				A short introduction to Groups and Capturing is given by
 				in the
 				<a
-					href="http://java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#cg">
+					href="https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html#cg">
 					Java API
 				</a>
 				. Some examples are given below:
