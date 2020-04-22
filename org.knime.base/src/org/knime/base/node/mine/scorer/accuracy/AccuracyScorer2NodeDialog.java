@@ -44,18 +44,13 @@
  */
 package org.knime.base.node.mine.scorer.accuracy;
 
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -63,7 +58,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
 
 import org.knime.base.util.SortingOptionPanel;
 import org.knime.base.util.SortingStrategy;
@@ -148,106 +142,137 @@ final class AccuracyScorer2NodeDialog extends NodeDialogPane {
      */
     AccuracyScorer2NodeDialog(final boolean missingValueOption) {
         super();
+
         m_missingValueOption = missingValueOption;
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-
         m_firstColumns = new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), COMPATABILE_DATATYPES);
+        m_firstColumns.addItemListener(e -> updateSortingStrategies());
         m_secondColumns = new ColumnSelectionPanel(new EmptyBorder(0, 0, 0, 0), COMPATABILE_DATATYPES);
-
+        m_secondColumns.addItemListener(e -> updateSortingStrategies());
         m_sortingOptions = new SortingOptionPanel();
-        m_sortingOptions.setBorder(new TitledBorder("Sorting of values in tables"));
-
-        JPanel firstColumnPanel = new JPanel(new GridLayout(1, 1));
-        firstColumnPanel.setBorder(BorderFactory.createTitledBorder("First Column"));
-        JPanel flowLayout = new JPanel(new FlowLayout());
-        flowLayout.add(m_firstColumns);
-        firstColumnPanel.add(flowLayout);
-
-        JPanel secondColumnPanel = new JPanel(new GridLayout(1, 1));
-        secondColumnPanel.setBorder(BorderFactory.createTitledBorder("Second Column"));
-        flowLayout = new JPanel(new FlowLayout());
-        flowLayout.add(m_secondColumns);
-
-        secondColumnPanel.add(flowLayout);
-
         m_flowvariableBox = new JCheckBox("Use name prefix");
+        m_flowvariableBox.addActionListener(e -> updateFlowVariableTextfield());
+
         m_flowVariablePrefixTextField = new JTextField(10);
         m_flowVariablePrefixTextField.setSize(new Dimension(10, 3));
-
-        m_flowvariableBox.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(final ActionEvent arg0) {
-                if (m_flowvariableBox.isSelected()) {
-                    m_flowVariablePrefixTextField.setEnabled(true);
-                } else {
-                    m_flowVariablePrefixTextField.setEnabled(false);
-                }
-
-            }
-        });
         m_flowvariableBox.doClick(); // sync states
 
-        JPanel thirdColumnPanel = new JPanel(new GridLayout(1, 1));
-        thirdColumnPanel.setBorder(BorderFactory.createTitledBorder("Provide scores as flow variables"));
-        flowLayout = new JPanel(new FlowLayout());
-        flowLayout.add(m_flowvariableBox);
-        flowLayout.add(m_flowVariablePrefixTextField);
-        thirdColumnPanel.add(flowLayout);
+        super.addTab("Scorer", createPanel());
+    }
 
-        p.add(firstColumnPanel);
+    private JPanel createPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
 
-        p.add(secondColumnPanel);
+        ++gbc.gridy;
+        p.add(createInnerPanel(m_firstColumns, "First Column"), gbc);
 
-        p.add(m_sortingOptions);
+        ++gbc.gridy;
+        p.add(createInnerPanel(m_secondColumns, "Second Column"), gbc);
 
-        p.add(thirdColumnPanel);
+        ++gbc.gridy;
+        p.add(createInnerPanel(m_sortingOptions, "Sorting of values in tables"), gbc);
 
-        final ItemListener colChangeListener = new ItemListener() {
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                DataColumnSpec specFirst = m_firstColumns.getSelectedColumnAsSpec();
-                DataColumnSpec specSecond = m_secondColumns.getSelectedColumnAsSpec();
-                if (specFirst == null || specSecond == null) {
-                    return;
-                }
-                if (specFirst.getType().isCompatible(DoubleValue.class)
-                    && specSecond.getType().isCompatible(DoubleValue.class)) {
-                    m_sortingOptions.setPossibleSortingStrategies(SUPPORTED_NUMBER_SORT_STRATEGIES);
-                } else if (specFirst.getType().isCompatible(StringValue.class)
-                    && specSecond.getType().isCompatible(StringValue.class)) {
-                    m_sortingOptions.setPossibleSortingStrategies(SUPPORTED_STRING_SORT_STRATEGIES);
-                } else {
-                    m_sortingOptions.setPossibleSortingStrategies(SortingStrategy.InsertionOrder);
-                }
-            }
-        };
-
-        m_firstColumns.addItemListener(colChangeListener);
-        m_secondColumns.addItemListener(colChangeListener);
-        m_sortingOptions.updateControls();
+        final JPanel flowVariablePanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbcFlowVariable = createInnerPanelGridBagConstraint();
+        flowVariablePanel.setBorder(BorderFactory.createTitledBorder("Provide scores as flow variables"));
+        gbcFlowVariable.weightx = 0;
+        flowVariablePanel.add(m_flowvariableBox, gbcFlowVariable);
+        gbcFlowVariable.insets = new Insets(0, 10, 0, 0);
+        gbcFlowVariable.weightx = 1;
+        flowVariablePanel.add(m_flowVariablePrefixTextField, gbcFlowVariable);
+        ++gbc.gridy;
+        p.add(flowVariablePanel, gbc);
 
         if (m_missingValueOption) {
-            ButtonGroup missingValueGroup = new ButtonGroup();
-            missingValueGroup.add(m_ignoreMissingValues);
-            missingValueGroup.add(m_failOnMissingValues);
-            JPanel missingValues = new JPanel(new GridBagLayout());
-            missingValues.setBorder(new TitledBorder("Missing values"));
-            GridBagConstraints gbc = new GridBagConstraints();
-            JLabel label = new JLabel("In case of missing values...");
-            gbc.gridx = 0;
-            gbc.gridy = 0;
-            missingValues.add(label, gbc);
-            gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-            gbc.gridx = 1;
-            missingValues.add(m_ignoreMissingValues, gbc);
-            gbc.gridy = 1;
-            missingValues.add(m_failOnMissingValues, gbc);
-            p.add(missingValues);
+            ++gbc.gridy;
+            p.add(createMissingValuePanel(), gbc);
         }
-        super.addTab("Scorer", p);
-    } // ScorerNodeDialog(NodeModel)
+        return p;
+    }
+
+    /**
+     * Creates a JPanel {@link JPanel} with the passed {@link Component} and sets a title of the border.
+     *
+     * @param component Component which will be added to the JPanel
+     * @param title title of the Border
+     * @return a {@link JPanel}
+     */
+    private static JPanel createInnerPanel(final Component component, final String title) {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createInnerPanelGridBagConstraint();
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        panel.add(component, gbc);
+        return panel;
+    }
+
+    /**
+     * Creates the default {@link GridBagConstraints} for the inner {@link JPanel}
+     *
+     * @return the default {@link GridBagConstraints}
+     */
+    private static GridBagConstraints createInnerPanelGridBagConstraint() {
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        return gbc;
+    }
+
+    /**
+     * Creates the {@link JPanel} for the missing values section.
+     *
+     * @return {@link JPanel}
+     */
+    private JPanel createMissingValuePanel() {
+        final ButtonGroup missingValueGroup = new ButtonGroup();
+        missingValueGroup.add(m_ignoreMissingValues);
+        missingValueGroup.add(m_failOnMissingValues);
+        final JPanel missingValues = new JPanel(new GridBagLayout());
+        missingValues.setBorder(BorderFactory.createTitledBorder("Missing values"));
+        final GridBagConstraints gbc = createInnerPanelGridBagConstraint();
+        gbc.weightx = 0;
+        JLabel label = new JLabel("In case of missing values:");
+        missingValues.add(label, gbc);
+        gbc.insets = new Insets(0, 10, 0, 0);
+        gbc.weightx = 1;
+        gbc.gridx = 1;
+        missingValues.add(m_ignoreMissingValues, gbc);
+        gbc.gridy = 1;
+        missingValues.add(m_failOnMissingValues, gbc);
+
+        return missingValues;
+    }
+
+    /** Enables flowvariable text field based on the selection of checkbox. */
+    private void updateFlowVariableTextfield() {
+        if (m_flowvariableBox.isSelected()) {
+            m_flowVariablePrefixTextField.setEnabled(true);
+        } else {
+            m_flowVariablePrefixTextField.setEnabled(false);
+        }
+    }
+
+    /** Updates the sorting strategies based on the selected columns. */
+    private void updateSortingStrategies() {
+        final DataColumnSpec specFirst = m_firstColumns.getSelectedColumnAsSpec();
+        final DataColumnSpec specSecond = m_secondColumns.getSelectedColumnAsSpec();
+        if (specFirst == null || specSecond == null) {
+            return;
+        }
+        if (specFirst.getType().isCompatible(DoubleValue.class)
+            && specSecond.getType().isCompatible(DoubleValue.class)) {
+            m_sortingOptions.setPossibleSortingStrategies(SUPPORTED_NUMBER_SORT_STRATEGIES);
+        } else if (specFirst.getType().isCompatible(StringValue.class)
+            && specSecond.getType().isCompatible(StringValue.class)) {
+            m_sortingOptions.setPossibleSortingStrategies(SUPPORTED_STRING_SORT_STRATEGIES);
+        } else {
+            m_sortingOptions.setPossibleSortingStrategies(SortingStrategy.InsertionOrder);
+        }
+    }
 
     /**
      * Fills the two combo boxes with all column names retrieved from the input table spec. The second and last column
