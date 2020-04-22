@@ -48,23 +48,19 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.nio.charset.Charset;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.knime.base.node.io.filereader.CharsetNamePanel;
+import org.knime.base.node.io.filereader.FileReaderNodeSettings;
+import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -108,11 +104,7 @@ final class LineReaderNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_useRegexButton;
 
-    private final JLabel m_encodingLabel;
-
-    private final JComboBox<String> m_encodingSelection;
-
-    private final JLabel m_encodingWarning;
+    private final CharsetNamePanel m_encodingPanel;
 
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
@@ -143,55 +135,10 @@ final class LineReaderNodeDialog extends NodeDialogPane {
         m_config.getLimitLinesModel()
             .addChangeListener(e -> m_config.getLimitRowCountModel().setEnabled(m_config.getLimitLines()));
 
-        // Encoding setup
-        m_encodingWarning = new JLabel("");
-        m_encodingWarning.setForeground(Color.RED);
-
-        m_encodingLabel = new JLabel("Encoding:");
-        m_encodingSelection = new JComboBox<>( //
-                new String[] { //
-                    LineReaderConfig.DEFAULT_ENCODING, //
-                    "US-ASCII", //
-                    "ISO-8859-1", //
-                    "UTF-8", //
-                    "UTF-16LE", //
-                    "UTF-16BE", //
-                    "UTF-16" //
-                }); //
-
-        m_encodingSelection.setEditable(true);
-        m_encodingSelection.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-
-            @Override
-            public void keyReleased(final KeyEvent e) {
-                final String selectedItem = (String)m_encodingSelection.getEditor().getItem();
-                updateEncodingWarning(selectedItem);
-                m_config.getEncodingModel().setStringValue(selectedItem);
-                // Needed for the label to be updated after each key has been typed!
-                m_encodingWarning.revalidate();
-            }
-
-        });
-
-        m_encodingSelection.addActionListener(e -> {
-            String selectedEncoding = (String) m_encodingSelection.getSelectedItem();
-            m_config.getEncodingModel().setStringValue(selectedEncoding);
-            updateEncodingWarning(selectedEncoding);
-        });
-
         addTab("Settings", initLayout());
-    }
 
-    private void updateEncodingWarning(final String selectedEncoding) {
-        try {
-            if (!Charset.isSupported(selectedEncoding)) {
-                m_encodingWarning.setText(String.format("The encoding '%s' is not supported", selectedEncoding));
-            } else {
-                m_encodingWarning.setText("");
-            }
-        } catch (Exception e) {
-            m_encodingWarning.setText(String.format("Invalid encoding name '%s'.", selectedEncoding));
-        }
+        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        addTab("Encoding", m_encodingPanel);
     }
 
     private JPanel initLayout() {
@@ -247,20 +194,6 @@ final class LineReaderNodeDialog extends NodeDialogPane {
         gbc.gridx += 1;
         optionsPanel.add(m_regexField.getComponentPanel(), gbc);
 
-        JPanel encodingPanel = new JPanel();
-        encodingPanel.setLayout(new BoxLayout(encodingPanel, BoxLayout.X_AXIS));
-
-        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        encodingPanel.add(m_encodingLabel);
-        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        encodingPanel.add(m_encodingSelection);
-        encodingPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        encodingPanel.add(m_encodingWarning);
-        gbc.gridwidth = 3;
-        gbc.gridy += 1;
-        gbc.gridx = 0;
-        optionsPanel.add(encodingPanel, gbc);
-
         //empty panel to eat up extra space
         gbc.gridwidth = 1;
         gbc.gridx++;
@@ -285,18 +218,34 @@ final class LineReaderNodeDialog extends NodeDialogPane {
             m_config.loadConfiguration(settings);
             m_filePanel.loadSettingsFrom(settings, specs);
 
-            final String configuredEncoding = m_config.getEncoding();
-            m_encodingSelection.setSelectedItem(configuredEncoding);
-            updateEncodingWarning(configuredEncoding);
+            m_encodingPanel.loadSettings(getEncodingSettings());
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
+    }
+
+    private FileReaderSettings getEncodingSettings() {
+        FileReaderSettings s = new FileReaderSettings();
+        final String charsetName = m_config.getEncoding().equals(LineReaderConfig.DEFAULT_ENCODING) ? null : m_config.getEncoding();
+        s.setCharsetName(charsetName);
+        return s;
     }
 
     /** {@inheritDoc} */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filePanel.saveSettingsTo(settings);
+
+        String errMsg = m_encodingPanel.checkSettings();
+        if (errMsg != null) {
+            throw new InvalidSettingsException(errMsg);
+        }
+
+        FileReaderNodeSettings s = new FileReaderNodeSettings();
+        m_encodingPanel.overrideSettings(s);
+        final String charsetName = s.getCharsetName() == null ? LineReaderConfig.DEFAULT_ENCODING : s.getCharsetName();
+        m_config.getEncodingModel().setStringValue(charsetName);
+
         m_config.saveConfiguration(settings);
     }
 

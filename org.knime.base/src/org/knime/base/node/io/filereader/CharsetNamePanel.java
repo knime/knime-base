@@ -47,7 +47,6 @@
  */
 package org.knime.base.node.io.filereader;
 
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -61,13 +60,15 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.knime.core.node.util.SharedIcons;
 
 /**
  * Implements the tab panel for the character set settings (in the advanced settings dialog).
@@ -79,12 +80,12 @@ public class CharsetNamePanel extends JPanel {
     private static final long serialVersionUID = 2016L;
 
     // action command for the "default" button
-    private static final String DEFAULT_LABEL = "default";
+    private static final String DEFAULT_LABEL = "Use embedded file encoding (" + Charset.defaultCharset().name() + ")";
 
     // action command for the "enter your own char set name" button
-    private static final String CUSTOM_LABEL = "user defined";
+    private static final String CUSTOM_LABEL = "Other";
 
-    private static final Color TEXTFIELD_FG = new JTextField().getForeground();
+    private static final Icon ERROR_ICON = SharedIcons.ERROR.get();
 
     private ButtonGroup m_group;
 
@@ -105,6 +106,10 @@ public class CharsetNamePanel extends JPanel {
     private JRadioButton m_custom;
 
     private JTextField m_customName;
+
+    private final JLabel m_customError = new JLabel();
+
+    private final JLabel m_encodingWarning = new JLabel();
 
     /** Init UI. */
     private CharsetNamePanel() {
@@ -143,84 +148,44 @@ public class CharsetNamePanel extends JPanel {
          * directly as parameter). Except for "default" and "user defined".
          */
         m_default = new JRadioButton(DEFAULT_LABEL);
-        m_default.setToolTipText("uses the default decoding set by the operating system");
-        m_default.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_default.setToolTipText("Uses the default decoding set by the operating system");
+        m_default.addChangeListener(e -> buttonsChanged());
         m_group.add(m_default);
 
         m_usASCII = new JRadioButton("US-ASCII");
         m_usASCII.setToolTipText("Seven-bit ASCII, also referred to as US-ASCII");
-        m_usASCII.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_usASCII.addChangeListener(e -> buttonsChanged());
         m_group.add(m_usASCII);
 
         m_iso8859 = new JRadioButton("ISO-8859-1");
         m_iso8859.setToolTipText("ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1");
-        m_iso8859.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_iso8859.addChangeListener(e -> buttonsChanged());
         m_group.add(m_iso8859);
 
         m_utf8 = new JRadioButton("UTF-8");
         m_utf8.setToolTipText("Eight-bit UCS Transformation Format");
-        m_utf8.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_utf8.addChangeListener(e -> buttonsChanged());
         m_group.add(m_utf8);
 
         m_utf16le = new JRadioButton("UTF-16LE");
         m_utf16le.setToolTipText("Sixteen-bit UCS Transformation Format, little-endian byte order");
-        m_utf16le.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_utf16le.addChangeListener(e -> buttonsChanged());
         m_group.add(m_utf16le);
 
         m_utf16be = new JRadioButton("UTF-16BE");
         m_utf16be.setToolTipText("Sixteen-bit UCS Transformation Format, big-endian byte order");
-        m_utf16be.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_utf16be.addChangeListener(e -> buttonsChanged());
         m_group.add(m_utf16be);
 
         m_utf16 = new JRadioButton("UTF-16");
         m_utf16.setToolTipText("Sixteen-bit UCS Transformation Format, byte order identified by an optional "
             + "byte-order mark in the file");
-        m_utf16.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_utf16.addChangeListener(e -> buttonsChanged());
         m_group.add(m_utf16);
 
         m_custom = new JRadioButton(CUSTOM_LABEL);
         m_custom.setToolTipText("Enter a valid charset name supported by the Java Virtual Machine");
-        m_custom.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                buttonsChanged();
-            }
-        });
+        m_custom.addChangeListener(e -> buttonsChanged());
         m_group.add(m_custom);
 
         m_customName = new JTextField(20);
@@ -243,9 +208,12 @@ public class CharsetNamePanel extends JPanel {
             }
         });
 
+        m_customError.setIcon(ERROR_ICON);
+        m_customError.setVisible(false);
+
         JPanel result = new JPanel(new GridBagLayout());
         result.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            "Select a character set for decoding:"));
+            "Select a character set for the encoding type:"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -253,25 +221,40 @@ public class CharsetNamePanel extends JPanel {
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         result.add(m_default, gbc);
         gbc.gridy++;
-        result.add(m_usASCII, gbc);
-        gbc.gridy++;
         result.add(m_iso8859, gbc);
+        gbc.gridy++;
+        result.add(m_usASCII, gbc);
         gbc.gridy++;
         result.add(m_utf8, gbc);
         gbc.gridy++;
-        result.add(m_utf16le, gbc);
+        result.add(m_utf16, gbc);
         gbc.gridy++;
         result.add(m_utf16be, gbc);
         gbc.gridy++;
-        result.add(m_utf16, gbc);
+        result.add(m_utf16le, gbc);
         gbc.gridy++;
         result.add(m_custom, gbc);
-        gbc.gridx++;
-        result.add(m_customName, gbc);
+
+        final JPanel customItems = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbcCustom = new GridBagConstraints();
+        gbcCustom.gridx = 0;
+        gbcCustom.insets = new Insets(0, 25, 0, 0);
+        customItems.add(m_customName, gbcCustom);
+        gbcCustom.gridx++;
+        gbcCustom.anchor = GridBagConstraints.CENTER;
+        gbcCustom.insets = new Insets(0, 10, 0, 0);
+        customItems.add(m_customError, gbcCustom);
+        gbcCustom.gridx++;
+        gbcCustom.anchor = GridBagConstraints.CENTER;
+        gbcCustom.insets = new Insets(0, 3, 0, 0);
+        customItems.add(m_encodingWarning, gbcCustom);
+
+        gbc.gridy++;
+        result.add(customItems, gbc);
         gbc.gridx++;
         gbc.gridy++;
-        gbc.weightx=1;
-        gbc.weighty=1;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
         result.add(new JPanel(), gbc);
 
         return result;
@@ -292,20 +275,26 @@ public class CharsetNamePanel extends JPanel {
      */
     private boolean checkCustomCharsetName() {
         if (!m_custom.isSelected()) {
+            m_customName.setText("");
+            m_encodingWarning.setText("");
+            m_customError.setVisible(false);
             return true;
         }
 
         String cs = m_customName.getText();
         try {
             if (Charset.isSupported(cs)) {
-                m_customName.setForeground(TEXTFIELD_FG);
+                m_encodingWarning.setText("");
+                m_customError.setVisible(false);
                 return true;
             } else {
-                m_customName.setForeground(Color.RED);
+                m_encodingWarning.setText(String.format("The encoding \"%s\" is not supported.", cs));
+                m_customError.setVisible(true);
                 return false;
             }
         } catch (IllegalArgumentException iae) {
-            m_customName.setForeground(Color.RED);
+            m_encodingWarning.setText(String.format("The encoding \"%s\" is not supported.", cs));
+            m_customError.setVisible(true);
             return false;
         }
     }
@@ -319,7 +308,9 @@ public class CharsetNamePanel extends JPanel {
         setCharsetName(csName);
     }
 
-    /** Sets the new charset name. Null will choose the 'default' value.
+    /**
+     * Sets the new charset name. Null will choose the 'default' value.
+     *
      * @param charsetName Name of charset or null
      * @since 4.0
      */
@@ -354,26 +345,21 @@ public class CharsetNamePanel extends JPanel {
      *
      */
     public String checkSettings() {
-
-        boolean foundIt = false;
         Enumeration<AbstractButton> buttons = m_group.getElements();
         while (buttons.hasMoreElements()) {
             AbstractButton b = buttons.nextElement();
             if (b.isSelected()) {
-                foundIt = true;
                 if (CUSTOM_LABEL.equals(b.getActionCommand())) {
-                    if ((m_custom.getText() == null) || (m_custom.getText().length() == 0)) {
+                    if ((m_customName.getText() == null) || (m_customName.getText().isEmpty())) {
                         return "Please enter a character set name";
                     }
                     if (!checkCustomCharsetName()) {
-                        return "The entered character set name is not supported by this Java VM";
+                        return "The entered character set \"" + m_customName.getText()
+                            + "\" is not supported by this Java VM";
                     }
                 }
                 break;
             }
-        }
-        if (!foundIt) {
-            return "Please select a character set";
         }
         return null;
     }
@@ -388,6 +374,7 @@ public class CharsetNamePanel extends JPanel {
     public boolean overrideSettings(final FileReaderNodeSettings settings) {
         String oldCSN = settings.getCharsetName();
         String newCSN = getSelectedCharsetName().orElse(null);
+
         settings.setCharsetName(newCSN);
 
         boolean changed;
@@ -399,11 +386,13 @@ public class CharsetNamePanel extends JPanel {
         if (changed) {
             settings.setCharsetUserSet(true);
         }
-        return changed;
 
+        return changed;
     }
 
-    /** Get the name of the selected charset or an empty optional if 'default' was chosen.
+    /**
+     * Get the name of the selected charset or an empty optional if 'default' was chosen.
+     *
      * @return that value
      * @since 4.0
      */
