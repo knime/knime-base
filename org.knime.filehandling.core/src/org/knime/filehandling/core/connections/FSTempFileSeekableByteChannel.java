@@ -53,6 +53,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,8 +96,13 @@ public abstract class FSTempFileSeekableByteChannel<T extends Path> implements S
             m_file.getFileName().toString()));
 
         if (options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.READ)) {
-            copyFromRemote(m_file, m_tempFile);
+            try {
+                copyFromRemote(m_file, m_tempFile);
+            } catch (NoSuchFileException e) {
+                // the file need not necessarily exist
+            }
         }
+
         final Set<OpenOption> opts = new HashSet<>(options);
         opts.add(StandardOpenOption.CREATE);
         m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, opts);

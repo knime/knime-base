@@ -63,6 +63,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -148,23 +149,81 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
+        final Set<OpenOption> sanitizedOptions = validateAndSanitizeChannelOpenOptions(options);
+
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
-        if (existsCached(checkedPath) && options.contains(StandardOpenOption.CREATE_NEW)) {
-            throw new FileAlreadyExistsException(path.toString());
+        try {
+            final BasicFileAttributes fileAttrs = readAttributes(checkedPath, BasicFileAttributes.class);
+
+            // we can neither read nor write a directory
+            if (fileAttrs.isDirectory()) {
+                throw new IOException("Is a directory");
+            }
+
+            if (options.contains(StandardOpenOption.CREATE_NEW)) {
+                throw new FileAlreadyExistsException(path.toString());
+            }
+
+        } catch (NoSuchFileException e) {
+            // if the file does not exist we need a CREATE open option
+            if (!options.contains(StandardOpenOption.CREATE) && !options.contains(StandardOpenOption.CREATE_NEW)) {
+                throw e;
+            }
+
+            // if the file does not exist and we will create it, we need to check whether the parent directory
+            // exists
+            checkParentDirectoryExists(checkedPath);
         }
-        if (!existsCached(checkedPath) && options.contains(StandardOpenOption.READ)) {
-            throw new NoSuchFileException(path.toString());
+
+        return new BaseSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem);
+    }
+
+    private void checkParentDirectoryExists(final P checkedPath) throws IOException {
+        final P checkedPathParent = (P)checkedPath.getParent();
+        if (checkedPathParent != null) {
+            // already fails with NoSuchFileException if it does not exist
+            final BasicFileAttributes parentAttrs = readAttributes(checkedPathParent, BasicFileAttributes.class);
+
+            if (!parentAttrs.isDirectory()) {
+                // additionally we fail if the parent path is not a directory
+                throw new FileSystemException(checkedPath.toString(), null, "Not a directory");
+            }
         }
-        if ((options.contains(StandardOpenOption.CREATE_NEW) || options.contains(StandardOpenOption.CREATE))
-            && !existsCached((P) path.toAbsolutePath().getParent())) {
-            throw new NoSuchFileException(path.toAbsolutePath().getParent().toString());
+    }
+
+    private Set<OpenOption> validateAndSanitizeChannelOpenOptions(final Set<? extends OpenOption> options) {
+        final Set<OpenOption> sanitized = new HashSet<>(options);
+
+        // APPEND and TRUNCATE_EXISTING imply WRITE
+        if ((options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
+                && !options.contains(StandardOpenOption.WRITE)) {
+            sanitized.add(StandardOpenOption.WRITE);
         }
-        if ((options.contains(StandardOpenOption.READ) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
-            && options.contains(StandardOpenOption.APPEND)) {
-            throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
+
+        // default to READ if nothing else is specified
+        if (!sanitized.contains(StandardOpenOption.READ) && !sanitized.contains(StandardOpenOption.WRITE)) {
+            sanitized.add(StandardOpenOption.READ);
         }
-        return new BaseSeekableByteChannel(newByteChannelInternal(checkedPath, options, attrs), m_fileSystem);
+
+        // ignore CREATE if CREATE_NEW is present
+        if (sanitized.contains(StandardOpenOption.CREATE) && sanitized.contains(StandardOpenOption.CREATE_NEW)) {
+            sanitized.remove(StandardOpenOption.CREATE);
+        }
+
+        // ignore CREATE_NEW and CREATE if file is only opened for reading
+        if ((sanitized.contains(StandardOpenOption.CREATE) || sanitized.contains(StandardOpenOption.CREATE_NEW))
+                && !sanitized.contains(StandardOpenOption.WRITE)) {
+            sanitized.remove(StandardOpenOption.CREATE);
+            sanitized.remove(StandardOpenOption.CREATE_NEW);
+        }
+
+        if ((sanitized.contains(StandardOpenOption.READ) || sanitized.contains(StandardOpenOption.TRUNCATE_EXISTING))
+                && sanitized.contains(StandardOpenOption.APPEND)) {
+                throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
+        }
+
+        return sanitized;
     }
 
     /**

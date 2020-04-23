@@ -7,7 +7,10 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
@@ -186,4 +189,92 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 		return result;
 	}
 	
+    @Test(expected = IOException.class)
+	public void test_read_directory() throws IOException {
+        Path directory = m_testInitializer.getRoot().resolve("dir");
+        Files.createDirectories(directory);
+        
+        Files.newByteChannel(directory, StandardOpenOption.READ).read(ByteBuffer.allocate(1));
+	}
+    
+    @Test(expected = IOException.class)
+    public void test_write_directory() throws IOException {
+        Path directory = m_testInitializer.getRoot().resolve("dir");
+        Files.createDirectories(directory);
+        Files.newByteChannel(directory, StandardOpenOption.WRITE);
+    }
+
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_write_existing_file() throws IOException {
+        Path file = m_testInitializer.createFileWithContent("foobar", "dir", "file");
+        Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_write_new_file_without_create_new() throws IOException {
+        Path file = m_testInitializer.makePath("doesnotexist");
+        Files.newByteChannel(file, StandardOpenOption.WRITE);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_write_file_with_inexistent_parent_directory() throws IOException {
+        Path file = m_testInitializer.makePath("dirdoesnotexist", "file");
+        Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+    }
+
+    @Test(expected = FileSystemException.class)
+    public void test_write_file_where_parent_is_a_file() throws IOException {
+        Path parent = m_testInitializer.createFileWithContent("content1", "file");
+        Path file = parent.resolve("newfile");
+        Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+    }
+
+    @Test
+    public void test_open_existing_file_read_write() throws IOException {
+        Path file = m_testInitializer.createFileWithContent("content2", "file");
+        try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ,
+                StandardOpenOption.WRITE)) {
+            assertEquals("content2", readFromByteChannel(channel));
+            channel.write(ByteBuffer.wrap("testwrite".getBytes()));
+            channel.position(0);
+            assertEquals("content2testwrite", readFromByteChannel(channel));
+        }
+    }
+
+    @Test
+    public void test_open_new_file_read_write() throws IOException {
+        Path file = m_testInitializer.makePath("newfile");
+        try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ, StandardOpenOption.WRITE,
+                StandardOpenOption.CREATE)) {
+            channel.write(ByteBuffer.wrap("testwrite".getBytes()));
+            channel.position(0);
+            assertEquals("testwrite", readFromByteChannel(channel));
+        }
+    }
+
+    @Test
+    public void test_open_file_for_append() throws IOException {
+        Path file = m_testInitializer.createFileWithContent("content3", "file");
+
+        try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.APPEND)) {
+            channel.write(ByteBuffer.wrap("testwrite".getBytes()));
+        }
+
+        try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ)) {
+            channel.position(0);
+            assertEquals("content3testwrite", readFromByteChannel(channel));
+        }
+    }
+
+    @Test
+    public void test_open_file_for_truncation() throws IOException {
+        Path file = m_testInitializer.createFileWithContent("content4", "file");
+
+        try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ,
+                StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            channel.write(ByteBuffer.wrap("testwrite".getBytes()));
+            channel.position(0);
+            assertEquals("testwrite", readFromByteChannel(channel));
+        }
+    }
 }
