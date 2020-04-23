@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.node.util.CheckUtils;
@@ -99,38 +98,77 @@ public final class TableSpecGuesser<T, V> {
      */
     public ReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config) throws IOException {
         try (final ExtractColumnHeaderRead<V> source = wrap(read, config)) {
-            final TypeGuesser<T, V> typeGuesser = guessTypes(source, config.allowShortRows());
-            final Optional<String[]> headerArray = source.getColumnHeaders();
-            CheckUtils.checkArgument(headerArray.isPresent() || !config.useColumnHeaderIdx(),
+            return guessSpec(source, config);
+        }
+    }
+
+    /**
+     * Guesses the {@link ReaderTableSpec} from the rows provided by the {@link ExtractColumnHeaderRead read}.</br>
+     * <i>Note:</i> The contract of this method is that the read obeys the settings, i.e., it is only processing the
+     * proper data rows.
+     *
+     * @param read providing the rows to guess the spec from
+     * @param config providing the user settings
+     * @return the guessed spec
+     * @throws IOException if I/O problems occur
+     */
+    public ReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config)
+        throws IOException {
+        try (Read<V> filtered = filterColIdx(read, config)) {
+            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows());
+            final String[] headerArray = read.getColumnHeaders().map(rA -> extractColumnNames(rA, config)).orElse(null);
+            CheckUtils.checkArgument(headerArray != null || !config.useColumnHeaderIdx(),
                 "The row containing the table headers (row number %s) was not part of the table.",
                 config.getColumnHeaderIdx());
             return createTableSpec(typeGuesser, headerArray);
         }
     }
 
-    // the caller uses a try-with scope to ensure that the read is closed
-    @SuppressWarnings("resource")
+    @SuppressWarnings("resource") // the caller uses a try-with scope to ensure that the read is closed
     private ExtractColumnHeaderRead<V> wrap(final Read<V> read, final TableReadConfig<?> config) {
-        Read<V> filtered = read;
-        if (config.useRowIDIdx()) {
-            filtered = new ColumnFilterRead<>(filtered, config.getRowIDIdx());
-        }
-        filtered = ReadUtils.decorateForSpecGuessing(filtered, config);
+        final Read<V> filtered = ReadUtils.decorateForSpecGuessing(read, config);
         final long columnHeaderIdx = config.useColumnHeaderIdx() ? config.getColumnHeaderIdx() : -1;
-        return new ExtractColumnHeaderRead<>(filtered, m_valueToString, columnHeaderIdx);
+        return new DefaultExtractColumnHeaderRead<>(filtered, columnHeaderIdx);
     }
 
-    private ReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser,
-        final Optional<String[]> columnNames) {
-        if (columnNames.isPresent()) {
-            String[] headerArray = uniquify(columnNames.get());
+    private Read<V> filterColIdx(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config) {
+        if (config.useRowIDIdx()) {
+            return new ColumnFilterRead<>(read, config.getRowIDIdx());
+        }
+        return read;
+    }
+
+    private String[] extractColumnNames(final RandomAccessible<V> values, final TableReadConfig<?> config) {
+        final RandomAccessible<V> colHeader = filterColIdx(values, config);
+        final String[] names = new String[colHeader.size()];
+        for (int i = 0; i < colHeader.size(); i++) {
+            V value = colHeader.get(i);
+            if (value != null) {
+                names[i] = m_valueToString.apply(value);
+            }
+        }
+        return names;
+    }
+
+    private RandomAccessible<V> filterColIdx(final RandomAccessible<V> values, final TableReadConfig<?> config) {
+        if (config.useRowIDIdx()) {
+            final ColumnFilterRandomAccessible<V> colHeader = new ColumnFilterRandomAccessible<>(config.getRowIDIdx());
+            colHeader.setDecoratee(values);
+            return colHeader;
+        }
+        return values;
+    }
+
+    private ReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser, final String[] columnNames) {
+        if (columnNames != null) {
+            String[] headerArray = uniquify(columnNames);
             // make sure that we have at least as many types as names
             final List<T> types = typeGuesser.getMostSpecificTypes(headerArray.length);
             if (types.size() != headerArray.length) {
                 // make sure that we have the same number of names as types
                 headerArray = Arrays.copyOf(headerArray, types.size());
             }
-            return ReaderTableSpec.create(Arrays.asList(headerArray),types);
+            return ReaderTableSpec.create(Arrays.asList(headerArray), types);
         } else {
             return ReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0));
         }
@@ -139,8 +177,8 @@ public final class TableSpecGuesser<T, V> {
     private static String[] uniquify(final String[] columnNames) {
         final UniqueNameGenerator nameGen = new UniqueNameGenerator(Collections.emptySet());
         return Arrays.stream(columnNames)//
-                .map(n -> n == null ? null : nameGen.newName(n))//
-                .toArray(String[]::new);
+            .map(n -> n == null ? null : nameGen.newName(n))//
+            .toArray(String[]::new);
     }
 
     private TypeGuesser<T, V> guessTypes(final Read<V> source, final boolean allowShortRows) throws IOException {

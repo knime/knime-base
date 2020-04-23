@@ -50,85 +50,24 @@ package org.knime.filehandling.core.node.table.reader.spec;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Function;
 
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.AbstractReadDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
- * A read that extracts the row containing the table headers from the provided {@link Read source}.
+ * A read that extracts the row containing the column headers from the provided {@link Read source}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of tokens making up a row in the read
  */
-final class ExtractColumnHeaderRead<V> extends AbstractReadDecorator<V> {
-
-    private final long m_columnHeaderIdx;
-
-    private final Function<V, String> m_nameExtractor;
-
-    private String[] m_columnHeaders = null;
-
-    private long m_rowIdx = -1;
+public interface ExtractColumnHeaderRead<V> extends Read<V> {
 
     /**
-     * Constructor.
+     * Returns the extracted column headers and if necessary keeps reading until the headers are read.
      *
-     * @param source the underlying read to extract the column header from
-     * @param nameExtractor function that turns a V into a column name
-     * @param columnHeaderIdx index of the column header row (set to -1 if no column header is contained)
-     */
-    ExtractColumnHeaderRead(final Read<V> source, final Function<V, String> nameExtractor, final long columnHeaderIdx) {
-        super(source);
-        m_columnHeaderIdx = columnHeaderIdx;
-        m_nameExtractor = nameExtractor;
-    }
-
-    /**
-     * If necessary keeps reading until the headers are read and returns them.
-     *
-     * @return the extracted column headers
+     * @return the {@link RandomAccessible} containing the column headers, empty if no column header has been found
      * @throws IOException if there I/O problems while reading the headers
      */
-    Optional<String[]> getColumnHeaders() throws IOException {
-        if (m_columnHeaderIdx >= 0 && m_columnHeaders == null) {
-            // make sure that the column headers are read
-            while (next() != null && m_columnHeaders == null) {
-                // all the action is in the header
-            }
-        }
-        return Optional.ofNullable(m_columnHeaders);
-    }
-
-    private String[] extractNames(final RandomAccessible<V> values) {
-        final String[] names = new String[values.size()];
-        for (int i = 0; i < values.size(); i++) {
-            V value = values.get(i);
-            if (value != null) {
-                names[i] = m_nameExtractor.apply(value);
-            }
-        }
-        return names;
-    }
-
-    /**
-     * @return true if the next row contains the column headers
-     */
-    private boolean isColumnHeaderRow() {
-        return m_rowIdx == m_columnHeaderIdx;
-    }
-
-    @Override
-    public RandomAccessible<V> next() throws IOException {
-        m_rowIdx++;
-        if (isColumnHeaderRow()) {
-            RandomAccessible<V> colHeaderRow = getSource().next();
-            CheckUtils.checkState(colHeaderRow != null,
-                "The row containing the column headers is not part of the table.");
-            m_columnHeaders = extractNames(colHeaderRow);
-        }
-        return getSource().next();
-    }
+    Optional<RandomAccessible<V>> getColumnHeaders() throws IOException;
 
 }
