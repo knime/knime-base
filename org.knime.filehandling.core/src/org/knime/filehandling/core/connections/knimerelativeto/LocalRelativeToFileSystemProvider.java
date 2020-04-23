@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,17 +71,20 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowPersistor;
+import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
  * Local KNIME relative to File System provider.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<LocalRelativeToPath, LocalRelativeToFileSystem> {
+public class LocalRelativeToFileSystemProvider
+    extends BaseFileSystemProvider<LocalRelativeToPath, LocalRelativeToFileSystem> implements WorkflowAware {
 
     private static final String SCHEME = "knime";
 
@@ -253,4 +257,11 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
 
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
     }
+
+    @Override
+    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
+        throws IOException {
+        MountPointFileSystemAccessService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
+    }
+
 }

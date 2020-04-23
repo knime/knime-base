@@ -72,6 +72,7 @@ public interface WorkflowAware {
      *
      * @throws IOException if this method fails for any reason
      */
-    void deployWorkflow(File source, Path dest, final boolean overwrite, boolean attemptOpen) throws IOException;
+    void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
+        throws IOException;
 
 }
