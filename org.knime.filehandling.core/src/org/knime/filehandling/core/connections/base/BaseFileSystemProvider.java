@@ -179,15 +179,23 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return new BaseSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem);
     }
 
-    private void checkParentDirectoryExists(final P checkedPath) throws IOException {
-        final P checkedPathParent = (P)checkedPath.getParent();
+    /**
+     * Checks whether the parent directory (if any) of the given path exists and throws an exception if not.
+     *
+     * @param path The path whose parent directory (if any) should be checked for existence.
+     * @throws NoSuchFileException if the parent directory does not exist.
+     * @throws FileSystemException if the parent path exists but is not a directory.
+     * @throws IOException if something went wrong while checking.
+     */
+    protected void checkParentDirectoryExists(final P path) throws IOException {
+        final P checkedPathParent = (P)path.getParent();
         if (checkedPathParent != null) {
             // already fails with NoSuchFileException if it does not exist
             final BasicFileAttributes parentAttrs = readAttributes(checkedPathParent, BasicFileAttributes.class);
 
             if (!parentAttrs.isDirectory()) {
                 // additionally we fail if the parent path is not a directory
-                throw new FileSystemException(checkedPath.toString(), null, "Not a directory");
+                throw new FileSystemException(path.toString(), null, "Not a directory");
             }
         }
     }
@@ -415,8 +423,33 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     protected abstract Iterator<P> createPathIterator(final P dir, final Filter<? super Path> filter)
         throws IOException;
 
+
+    @Override
+    public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+        final P checkedDir = checkCastAndAbsolutizePath(dir);
+        checkParentDirectoryExists(checkedDir);
+
+        try {
+            // fails with NoSuchFileException if it does not exist
+            readAttributes(checkedDir, BasicFileAttributes.class);
+            throw new FileAlreadyExistsException(checkedDir.toString());
+        } catch (NoSuchFileException e) {
+            createDirectoryInternal(checkedDir, attrs);
+        }
+    }
+
     /**
-     * {@inheritDoc}
+     * Creates a directory for the given path. Implementations can assume that the parent directory has been checked for
+     * existence and that no file exists, which matches the given path.
+     *
+     * @param dir an absolute, normalized path that specifies the directory to create.
+     * @param attrs an optional list of file attributes to set atomically when creating the directory
+     * @throws IOException If something went wrong while creating the directory.
+     */
+    protected abstract void createDirectoryInternal(final P dir, final FileAttribute<?>... attrs) throws IOException;
+
+    /**
+     * Returns the internal file system instance (does not look at the URI).
      */
     @Override
     public synchronized F getFileSystem(final URI uri) {

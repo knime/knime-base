@@ -183,7 +183,8 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+    protected void createDirectoryInternal(final LocalRelativeToPath dir, final FileAttribute<?>... attrs)
+        throws IOException {
         Files.createDirectory(toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 

@@ -108,7 +108,8 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     }
 
     @Override
-    public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+    protected void createDirectoryInternal(final KNIMERemotePath dir, final FileAttribute<?>... attrs)
+        throws IOException {
         MountPointFileSystemAccessService.instance().createDirectory(dir.toUri());
     }
 

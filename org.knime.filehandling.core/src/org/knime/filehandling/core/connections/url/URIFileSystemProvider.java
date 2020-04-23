@@ -152,7 +152,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     }
 
     @Override
-    public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+    protected void createDirectoryInternal(final URIPath dir, final FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException("Folders and folder listings are not supported for custom URLs");
     }
 
