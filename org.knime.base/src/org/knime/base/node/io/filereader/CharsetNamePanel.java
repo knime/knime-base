@@ -80,36 +80,52 @@ public class CharsetNamePanel extends JPanel {
     private static final long serialVersionUID = 2016L;
 
     // action command for the "default" button
-    private static final String DEFAULT_LABEL = "Use embedded file encoding (" + Charset.defaultCharset().name() + ")";
+    private static final String DEFAULT_LABEL = "OS default (" + Charset.defaultCharset().name() + ")";
 
     // action command for the "enter your own char set name" button
     private static final String CUSTOM_LABEL = "Other";
 
     private static final Icon ERROR_ICON = SharedIcons.ERROR.get();
 
-    private ButtonGroup m_group;
+    private final ButtonGroup m_group = new ButtonGroup();
 
-    private JRadioButton m_default;
+    /*
+     * use labels that are valid charset names (we use them later
+     * directly as parameter). Except for "default" and "user defined".
+     */
+    private final JRadioButton m_default =
+        createButton(DEFAULT_LABEL, "Uses the default decoding set by the operating system");
 
-    private JRadioButton m_usASCII;
+    private final JRadioButton m_usASCII = createButton("US-ASCII", "Seven-bit ASCII, also referred to as US-ASCII");
 
-    private JRadioButton m_iso8859;
+    private final JRadioButton m_iso8859 = createButton("ISO-8859-1", "ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1");
 
-    private JRadioButton m_utf8;
+    private final JRadioButton m_utf8 = createButton("UTF-8", "Eight-bit UCS Transformation Format");
 
-    private JRadioButton m_utf16le;
+    private final JRadioButton m_utf16le =
+        createButton("UTF-16LE", "Sixteen-bit UCS Transformation Format, little-endian byte order");
 
-    private JRadioButton m_utf16be;
+    private final JRadioButton m_utf16be =
+        createButton("UTF-16BE", "Sixteen-bit UCS Transformation Format, big-endian byte order");
 
-    private JRadioButton m_utf16;
+    private final JRadioButton m_utf16 = createButton("UTF-16",
+        "Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file");
 
-    private JRadioButton m_custom;
+    private final JRadioButton m_custom =
+        createButton(CUSTOM_LABEL, "Enter a valid charset name supported by the Java Virtual Machine");
 
-    private JTextField m_customName;
+    private final JTextField m_customName = createTextField();
 
-    private final JLabel m_customError = new JLabel();
+    private final JLabel m_customError = createCustomErrorLabel();
 
     private final JLabel m_encodingWarning = new JLabel();
+
+    private static JLabel createCustomErrorLabel() {
+        final JLabel label = new JLabel();
+        label.setIcon(ERROR_ICON);
+        label.setVisible(false);
+        return label;
+    }
 
     /** Init UI. */
     private CharsetNamePanel() {
@@ -140,58 +156,19 @@ public class CharsetNamePanel extends JPanel {
         setCharsetName(charsetName);
     }
 
-    private Container getSelectionPanel() {
+    private JRadioButton createButton(final String label, final String tooltip) {
+        final JRadioButton button = new JRadioButton(label);
+        button.setToolTipText(tooltip);
+        button.addChangeListener(e -> buttonsChanged());
+        m_group.add(button);
+        return button;
+    }
 
-        m_group = new ButtonGroup();
-        /*
-         * use action commands that are valid charset names (we use them later
-         * directly as parameter). Except for "default" and "user defined".
-         */
-        m_default = new JRadioButton(DEFAULT_LABEL);
-        m_default.setToolTipText("Uses the default decoding set by the operating system");
-        m_default.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_default);
-
-        m_usASCII = new JRadioButton("US-ASCII");
-        m_usASCII.setToolTipText("Seven-bit ASCII, also referred to as US-ASCII");
-        m_usASCII.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_usASCII);
-
-        m_iso8859 = new JRadioButton("ISO-8859-1");
-        m_iso8859.setToolTipText("ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1");
-        m_iso8859.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_iso8859);
-
-        m_utf8 = new JRadioButton("UTF-8");
-        m_utf8.setToolTipText("Eight-bit UCS Transformation Format");
-        m_utf8.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_utf8);
-
-        m_utf16le = new JRadioButton("UTF-16LE");
-        m_utf16le.setToolTipText("Sixteen-bit UCS Transformation Format, little-endian byte order");
-        m_utf16le.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_utf16le);
-
-        m_utf16be = new JRadioButton("UTF-16BE");
-        m_utf16be.setToolTipText("Sixteen-bit UCS Transformation Format, big-endian byte order");
-        m_utf16be.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_utf16be);
-
-        m_utf16 = new JRadioButton("UTF-16");
-        m_utf16.setToolTipText("Sixteen-bit UCS Transformation Format, byte order identified by an optional "
-            + "byte-order mark in the file");
-        m_utf16.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_utf16);
-
-        m_custom = new JRadioButton(CUSTOM_LABEL);
-        m_custom.setToolTipText("Enter a valid charset name supported by the Java Virtual Machine");
-        m_custom.addChangeListener(e -> buttonsChanged());
-        m_group.add(m_custom);
-
-        m_customName = new JTextField(20);
-        m_customName.setPreferredSize(new Dimension(250, 25));
-        m_customName.setMaximumSize(new Dimension(250, 25));
-        m_customName.getDocument().addDocumentListener(new DocumentListener() {
+    private JTextField createTextField() {
+        final JTextField textField = new JTextField(20);
+        textField.setPreferredSize(new Dimension(250, 25));
+        textField.setMaximumSize(new Dimension(250, 25));
+        textField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void removeUpdate(final DocumentEvent e) {
                 checkCustomCharsetName();
@@ -207,9 +184,28 @@ public class CharsetNamePanel extends JPanel {
                 checkCustomCharsetName();
             }
         });
+        return textField;
+    }
 
-        m_customError.setIcon(ERROR_ICON);
-        m_customError.setVisible(false);
+    private Container getSelectionPanel() {
+
+
+//        m_group.add(m_default);
+//
+//        m_group.add(m_usASCII);
+//
+//        m_group.add(m_iso8859);
+//
+//        m_group.add(m_utf8);
+//
+//        m_group.add(m_utf16le);
+//
+//        m_group.add(m_utf16be);
+//
+//        m_group.add(m_utf16);
+//
+//        m_group.add(m_custom);
+
 
         JPanel result = new JPanel(new GridBagLayout());
         result.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
@@ -235,6 +231,18 @@ public class CharsetNamePanel extends JPanel {
         gbc.gridy++;
         result.add(m_custom, gbc);
 
+        gbc.gridy++;
+        result.add(createCustomPanel(), gbc);
+        gbc.gridx++;
+        gbc.gridy++;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        result.add(new JPanel(), gbc);
+
+        return result;
+    }
+
+    private JPanel createCustomPanel() {
         final JPanel customItems = new JPanel(new GridBagLayout());
         final GridBagConstraints gbcCustom = new GridBagConstraints();
         gbcCustom.gridx = 0;
@@ -248,16 +256,7 @@ public class CharsetNamePanel extends JPanel {
         gbcCustom.anchor = GridBagConstraints.CENTER;
         gbcCustom.insets = new Insets(0, 3, 0, 0);
         customItems.add(m_encodingWarning, gbcCustom);
-
-        gbc.gridy++;
-        result.add(customItems, gbc);
-        gbc.gridx++;
-        gbc.gridy++;
-        gbc.weightx = 1;
-        gbc.weighty = 1;
-        result.add(new JPanel(), gbc);
-
-        return result;
+        return customItems;
     }
 
     /**
