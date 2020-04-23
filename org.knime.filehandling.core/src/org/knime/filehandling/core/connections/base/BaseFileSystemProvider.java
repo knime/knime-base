@@ -143,7 +143,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "resource"})
     @Override
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
@@ -164,7 +164,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             && options.contains(StandardOpenOption.APPEND)) {
             throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
         }
-        return new BaseSeekableByteChannel(newByteChannelInternal(path, options, attrs), m_fileSystem);
+        return new BaseSeekableByteChannel(newByteChannelInternal(checkedPath, options, attrs), m_fileSystem);
     }
 
     /**
@@ -177,7 +177,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      *
      * @return a new seekable byte channel
      */
-    protected abstract SeekableByteChannel newByteChannelInternal(final Path path,
+    protected abstract SeekableByteChannel newByteChannelInternal(final P path,
         final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException;
 
     @Override
@@ -213,12 +213,14 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         if (existsCached(checkedTarget) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
             throw new FileAlreadyExistsException(target.toString());
         }
-        if (!existsCached((P) checkedTarget.getParent())) {
-            throw new NoSuchFileException(target.getParent().toString());
+
+        final P targetParent = (P)checkedTarget.getParent();
+        if (targetParent != null && !existsCached(targetParent)) {
+            throw new NoSuchFileException(targetParent.toString());
         }
 
         moveInternal(checkedSource, checkedTarget, options);
-        getFileSystemInternal().removeFromAttributeCache(source);
+        getFileSystemInternal().removeFromAttributeCache(checkedSource);
     }
 
     /**
@@ -396,8 +398,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @SuppressWarnings("unchecked")
     protected P checkCastAndAbsolutizePath(final Path path) {
-        checkPath(path);
-        return (P) path.toAbsolutePath();
+        checkPathProvider(path);
+        return (P) path.toAbsolutePath().normalize();
     }
 
     /**
@@ -430,7 +432,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
-        checkPath(path);
+        checkPathProvider(path);
         if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
             || type == FileOwnerAttributeView.class) {
 
@@ -492,16 +494,15 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
-        checkPath(path);
+        checkPathProvider(path);
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
             attributes);
     }
 
 
-    @SuppressWarnings("unchecked")
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        final P checkedPath = (P) checkCastAndAbsolutizePath(path).normalize();
+        final P checkedPath = checkCastAndAbsolutizePath(path);
 
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
@@ -525,7 +526,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void delete(final Path path) throws IOException {
-        final P checkedPath = (P) checkCastAndAbsolutizePath(path).normalize();
+        final P checkedPath = checkCastAndAbsolutizePath(path);
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
         }
@@ -552,7 +553,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      *
      * @param path the path to check
      */
-    protected void checkPath(final Path path) {
+    protected void checkPathProvider(final Path path) {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException(PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
@@ -571,7 +572,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         final P checkedPath = checkCastAndAbsolutizePath(path);
         final P checkedPath2 = checkCastAndAbsolutizePath(path2);
 
-        if (checkedPath == checkedPath2 || checkedPath.normalize().equals(checkedPath2.normalize())) {
+        if (checkedPath.equals(checkedPath2)) {
             return true;
         }
 
@@ -594,7 +595,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return false;
     }
 
-    @SuppressWarnings("resource")
     @Override
     public P getPath(final URI uri) {
         final F fileSystem = getFileSystemInternal();
@@ -606,4 +606,11 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new IllegalArgumentException(String.format("Cannot create path for URI: %s", uri.toString()));
         }
     }
+
+    @Override
+    public void setAttribute(final Path arg0, final String arg1, final Object arg2, final LinkOption... arg3)
+            throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
 }

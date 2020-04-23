@@ -170,10 +170,10 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
     }
 
     @Override
-    protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
-        final FileAttribute<?>... attrs) throws IOException {
+    protected SeekableByteChannel newByteChannelInternal(final LocalRelativeToPath path,
+        final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 
-        final Path localPath = toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(path));
+        final Path localPath = toLocalPathWithAccessibilityCheck(path);
 
         if (LocalRelativeToPathConfig.isLocalWorkflowFolder(localPath)) {
             throw new IOException("Workflows cannot be opened for reading/writing");
@@ -251,11 +251,5 @@ public class LocalRelativeToFileSystemProvider extends BaseFileSystemProvider<Lo
         }
 
         throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
-    }
-
-    @Override
-    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
-        throws IOException {
-        throw new UnsupportedOperationException();
     }
 }

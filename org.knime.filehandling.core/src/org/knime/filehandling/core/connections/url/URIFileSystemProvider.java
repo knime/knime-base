@@ -61,7 +61,6 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -129,7 +128,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         }
     }
 
-    private String getURIPathQueryAndFragment(final URI uri) {
+    private static String getURIPathQueryAndFragment(final URI uri) {
         final StringBuilder toReturn = new StringBuilder(uri.getPath());
 
         if (uri.getQuery() != null) {
@@ -146,7 +145,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
 
 
     @Override
-    protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
+    protected SeekableByteChannel newByteChannelInternal(final URIPath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
         throw new UnsupportedOperationException();
@@ -214,11 +213,12 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         return false;
     }
 
+    @SuppressWarnings("resource")
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
-        checkPath(path);
-        // there is only every one file store
-        return path.getFileSystem().getFileStores().iterator().next();
+        checkPathProvider(path);
+        // there is only one file store
+        return getFileSystemInternal().getFileStores().iterator().next();
     }
 
     @Override
@@ -235,12 +235,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         } else {
             return e;
         }
-    }
-
-    @Override
-    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
-        throws IOException {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -279,7 +279,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @return attributes cache key
      */
     protected String getCachedAttributesKey(final Path path) {
-        return path.normalize().toAbsolutePath().toString();
+        return path.toAbsolutePath().normalize().toString();
     }
 
     /**

@@ -60,7 +60,6 @@ import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
-import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -99,7 +98,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     }
 
     @Override
-    protected SeekableByteChannel newByteChannelInternal(final Path path, final Set<? extends OpenOption> options,
+    protected SeekableByteChannel newByteChannelInternal(final KNIMERemotePath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -125,7 +124,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
 
     @Override
     public boolean isHidden(final Path path) throws IOException {
-        checkPath(path);
+        checkPathProvider(path);
         return false;
     }
 
@@ -139,14 +138,9 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
         // there is nothing we can do here
     }
 
-    @Override
-    public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
-        throws IOException {
-        throw new UnsupportedOperationException();
-    }
 
     private URL toURL(final Path path) {
-        checkPath(path);
+        checkPathProvider(path);
         return ((KNIMERemotePath)path).toURL();
     }
 
