@@ -46,14 +46,14 @@
  * History
  *   6 Apr 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.table.csv.reader;
 
 /**
  * A utility class to escape or unescape a fixed set of escape sequences i.e., {\t \n \r \n\r}
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-final class EscapeUtils {
+public final class EscapeUtils {
 
     private EscapeUtils() {
         throw new IllegalStateException("Utility class, can not be instantiated!");
@@ -67,7 +67,7 @@ final class EscapeUtils {
      * @param s the input string where backslash char is escaped
      * @return escape sequence string.
      */
-    static String unescape(final String s) {
+    public static String unescape(final String s) {
         if ("\\t".equals(s)) {
             return "\t";
         } else if ("\\n".equals(s)) {
@@ -89,7 +89,7 @@ final class EscapeUtils {
      * @param s the input string where backslash char is escaped
      * @return escape sequence string.
      */
-    static String escape(final String s) {
+    public static String escape(final String s) {
         if ("\t".equals(s)) {
             return "\\t";
         } else if ("\n".equals(s)) {

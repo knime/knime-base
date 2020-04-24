@@ -68,6 +68,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
+import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;

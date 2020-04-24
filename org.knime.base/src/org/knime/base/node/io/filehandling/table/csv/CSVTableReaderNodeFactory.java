@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.table.csv;
 
+import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReader;
+import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;

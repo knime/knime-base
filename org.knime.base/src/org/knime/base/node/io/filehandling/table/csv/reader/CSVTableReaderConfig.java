@@ -46,7 +46,7 @@
  * History
  *   6 Apr 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.table.csv.reader;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,7 +63,7 @@ import com.univocity.parsers.csv.CsvParserSettings;
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderConfig> {
+public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderConfig> {
 
     /**
      * According to the javadoc a value of -1 allows for auto-expansion of the array which indicates that this value
@@ -152,7 +152,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param delimiter the column delimiter string from the node dialog.
      */
-    void setDelimiter(final String delimiter) {
+    public void setDelimiter(final String delimiter) {
         getFormat().setDelimiter(getFirstChar(delimiter, "Delimiter character"));
     }
 
@@ -161,7 +161,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @return the delimiter string
      */
-    String getDelimiter() {
+    public String getDelimiter() {
         return getFormat().getDelimiterString();
     }
 
@@ -170,7 +170,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param lineSeparator the line separator used
      */
-    void setLineSeparator(final String lineSeparator) {
+    public void setLineSeparator(final String lineSeparator) {
         getFormat().setLineSeparator(lineSeparator);
     }
 
@@ -179,7 +179,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @return the line separator used to define rows
      */
-    String getLineSeparator() {
+    public String getLineSeparator() {
         return getFormat().getLineSeparatorString();
     }
 
@@ -188,7 +188,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @return the character used as quotes
      */
-    String getQuote() {
+    public String getQuote() {
         return Character.toString(getFormat().getQuote());
     }
 
@@ -197,7 +197,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param quoteChar a string containing a character used as quotes .
      */
-    void setQuote(final String quoteChar) {
+    public void setQuote(final String quoteChar) {
         getFormat().setQuote(getFirstChar(quoteChar, "Quote character"));
     }
 
@@ -206,7 +206,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @return a string containing the character used for escaping quotes
      */
-    String getQuoteEscape() {
+    public String getQuoteEscape() {
         return Character.toString(getFormat().getQuoteEscape());
     }
 
@@ -215,7 +215,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param quoteEscapeChar a string containing a character used for escaping quotes
      */
-    void setQuoteEscape(final String quoteEscapeChar) {
+    public void setQuoteEscape(final String quoteEscapeChar) {
         getFormat().setQuoteEscape(getFirstChar(quoteEscapeChar, "Quote escape character"));
     }
 
@@ -224,7 +224,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @return a string containing the character used for commenting a line
      */
-    String getComment() {
+    public String getComment() {
         return Character.toString(getFormat().getComment());
     }
 
@@ -233,7 +233,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param commentChar string containing the character used for commenting a line
      */
-    void setComment(final String commentChar) {
+    public void setComment(final String commentChar) {
         getFormat().setComment(getFirstChar(commentChar, "Comment character"));
     }
 
@@ -296,7 +296,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param replaceByMissingVal flag that decides if empty strings should be replaced by a missing value
      */
-    void setReplaceEmptyWithMissing(final boolean replaceByMissingVal) {
+    public void setReplaceEmptyWithMissing(final boolean replaceByMissingVal) {
         getSettings().setEmptyValue(replaceByMissingVal ? null : "");
     }
 
@@ -323,7 +323,7 @@ final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderC
      *
      * @param charSet the new character set name (encoding), or <code>null</code> if the default should be used.
      */
-    void setCharSetName(final String charSet) {
+    public void setCharSetName(final String charSet) {
         m_charSet = charSet;
     }
 
