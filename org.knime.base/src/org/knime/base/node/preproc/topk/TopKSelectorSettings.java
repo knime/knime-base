@@ -51,10 +51,12 @@ package org.knime.base.node.preproc.topk;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Manages the settings for the Top K Selector node.
@@ -64,8 +66,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 final class TopKSelectorSettings {
 
     /**
-     * Array containing information about the sort order for each column. true:
-     * ascending; false: descending
+     * Array containing information about the sort order for each column. true: ascending; false: descending
      */
     private boolean[] m_sortOrder = null;
 
@@ -85,11 +86,17 @@ final class TopKSelectorSettings {
         return new SettingsModelString("outputOrder", OutputOrder.NO_ORDER.name());
     }
 
+    private static TopKModeSettingsModel createTopKModeModel() {
+        return new TopKModeSettingsModel("topKMode", TopKMode.TOP_K_ROWS.name());
+    }
+
     private final SettingsModelStringArray m_inclList = createInclListModel();
 
     private final SettingsModelBoolean m_missingToEnd = createMissingsToEndModel();
 
     private final SettingsModelString m_outputOrder = createOutputOrderModel();
+
+    private final TopKModeSettingsModel m_topKMode = createTopKModeModel();
 
     private final SettingsModelIntegerBounded m_k = createKModel();
 
@@ -98,6 +105,7 @@ final class TopKSelectorSettings {
         m_missingToEnd.saveSettingsTo(settings);
         m_outputOrder.saveSettingsTo(settings);
         m_inclList.saveSettingsTo(settings);
+        m_topKMode.saveSettingsTo(settings);
         settings.addBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY, m_sortOrder);
     }
 
@@ -106,6 +114,7 @@ final class TopKSelectorSettings {
         m_missingToEnd.validateSettings(settings);
         m_outputOrder.validateSettings(settings);
         m_inclList.validateSettings(settings);
+        m_topKMode.validateSettings(settings);
         settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
     }
 
@@ -114,6 +123,7 @@ final class TopKSelectorSettings {
         m_missingToEnd.loadSettingsFrom(settings);
         m_outputOrder.loadSettingsFrom(settings);
         m_inclList.loadSettingsFrom(settings);
+        m_topKMode.loadSettingsFrom(settings);
         m_sortOrder = settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
     }
 
@@ -129,11 +139,15 @@ final class TopKSelectorSettings {
         return m_outputOrder;
     }
 
+    SettingsModelString getTopKModeModel() {
+        return m_topKMode;
+    }
+
     SettingsModelBoolean getMissingToEndModel() {
         return m_missingToEnd;
     }
 
-    String[] getIncllist(){
+    String[] getIncllist() {
         return m_inclList.getStringArrayValue();
     }
 
@@ -151,5 +165,51 @@ final class TopKSelectorSettings {
 
     OutputOrder getOutputOrder() {
         return OutputOrder.valueOf(m_outputOrder.getStringValue());
+    }
+
+    TopKMode getTopKMode() {
+        return TopKMode.valueOf(m_topKMode.getStringValue());
+    }
+
+    /**
+     * Ensures backwards compatibility by the new introduced {@link TopKMode} option with AP-13006.
+     *
+     * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+     */
+    private static class TopKModeSettingsModel extends SettingsModelString {
+
+        /**
+         * Constructor.
+         *
+         * @param configName
+         * @param defaultValue
+         */
+        public TopKModeSettingsModel(final String configName, final String defaultValue) {
+            super(configName, defaultValue);
+        }
+
+        @Override
+        protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+            throws NotConfigurableException {
+            setStringValue(settings.getString(this.getKey(), TopKMode.TOP_K_ROWS.name()));
+        }
+
+        @Override
+        protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final String key = settings.getString(this.getKey(), TopKMode.TOP_K_ROWS.name());
+            try {
+                TopKMode.valueOf(key);
+            } catch (final IllegalArgumentException iae) {
+                throw new InvalidSettingsException(iae.getMessage());
+            }
+            setStringValue(key);
+        }
+
+        @Override
+        protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(this.getKey())) {
+                super.validateSettingsForModel(settings);
+            }
+        }
     }
 }

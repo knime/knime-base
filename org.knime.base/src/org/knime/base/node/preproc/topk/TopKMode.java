@@ -44,60 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   9 Dec 2019 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   April 25, 2020 (Lars Schweikardt, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.topk;
 
-import javax.swing.BoxLayout;
-import javax.swing.JPanel;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+enum TopKMode implements ButtonGroupEnumInterface {
+        /**
+         * This mode is the standard mode and returns the top k rows.
+         */
+        TOP_K_ROWS("Top k rows"),
 
-/**
- *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
- */
-final class AdvancedSettings {
+        /**
+         * This mode returns the top k rows with unique values.
+         */
+        TOP_K_ALL_ROWS_W_UNIQUE("Top k rows with unique values");
 
-    private JPanel m_panel;
-
-    private final TopKSelectorSettings m_settings;
-
-    /**
-     * Creates a new Panel with a checkBox for "Move missing cells to end of the list" and a GroupBox for choosing the
-     * output order
-     *
-     * @param settings TopKSelectorSettings object to load and save settings
-     */
-    public AdvancedSettings(final TopKSelectorSettings settings) {
-        m_settings = settings;
-
-        m_panel = new JPanel();
-        m_panel.setLayout(new BoxLayout(m_panel, BoxLayout.Y_AXIS));
-
-        final DialogComponentBoolean missingsToEnd =
-            new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
-        m_panel.add(missingsToEnd.getComponentPanel());
-
-        final DialogComponentButtonGroup outputOrder = new DialogComponentButtonGroup(m_settings.getOutputOrderModel(),
-            "Output order", true, OutputOrder.values());
-        m_panel.add(outputOrder.getComponentPanel());
+    private TopKMode(final String text) {
+        m_text = text;
     }
 
-    public JPanel getPanel() {
-        return m_panel;
+    private final String m_text;
+
+    @Override
+    public String getText() {
+        return m_text;
     }
 
-//    public void load(final NodeSettingsRO settings) throws NotConfigurableException {
-//        try {
-//            m_settings.loadValidatedSettingsFrom(settings);
-//        } catch (InvalidSettingsException e) {
-//            throw new NotConfigurableException("Couldn't load settings", e);
-//        }
-//    }
-//
-//    public void save(final NodeSettingsWO settings) {
-//        m_settings.saveSettingsTo(settings);
-//    }
+    @Override
+    public String getActionCommand() {
+        return name();
+    }
+
+    @Override
+    public String getToolTip() {
+        return null;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return this == TOP_K_ROWS;
+    }
 }

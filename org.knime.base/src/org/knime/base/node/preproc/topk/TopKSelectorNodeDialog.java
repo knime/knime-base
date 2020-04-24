@@ -48,9 +48,11 @@
  */
 package org.knime.base.node.preproc.topk;
 
-import java.awt.Dimension;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
-import javax.swing.BoxLayout;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -61,6 +63,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 
 /**
@@ -81,7 +84,11 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DynamicSorterPanel m_panel;
 
-    private final AdvancedSettings m_advancedSettings;
+    private final AdvancedSettingsNodeDialog m_advancedSettings;
+
+    private final DialogComponentNumber m_kComp;
+
+    private final DialogComponentButtonGroup m_topKMode;
 
     /**
      *
@@ -91,26 +98,74 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         super();
 
         m_settings = new TopKSelectorSettings();
-        m_advancedSettings = new AdvancedSettings(m_settings);
+        m_advancedSettings = new AdvancedSettingsNodeDialog(m_settings);
+        m_topKMode =  new DialogComponentButtonGroup(m_settings.getTopKModeModel(), null, true, TopKMode.values());
 
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
-        final DialogComponentNumber kComp = new DialogComponentNumber(m_settings.getKModel(), "Number of rows", 1);
+        m_kComp = new DialogComponentNumber(m_settings.getKModel(), null, 1);
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        super.addTab(TAB, createPanel(), false);
 
-        JPanel tempPanel = kComp.getComponentPanel();
-        tempPanel.setPreferredSize(new Dimension(0, 25));
-        tempPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        mainPanel.add(tempPanel);
-        mainPanel.add(m_panel.getPanel());
-        JScrollPane scrollPane = new JScrollPane(mainPanel);
-        scrollPane.setPreferredSize(new Dimension(100, 250));
-        super.addTab(TAB, scrollPane);
+        super.addTab(TAB_ADVANCED_SETTINGS, m_advancedSettings.getPanel());
+    }
 
-        scrollPane = new JScrollPane(m_advancedSettings.getPanel());
-        super.addTab(TAB_ADVANCED_SETTINGS, scrollPane);
+    /**
+     * Creates the first tab for the top k Node
+     *
+     * @return the JScrollPane
+     */
+    private JScrollPane createPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0.2;
+        gbc.weighty = 1;
+
+        ++gbc.gridx;
+        ++gbc.gridy;
+        p.add(createInnerPanel(m_topKMode.getComponentPanel(), "Top k Mode"), gbc);
+        gbc.weightx = 0.8;
+        ++gbc.gridx;
+        p.add(createInnerPanel(m_kComp.getComponentPanel(),"Number of rows"), gbc);
+
+        gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+        ++gbc.gridy;
+
+        p.add(m_panel.getPanel(), gbc);
+
+        return new JScrollPane(p);
+    }
+
+    /**
+     * Creates a JPanel {@link JPanel} with the passed {@link Component} and sets a title of the border.
+     *
+     * @param component Component which will be added to the JPanel
+     * @param title title of the Border
+     * @return a {@link JPanel}
+     */
+    private static JPanel createInnerPanel(final Component component, final String title) {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createInnerPanelGridBagConstraint();
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        panel.add(component, gbc);
+        return panel;
+    }
+
+    /**
+     * Creates the default {@link GridBagConstraints} for the inner {@link JPanel}
+     *
+     * @return the default {@link GridBagConstraints}
+     */
+    private static GridBagConstraints createInnerPanelGridBagConstraint() {
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        return gbc;
     }
 
     /**
