@@ -80,6 +80,7 @@ import com.univocity.parsers.csv.CsvParserSettings;
  * {@link TableReader} that reads CSV files.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @since 4.2
  */
 public final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>, String> {
 

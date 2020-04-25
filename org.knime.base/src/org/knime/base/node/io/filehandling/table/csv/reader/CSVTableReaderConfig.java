@@ -62,6 +62,7 @@ import com.univocity.parsers.csv.CsvParserSettings;
  * An implementation of {@link ReaderSpecificConfig} class for CSV table reader.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @since 4.2
  */
 public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderConfig> {
 

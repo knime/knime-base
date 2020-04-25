@@ -52,6 +52,7 @@ package org.knime.base.node.io.filehandling.table.csv.reader;
  * A utility class to escape or unescape a fixed set of escape sequences i.e., {\t \n \r \n\r}
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @since 4.2
  */
 public final class EscapeUtils {
 
