@@ -129,8 +129,7 @@ public final class TableSpecGuesser<T, V> {
     @SuppressWarnings("resource") // the caller uses a try-with scope to ensure that the read is closed
     private ExtractColumnHeaderRead<V> wrap(final Read<V> read, final TableReadConfig<?> config) {
         final Read<V> filtered = ReadUtils.decorateForSpecGuessing(read, config);
-        final long columnHeaderIdx = config.useColumnHeaderIdx() ? config.getColumnHeaderIdx() : -1;
-        return new DefaultExtractColumnHeaderRead<>(filtered, columnHeaderIdx);
+        return new DefaultExtractColumnHeaderRead<>(filtered, config);
     }
 
     private Read<V> filterColIdx(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config) {

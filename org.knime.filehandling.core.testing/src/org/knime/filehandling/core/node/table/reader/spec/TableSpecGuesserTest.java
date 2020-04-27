@@ -128,6 +128,8 @@ public class TableSpecGuesserTest {
         for (int i = 0; i < values.length; i++) {
             when(mock.get(i)).thenReturn(values[i]);
         }
+        when(mock.copy()).thenReturn(mock);
+        when(mock.stream()).thenReturn(Arrays.stream(values));
         return mock;
     }
 
@@ -330,9 +332,10 @@ public class TableSpecGuesserTest {
     public void testSkipEmptyRowsWithColumnHeaderAndRowID() throws IOException {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
-        TableReadConfig<?> config = setupConfig(1, -1, true);
+        TableReadConfig<?> config = setupConfig(1, 1, true);
         when(config.skipEmptyRows()).thenReturn(true);
-        ReaderTableSpec<String> expected = ReaderTableSpec.create(asList(table[2]), asList(expectedTypes));
+        ReaderTableSpec<String> expected =
+            ReaderTableSpec.create(asList(ArrayUtils.remove(table[2], 1)), asList(ArrayUtils.remove(expectedTypes, 1)));
         testGuessSpec(table, config, expected);
     }
 
@@ -346,6 +349,48 @@ public class TableSpecGuesserTest {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
         TableReadConfig<?> config = setupConfig(1, -1, true);
+        ReaderTableSpec<String> expected = ReaderTableSpec.create(expectedTypes);
+        testGuessSpec(table, config, expected);
+    }
+
+    /**
+     * Tests the behavior if the column header contains a null value.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testColumnHeaderContainsNull() throws IOException {
+        String[][] table = m(a("a", null, "c"), a(), a("f", "g", "h"));
+        String[] expectedTypes = a("foo", "bar", "bla");
+        TableReadConfig<?> config = setupConfig(0, -1, true);
+        ReaderTableSpec<String> expected = ReaderTableSpec.create(padToSize(table[0], 3), asList(expectedTypes));
+        testGuessSpec(table, config, expected);
+    }
+
+    /**
+     * Tests the behavior if the column header row is not contained in the table to read.
+     *
+     * @throws IOException never thrown
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testColumnHeaderRowIndexGreatThanSizeOfTheTableToRead() throws IOException {
+        String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
+        String[] expectedTypes = a("foo", "bar", "bla");
+        TableReadConfig<?> config = setupConfig(4, -1, true);
+        ReaderTableSpec<String> expected = ReaderTableSpec.create(expectedTypes);
+        testGuessSpec(table, config, expected);
+    }
+
+    /**
+     * Tests the behavior if the row header row is not existent.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testRowIdxIndexGreaterThanNumberColumnsOfTheTableToRead() throws IOException {
+        String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
+        String[] expectedTypes = a("foo", "bar", "bla");
+        TableReadConfig<?> config = setupConfig(-1, 6, true);
         ReaderTableSpec<String> expected = ReaderTableSpec.create(expectedTypes);
         testGuessSpec(table, config, expected);
     }

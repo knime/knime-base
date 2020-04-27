@@ -50,64 +50,154 @@ package org.knime.filehandling.core.node.table.reader.spec;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.AbstractReadDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 
 /**
  * A read that extracts the row containing the column headers from the provided {@link Read source}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class DefaultExtractColumnHeaderRead<V> extends AbstractReadDecorator<V> implements ExtractColumnHeaderRead<V> {
+final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead<V> {
 
+    /** The underlying read. */
+    private final Read<V> m_read;
+
+    /** The column index containing the header. */
     private final long m_columnHeaderIdx;
 
-    private RandomAccessible<V> m_columnHeaders = null;
+    /** The number of rows to read. */
+    private final long m_numRowsToRead;
 
-    private long m_rowIdx = -1;
+    /** The {@link RandomAccessible} holding the column header. */
+    private Optional<RandomAccessible<V>> m_columnHeader;
+
+    /** The number of rows returned, i.e., the number of next calls on {@link #m_read}. */
+    private long m_numRowsReturned = 0;
+
+    /** The number of rows to skip. */
+    private long m_numRowsToSkip;
 
     /**
      * Constructor.
      *
-     * @param source the underlying read to extract the column header from
-     * @param columnHeaderIdx index of the column header row (set to -1 if no column header is contained)
+     * @param source the underlying {@link Read}
+     * @param config the {@link TableReadConfig}
      */
-    DefaultExtractColumnHeaderRead(final Read<V> source, final long columnHeaderIdx) {
-        super(source);
-        m_columnHeaderIdx = columnHeaderIdx;
-    }
-
-    @Override
-    public Optional<RandomAccessible<V>> getColumnHeaders() throws IOException {
-        if (m_columnHeaderIdx >= 0 && m_columnHeaders == null) {
-            // make sure that the column headers are read
-            while (next() != null && m_columnHeaders == null) {
-                // all the action is in the header
-            }
+    DefaultExtractColumnHeaderRead(final Read<V> source, final TableReadConfig<?> config) {
+        // get the column index
+        long colHeaderIdx;
+        if (config.useColumnHeaderIdx()) {
+            colHeaderIdx = config.getColumnHeaderIdx();
+            CheckUtils.checkArgument(colHeaderIdx >= 0, "The column header index cannot be negative.");
+        } else {
+            colHeaderIdx = -1;
+            m_columnHeader = Optional.empty();
         }
-        return Optional.ofNullable(m_columnHeaders);
-    }
 
-    /**
-     * @return true if the next row contains the column headers
-     */
-    private boolean isColumnHeaderRow() {
-        return m_rowIdx == m_columnHeaderIdx;
+        // get the number of rows to skip
+        if (config.skipRows()) {
+            m_numRowsToSkip = config.getNumRowsToSkip();
+            CheckUtils.checkArgument(m_numRowsToSkip >= 0, "The number of rows to skip cannot be negative.");
+        } else {
+            m_numRowsToSkip = 0;
+        }
+
+        Read<V> read = source;
+        /* do initial skip if required, we basically distinguish two cases
+         * 1. The number of rows to skip is larger than the column header idx where we find the column head.
+         *    In this case we can only skip all rows before the column header and have to take care of the remaining
+         *    rows that need to be skipped after we read the column header
+         * 2. The number of rows to skip is less than or equal to the column header index. This means we can safely skip
+         *    all rows
+         *
+         * In both cases we have to account for the number of rows that we skipped and update the position where we can
+         * find the column header, i.e., the columnHeaderIdx
+         */
+        if (m_numRowsToSkip > colHeaderIdx) {
+            if (colHeaderIdx == -1) {
+                read = ReadUtils.skip(read, m_numRowsToSkip);
+                m_numRowsToSkip = 0;
+            } else {
+                read = ReadUtils.skip(read, colHeaderIdx);
+                m_numRowsToSkip -= colHeaderIdx;
+                colHeaderIdx = 0;
+            }
+        } else if (m_numRowsToSkip > 0) {
+            read = ReadUtils.skip(read, m_numRowsToSkip);
+            colHeaderIdx -= m_numRowsToSkip;
+            m_numRowsToSkip = 0;
+        }
+
+        // restrict the number of rows to be read
+        if (config.limitRowsForSpec()) {
+            m_numRowsToRead = config.getMaxRowsForSpec();
+            CheckUtils.checkArgument(m_numRowsToRead >= 0, "The number of rows to scan cannot be negative.");
+        } else {
+            m_numRowsToRead = -1;
+        }
+        m_read = read;
+        m_columnHeaderIdx = colHeaderIdx;
     }
 
     @Override
     public RandomAccessible<V> next() throws IOException {
-        m_rowIdx++;
-        if (isColumnHeaderRow()) {
-            RandomAccessible<V> colHeaderRow = getSource().next();
-            CheckUtils.checkState(colHeaderRow != null,
-                "The row containing the column headers is not part of the table.");
-            m_columnHeaders = colHeaderRow;
+        /* If we returned already the number of rows to be read we don't move m_read to next, but return null instead.
+        *  This ensure that we are still able to find the column header at the defined index in case it's position is
+        *  greater than or equal to m_numRowsToRead
+        */
+        if (m_numRowsToRead != -1 && m_numRowsReturned == m_numRowsToRead) {
+            return null;
         }
-        return getSource().next();
+        if (m_numRowsReturned == m_columnHeaderIdx) {
+            m_columnHeader = Optional.ofNullable(m_read.next()).map(RandomAccessible::copy);
+            /* Can only happen if the number of rows to skip was initially greater than the column header index.
+             * Note that the Constructor ensure that m_columnHeaderIdx == 0 in this case.
+             */
+            while (m_numRowsToSkip-- > 0) {
+                m_read.next();
+            }
+        }
+        ++m_numRowsReturned;
+        return m_read.next();
+    }
+
+    @Override
+    public OptionalLong getEstimatedSizeInBytes() {
+        return m_read.getEstimatedSizeInBytes();
+    }
+
+    @Override
+    public long readBytes() {
+        return m_read.readBytes();
+    }
+
+    @Override
+    public void close() throws IOException {
+        m_read.close();
+    }
+
+    @Override
+    public Optional<RandomAccessible<V>> getColumnHeaders() throws IOException {
+        // Check if the column header row comes after the number of rows to read and if so read it
+        if (m_columnHeaderIdx >= m_numRowsReturned) {
+            extractHeader();
+        }
+        return m_columnHeader;
+    }
+
+    private void extractHeader() throws IOException {
+        // consume all rows (if not null) preceding the column header row
+        while (m_numRowsReturned < m_columnHeaderIdx && m_read.next() != null) {
+            ++m_numRowsReturned;
+        }
+        m_columnHeader = Optional.ofNullable(m_read.next()).map(RandomAccessible::copy);
     }
 
 }
