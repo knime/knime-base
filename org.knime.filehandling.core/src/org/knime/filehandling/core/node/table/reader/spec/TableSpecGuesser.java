@@ -116,7 +116,9 @@ public final class TableSpecGuesser<T, V> {
         throws IOException {
         try (Read<V> filtered = filterColIdx(read, config)) {
             final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows());
-            final String[] headerArray = read.getColumnHeaders().map(rA -> extractColumnNames(rA, config)).orElse(null);
+            final String[] headerArray = read.getColumnHeaders()//
+                .map(val -> extractColumnHeaders(val, config))//
+                .orElse(null);
             CheckUtils.checkArgument(headerArray != null || !config.useColumnHeaderIdx(),
                 "The row containing the table headers (row number %s) was not part of the table.",
                 config.getColumnHeaderIdx());
@@ -138,16 +140,8 @@ public final class TableSpecGuesser<T, V> {
         return read;
     }
 
-    private String[] extractColumnNames(final RandomAccessible<V> values, final TableReadConfig<?> config) {
-        final RandomAccessible<V> colHeader = filterColIdx(values, config);
-        final String[] names = new String[colHeader.size()];
-        for (int i = 0; i < colHeader.size(); i++) {
-            V value = colHeader.get(i);
-            if (value != null) {
-                names[i] = m_valueToString.apply(value);
-            }
-        }
-        return names;
+    private String[] extractColumnHeaders(final RandomAccessible<V> values, final TableReadConfig<?> config) {
+        return convertToStringArray(filterColIdx(values, config));
     }
 
     private RandomAccessible<V> filterColIdx(final RandomAccessible<V> values, final TableReadConfig<?> config) {
@@ -157,6 +151,14 @@ public final class TableSpecGuesser<T, V> {
             return colHeader;
         }
         return values;
+    }
+
+    private String[] convertToStringArray(final RandomAccessible<V> randomAccessible) {
+        return randomAccessible.stream()//
+            .map(val -> val != null //
+                ? m_valueToString.apply(val) //
+                : null)//
+            .toArray(String[]::new);
     }
 
     private ReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser, final String[] columnNames) {

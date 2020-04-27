@@ -50,6 +50,10 @@ package org.knime.filehandling.core.node.table.reader.randomaccess;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Represents a collection of values that can be accessed via index in constant time.</br>
@@ -92,6 +96,19 @@ public interface RandomAccessible<V> extends Iterable<V> {
             list.add(element);
         }
         return new ArrayListRandomAccessible<>(list);
+    }
+
+    /**
+     * Returns a sequential {@link Stream} with this RandomAccessible as its source.<br/>
+     * <p>
+     * This method should be overridden when the {@link #spliterator()} method cannot return a spliterator that is
+     * {@code IMMUTABLE},
+     * </p>
+     *
+     * @return a sequential {@link Stream} over the elements in this RandomAccessible
+     */
+    default Stream<V> stream() {
+        return StreamSupport.stream(Spliterators.spliterator(iterator(), size(), Spliterator.IMMUTABLE), false);
     }
 
 }

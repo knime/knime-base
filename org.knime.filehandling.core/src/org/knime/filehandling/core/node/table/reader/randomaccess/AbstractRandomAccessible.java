@@ -50,8 +50,6 @@ package org.knime.filehandling.core.node.table.reader.randomaccess;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.stream.StreamSupport;
-
 /**
  * An abstract implementation of {@link RandomAccessible} that provides implementations for common methods.
  *
@@ -62,9 +60,9 @@ public abstract class AbstractRandomAccessible<V> implements RandomAccessible<V>
 
     @Override
     public String toString() {
-        return StreamSupport.stream(spliterator(), false)//
-                .map(Object::toString)//
-                .collect(joining(", ", "[", "]"));
+        return stream()//
+            .map(String::valueOf)//
+            .collect(joining(", ", "[", "]"));
     }
 
 }
