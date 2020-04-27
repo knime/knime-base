@@ -114,9 +114,10 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         };
     }
 
+    @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
     public Read<String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-        return createDecoratedRead(path, config, false);
+        return decorateForReading(new CsvRead(path, config.getReaderSpecificConfig()), config);
     }
 
     /**
@@ -132,72 +133,43 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     public static Read<String> read(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
         final CsvRead read = new CsvRead(inputStream, config.getReaderSpecificConfig());
-        return decorateForReading(config, read);
+        return decorateForReading(read, config);
     }
 
     @Override
     public ReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
-        try (final Read<String> read = createDecoratedRead(path, config, true)) {
+        try (final CsvRead read = new CsvRead(path, config.getReaderSpecificConfig())) {
             return SPEC_GUESSER.guessSpec(read, config);
         }
-
     }
 
     /**
      * Creates a decorated {@link Read} from {@link CSVRead}, taking into account how many rows should be skipped or
-     * what is the maximum number of rows to read. It also distinguishes between the purpose of the read, i.e., if it is
-     * needed filling the actual table or for guessing column specifications. In the former case data rows will never be
-     * skipped.
+     * what is the maximum number of rows to read.
      *
      * @param path the path of the file to read
      * @param config the {@link TableReadConfig} used
-     * @param isForSpec <code>true</code> if
      * @return a decorated read of type {@link Read}
      * @throws IOException if a stream can not be created from the provided file.
      */
-    // the read is used in a try catch in the caller
-    @SuppressWarnings("resource")
-    private static Read<String> createDecoratedRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
-        final boolean isForSpec) throws IOException {
-        final Read<String> read = new CsvRead(path, config.getReaderSpecificConfig());
-        if (isForSpec) {
-            return decorateForSpec(config, read);
-        } else {
-            return decorateForReading(config, read);
-        }
-    }
-
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<String> decorateForReading(final TableReadConfig<CSVTableReaderConfig> config,
-        Read<String> read) {
+    private static Read<String> decorateForReading(final CsvRead read,
+        final TableReadConfig<CSVTableReaderConfig> config) {
+        Read<String> filtered = read;
         final boolean hasColumnHeader = config.useColumnHeaderIdx();
         final boolean skipRows = config.skipRows();
         if (skipRows) {
             final long numRowsToSkip = config.getNumRowsToSkip();
-            read = ReadUtils.skip(read, hasColumnHeader ? numRowsToSkip + 1 : numRowsToSkip);
+            filtered = ReadUtils.skip(filtered, hasColumnHeader ? numRowsToSkip + 1 : numRowsToSkip);
         }
         if (config.limitRows()) {
             final long numRowsToKeep = config.getMaxRows();
             // in case we skip rows, we already skipped the column header
             // otherwise we have to read one more row since the first is the column header
-            read = ReadUtils.limit(read, hasColumnHeader && !skipRows ? numRowsToKeep + 1 : numRowsToKeep);
+            filtered = ReadUtils.limit(filtered, hasColumnHeader && !skipRows ? numRowsToKeep + 1 : numRowsToKeep);
         }
-        return read;
-    }
-
-    @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<String> decorateForSpec(final TableReadConfig<CSVTableReaderConfig> config, Read<String> read) {
-        final boolean hasColumnHeader = config.useColumnHeaderIdx();
-        // FIXME currently we can't skip if we read the column header, that should change once AP-14021 is implemented
-        if (config.skipRows() && !hasColumnHeader) {
-            read = ReadUtils.skip(read, config.getNumRowsToSkip());
-        }
-        if (config.limitRowsForSpec()) {
-            final long rowLimit = config.getMaxRowsForSpec();
-            read = ReadUtils.limit(read, hasColumnHeader ? rowLimit + 1 : rowLimit);
-        }
-        return read;
+        return filtered;
     }
 
     /**
@@ -230,6 +202,13 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             this(Files.newInputStream(path), Files.size(path), csvReaderConfig);
         }
 
+        /**
+         * Constructor
+         *
+         * @param inputStream the {@link InputStream} to read from
+         * @param csvReaderConfig the CSV reader configuration.
+         * @throws IOException if a stream can not be created from the provided file.
+         */
         CsvRead(final InputStream inputStream, final CSVTableReaderConfig csvReaderConfig) throws IOException {
             this(inputStream, -1, csvReaderConfig);
         }
