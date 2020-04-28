@@ -138,6 +138,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final JSpinner m_limitAnalysisSpinner;
 
+    private final JSpinner m_maxColsSpinner;
+
+    private final JCheckBox m_maxCharsColumnChecker;
+
     private final CharsetNamePanel m_encodingPanel;
 
     private final MultiTableReadConfig<CSVTableReaderConfig> m_config;
@@ -197,7 +201,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_limitAnalysisChecker.addChangeListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
 
+        m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
+        m_maxCharsColumnChecker = new JCheckBox();
+
         addTab("Options", initLayout());
+        addTab("Advanced Options", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
@@ -264,6 +272,49 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.weightx = 1.0;
         specMergePanel.add(m_union, gbc);
         return specMergePanel;
+    }
+
+    /** Creates the {@link JPanel} for the Advanced Settings Tab. */
+    private JPanel createAdvancedOptionsPanel() {
+        final JPanel outerPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbcOuter = createAndInitGBC();
+        gbcOuter.fill = GridBagConstraints.BOTH;
+        outerPanel.add(createMemoryLimitsPanel(), gbcOuter);
+        gbcOuter.gridy++;
+        gbcOuter.weighty = 1;
+        outerPanel.add(Box.createHorizontalBox(), gbcOuter);
+
+        return outerPanel;
+    }
+
+    /** Creates the panel allowing to adjust the memory limits of the reader. */
+    private JPanel createMemoryLimitsPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader memory limits"));
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        panel.add(new JLabel("Limit memory per column"), gbc);
+        gbc.gridx += 1;
+        gbc.weightx = 1;
+        panel.add(m_maxCharsColumnChecker, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        gbc.weightx = 0;
+        panel.add(new JLabel("Maximum number of columns"), gbc);
+        gbc.gridx += 1;
+        gbc.weightx = 1;
+        panel.add(m_maxColsSpinner, gbc);
+        ++gbc.gridy;
+
+        return panel;
     }
 
     private JPanel createOptionsPanel() {
@@ -441,6 +492,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setSkipLines(m_skipFirstLinesChecker.isSelected());
         csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue());
 
+        csvReaderConfig.setMaxColumns((Integer)m_maxColsSpinner.getValue());
+        csvReaderConfig.limitCharsPerColumn(m_maxCharsColumnChecker.isSelected());
+
         csvReaderConfig.setReplaceEmptyWithMissing(m_replaceQuotedEmptyStringChecker.isSelected());
 
         FileReaderNodeSettings s = new FileReaderNodeSettings();
@@ -495,6 +549,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_quoteField.setText(EscapeUtils.escape(csvReaderConfig.getQuote()));
         m_quoteEscapeField.setText(EscapeUtils.escape(csvReaderConfig.getQuoteEscape()));
         m_commentStartField.setText(EscapeUtils.escape(csvReaderConfig.getComment()));
+
+        m_maxColsSpinner.setValue(csvReaderConfig.getMaxColumns());
+        m_maxCharsColumnChecker.setSelected(csvReaderConfig.isCharsPerColumnLimited());
 
         m_skipFirstLinesChecker.setSelected(csvReaderConfig.skipLines());
         m_skipFirstLinesSpinner.setValue(csvReaderConfig.getNumLinesToSkip());

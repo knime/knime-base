@@ -111,6 +111,17 @@
 	          Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
 			</option>
 		</tab>
+		<tab name="Advanced Options">
+			<option name="Limit memory per column">
+				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
+				this option to disable these memory restrictions.
+			</option>
+			<option name="Maximum number of columns">
+				Sets the number of allowed columns (default 8192 columns) per column to
+				prevent memory exhaustion. The node will fail if the number of columns
+				exceed the set limit.
+			</option>
+		</tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
 	          If enabled, the specified number of lines are skipped in the input file before the parsing starts. 
@@ -141,14 +152,13 @@
         </tab>	
 	</fullDescription>
 	<ports>
-			<dynInPort insert-before="0" name="File system connection"
+		<dynInPort insert-before="0" name="File system connection"
 			group-identifier="File System Connection">
 			The file system connection.
 		</dynInPort>
 		<outPort index="0" name="File Table">
 		  File being read with number and types of columns guessed automatically.
 		</outPort>
-		
 	</ports>
 </knimeNode>   
         

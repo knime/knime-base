@@ -59,6 +59,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -73,6 +74,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 
 import com.google.common.io.CountingInputStream;
+import com.univocity.parsers.common.TextParsingException;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
@@ -179,6 +181,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      */
     private static final class CsvRead implements Read<String> {
 
+        /** */
+        private static final NodeLogger LOGGER = NodeLogger.getLogger(CsvRead.class);
+
         /** a parser used to parse the file */
         private final CsvParser m_parser;
 
@@ -190,6 +195,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         /** the size of the file being read */
         private final long m_size;
+
+        /** the {@link CsvParserSettings} */
+        private final CsvParserSettings m_csvParserSettings;
 
         /**
          * Constructor
@@ -226,14 +234,35 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
             // Univocity returns [null] for empty rows, i.e., we cannot detect empty rows using decorators
-            final CsvParserSettings settings = csvReaderConfig.getSettings(config.skipEmptyRows());
-            m_parser = new CsvParser(settings);
+            m_csvParserSettings = csvReaderConfig.getSettings(config.skipEmptyRows());
+            m_parser = new CsvParser(m_csvParserSettings);
             m_parser.beginParsing(m_reader);
         }
 
         @Override
         public RandomAccessible<String> next() throws IOException {
-            final String[] row = m_parser.parseNext();
+            String[] row = null;
+            try {
+                row = m_parser.parseNext();
+            } catch (final TextParsingException e) {
+                //Log original exception message
+                LOGGER.debug(e.getMessage());
+                final Throwable cause = e.getCause();
+                if (cause instanceof ArrayIndexOutOfBoundsException) {
+                    //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
+                    final int index = Integer.parseInt(cause.getMessage());
+                    if (index == m_csvParserSettings.getMaxCharsPerColumn()) {
+                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.");
+                    } else if (index == m_csvParserSettings.getMaxColumns()) {
+                        throw new IOException("Number of parsed columns exceeds the defined limit ("
+                            + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.");
+                    }
+                } else {
+                    throw new IOException(
+                        "Something went wrong during the parsing process. For further details please have a look into "
+                            + "the log.");
+                }
+            }
             return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
         }
 

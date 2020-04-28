@@ -68,14 +68,19 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
     /**
      * According to the javadoc a value of -1 allows for auto-expansion of the array which indicates that this value
-     * defines the size of the buffer array hence setting a very large value might cause memory problems
+     * defines the size of the buffer array hence setting a very large value might cause memory problems. Current
+     * default equals 1MB (char has at most 2 bytes).
+     *
+     * @see CsvParserSettings#setMaxCharsPerColumn(int)
      */
-    private static final int DEFAULT_MAX_CHARS_PER_COLUMN = -1;
+    private static final int DEFAULT_MAX_CHARS_PER_COLUMN = 1024 * (1024 / 2);
 
     /**
-     * The default maximum number of columns, used to instantiate an array in univocity.
+     * The default maximum number of columns to parse.
+     *
+     * @see CsvParserSettings#setMaxColumns(int)
      */
-    private static final int DEFAULT_MAX_COLUMNS = 10000;
+    private static final int DEFAULT_MAX_COLUMNS = 8192;
 
     /** string key used to save the value of column delimiter used to read csv files */
     private static final String CFG_DELIMITER = "column_delimiter";
@@ -104,6 +109,15 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** string key used to save the character set name (encoding) */
     private static final String CFG_CHAR_SET_NAME = "character_set_name";
 
+    /** string key used to save the maximum number of columns */
+    private static final String CFG_MAX_COLUMNS = "max_columns";
+
+    /**
+     * string key used to save the flag whether to use limit the memory per column to
+     * {@value #DEFAULT_MAX_CHARS_PER_COLUMN} characters, or not.
+     */
+    private static final String CFG_LIMIT_CHARS_PER_COLUMN = "limit_chars_per_column";
+
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
@@ -125,6 +139,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
         m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
         setReplaceEmptyWithMissing(true);
+        limitCharsPerColumn(true);
+        setMaxColumns(DEFAULT_MAX_COLUMNS);
     }
 
     /**
@@ -320,6 +336,48 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         m_charSet = charSet;
     }
 
+    /**
+     * Returns the hard limit of how many columns a row can have (defaults to 512).
+     *
+     * @return The maximum number of columns a row can have
+     */
+    public int getMaxColumns() {
+        return getSettings().getMaxColumns();
+    }
+
+    /**
+     * Defines a hard limit of how many columns a record can have (defaults to 512). You need this to avoid OutOfMemory
+     * errors in case of inputs that might be inconsistent with the format you are dealing with.
+     *
+     * @param maxColumns The maximum number of columns a record can have.
+     */
+    public void setMaxColumns(final int maxColumns) {
+        getSettings().setMaxColumns(maxColumns);
+    }
+
+    /**
+     * Returns the flag indicating whether the number of columns is limited, or not.
+     *
+     * @return {@code true} if the number of characters per column is limited, {@code false} otherwise.
+     */
+    public boolean isCharsPerColumnLimited() {
+        return getSettings().getMaxCharsPerColumn() != -1;
+    }
+
+    /**
+     * Defines whether the number of chars per column is limited. This option allows to avoid memory exhaustion.
+     *
+     * @param limited The maximum number of characters allowed to be read.
+     */
+    public void limitCharsPerColumn(final boolean limited) {
+        if (limited) {
+            getSettings().setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
+        } else {
+            //enable auto expansion of the interal array by setting -1
+            getSettings().setMaxCharsPerColumn(-1);
+        }
+    }
+
     @Override
     public void loadInDialog(final NodeSettingsRO settings) {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
@@ -334,6 +392,10 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, true));
 
         setCharSetName(settings.getString(CFG_CHAR_SET_NAME, null));
+
+        setMaxColumns(settings.getInt(CFG_MAX_COLUMNS, DEFAULT_MAX_COLUMNS));
+
+        limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN, true));
     }
 
     @Override
@@ -351,6 +413,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
 
         setCharSetName(settings.getString(CFG_CHAR_SET_NAME));
+
+        setMaxColumns(settings.getInt(CFG_MAX_COLUMNS));
+        limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN));
     }
 
     @Override
@@ -369,6 +434,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.getString(CFG_CHAR_SET_NAME);
 
+        settings.getInt(CFG_MAX_COLUMNS);
+        settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN);
     }
 
     @Override
@@ -386,6 +453,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
 
         settings.addString(CFG_CHAR_SET_NAME, getCharSetName());
+
+        settings.addInt(CFG_MAX_COLUMNS, getMaxColumns());
+        settings.addBoolean(CFG_LIMIT_CHARS_PER_COLUMN, isCharsPerColumnLimited());
     }
 
     @Override
@@ -404,6 +474,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         configCopy.setReplaceEmptyWithMissing(this.replaceEmptyWithMissing());
 
         configCopy.setCharSetName(this.getCharSetName());
+
+        configCopy.setMaxColumns(this.getMaxColumns());
+        configCopy.limitCharsPerColumn(this.isCharsPerColumnLimited());
 
         return configCopy;
     }
