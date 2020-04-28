@@ -48,7 +48,6 @@ package org.knime.filehandling.core.node.portobject.writer;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 import org.knime.core.node.ExecutionContext;
@@ -88,8 +87,13 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
         // create parent directories
         final Path parentPath = path.getParent();
         final SettingsModelBoolean createDirectoryModel = getConfig().getCreateDirectoryModel();
-        if (createDirectoryModel.isEnabled() && createDirectoryModel.getBooleanValue() && !Files.exists(parentPath)) {
-            Files.createDirectories(parentPath);
+        if (!Files.exists(parentPath)) {
+            if (createDirectoryModel.isEnabled() && createDirectoryModel.getBooleanValue()) {
+                Files.createDirectories(parentPath);
+            } else {
+                throw new IOException(String.format(
+                    "The directory '%s' does not exist and must not be created due to user settings.", parentPath));
+            }
         }
 
         // write path
@@ -98,9 +102,6 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
         } catch (FileAlreadyExistsException e) {
             throw new IOException(
                 "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
-        } catch (NoSuchFileException e) {
-            throw new IOException(
-                "The directory '" + parentPath + "' does not exist and must not be created due to user settings.", e);
         }
         return null;
     }
