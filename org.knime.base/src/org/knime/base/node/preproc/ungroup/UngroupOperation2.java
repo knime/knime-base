@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.ungroup;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,6 +92,8 @@ public class UngroupOperation2 {
 
     private final boolean m_skipMissingValues;
 
+    private final boolean m_skipEmptyCollections;
+
     private final boolean m_removeCollectionCol;
 
     private final boolean m_enableHilite;
@@ -109,10 +112,27 @@ public class UngroupOperation2 {
      */
     public UngroupOperation2(final boolean enableHilite, final boolean skipMissingValues,
         final boolean removeCollectionCol, final int[] colIndices) throws InvalidSettingsException {
+        this(enableHilite, skipMissingValues, false, removeCollectionCol, colIndices);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param enableHilite hilite enable
+     * @param skipMissingValues skip missing values
+     * @param skipEmptyCollections skip empty collections
+     * @param removeCollectionCol remove collection columns
+     * @param colIndices the column indices to ungroup - if <code>null</code> or the length is 0 nothing will be
+     *            ungrouped
+     * @since 4.2
+     */
+    public UngroupOperation2(final boolean enableHilite, final boolean skipMissingValues,
+        final boolean skipEmptyCollections, final boolean removeCollectionCol, final int[] colIndices) {
         m_colIndices = colIndices;
         m_enableHilite = enableHilite;
         m_skipMissingValues = skipMissingValues;
         m_removeCollectionCol = removeCollectionCol;
+        m_skipEmptyCollections = skipEmptyCollections;
     }
 
     /**
@@ -167,7 +187,7 @@ public class UngroupOperation2 {
         if (m_enableHilite && trans == null) {
             throw new IllegalArgumentException("HiLiteTranslator must not be null when hiliting is enabled!");
         }
-        final Map<RowKey, Set<RowKey>> hiliteMapping = new HashMap<RowKey, Set<RowKey>>();
+        final Map<RowKey, Set<RowKey>> hiliteMapping = new HashMap<>();
         @SuppressWarnings("unchecked")
         Iterator<DataCell>[] iterators = new Iterator[m_colIndices.length];
         final DataCell[] missingCells = new DataCell[m_colIndices.length];
@@ -180,20 +200,9 @@ public class UngroupOperation2 {
             if (rowCount > 0) {
                 exec.setProgress(rowCounter / (double)rowCount, "Processing row " + rowCounter + " of " + rowCount);
             }
-            boolean allMissing = true;
-            for (int i = 0, length = m_colIndices.length; i < length; i++) {
-                final DataCell cell = row.getCell(m_colIndices[i]);
-                final CollectionDataValue listCell;
-                final Iterator<DataCell> iterator;
-                if (cell instanceof CollectionDataValue) {
-                    listCell = (CollectionDataValue)cell;
-                    iterator = listCell.iterator();
-                    allMissing = false;
-                } else {
-                    iterator = null;
-                }
-                iterators[i] = iterator;
-            }
+
+            boolean allMissing = fillDataCellIterator(iterators, row);
+
             if (allMissing) {
                 //all collection column cells are missing cells append a row
                 //with missing cells as well if the skip missing value option is disabled
@@ -202,8 +211,7 @@ public class UngroupOperation2 {
                         createClone(row.getKey(), row, m_colIndices, m_removeCollectionCol, missingCells);
                     if (m_enableHilite) {
                         //create the hilite entry
-                        final Set<RowKey> keys = new HashSet<RowKey>(1);
-                        keys.add(row.getKey());
+                        final Set<RowKey> keys = Collections.singleton(row.getKey());
                         hiliteMapping.put(row.getKey(), keys);
                     }
                     out.push(newRow);
@@ -213,7 +221,7 @@ public class UngroupOperation2 {
             long counter = 1;
             final Set<RowKey> keys;
             if (m_enableHilite) {
-                keys = new HashSet<RowKey>();
+                keys = new HashSet<>();
             } else {
                 keys = null;
             }
@@ -245,7 +253,7 @@ public class UngroupOperation2 {
                 if (!allEmpty && !continueLoop) {
                     break;
                 }
-                if (!allEmpty && allMissing && m_skipMissingValues) {
+                if ((!allEmpty && allMissing && m_skipMissingValues) || (allEmpty && m_skipEmptyCollections)) {
                     continue;
                 }
                 final RowKey oldKey = row.getKey();
@@ -265,10 +273,35 @@ public class UngroupOperation2 {
         }
     }
 
+    /**
+     * Fills the passed {@link Iterator}<{@link DataCell}> array with the {@link Iterator} of each {@link CollectionDataValue} cell per row.
+     * @param iterators the {@link Iterator} array
+     * @param row
+     * @return true in case all cells in the passed row are missing and false if there are {@link CollectionDataValue}
+     */
+    private boolean fillDataCellIterator(final Iterator<DataCell>[] iterators, final DataRow row) {
+        boolean allMissing = true;
+        for (int i = 0, length = m_colIndices.length; i < length; i++) {
+            final DataCell cell = row.getCell(m_colIndices[i]);
+            final CollectionDataValue listCell;
+            final Iterator<DataCell> iterator;
+            if (cell instanceof CollectionDataValue) {
+                listCell = (CollectionDataValue)cell;
+                iterator = listCell.iterator();
+                allMissing = false;
+            } else {
+                //In case the cell is not a CollectionDataValue and therefore must be a missing cell.
+                iterator = null;
+            }
+            iterators[i] = iterator;
+        }
+        return allMissing;
+    }
+
     private DefaultRow createClone(final RowKey newKey, final DataRow row, final int[] colIdxs,
         final boolean removeCollectionCol, final DataCell[] newCells) {
         assert colIdxs.length == newCells.length;
-        final Map<Integer, DataCell> map = new HashMap<Integer, DataCell>(newCells.length);
+        final Map<Integer, DataCell> map = new HashMap<>(newCells.length);
         for (int i = 0, length = newCells.length; i < length; i++) {
             map.put(Integer.valueOf(colIdxs[i]), newCells[i]);
         }
@@ -311,8 +344,8 @@ public class UngroupOperation2 {
             //the user has not selected any column
             return spec;
         }
-        final Collection<DataColumnSpec> specs = new LinkedList<DataColumnSpec>();
-        final Map<String, DataType> collectionColsMap = new LinkedHashMap<String, DataType>(colIndices.length);
+        final Collection<DataColumnSpec> specs = new LinkedList<>();
+        final Map<String, DataType> collectionColsMap = new LinkedHashMap<>(colIndices.length);
         for (final Integer colIndex : colIndices) {
             final DataColumnSpec colSpec = spec.getColumnSpec(colIndex);
             final DataType type = colSpec.getType();
@@ -340,20 +373,6 @@ public class UngroupOperation2 {
                 specs.add(origColSpec);
             }
         }
-        //        final DataColumnSpecCreator specCreator =
-        //                new DataColumnSpecCreator("dummy", StringCell.TYPE);
-        //        for (Entry<String, DataType> entry : collectionColsMap.entrySet()) {
-        //            if (removeCollectionCol) {
-        //                //keep the original column name if the collection columns are removed
-        //                specCreator.setName(entry.getKey());
-        //            } else {
-        //                specCreator.setName(DataTableSpec.getUniqueColumnName(
-        //                                               spec, entry.getKey()));
-        //            }
-        //            specCreator.setType(entry.getValue());
-        //            specs.add(specCreator.createSpec());
-        //        }
-        final DataTableSpec resultSpec = new DataTableSpec(specs.toArray(new DataColumnSpec[0]));
-        return resultSpec;
+        return new DataTableSpec(specs.toArray(new DataColumnSpec[0]));
     }
 }

@@ -66,6 +66,9 @@ public class UngroupNodeDialog extends DefaultNodeSettingsPane {
     private final SettingsModelBoolean m_skipMissingVal =
         UngroupNodeModel.createSkipMissingValModel();
 
+    private final SettingsModelBoolean m_skipEmptyCollections =
+        UngroupNodeModel.createSkipEmptyCollectionsModel();
+
     private final SettingsModelBoolean m_enableHilite =
         UngroupNodeModel.createEnableHiliteModel();
 
@@ -82,6 +85,8 @@ public class UngroupNodeDialog extends DefaultNodeSettingsPane {
                 "Remove selected collection column"));
         addDialogComponent(new DialogComponentBoolean(
                 m_skipMissingVal, "Skip missing values"));
+        addDialogComponent(new DialogComponentBoolean(
+            m_skipEmptyCollections, "Skip empty collections"));
         final DialogComponentBoolean enableHilite = new DialogComponentBoolean(
                 m_enableHilite, "Enable hiliting");
         enableHilite.setToolTipText("Might cosume a lot of memory!");

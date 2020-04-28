@@ -92,6 +92,9 @@ public class UngroupNodeModel extends NodeModel {
     /** The config key of the collections column names. */
     private static final String CFG_COL_NAMES = "columnNames";
 
+    /** The config key of the settings model for the skip empty collections option. */
+    private static final String CFG_SKIP_EMPTY_COLLECTIONS = "skipEmptyCollections";
+
     private final SettingsModelColumnFilter2 m_collCols = createCollectionColsModel();
 
     private final SettingsModelString m_columnName = createColumnModel();
@@ -99,6 +102,8 @@ public class UngroupNodeModel extends NodeModel {
     private final SettingsModelBoolean m_removeCollectionCol = createRemoveCollectionColModel();
 
     private final SettingsModelBoolean m_skipMissingVal = createSkipMissingValModel();
+
+    private final SettingsModelBoolean m_skipEmptyCollections = createSkipEmptyCollectionsModel();
 
     private final SettingsModelBoolean m_enableHilite = createEnableHiliteModel();
 
@@ -137,6 +142,13 @@ public class UngroupNodeModel extends NodeModel {
      */
     static SettingsModelBoolean createSkipMissingValModel() {
         return new SettingsModelBoolean("skipMissingValues", false);
+    }
+
+    /**
+     * @return the skip empty collection model
+     */
+    static SkipEmptyCollectionsModel createSkipEmptyCollectionsModel() {
+        return new SkipEmptyCollectionsModel(CFG_SKIP_EMPTY_COLLECTIONS, false);
     }
 
     /**
@@ -180,15 +192,13 @@ public class UngroupNodeModel extends NodeModel {
         UngroupOperation2 ugO =
             createUngroupOperation(table.getDataTableSpec(), getSelectedColIdxs(spec, getColumnNames(spec)));
 
-        BufferedDataTable[] result =
-            new BufferedDataTable[]{ugO.compute(exec, table, m_trans)};
-        return result;
+        return new BufferedDataTable[]{ugO.compute(exec, table, m_trans)};
     }
 
     private UngroupOperation2 createUngroupOperation(final DataTableSpec spec, final int[] colIndices)
         throws InvalidSettingsException {
         return new UngroupOperation2(m_enableHilite.getBooleanValue(), m_skipMissingVal.getBooleanValue(),
-            m_removeCollectionCol.getBooleanValue(), colIndices);
+            m_skipEmptyCollections.getBooleanValue(), m_removeCollectionCol.getBooleanValue(), colIndices);
     }
 
     /**
@@ -300,6 +310,7 @@ public class UngroupNodeModel extends NodeModel {
             //this option has been introduced in KNIME 2.8
             m_collCols.validateSettings(settings);
         }
+        m_skipEmptyCollections.validateSettings(settings);
     }
 
     /**
@@ -319,6 +330,7 @@ public class UngroupNodeModel extends NodeModel {
             //load and use the old settings
             m_columnName.loadSettingsFrom(settings);
         }
+        m_skipEmptyCollections.loadSettingsFrom(settings);
     }
 
     /**
@@ -330,6 +342,7 @@ public class UngroupNodeModel extends NodeModel {
         m_skipMissingVal.saveSettingsTo(settings);
         m_enableHilite.saveSettingsTo(settings);
         m_collCols.saveSettingsTo(settings);
+        m_skipEmptyCollections.saveSettingsTo(settings);
     }
 
     /**
@@ -345,8 +358,11 @@ public class UngroupNodeModel extends NodeModel {
                 //the mapper is null if the node produces an empty data table
                 mapper.save(config);
             }
-            config.saveToXML(new GZIPOutputStream(
-                new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz"))));
+
+            try (final GZIPOutputStream gZipOStream =
+                new GZIPOutputStream(new FileOutputStream(new File(nodeInternDir, "hilite_mapping.xml.gz")))) {
+                config.saveToXML(gZipOStream);
+            }
         }
     }
 
@@ -357,9 +373,11 @@ public class UngroupNodeModel extends NodeModel {
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
         CanceledExecutionException {
         if (m_enableHilite.getBooleanValue()) {
-            final NodeSettingsRO config =
-                NodeSettings.loadFromXML(new GZIPInputStream(new FileInputStream(new File(nodeInternDir,
-                    "hilite_mapping.xml.gz"))));
+            final NodeSettingsRO config;
+            try(final GZIPInputStream gZipIStream = new GZIPInputStream(new FileInputStream(new File(nodeInternDir,
+                    "hilite_mapping.xml.gz")))){
+                config = NodeSettings.loadFromXML(gZipIStream);
+            }
             try {
                 m_trans.setMapper(DefaultHiLiteMapper.load(config));
             } catch (final InvalidSettingsException ex) {
@@ -375,6 +393,36 @@ public class UngroupNodeModel extends NodeModel {
             return filterResult.getIncludes();
         } else {
             return new String[]{m_columnName.getStringValue()};
+        }
+    }
+
+    /**
+     * Ensures backwards compatibility by the new introduced option "Skip empty collections" with AP-13272.
+     *
+     * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+     */
+    private static class SkipEmptyCollectionsModel extends SettingsModelBoolean {
+
+        /**
+         * Constructor.
+         *
+         * @param configName
+         * @param defaultValue
+         */
+        public SkipEmptyCollectionsModel(final String configName, final boolean defaultValue) {
+            super(configName, defaultValue);
+        }
+
+        @Override
+        protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            setBooleanValue(settings.getBoolean(this.getConfigName(), false));
+        }
+
+        @Override
+        protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(this.getConfigName())) {
+                super.validateSettingsForModel(settings);
+            }
         }
     }
 }
