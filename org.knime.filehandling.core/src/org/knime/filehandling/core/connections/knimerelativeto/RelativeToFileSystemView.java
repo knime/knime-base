@@ -42,64 +42,28 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Files;
-import java.nio.file.NotDirectoryException;
-import java.nio.file.Path;
-import java.util.Iterator;
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * Iterates over all the files and folders of the path on a local KNIME relative to File System.
+ * KNIME relative-to file system view.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToPathIterator implements Iterator<LocalRelativeToPath> {
-
-    private Iterator<LocalRelativeToPath> m_iterator;
+public class RelativeToFileSystemView extends NioFileSystemView {
 
     /**
-     * Creates an iterator over all the files and folder in the given paths location.
+     * Constructs a new KNIME relative-to file system view.
      *
-     * @param knimePath destination to iterate over
-     * @param filter
-     * @throws IOException on I/O errors
+     * @param fileSystem the file system to wrap the view around
      */
-    public LocalRelativeToPathIterator(final LocalRelativeToPath knimePath, final Filter<? super Path> filter) throws IOException {
-
-        if (!Files.isDirectory(knimePath)) {
-            throw new NotDirectoryException(knimePath.toString());
-        }
-
-        try {
-            m_iterator = Files.list(knimePath.toAbsoluteLocalPath())
-                .map(p -> (LocalRelativeToPath)knimePath.resolve(p.getFileName().toString())).filter(p -> {
-                    try {
-                        return filter.accept(p);
-                    } catch (final IOException ex) { // wrap exception
-                        throw new UncheckedIOException(ex);
-                    }
-                }).iterator();
-        } catch (final UncheckedIOException ex) { // unwrap exception
-            if (ex.getCause() != null) {
-                throw ex.getCause();
-            } else {
-                throw ex;
-            }
-        }
-    }
-
-    @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
-    }
-
-    @Override
-    public LocalRelativeToPath next() {
-        return m_iterator.next();
+    public RelativeToFileSystemView(final BaseFileSystem<?> fileSystem) {
+        super(fileSystem, fileSystem.getWorkingDirectory());
     }
 }

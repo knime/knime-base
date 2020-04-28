@@ -44,25 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 23, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+import org.apache.commons.lang3.Validate;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.WorkflowContext;
 
 /**
- * Local KNIME relative to File System view.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author bjoern
  */
-public class LocalRelativeToFileSystemView extends NioFileSystemView {
+public class RelativeToUtil {
 
     /**
-     * Constructs a new local KNIME relative to File System View.
-     *
-     * @param fileSystem the file system to wrap the view around
+     * @return current {@link WorkflowContext} from the {@link NodeContext}
      */
-    public LocalRelativeToFileSystemView(final LocalRelativeToFileSystem fileSystem) {
-        super(fileSystem, fileSystem.getWorkingDirectory());
+    public static WorkflowContext getWorkflowContext() {
+        final NodeContext nodeContext = NodeContext.getContext();
+        Validate.notNull(nodeContext, "Node context required.");
+
+        final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
+        Validate.notNull(workflowContext, "Workflow context required.");
+
+        return workflowContext;
     }
+
+    /**
+     * Validates if the given context is running in a server context.
+     *
+     * @param context workflow context to validate
+     * @return {@code true} if the given context is a server context
+     */
+    public static boolean isServerContext(final WorkflowContext context) {
+        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
+    }
+
 }

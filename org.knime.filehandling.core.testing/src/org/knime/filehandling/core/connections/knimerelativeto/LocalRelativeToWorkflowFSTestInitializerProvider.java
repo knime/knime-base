@@ -51,8 +51,6 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -66,10 +64,6 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-relative-workflow";
-
-    private static final String KNIME_FS_HOST = "knime.workflow";
-
-    private static final FSLocationSpec FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.RELATIVE, KNIME_FS_HOST);
 
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
@@ -90,6 +84,6 @@ public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestI
 
     @Override
     public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        return FS_LOCATION_SPEC;
+        return BaseRelativeToFileSystem.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
     }
 }

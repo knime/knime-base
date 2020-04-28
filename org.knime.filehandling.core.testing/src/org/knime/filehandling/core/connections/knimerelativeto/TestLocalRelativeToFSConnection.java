@@ -68,6 +68,6 @@ public class TestLocalRelativeToFSConnection implements FSConnection {
 
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
-        return new LocalRelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
+        return new RelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
     }
 }

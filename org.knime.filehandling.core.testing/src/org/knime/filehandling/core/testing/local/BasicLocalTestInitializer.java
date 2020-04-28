@@ -54,6 +54,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -65,6 +66,8 @@ import org.knime.filehandling.core.testing.DefaultFSTestInitializer;
  * Implementation of a test initializer using the local file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @param <P> The path type.
+ * @param <F> The file system type.
  */
 public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFileSystem<P>>
     extends DefaultFSTestInitializer<P, F> {
@@ -72,6 +75,8 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
     private final Path m_localWorkingDir;
 
     /**
+     * @param fsConnection The underlying connection.
+     * @param localWorkingDir The working directory in the local file system (default FS provider).
      * @throws IOException when something went wrong while creating the temporary test root folder.
      */
     public BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) throws IOException {
@@ -88,6 +93,7 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
         }
     }
 
+    @SuppressWarnings({"unchecked", "resource"})
     @Override
     public P getTestCaseScratchDir() {
         return (P)getFileSystem().getWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
@@ -100,19 +106,22 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
         return m_localWorkingDir.resolve(Integer.toString(getTestCaseId()));
     }
 
+    /**
+     * Creates a file with the given content and with the given name components below the test case scratch dir.
+     *
+     * @param content
+     * @param pathComponents
+     * @return the path (from default FS provider) to the created file.
+     */
     protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
         if (pathComponents == null || pathComponents.length == 0) {
             throw new IllegalArgumentException("path components can not be empty or null");
         }
 
-        Path directories = getLocalTestCaseScratchDir();
-        for (int i = 0; i < pathComponents.length - 1; i++) {
-            directories = directories.resolve(pathComponents[i]);
-        }
+        final Path file = Paths.get(getLocalTestCaseScratchDir().toString(), pathComponents);
 
-        final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
         try {
-            Files.createDirectories(directories);
+            Files.createDirectories(file.getParent());
             final Path createdPath = Files.createFile(file);
             try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
                 writer.write(content);

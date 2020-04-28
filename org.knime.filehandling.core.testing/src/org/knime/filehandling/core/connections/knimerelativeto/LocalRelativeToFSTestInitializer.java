@@ -51,7 +51,6 @@ import java.nio.file.Path;
 
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
 
 /**
@@ -59,7 +58,7 @@ import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<LocalRelativeToPath, LocalRelativeToFileSystem> {
+public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
 
     private final Path m_localMountpointRoot;
 
@@ -72,15 +71,11 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
      */
     public LocalRelativeToFSTestInitializer(final LocalRelativeToFSConnection fsConnection) throws IOException {
         super(fsConnection, getLocalWorkingDirectory(fsConnection));
-        m_localMountpointRoot = fsConnection.getFileSystem().getPathConfig().getLocalMountpointFolder();
+        m_localMountpointRoot = getFileSystem().toRealPathWithAccessibilityCheck(getFileSystem().getPath("/"));
     }
 
-    private static Path getLocalWorkingDirectory(final LocalRelativeToFSConnection fsConn) {
-        if (fsConn.getFileSystem().getPathConfig().getType() == Type.MOUNTPOINT_RELATIVE) {
-            return fsConn.getFileSystem().getPathConfig().getLocalMountpointFolder();
-        } else {
-            return fsConn.getFileSystem().getPathConfig().getLocalWorkflowFolder();
-        }
+    private static Path getLocalWorkingDirectory(final LocalRelativeToFSConnection fsConnection) throws IOException {
+        return fsConnection.getFileSystem().toRealPathWithAccessibilityCheck(fsConnection.getFileSystem().getWorkingDirectory());
     }
 
     @Override
@@ -101,10 +96,11 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
         LocalRelativeToTestUtil.clearDirectoryContents(m_localMountpointRoot);
     }
 
+
     @Override
-    public LocalRelativeToPath createFileWithContent(final String content, final String... pathComponents)
+    public RelativeToPath createFileWithContent(final String content, final String... pathComponents)
         throws IOException {
-        final Path localFile = createLocalFileWithContent(content, pathComponents);
-        return getFileSystem().toAbsoluteLocalRelativeToPath(localFile);
+        createLocalFileWithContent(content, pathComponents);
+        return getFileSystem().getPath(getFileSystem().getSeparator(), pathComponents);
     }
 }

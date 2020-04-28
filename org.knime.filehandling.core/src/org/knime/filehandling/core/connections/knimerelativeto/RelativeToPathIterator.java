@@ -42,84 +42,62 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import java.util.Iterator;
 
 /**
- * Local KNIME relative to File System path.
+ * Iterates over all the files and folders of the path on a relative-to file system.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToPath extends UnixStylePath {
+public class RelativeToPathIterator implements Iterator<RelativeToPath> {
+
+    private final Iterator<RelativeToPath> m_iterator;
 
     /**
-     * Creates an UnixStylePath from the given bucket name and object key
+     * Creates an iterator over all the files and folder in the given paths location.
      *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * @param knimePath relative-to path to iterate over
+     * @param realPath real file system version of the path to iterate over
+     * @param filter
+     * @throws IOException on I/O errors
      */
-    public LocalRelativeToPath(final LocalRelativeToFileSystem fileSystem, final String first,
-        final String... more) {
-        super(fileSystem, first, more);
-    }
+    public RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
+        final Filter<? super Path> filter) throws IOException {
 
-    @Override
-    public LocalRelativeToFileSystem getFileSystem() {
-        return (LocalRelativeToFileSystem) super.getFileSystem();
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    public LocalRelativeToPath toAbsolutePath() {
-        if (isAbsolute()) {
-            return this;
-        } else {
-            return (LocalRelativeToPath) getFileSystem().getWorkingDirectory().resolve(this);
-        }
-    }
-
-    @Override
-    public URI toUri() {
         try {
-            final boolean workflowRelativeFS = getFileSystem().getPathConfig().isWorkflowRelativeFileSystem();
-            final String path;
-
-            if (workflowRelativeFS && isAbsolute()) {
-                path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
-            } else if (workflowRelativeFS) {
-                path = getFileSystem().getSeparator() + this;
+            m_iterator = Files.list(realPath) //
+                .map(p -> (RelativeToPath)knimePath.resolve(p.getFileName().toString())) //
+                .filter(p -> {
+                    try {
+                        return filter.accept(p);
+                    } catch (final IOException ex) { // wrap exception
+                        throw new UncheckedIOException(ex);
+                    }
+                }).iterator();
+        } catch (final UncheckedIOException ex) { // unwrap exception
+            if (ex.getCause() != null) {
+                throw ex.getCause();
             } else {
-                path = toAbsolutePath().toString();
+                throw ex;
             }
-
-            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), //
-                URIUtil.encodePath(path), null);
-        } catch (URIException | URISyntaxException ex) {
-            throw new IllegalArgumentException(ex);
         }
     }
 
-    /**
-     * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
-     */
-    @SuppressWarnings("resource")
-    public Path toAbsoluteLocalPath() {
-        // FS specific separator: combine local FS path with separator independent path parts
-        final LocalRelativeToPath absolutePath = toAbsolutePath();
-        final String[] absolutePathParts = absolutePath.m_pathParts.toArray(new String[0]);
-        return Paths.get(getFileSystem().getPathConfig().getLocalMountpointFolder().toString(), absolutePathParts);
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
+    }
+
+    @Override
+    public RelativeToPath next() {
+        return m_iterator.next();
     }
 }

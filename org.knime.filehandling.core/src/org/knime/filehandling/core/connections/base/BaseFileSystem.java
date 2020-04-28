@@ -154,8 +154,10 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * This method is called in the {@link #close} method before the file system is removed from the list of file
      * systems in the provider. The method should ensure to close all open channels, directory-streams, and other
      * closeable objects associated with this file system.
+     *
+     * @throws IOException on failures
      */
-    protected abstract void prepareClose();
+    protected abstract void prepareClose() throws IOException;
 
     /**
      * {@inheritDoc}

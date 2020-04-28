@@ -44,73 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.util.URIUtil;
+import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
- * {@link FSConnection} implementation for the local relative-to file system.
+ * KNIME relative-to file system path.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFSConnection implements FSConnection {
-
-    private final LocalRelativeToFileSystem m_fileSystem;
-
-    private final RelativeToFileSystemBrowser m_browser;
+public class RelativeToPath extends UnixStylePath {
 
     /**
-     * Constructor.
+     * Creates a path using a given file system and path parts.
      *
-     * @param type The type of the file system (mountpoint- or workflow relative).
+     * @param fileSystem the file system
+     * @param first first part of the path
+     * @param more subsequent parts of the path
      */
-    public LocalRelativeToFSConnection(final Type type, final boolean isConnected) {
-        final URI uri = URI.create(type.getSchemeAndHost());
+    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first,
+        final String... more) {
+        super(fileSystem, first, more);
+    }
 
-        if (type != Type.MOUNTPOINT_RELATIVE && type != Type.WORKFLOW_RELATIVE) {
-            throw new IllegalArgumentException("Unsupported file system type: '" + type + "'.");
-        }
-
-        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
-        if (RelativeToUtil.isServerContext(workflowContext)) {
-            throw new UnsupportedOperationException(
-                "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
-        }
-
-        final Path mountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
-        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-        final Path relativePath = mountpointRoot.relativize(workflowLocation);
-
+    @Override
+    public URI toUri() {
         try {
-            m_fileSystem = new LocalRelativeToFileSystem(uri, //
-                mountpointRoot, //
-                LocalRelativeToFileSystemProvider.localToRelativeToPathSeperator(relativePath), //
-                type, //
-                isConnected);
-            m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
-        } catch (IOException ex) {
-            // should never happen
-            throw new UncheckedIOException(ex);
+            final boolean workflowRelativeFS =
+                ((BaseRelativeToFileSystem)getFileSystem()).isWorkflowRelativeFileSystem();
+            final String path;
+
+            if (workflowRelativeFS && isAbsolute()) {
+                path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
+            } else if (workflowRelativeFS) {
+                path = getFileSystem().getSeparator() + this;
+            } else {
+                path = toAbsolutePath().toString();
+            }
+
+            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), //
+                URIUtil.encodePath(path), null);
+        } catch (URIException | URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
         }
     }
 
-    @Override
-    public LocalRelativeToFileSystem getFileSystem() {
-        return m_fileSystem;
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_browser;
+    /**
+     * Appends this path to the given base directory without file system specific separators.
+     *
+     * @param baseDir base directory to append this path to
+     * @return base directory with this path appended
+     */
+    public Path appendToBaseDir(final Path baseDir) {
+        return Paths.get(baseDir.toString(), m_pathParts.toArray(new String[0]));
     }
 }
