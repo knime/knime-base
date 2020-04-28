@@ -87,7 +87,7 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
         // create parent directories
         final Path parentPath = path.getParent();
         final SettingsModelBoolean createDirectoryModel = getConfig().getCreateDirectoryModel();
-        if (!Files.exists(parentPath)) {
+        if (parentPath != null && !Files.exists(parentPath)) {
             if (createDirectoryModel.isEnabled() && createDirectoryModel.getBooleanValue()) {
                 Files.createDirectories(parentPath);
             } else {
