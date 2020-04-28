@@ -297,6 +297,50 @@ public class KNIMELocalRelativeToFileSystemTest {
 				fs.getPath("/some-directory/some-workflow").toAbsolutePath().normalize());
 	}
 
+	@Test
+	public void toUriWorkflowRelative() throws IOException {
+		final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
+
+		assertEquals("knime://knime.workflow/some-file", fs.getPath("some-file").toUri().toString());
+		assertEquals("knime://knime.workflow/some-file", fs.getPath("/current-workflow/some-file").toUri().toString());
+
+		assertEquals("knime://knime.workflow/some-path/some-file",
+				fs.getPath("some-path/some-file").toUri().toString());
+		assertEquals("knime://knime.workflow/some-path/some-file",
+				fs.getPath("/current-workflow/some-path/some-file").toUri().toString());
+
+		assertEquals("knime://knime.workflow/../some-file", fs.getPath("../some-file").toUri().toString());
+		assertEquals("knime://knime.workflow/../some-path/some-file",
+				fs.getPath("/some-path/some-file").toUri().toString());
+
+		assertEquals("knime://knime.workflow/../current-path/../some-file",
+				fs.getPath("/current-path/../some-file").toUri().toString());
+		assertEquals("knime://knime.workflow/../current-path/../some-file",
+				fs.getPath("../current-path/../some-file").toUri().toString());
+
+		assertEquals("knime://knime.workflow/../some-path/../some-file",
+				fs.getPath("/some-path/../some-file").toUri().toString());
+		assertEquals("knime://knime.workflow/../some-path/../some-file",
+				fs.getPath("../some-path/../some-file").toUri().toString());
+	}
+
+	@Test
+	public void toUriMountpointRelative() throws IOException {
+		final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+		assertEquals("knime://knime.mountpoint/some-file", fs.getPath("some-file").toUri().toString());
+		assertEquals("knime://knime.mountpoint/some-file", fs.getPath("/some-file").toUri().toString());
+
+		assertEquals("knime://knime.mountpoint/some-path/some-file",
+				fs.getPath("some-path/some-file").toUri().toString());
+		assertEquals("knime://knime.mountpoint/some-path/some-file",
+				fs.getPath("/some-path/some-file").toUri().toString());
+
+		assertEquals("knime://knime.mountpoint/some-path/../some-file",
+				fs.getPath("some-path/../some-file").toUri().toString());
+		assertEquals("knime://knime.mountpoint/some-path/../some-file",
+				fs.getPath("/some-path/../some-file").toUri().toString());
+	}
+
 	private static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
 		return LocalRelativeToFileSystemProvider.getOrCreateFileSystem(URI.create("knime://knime.mountpoint"));
 	}

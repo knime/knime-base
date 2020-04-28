@@ -48,9 +48,13 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
@@ -84,6 +88,27 @@ public class LocalRelativeToPath extends UnixStylePath {
             return this;
         } else {
             return (LocalRelativeToPath) getFileSystem().getWorkingDirectory().resolve(this);
+        }
+    }
+
+    @Override
+    public URI toUri() {
+        try {
+            final boolean workflowRelativeFS = getFileSystem().getPathConfig().isWorkflowRelativeFileSystem();
+            final String path;
+
+            if (workflowRelativeFS && isAbsolute()) {
+                path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
+            } else if (workflowRelativeFS) {
+                path = getFileSystem().getSeparator() + this;
+            } else {
+                path = toAbsolutePath().toString();
+            }
+
+            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), //
+                URIUtil.encodePath(path), null);
+        } catch (URIException | URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
         }
     }
 
