@@ -274,8 +274,6 @@ public final class SettingsModelFSLocationTest {
 
 	@Test
 	public void testToString() {
-		assertEquals(DEFAULT_LOCATION.toString(), m_testInstance.toString());
-		m_testInstance.setLocation(NULL);
-		assertEquals("NULL", m_testInstance.toString());
+		assertEquals("SettingsModelFSLocation (" + CFG_NAME + ")", m_testInstance.toString());
 	}
 }
