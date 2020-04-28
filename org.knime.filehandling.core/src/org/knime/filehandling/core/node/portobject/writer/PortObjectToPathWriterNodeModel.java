@@ -100,7 +100,7 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
                 "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
         } catch (NoSuchFileException e) {
             throw new IOException(
-                "The directory '" + parentPath + "' does not exist and must not be created due to user settings.");
+                "The directory '" + parentPath + "' does not exist and must not be created due to user settings.", e);
         }
         return null;
     }
