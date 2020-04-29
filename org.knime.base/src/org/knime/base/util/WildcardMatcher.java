@@ -47,6 +47,8 @@
  */
 package org.knime.base.util;
 
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
+
 /**
  * Simple class to convert wildcard patterns into regular expressions.
  *
@@ -188,13 +190,13 @@ public final class WildcardMatcher {
      * @return the corresponding regular expression
      */
     public static String wildcardToRegex(final String wildcard) {
-        return wildcardToRegex(wildcard, false);
+        return WildcardToRegexUtil.wildcardToRegex(wildcard);
     }
 
     /**
-     * Converts a wildcard pattern containing '*' and '?' as meta characters into a regular expression. Optionally,
-     * the backslash can be enabled as escape character for the wildcards. In this case a backslash has a special
-     * meaning and needs may need to be escaped itself.
+     * Converts a wildcard pattern containing '*' and '?' as meta characters into a regular expression. Optionally, the
+     * backslash can be enabled as escape character for the wildcards. In this case a backslash has a special meaning
+     * and needs may need to be escaped itself.
      *
      * @param wildcard a wildcard expression
      * @param enableEscaping <code>true</code> if the wildcards may be escaped (i.e. they loose their special meaning)
@@ -203,49 +205,6 @@ public final class WildcardMatcher {
      * @since 2.8
      */
     public static String wildcardToRegex(final String wildcard, final boolean enableEscaping) {
-        StringBuilder buf = new StringBuilder(wildcard.length() + 20);
-
-        for (int i = 0; i < wildcard.length(); i++) {
-            char c = wildcard.charAt(i);
-            switch (c) {
-                case '*':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('*');
-                    } else {
-                        buf.append(".*");
-                    }
-                    break;
-                case '?':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('?');
-                    } else {
-                        buf.append(".");
-                    }
-                    break;
-                case '\\':
-                    if (enableEscaping) {
-                        buf.append(c);
-                        break;
-                    }
-                case '^':
-                case '$':
-                case '[':
-                case ']':
-                case '{':
-                case '}':
-                case '(':
-                case ')':
-                case '|':
-                case '+':
-                case '.':
-                    buf.append("\\");
-                    buf.append(c);
-                    break;
-                default:
-                    buf.append(c);
-            }
-        }
-
-        return buf.toString();
+        return WildcardToRegexUtil.wildcardToRegex(wildcard, enableEscaping);
     }
 }
