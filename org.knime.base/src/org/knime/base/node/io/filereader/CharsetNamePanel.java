@@ -188,25 +188,6 @@ public class CharsetNamePanel extends JPanel {
     }
 
     private Container getSelectionPanel() {
-
-
-//        m_group.add(m_default);
-//
-//        m_group.add(m_usASCII);
-//
-//        m_group.add(m_iso8859);
-//
-//        m_group.add(m_utf8);
-//
-//        m_group.add(m_utf16le);
-//
-//        m_group.add(m_utf16be);
-//
-//        m_group.add(m_utf16);
-//
-//        m_group.add(m_custom);
-
-
         JPanel result = new JPanel(new GridBagLayout());
         result.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
             "Select a character set for the encoding type:"));
@@ -303,8 +284,28 @@ public class CharsetNamePanel extends JPanel {
      * @since 3.1
      */
     public void loadSettings(final FileReaderSettings settings) {
-        String csName = settings.getCharsetName();
-        setCharsetName(csName);
+        final String csName = settings.getCharsetName();
+        if (csName != null) {
+            // in case of a known charset we want to automatically select the correct button
+            // Example: utf8 is an alias for the canonical name UTF-8
+            // however in case of a unknown charset we don't want to change the name displayed in the custom
+            // charset text field to avoid confusion
+            final String canonicalName = Charset.isSupported(csName) ? Charset.forName(csName).name() : csName;
+            setCharsetName(hasButton(canonicalName) ? canonicalName : csName);
+        } else {
+            setCharsetName(csName);
+        }
+    }
+
+    private boolean hasButton(final String canonicalName) {
+        Enumeration<AbstractButton> buttons = m_group.getElements();
+        while (buttons.hasMoreElements()) {
+            AbstractButton b = buttons.nextElement();
+            if (canonicalName.equals(b.getActionCommand())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
