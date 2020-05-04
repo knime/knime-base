@@ -89,15 +89,6 @@ public class ReaderTableSpecTest {
     }
 
     /**
-     * Tests if {@link ReaderTableSpec#ReaderTableSpec(ReaderColumnSpec...)} fails on an empty array.
-     */
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void testColumnArrayConstructorFailsOnEmpty() {
-        new ReaderTableSpec<String>();
-    }
-
-    /**
      * Tests if {@link ReaderTableSpec#create(Collection, Collection)} fails if the names argument is {@code null}.
      */
     @Test(expected = IllegalArgumentException.class)
@@ -218,8 +209,13 @@ public class ReaderTableSpecTest {
      */
     @Test
     public void testCreateEmptyTableSpec() {
-        final ReaderTableSpec<String> noColumnTableSpec = new ReaderTableSpec<>(Collections.emptySet());
-        assertEquals(noColumnTableSpec.size(), 0);
+        //Array based constructor
+        ReaderTableSpec<String> noColTableSpecArray = new ReaderTableSpec<>();
+        assertEquals(noColTableSpecArray.size(), 0);
+
+        // Collections based constructor
+        final ReaderTableSpec<String> noColTableSpecCollection = new ReaderTableSpec<>(Collections.emptySet());
+        assertEquals(noColTableSpecCollection.size(), 0);
     }
 
     /**

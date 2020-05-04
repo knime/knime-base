@@ -78,12 +78,7 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
      */
     @SafeVarargs // because the varargs array is neither modified nor exposed
     public ReaderTableSpec(final ReaderColumnSpec<T>... columns) {
-        this(Arrays.asList(notEmpty(notNull(columns, "columns"))), false);
-    }
-
-    private static <T> ReaderColumnSpec<T>[] notEmpty(final ReaderColumnSpec<T>[] columns) {
-        CheckUtils.checkArgument(columns.length > 0, "At least one column must be provided.");
-        return columns;
+        this(Arrays.asList(notNull(columns, "columns")), false);
     }
 
     /**
@@ -92,7 +87,7 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
      * @param columns the table contains
      */
     public ReaderTableSpec(final Collection<ReaderColumnSpec<T>> columns) {
-        this(new ArrayList<>(notNull(columns, "c")), false);
+        this(new ArrayList<>(notNull(columns, "columns")), false);
     }
 
 
