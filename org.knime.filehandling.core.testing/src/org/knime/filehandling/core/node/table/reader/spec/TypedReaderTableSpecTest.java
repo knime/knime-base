@@ -155,11 +155,13 @@ public class TypedReaderTableSpecTest {
     }
 
     /**
-     * Tests if {@link TypedReaderTableSpec#create(Object...)} fails if no types are provided (the array is empty).
+     * Tests if {@link TypedReaderTableSpec#create(Object...)} returns a spec with zero columns provided with empty
+     * array.
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeArrayFailsOnEmpty() {
-        TypedReaderTableSpec.create();
+    @Test
+    public void testCreateFromEmptyTypeArray() {
+        final TypedReaderTableSpec<String> noColTableSpec = TypedReaderTableSpec.create();
+        assertEquals(noColTableSpec.size(), 0);
     }
 
     /**
@@ -179,11 +181,13 @@ public class TypedReaderTableSpecTest {
     }
 
     /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection)} fails if the provided collection is empty.
+     * Tests if {@link TypedReaderTableSpec#create(Collection)} returns a spec with zero columns provided with empty
+     * collection.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testCreateFromTypeCollectionFailsOnEmpty() {
-        TypedReaderTableSpec.create(Collections.emptySet());
+        final TypedReaderTableSpec<String> noColTableSpec = TypedReaderTableSpec.create(Collections.emptySet());
+        assertEquals(noColTableSpec.size(), 0);
     }
 
     /**

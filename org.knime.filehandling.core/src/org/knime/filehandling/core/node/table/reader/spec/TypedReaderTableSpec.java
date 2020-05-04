@@ -132,7 +132,6 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
      */
     public static <T> TypedReaderTableSpec<T> create(final Collection<T> types) {
         notNull(types, TYPES);
-        CheckUtils.checkArgument(!types.isEmpty(), "The list of types must contain at least one element.");
         return new TypedReaderTableSpec<>(types.stream()//
             .map(TypedReaderColumnSpec::create)//
             .collect(toList()), false);
