@@ -92,13 +92,9 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
      * @param columns the table contains
      */
     public ReaderTableSpec(final Collection<ReaderColumnSpec<T>> columns) {
-        this(new ArrayList<>(notEmpty(notNull(columns, "c"))), false);
+        this(new ArrayList<>(notNull(columns, "c")), false);
     }
 
-    private static <T> Collection<T> notEmpty(final Collection<T> collection) {
-        CheckUtils.checkArgument(!collection.isEmpty(), "At least one column must be provided.");
-        return collection;
-    }
 
     private ReaderTableSpec(final List<ReaderColumnSpec<T>> columns, final boolean copy) {
         if (copy) {
@@ -123,7 +119,7 @@ public final class ReaderTableSpec<T> implements Iterable<ReaderColumnSpec<T>> {
     public static <T> ReaderTableSpec<T> create(final Collection<String> names, final Collection<T> types) {
         CheckUtils.checkArgumentNotNull(names, "The names argument must not be null.");
         CheckUtils.checkArgumentNotNull(types, "The types argument must not be null.");
-        CheckUtils.checkArgument(!names.isEmpty(), "At least one name and type must be provided.");
+
         CheckUtils.checkArgument(names.size() == types.size(), "Names and types must have the same size.");
         final Iterator<String> nameIterator = names.iterator();
         final Iterator<T> typesIterator = types.iterator();

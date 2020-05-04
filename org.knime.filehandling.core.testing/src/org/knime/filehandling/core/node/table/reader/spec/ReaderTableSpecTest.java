@@ -80,15 +80,6 @@ public class ReaderTableSpecTest {
     }
 
     /**
-     * Tests if {@link ReaderTableSpec#ReaderTableSpec(Collection)} fails on an empty collection.
-     */
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void testColumnListConstructorFailsOnEmpty() {
-        new ReaderTableSpec<String>(Collections.emptySet());
-    }
-
-    /**
      * Tests if {@link ReaderTableSpec#ReaderTableSpec(ReaderColumnSpec...)} fails on {@code null} array.
      */
     @SuppressWarnings("unused")
@@ -144,14 +135,6 @@ public class ReaderTableSpecTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCreateFromNameTypeFailsOnNamesShorter() {
         ReaderTableSpec.create(asList("foo"), asList("foo", "bar"));
-    }
-
-    /**
-     * Tests if {@link ReaderTableSpec#create(Collection, Collection)} fails if the provided arguments are empty.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnEmpty() {
-        ReaderTableSpec.create(Collections.emptySet(), Collections.emptySet());
     }
 
     /**
@@ -228,6 +211,15 @@ public class ReaderTableSpecTest {
         assertEquals(ReaderColumnSpec.createWithName("alfons", "berta"), constructorArray.getColumnSpec(1));
         assertEquals(constructorArray, constructorList);
         assertEquals(constructorArray, createList);
+    }
+
+    /**
+     * Tests the creation of table spec with no columns.
+     */
+    @Test
+    public void testCreateEmptyTableSpec() {
+        final ReaderTableSpec<String> noColumnTableSpec = new ReaderTableSpec<>(Collections.emptySet());
+        assertEquals(noColumnTableSpec.size(), 0);
     }
 
     /**
