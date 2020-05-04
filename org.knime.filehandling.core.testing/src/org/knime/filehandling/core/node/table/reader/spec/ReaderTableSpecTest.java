@@ -104,14 +104,6 @@ public class ReaderTableSpecTest {
     }
 
     /**
-     * Tests if {@link ReaderTableSpec#createReaderTableSpec(Collection)} fails if the names argument is {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnNullNames() {
-        ReaderTableSpec.createReaderTableSpec(null);
-    }
-
-    /**
      * Tests the creation if both names and types are provided.
      */
     @Test
@@ -143,6 +135,16 @@ public class ReaderTableSpecTest {
         final ReaderTableSpec<ReaderColumnSpec> noColTableSpecCollection =
             new ReaderTableSpec<>(Collections.emptySet());
         assertEquals(noColTableSpecCollection.size(), 0);
+    }
+
+    /**
+     * Tests if {@link ReaderTableSpec#create(Collection)} returns a spec with zero columns provided with empty
+     * collection.
+     */
+    @Test
+    public void testCreateFromTypeEmptyCollection() {
+        final ReaderTableSpec<ReaderColumnSpec> noColTableSpec = ReaderTableSpec.createReaderTableSpec(Collections.emptySet());
+        assertEquals(noColTableSpec.size(), 0);
     }
 
     /**

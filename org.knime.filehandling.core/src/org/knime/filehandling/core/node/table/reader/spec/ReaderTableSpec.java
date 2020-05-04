@@ -116,7 +116,6 @@ public class ReaderTableSpec<S extends ReaderColumnSpec> implements Iterable<S> 
      * @return a {@link ReaderTableSpec} with columns according to the provided arguments
      */
     public static ReaderTableSpec<ReaderColumnSpec> createReaderTableSpec(final Collection<String> names) {
-        CheckUtils.checkArgumentNotNull(names, "The names argument must not be null.");
         final Iterator<String> nameIterator = names.iterator();
         final List<ReaderColumnSpec> cols = new ArrayList<>(names.size());
         while (nameIterator.hasNext()) {
