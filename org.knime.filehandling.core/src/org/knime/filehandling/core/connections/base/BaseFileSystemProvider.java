@@ -254,6 +254,11 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         checkFileSystemOpenAndNotClosing();
         checkOpenOptionsForReading(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
+
+        if (!existsCached(checkedPath)) {
+            throw new NoSuchFileException(checkedPath.toString());
+        }
+
         return new FSInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
     }
 
