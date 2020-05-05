@@ -53,8 +53,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataTableSpec;
@@ -63,7 +63,6 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 
 /**
@@ -88,24 +87,21 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DialogComponentNumber m_kComp;
 
-    private final DialogComponentButtonGroup m_topKMode;
-
     /**
-     *
+     * Constructor.
      */
-    public TopKSelectorNodeDialog() {
+    TopKSelectorNodeDialog() {
 
         super();
 
         m_settings = new TopKSelectorSettings();
         m_advancedSettings = new AdvancedSettingsNodeDialog(m_settings);
-        m_topKMode =  new DialogComponentButtonGroup(m_settings.getTopKModeModel(), null, true, TopKMode.values());
 
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
-        m_kComp = new DialogComponentNumber(m_settings.getKModel(), null, 1);
+        m_kComp = new DialogComponentNumber(m_settings.getKModel(), "Number of rows", 1);
 
-        super.addTab(TAB, createPanel(), false);
+        super.addTab(TAB, createPanel());
 
         super.addTab(TAB_ADVANCED_SETTINGS, m_advancedSettings.getPanel());
     }
@@ -115,71 +111,55 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
      *
      * @return the JScrollPane
      */
-    private JScrollPane createPanel() {
+    private Component createPanel() {
         final JPanel p = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.2;
-        gbc.weighty = 1;
-
-        ++gbc.gridx;
-        ++gbc.gridy;
-        p.add(createInnerPanel(m_topKMode.getComponentPanel(), "Top k Mode"), gbc);
-        gbc.weightx = 0.8;
-        ++gbc.gridx;
-        p.add(createInnerPanel(m_kComp.getComponentPanel(),"Number of rows"), gbc);
-
-        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        p.add(m_kComp.getComponentPanel(), gbc);
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         ++gbc.gridy;
+        p.add(createInnerPanel("Selection criteria", m_panel.getPanel()), gbc);
 
-        p.add(m_panel.getPanel(), gbc);
+        ++gbc.gridx;
+        ++gbc.gridy;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.weightx = 0;
+        gbc.weighty = 1;
+        p.add(Box.createHorizontalBox(), gbc);
 
-        return new JScrollPane(p);
+        return p;
     }
 
     /**
      * Creates a JPanel {@link JPanel} with the passed {@link Component} and sets a title of the border.
      *
-     * @param component Component which will be added to the JPanel
      * @param title title of the Border
+     * @param component Component which will be added to the JPanel
      * @return a {@link JPanel}
      */
-    private static JPanel createInnerPanel(final Component component, final String title) {
+    private static Component createInnerPanel(final String title, final Component component) {
         final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = createInnerPanelGridBagConstraint();
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.setBorder(BorderFactory.createTitledBorder(title));
         panel.add(component, gbc);
         return panel;
     }
 
-    /**
-     * Creates the default {@link GridBagConstraints} for the inner {@link JPanel}
-     *
-     * @return the default {@link GridBagConstraints}
-     */
-    private static GridBagConstraints createInnerPanelGridBagConstraint() {
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 1;
-        gbc.weighty = 1;
-        return gbc;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_settings.saveSettingsTo(settings);
         m_panel.save(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {

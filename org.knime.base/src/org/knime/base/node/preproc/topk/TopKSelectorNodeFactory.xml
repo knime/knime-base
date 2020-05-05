@@ -24,20 +24,26 @@
 			whether a larger or smaller value is
 			considered as superior.
 		</intro>
-		<option name="Add columns">If you want to extend the selection criteria
-			to a
-			higher number of columns as displayed, set the number of columns
-			at
-			the bottom and click 'new columns' to add them to the dialog.
-		</option>
+		<tab name="Settings">
 		<option name="Number of rows">The number of rows to select from the input table.
 		</option>
-		<option name="Move Missing Cells to end of sorted list">If selected, missing
-			values are always considered
-			to be inferior to present cells.
+		<option name="Selection criteria">If you want to extend the selection criteria
+			to a  higher number of columns as displayed, set the number of columns
+			at the bottom and click 'new columns' to add them to the dialog.
+		</option>
+		</tab>
+		<tab name="Advanced Settings">
+		<option name="Selection mode">
+			Specifies the mode for the top k selection of the output
+			<ul>
+				<li>Top k rows: Returns the top k rows based on their first
+					occurrence in the input table.</li>
+				<li>Top k unique values: Returns all rows associated with the
+					top k unique values.</li>
+			</ul>
 		</option>
 		<option name="Output order">
-			Specifies constraints of the order of the output
+			Specifies constraints on the order of the output
 			<ul>
 				<li>No order: No specific order is required for the rows in the
 					output. This is the best option in terms of runtime.</li>
@@ -47,16 +53,11 @@
 					specified criteria.</li>
 			</ul>
 		</option>
-		<option name="Top k Mode">
-			Specifies the mode for the top k selection of the output
-			<ul>
-				<li>Top k rows: Returns the top k rows based on their first
-					occurrence in the input table.</li>
-				<li>Top k rows with unique values: Returns all occurrences of the
-					top k rows.</li>
-			</ul>
+		<option name="Move Missing Cells to end of sorted list">If selected, missing
+			values are always considered
+			to be inferior to present cells.
 		</option>
-
+		</tab>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Input Table">Table to select rows from.</inPort>

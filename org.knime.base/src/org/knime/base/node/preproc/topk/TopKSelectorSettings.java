@@ -87,7 +87,7 @@ final class TopKSelectorSettings {
     }
 
     private static TopKModeSettingsModel createTopKModeModel() {
-        return new TopKModeSettingsModel("topKMode", TopKMode.TOP_K_ROWS.name());
+        return new TopKModeSettingsModel("selectionMode", TopKMode.TOP_K_ROWS.name());
     }
 
     private final SettingsModelStringArray m_inclList = createInclListModel();

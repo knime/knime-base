@@ -57,9 +57,9 @@ enum TopKMode implements ButtonGroupEnumInterface {
         TOP_K_ROWS("Top k rows"),
 
         /**
-         * This mode returns the top k rows with unique values.
+         * This mode returns the rows associated with the top k unique values.
          */
-        TOP_K_ALL_ROWS_W_UNIQUE("Top k rows with unique values");
+        TOP_K_ALL_ROWS_W_UNIQUE("Top k unique values");
 
     private TopKMode(final String text) {
         m_text = text;

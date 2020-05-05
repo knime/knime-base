@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.topk;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.Box;
 import javax.swing.JPanel;
 
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
@@ -70,6 +71,8 @@ final class AdvancedSettingsNodeDialog {
 
     private final DialogComponentButtonGroup m_outputOrder;
 
+    private final DialogComponentButtonGroup m_topKMode;
+
     /**
      * Creates a new Panel with a checkBox for "Move missing cells to end of the list" and a GroupBox for choosing the
      * output order
@@ -82,6 +85,8 @@ final class AdvancedSettingsNodeDialog {
             new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
         m_outputOrder = new DialogComponentButtonGroup(m_settings.getOutputOrderModel(), "Output order", true,
             OutputOrder.values());
+        m_topKMode = new DialogComponentButtonGroup(m_settings.getTopKModeModel(), "Selection mode", true,
+            TopKMode.values());
     }
 
     /**
@@ -93,16 +98,20 @@ final class AdvancedSettingsNodeDialog {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.weightx = 1;
-        gbc.weighty = 1;
-
-        ++gbc.gridy;
-        panel.add(m_missingsToEnd.getComponentPanel(), gbc);
-        gbc.weighty = 15;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(m_topKMode.getComponentPanel(), gbc);
         ++gbc.gridy;
         panel.add(m_outputOrder.getComponentPanel(), gbc);
-
+        ++gbc.gridy;
+        panel.add(m_missingsToEnd.getComponentPanel(), gbc);
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(Box.createHorizontalBox(), gbc);
         return panel;
     }
 }
