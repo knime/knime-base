@@ -67,7 +67,7 @@ import org.knime.filehandling.core.connections.FSPath;
 /**
  * Implementation of {@link SeekableByteChannel} for remote files systems that do not support seekable byte channels. In
  * this case the file is downloaded into a local temporary file from which a SeekableByteChannel is retrieved. Closing
- * the channel will upload the file.
+ * the channel will upload the file if file was changed or is empty.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @param <P> Path type to use.
@@ -80,6 +80,10 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
     private final SeekableByteChannel m_tempFileSeekableByteChannel;
 
     private boolean m_isClosed = false;
+
+    private boolean m_isWritable;
+
+    private boolean m_changed = false;
 
     private final P m_file;
 
@@ -102,13 +106,15 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
         m_tempFile = Paths.get(tmpDir, String.format("tempFSfile-%s-%s", UUID.randomUUID().toString().replace('-', '_'),
             m_file.getFileName().toString()));
 
-        if (options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.READ)) {
+        if (m_openOptions.contains(StandardOpenOption.APPEND) || m_openOptions.contains(StandardOpenOption.READ)) {
             try {
                 copyFromRemote(m_file, m_tempFile);
             } catch (NoSuchFileException e) {
                 // the file need not necessarily exist
             }
         }
+
+        m_isWritable = options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.WRITE);
 
         final Set<OpenOption> opts = new HashSet<>(options);
         opts.add(StandardOpenOption.CREATE);
@@ -145,13 +151,16 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
     @SuppressWarnings("resource")
     @Override
     public void close() throws IOException {
-        if (!m_isClosed) {
+        if(!m_isClosed) {
+            final long size = m_tempFileSeekableByteChannel.size();
 
-            if (m_openOptions.contains(StandardOpenOption.WRITE)) {
+            m_tempFileSeekableByteChannel.close();
+
+            // upload file if changed or is a new file
+            if (m_isWritable && (m_changed || size == 0)) {
                 copyToRemote(m_file, m_tempFile);
             }
 
-            m_tempFileSeekableByteChannel.close();
             Files.delete(m_tempFile);
             m_isClosed = true;
             if (m_file.getFileSystem() instanceof BaseFileSystem) {
@@ -170,10 +179,12 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public int write(final ByteBuffer src) throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
-        return m_tempFileSeekableByteChannel.write(src);
+        final int bytes = m_tempFileSeekableByteChannel.write(src);
+        m_changed = m_changed || bytes > 0;
+        return bytes;
     }
 
     @Override
@@ -202,9 +213,11 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public SeekableByteChannel truncate(final long size) throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
-        return m_tempFileSeekableByteChannel.truncate(size);
+        m_tempFileSeekableByteChannel.truncate(size);
+        m_changed = true;
+        return this;
     }
 }
