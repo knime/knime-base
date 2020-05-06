@@ -45,14 +45,18 @@
  */
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -73,9 +77,34 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_file() throws IOException {
-        final Path file = m_testInitializer.createFile("path", "to", "file");
-        Files.delete(file);
-        assertFalse(Files.exists(file));
+        final Path fileB = m_testInitializer.createFileWithContent("test", "dir-A", "file-B");
+        final Path dirA = fileB.getParent();
+
+        // list prarent dir-A
+        final List<Path> before = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirA, path -> true)) {
+            directoryStream.forEach(before::add);
+        }
+        assertTrue(before.contains(fileB));
+        assertEquals(1, before.size());
+
+        // ensure file exist before
+        assertTrue(Files.isRegularFile(fileB));
+        assertTrue(Files.exists(fileB));
+
+        // delete file-B
+        Files.delete(fileB);
+
+        // ensure file does not exist anymore
+        assertFalse(Files.isRegularFile(fileB));
+        assertFalse(Files.exists(fileB));
+
+        // list dir-A again and ensure that file-B is not listed anymore
+        final List<Path> after = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirA, path -> true)) {
+            directoryStream.forEach(after::add);
+        }
+        assertEquals(0, after.size());
     }
 
     @Test

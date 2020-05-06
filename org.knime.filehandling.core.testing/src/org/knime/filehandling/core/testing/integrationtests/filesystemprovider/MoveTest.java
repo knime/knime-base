@@ -50,11 +50,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -80,9 +83,18 @@ public class MoveTest extends AbstractParameterizedFSTest {
         Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
         Path target = source.getParent().resolve("movedFile");
 
+        // load file attributes and ensure file exits
+        assertTrue(Files.isRegularFile(source));
+        assertTrue(Files.exists(source));
+
+        // move the file
         Files.move(source, target);
 
+        // ensure old file does not exits anymore
+        assertFalse(Files.isRegularFile(source));
         assertFalse(Files.exists(source));
+
+        // ensure new file exists and contains original data
         assertTrue(Files.exists(target));
         List<String> movedContent = Files.readAllLines(target);
         assertEquals(sourceContent, movedContent.get(0));
@@ -131,17 +143,102 @@ public class MoveTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void test_renaming_a_file() throws Exception {
-        String sourceContent = "The source content";
-        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
-        Path target = source.getParent().resolve("fileB");
+    public void test_move_file_to_itself() throws Exception {
+        final String testContent = "Some simple test content";
+        final Path source = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA");
 
-        Files.move(source, target);
+        Files.move(source, source, StandardCopyOption.REPLACE_EXISTING);
 
-        assertFalse(Files.exists(source));
-        assertTrue(Files.exists(target));
-        List<String> renamedContent = Files.readAllLines(target);
-        assertEquals(sourceContent, renamedContent.get(0));
+        assertTrue(Files.exists(source));
+        final List<String> copiedContent = Files.readAllLines(source);
+        assertEquals(1, copiedContent.size());
+        assertEquals(testContent, copiedContent.get(0));
+    }
+
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_move_directory_to_other_directory() throws Exception {
+        final String testContent = "Some simple test content";
+        final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
+        final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
+
+        Files.copy(dirA, dirB);
+
+        assertTrue(Files.exists(dirB.resolve("dirA").resolve("fileA")));
+    }
+
+    @Test(expected = DirectoryNotEmptyException.class)
+    public void test_move_directory_with_replace_to_non_empty_existing_directory() throws Exception {
+        final String testContent = "Some simple test content";
+        final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
+        final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
+
+        Files.move(dirA, dirB, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @Test
+    public void test_move_directory() throws IOException {
+        final Path fileA3 = m_testInitializer.createFile("dir-A1", "dir-A2", "file-A3");
+        m_testInitializer.createFile("dir-A1", "dir-A2", "afile-A4");
+        m_testInitializer.createFile("dir-A1", "dir-A2", "dir-A5", "file-A6");
+        m_testInitializer.createFile("dir-A1", "dir-A2", "zfile-A7");
+        final Path dirA2 = fileA3.getParent();
+        final Path dirA1 = dirA2.getParent();
+        final Path fileB2 = m_testInitializer.createFile("dir-B1", "file-B2");
+        final Path dirB1 = fileB2.getParent();
+
+        // load file attributes and ensure file exists
+        assertTrue(Files.isRegularFile(fileA3));
+        assertTrue(Files.exists(fileA3));
+
+        // list dir-A1
+        final List<Path> beforeA1 = listDir(dirA1);
+        assertTrue(beforeA1.contains(dirA2));
+        assertEquals(1, beforeA1.size());
+
+        // list dir-B1
+        final List<Path> beforeB1 = listDir(dirB1);
+        assertTrue(beforeB1.contains(fileB2));
+        assertEquals(1, beforeB1.size());
+
+        // move dir-A1/dir-A2 to dir-B1/dir-B3
+        final Path dirB3 = m_testInitializer.makePath("dir-B1", "dir-B3");
+        Files.move(dirA2, dirB3);
+
+        // check file attributes of old file
+        assertFalse(Files.isRegularFile(fileA3));
+        assertFalse(Files.exists(fileA3));
+
+        // list dir-A1 and ensure that it is now empty
+        final List<Path> afterA1 = listDir(dirA1);
+        assertEquals(0, afterA1.size());
+
+        // list dir-B1 and ensure that it now contains dir-B3
+        final List<Path> afterB1 = listDir(dirB1);
+        assertTrue(afterB1.contains(fileB2));
+        assertTrue(afterB1.contains(dirB3));
+        assertEquals(2, afterB1.size());
+
+        // list dir-B3 and ensure that it still contains all files/directories
+        final List<Path> afterB3 = listDir(dirB3);
+        assertTrue(afterB3.contains(dirB3.resolve("file-A3")));
+        assertTrue(afterB3.contains(dirB3.resolve("afile-A4")));
+        assertTrue(afterB3.contains(dirB3.resolve("dir-A5")));
+        assertTrue(afterB3.contains(dirB3.resolve("zfile-A7")));
+        assertEquals(4, afterB3.size());
+
+        // list dir-B3 and ensure that it still contains all files/directories
+        final Path dirA5 = dirB3.resolve("dir-A5");
+        final List<Path> afterA5 = listDir(dirA5);
+        assertTrue(afterA5.contains(dirA5.resolve("file-A6")));
+        assertEquals(1, afterA5.size());
+    }
+
+    private static List<Path> listDir(final Path path) throws IOException {
+        final List<Path> list = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path, p -> true)) {
+            directoryStream.forEach(list::add);
+        }
+        return list;
     }
 
     @Test

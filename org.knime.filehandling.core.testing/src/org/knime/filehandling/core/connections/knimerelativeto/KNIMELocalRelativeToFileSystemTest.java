@@ -365,6 +365,39 @@ public class KNIMELocalRelativeToFileSystemTest {
             fs.getPath("/some-path/../some-file").toUri().toString());
     }
 
+    @Test(expected = IOException.class)
+    public void newInputStreamOnWorkflowFails() throws IOException {
+        final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        try {
+            Files.newInputStream(fs.getPath("/other-workflow"));
+        } catch (final IOException e) {
+            assertEquals("Workflows cannot be opened for reading", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = IOException.class)
+    public void newOutputStreamOnWorkflowFails() throws IOException {
+        final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        try {
+            Files.newOutputStream(fs.getPath("/other-workflow"));
+        } catch (final IOException e) {
+            assertEquals("Workflows cannot be opened for writing", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Test(expected = IOException.class)
+    public void newByteChannelOnWorkflowFails() throws IOException {
+        final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        try {
+            Files.newByteChannel(fs.getPath("/other-workflow"));
+        } catch (final IOException e) {
+            assertEquals("Workflows cannot be opened for reading/writing", e.getMessage());
+            throw e;
+        }
+    }
+
     private static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
         return new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, false).getFileSystem();
     }

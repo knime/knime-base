@@ -46,15 +46,18 @@
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -77,15 +80,41 @@ public class CopyTest extends AbstractParameterizedFSTest {
     @Test
     public void test_copy_file() throws Exception {
         final String testContent = "Some simple test content";
-        final Path source = m_testInitializer.createFileWithContent(testContent, "dir", "file");
-        final Path target = source.getParent().resolve("copiedFile");
+        final Path fileA1 = m_testInitializer.createFileWithContent(testContent, "file-A1");
+        final Path fileB2 = m_testInitializer.createFileWithContent("test", "dir-B", "file-B2");
+        final Path dirB = fileB2.getParent();
 
-        Files.copy(source, target);
+        // list dir-B
+        final List<Path> before = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirB, path -> true)) {
+            directoryStream.forEach(before::add);
+        }
+        assertTrue(before.contains(fileB2));
+        assertEquals(1, before.size());
 
-        assertTrue(Files.exists(target));
-        final List<String> copiedContent = Files.readAllLines(target);
+        // ensure file does not exist
+        final Path fileB3 = m_testInitializer.makePath("dir-B", "file-B3");
+        assertFalse(Files.isRegularFile(fileB3));
+        assertFalse(Files.exists(fileB3));
+
+        // copy file-A1 to dir-B/file-B3
+        Files.copy(fileA1, fileB3);
+
+        // ensure file exists now and contains the original data
+        assertTrue(Files.isRegularFile(fileB3));
+        assertTrue(Files.exists(fileB3));
+        final List<String> copiedContent = Files.readAllLines(fileB3);
         assertEquals(1, copiedContent.size());
         assertEquals(testContent, copiedContent.get(0));
+
+        // list dir-B again ensure that it now contains the new file-B3
+        final List<Path> after = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirB, path -> true)) {
+            directoryStream.forEach(after::add);
+        }
+        assertTrue(after.contains(fileB2));
+        assertTrue(after.contains(fileB3));
+        assertEquals(2, after.size());
     }
 
     @Test(expected = NoSuchFileException.class)
@@ -129,27 +158,21 @@ public class CopyTest extends AbstractParameterizedFSTest {
         Files.copy(source, target);
     }
 
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_copy_directory_to_other_directory() throws Exception {
+        final String testContent = "Some simple test content";
+        final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
+        final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
+
+        Files.copy(dirA, dirB);
+    }
+
     @Test(expected = DirectoryNotEmptyException.class)
-    public void test_copy_file_to_non_empty_existing_directory() throws Exception {
+    public void test_copy_directory_with_replace_to_non_empty_existing_directory() throws Exception {
         final String testContent = "Some simple test content";
-        final Path source = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA");
-        final Path nonEmptyDirectory =
-            m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
+        final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
+        final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
 
-        Files.copy(source.getParent(), nonEmptyDirectory, StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(dirA, dirB, StandardCopyOption.REPLACE_EXISTING);
     }
-
-    @Test
-    public void test_copy_file_to_itself() throws Exception {
-        final String testContent = "Some simple test content";
-        final Path source = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA");
-
-        Files.copy(source, source, StandardCopyOption.REPLACE_EXISTING);
-
-        assertTrue(Files.exists(source));
-        final List<String> copiedContent = Files.readAllLines(source);
-        assertEquals(1, copiedContent.size());
-        assertEquals(testContent, copiedContent.get(0));
-    }
-
 }

@@ -45,53 +45,58 @@
  */
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.util.IOESupplier;
 
 /**
- * Test class for input streams operations on file systems.
- *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- *
+ * Test that a file system returns basic file attributes.
  */
-public class InputStreamTest extends AbstractParameterizedFSTest {
+public class AttributesTest extends AbstractParameterizedFSTest {
 
-    public InputStreamTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+    public AttributesTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
         throws IOException {
         super(fsType, testInitializer);
     }
 
     @Test
-    public void test_read_from_input_stream() throws Exception {
-        String testContent = "This is read by an input stream!!";
-        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
+    public void test_get_basic_file_attributes() throws Exception {
+        final Path testFile = m_testInitializer.createFile("some-dir", "some-file");
+        final Path testDir = testFile.getParent();
 
-        String result;
-        try (InputStream inputStream = Files.newInputStream(file)) {
-            result = IOUtils.toString(inputStream, Charset.defaultCharset());
-        }
+        assertFalse(Files.isRegularFile(testDir));
+        assertTrue(Files.isDirectory(testDir));
+        assertTrue(Files.isReadable(testDir));
+        assertTrue(Files.isWritable(testDir));
+        assertFalse(Files.isHidden(testDir));
 
-        assertEquals(testContent, result);
+        assertTrue(Files.isRegularFile(testFile));
+        assertFalse(Files.isDirectory(testFile));
+        assertTrue(Files.isReadable(testFile));
+        assertTrue(Files.isWritable(testFile));
+        assertFalse(Files.isHidden(testFile));
+
+        assertTrue(Files.isSameFile(testFile, testFile));
+        assertTrue(Files.isSameFile(testDir, testDir));
+        assertFalse(Files.isSameFile(testDir, testFile));
+        assertFalse(Files.isSameFile(testFile, testDir));
     }
 
-    @Test(expected = NoSuchFileException.class)
-    public void test_read_from_input_stream_non_existing_file() throws Exception {
-        Path file = m_testInitializer.createFile("dir", "fileName");
-        Path nonExistingFile = file.getParent().resolve("non-existing");
-        try (InputStream inputStream = Files.newInputStream(nonExistingFile)) {
-            inputStream.read(); // try to read
-        }
+    @Test
+    public void test_get_attributes_of_non_existsing_path() throws Exception {
+        final Path testFile = m_testInitializer.makePath("non-existing-file");
+        assertFalse(Files.isRegularFile(testFile));
+        assertFalse(Files.isDirectory(testFile));
+        assertFalse(Files.isReadable(testFile));
+        assertFalse(Files.isWritable(testFile));
+        assertFalse(Files.isHidden(testFile));
     }
 }
