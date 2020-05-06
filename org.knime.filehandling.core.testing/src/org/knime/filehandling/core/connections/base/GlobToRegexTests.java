@@ -57,8 +57,7 @@ import java.util.regex.PatternSyntaxException;
 import org.junit.Test;
 
 /**
- * Tests the conversion from glob to regex pattern with the
- * {@link GlobToRegexConverter}.
+ * Tests the conversion from glob to regex pattern with the {@link GlobToRegexConverter}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
@@ -113,8 +112,7 @@ public class GlobToRegexTests {
     }
 
     /**
-     * a?*.java – Matches any string beginning with a, followed by at least one
-     * letter or digit, and ending with .java
+     * a?*.java – Matches any string beginning with a, followed by at least one letter or digit, and ending with .java
      */
     @Test
     public void match_begin_a_end_java() {
@@ -130,8 +128,7 @@ public class GlobToRegexTests {
     }
 
     /**
-     * a\?*.java – Matches any string beginning with a? ending with .java Test
-     * escaping of meta characters
+     * a\?*.java – Matches any string beginning with a? ending with .java Test escaping of meta characters
      */
     @Test
     public void test_glob_meta() {
@@ -147,8 +144,7 @@ public class GlobToRegexTests {
     }
 
     /**
-     * {foo*,*[0-9]*} – Matches any string beginning with foo or any string
-     * containing a numeric value
+     * {foo*,*[0-9]*} – Matches any string beginning with foo or any string containing a numeric value
      */
     @Test
     public void match_foo_or_numeric() {

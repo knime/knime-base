@@ -55,19 +55,19 @@ import org.knime.filehandling.core.connections.FSFileSystem;
  * @author Sascha Wolke, KNIME GmbH
  */
 public class TestLocalRelativeToFSConnection implements FSConnection {
-	private final LocalRelativeToFSTestInitializer m_fileSystemInitializer;
+    private final LocalRelativeToFSTestInitializer m_fileSystemInitializer;
 
-	public TestLocalRelativeToFSConnection(final LocalRelativeToFSTestInitializer fileSystemInitializer) {
-		m_fileSystemInitializer = fileSystemInitializer;
-	}
+    public TestLocalRelativeToFSConnection(final LocalRelativeToFSTestInitializer fileSystemInitializer) {
+        m_fileSystemInitializer = fileSystemInitializer;
+    }
 
-	@Override
-	public FSFileSystem<?> getFileSystem() {
-		return m_fileSystemInitializer.getFileSystem();
-	}
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystemInitializer.getFileSystem();
+    }
 
-	@Override
-	public FileSystemBrowser getFileSystemBrowser() {
-		return new LocalRelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
-	}
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return new LocalRelativeToFileSystemBrowser(m_fileSystemInitializer.getFileSystem());
+    }
 }

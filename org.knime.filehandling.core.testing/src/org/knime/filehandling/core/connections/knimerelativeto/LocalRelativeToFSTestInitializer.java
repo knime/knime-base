@@ -75,107 +75,107 @@ import org.osgi.framework.FrameworkUtil;
  * @author Sascha Wolke, KNIME GmbH
  */
 public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer {
-	private static final String DUMMY_WORKFLOW = "resources/dummy-workflow";
+    private static final String DUMMY_WORKFLOW = "resources/dummy-workflow";
 
-	private final URI m_fileSystemUri;
-	private WorkflowManager m_workflowManager;
-	private LocalRelativeToFileSystem m_fileSystem;
+    private final URI m_fileSystemUri;
 
-	/**
-	 * Default constructor.
-	 * 
-	 * @param rootDirectory
-	 *            temporary directory to use as mountpoint root
-	 * @param fileSystemHost
-	 *            hostname of knime FS (knime.mountpoint or knime.workflow)
-	 * @throws IOException
-	 */
-	public LocalRelativeToFSTestInitializer(final String rootDirectory, final String fileSystemHost) {
-		super(rootDirectory);
-		m_fileSystemUri = URI.create("knime://" + fileSystemHost);
-	}
+    private WorkflowManager m_workflowManager;
 
-	@Override
-	public FSConnection getFSConnection() {
-		return new TestLocalRelativeToFSConnection(this);
-	}
+    private LocalRelativeToFileSystem m_fileSystem;
 
-	@Override
-	public Path getRoot() {
-		return m_fileSystem.getRootDirectories().iterator().next();
-	}
+    /**
+     * Default constructor.
+     * 
+     * @param rootDirectory  temporary directory to use as mountpoint root
+     * @param fileSystemHost hostname of knime FS (knime.mountpoint or knime.workflow)
+     * @throws IOException
+     */
+    public LocalRelativeToFSTestInitializer(final String rootDirectory, final String fileSystemHost) {
+        super(rootDirectory);
+        m_fileSystemUri = URI.create("knime://" + fileSystemHost);
+    }
 
-	protected LocalRelativeToFileSystem getFileSystem() {
-		return m_fileSystem;
-	}
+    @Override
+    public FSConnection getFSConnection() {
+        return new TestLocalRelativeToFSConnection(this);
+    }
 
-	public static WorkflowManager getWorkflowManager(final File mountpointRoot, final Path currentWorkflowDirectory,
-			final boolean serverMode) throws IOException {
-		try {
-			final ExecutionMonitor exec = new ExecutionMonitor();
-			final WorkflowContext.Factory fac = new WorkflowContext.Factory(currentWorkflowDirectory.toFile());
-			fac.setMountpointRoot(mountpointRoot);
-			fac.setTemporaryCopy(serverMode);
-			if (serverMode) {
-				fac.setRemoteAddress(URI.create("http://test-test-test:-1"), "test-test-test");
-				fac.setRemoteAuthToken("test-test-test");
-			}
-			final WorkflowLoadHelper loadHelper = new WorkflowLoadHelper(fac.createContext());
-			final WorkflowLoadResult loadResult = WorkflowManager.ROOT.load(currentWorkflowDirectory.toFile(), exec,
-					loadHelper, false);
-			return loadResult.getWorkflowManager();
-		} catch (final InvalidSettingsException | CanceledExecutionException | UnsupportedWorkflowVersionException
-				| LockFailedException e) {
-			throw new IOException(e);
-		}
-	}
+    @Override
+    public Path getRoot() {
+        return m_fileSystem.getRootDirectories().iterator().next();
+    }
 
-	public static Path createWorkflowDir(final Path parentDir, final String workflowName) throws IOException {
-		final File dummyWorkflow = findInPlugin(DUMMY_WORKFLOW);
-		final Path workflowDir = parentDir.getFileSystem().getPath(parentDir.toString(), workflowName);
-		FileUtil.copyDir(dummyWorkflow, workflowDir.toFile());
-		return workflowDir;
-	}
+    protected LocalRelativeToFileSystem getFileSystem() {
+        return m_fileSystem;
+    }
 
-	private static File findInPlugin(final String name) throws IOException {
-		Bundle thisBundle = FrameworkUtil.getBundle(LocalRelativeToFSTestInitializer.class);
-		URL url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
-		if (url == null) {
-			throw new FileNotFoundException(thisBundle.getLocation() + name);
-		}
-		return new File(FileLocator.toFileURL(url).getPath());
-	}
+    public static WorkflowManager getWorkflowManager(final File mountpointRoot, final Path currentWorkflowDirectory,
+        final boolean serverMode) throws IOException {
+        try {
+            final ExecutionMonitor exec = new ExecutionMonitor();
+            final WorkflowContext.Factory fac = new WorkflowContext.Factory(currentWorkflowDirectory.toFile());
+            fac.setMountpointRoot(mountpointRoot);
+            fac.setTemporaryCopy(serverMode);
+            if (serverMode) {
+                fac.setRemoteAddress(URI.create("http://test-test-test:-1"), "test-test-test");
+                fac.setRemoteAuthToken("test-test-test");
+            }
+            final WorkflowLoadHelper loadHelper = new WorkflowLoadHelper(fac.createContext());
+            final WorkflowLoadResult loadResult =
+                WorkflowManager.ROOT.load(currentWorkflowDirectory.toFile(), exec, loadHelper, false);
+            return loadResult.getWorkflowManager();
+        } catch (final InvalidSettingsException | CanceledExecutionException | UnsupportedWorkflowVersionException
+                | LockFailedException e) {
+            throw new IOException(e);
+        }
+    }
 
-	@Override
-	public void beforeTestCase() throws IOException {
-		super.beforeTestCase();
+    public static Path createWorkflowDir(final Path parentDir, final String workflowName) throws IOException {
+        final File dummyWorkflow = findInPlugin(DUMMY_WORKFLOW);
+        final Path workflowDir = parentDir.getFileSystem().getPath(parentDir.toString(), workflowName);
+        FileUtil.copyDir(dummyWorkflow, workflowDir.toFile());
+        return workflowDir;
+    }
 
-		final Path currentWorkflow = createWorkflowDir(getTempFolder(), "current-workflow");
-		m_workflowManager = getWorkflowManager(getTempFolder().toFile(), currentWorkflow, false);
-		NodeContext.pushContext(m_workflowManager);
-		m_fileSystem = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(m_fileSystemUri);
-	}
+    private static File findInPlugin(final String name) throws IOException {
+        Bundle thisBundle = FrameworkUtil.getBundle(LocalRelativeToFSTestInitializer.class);
+        URL url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
+        if (url == null) {
+            throw new FileNotFoundException(thisBundle.getLocation() + name);
+        }
+        return new File(FileLocator.toFileURL(url).getPath());
+    }
 
-	@Override
-	public void afterTestCase() throws IOException {
-		try {
-			WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
-			super.afterTestCase();
-		} finally {
-			NodeContext.removeLastContext();
-		}
-	}
+    @Override
+    public void beforeTestCase() throws IOException {
+        super.beforeTestCase();
 
-	@Override
-	public LocalRelativeToPath createFile(final String... pathComponents) throws IOException {
-		return createFileWithContent("", pathComponents);
-	}
+        final Path currentWorkflow = createWorkflowDir(getTempFolder(), "current-workflow");
+        m_workflowManager = getWorkflowManager(getTempFolder().toFile(), currentWorkflow, false);
+        NodeContext.pushContext(m_workflowManager);
+        m_fileSystem = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(m_fileSystemUri);
+    }
 
-	@Override
-	public LocalRelativeToPath createFileWithContent(final String content, final String... pathComponents)
-			throws IOException {
-	    final Path localFile = super.createLocalFileWithContent(content, pathComponents);
-	    
-		return m_fileSystem.toAbsoluteLocalRelativeToPath(localFile);
-	}
+    @Override
+    public void afterTestCase() throws IOException {
+        try {
+            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
+            super.afterTestCase();
+        } finally {
+            NodeContext.removeLastContext();
+        }
+    }
+
+    @Override
+    public LocalRelativeToPath createFile(final String... pathComponents) throws IOException {
+        return createFileWithContent("", pathComponents);
+    }
+
+    @Override
+    public LocalRelativeToPath createFileWithContent(final String content, final String... pathComponents)
+        throws IOException {
+        final Path localFile = super.createLocalFileWithContent(content, pathComponents);
+
+        return m_fileSystem.toAbsoluteLocalRelativeToPath(localFile);
+    }
 }
