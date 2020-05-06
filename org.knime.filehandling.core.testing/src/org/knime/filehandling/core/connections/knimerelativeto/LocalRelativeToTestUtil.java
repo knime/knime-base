@@ -109,4 +109,12 @@ public class LocalRelativeToTestUtil {
             }
         });
     }
+
+    /**
+     * @return path of a dummy workflow
+     * @throws IOException
+     */
+    public static Path getDummyWorkflowPath() throws IOException {
+        return findInPlugin(DUMMY_WORKFLOW).toPath();
+    }
 }

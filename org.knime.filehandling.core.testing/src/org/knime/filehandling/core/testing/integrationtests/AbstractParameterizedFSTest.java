@@ -53,6 +53,8 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -80,6 +82,8 @@ public abstract class AbstractParameterizedFSTest {
 
     private static FSTestInitializer currentTestInitializer;
 
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Parameters(name = "File System: {0}")
     public synchronized static Collection<Object[]> allFileSystemTestInitializerProviders() {
@@ -94,11 +98,13 @@ public abstract class AbstractParameterizedFSTest {
     public void beforeTestCase() throws IOException {
         currentTestInitializer = m_testInitializer;
         m_testInitializer.beforeTestCase();
+        m_connection = m_testInitializer.getFSConnection();
     }
 
     @After
     public void afterTestCase() throws IOException {
         m_testInitializer.afterTestCase();
+        m_connection = null;
     }
 
     @AfterClass
@@ -107,8 +113,11 @@ public abstract class AbstractParameterizedFSTest {
     }
 
     protected final FSTestInitializer m_testInitializer;
-    protected final FSConnection m_connection;
     protected final String m_fsType;
+
+
+    /** {@link FSConnection} that gets initialized before each test */
+    protected FSConnection m_connection;
 
     /**
      * Creates a new instance for a file system.
@@ -176,5 +185,4 @@ public abstract class AbstractParameterizedFSTest {
     public FSFileSystem<?> getFileSystem() {
         return m_connection.getFileSystem();
     }
-
 }

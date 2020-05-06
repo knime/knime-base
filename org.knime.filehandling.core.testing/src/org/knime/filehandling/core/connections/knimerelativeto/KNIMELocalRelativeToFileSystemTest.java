@@ -74,20 +74,18 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 public class KNIMELocalRelativeToFileSystemTest {
 
     @Rule
-    public TemporaryFolder m_tempFolder = new TemporaryFolder();
+    private final TemporaryFolder m_tempFolder = new TemporaryFolder();
 
     private File m_mountpointRoot;
-
-    private Path m_currentWorkflow;
 
     private WorkflowManager m_workflowManager;
 
     @Before
     public void beforeTestCase() throws IOException {
         m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
-        m_currentWorkflow = LocalRelativeToTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
+        final Path currentWorkflow = LocalRelativeToTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
         LocalRelativeToTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "other-workflow");
-        m_workflowManager = LocalRelativeToTestUtil.getWorkflowManager(m_mountpointRoot, m_currentWorkflow, false);
+        m_workflowManager = LocalRelativeToTestUtil.getWorkflowManager(m_mountpointRoot, currentWorkflow, false);
         NodeContext.pushContext(m_workflowManager);
     }
 
