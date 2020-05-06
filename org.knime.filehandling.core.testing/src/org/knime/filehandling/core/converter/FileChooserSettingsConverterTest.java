@@ -10,8 +10,7 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
- * Junit test for testing the settings conversion for legacy path or url
- * strings.
+ * Junit test for testing the settings conversion for legacy path or url strings.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  *
@@ -153,7 +152,7 @@ public class FileChooserSettingsConverterTest {
     @Test
     public void knimeExistingMountPointConfigTest() {
         final String remoteMountpointURL = "knime://"
-                + KNIMEConnection.getOrCreateMountpointAbsoluteConnection("testMountpoint").getId() + PATH_STRING;
+            + KNIMEConnection.getOrCreateMountpointAbsoluteConnection("testMountpoint").getId() + PATH_STRING;
         m_config.setPathOrURL(remoteMountpointURL);
         FileChooserSettingsConverter.convert(m_config);
         assertEquals(m_config.getFileSystemChoice(), FileSystemChoice.getCustomFsUrlChoice());
