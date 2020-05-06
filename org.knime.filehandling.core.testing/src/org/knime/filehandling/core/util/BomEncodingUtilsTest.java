@@ -71,86 +71,86 @@ import org.junit.Test;
  */
 public final class BomEncodingUtilsTest {
 
-	private static final String TEST_STRING = "Test";
+    private static final String TEST_STRING = "Test";
 
-	@Test
-	public void defaultEncoding() throws IOException {
-		testEncoding(Charset.defaultCharset());
-	}
+    @Test
+    public void defaultEncoding() throws IOException {
+        testEncoding(Charset.defaultCharset());
+    }
 
-	@Test
-	public void testASCIIEncoding() throws IOException {
-		testEncoding(StandardCharsets.US_ASCII);
-	}
+    @Test
+    public void testASCIIEncoding() throws IOException {
+        testEncoding(StandardCharsets.US_ASCII);
+    }
 
-	@Test
-	public void testISO8859Encoding() throws IOException {
-		testEncoding(StandardCharsets.ISO_8859_1);
-	}
+    @Test
+    public void testISO8859Encoding() throws IOException {
+        testEncoding(StandardCharsets.ISO_8859_1);
+    }
 
-	@Test
-	public void testUTF8() throws IOException {
-		testEncoding(StandardCharsets.UTF_8);
-		testEncoding(StandardCharsets.UTF_8, ByteOrderMark.UTF_8);
-	}
+    @Test
+    public void testUTF8() throws IOException {
+        testEncoding(StandardCharsets.UTF_8);
+        testEncoding(StandardCharsets.UTF_8, ByteOrderMark.UTF_8);
+    }
 
-	@Test
-	public void testUTF16LE() throws IOException {
-		testEncoding(StandardCharsets.UTF_16LE);
-		testEncoding(StandardCharsets.UTF_16LE, ByteOrderMark.UTF_16LE);
-	}
+    @Test
+    public void testUTF16LE() throws IOException {
+        testEncoding(StandardCharsets.UTF_16LE);
+        testEncoding(StandardCharsets.UTF_16LE, ByteOrderMark.UTF_16LE);
+    }
 
-	@Test
-	public void testUTF16BE() throws IOException {
-		testEncoding(StandardCharsets.UTF_16BE);
-		testEncoding(StandardCharsets.UTF_16BE, ByteOrderMark.UTF_16BE);
-	}
+    @Test
+    public void testUTF16BE() throws IOException {
+        testEncoding(StandardCharsets.UTF_16BE);
+        testEncoding(StandardCharsets.UTF_16BE, ByteOrderMark.UTF_16BE);
+    }
 
-	@Test
-	public void testUTF32LE() throws IOException {
-		testEncoding(Charset.forName("UTF-32LE"));
-		testEncoding(Charset.forName("UTF-32LE"), ByteOrderMark.UTF_32LE);
-	}
+    @Test
+    public void testUTF32LE() throws IOException {
+        testEncoding(Charset.forName("UTF-32LE"));
+        testEncoding(Charset.forName("UTF-32LE"), ByteOrderMark.UTF_32LE);
+    }
 
-	@Test
-	public void testUTF32BE() throws IOException {
-		testEncoding(Charset.forName("UTF-32BE"));
-		testEncoding(Charset.forName("UTF-32BE"), ByteOrderMark.UTF_32BE);
+    @Test
+    public void testUTF32BE() throws IOException {
+        testEncoding(Charset.forName("UTF-32BE"));
+        testEncoding(Charset.forName("UTF-32BE"), ByteOrderMark.UTF_32BE);
 
-	}
+    }
 
-	private void testEncoding(final Charset charset) throws IOException {
-		testEncoding(charset, null);
-	}
+    private void testEncoding(final Charset charset) throws IOException {
+        testEncoding(charset, null);
+    }
 
-	private void testEncoding(final Charset charset, final ByteOrderMark bom) throws IOException {
-		final byte[] encodedString = createEncodedString(charset, bom);
-		try (final Reader reader = BomEncodingUtils.createReader(new ByteArrayInputStream(encodedString), charset)) {
-			assertArrayEquals(TEST_STRING.toCharArray(), IOUtils.toCharArray(reader));
-		}
-	}
+    private void testEncoding(final Charset charset, final ByteOrderMark bom) throws IOException {
+        final byte[] encodedString = createEncodedString(charset, bom);
+        try (final Reader reader = BomEncodingUtils.createReader(new ByteArrayInputStream(encodedString), charset)) {
+            assertArrayEquals(TEST_STRING.toCharArray(), IOUtils.toCharArray(reader));
+        }
+    }
 
-	private static byte[] createEncodedString(final Charset charset, final ByteOrderMark bom) throws IOException {
-		final byte[] encodedString = charset.encode(TEST_STRING).array();
-		try (final BOMInputStream bomInput = new BOMInputStream(new ByteArrayInputStream(encodedString),
-				ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE,
-				ByteOrderMark.UTF_8)) {
-			assertTrue(!bomInput.hasBOM());
-		}
-		if (bom == null) {
-			return encodedString;
-		}
+    private static byte[] createEncodedString(final Charset charset, final ByteOrderMark bom) throws IOException {
+        final byte[] encodedString = charset.encode(TEST_STRING).array();
+        try (final BOMInputStream bomInput =
+            new BOMInputStream(new ByteArrayInputStream(encodedString), ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE,
+                ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_8)) {
+            assertTrue(!bomInput.hasBOM());
+        }
+        if (bom == null) {
+            return encodedString;
+        }
 
-		// add BOM
-		final byte[] bomBytes = bom.getBytes();
-		final byte[] bomEncodedString = new byte[bomBytes.length + encodedString.length];
-		System.arraycopy(bomBytes, 0, bomEncodedString, 0, bomBytes.length);
-		System.arraycopy(encodedString, 0, bomEncodedString, bomBytes.length, encodedString.length);
-		// test that new string contains
-		try (final BOMInputStream bomInput = new BOMInputStream(new ByteArrayInputStream(bomEncodedString), bom)) {
-			assertTrue(bomInput.hasBOM());
-		}
-		return bomEncodedString;
-	}
+        // add BOM
+        final byte[] bomBytes = bom.getBytes();
+        final byte[] bomEncodedString = new byte[bomBytes.length + encodedString.length];
+        System.arraycopy(bomBytes, 0, bomEncodedString, 0, bomBytes.length);
+        System.arraycopy(encodedString, 0, bomEncodedString, bomBytes.length, encodedString.length);
+        // test that new string contains
+        try (final BOMInputStream bomInput = new BOMInputStream(new ByteArrayInputStream(bomEncodedString), bom)) {
+            assertTrue(bomInput.hasBOM());
+        }
+        return bomEncodedString;
+    }
 
 }
