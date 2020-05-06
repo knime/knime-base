@@ -51,7 +51,6 @@ package org.knime.filehandling.core.defaultnodesettings.fileselection;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 
 /**
  * Node factory for testing {@link FileSelectionDialog}.
