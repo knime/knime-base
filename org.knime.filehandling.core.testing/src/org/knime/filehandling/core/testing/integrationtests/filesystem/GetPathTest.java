@@ -33,8 +33,8 @@ public class GetPathTest extends AbstractParameterizedFSTest {
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path testingRoot = m_testInitializer.getRoot();
         final String[] pathComponents = IntStream.range(0, testingRoot.getNameCount())//
-                .mapToObj(i -> testingRoot.getName(i).toString())//
-                .toArray(String[]::new);
+            .mapToObj(i -> testingRoot.getName(i).toString())//
+            .toArray(String[]::new);
 
         final Path resultingPath = fileSystem.getPath(testingRoot.getRoot().toString(), pathComponents);
         assertEquals(testingRoot, resultingPath);
@@ -46,14 +46,14 @@ public class GetPathTest extends AbstractParameterizedFSTest {
         final Path testingRoot = m_testInitializer.getRoot();
         assertEquals(testingRoot.resolve("file"), fileSystem.getPath(testingRoot.toString(), "file"));
     }
-    
+
     @Test
     public void test_get_path_appending_folders() {
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path testingRoot = m_testInitializer.getRoot();
-        
-        assertEquals(testingRoot.resolve("folder1").resolve("folder2" + fileSystem.getSeparator()), 
-                fileSystem.getPath(testingRoot.toString(), "folder1", "folder2" + fileSystem.getSeparator()));
+
+        assertEquals(testingRoot.resolve("folder1").resolve("folder2" + fileSystem.getSeparator()),
+            fileSystem.getPath(testingRoot.toString(), "folder1", "folder2" + fileSystem.getSeparator()));
     }
 
 }

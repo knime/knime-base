@@ -71,7 +71,7 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringSymbolicThisDirBlobStore() {
-		ignoreAllExcept(S3, GS);
+        ignoreAllExcept(S3, GS);
         final String that = ".";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);

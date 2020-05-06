@@ -66,48 +66,49 @@ import org.knime.filehandling.core.testing.FSTestInitializer;
  */
 public abstract class BasicLocalTestInitializer implements FSTestInitializer {
 
-	private final String m_rootFolder;
-	private Path m_currTempFolder;
+    private final String m_rootFolder;
 
-	protected BasicLocalTestInitializer(final String root) {
-		m_rootFolder = root;
-	}
+    private Path m_currTempFolder;
 
-	@Override
-	public void beforeTestCase() throws IOException {
-		m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
-	}
+    protected BasicLocalTestInitializer(final String root) {
+        m_rootFolder = root;
+    }
 
-	@Override
-	public void afterTestCase() throws IOException {
-		FileUtils.deleteDirectory(m_currTempFolder.toFile());
-	}
+    @Override
+    public void beforeTestCase() throws IOException {
+        m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
+    }
 
-	protected Path getTempFolder() {
-		return m_currTempFolder;
-	}
+    @Override
+    public void afterTestCase() throws IOException {
+        FileUtils.deleteDirectory(m_currTempFolder.toFile());
+    }
 
-	protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
-		if (pathComponents == null || pathComponents.length == 0) {
-			throw new IllegalArgumentException("path components can not be empty or null");
-		}
+    protected Path getTempFolder() {
+        return m_currTempFolder;
+    }
 
-		Path directories = m_currTempFolder;
-		for (int i = 0; i < pathComponents.length - 1; i++) {
-			directories = directories.resolve(pathComponents[i]);
-		}
+    protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
+        if (pathComponents == null || pathComponents.length == 0) {
+            throw new IllegalArgumentException("path components can not be empty or null");
+        }
 
-		final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
-		try {
-			Files.createDirectories(directories);
-			Path createdPath = Files.createFile(file);
-			try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
-				writer.write(content);
-			}
+        Path directories = m_currTempFolder;
+        for (int i = 0; i < pathComponents.length - 1; i++) {
+            directories = directories.resolve(pathComponents[i]);
+        }
 
-			return createdPath;
-		} catch (IOException e) {
-			throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
-		}
-	}
+        final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
+        try {
+            Files.createDirectories(directories);
+            Path createdPath = Files.createFile(file);
+            try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
+                writer.write(content);
+            }
+
+            return createdPath;
+        } catch (IOException e) {
+            throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
+        }
+    }
 }

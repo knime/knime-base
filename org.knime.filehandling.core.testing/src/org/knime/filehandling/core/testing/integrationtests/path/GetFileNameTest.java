@@ -36,7 +36,7 @@ public class GetFileNameTest extends AbstractParameterizedFSTest {
     public void testDotSlash() {
         assertEquals(getFileSystem().getPath("./"), getFileSystem().getPath("./").getFileName());
     }
-    
+
     @Test
     public void testDotDot() {
         assertEquals(getFileSystem().getPath(".."), getFileSystem().getPath("..").getFileName());

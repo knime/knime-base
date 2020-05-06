@@ -51,7 +51,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
         assertFalse(path.endsWith(otherPath));
         assertFalse(otherPath.endsWith(path));
     }
-    
+
     @Test
     public void testNotEndsWithEmptyPath() {
         final String that = "ab/cd";
@@ -87,8 +87,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
         assertFalse(path.startsWith(otherPath));
         assertFalse(otherPath.startsWith(path));
     }
-    
-    
+
     @Test
     public void testAbsolutePathStartsWithRoot() {
         final String that = "/qe/de";
@@ -99,7 +98,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
         assertTrue(path.startsWith(otherPath));
     }
-    
+
     @Test
     public void testRelativePathNotStartsWithRoot() {
         final String that = "qe/de";
@@ -110,7 +109,6 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
         assertFalse(path.startsWith(otherPath));
     }
-
 
     @Test
     public void testNotStartsWithEmptyPath() {
@@ -123,7 +121,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
         assertFalse(path.startsWith(otherPath));
         assertFalse(otherPath.startsWith(path));
     }
-    
+
     @Test
     public void testRootStartsAndEndsWithItself() {
         final String that = "/";
@@ -135,7 +133,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
         assertTrue(path.startsWith(otherPath));
         assertTrue(path.endsWith(otherPath));
     }
-    
+
     @Test
     public void testEmptyPathStartsAndEndsWithItself() {
         final String that = "";
@@ -149,7 +147,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
         assertTrue(path.startsWith(otherPath));
         assertTrue(path.endsWith(otherPath));
     }
-    
+
     @Test
     public void testRootAndEmptyPathNotStartOrEndWithEachOther() {
         final String that = "/";

@@ -138,7 +138,7 @@ public class FSTestInitializerManager {
     /**
      * Creates a {@link FSTestInitializer} of the provided type, configured according to the configuration.
      *
-     * @param fsType the type of the file system
+     * @param fsType        the type of the file system
      * @param configuration the configuration of the file system
      * @return a configured file system of the provided type
      */

@@ -21,24 +21,24 @@ import org.knime.filehandling.core.testing.integrationtests.path.SubPathTest;
 import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({
-    GetPathTest.class,
-	ByteChannelTest.class,
-	CheckAccessTest.class,
-	CopyTest.class,
-	CreateTest.class,
-	DeleteTest.class,
-	DirectoryStreamTest.class,
-	InputStreamTest.class,
-	MoveTest.class,
-	PathTest.class,
-	SubPathTest.class,
-	PathTest.class,
-	ToStringTest.class,
-	EndsStartsWithTest.class,
-	GetFileNameTest.class,
-	CompareTest.class,
-	OutputStreamTest.class
+@SuiteClasses({//
+    GetPathTest.class, //
+    ByteChannelTest.class, //
+    CheckAccessTest.class, //
+    CopyTest.class, //
+    CreateTest.class, //
+    DeleteTest.class, //
+    DirectoryStreamTest.class, //
+    InputStreamTest.class, //
+    MoveTest.class, //
+    PathTest.class, //
+    SubPathTest.class, //
+    PathTest.class, //
+    ToStringTest.class, //
+    EndsStartsWithTest.class, //
+    GetFileNameTest.class, //
+    CompareTest.class, //
+    OutputStreamTest.class//
 })
 public class FSIntegrationTestSuite {
 

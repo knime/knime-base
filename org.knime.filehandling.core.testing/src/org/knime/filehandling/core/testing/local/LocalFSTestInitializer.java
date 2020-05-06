@@ -61,14 +61,14 @@ import org.knime.filehandling.core.connections.local.LocalPath;
  */
 public class LocalFSTestInitializer extends BasicLocalTestInitializer {
 
-	private final FSConnection m_connection;
+    private final FSConnection m_connection;
 
     /**
      * Creates a new instance with a test root folder in the systems temporary directory.
      */
     public LocalFSTestInitializer(final String root) {
-    	super(root);
-    	m_connection = new LocalFSConnection();
+        super(root);
+        m_connection = new LocalFSConnection();
     }
 
     @Override

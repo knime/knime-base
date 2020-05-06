@@ -23,78 +23,78 @@ import org.knime.filehandling.core.testing.integrationtests.AbstractParameterize
  */
 public class MoveTest extends AbstractParameterizedFSTest {
 
-	public MoveTest(String fsType, FSTestInitializer testInitializer) {
-		super(fsType, testInitializer);
-	}
+    public MoveTest(String fsType, FSTestInitializer testInitializer) {
+        super(fsType, testInitializer);
+    }
 
-	@Test
-	public void test_move_file() throws Exception {
-		String sourceContent = "Some simple test content";
-		Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
-		Path target = source.getParent().resolve("movedFile");
-		
-		Files.move(source, target);
-		
-		assertFalse(Files.exists(source));
-		assertTrue(Files.exists(target));
-		List<String> movedContent = Files.readAllLines(target);
-		assertEquals(sourceContent, movedContent.get(0));
-	}
+    @Test
+    public void test_move_file() throws Exception {
+        String sourceContent = "Some simple test content";
+        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
+        Path target = source.getParent().resolve("movedFile");
 
-	@Test (expected = NoSuchFileException.class)
-	public void test_move_non_existing_file() throws Exception {
-		final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
-		final Path target = source.getParent().resolve("movedFile");
+        Files.move(source, target);
 
-		Files.move(source, target);
-	}
+        assertFalse(Files.exists(source));
+        assertTrue(Files.exists(target));
+        List<String> movedContent = Files.readAllLines(target);
+        assertEquals(sourceContent, movedContent.get(0));
+    }
 
-	@Test (expected = FileAlreadyExistsException.class)
-	public void test_move_file_to_already_existing_file_without_replace_throws_exception() throws Exception {
-		String sourceContent = "The source content";
-		Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
-		String targetContent = "The target content";
-		Path existingTarget = m_testInitializer.createFileWithContent(targetContent, "dir", "target");
-		
-		Files.move(source, existingTarget);
-	}
-	
-	@Test
-	public void test_move_file_to_already_existing_file_with_replace() throws Exception {
-		String sourceContent = "The source content";
-		Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
-		String targetContent = "The target content";
-		Path existingTarget = m_testInitializer.createFileWithContent(targetContent, "dir", "target");
-		
-		Files.move(source, existingTarget, StandardCopyOption.REPLACE_EXISTING);
-		
-		assertFalse(Files.exists(source));
-		assertTrue(Files.exists(existingTarget));
-		List<String> movedContent = Files.readAllLines(existingTarget);
-		assertEquals(sourceContent, movedContent.get(0));
-	}
-	
-	@Test (expected = NoSuchFileException.class)
-	public void test_move_file_to_non_existing_directory_throws_exception() throws Exception {
-		String sourceContent = "The source content";
-		Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
-		Path target = m_testInitializer.getRoot().resolve("dirB").resolve("fileB");
-		
-		Files.move(source, target);
-	}
-	
-	@Test
-	public void test_renaming_a_file() throws Exception {
-		String sourceContent = "The source content";
-		Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
-		Path target = source.getParent().resolve("fileB");
+    @Test(expected = NoSuchFileException.class)
+    public void test_move_non_existing_file() throws Exception {
+        final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
+        final Path target = source.getParent().resolve("movedFile");
 
-		Files.move(source, target);
-		
-		assertFalse(Files.exists(source));
-		assertTrue(Files.exists(target));
-		List<String> renamedContent = Files.readAllLines(target);
-		assertEquals(sourceContent, renamedContent.get(0));
-	}
-	
+        Files.move(source, target);
+    }
+
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_move_file_to_already_existing_file_without_replace_throws_exception() throws Exception {
+        String sourceContent = "The source content";
+        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
+        String targetContent = "The target content";
+        Path existingTarget = m_testInitializer.createFileWithContent(targetContent, "dir", "target");
+
+        Files.move(source, existingTarget);
+    }
+
+    @Test
+    public void test_move_file_to_already_existing_file_with_replace() throws Exception {
+        String sourceContent = "The source content";
+        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
+        String targetContent = "The target content";
+        Path existingTarget = m_testInitializer.createFileWithContent(targetContent, "dir", "target");
+
+        Files.move(source, existingTarget, StandardCopyOption.REPLACE_EXISTING);
+
+        assertFalse(Files.exists(source));
+        assertTrue(Files.exists(existingTarget));
+        List<String> movedContent = Files.readAllLines(existingTarget);
+        assertEquals(sourceContent, movedContent.get(0));
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_move_file_to_non_existing_directory_throws_exception() throws Exception {
+        String sourceContent = "The source content";
+        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
+        Path target = m_testInitializer.getRoot().resolve("dirB").resolve("fileB");
+
+        Files.move(source, target);
+    }
+
+    @Test
+    public void test_renaming_a_file() throws Exception {
+        String sourceContent = "The source content";
+        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
+        Path target = source.getParent().resolve("fileB");
+
+        Files.move(source, target);
+
+        assertFalse(Files.exists(source));
+        assertTrue(Files.exists(target));
+        List<String> renamedContent = Files.readAllLines(target);
+        assertEquals(sourceContent, renamedContent.get(0));
+    }
+
 }

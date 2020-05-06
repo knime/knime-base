@@ -108,7 +108,7 @@ public abstract class AbstractParameterizedFSTest {
     }
     
     /**
-     * @return the underlying file system instance. 
+     * @return the underlying file system instance.
      */
     public FSFileSystem<?> getFileSystem() {
         return m_connection.getFileSystem();

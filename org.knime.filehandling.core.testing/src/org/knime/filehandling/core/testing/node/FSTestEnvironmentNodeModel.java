@@ -74,8 +74,8 @@ public class FSTestEnvironmentNodeModel extends NodeModel {
     }
 
     @Override
-    protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+    protected void saveInternals(File nodeInternDir,
+        ExecutionMonitor exec) throws IOException, CanceledExecutionException {
     }
 
     @Override

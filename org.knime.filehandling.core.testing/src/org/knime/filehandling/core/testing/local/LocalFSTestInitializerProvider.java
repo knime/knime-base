@@ -60,16 +60,16 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  */
 public class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
 
-	private final static String FS_NAME = "local";
-	
+    private final static String FS_NAME = "local";
+
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) {
-    	return new LocalFSTestInitializer(configuration.get("root"));
+        return new LocalFSTestInitializer(configuration.get("root"));
     }
 
-	@Override
-	public String getFSType() {
-		return FS_NAME;
-	}
+    @Override
+    public String getFSType() {
+        return FS_NAME;
+    }
 
 }

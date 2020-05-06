@@ -21,29 +21,29 @@ import org.knime.filehandling.core.testing.integrationtests.AbstractParameterize
  */
 public class InputStreamTest extends AbstractParameterizedFSTest {
 
-	public InputStreamTest(String fsType, FSTestInitializer testInitializer) {
-		super(fsType, testInitializer);
-	}
+    public InputStreamTest(String fsType, FSTestInitializer testInitializer) {
+        super(fsType, testInitializer);
+    }
 
-	@Test
-	public void test_read_from_input_stream() throws Exception {
-		String testContent = "This is read by an input stream!!";
-		Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
-		
-		String result;
-		try (InputStream inputStream = Files.newInputStream(file)) {
-			result = IOUtils.toString(inputStream, Charset.defaultCharset());
-		}
-		
-		assertEquals(testContent, result);
-	}
-	
-	@Test (expected = NoSuchFileException.class)
-	public void test_read_from_input_stream_non_existing_file() throws Exception {
-		Path file = m_testInitializer.createFile("dir", "fileName");
-		Path nonExistingFile = file.getParent().resolve("non-existing");
-		try (InputStream inputStream = Files.newInputStream(nonExistingFile)) {
-			
-		}
-	}
+    @Test
+    public void test_read_from_input_stream() throws Exception {
+        String testContent = "This is read by an input stream!!";
+        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
+
+        String result;
+        try (InputStream inputStream = Files.newInputStream(file)) {
+            result = IOUtils.toString(inputStream, Charset.defaultCharset());
+        }
+
+        assertEquals(testContent, result);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_read_from_input_stream_non_existing_file() throws Exception {
+        Path file = m_testInitializer.createFile("dir", "fileName");
+        Path nonExistingFile = file.getParent().resolve("non-existing");
+        try (InputStream inputStream = Files.newInputStream(nonExistingFile)) {
+
+        }
+    }
 }

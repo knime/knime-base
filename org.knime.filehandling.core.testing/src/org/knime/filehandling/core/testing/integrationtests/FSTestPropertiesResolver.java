@@ -21,49 +21,47 @@ import org.eclipse.core.runtime.Platform;
 public class FSTestPropertiesResolver {
 
     protected static final String TEST_PROPERTIES_FILE_NAME = "fs-test.properties";
+
     private static final String TEST_PROPERTIES_ENV_VARIABLE_NAME = "KNIME_FS_TEST_PROPERTIES";
-    private final static String DEFAULT_PATH_WORKSPACE = 
-            Platform.getLocation().append("/" + TEST_PROPERTIES_FILE_NAME).toString();
+
+    private final static String DEFAULT_PATH_WORKSPACE =
+        Platform.getLocation().append("/" + TEST_PROPERTIES_FILE_NAME).toString();
 
     /**
-     * Resolves the properties for integration tests from the environment variable 
+     * Resolves the properties for integration tests from the environment variable
      * {@link TEST_PROPERTIES_ENV_VARIABLE_NAME}
      * 
      * @return the test properties
      */
     public static Properties forIntegrationTests() {
-        final Path propertiesPath = 
-                environmentVariablePath()
-                .orElseThrow(() -> new IllegalStateException("The env variable '" + TEST_PROPERTIES_ENV_VARIABLE_NAME + 
-                        "' must be set, pointing to a properties file containing the FS test configration."));
+        final Path propertiesPath = environmentVariablePath()
+            .orElseThrow(() -> new IllegalStateException("The env variable '" + TEST_PROPERTIES_ENV_VARIABLE_NAME
+                + "' must be set, pointing to a properties file containing the FS test configration."));
         return readProperties(propertiesPath);
     }
 
     /**
      * Resolves the properties for workflow tests from one of the following locations, in the given order: <br>
      * <br>
-     *  - The workspace root.
-     *  - The environment variable {@link TEST_PROPERTIES_ENV_VARIABLE_NAME}.
+     * - The workspace root. - The environment variable {@link TEST_PROPERTIES_ENV_VARIABLE_NAME}.
      * 
      * @return the test properties
      */
     public static Properties forWorkflowTests() {
-        final Path propertiesPath = 
-                findFirst(
-                        Stream.of(
-                                workspaceRootPath(), 
-                                environmentVariablePath()
-                                )
-                        );
+        final Path propertiesPath = findFirst( //
+            Stream.of( //
+                workspaceRootPath(), //
+                environmentVariablePath() //
+            ) //
+        );
         return readProperties(propertiesPath);
     }
 
     private static Path findFirst(Stream<Optional<Path>> locations) {
-        Optional<Path> path = 
-                locations
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
+        Optional<Path> path = locations //
+            .filter(Optional::isPresent) //
+            .map(Optional::get) //
+            .findFirst();
 
         return path.orElseThrow(() -> new IllegalStateException("Could not find fs fs-test.properties file."));
     }
@@ -88,16 +86,16 @@ public class FSTestPropertiesResolver {
 
     private static Optional<Path> environmentVariablePath() {
         final String envVariableValue = System.getenv(TEST_PROPERTIES_ENV_VARIABLE_NAME);
-        
+
         if (envVariableValue == null) {
             return Optional.empty();
         }
-                
+
         final File testPropertiesFromEnv = new File(envVariableValue);
         if (testPropertiesFromEnv.exists() && testPropertiesFromEnv.canRead()) {
             return Optional.of(testPropertiesFromEnv.toPath());
         }
-        
+
         return Optional.empty();
     }
 
