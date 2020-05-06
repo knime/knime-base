@@ -68,8 +68,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * These Junit test test whether the wrapped NIOFile methods behave in the same
- * manner as a native {@link java.io.File}
+ * These Junit test test whether the wrapped NIOFile methods behave in the same manner as a native {@link java.io.File}
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  *
