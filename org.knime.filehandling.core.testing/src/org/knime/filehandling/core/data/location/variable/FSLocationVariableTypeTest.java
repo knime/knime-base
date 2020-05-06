@@ -77,100 +77,101 @@ import org.knime.filehandling.core.connections.FSLocation;
  */
 public class FSLocationVariableTypeTest {
 
-	private static final String KEY = "test";
-	private static final FSLocationVariableType TEST_INSTANCE = FSLocationVariableType.INSTANCE;
+    private static final String KEY = "test";
 
-	@Test
-	public void testGetSimpleType() {
-		assertEquals(FSLocation.class, TEST_INSTANCE.getSimpleType());
-	}
+    private static final FSLocationVariableType TEST_INSTANCE = FSLocationVariableType.INSTANCE;
 
-	private static FSLocation get(final FlowVariable flowVar) {
-		return flowVar.getValue(FSLocationVariableType.INSTANCE);
-	}
+    @Test
+    public void testGetSimpleType() {
+        assertEquals(FSLocation.class, TEST_INSTANCE.getSimpleType());
+    }
 
-	@Test
-	public void testloadValue() throws InvalidSettingsException {
-		NodeSettings settings = new NodeSettings("Test");
-		FSLocation location = new FSLocation("foo", "bar", "baz");
-		FlowVariable before = new FlowVariable("var", TEST_INSTANCE, location);
-		before.save(settings);
-		FlowVariable after = FlowVariable.load(settings);
-		assertEquals(location, get(after));
-	}
+    private static FSLocation get(final FlowVariable flowVar) {
+        return flowVar.getValue(FSLocationVariableType.INSTANCE);
+    }
 
-	@Test
-	public void testSaveValue() {
-		NodeSettingsWO settings = mock(NodeSettingsWO.class);
-		TEST_INSTANCE.saveValue(settings, TEST_INSTANCE.newValue(LOCATION_WITH_SPECIFIER));
-		verify(settings).addBoolean(CFG_LOCATION_PRESENT, true);
-		verify(settings).addString(CFG_FS_TYPE, FS_TYPE);
-		verify(settings).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
-		verify(settings).addString(CFG_PATH, PATH);
-	}
+    @Test
+    public void testloadValue() throws InvalidSettingsException {
+        NodeSettings settings = new NodeSettings("Test");
+        FSLocation location = new FSLocation("foo", "bar", "baz");
+        FlowVariable before = new FlowVariable("var", TEST_INSTANCE, location);
+        before.save(settings);
+        FlowVariable after = FlowVariable.load(settings);
+        assertEquals(location, get(after));
+    }
 
-	@Test
-	public void testNewValue() {
-		FlowVariable flowVar = new FlowVariable("var", TEST_INSTANCE, LOCATION_WITH_SPECIFIER);
-		assertEquals(LOCATION_WITH_SPECIFIER, get(flowVar));
-	}
+    @Test
+    public void testSaveValue() {
+        NodeSettingsWO settings = mock(NodeSettingsWO.class);
+        TEST_INSTANCE.saveValue(settings, TEST_INSTANCE.newValue(LOCATION_WITH_SPECIFIER));
+        verify(settings).addBoolean(CFG_LOCATION_PRESENT, true);
+        verify(settings).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(settings).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
+        verify(settings).addString(CFG_PATH, PATH);
+    }
 
-	@Test
-	public void testGetIdentifier() {
-		assertEquals("FSLocation", TEST_INSTANCE.getIdentifier());
-	}
+    @Test
+    public void testNewValue() {
+        FlowVariable flowVar = new FlowVariable("var", TEST_INSTANCE, LOCATION_WITH_SPECIFIER);
+        assertEquals(LOCATION_WITH_SPECIFIER, get(flowVar));
+    }
 
-	@Test
-	public void testDefaultValue() {
-		assertEquals(NULL, get(new FlowVariable("var", TEST_INSTANCE)));
-	}
+    @Test
+    public void testGetIdentifier() {
+        assertEquals("FSLocation", TEST_INSTANCE.getIdentifier());
+    }
 
-	@Test
-	public void testCanOverwrite() {
-		Config config = mockEmptyConfig();
-		assertTrue(TEST_INSTANCE.canOverwrite(config, KEY));
-	}
+    @Test
+    public void testDefaultValue() {
+        assertEquals(NULL, get(new FlowVariable("var", TEST_INSTANCE)));
+    }
 
-	@Test
-	public void testOverwriteSuccess() throws InvalidSettingsException, InvalidConfigEntryException {
-		Config config = mockEmptyConfig();
-		TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
-		Config locationConfig = config.getConfig(KEY);
-		assertTrue(locationConfig.getBoolean(CFG_LOCATION_PRESENT));
-		assertEquals(FS_TYPE, locationConfig.getString(CFG_FS_TYPE));
-		assertEquals(FS_SPECIFIER, locationConfig.getString(CFG_FS_SPECIFIER));
-		assertEquals(PATH, locationConfig.getString(CFG_PATH));
-	}
+    @Test
+    public void testCanOverwrite() {
+        Config config = mockEmptyConfig();
+        assertTrue(TEST_INSTANCE.canOverwrite(config, KEY));
+    }
 
-	@Test(expected = InvalidConfigEntryException.class)
-	public void testOverwriteFailure() throws InvalidConfigEntryException {
-		Config config = new NodeSettings(KEY);
-		TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
-	}
+    @Test
+    public void testOverwriteSuccess() throws InvalidSettingsException, InvalidConfigEntryException {
+        Config config = mockEmptyConfig();
+        TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
+        Config locationConfig = config.getConfig(KEY);
+        assertTrue(locationConfig.getBoolean(CFG_LOCATION_PRESENT));
+        assertEquals(FS_TYPE, locationConfig.getString(CFG_FS_TYPE));
+        assertEquals(FS_SPECIFIER, locationConfig.getString(CFG_FS_SPECIFIER));
+        assertEquals(PATH, locationConfig.getString(CFG_PATH));
+    }
 
-	@Test
-	public void testCanCreateFrom() {
-		Config config = mockEmptyConfig();
-		assertTrue(TEST_INSTANCE.canCreateFrom(config, KEY));
-	}
+    @Test(expected = InvalidConfigEntryException.class)
+    public void testOverwriteFailure() throws InvalidConfigEntryException {
+        Config config = new NodeSettings(KEY);
+        TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
+    }
 
-	private static Config mockEmptyConfig() {
-		Config config = new NodeSettings(KEY);
-		Config locationConfig = config.addConfig(KEY);
-		locationConfig.addBoolean(CFG_LOCATION_PRESENT, false);
-		return config;
-	}
+    @Test
+    public void testCanCreateFrom() {
+        Config config = mockEmptyConfig();
+        assertTrue(TEST_INSTANCE.canCreateFrom(config, KEY));
+    }
 
-	@Test
-	public void testCreateFromSuccess() throws InvalidSettingsException, InvalidConfigEntryException {
-		Config config = mockEmptyConfig();
-		assertEquals(NULL, TEST_INSTANCE.createFrom(config, KEY));
-	}
+    private static Config mockEmptyConfig() {
+        Config config = new NodeSettings(KEY);
+        Config locationConfig = config.addConfig(KEY);
+        locationConfig.addBoolean(CFG_LOCATION_PRESENT, false);
+        return config;
+    }
 
-	@Test(expected = InvalidConfigEntryException.class)
-	public void testCreateFromFailure() throws InvalidSettingsException, InvalidConfigEntryException {
-		Config config = new NodeSettings(KEY);
-		TEST_INSTANCE.createFrom(config, KEY);
-	}
+    @Test
+    public void testCreateFromSuccess() throws InvalidSettingsException, InvalidConfigEntryException {
+        Config config = mockEmptyConfig();
+        assertEquals(NULL, TEST_INSTANCE.createFrom(config, KEY));
+    }
+
+    @Test(expected = InvalidConfigEntryException.class)
+    public void testCreateFromFailure() throws InvalidSettingsException, InvalidConfigEntryException {
+        Config config = new NodeSettings(KEY);
+        TEST_INSTANCE.createFrom(config, KEY);
+    }
 
 }

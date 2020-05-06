@@ -79,201 +79,200 @@ import org.mockito.Mockito;
  */
 public final class SettingsModelFSLocationTest {
 
-	private interface Saver {
-		void accept(SettingsModelFSLocation model, NodeSettingsWO settings) throws InvalidSettingsException;
-	}
+    private interface Saver {
+        void accept(SettingsModelFSLocation model, NodeSettingsWO settings) throws InvalidSettingsException;
+    }
 
-	private static final FSLocation DEFAULT_LOCATION = mockLocation(true);
+    private static final FSLocation DEFAULT_LOCATION = mockLocation(true);
 
-	private static final String CFG_NAME = "test";
+    private static final String CFG_NAME = "test";
 
-	private static final String MOCK_FS_TYPE = "berta";
+    private static final String MOCK_FS_TYPE = "berta";
 
-	private static final String MOCK_FS_SPECIFIER = "hans";
+    private static final String MOCK_FS_SPECIFIER = "hans";
 
-	private static final String MOCK_PATH = "guenther";
+    private static final String MOCK_PATH = "guenther";
 
-	private static FSLocation mockLocation(final boolean includeSpecifier) {
-		return new FSLocation(MOCK_FS_TYPE, includeSpecifier ? MOCK_FS_SPECIFIER : null, MOCK_PATH);
-	}
+    private static FSLocation mockLocation(final boolean includeSpecifier) {
+        return new FSLocation(MOCK_FS_TYPE, includeSpecifier ? MOCK_FS_SPECIFIER : null, MOCK_PATH);
+    }
 
-	private SettingsModelFSLocation m_testInstance;
+    private SettingsModelFSLocation m_testInstance;
 
-	@Before
-	public void init() {
-		m_testInstance = new SettingsModelFSLocation(CFG_NAME, DEFAULT_LOCATION);
-	}
+    @Before
+    public void init() {
+        m_testInstance = new SettingsModelFSLocation(CFG_NAME, DEFAULT_LOCATION);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorFailsOnNullName() {
-		new SettingsModelFSLocation(null, DEFAULT_LOCATION);
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorFailsOnNullLocation() throws Exception {
-		new SettingsModelFSLocation("name", null);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorFailsOnNullName() {
+        new SettingsModelFSLocation(null, DEFAULT_LOCATION);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorFailsOnEmptyName() {
-		new SettingsModelFSLocation("", DEFAULT_LOCATION);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorFailsOnNullLocation() throws Exception {
+        new SettingsModelFSLocation("name", null);
+    }
 
-	@Test
-	public void testGetSet() {
-		ChangeListener mockListener = mock(ChangeListener.class);
-		m_testInstance.addChangeListener(mockListener);
-		assertEquals(DEFAULT_LOCATION, m_testInstance.getLocation());
-		m_testInstance.setLocation(NULL);
-		assertEquals(NULL, m_testInstance.getLocation());
-		m_testInstance.setLocation(NULL);
-		verify(mockListener, Mockito.times(1)).stateChanged(any());
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorFailsOnEmptyName() {
+        new SettingsModelFSLocation("", DEFAULT_LOCATION);
+    }
 
-	@Test
-	public void testCreateClone() {
-		final SettingsModelFSLocation clone = m_testInstance.createClone();
-		assertEquals(m_testInstance.getLocation(), clone.getLocation());
-		assertEquals(m_testInstance.getConfigName(), clone.getConfigName());
-		assertFalse(m_testInstance == clone);
-	}
+    @Test
+    public void testGetSet() {
+        ChangeListener mockListener = mock(ChangeListener.class);
+        m_testInstance.addChangeListener(mockListener);
+        assertEquals(DEFAULT_LOCATION, m_testInstance.getLocation());
+        m_testInstance.setLocation(NULL);
+        assertEquals(NULL, m_testInstance.getLocation());
+        m_testInstance.setLocation(NULL);
+        verify(mockListener, Mockito.times(1)).stateChanged(any());
+    }
 
-	@Test
-	public void testGetModelTypeID() {
-		assertEquals("SMID_FSLocation", m_testInstance.getModelTypeID());
-	}
+    @Test
+    public void testCreateClone() {
+        final SettingsModelFSLocation clone = m_testInstance.createClone();
+        assertEquals(m_testInstance.getLocation(), clone.getLocation());
+        assertEquals(m_testInstance.getConfigName(), clone.getConfigName());
+        assertFalse(m_testInstance == clone);
+    }
 
-	@Test
-	public void testGetConfigName() {
-		assertEquals(CFG_NAME, m_testInstance.getConfigName());
-	}
+    @Test
+    public void testGetModelTypeID() {
+        assertEquals("SMID_FSLocation", m_testInstance.getModelTypeID());
+    }
 
-	@Test
-	public void testLoadSettingsForDialogSuccess() throws NotConfigurableException, InvalidSettingsException {
-		// full location
-		NodeSettingsRO settings = mockNodeSettingsRO(true, true);
-		m_testInstance.loadSettingsForDialog(settings, null);
-		assertEquals(new FSLocation("foo", "bar", "bla"), m_testInstance.getLocation());
-		// no specifier
-		settings = mockNodeSettingsRO(true, false);
-		m_testInstance.loadSettingsForDialog(settings, null);
-		assertEquals(new FSLocation("foo", "bla"), m_testInstance.getLocation());
-		// no location
-		settings = mockNodeSettingsRO(false, false);
-		m_testInstance.loadSettingsForDialog(settings, null);
-		assertEquals(NULL, m_testInstance.getLocation());
-	}
+    @Test
+    public void testGetConfigName() {
+        assertEquals(CFG_NAME, m_testInstance.getConfigName());
+    }
 
-	private static NodeSettingsRO mockNodeSettingsRO(final boolean present, final boolean includeSpecifier)
-			throws InvalidSettingsException {
-		NodeSettingsRO settings = mock(NodeSettingsRO.class);
-		NodeSettingsRO locationSettings = mock(NodeSettingsRO.class);
-		when(settings.getNodeSettings(CFG_NAME)).thenReturn(locationSettings);
-		when(locationSettings.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(present);
-		if (present) {
-			when(locationSettings.getString(CFG_FS_TYPE)).thenReturn("foo");
-			if (includeSpecifier) {
-				when(locationSettings.getString(CFG_FS_SPECIFIER, null))
-						.thenReturn("bar");
-			}
-			when(locationSettings.getString(CFG_PATH)).thenReturn("bla");
-		}
-		return settings;
-	}
+    @Test
+    public void testLoadSettingsForDialogSuccess() throws NotConfigurableException, InvalidSettingsException {
+        // full location
+        NodeSettingsRO settings = mockNodeSettingsRO(true, true);
+        m_testInstance.loadSettingsForDialog(settings, null);
+        assertEquals(new FSLocation("foo", "bar", "bla"), m_testInstance.getLocation());
+        // no specifier
+        settings = mockNodeSettingsRO(true, false);
+        m_testInstance.loadSettingsForDialog(settings, null);
+        assertEquals(new FSLocation("foo", "bla"), m_testInstance.getLocation());
+        // no location
+        settings = mockNodeSettingsRO(false, false);
+        m_testInstance.loadSettingsForDialog(settings, null);
+        assertEquals(NULL, m_testInstance.getLocation());
+    }
 
-	@Test
-	public void testLoadSettingsForDialogFailure() throws NotConfigurableException {
-		NodeSettingsRO settings = new NodeSettings("test");
-		m_testInstance.loadSettingsForDialog(settings, null);
-		// should be the default
-		assertEquals(DEFAULT_LOCATION, m_testInstance.getLocation());
-	}
+    private static NodeSettingsRO mockNodeSettingsRO(final boolean present, final boolean includeSpecifier)
+        throws InvalidSettingsException {
+        NodeSettingsRO settings = mock(NodeSettingsRO.class);
+        NodeSettingsRO locationSettings = mock(NodeSettingsRO.class);
+        when(settings.getNodeSettings(CFG_NAME)).thenReturn(locationSettings);
+        when(locationSettings.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(present);
+        if (present) {
+            when(locationSettings.getString(CFG_FS_TYPE)).thenReturn("foo");
+            if (includeSpecifier) {
+                when(locationSettings.getString(CFG_FS_SPECIFIER, null)).thenReturn("bar");
+            }
+            when(locationSettings.getString(CFG_PATH)).thenReturn("bla");
+        }
+        return settings;
+    }
 
-	@Test
-	public void testSaveSettingsForDialog() throws InvalidSettingsException {
-		testSave((m, s) -> m.saveSettingsForDialog(s));
-	}
+    @Test
+    public void testLoadSettingsForDialogFailure() throws NotConfigurableException {
+        NodeSettingsRO settings = new NodeSettings("test");
+        m_testInstance.loadSettingsForDialog(settings, null);
+        // should be the default
+        assertEquals(DEFAULT_LOCATION, m_testInstance.getLocation());
+    }
 
-	@Test
-	public void testValidateSettingsForModelSuccess() throws InvalidSettingsException {
-		m_testInstance.validateSettingsForModel(mockNodeSettingsRO(true, true));
-		m_testInstance.validateSettingsForModel(mockNodeSettingsRO(true, false));
-		m_testInstance.validateSettingsForModel(mockNodeSettingsRO(false, false));
-	}
+    @Test
+    public void testSaveSettingsForDialog() throws InvalidSettingsException {
+        testSave((m, s) -> m.saveSettingsForDialog(s));
+    }
 
-	@Test(expected = InvalidSettingsException.class)
-	public void testValidateSettingsForModel() throws InvalidSettingsException {
-		m_testInstance.validateSettingsForModel(new NodeSettings("test"));
-	}
+    @Test
+    public void testValidateSettingsForModelSuccess() throws InvalidSettingsException {
+        m_testInstance.validateSettingsForModel(mockNodeSettingsRO(true, true));
+        m_testInstance.validateSettingsForModel(mockNodeSettingsRO(true, false));
+        m_testInstance.validateSettingsForModel(mockNodeSettingsRO(false, false));
+    }
 
-	@Test
-	public void testLoadSettingsForModelSuccess() throws InvalidSettingsException {
-		// full location
-		NodeSettingsRO settings = mockNodeSettingsRO(true, true);
-		m_testInstance.loadSettingsForModel(settings);
-		assertEquals(new FSLocation("foo", "bar", "bla"), m_testInstance.getLocation());
-		// no specifier
-		settings = mockNodeSettingsRO(true, false);
-		m_testInstance.loadSettingsForModel(settings);
-		assertEquals(new FSLocation("foo", "bla"), m_testInstance.getLocation());
-		// no location
-		settings = mockNodeSettingsRO(false, false);
-		m_testInstance.loadSettingsForModel(settings);
-		assertEquals(NULL, m_testInstance.getLocation());
-	}
+    @Test(expected = InvalidSettingsException.class)
+    public void testValidateSettingsForModel() throws InvalidSettingsException {
+        m_testInstance.validateSettingsForModel(new NodeSettings("test"));
+    }
 
-	@Test(expected = InvalidSettingsException.class)
-	public void testLoadSettingsForModelFailure() throws InvalidSettingsException {
-		final NodeSettingsRO settings = new NodeSettings("test");
-		m_testInstance.loadSettingsForModel(settings);
-	}
+    @Test
+    public void testLoadSettingsForModelSuccess() throws InvalidSettingsException {
+        // full location
+        NodeSettingsRO settings = mockNodeSettingsRO(true, true);
+        m_testInstance.loadSettingsForModel(settings);
+        assertEquals(new FSLocation("foo", "bar", "bla"), m_testInstance.getLocation());
+        // no specifier
+        settings = mockNodeSettingsRO(true, false);
+        m_testInstance.loadSettingsForModel(settings);
+        assertEquals(new FSLocation("foo", "bla"), m_testInstance.getLocation());
+        // no location
+        settings = mockNodeSettingsRO(false, false);
+        m_testInstance.loadSettingsForModel(settings);
+        assertEquals(NULL, m_testInstance.getLocation());
+    }
 
-	@Test
-	public void testSaveSettingsForModel() throws InvalidSettingsException {
-		testSave((m, s) -> m.saveSettingsForModel(s));
-	}
+    @Test(expected = InvalidSettingsException.class)
+    public void testLoadSettingsForModelFailure() throws InvalidSettingsException {
+        final NodeSettingsRO settings = new NodeSettings("test");
+        m_testInstance.loadSettingsForModel(settings);
+    }
 
-	private void testSave(final Saver saveConsumer) throws InvalidSettingsException {
-		testSaveFull(saveConsumer);
-		testSaveNoSpecifier(saveConsumer);
-		testSaveNoLocation(saveConsumer);
-	}
+    @Test
+    public void testSaveSettingsForModel() throws InvalidSettingsException {
+        testSave((m, s) -> m.saveSettingsForModel(s));
+    }
 
-	private void testSaveFull(Saver saveConsumer) throws InvalidSettingsException {
-		NodeSettingsWO settings = mock(NodeSettingsWO.class);
-		NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
-		when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
-		saveConsumer.accept(m_testInstance, settings);
-		verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, true);
-		verify(locationSettings).addString(CFG_FS_TYPE, MOCK_FS_TYPE);
-		verify(locationSettings).addString(CFG_FS_SPECIFIER, MOCK_FS_SPECIFIER);
-		verify(locationSettings).addString(CFG_PATH, MOCK_PATH);
-	}
+    private void testSave(final Saver saveConsumer) throws InvalidSettingsException {
+        testSaveFull(saveConsumer);
+        testSaveNoSpecifier(saveConsumer);
+        testSaveNoLocation(saveConsumer);
+    }
 
-	private void testSaveNoSpecifier(Saver saveConsumer) throws InvalidSettingsException {
-		NodeSettingsWO settings = mock(NodeSettingsWO.class);
-		NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
-		when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
-		m_testInstance.setLocation(mockLocation(false));
-		saveConsumer.accept(m_testInstance, settings);
-		verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, true);
-		verify(locationSettings).addString(CFG_FS_TYPE, MOCK_FS_TYPE);
-		verify(locationSettings, never()).addString(eq(CFG_FS_SPECIFIER), anyString());
-		verify(locationSettings).addString(CFG_PATH, MOCK_PATH);
-	}
+    private void testSaveFull(Saver saveConsumer) throws InvalidSettingsException {
+        NodeSettingsWO settings = mock(NodeSettingsWO.class);
+        NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
+        when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
+        saveConsumer.accept(m_testInstance, settings);
+        verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, true);
+        verify(locationSettings).addString(CFG_FS_TYPE, MOCK_FS_TYPE);
+        verify(locationSettings).addString(CFG_FS_SPECIFIER, MOCK_FS_SPECIFIER);
+        verify(locationSettings).addString(CFG_PATH, MOCK_PATH);
+    }
 
-	private void testSaveNoLocation(Saver saveConsumer) throws InvalidSettingsException {
-		NodeSettingsWO settings = mock(NodeSettingsWO.class);
-		NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
-		when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
-		m_testInstance.setLocation(NULL);
-		saveConsumer.accept(m_testInstance, settings);
-		verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, false);
-		verifyNoMoreInteractions(locationSettings);
-	}
+    private void testSaveNoSpecifier(Saver saveConsumer) throws InvalidSettingsException {
+        NodeSettingsWO settings = mock(NodeSettingsWO.class);
+        NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
+        when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
+        m_testInstance.setLocation(mockLocation(false));
+        saveConsumer.accept(m_testInstance, settings);
+        verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, true);
+        verify(locationSettings).addString(CFG_FS_TYPE, MOCK_FS_TYPE);
+        verify(locationSettings, never()).addString(eq(CFG_FS_SPECIFIER), anyString());
+        verify(locationSettings).addString(CFG_PATH, MOCK_PATH);
+    }
 
-	@Test
-	public void testToString() {
-		assertEquals("SettingsModelFSLocation (" + CFG_NAME + ")", m_testInstance.toString());
-	}
+    private void testSaveNoLocation(Saver saveConsumer) throws InvalidSettingsException {
+        NodeSettingsWO settings = mock(NodeSettingsWO.class);
+        NodeSettingsWO locationSettings = mock(NodeSettingsWO.class);
+        when(settings.addNodeSettings(CFG_NAME)).thenReturn(locationSettings);
+        m_testInstance.setLocation(NULL);
+        saveConsumer.accept(m_testInstance, settings);
+        verify(locationSettings).addBoolean(CFG_LOCATION_PRESENT, false);
+        verifyNoMoreInteractions(locationSettings);
+    }
+
+    @Test
+    public void testToString() {
+        assertEquals("SettingsModelFSLocation (" + CFG_NAME + ")", m_testInstance.toString());
+    }
 }

@@ -69,116 +69,116 @@ import org.knime.filehandling.core.connections.FSLocation;
  */
 public class FSLocationUtilsTest {
 
-	public static final String PATH = "bla";
+    public static final String PATH = "bla";
 
-	public static final String FS_SPECIFIER = "bar";
+    public static final String FS_SPECIFIER = "bar";
 
-	public static final String FS_TYPE = "foo";
+    public static final String FS_TYPE = "foo";
 
-	public static final FSLocation LOCATION_WITHOUT_SPECIFIER = new FSLocation(FS_TYPE, PATH);
+    public static final FSLocation LOCATION_WITHOUT_SPECIFIER = new FSLocation(FS_TYPE, PATH);
 
-	public static final FSLocation LOCATION_WITH_SPECIFIER = new FSLocation(FS_TYPE, FS_SPECIFIER, PATH);
+    public static final FSLocation LOCATION_WITH_SPECIFIER = new FSLocation(FS_TYPE, FS_SPECIFIER, PATH);
 
-	private static ConfigRO mockConfigRO(boolean present, boolean includeSpecifier, boolean mockChildCount)
-			throws InvalidSettingsException {
-		ConfigRO config = mock(ConfigRO.class);
-		when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(present);
-		if (present) {
-			when(config.getString(CFG_FS_TYPE)).thenReturn(FS_TYPE);
-			if (includeSpecifier) {
-				when(config.getString(CFG_FS_SPECIFIER, null)).thenReturn(FS_SPECIFIER);
-			}
-			when(config.getString(CFG_PATH)).thenReturn(PATH);
-		}
-		if (mockChildCount) {
-			int childCount = includeSpecifier ? 4 : 3;
-			when(config.getChildCount()).thenReturn(present ? childCount : 1);
-		}
-		return config;
-	}
+    private static ConfigRO mockConfigRO(boolean present, boolean includeSpecifier, boolean mockChildCount)
+        throws InvalidSettingsException {
+        ConfigRO config = mock(ConfigRO.class);
+        when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(present);
+        if (present) {
+            when(config.getString(CFG_FS_TYPE)).thenReturn(FS_TYPE);
+            if (includeSpecifier) {
+                when(config.getString(CFG_FS_SPECIFIER, null)).thenReturn(FS_SPECIFIER);
+            }
+            when(config.getString(CFG_PATH)).thenReturn(PATH);
+        }
+        if (mockChildCount) {
+            int childCount = includeSpecifier ? 4 : 3;
+            when(config.getChildCount()).thenReturn(present ? childCount : 1);
+        }
+        return config;
+    }
 
-	@Test
-	public void testIsFSLocation() throws InvalidSettingsException  {
-		testIsLocationNoLocationPresent();
-		testIsLocationWithSpecifier();
-		testIsLocationWithoutSpecifier();
-		testIsLocationInvalid();
-	}
-	
-	private static void testIsLocationInvalid() throws InvalidSettingsException {
-		ConfigRO config = mock(ConfigRO.class);
-		when(config.getBoolean(CFG_LOCATION_PRESENT)).thenThrow(new InvalidSettingsException(""));
-		assertFalse(FSLocationUtils.isFSLocation(config));
-	}
-	
-	private static void testIsLocationWithoutSpecifier() throws InvalidSettingsException {
-		ConfigRO config = mockConfigRO(true, false, false);
-		when(config.getChildCount()).thenReturn(3, 7);
-		assertTrue(FSLocationUtils.isFSLocation(config));
-		assertFalse(FSLocationUtils.isFSLocation(config));
-	}
+    @Test
+    public void testIsFSLocation() throws InvalidSettingsException {
+        testIsLocationNoLocationPresent();
+        testIsLocationWithSpecifier();
+        testIsLocationWithoutSpecifier();
+        testIsLocationInvalid();
+    }
 
-	private static void testIsLocationWithSpecifier() throws InvalidSettingsException {
-		ConfigRO config = mockConfigRO(true, true, false);
-		when(config.getChildCount()).thenReturn(4, 7);
-		assertTrue(FSLocationUtils.isFSLocation(config));
-		assertFalse(FSLocationUtils.isFSLocation(config));
-	}
+    private static void testIsLocationInvalid() throws InvalidSettingsException {
+        ConfigRO config = mock(ConfigRO.class);
+        when(config.getBoolean(CFG_LOCATION_PRESENT)).thenThrow(new InvalidSettingsException(""));
+        assertFalse(FSLocationUtils.isFSLocation(config));
+    }
 
-	private static void testIsLocationNoLocationPresent() throws InvalidSettingsException {
-		ConfigRO config = mock(ConfigRO.class);
-		when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(false);
-		when(config.getChildCount()).thenReturn(1, 2);
-		assertTrue(FSLocationUtils.isFSLocation(config));
-		assertFalse(FSLocationUtils.isFSLocation(config));
-	}
+    private static void testIsLocationWithoutSpecifier() throws InvalidSettingsException {
+        ConfigRO config = mockConfigRO(true, false, false);
+        when(config.getChildCount()).thenReturn(3, 7);
+        assertTrue(FSLocationUtils.isFSLocation(config));
+        assertFalse(FSLocationUtils.isFSLocation(config));
+    }
 
-	@Test
-	public void testLoad() throws InvalidSettingsException {
-		testLoadPresent();
-		testLoadAbsent();
-	}
+    private static void testIsLocationWithSpecifier() throws InvalidSettingsException {
+        ConfigRO config = mockConfigRO(true, true, false);
+        when(config.getChildCount()).thenReturn(4, 7);
+        assertTrue(FSLocationUtils.isFSLocation(config));
+        assertFalse(FSLocationUtils.isFSLocation(config));
+    }
 
-	private static void testLoadPresent() throws InvalidSettingsException {
-		ConfigRO config = mockConfigRO(true, true, false);
-		assertEquals(LOCATION_WITH_SPECIFIER, FSLocationUtils.load(config));
-	}
-	
-	private static void testLoadAbsent() throws InvalidSettingsException {
-		ConfigRO config = mockConfigRO(false, true, false);
-		assertEquals(NULL, FSLocationUtils.load(config));
-	}
+    private static void testIsLocationNoLocationPresent() throws InvalidSettingsException {
+        ConfigRO config = mock(ConfigRO.class);
+        when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(false);
+        when(config.getChildCount()).thenReturn(1, 2);
+        assertTrue(FSLocationUtils.isFSLocation(config));
+        assertFalse(FSLocationUtils.isFSLocation(config));
+    }
 
-	@Test
-	public void testSave() {
-		testSaveWithSpecifier();
-		testSaveWithoutSpecifier();
-		testSaveNoLocation();
-	}
+    @Test
+    public void testLoad() throws InvalidSettingsException {
+        testLoadPresent();
+        testLoadAbsent();
+    }
 
-	private static void testSaveWithSpecifier() {
-		ConfigWO config = mock(ConfigWO.class);
-		FSLocationUtils.save(LOCATION_WITH_SPECIFIER, config);
-		verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
-		verify(config).addString(CFG_FS_TYPE, FS_TYPE);
-		verify(config).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
-		verify(config).addString(CFG_PATH, PATH);
-		verifyNoMoreInteractions(config);
-	}
+    private static void testLoadPresent() throws InvalidSettingsException {
+        ConfigRO config = mockConfigRO(true, true, false);
+        assertEquals(LOCATION_WITH_SPECIFIER, FSLocationUtils.load(config));
+    }
 
-	private static void testSaveWithoutSpecifier() {
-		ConfigWO config = mock(ConfigWO.class);
-		FSLocationUtils.save(LOCATION_WITHOUT_SPECIFIER, config);
-		verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
-		verify(config).addString(CFG_FS_TYPE, FS_TYPE);
-		verify(config).addString(CFG_PATH, PATH);
-		verifyNoMoreInteractions(config);
-	}
+    private static void testLoadAbsent() throws InvalidSettingsException {
+        ConfigRO config = mockConfigRO(false, true, false);
+        assertEquals(NULL, FSLocationUtils.load(config));
+    }
 
-	private static void testSaveNoLocation() {
-		ConfigWO config = mock(ConfigWO.class);
-		FSLocationUtils.save(NULL, config);
-		verify(config).addBoolean(CFG_LOCATION_PRESENT, false);
-		verifyNoMoreInteractions(config);
-	}
+    @Test
+    public void testSave() {
+        testSaveWithSpecifier();
+        testSaveWithoutSpecifier();
+        testSaveNoLocation();
+    }
+
+    private static void testSaveWithSpecifier() {
+        ConfigWO config = mock(ConfigWO.class);
+        FSLocationUtils.save(LOCATION_WITH_SPECIFIER, config);
+        verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
+        verify(config).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(config).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
+        verify(config).addString(CFG_PATH, PATH);
+        verifyNoMoreInteractions(config);
+    }
+
+    private static void testSaveWithoutSpecifier() {
+        ConfigWO config = mock(ConfigWO.class);
+        FSLocationUtils.save(LOCATION_WITHOUT_SPECIFIER, config);
+        verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
+        verify(config).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(config).addString(CFG_PATH, PATH);
+        verifyNoMoreInteractions(config);
+    }
+
+    private static void testSaveNoLocation() {
+        ConfigWO config = mock(ConfigWO.class);
+        FSLocationUtils.save(NULL, config);
+        verify(config).addBoolean(CFG_LOCATION_PRESENT, false);
+        verifyNoMoreInteractions(config);
+    }
 }
