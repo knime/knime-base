@@ -137,7 +137,7 @@ public class ReaderTableSpecTest {
     public void testCreateFromNameTypeFailsOnTypesShorter() {
         ReaderTableSpec.create(asList("foo", "bar"), asList("foo"));
     }
-    
+
     /**
      * Tests if {@link ReaderTableSpec#create(Collection, Collection)} fails if the arguments differ in size.
      */
@@ -247,7 +247,7 @@ public class ReaderTableSpecTest {
      * Tests the {@link ReaderTableSpec#equals(Object)} implementation.
      */
     @SuppressWarnings("unlikely-arg-type")
-	@Test
+    @Test
     public void testEquals() {
         final ReaderTableSpec<String> spec1 = ReaderTableSpec.create("frieda", "gerta");
         assertFalse(spec1.equals(null));

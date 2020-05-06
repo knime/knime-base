@@ -56,7 +56,6 @@ import java.util.OptionalInt;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.knime.filehandling.core.node.table.reader.IndexMappingRandomAccessibleDecorator;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 import org.mockito.Mock;
@@ -129,8 +128,5 @@ public class IndexMappingRandomAccessibleDecoratorTest {
     public void testGetFailsIfNothingIsSet() {
         createTestInstance(4).get(2);
     }
-
-
-
 
 }

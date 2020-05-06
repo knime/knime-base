@@ -62,22 +62,23 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ColumnFilterRandomAccessibleTest {
-	
-	@Mock RandomAccessible<String> m_decoratee = null;
-	
-	private ColumnFilterRandomAccessible<String> m_testInstance = null;
-	
-	@Before
-	public void init() {
-		m_testInstance = new ColumnFilterRandomAccessible<>(1);
-	}
-	
-	/**
+
+    @Mock
+    RandomAccessible<String> m_decoratee = null;
+
+    private ColumnFilterRandomAccessible<String> m_testInstance = null;
+
+    @Before
+    public void init() {
+        m_testInstance = new ColumnFilterRandomAccessible<>(1);
+    }
+
+    /**
      * Tests if calling size before calling next yields the expected exception.
      */
     @Test(expected = IllegalStateException.class)
     public void testGetFailsIfNextIsNotCalledFirst() {
-    	m_testInstance.get(0);
+        m_testInstance.get(0);
     }
 
     /**
@@ -85,36 +86,36 @@ public class ColumnFilterRandomAccessibleTest {
      */
     @Test(expected = IllegalStateException.class)
     public void testSizeFailsIfNextIsNotCalledFirst() {
-    	m_testInstance.size();
+        m_testInstance.size();
     }
-    
-    /**
-    * Tests the size method.
-    *
-    * @throws IOException never thrown
-    */
-   @Test
-   public void testSize() throws IOException {
-	   m_testInstance.setDecoratee(m_decoratee);
-       when(m_decoratee.size()).thenReturn(3);
-       assertEquals(2, m_testInstance.size());
-       when(m_decoratee.size()).thenReturn(1);
-       assertEquals(1, m_testInstance.size());
-       when(m_decoratee.size()).thenReturn(2);
-       assertEquals(1, m_testInstance.size());
-   }
 
-   /**
-    * Tests the get method.
-    *
-    * @throws IOException never thrown
-    */
-   @Test
-   public void testGet() throws IOException {
-	   m_testInstance.setDecoratee(m_decoratee);
-       when(m_decoratee.get(0)).thenReturn("foo");
-       when(m_decoratee.get(2)).thenReturn("bar");
-       assertEquals("foo", m_testInstance.get(0));
-       assertEquals("bar", m_testInstance.get(1));
-   }
+    /**
+     * Tests the size method.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testSize() throws IOException {
+        m_testInstance.setDecoratee(m_decoratee);
+        when(m_decoratee.size()).thenReturn(3);
+        assertEquals(2, m_testInstance.size());
+        when(m_decoratee.size()).thenReturn(1);
+        assertEquals(1, m_testInstance.size());
+        when(m_decoratee.size()).thenReturn(2);
+        assertEquals(1, m_testInstance.size());
+    }
+
+    /**
+     * Tests the get method.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testGet() throws IOException {
+        m_testInstance.setDecoratee(m_decoratee);
+        when(m_decoratee.get(0)).thenReturn("foo");
+        when(m_decoratee.get(2)).thenReturn("bar");
+        assertEquals("foo", m_testInstance.get(0));
+        assertEquals("bar", m_testInstance.get(1));
+    }
 }

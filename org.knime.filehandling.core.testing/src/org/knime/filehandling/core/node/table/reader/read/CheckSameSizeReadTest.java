@@ -57,8 +57,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.CheckSameSizeRead;
-import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 

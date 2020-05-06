@@ -88,7 +88,7 @@ public class DefaultIndexMapperTest {
         assertEquals(1, idxMapper.map(3));
         assertEquals(3, idxMapper.map(4));
     }
-    
+
     /**
      * Tests the behavior if a RowID column is contained.
      */

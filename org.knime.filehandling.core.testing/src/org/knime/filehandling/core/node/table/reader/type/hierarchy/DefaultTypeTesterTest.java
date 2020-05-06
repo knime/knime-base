@@ -64,31 +64,31 @@ import org.junit.Test;
  */
 public class DefaultTypeTesterTest {
 
-	/**
-	 * Tests the behavior if {@code null} is an allowed input.
-	 */
-	@Test
-	public void testNullAllowed() {
-		testTypeTester(DefaultTypeTester::new, true);
-		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, true), true);
-	}
+    /**
+     * Tests the behavior if {@code null} is an allowed input.
+     */
+    @Test
+    public void testNullAllowed() {
+        testTypeTester(DefaultTypeTester::new, true);
+        testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, true), true);
+    }
 
-	/**
-	 * Tests the behavior if {@code null} is not an allowed input.
-	 */
-	@Test
-	public void testNullRejected() {
-		testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, false), false);
-	}
+    /**
+     * Tests the behavior if {@code null} is not an allowed input.
+     */
+    @Test
+    public void testNullRejected() {
+        testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, false), false);
+    }
 
-	static void testTypeTester(
-			final BiFunction<String, Predicate<Integer>, TypeTester<String, Integer>> typeTesterProvider,
-			final boolean nullAllowed) {
-		TypeTester<String, Integer> elfriede = typeTesterProvider.apply("elfriede", i -> i < 2);
-		assertTrue(elfriede.test(1));
-		assertFalse(elfriede.test(2));
-		assertEquals(nullAllowed, elfriede.test(null));
-		assertEquals("elfriede", elfriede.getType());
-	}
+    static void testTypeTester(
+        final BiFunction<String, Predicate<Integer>, TypeTester<String, Integer>> typeTesterProvider,
+        final boolean nullAllowed) {
+        TypeTester<String, Integer> elfriede = typeTesterProvider.apply("elfriede", i -> i < 2);
+        assertTrue(elfriede.test(1));
+        assertFalse(elfriede.test(2));
+        assertEquals(nullAllowed, elfriede.test(null));
+        assertEquals("elfriede", elfriede.getType());
+    }
 
 }

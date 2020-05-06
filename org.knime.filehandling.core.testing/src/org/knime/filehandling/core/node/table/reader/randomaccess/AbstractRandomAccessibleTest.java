@@ -144,7 +144,7 @@ public abstract class AbstractRandomAccessibleTest {
     @Test(expected = NoSuchElementException.class)
     public void testIteratorThrowsNoSuchElementException() {
         final Iterator<String> iterator = createTestInstance("foo", "bar").iterator();
-        for (; iterator.hasNext();iterator.next()) {
+        for (; iterator.hasNext(); iterator.next()) {
             // run to the end
         }
         iterator.next();

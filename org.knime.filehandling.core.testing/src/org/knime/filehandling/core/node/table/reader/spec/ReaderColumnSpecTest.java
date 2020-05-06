@@ -85,7 +85,7 @@ public class ReaderColumnSpecTest {
      * Tests the equals implementation
      */
     @SuppressWarnings("unlikely-arg-type")
-	@Test
+    @Test
     public void testEquals() {
         ReaderColumnSpec<String> spec = ReaderColumnSpec.create("frieda");
         assertTrue(spec.equals(spec));

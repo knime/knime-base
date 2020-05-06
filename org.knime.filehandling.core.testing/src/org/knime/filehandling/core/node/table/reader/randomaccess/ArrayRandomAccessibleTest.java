@@ -65,7 +65,7 @@ public class ArrayRandomAccessibleTest extends AbstractRandomAccessibleTest {
     protected <E> RandomAccessible<E> createTestInstance(@SuppressWarnings("unchecked") E... elements) {
         return ArrayRandomAccessible.createUnsafe(elements);
     }
-    
+
     /**
      * Tests the createUnsafe factory method.
      */
@@ -77,7 +77,7 @@ public class ArrayRandomAccessibleTest extends AbstractRandomAccessibleTest {
         array[0] = "bla";
         testRa(array, ra);
     }
-    
+
     /**
      * Verifies that createUnsafe fails on {@code null}.
      */
@@ -85,7 +85,7 @@ public class ArrayRandomAccessibleTest extends AbstractRandomAccessibleTest {
     public void testCreateUnsafeFailsOnNullArray() {
         ArrayRandomAccessible.createUnsafe(null);
     }
-    
+
     /**
      * Tests the createSafe method.
      */
@@ -97,7 +97,7 @@ public class ArrayRandomAccessibleTest extends AbstractRandomAccessibleTest {
         array[0] = "bla";
         assertThat(ra.get(0), is(not(array[0])));
     }
-    
+
     /**
      * Verifies that createSafe fails on {@code null}.
      */
@@ -105,13 +105,12 @@ public class ArrayRandomAccessibleTest extends AbstractRandomAccessibleTest {
     public void testCreateSafeFailsOnNullArray() {
         ArrayRandomAccessible.createSafe(null);
     }
-    
-    
+
     private static void testRa(final String[] array, RandomAccessible<String> ra) {
         assertEquals(array.length, ra.size());
         for (int i = 0; i < array.length; i++) {
             assertEquals(array[i], ra.get(i));
         }
     }
-    
+
 }

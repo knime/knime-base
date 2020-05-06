@@ -110,6 +110,7 @@ public class DefaultIndividualTableReaderTest {
 
     /**
      * Initializes the test instance.
+     * 
      * @throws Exception never thrown
      */
     @SuppressWarnings("unchecked")

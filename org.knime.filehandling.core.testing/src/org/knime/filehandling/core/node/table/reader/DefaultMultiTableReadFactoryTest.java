@@ -62,8 +62,6 @@ import org.junit.runner.RunWith;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
-import org.knime.filehandling.core.node.table.reader.DefaultMultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
@@ -126,8 +124,7 @@ public class DefaultMultiTableReadFactoryTest {
         final ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("hans"), asList("berta"));
         when(m_typeMappingFactory.create(spec)).thenReturn(m_typeMapping);
         DataTableSpec knimeSpec = new DataTableSpec(new String[]{"hans"}, new DataType[]{StringCell.TYPE});
-        when(m_typeMapping.map(spec))
-            .thenReturn(knimeSpec);
+        when(m_typeMapping.map(spec)).thenReturn(knimeSpec);
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("berta");
         when(m_config.getSpecMergeMode()).thenReturn(SpecMergeMode.UNION);

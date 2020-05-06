@@ -167,9 +167,9 @@ public class DefaultExtractColumnHeaderReadTest {
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(3)).next();
     }
-    
+
     /**
-     * Tests if the getColumnHeaders returns an Optional.emty if column header is set, but preceding row is null. 
+     * Tests if the getColumnHeaders returns an Optional.emty if column header is set, but preceding row is null.
      * 
      * @throws IOException never thrown
      */
@@ -429,9 +429,9 @@ public class DefaultExtractColumnHeaderReadTest {
         verify(m_source, times(2)).next();
         assertTrue(!testInstance.getColumnHeaders().isPresent());
     }
-    
+
     /**
-     * Tests if the getColumnHeaders returns an Optional.emty if no column header is set, but reading is limited to 0. 
+     * Tests if the getColumnHeaders returns an Optional.emty if no column header is set, but reading is limited to 0.
      * 
      * @throws IOException never thrown
      */
@@ -472,7 +472,7 @@ public class DefaultExtractColumnHeaderReadTest {
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
     }
-    
+
     /**
      * Tests that the column header is returned when setting the number of rows to read to 0.
      * 
@@ -493,7 +493,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test with read
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(2, m_skipRow) //
-                , TestPair.create(1, m_headerRow));
+            , TestPair.create(1, m_headerRow));
         testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 0));
         RandomAccessible<String> dataRow;
         while ((dataRow = testInstance.next()) != null) {
@@ -508,7 +508,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test that next does not consume rows from read
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(2, m_skipRow) //
-                , TestPair.create(1, m_headerRow));
+            , TestPair.create(1, m_headerRow));
         testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 0));
         while ((dataRow = testInstance.next()) != null) {
             assertEquals(m_dataRow, dataRow);
@@ -898,8 +898,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test without read
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(4, m_skipRow) //
-            , TestPair.create(1, m_dataRow)
-            , TestPair.create(1, m_headerRow)//
+            , TestPair.create(1, m_dataRow), TestPair.create(1, m_headerRow)//
             , TestPair.create(1, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
         ExtractColumnHeaderRead<String> testInstance =
@@ -911,10 +910,9 @@ public class DefaultExtractColumnHeaderReadTest {
         // test with read
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(4, m_skipRow) //
-                , TestPair.create(1, m_dataRow)
-                , TestPair.create(1, m_headerRow)//
-                , TestPair.create(1, m_dataRow) //
-                , TestPair.create(2, m_skipRow));//
+            , TestPair.create(1, m_dataRow), TestPair.create(1, m_headerRow)//
+            , TestPair.create(1, m_dataRow) //
+            , TestPair.create(2, m_skipRow));//
         testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 4, 2));
         RandomAccessible<String> dataRow;
         while ((dataRow = testInstance.next()) != null) {
@@ -929,10 +927,9 @@ public class DefaultExtractColumnHeaderReadTest {
         // test that next does not consume rows from read
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(4, m_skipRow) //
-                , TestPair.create(1, m_dataRow)
-                , TestPair.create(1, m_headerRow)//
-                , TestPair.create(1, m_dataRow) //
-                , TestPair.create(2, m_skipRow));//
+            , TestPair.create(1, m_dataRow), TestPair.create(1, m_headerRow)//
+            , TestPair.create(1, m_dataRow) //
+            , TestPair.create(2, m_skipRow));//
         testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 4, 2));
 
         while ((dataRow = testInstance.next()) != null) {
@@ -1019,7 +1016,7 @@ public class DefaultExtractColumnHeaderReadTest {
         final String[] colHeaders = convertToStringArray(columnHeaders.get());
         return colHeaders;
     }
-    
+
     private String[] convertToStringArray(final RandomAccessible<String> randomAccessible) {
         return randomAccessible.stream()//
             .map(val -> val != null //

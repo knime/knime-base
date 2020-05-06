@@ -75,7 +75,7 @@ public class ReadUtilsTest {
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
-    
+
     @Mock
     private TableReadConfig<?> m_config = null;
 
@@ -141,24 +141,24 @@ public class ReadUtilsTest {
     }
 
     @Test
-	public void testDecorateForReadingSkipEmpty() throws IOException {
-    	when(m_config.skipEmptyRows()).thenReturn(true);
-    	when(m_config.allowShortRows()).thenReturn(true);
-    	Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
-		testSkipEmpty(decorated);
-	}
-    
+    public void testDecorateForReadingSkipEmpty() throws IOException {
+        when(m_config.skipEmptyRows()).thenReturn(true);
+        when(m_config.allowShortRows()).thenReturn(true);
+        Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
+        testSkipEmpty(decorated);
+    }
+
     @Test(expected = IllegalArgumentException.class)
-	public void testDecorateForReadingRejectShortRows() throws IOException {
-    	when(m_config.allowShortRows()).thenReturn(false);
-    	Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
-    	testRejectShortRows(decorated);
-	}
-    
+    public void testDecorateForReadingRejectShortRows() throws IOException {
+        when(m_config.allowShortRows()).thenReturn(false);
+        Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
+        testRejectShortRows(decorated);
+    }
+
     @Test
     public void testDecorateForReadingSkipHeader() throws IOException {
-    	when(m_source.next()).thenReturn(m_randomAccessible);
-    	when(m_config.useColumnHeaderIdx()).thenReturn(true);
+        when(m_source.next()).thenReturn(m_randomAccessible);
+        when(m_config.useColumnHeaderIdx()).thenReturn(true);
         when(m_config.getColumnHeaderIdx()).thenReturn(1L);
         when(m_config.skipRows()).thenReturn(true);
         when(m_config.allowShortRows()).thenReturn(true);
@@ -179,36 +179,35 @@ public class ReadUtilsTest {
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(2)).next();
     }
-    
+
     @Test
-	public void testDecorateForSpecGuessingSkipEmpty() throws IOException {
-    	when(m_config.skipEmptyRows()).thenReturn(true);
-    	when(m_config.allowShortRows()).thenReturn(true);
-    	Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
-		testSkipEmpty(decorated);
-	}
+    public void testDecorateForSpecGuessingSkipEmpty() throws IOException {
+        when(m_config.skipEmptyRows()).thenReturn(true);
+        when(m_config.allowShortRows()).thenReturn(true);
+        Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
+        testSkipEmpty(decorated);
+    }
 
-	private void testSkipEmpty(Read<String> decorated) throws IOException {
-		when(m_source.next()).thenReturn(m_randomAccessible);
-		when(m_randomAccessible.size()).thenReturn(2, 0, 1);
-		assertEquals(m_randomAccessible, decorated.next());
-		assertEquals(m_randomAccessible, decorated.next());
-		verify(m_source, times(3)).next();
-	}
-    
+    private void testSkipEmpty(Read<String> decorated) throws IOException {
+        when(m_source.next()).thenReturn(m_randomAccessible);
+        when(m_randomAccessible.size()).thenReturn(2, 0, 1);
+        assertEquals(m_randomAccessible, decorated.next());
+        assertEquals(m_randomAccessible, decorated.next());
+        verify(m_source, times(3)).next();
+    }
+
     @Test(expected = IllegalArgumentException.class)
-	public void testDecorateForSpecGuessingRejectShortRows() throws IOException {
-    	when(m_config.allowShortRows()).thenReturn(false);
-    	Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
-    	testRejectShortRows(decorated);
-	}
+    public void testDecorateForSpecGuessingRejectShortRows() throws IOException {
+        when(m_config.allowShortRows()).thenReturn(false);
+        Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
+        testRejectShortRows(decorated);
+    }
 
-	private void testRejectShortRows(Read<String> decorated) throws IOException {
-		when(m_source.next()).thenReturn(m_randomAccessible);
-		when(m_randomAccessible.size()).thenReturn(1, 2, 1);
-		assertEquals(m_randomAccessible, decorated.next());
-		assertEquals(m_randomAccessible, decorated.next());
-	}
-    
-    
+    private void testRejectShortRows(Read<String> decorated) throws IOException {
+        when(m_source.next()).thenReturn(m_randomAccessible);
+        when(m_randomAccessible.size()).thenReturn(1, 2, 1);
+        assertEquals(m_randomAccessible, decorated.next());
+        assertEquals(m_randomAccessible, decorated.next());
+    }
+
 }

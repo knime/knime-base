@@ -89,7 +89,6 @@ public class ReadAdapterTest {
         };
     }
 
-
     /**
      * Tests the get method (with ReadAdapterParams argument).
      *
