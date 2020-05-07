@@ -112,13 +112,13 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final JTextField m_commentStartField;
 
-    private final JCheckBox m_hasRowHeaderChecker;
+    private final JCheckBox m_hasRowIDChecker;
 
     private final JCheckBox m_hasColHeaderChecker;
 
-    private final JCheckBox m_allowShortLinesChecker;
+    private final JCheckBox m_allowShortDataRowsChecker;
 
-    private final JCheckBox m_skipEmptyLinesChecker;
+    private final JCheckBox m_skipEmptyDataRowsChecker;
 
     private final JCheckBox m_replaceQuotedEmptyStringChecker;
 
@@ -170,11 +170,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_quoteField = new JTextField("###", textWidth);
         m_quoteEscapeField = new JTextField("###", textWidth);
         m_commentStartField = new JTextField("###", textWidth);
-        m_hasRowHeaderChecker = new JCheckBox("Has row header");
+        m_hasRowIDChecker = new JCheckBox("Has row ID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
-        m_allowShortLinesChecker = new JCheckBox("Support short lines");
-        m_skipEmptyLinesChecker = new JCheckBox("Skip empty lines");
-        m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values");
+        m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
+        m_skipEmptyDataRowsChecker = new JCheckBox("Skip empty data rows");
+        m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
 
         m_skipFirstLinesChecker = new JCheckBox("Skip first lines ");
         m_skipFirstLinesSpinner = new JSpinner(new SpinnerNumberModel(skipOne, rowStart, rowEnd, stepSize));
@@ -192,7 +192,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_limitRowsChecker.addChangeListener(e -> controlSpinner(m_limitRowsChecker, m_limitRowsSpinner));
         m_limitRowsChecker.doClick();
 
-        m_limitAnalysisChecker = new JCheckBox("Limit data rows scanned for spec. ");
+        m_limitAnalysisChecker = new JCheckBox("Limit data rows scanned for spec ");
         m_limitAnalysisSpinner = new JSpinner(new SpinnerNumberModel(initLimit, rowStart, rowEnd, initLimit));
         m_limitAnalysisChecker.addChangeListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
@@ -300,14 +300,14 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridy += 1;
         optionsPanel.add(m_hasColHeaderChecker, gbc);
         gbc.gridx += 1;
-        optionsPanel.add(m_hasRowHeaderChecker, gbc);
+        optionsPanel.add(m_hasRowIDChecker, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(m_allowShortLinesChecker, gbc);
+        optionsPanel.add(m_allowShortDataRowsChecker, gbc);
 
         gbc.gridx += 1;
-        optionsPanel.add(m_skipEmptyLinesChecker, gbc);
+        optionsPanel.add(m_skipEmptyDataRowsChecker, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
@@ -405,7 +405,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private void saveTableReadSettings() {
         final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
 
-        tableReadConfig.setUseRowIDIdx(m_hasRowHeaderChecker.isSelected());
+        tableReadConfig.setUseRowIDIdx(m_hasRowIDChecker.isSelected());
         tableReadConfig.setRowIDIdx(0);
 
         tableReadConfig.setUseColumnHeaderIdx(m_hasColHeaderChecker.isSelected());
@@ -420,8 +420,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         tableReadConfig.setLimitRowsForSpec(m_limitAnalysisChecker.isSelected());
         tableReadConfig.setMaxRowsForSpec((Long)m_limitAnalysisSpinner.getValue());
 
-        tableReadConfig.setAllowShortRows(m_allowShortLinesChecker.isSelected());
-        tableReadConfig.setSkipEmptyRows(m_skipEmptyLinesChecker.isSelected());
+        tableReadConfig.setAllowShortRows(m_allowShortDataRowsChecker.isSelected());
+        tableReadConfig.setSkipEmptyRows(m_skipEmptyDataRowsChecker.isSelected());
 
     }
 
@@ -441,7 +441,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setSkipLines(m_skipFirstLinesChecker.isSelected());
         csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue());
 
-        csvReaderConfig.setSkipEmptyLines(m_skipEmptyLinesChecker.isSelected());
+        csvReaderConfig.setSkipEmptyLines(m_skipEmptyDataRowsChecker.isSelected());
         csvReaderConfig.setReplaceEmptyWithMissing(m_replaceQuotedEmptyStringChecker.isSelected());
 
         FileReaderNodeSettings s = new FileReaderNodeSettings();
@@ -468,11 +468,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
 
         m_hasColHeaderChecker.setSelected(tableReadConfig.useColumnHeaderIdx());
-        m_hasRowHeaderChecker.setSelected(tableReadConfig.useRowIDIdx());
+        m_hasRowIDChecker.setSelected(tableReadConfig.useRowIDIdx());
 
-        m_allowShortLinesChecker.setSelected(tableReadConfig.allowShortRows());
+        m_allowShortDataRowsChecker.setSelected(tableReadConfig.allowShortRows());
         // TODO decide where to save setting. Univocity vs TableReadConfig
-        m_skipEmptyLinesChecker.setSelected(tableReadConfig.skipEmptyRows());
+        m_skipEmptyDataRowsChecker.setSelected(tableReadConfig.skipEmptyRows());
 
         m_skipFirstRowsChecker.setSelected(tableReadConfig.skipRows());
         m_skipFirstRowsSpinner.setValue(tableReadConfig.getNumRowsToSkip());
@@ -498,10 +498,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_commentStartField.setText(EscapeUtils.escape(csvReaderConfig.getComment()));
 
         m_skipFirstLinesChecker.setSelected(csvReaderConfig.skipLines());
-        m_skipFirstLinesChecker.setSelected(csvReaderConfig.skipLines());
         m_skipFirstLinesSpinner.setValue(csvReaderConfig.getNumLinesToSkip());
 
-        m_skipEmptyLinesChecker.setSelected(csvReaderConfig.skipEmptyLines());
+        m_skipEmptyDataRowsChecker.setSelected(csvReaderConfig.skipEmptyLines());
 
         m_replaceQuotedEmptyStringChecker.setSelected(csvReaderConfig.replaceEmptyWithMissing());
 
@@ -549,5 +548,4 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         }
     }
-
 }

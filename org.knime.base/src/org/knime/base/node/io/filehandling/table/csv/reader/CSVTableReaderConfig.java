@@ -114,7 +114,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     private boolean m_skipLines = false;
 
     /** Setting used to decide how many lines are skipped at the beginning */
-    private long m_numLinesToSkip = 0L;
+    private long m_numLinesToSkip = 1L;
 
     /** Setting used to store the character set name (encoding) */
     private String m_charSet = null;
@@ -125,9 +125,10 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     public CSVTableReaderConfig() {
         m_settings = new CsvParserSettings();
         m_settings.setEmptyValue("");
-        m_settings.setSkipEmptyLines(false);
+        m_settings.setSkipEmptyLines(true);
         m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
         m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
+        setReplaceEmptyWithMissing(true);
     }
 
     /**
@@ -337,11 +338,11 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setComment(settings.getString(CFG_COMMENT_CHAR, "\0"));
 
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 0L));
+        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 1L));
 
-        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, false));
+        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, true));
 
-        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, false));
+        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, true));
 
         setCharSetName(settings.getString(CFG_CHAR_SET_NAME, null));
     }
