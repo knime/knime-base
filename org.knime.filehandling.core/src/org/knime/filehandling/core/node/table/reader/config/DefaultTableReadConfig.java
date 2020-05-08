@@ -73,9 +73,9 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private static final String CFG_USE_COLUMN_HEADER_IDX = "use_column_header_idx";
 
-    private static final String CFG_SKIP_ROWS = "skip_rows";
+    private static final String CFG_SKIP_LINES = "skip_lines";
 
-    private static final String CFG_NUM_ROWS_TO_SKIP = "num_rows_to_skip";
+    private static final String CFG_NUM_LINES_TO_SKIP = "num_lines_to_skip";
 
     private static final String CFG_LIMIT_ROWS = "limit_rows";
 
@@ -176,8 +176,8 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
         settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
 
-        settings.getBoolean(CFG_SKIP_ROWS);
-        settings.getLong(CFG_NUM_ROWS_TO_SKIP);
+        settings.getBoolean(CFG_SKIP_LINES);
+        settings.getLong(CFG_NUM_LINES_TO_SKIP);
 
         settings.getBoolean(CFG_LIMIT_ROWS);
         settings.getLong(CFG_MAX_ROWS);
@@ -196,8 +196,8 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
         m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
 
-        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS);
-        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP);
+        m_skipRows = settings.getBoolean(CFG_SKIP_LINES);
+        m_numRowsToSkip = settings.getLong(CFG_NUM_LINES_TO_SKIP);
 
         m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS);
         m_maxRows = settings.getLong(CFG_MAX_ROWS);
@@ -216,8 +216,8 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false);
         m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS, false);
 
-        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS, false);
-        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP, 1);
+        m_skipRows = settings.getBoolean(CFG_SKIP_LINES, false);
+        m_numRowsToSkip = settings.getLong(CFG_NUM_LINES_TO_SKIP, 1);
 
         m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS, false);
         m_maxRows = settings.getLong(CFG_MAX_ROWS, 50);
@@ -236,8 +236,8 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
         settings.addBoolean(CFG_ALLOW_SHORT_ROWS, m_allowShortRows);
         settings.addBoolean(CFG_SKIP_EMPTY_ROWS, m_skipEmptyRows);
 
-        settings.addBoolean(CFG_SKIP_ROWS, m_skipRows);
-        settings.addLong(CFG_NUM_ROWS_TO_SKIP, m_numRowsToSkip);
+        settings.addBoolean(CFG_SKIP_LINES, m_skipRows);
+        settings.addLong(CFG_NUM_LINES_TO_SKIP, m_numRowsToSkip);
 
         settings.addBoolean(CFG_LIMIT_ROWS, m_limitRows);
         settings.addLong(CFG_MAX_ROWS, m_maxRows);

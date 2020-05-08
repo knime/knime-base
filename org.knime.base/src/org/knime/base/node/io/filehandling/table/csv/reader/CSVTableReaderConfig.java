@@ -96,7 +96,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     private static final String CFG_SKIP_LINES = "skip_lines";
 
     /** string key used to save whether or not empty lines are being skipped */
-    private static final String CFG_SKIP_EMPTY_LINES = "skip_empty_lines";
+    private static final String CFG_SKIP_EMPTY_DATA_ROWS = "skip_empty_data_rows";
 
     /** string key used to save the value of number of lines that should be skipped */
     private static final String CFG_NUM_LINES_TO_SKIP = "num_lines_to_skip";
@@ -340,7 +340,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 1L));
 
-        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES, true));
+        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS, true));
 
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, true));
 
@@ -359,7 +359,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES));
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
 
-        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_LINES));
+        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS));
 
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
 
@@ -377,7 +377,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.getLong(CFG_NUM_LINES_TO_SKIP);
         settings.getBoolean(CFG_SKIP_LINES);
-        settings.getBoolean(CFG_SKIP_EMPTY_LINES);
+        settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS);
 
         settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING);
 
@@ -396,7 +396,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.addLong(CFG_NUM_LINES_TO_SKIP, getNumLinesToSkip());
         settings.addBoolean(CFG_SKIP_LINES, skipLines());
-        settings.addBoolean(CFG_SKIP_EMPTY_LINES, skipEmptyLines());
+        settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, skipEmptyLines());
 
         settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
 
