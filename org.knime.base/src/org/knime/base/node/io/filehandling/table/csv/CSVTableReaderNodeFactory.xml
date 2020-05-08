@@ -97,14 +97,14 @@
 			<option name="Has column header">
 	          Select this box if the first row contains column name headers.  
 			</option>
-			<option name="Has row header">
+			<option name="Has row ID">
 	          Select this box if the first column contains row name headers 
 	          (no duplicates allowed).  
 			</option>
-			<option name="Support short lines">
+			<option name="Support short data rows">
 	          Select this box if some rows may be shorter than others (filled with missing values).
 			</option>
-			<option name="Skip empty lines">
+			<option name="Skip empty data rows">
 	          Select this box if rows without any content should not be in the output.
 			</option>
 			<option name="Replace empty quoted strings with missing values">
@@ -124,7 +124,7 @@
 	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
 	          not taken into account.    
 			</option>
-			<option name="Limit data rows scanned for spec.">
+			<option name="Limit data rows scanned for spec">
 	          If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
 	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
 	          representative for the whole file. The "Skip first data rows"
