@@ -95,9 +95,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** string key used to save whether or not lines are skipped at the beginning */
     private static final String CFG_SKIP_LINES = "skip_lines";
 
-    /** string key used to save whether or not empty lines are being skipped */
-    private static final String CFG_SKIP_EMPTY_DATA_ROWS = "skip_empty_data_rows";
-
     /** string key used to save the value of number of lines that should be skipped */
     private static final String CFG_NUM_LINES_TO_SKIP = "num_lines_to_skip";
 
@@ -125,10 +122,22 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     public CSVTableReaderConfig() {
         m_settings = new CsvParserSettings();
         m_settings.setEmptyValue("");
-        m_settings.setSkipEmptyLines(true);
         m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
         m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
         setReplaceEmptyWithMissing(true);
+    }
+
+    /**
+     * Returns a copy of the stored the parser settings used by univocity's {@link CsvParser} and sets the skip empty
+     * option.
+     *
+     * @param skipEmpty {@code true} if empty lines should be ignored, {@code false} otherwise
+     * @return a copy of the stored parser settings
+     */
+    CsvParserSettings getSettings(final boolean skipEmpty) {
+        CsvParserSettings copy = m_settings.clone();
+        copy.setSkipEmptyLines(skipEmpty);
+        return copy;
     }
 
     /**
@@ -136,7 +145,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      *
      * @return the parser settings used
      */
-    CsvParserSettings getSettings() {
+    private CsvParserSettings getSettings() {
         return m_settings;
     }
 
@@ -145,7 +154,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      * @return the CSV reader format
      */
     private CsvFormat getFormat() {
-        return m_settings.getFormat();
+        return getSettings().getFormat();
     }
 
     /**
@@ -258,24 +267,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     }
 
     /**
-     * Checks whether or not empty lines are skipped.
-     *
-     * @return <code>true</code> if empty lines are being skipped
-     */
-    public boolean skipEmptyLines() {
-        return getSettings().getSkipEmptyLines();
-    }
-
-    /**
-     * Sets the flag on whether or not univocity's {@link CsvParser} should skip empty lines.
-     *
-     * @param selected flag indicating whether or not empty lines are skipped
-     */
-    public void setSkipEmptyLines(final boolean selected) {
-        getSettings().setSkipEmptyLines(selected);
-    }
-
-    /**
      * Sets the flag on whether or not a certain number of lines are skipped at the beginning.
      *
      * @param selected flag indicating whether or not line skipping is enforced
@@ -340,8 +331,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 1L));
 
-        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS, true));
-
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, true));
 
         setCharSetName(settings.getString(CFG_CHAR_SET_NAME, null));
@@ -359,8 +348,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setSkipLines(settings.getBoolean(CFG_SKIP_LINES));
         setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
 
-        setSkipEmptyLines(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS));
-
         setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
 
         setCharSetName(settings.getString(CFG_CHAR_SET_NAME));
@@ -377,7 +364,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.getLong(CFG_NUM_LINES_TO_SKIP);
         settings.getBoolean(CFG_SKIP_LINES);
-        settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS);
 
         settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING);
 
@@ -396,7 +382,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.addLong(CFG_NUM_LINES_TO_SKIP, getNumLinesToSkip());
         settings.addBoolean(CFG_SKIP_LINES, skipLines());
-        settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, skipEmptyLines());
 
         settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
 
@@ -415,8 +400,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         configCopy.setSkipLines(this.skipLines());
         configCopy.setNumLinesToSkip(this.getNumLinesToSkip());
-
-        configCopy.setSkipEmptyLines(this.skipEmptyLines());
 
         configCopy.setReplaceEmptyWithMissing(this.replaceEmptyWithMissing());
 

@@ -441,7 +441,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setSkipLines(m_skipFirstLinesChecker.isSelected());
         csvReaderConfig.setNumLinesToSkip((Long)m_skipFirstLinesSpinner.getValue());
 
-        csvReaderConfig.setSkipEmptyLines(m_skipEmptyDataRowsChecker.isSelected());
         csvReaderConfig.setReplaceEmptyWithMissing(m_replaceQuotedEmptyStringChecker.isSelected());
 
         FileReaderNodeSettings s = new FileReaderNodeSettings();
@@ -471,7 +470,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_hasRowIDChecker.setSelected(tableReadConfig.useRowIDIdx());
 
         m_allowShortDataRowsChecker.setSelected(tableReadConfig.allowShortRows());
-        // TODO decide where to save setting. Univocity vs TableReadConfig
+
         m_skipEmptyDataRowsChecker.setSelected(tableReadConfig.skipEmptyRows());
 
         m_skipFirstRowsChecker.setSelected(tableReadConfig.skipRows());
@@ -499,8 +498,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         m_skipFirstLinesChecker.setSelected(csvReaderConfig.skipLines());
         m_skipFirstLinesSpinner.setValue(csvReaderConfig.getNumLinesToSkip());
-
-        m_skipEmptyDataRowsChecker.setSelected(csvReaderConfig.skipEmptyLines());
 
         m_replaceQuotedEmptyStringChecker.setSelected(csvReaderConfig.replaceEmptyWithMissing());
 

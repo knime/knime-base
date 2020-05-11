@@ -117,7 +117,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
     public Read<String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-        return decorateForReading(new CsvRead(path, config.getReaderSpecificConfig()), config);
+        return decorateForReading(new CsvRead(path, config), config);
     }
 
     /**
@@ -132,14 +132,14 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     public static Read<String> read(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
-        final CsvRead read = new CsvRead(inputStream, config.getReaderSpecificConfig());
+        final CsvRead read = new CsvRead(inputStream, config);
         return decorateForReading(read, config);
     }
 
     @Override
     public ReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
-        try (final CsvRead read = new CsvRead(path, config.getReaderSpecificConfig())) {
+        try (final CsvRead read = new CsvRead(path, config)) {
             return SPEC_GUESSER.guessSpec(read, config);
         }
     }
@@ -195,35 +195,38 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * Constructor
          *
          * @param path the path of the file to read
-         * @param csvReaderConfig the CSV reader configuration.
+         * @param config the CSV table reader configuration.
          * @throws IOException if a stream can not be created from the provided file.
          */
-        CsvRead(final Path path, final CSVTableReaderConfig csvReaderConfig) throws IOException {
-            this(Files.newInputStream(path), Files.size(path), csvReaderConfig);
+        CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+            this(Files.newInputStream(path), Files.size(path), config);
         }
 
         /**
          * Constructor
          *
          * @param inputStream the {@link InputStream} to read from
-         * @param csvReaderConfig the CSV reader configuration.
+         * @param config the CSV table reader configuration.
          * @throws IOException if a stream can not be created from the provided file.
          */
-        CsvRead(final InputStream inputStream, final CSVTableReaderConfig csvReaderConfig) throws IOException {
-            this(inputStream, -1, csvReaderConfig);
+        CsvRead(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+            this(inputStream, -1, config);
         }
 
-        private CsvRead(final InputStream inputStream, final long size, final CSVTableReaderConfig csvReaderConfig)
-            throws IOException {
+        private CsvRead(final InputStream inputStream, final long size,
+            final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             m_size = size;
             m_countingStream = new CountingInputStream(inputStream);
+
+            final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
             final String charSetName = csvReaderConfig.getCharSetName();
             final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
             m_reader = BomEncodingUtils.createBufferedReader(m_countingStream, charset);
             if (csvReaderConfig.skipLines()) {
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
-            final CsvParserSettings settings = csvReaderConfig.getSettings();
+            // Univocity returns [null] for empty rows, i.e., we cannot detect empty rows using decorators
+            final CsvParserSettings settings = csvReaderConfig.getSettings(config.skipEmptyRows());
             m_parser = new CsvParser(settings);
             m_parser.beginParsing(m_reader);
         }
