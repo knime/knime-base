@@ -46,7 +46,7 @@
  * History
  *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.base;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +58,8 @@ import javax.swing.ImageIcon;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.RelativeToPath;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
 import org.knime.filehandling.core.filechooser.NioFileView;
 import org.osgi.framework.FrameworkUtil;

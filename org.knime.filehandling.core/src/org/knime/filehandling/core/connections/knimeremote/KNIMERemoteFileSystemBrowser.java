@@ -50,7 +50,7 @@ package org.knime.filehandling.core.connections.knimeremote;
 
 import javax.swing.filechooser.FileView;
 
-import org.knime.filehandling.core.connections.knimerelativeto.WorkflowAwareFileView;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
