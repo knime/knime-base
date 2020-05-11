@@ -53,7 +53,9 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Enumeration;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -70,6 +72,7 @@ import javax.swing.SpinnerNumberModel;
 
 import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
+import org.knime.base.node.io.filehandling.table.csv.reader.QuoteOption;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
@@ -146,6 +149,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final MultiTableReadConfig<CSVTableReaderConfig> m_config;
 
+    private final ButtonGroup m_quoteOptionsButtonGroup;
+
     /** Create new CsvTableReader dialog. */
     CSVTableReaderNodeDialog(final SettingsModelFileChooser2 fileChooserModel,
         final MultiTableReadConfig<CSVTableReaderConfig> config) {
@@ -204,6 +209,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
         m_maxCharsColumnChecker = new JCheckBox();
 
+        m_quoteOptionsButtonGroup = new ButtonGroup();
+
         addTab("Options", initLayout());
         addTab("Advanced Options", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
@@ -212,7 +219,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         addTab("Encoding", m_encodingPanel);
 
         m_config = config;
-
     }
 
     /**
@@ -277,12 +283,18 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     /** Creates the {@link JPanel} for the Advanced Settings Tab. */
     private JPanel createAdvancedOptionsPanel() {
         final JPanel outerPanel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbcOuter = createAndInitGBC();
-        gbcOuter.fill = GridBagConstraints.BOTH;
-        outerPanel.add(createMemoryLimitsPanel(), gbcOuter);
-        gbcOuter.gridy++;
-        gbcOuter.weighty = 1;
-        outerPanel.add(Box.createHorizontalBox(), gbcOuter);
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        outerPanel.add(createMemoryLimitsPanel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        outerPanel.add(createQuoteOptionsPanel(), gbc);
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.weightx = 0;
+        gbc.weighty = 1;
+        outerPanel.add(Box.createHorizontalBox(), gbc);
 
         return outerPanel;
     }
@@ -314,6 +326,30 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         panel.add(m_maxColsSpinner, gbc);
         ++gbc.gridy;
 
+        return panel;
+    }
+
+    /** Creates the panel allowing to set the trimming mode for quoted values. */
+    private JPanel createQuoteOptionsPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote options"));
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        for (final QuoteOption mode : QuoteOption.values()) {
+            final JRadioButton b = new JRadioButton(mode.toString());
+            b.setActionCommand(mode.name());
+            m_quoteOptionsButtonGroup.add(b);
+            panel.add(b, gbc);
+            gbc.gridx += 1;
+            gbc.weightx = 1;
+        }
         return panel;
     }
 
@@ -497,6 +533,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         csvReaderConfig.setReplaceEmptyWithMissing(m_replaceQuotedEmptyStringChecker.isSelected());
 
+        csvReaderConfig
+            .setQuoteOption(QuoteOption.valueOf(m_quoteOptionsButtonGroup.getSelection().getActionCommand()));
+
         FileReaderNodeSettings s = new FileReaderNodeSettings();
         m_encodingPanel.overrideSettings(s);
         csvReaderConfig.setCharSetName(s.getCharsetName());
@@ -506,7 +545,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_config.loadInDialog(settings);
-
         m_filePanel.loadSettingsFrom(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
@@ -558,9 +596,27 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         m_replaceQuotedEmptyStringChecker.setSelected(csvReaderConfig.replaceEmptyWithMissing());
 
+        setQuoteOption(csvReaderConfig.getQuoteOption());
+
         FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(csvReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
+    }
+
+    /**
+     * Selects the corresponding radio button for the passed mode in the {@link ButtonGroup}.
+     *
+     * @param mode the mode returned by the {@link CSVTableReaderConfig}
+     */
+    private void setQuoteOption(final QuoteOption quoteOption) {
+        final Enumeration<AbstractButton> quoteOptions = m_quoteOptionsButtonGroup.getElements();
+        while (quoteOptions.hasMoreElements()) {
+            final AbstractButton button = quoteOptions.nextElement();
+            if (QuoteOption.valueOf(button.getActionCommand()) == quoteOption) {
+                button.setSelected(true);
+                return;
+            }
+        }
     }
 
     /**

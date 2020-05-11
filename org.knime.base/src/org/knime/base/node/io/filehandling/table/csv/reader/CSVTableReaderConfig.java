@@ -66,6 +66,9 @@ import com.univocity.parsers.csv.CsvParserSettings;
  */
 public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTableReaderConfig> {
 
+    /** The default quote option. */
+    private static final QuoteOption DEFAULT_QUOTE_OPTION = QuoteOption.REMOVE_QUOTES_AND_TRIM;
+
     /**
      * According to the javadoc a value of -1 allows for auto-expansion of the array which indicates that this value
      * defines the size of the buffer array hence setting a very large value might cause memory problems. Current
@@ -118,6 +121,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      */
     private static final String CFG_LIMIT_CHARS_PER_COLUMN = "limit_chars_per_column";
 
+    /** string key used to save the trimming mode */
+    private static final String CFG_QUOTE_OPTION = "quote_option";
+
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
@@ -130,6 +136,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** Setting used to store the character set name (encoding) */
     private String m_charSet = null;
 
+    private QuoteOption m_quoteOption;
+
     /**
      * Constructor.
      */
@@ -138,9 +146,17 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         m_settings.setEmptyValue("");
         m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
         m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
+        setQuoteOption(DEFAULT_QUOTE_OPTION);
         setReplaceEmptyWithMissing(true);
         limitCharsPerColumn(true);
         setMaxColumns(DEFAULT_MAX_COLUMNS);
+    }
+
+    private CSVTableReaderConfig(final CSVTableReaderConfig toCopy) {
+        m_settings = toCopy.m_settings.clone();
+        setSkipLines(toCopy.skipLines());
+        setNumLinesToSkip(toCopy.getNumLinesToSkip());
+        setCharSetName(toCopy.getCharSetName());
     }
 
     /**
@@ -319,6 +335,26 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     }
 
     /**
+     * Sets the quote selected to the {@link CsvParserSettings}.
+     *
+     * @param quoteOption the {@link QuoteOption} to apply to the {@link CsvParserSettings}
+     */
+    public void setQuoteOption(final QuoteOption quoteOption) {
+        m_quoteOption = quoteOption;
+        getSettings().setKeepQuotes(m_quoteOption.keepQuotes());
+        getSettings().trimQuotedValues(m_quoteOption.trimQuotedValues());
+    }
+
+    /**
+     * Returns the {@link QuoteOption}.
+     *
+     * @return the {@link QuoteOption}
+     */
+    public QuoteOption getQuoteOption() {
+        return m_quoteOption;
+    }
+
+    /**
      * Gets the character set name (encoding) used to read files.
      *
      * @return the character set name (encoding), or <code>null</code> if the default character set should be used.
@@ -396,6 +432,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setMaxColumns(settings.getInt(CFG_MAX_COLUMNS, DEFAULT_MAX_COLUMNS));
 
         limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN, true));
+
+        setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION, DEFAULT_QUOTE_OPTION.name())));
     }
 
     @Override
@@ -416,6 +454,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         setMaxColumns(settings.getInt(CFG_MAX_COLUMNS));
         limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN));
+
+        setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION)));
     }
 
     @Override
@@ -436,6 +476,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.getInt(CFG_MAX_COLUMNS);
         settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN);
+
+        settings.getString(CFG_QUOTE_OPTION);
     }
 
     @Override
@@ -456,29 +498,13 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
         settings.addInt(CFG_MAX_COLUMNS, getMaxColumns());
         settings.addBoolean(CFG_LIMIT_CHARS_PER_COLUMN, isCharsPerColumnLimited());
+
+        settings.addString(CFG_QUOTE_OPTION, getQuoteOption().name());
     }
 
     @Override
     public CSVTableReaderConfig copy() {
-        CSVTableReaderConfig configCopy = new CSVTableReaderConfig();
-        configCopy.setDelimiter(this.getDelimiter());
-        configCopy.setLineSeparator(this.getLineSeparator());
-
-        configCopy.setQuote(this.getQuote());
-        configCopy.setQuoteEscape(this.getQuoteEscape());
-        configCopy.setComment(this.getComment());
-
-        configCopy.setSkipLines(this.skipLines());
-        configCopy.setNumLinesToSkip(this.getNumLinesToSkip());
-
-        configCopy.setReplaceEmptyWithMissing(this.replaceEmptyWithMissing());
-
-        configCopy.setCharSetName(this.getCharSetName());
-
-        configCopy.setMaxColumns(this.getMaxColumns());
-        configCopy.limitCharsPerColumn(this.isCharsPerColumnLimited());
-
-        return configCopy;
+        return new CSVTableReaderConfig(this);
     }
 
     /**

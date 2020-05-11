@@ -121,6 +121,12 @@
 				prevent memory exhaustion. The node will fail if the number of columns
 				exceed the set limit.
 			</option>
+			<option name="Quote options">
+				<ul>
+					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value and the whitespaces within the quotes will be trimmed.</li>
+					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
+				</ul>
+			</option>
 		</tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
