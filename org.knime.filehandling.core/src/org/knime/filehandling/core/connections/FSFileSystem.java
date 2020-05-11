@@ -72,18 +72,24 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
  */
 public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
 
-    private final Choice m_fsChoice;
-
-    private final Optional<String> m_fsSpecifier;
+    /**
+     * The {@link FSLocationSpec} that describes this file system.
+     */
+    private final FSLocationSpec m_fsLocationSpec;
 
     /**
      * The working directory, which allows the file system provider methods to resolve paths to absolute ones.
      */
     private final String m_workingDirectory;
 
-    public FSFileSystem(final Choice fsChoice, final Optional<String> fsSpecifier, final String workingDir) {
-        m_fsChoice = fsChoice;
-        m_fsSpecifier = fsSpecifier;
+    /**
+     * Creates a new instance.
+     *
+     * @param fsLocationSpec An {@link FSLocationSpec} that characterizes this file system.
+     * @param workingDir The working directory to use (see {@link #getWorkingDirectory()}).
+     */
+    public FSFileSystem(final FSLocationSpec fsLocationSpec, final String workingDir) {
+        m_fsLocationSpec = fsLocationSpec;
         m_workingDirectory = workingDir;
     }
 
@@ -93,7 +99,7 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      * @return the file system choice.
      */
     public final Choice getFileSystemChoice() {
-        return m_fsChoice;
+        return m_fsLocationSpec.getFileSystemChoice();
     }
 
     /**
@@ -102,7 +108,7 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      * @return the file system specifier.
      */
     public final Optional<String> getFileSystemSpecifier() {
-        return m_fsSpecifier;
+        return m_fsLocationSpec.getFileSystemSpecifier();
     }
 
     /**
@@ -164,7 +170,7 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     @Override
-    public abstract FSFileSystemProvider provider();
+    public abstract FSFileSystemProvider<T, ?> provider();
 
     @Override
     public abstract T getPath(String first, String... more);

@@ -59,9 +59,9 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -77,7 +77,7 @@ class LocalFileSystem extends FSFileSystem<LocalPath> {
     private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
 
     private LocalFileSystem() {
-        super(Choice.LOCAL_FS, Optional.empty(), System.getProperty("user.dir"));
+        super(new DefaultFSLocationSpec(Choice.LOCAL_FS), System.getProperty("user.dir"));
     }
 
     @Override

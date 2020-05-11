@@ -76,7 +76,7 @@ import org.knime.filehandling.core.filechooser.NioFile;
  * @author Mareike Hoeger, KNIME GmbH
  * @since 4.2
  */
-public abstract class UnixStylePath implements FSPath {
+public abstract class UnixStylePath extends FSPath {
 
     /** Constant for the to parent string */
     protected static final String TO_PARENT = "..";
@@ -99,7 +99,7 @@ public abstract class UnixStylePath implements FSPath {
      * @param fileSystem the file system
      * @param pathString path String
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "resource"})
     public UnixStylePath(final BaseFileSystem<?> fileSystem, final String pathString) {
         CheckUtils.checkNotNull(fileSystem, "FileSystem must not be null.");
         CheckUtils.checkNotNull(pathString, "Path string must not be null.");

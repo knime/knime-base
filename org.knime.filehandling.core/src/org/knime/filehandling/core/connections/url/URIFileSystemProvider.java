@@ -112,7 +112,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
 
     @Override
     public URIFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new URIFileSystem(this, uri, false);
+        return new URIFileSystem(this, uri, false, m_timeoutInMillis);
     }
 
     @SuppressWarnings("resource")

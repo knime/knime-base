@@ -67,12 +67,13 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.Validate;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.attributes.AttributesCache;
 import org.knime.filehandling.core.connections.base.attributes.BaseAttributesCache;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCache;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Base implementation of {@FileSystem}.
@@ -103,10 +104,9 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         final URI uri,
         final long cacheTTL,
         final String workingDirectory,
-        final Choice fsChoice,
-        final Optional<String> fsSpecifier) {
+        final FSLocationSpec fsLocationSpec) {
 
-        super(fsChoice, fsSpecifier, workingDirectory);
+        super(fsLocationSpec, workingDirectory);
 
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
         Validate.notNull(uri, "URI must not be null.");
@@ -120,11 +120,8 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public BaseFileSystemProvider<T, BaseFileSystem<T>> provider() {
+    public FSFileSystemProvider<T, ?> provider() {
         return m_fileSystemProvider;
     }
 

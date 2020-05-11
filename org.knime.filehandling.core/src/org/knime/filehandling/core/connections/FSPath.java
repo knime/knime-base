@@ -51,17 +51,27 @@ package org.knime.filehandling.core.connections;
 import java.nio.file.Path;
 
 /**
+ * Abstract super class for implemented by all NIO file systems in KNIME to represent paths. This class adds conversion
+ * to {@link FSLocation} (see {@link #toFSLocation()}.
+ *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @since 4.2
  */
-public interface FSPath extends Path {
+public abstract class FSPath implements Path {
 
     @Override
-    public FSFileSystem<? extends FSPath> getFileSystem();
+    public abstract FSFileSystem<? extends FSPath> getFileSystem();
 
+    /**
+     * Converts this path into an {@link FSLocation} object.
+     *
+     * @return a new {@link FSLocation} object
+     * @see FSFileSystem#getPath(FSLocation)
+     */
     @SuppressWarnings("resource")
-    public default FSLocation toFSLocation() {
+    public FSLocation toFSLocation() {
         final FSFileSystem<?> fs = getFileSystem();
-        return new FSLocation(fs.getFileSystemChoice().toString(), fs.getFileSystemSpecifier().orElseGet(() -> null), toString());
+        return new FSLocation(fs.getFileSystemChoice().toString(), fs.getFileSystemSpecifier().orElseGet(() -> null),
+            toString());
     }
 }

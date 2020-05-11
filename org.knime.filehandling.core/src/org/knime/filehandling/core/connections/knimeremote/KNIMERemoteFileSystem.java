@@ -51,8 +51,9 @@ package org.knime.filehandling.core.connections.knimeremote;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Optional;
 
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -76,16 +77,22 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      * @param provider
      * @param baseLocation
      */
-    public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation, final boolean isConnectedFs) {
+    public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation,
+        final boolean isConnectedFs) {
         super(provider, //
             baseLocation, //
-            0,
-            PATH_SEPARATOR,
-            isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_MOUNTPOINT,//
-            Optional.of(baseLocation.getHost()));
+            0, //
+            PATH_SEPARATOR, //
+            createFSLocationSpec(isConnectedFs, baseLocation));
 
         m_mountpoint = baseLocation;
         m_workingDirectory = getPath(PATH_SEPARATOR);
+    }
+
+    private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final URI baseLocation) {
+        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_MOUNTPOINT;
+        final String specifier = baseLocation.getHost();
+        return new DefaultFSLocationSpec(choice, specifier);
     }
 
     @Override

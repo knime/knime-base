@@ -52,10 +52,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
@@ -71,16 +72,23 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
     private final URIPath m_workingDirectory;
 
-    URIFileSystem(final URIFileSystemProvider provider, final URI uri, final boolean isConnectedFs) {
-        super(provider,//
-            toBaseURI(uri),//
-            0L,//
-            PATH_SEPARATOR,
-            isConnectedFs ? Choice.CONNECTED_FS : Choice.CUSTOM_URL_FS,//
-            Optional.empty());
+    URIFileSystem(final URIFileSystemProvider provider, final URI uri, final boolean isConnectedFs,
+        final int timeoutInMillis) {
+
+        super(provider, //
+            toBaseURI(uri), //
+            0L, //
+            PATH_SEPARATOR, //
+            createFSLocationSpec(isConnectedFs, timeoutInMillis));
 
         m_baseUri = toBaseURI(uri);
         m_workingDirectory = getPath(PATH_SEPARATOR);
+    }
+
+    private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final int timeoutInMillis) {
+        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.CUSTOM_URL_FS;
+        final String specifier = Integer.toString(timeoutInMillis);
+        return new DefaultFSLocationSpec(choice, specifier);
     }
 
     /**

@@ -144,7 +144,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
-    @SuppressWarnings({"unchecked", "resource"})
+    @SuppressWarnings({"resource"})
     @Override
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {

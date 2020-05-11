@@ -55,8 +55,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -98,29 +99,32 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
      *            ({@link Choice#KNIME_FS})
      * @throws IOException
      */
-    protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider,
-        final URI uri,
-        final LocalRelativeToPathConfig pathConfig,
-        final boolean isConnectedFs) throws IOException {
+    protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider, final URI uri,
+        final LocalRelativeToPathConfig pathConfig, final boolean isConnectedFs) throws IOException {
 
         super(fileSystemProvider, //
             uri, //
             CACHE_TTL, //
-            pathConfig.getWorkingDirectory(),
-            isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_FS,//
-            Optional.of(pathConfig.getType() == Type.MOUNTPOINT_RELATIVE ? "mountpoint" : "workflow"));
+            pathConfig.getWorkingDirectory(), //
+            createFSLocationSpec(isConnectedFs, pathConfig.getType()));
 
         m_scheme = uri.getScheme();
         m_hostString = uri.getHost();
         m_pathConfig = pathConfig;
 
         final FileStore localFileStore = Files.getFileStore(pathConfig.getLocalMountpointFolder());
-        final String fsType =
-                pathConfig.getType() == Type.MOUNTPOINT_RELATIVE ? MOUNTPOINT_REL_FILE_STORE_TYPE : WORKFLOW_REL_FILE_STORE_TYPE;
-        m_fileStores = Collections.unmodifiableList(Collections.singletonList(
-                new BaseFileStore(fsType, "default_file_store", localFileStore.isReadOnly(),
-                    localFileStore.getTotalSpace(), localFileStore.getUsableSpace())));
+        final String fsType = pathConfig.getType() == Type.MOUNTPOINT_RELATIVE ? MOUNTPOINT_REL_FILE_STORE_TYPE
+            : WORKFLOW_REL_FILE_STORE_TYPE;
+        m_fileStores =
+            Collections.unmodifiableList(Collections.singletonList(new BaseFileStore(fsType, "default_file_store",
+                localFileStore.isReadOnly(), localFileStore.getTotalSpace(), localFileStore.getUsableSpace())));
 
+    }
+
+    private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final Type type) {
+        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_FS;
+        final String specifier = type == Type.MOUNTPOINT_RELATIVE ? "knime.mountpoint" : "knime.workflow";
+        return new DefaultFSLocationSpec(choice, specifier);
     }
 
     @Override
