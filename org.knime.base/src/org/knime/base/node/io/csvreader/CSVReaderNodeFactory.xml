@@ -51,13 +51,6 @@
 	          Select this box if some rows may be shorter than others (filled with missings).  
 			</option>
 		</tab>
-	    <tab name="CSV Reader Encoding">
-	        <option name="Encoding">
-	            To read a csv file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
-	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
-	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
-	        </option>
-        </tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
 	          If enabled, the specified number of lines are skipped in the input file before the parsing starts.   
@@ -70,6 +63,13 @@
 	          If enabled, only the specified number of input <i>lines</i> are used to analyze the file (i.e to determine
 	          the column types). This option is recommended for long files where the first <i>n</i> lines are representative for the whole file.
 			</option>
+        </tab>
+      	<tab name="CSV Reader Encoding">
+	        <option name="Encoding">
+	            To read a csv file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
+	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
+	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
+	        </option>
         </tab>
 		
 	</fullDescription>
