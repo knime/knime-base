@@ -44,103 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Apr 24, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections;
 
-import java.io.IOException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
+ * Interface that provides information about the kind of file system that a {@link FSLocation} requires.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @see FSLocation
+ * @since 4.2
  */
-class LocalFileSystem extends FSFileSystem<LocalPath> {
+public interface FSLocationSpec {
 
-    public static final LocalFileSystem INSTANCE = new LocalFileSystem();
+    /**
+     * Returns the file system type.
+     *
+     * @return the file system type
+     */
+    String getFileSystemType();
 
-    private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
-
-    private LocalFileSystem() {
-        super(Choice.LOCAL_FS, Optional.empty(), System.getProperty("user.dir"));
+    /**
+     * Returns the {@link Choice file system choice}.
+     *
+     * @return the file system choice
+     */
+    default Choice getFileSystemChoice() {
+        return FileSystemChoice.Choice.valueOf(getFileSystemType());
     }
 
-    @Override
-    public FSFileSystemProvider provider() {
-        return LocalFileSystemProvider.INSTANCE;
-    }
+    /**
+     * Returns the optional file system specifier.
+     *
+     * @return the file system specifier
+     */
+    Optional<String> getFileSystemSpecifier();
 
-    @Override
-    public LocalPath getPath(final String first, final String... more) {
-        return new LocalPath(Paths.get(first, more));
-    }
-
-    @Override
-    public boolean isOpen() {
-        return DEFAULT_FS.isOpen();
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return DEFAULT_FS.isReadOnly();
-    }
-
-    @Override
-    public String getSeparator() {
-        return DEFAULT_FS.getSeparator();
-    }
-
-    @Override
-    public Iterable<Path> getRootDirectories() {
-        final List<Path> roots = new ArrayList<>();
-        for (Path localRoot : DEFAULT_FS.getRootDirectories()) {
-            roots.add(new LocalPath(localRoot));
-        }
-        return roots;
-    }
-
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return DEFAULT_FS.getFileStores();
-    }
-
-    @Override
-    public Set<String> supportedFileAttributeViews() {
-        return DEFAULT_FS.supportedFileAttributeViews();
-    }
-
-    @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        return DEFAULT_FS.getPathMatcher(syntaxAndPattern);
-    }
-
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        return DEFAULT_FS.getUserPrincipalLookupService();
-    }
-
-    @Override
-    public WatchService newWatchService() throws IOException {
-        return DEFAULT_FS.newWatchService();
-    }
-
-    @Override
-    protected void ensureClosed() throws IOException {
-        // do nothing
-    }
 }

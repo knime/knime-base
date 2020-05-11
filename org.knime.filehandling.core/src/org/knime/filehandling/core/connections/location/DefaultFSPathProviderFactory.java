@@ -44,103 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Apr 24, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSFileSystemProvider;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 
 /**
+ * Generic {@link FSPathProviderFactory} implementation that ties the lifecycle of the
+ * underlying {@link FSConnection} to the auto-close behavior.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-class LocalFileSystem extends FSFileSystem<LocalPath> {
+final class DefaultFSPathProviderFactory extends FSPathProviderFactory {
 
-    public static final LocalFileSystem INSTANCE = new LocalFileSystem();
+    private final FSConnection m_fsConnection;
 
-    private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
+    private class DefaultFSPathProvider implements FSPathProvider {
 
-    private LocalFileSystem() {
-        super(Choice.LOCAL_FS, Optional.empty(), System.getProperty("user.dir"));
-    }
+        private final FSLocation m_fsLocation;
 
-    @Override
-    public FSFileSystemProvider provider() {
-        return LocalFileSystemProvider.INSTANCE;
-    }
-
-    @Override
-    public LocalPath getPath(final String first, final String... more) {
-        return new LocalPath(Paths.get(first, more));
-    }
-
-    @Override
-    public boolean isOpen() {
-        return DEFAULT_FS.isOpen();
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return DEFAULT_FS.isReadOnly();
-    }
-
-    @Override
-    public String getSeparator() {
-        return DEFAULT_FS.getSeparator();
-    }
-
-    @Override
-    public Iterable<Path> getRootDirectories() {
-        final List<Path> roots = new ArrayList<>();
-        for (Path localRoot : DEFAULT_FS.getRootDirectories()) {
-            roots.add(new LocalPath(localRoot));
+        DefaultFSPathProvider(final FSLocation fsLocation) {
+            m_fsLocation = fsLocation;
         }
-        return roots;
+
+        @Override
+        public void close() throws IOException {
+            // do nothing
+        }
+
+        @SuppressWarnings("resource")
+        @Override
+        public FSPath getPath() {
+            return m_fsConnection.getFileSystem().getPath(m_fsLocation);
+        }
+
+    }
+
+    public DefaultFSPathProviderFactory(final FSConnection fsConnection) {
+        m_fsConnection = fsConnection;
     }
 
     @Override
-    public Iterable<FileStore> getFileStores() {
-        return DEFAULT_FS.getFileStores();
+    public void close() throws IOException {
+        m_fsConnection.close();
     }
 
     @Override
-    public Set<String> supportedFileAttributeViews() {
-        return DEFAULT_FS.supportedFileAttributeViews();
-    }
-
-    @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        return DEFAULT_FS.getPathMatcher(syntaxAndPattern);
-    }
-
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        return DEFAULT_FS.getUserPrincipalLookupService();
-    }
-
-    @Override
-    public WatchService newWatchService() throws IOException {
-        return DEFAULT_FS.newWatchService();
-    }
-
-    @Override
-    protected void ensureClosed() throws IOException {
-        // do nothing
+    public FSPathProvider create(final FSLocation fsLocation) {
+        return new DefaultFSPathProvider(fsLocation);
     }
 }

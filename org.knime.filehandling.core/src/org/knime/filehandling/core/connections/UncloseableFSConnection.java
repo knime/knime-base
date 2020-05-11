@@ -44,34 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2020 (bjoern): created
+ *   Apr 17, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.Map;
+import org.knime.core.node.util.FileSystemBrowser;
 
 /**
- * Abstract super class implemented by all NIO file system providers in KNIME. This class adds generics to make file
- * systems more convenient to implement (fewer type casts are required).
+ * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @param <P> The type of path that this file system provider works with.
- * @param <F> The file system type of this provider.
- * @since 4.2
  */
-public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSystem<P>> extends FileSystemProvider {
+class UncloseableFSConnection implements FSConnection {
+
+    private final FSConnection m_wrapped;
 
     @Override
-    public abstract F newFileSystem(URI uri, Map<String,?> env)
-            throws IOException;
+    public final void close() {
+        // do nothing
+    }
+
+    /**
+     * Creates new instance.
+     *
+     * @param wrapped The actual {@link FSConnection} to wrap.
+     */
+    UncloseableFSConnection(final FSConnection wrapped) {
+        m_wrapped = wrapped;
+    }
 
     @Override
-    public abstract F getFileSystem(URI uri);
+    public FSFileSystem<?> getFileSystem() {
+        return m_wrapped.getFileSystem();
+    }
 
     @Override
-    public abstract P getPath(URI uri);
-
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_wrapped.getFileSystemBrowser();
+    }
 }

@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
@@ -142,6 +143,25 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
     @Override
     public Set<String> supportedFileAttributeViews() {
         return Collections.singleton("basic");
+    }
+
+    @Override
+    public URIPath getPath(final FSLocation fsLocation) {
+        checkCompatibility(fsLocation);
+        final URI uri = URI.create(fsLocation.getPath().replace(" ", "%20"));
+
+        final StringBuilder pathBuilder = new StringBuilder(uri.getPath());
+
+        if (uri.getQuery() != null) {
+            pathBuilder.append("?");
+            pathBuilder.append(uri.getQuery());
+        }
+
+        if (uri.getFragment() != null) {
+            pathBuilder.append("#");
+            pathBuilder.append(uri.getFragment());
+        }
+        return getPath(pathBuilder.toString());
     }
 
     @Override

@@ -127,14 +127,10 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         return m_fileSystemProvider;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void close() throws IOException {
+    public void ensureClosed() throws IOException {
         try {
             prepareClose();
-
         } finally {
 
             final ArrayList<Closeable> valuesCopy = new ArrayList<>(m_closeables.values());

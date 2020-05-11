@@ -48,17 +48,37 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.util.Optional;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
+/**
+ * Abstract super class implemented by all NIO file systems provided in KNIME. This class adds the following features on
+ * top of the vanilla NIO {@link FileSystem}:
+ *
+ * <ul>
+ * <li>Usage of generics (makes file systems more convenient to implement)</li>
+ * <li>Support for a working directory (see {@link #getWorkingDirectory()})</li>
+ * <li>Support for {@link FSLocation} (see {@link #getPath(FSLocation)} and
+ * {@link #checkCompatibility(FSLocationSpec)})</li>
+ * </ul>
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @param <T> The type of path that this file system works with.
+ * @since 4.2
+ */
 public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
 
     private final Choice m_fsChoice;
 
     private final Optional<String> m_fsSpecifier;
 
+    /**
+     * The working directory, which allows the file system provider methods to resolve paths to absolute ones.
+     */
     private final String m_workingDirectory;
 
     public FSFileSystem(final Choice fsChoice, final Optional<String> fsSpecifier, final String workingDir) {
@@ -67,13 +87,42 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
         m_workingDirectory = workingDir;
     }
 
-    public Choice getFileSystemChoice() {
+    /**
+     * Returns the {@link Choice file system choice}.
+     *
+     * @return the file system choice.
+     */
+    public final Choice getFileSystemChoice() {
         return m_fsChoice;
     }
 
-    public Optional<String> getFileSystemSpecifier() {
+    /**
+     * Returns the optional file system specifier.
+     *
+     * @return the file system specifier.
+     */
+    public final Optional<String> getFileSystemSpecifier() {
         return m_fsSpecifier;
     }
+
+    /**
+     * Does nothing, since a file system must only be closed by the connection node that instantiated it. Nodes that
+     * only *use* a file system should invoke {@link FSConnection#close()} on the respective {@link FSConnection} object
+     * to release any blocked resources.
+     */
+    @Override
+    public final void close() throws IOException {
+        // do nothing
+    }
+
+    /**
+     * Actually closes this file system and releases any blocked resources (streams, etc). This method must only be
+     * called by the connection node, which has control of the file system lifecycle (hence the reduced visibility).
+     * Implementations are free to increase method visibility for their purposes.
+     *
+     * @throws IOException when something went wrong while closing the file system.
+     */
+    protected abstract void ensureClosed() throws IOException;
 
     /**
      * Each file system has a working directory, aka current directory. The working directory allows users of the file
@@ -87,12 +136,30 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
         return getPath(m_workingDirectory);
     }
 
-    public T getPath(final FSLocation fsLocation) {
-        if (fsLocation.equals(FSLocation.NULL) || fsLocation.getFileSystemChoice() != m_fsChoice) {
-            throw new IllegalArgumentException(
-                String.format("Only FSLocations of type %s are allowed.", Choice.KNIME_FS));
-        }
+    /**
+     * Checks whether this this file system instance is compatible with {@link FSLocation} objects that have the given
+     * {@link FSLocationSpec}.
+     *
+     * @param fsLocationSpec The {@link FSLocationSpec} to check for compatibility.
+     */
+    public void checkCompatibility(final FSLocationSpec fsLocationSpec) {
+        CheckUtils.checkArgument(
+            fsLocationSpec.getFileSystemType() != null && fsLocationSpec.getFileSystemChoice() == getFileSystemChoice(),
+            String.format("Only FSLocations of type %s are allowed with this file system.", getFileSystemChoice()));
 
+        CheckUtils.checkArgument(
+            getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier()),
+            String.format("Only FSLocations with specifier %s are allowed with this file system.", getFileSystemSpecifier()));
+    }
+
+    /**
+     * Converts the given {@link FSLocation} to a path object.
+     *
+     * @param fsLocation The {@link FSLocation} to convert.
+     * @return the path object.
+     */
+    public T getPath(final FSLocation fsLocation) {
+        checkCompatibility(fsLocation);
         return getPath(fsLocation.getPath());
     }
 
@@ -101,5 +168,4 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
 
     @Override
     public abstract T getPath(String first, String... more);
-
 }

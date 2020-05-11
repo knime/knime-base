@@ -44,24 +44,22 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 21, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   May 7, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections;
 
-import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
- * Object encapsulating all information required to convert between {@link Path} and {@link FSLocationCell}.
+ * Default implementation of {@link FSLocationSpec}, to be used when there is no other object available. This class is
+ * mostly only useful for file system implementations.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @since 4.2
  */
-public final class FSLocation implements FSLocationSpec {
+public class DefaultFSLocationSpec implements FSLocationSpec {
 
     /** The file system type. */
     private final String m_fileSystemType;
@@ -69,58 +67,43 @@ public final class FSLocation implements FSLocationSpec {
     /** The optional file system specifier. */
     private final Optional<String> m_fileSystemSpecifier;
 
-    /** The actual path to the file/folder. */
-    private final String m_path;
-
-    private Integer m_hashCode;
-
     /**
-     * Represents the null object for {@link FSLocation}.
-     */
-    public static final FSLocation NULL = new FSLocation();
-
-    private FSLocation() {
-        m_fileSystemType = null;
-        m_fileSystemSpecifier = Optional.empty();
-        m_path = null;
-    }
-
-    /**
-     * Constructor.
+     * Creates a new instance.
      *
-     * @param fsType the file system type
-     * @param path the path to the file/folder
+     * @param fileSystemType The file system type.
+     * @param fileSystemSpecifier The optional file system specifier (may be null).
      */
-    public FSLocation(final String fsType, final String path) {
-        this(fsType, null, path);
+    public DefaultFSLocationSpec(final String fileSystemType, final String fileSystemSpecifier) {
+        m_fileSystemType = fileSystemType;
+        m_fileSystemSpecifier = Optional.ofNullable(fileSystemSpecifier);
     }
 
     /**
-     * Constructor.
+     * Creates a new instance with an empty file system specifier.
      *
-     * @param fsType the file system type
-     * @param fsSpecifier the file system specifier, can be {@code null}.
-     * @param path the path to the file/folder
-     * @throws IllegalArgumentException if {@code fsType} or {@code path} is {@code null}
+     * @param fileSystemType The file system type.
      */
-    public FSLocation(final String fsType, final String fsSpecifier, final String path) {
-        m_fileSystemType = CheckUtils.checkArgumentNotNull(fsType, "The file system type must not be null.");
-        m_fileSystemSpecifier = Optional.ofNullable(fsSpecifier);
-        m_path = CheckUtils.checkArgumentNotNull(path, "The path must not be null.");
+    public DefaultFSLocationSpec(final String fileSystemType) {
+        this(fileSystemType, null);
     }
 
     /**
-     * Returns the path to the file/folder.
+     * Creates a new instance.
      *
-     * @return path to the file/folder.
+     * @param fileSystemChoice The file system type as a {@link Choice}.
+     * @param fileSystemSpecifier The optional file system specifier (may be null).
      */
-    public String getPath() {
-        return m_path;
+    public DefaultFSLocationSpec(final Choice fileSystemChoice, final String fileSystemSpecifier) {
+        this(fileSystemChoice.toString(), fileSystemSpecifier);
     }
 
-    @Override
-    public Optional<String> getFileSystemSpecifier() {
-        return m_fileSystemSpecifier;
+    /**
+     * Creates a new instance with an empty file system specifier.
+     *
+     * @param fileSystemChoice The file system type as a {@link Choice}.
+     */
+    public DefaultFSLocationSpec(final Choice fileSystemChoice) {
+        this(fileSystemChoice, null);
     }
 
     @Override
@@ -129,34 +112,7 @@ public final class FSLocation implements FSLocationSpec {
     }
 
     @Override
-    public String toString() {
-        return this == NULL ? "NULL" : m_path;
+    public Optional<String> getFileSystemSpecifier() {
+        return m_fileSystemSpecifier;
     }
-
-    @Override
-    public int hashCode() {
-        if (m_hashCode == null) {
-            m_hashCode = new HashCodeBuilder().append(m_fileSystemType).append(m_fileSystemSpecifier).append(m_path)
-                .toHashCode();
-        }
-        return m_hashCode;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FSLocation fsLocation = (FSLocation)obj;
-        return Objects.equals(m_fileSystemType, fsLocation.m_fileSystemType)
-            && Objects.equals(m_fileSystemSpecifier, fsLocation.m_fileSystemSpecifier)
-            && Objects.equals(m_path, fsLocation.m_path);
-    }
-
 }

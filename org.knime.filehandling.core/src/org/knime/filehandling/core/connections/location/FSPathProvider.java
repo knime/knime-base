@@ -44,34 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2020 (bjoern): created
+ *   Apr 24, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 
 /**
- * Abstract super class implemented by all NIO file system providers in KNIME. This class adds generics to make file
- * systems more convenient to implement (fewer type casts are required).
+ * Interface that provides a {@link FSPath} object. Since a {@link FSPath} object is always linked to a file system and
+ * file system provider, which may block system resources (open streams, sockets, etc), this interface is also an
+ * {@link AutoCloseable}. Invoking {@link #close()} will release any such blocked resources.
+ *
+ * <p>
+ * The main use case of this interface are corner cases when you need to create a lot of {@link FSPath} instances, where
+ * each one is linked to ad-hoc file system. In this case, this interface provides a way to close the ad-hoc file
+ * system. The more common case however, is that all {@link FSPathProvider}s from the same factory share the same file
+ * system instance. Note that the concrete behavior is an implementation detail of the concrete
+ * {@link FSPathProviderFactory}.
+ * </p>
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @param <P> The type of path that this file system provider works with.
- * @param <F> The file system type of this provider.
+ * @see FSPathProviderFactory
  * @since 4.2
  */
-public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSystem<P>> extends FileSystemProvider {
+public interface FSPathProvider extends AutoCloseable {
+
+    /**
+     * Provides an {@link FSPath} that corresponds to the {@link FSLocation} that was used
+     * to create this {@link FSPathProvider} instance.
+     *
+     * @return the path instance for the underlying {@link FSLocation}.
+     * @see FSPathProviderFactory#create(FSLocation)
+     */
+    FSPath getPath();
 
     @Override
-    public abstract F newFileSystem(URI uri, Map<String,?> env)
-            throws IOException;
-
-    @Override
-    public abstract F getFileSystem(URI uri);
-
-    @Override
-    public abstract P getPath(URI uri);
-
+    void close() throws IOException;
 }

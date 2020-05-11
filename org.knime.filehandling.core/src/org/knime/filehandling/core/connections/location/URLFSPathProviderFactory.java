@@ -44,103 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Apr 24, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.WatchService;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.net.URI;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSFileSystemProvider;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.url.URIFSConnection;
 
 /**
+ * Concrete path provider factory for Custom URL.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-class LocalFileSystem extends FSFileSystem<LocalPath> {
-
-    public static final LocalFileSystem INSTANCE = new LocalFileSystem();
-
-    private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
-
-    private LocalFileSystem() {
-        super(Choice.LOCAL_FS, Optional.empty(), System.getProperty("user.dir"));
-    }
+final class URLFSPathProviderFactory extends FSPathProviderFactory {
 
     @Override
-    public FSFileSystemProvider provider() {
-        return LocalFileSystemProvider.INSTANCE;
+    public void close() throws IOException {
+        // do nothing, the FSConnection is created ad-hoc for each FSLocation and
+        // closed by the FSPathProvider
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public LocalPath getPath(final String first, final String... more) {
-        return new LocalPath(Paths.get(first, more));
-    }
-
-    @Override
-    public boolean isOpen() {
-        return DEFAULT_FS.isOpen();
-    }
-
-    @Override
-    public boolean isReadOnly() {
-        return DEFAULT_FS.isReadOnly();
-    }
-
-    @Override
-    public String getSeparator() {
-        return DEFAULT_FS.getSeparator();
-    }
-
-    @Override
-    public Iterable<Path> getRootDirectories() {
-        final List<Path> roots = new ArrayList<>();
-        for (Path localRoot : DEFAULT_FS.getRootDirectories()) {
-            roots.add(new LocalPath(localRoot));
+    public FSPathProvider create(final FSLocation fsLocation) {
+        final int timeout;
+        if (fsLocation.getFileSystemSpecifier().isPresent()) {
+            timeout = Integer.parseInt(fsLocation.getFileSystemSpecifier().get());
+        } else {
+            timeout = FileUtil.getDefaultURLTimeoutMillis();
         }
-        return roots;
-    }
 
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return DEFAULT_FS.getFileStores();
-    }
+        final URI uri = URI.create(fsLocation.getPath().replace(" ", "%20"));
+        final FSConnection fsConnection = new URIFSConnection(uri, timeout);
 
-    @Override
-    public Set<String> supportedFileAttributeViews() {
-        return DEFAULT_FS.supportedFileAttributeViews();
-    }
+        return new FSPathProvider() {
 
-    @Override
-    public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        return DEFAULT_FS.getPathMatcher(syntaxAndPattern);
-    }
+            @Override
+            public void close() throws IOException {
+                fsConnection.close();
+            }
 
-    @Override
-    public UserPrincipalLookupService getUserPrincipalLookupService() {
-        return DEFAULT_FS.getUserPrincipalLookupService();
-    }
-
-    @Override
-    public WatchService newWatchService() throws IOException {
-        return DEFAULT_FS.newWatchService();
-    }
-
-    @Override
-    protected void ensureClosed() throws IOException {
-        // do nothing
+            @Override
+            public FSPath getPath() {
+                return fsConnection.getFileSystem().getPath(fsLocation);
+            }
+        };
     }
 }

@@ -48,12 +48,15 @@
  */
 package org.knime.filehandling.core.data.location;
 
+import java.util.Optional;
+
 import org.knime.core.data.meta.DataColumnMetaData;
 import org.knime.core.data.meta.DataColumnMetaDataSerializer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * Holds the information about the file system type and specifier in form of Strings.
@@ -61,7 +64,7 @@ import org.knime.core.node.util.CheckUtils;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class FSLocationValueMetaData implements DataColumnMetaData {
+public final class FSLocationValueMetaData implements DataColumnMetaData, FSLocationSpec {
 
     static final String CFG_FS_TYPE = "fs_type";
 
@@ -87,6 +90,7 @@ public final class FSLocationValueMetaData implements DataColumnMetaData {
      *
      * @return the file system type
      */
+    @Override
     public String getFileSystemType() {
         return m_fileSystemType;
     }
@@ -96,8 +100,9 @@ public final class FSLocationValueMetaData implements DataColumnMetaData {
      *
      * @return the file system specifier, can be {@code null}
      */
-    public String getFileSystemSpecifier() {
-        return m_fileSystemSpecifier;
+    @Override
+    public Optional<String> getFileSystemSpecifier() {
+        return Optional.ofNullable(m_fileSystemSpecifier);
     }
 
     /**
@@ -111,7 +116,7 @@ public final class FSLocationValueMetaData implements DataColumnMetaData {
         public void save(final FSLocationValueMetaData metaData, final ConfigWO config) {
             CheckUtils.checkNotNull(metaData, "The meta data provided to the serializer was null.");
             config.addString(CFG_FS_TYPE, metaData.getFileSystemType());
-            config.addString(CFG_FS_SPECIFIER, metaData.getFileSystemSpecifier());
+            config.addString(CFG_FS_SPECIFIER, metaData.getFileSystemSpecifier().orElse(null));
         }
 
         @Override

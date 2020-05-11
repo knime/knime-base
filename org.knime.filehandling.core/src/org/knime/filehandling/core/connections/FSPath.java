@@ -52,6 +52,7 @@ import java.nio.file.Path;
 
 /**
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @since 4.2
  */
 public interface FSPath extends Path {
 

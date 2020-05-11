@@ -123,7 +123,7 @@ public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataC
 
     @Override
     public FSLocationValueMetaDataCreator merge(final FSLocationValueMetaData other) {
-        checkCompatibilityAndSet(other.getFileSystemType(), other.getFileSystemSpecifier());
+        checkCompatibilityAndSet(other.getFileSystemType(), other.getFileSystemSpecifier().orElse(null));
         return this;
     }
 
