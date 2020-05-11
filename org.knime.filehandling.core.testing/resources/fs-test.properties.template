@@ -20,8 +20,11 @@
 
 # Sets the file system to test. The currently available file systems are:
 #   local
-#   knime-relative-workflow
-#   knime-relative-mountpoint
+#   knime-local-relative-workflow
+#   knime-local-relative-mountpoint
+#   knime-rest-relative-workflow
+#   knime-rest-relative-mountpoint
+#   knime-rest
 #   amazon-s3
 #   google-cs
 #   microsoft-sharepoint
@@ -40,6 +43,27 @@
 #
 # fixture-dir = /home/bjoern/git/knime-filehandling-test-fixtures
 
+
+################ KNIME: REST file system (connects to Server and Hub) ################
+knime-rest.workingDirPrefix = /unit-tests
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest.url = <SERVER-OR-HUB-REST-ENDPOINT>
+knime-rest.user = <SERVER-OR-HUB-USERNAME>
+knime-rest.pass = <SERVER-OR-HUB-PASSWORD>
+
+################ KNIME: Server-side mountpoint-relative file system (connects to Server)  #######
+knime-rest-relative-mountpoint.workingDirPrefix = /unit-tests-mountpoint-relative
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest-relative-mountpoint.url = <SERVER-REST-ENDPOINT>
+knime-rest-relative-mountpoint.user = <SERVER-USERNAME>
+knime-rest-relative-mountpoint.pass = <SERVER-PASSWORD>
+
+################ KNIME: Server-side workflow-relative file system (connects to Server)  ########
+knime-rest-relative-workflow.workingDirPrefix = /unit-tests-workflow-relative
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest-relative-workflow.url = <SERVER-REST-ENDPOINT>
+knime-rest-relative-workflow.user = <SERVER-USERNAME>
+knime-rest-relative-workflow.pass = <SERVER-PASSWORD>
 
 ################ Amazon S3 ################ 
 amazon-s3.workingDirPrefix = /knime-s3-file-handling-v2-test-temp
