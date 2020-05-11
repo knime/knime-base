@@ -133,7 +133,6 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
         return Collections.singletonList(getPath(getSeparator()));
     }
 
-
     @Override
     public LocalRelativeToPath getPath(final String first, final String... more) {
         return new LocalRelativeToPath(this, first, more);

@@ -54,7 +54,8 @@ import java.io.OutputStream;
 /**
  * Wrapper for {@link OutputStream} that is closed when the file system is closed.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public class BaseOutputStream extends OutputStream {
 

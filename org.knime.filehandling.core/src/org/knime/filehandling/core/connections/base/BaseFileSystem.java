@@ -77,7 +77,8 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 /**
  * Base implementation of {@FileSystem}.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 

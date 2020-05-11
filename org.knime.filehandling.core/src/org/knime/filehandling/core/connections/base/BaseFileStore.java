@@ -58,10 +58,11 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import org.apache.commons.lang3.Validate;
 
 /**
- * Default implementation for the {@link FileStore}. This implementation does not support any FileStoreAttributeViews.
+ * Base implementation for the {@link FileStore}. This implementation does not support any FileStoreAttributeViews.
  * Calling {@link #getAttribute} will lead to an IOException.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public class BaseFileStore extends FileStore {
 

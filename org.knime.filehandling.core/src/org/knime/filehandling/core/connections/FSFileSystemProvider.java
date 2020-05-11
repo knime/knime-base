@@ -73,5 +73,4 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
 
     @Override
     public abstract P getPath(URI uri);
-
 }

@@ -53,44 +53,38 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
 /**
+ * Wrapper class for an {@link SeekableByteChannel} which registers itself at a {@link BaseFileSystem} in order to be
+ * closed when the file system gets closed.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public class BaseSeekableByteChannel implements SeekableByteChannel {
 
     private final SeekableByteChannel m_seekableByteChannel;
 
-    private final BaseFileSystem m_fileSystem;
+    private final BaseFileSystem<?> m_fileSystem;
 
     /**
      * @param seekableByteChannel
      */
-    public BaseSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final BaseFileSystem fileSystem) {
+    public BaseSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final BaseFileSystem<?> fileSystem) {
         m_seekableByteChannel = seekableByteChannel;
         m_fileSystem = fileSystem;
         m_fileSystem.addCloseable(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isOpen() {
         return m_seekableByteChannel.isOpen();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() throws IOException {
         m_seekableByteChannel.close();
         m_fileSystem.notifyClosed(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int read(final ByteBuffer dst) throws IOException {
         return m_seekableByteChannel.read(dst);
@@ -104,36 +98,23 @@ public class BaseSeekableByteChannel implements SeekableByteChannel {
         return m_seekableByteChannel.write(src);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public long position() throws IOException {
         return m_seekableByteChannel.position();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SeekableByteChannel position(final long newPosition) throws IOException {
         return m_seekableByteChannel.position(newPosition);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public long size() throws IOException {
         return m_seekableByteChannel.size();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SeekableByteChannel truncate(final long size) throws IOException {
         return m_seekableByteChannel.truncate(size);
     }
-
 }

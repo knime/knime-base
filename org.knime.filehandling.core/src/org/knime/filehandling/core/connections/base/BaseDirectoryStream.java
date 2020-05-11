@@ -58,7 +58,8 @@ import org.apache.commons.lang3.Validate;
 /**
  * Base implementation of {@link DirectoryStream}.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public class BaseDirectoryStream implements DirectoryStream<Path> {
 

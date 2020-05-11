@@ -73,7 +73,8 @@ import org.knime.filehandling.core.filechooser.NioFile;
 /**
  * Base implementation for unix style paths.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public abstract class UnixStylePath implements FSPath {
 
@@ -162,25 +163,16 @@ public abstract class UnixStylePath implements FSPath {
         return m_fileSystem;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isAbsolute() {
         return m_isAbsolute;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path getRoot() {
         return m_isAbsolute ? getFileSystem().getPath(m_pathSeparator) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path getFileName() {
         if (m_pathParts.isEmpty()) {
@@ -189,9 +181,6 @@ public abstract class UnixStylePath implements FSPath {
         return getFileSystem().getPath(m_pathParts.get(m_pathParts.size() - 1));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path getParent() {
         if ((m_isAbsolute && m_pathParts.isEmpty()) || (!m_isAbsolute && m_pathParts.size() <= 1)) {
@@ -210,9 +199,6 @@ public abstract class UnixStylePath implements FSPath {
         return getFileSystem().getPath(sb.toString());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNameCount() {
         return m_pathParts.size();

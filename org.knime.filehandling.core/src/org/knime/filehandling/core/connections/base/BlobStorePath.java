@@ -54,7 +54,8 @@ import java.util.List;
 /**
  * Base implementation for blob store paths.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public abstract class BlobStorePath extends UnixStylePath {
 

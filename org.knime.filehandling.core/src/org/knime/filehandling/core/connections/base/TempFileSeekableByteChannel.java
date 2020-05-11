@@ -70,7 +70,8 @@ import org.knime.filehandling.core.connections.FSPath;
  * the channel will upload the file.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
- * @param <P> Path implementation
+ * @param <P> Path type to use.
+ * @since 4.2
  */
 public abstract class TempFileSeekableByteChannel<P extends FSPath> implements SeekableByteChannel {
 

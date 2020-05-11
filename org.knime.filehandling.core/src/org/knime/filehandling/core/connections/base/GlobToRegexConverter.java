@@ -56,7 +56,8 @@ import java.util.regex.PatternSyntaxException;
  * Converts a Java glob expression to a RegEx as defined by {@link FileSystem#getPathMatcher(String)} This class is
  * basically a refactoring of the sun.nio.fs.Globs class.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public class GlobToRegexConverter {
 

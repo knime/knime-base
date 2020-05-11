@@ -97,8 +97,8 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
 /**
  * Base implementation of the {@link FileSystemProvider} class.
  *
- *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @author Mareike Hoeger, KNIME GmbH
+ * @since 4.2
  */
 public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFileSystem<P>> extends FSFileSystemProvider<P,F> {
 
