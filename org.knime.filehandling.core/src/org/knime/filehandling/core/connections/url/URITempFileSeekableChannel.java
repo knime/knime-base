@@ -44,80 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   19.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 30, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections.url;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.util.Set;
+
+import org.knime.filehandling.core.connections.base.TempFileSeekableByteChannel;
 
 /**
- * Wrapper class for an {@link SeekableByteChannel} which registers itself at a {@link BaseFileSystem} in order to be
- * closed when the file system gets closed.
+ * Seekable channel implementation for the Custom URL file system.
  *
- * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class BaseSeekableByteChannel implements SeekableByteChannel {
-
-    private final SeekableByteChannel m_seekableByteChannel;
-
-    private final BaseFileSystem<?> m_fileSystem;
+class URITempFileSeekableChannel extends TempFileSeekableByteChannel<URIPath> {
 
     /**
-     * @param seekableByteChannel
+     * Constructs an {@link TempFileSeekableByteChannel} for an {@link URIPath}.
+     *
+     * @param file the file for the channel
+     * @param options the open options
+     * @throws IOException if an I/O Error occurred
      */
-    public BaseSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final BaseFileSystem<?> fileSystem) {
-        m_seekableByteChannel = seekableByteChannel;
-        m_fileSystem = fileSystem;
-        m_fileSystem.addCloseable(this);
+    public URITempFileSeekableChannel(final URIPath file, final Set<? extends OpenOption> options) throws IOException {
+        super(file, options);
     }
 
     @Override
-    public boolean isOpen() {
-        return m_seekableByteChannel.isOpen();
+    public void copyFromRemote(final URIPath remoteFile, final Path tempFile) throws IOException {
+        Files.copy(remoteFile, tempFile);
+
     }
 
     @Override
-    public void close() throws IOException {
-        try {
-            m_seekableByteChannel.close();
-        } finally {
-            m_fileSystem.notifyClosed(this);
+    public void copyToRemote(final URIPath remoteFile, final Path tempFile) throws IOException {
+        try (final OutputStream out = new BufferedOutputStream(Files.newOutputStream(remoteFile))) {
+            Files.copy(tempFile, out);
         }
     }
 
-    @Override
-    public int read(final ByteBuffer dst) throws IOException {
-        return m_seekableByteChannel.read(dst);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int write(final ByteBuffer src) throws IOException {
-        return m_seekableByteChannel.write(src);
-    }
-
-    @Override
-    public long position() throws IOException {
-        return m_seekableByteChannel.position();
-    }
-
-    @Override
-    public SeekableByteChannel position(final long newPosition) throws IOException {
-        return m_seekableByteChannel.position(newPosition);
-    }
-
-    @Override
-    public long size() throws IOException {
-        return m_seekableByteChannel.size();
-    }
-
-    @Override
-    public SeekableByteChannel truncate(final long size) throws IOException {
-        return m_seekableByteChannel.truncate(size);
-    }
 }

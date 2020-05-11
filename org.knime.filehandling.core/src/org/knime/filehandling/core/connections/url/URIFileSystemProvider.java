@@ -143,12 +143,10 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         return toReturn.toString();
     }
 
-
     @Override
     protected SeekableByteChannel newByteChannelInternal(final URIPath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
-
-        throw new UnsupportedOperationException();
+        return new URITempFileSeekableChannel(path, options);
     }
 
     @Override

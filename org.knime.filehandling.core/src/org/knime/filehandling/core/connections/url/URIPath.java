@@ -91,7 +91,7 @@ public class URIPath extends UnixStylePath {
         if (fileSystem.isRelativeKNIMEProtocol() || !concatenatedPath.startsWith(fileSystem.getSeparator())) {
             return uriPath.substring(1);
         } else {
-            return uriPath;
+            return concatenatedPath;
         }
     }
 

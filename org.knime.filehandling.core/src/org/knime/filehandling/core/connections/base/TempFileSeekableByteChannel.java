@@ -83,6 +83,8 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     private final P m_file;
 
+    private final Set<? extends OpenOption> m_openOptions;
+
     /**
      * Creates a SeekableByteChannel for a remote file by copying the contents of the remote file to a local temporary
      * file and returning this seekable byte channel
@@ -94,6 +96,8 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
     @SuppressWarnings("resource")
     public TempFileSeekableByteChannel(final P file, final Set<? extends OpenOption> options) throws IOException {
         m_file = file;
+        m_openOptions = options;
+
         final String tmpDir = System.getProperty("java.io.tmpdir");
         m_tempFile = Paths.get(tmpDir, String.format("tempFSfile-%s-%s", UUID.randomUUID().toString().replace('-', '_'),
             m_file.getFileName().toString()));
@@ -141,14 +145,16 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
     @SuppressWarnings("resource")
     @Override
     public void close() throws IOException {
-        if(!m_isClosed) {
+        if (!m_isClosed) {
 
-           copyToRemote(m_file, m_tempFile);
+            if (m_openOptions.contains(StandardOpenOption.WRITE)) {
+                copyToRemote(m_file, m_tempFile);
+            }
 
             m_tempFileSeekableByteChannel.close();
             Files.delete(m_tempFile);
             m_isClosed = true;
-            if(m_file.getFileSystem() instanceof BaseFileSystem) {
+            if (m_file.getFileSystem() instanceof BaseFileSystem) {
                 ((BaseFileSystem<?>)m_file.getFileSystem()).notifyClosed(this);
             }
         }
