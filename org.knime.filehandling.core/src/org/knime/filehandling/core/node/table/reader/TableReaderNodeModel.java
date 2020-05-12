@@ -70,10 +70,10 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -88,7 +88,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     private final MultiTableReadConfig<C> m_config;
 
-    private final SettingsModelFileChooser2 m_fileChooserConfig;
+    private final PathSettings m_pathSettings;
 
     /**
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
@@ -100,39 +100,32 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * Constructs a node model with no inputs and one output.
      *
      * @param config storing the user settings
-     * @param fileChooserConfig storing the paths selected by the user
+     * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
      * @param portsConfig determines the in and outports.
      */
-    protected TableReaderNodeModel(final MultiTableReadConfig<C> config,
-        final SettingsModelFileChooser2 fileChooserConfig, final MultiTableReader<C, ?, ?> tableReader,
-        final PortsConfiguration portsConfig) {
+    protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
+        final MultiTableReader<C, ?, ?> tableReader, final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
         m_tableReader = tableReader;
-        m_fileChooserConfig = fileChooserConfig;
+        m_pathSettings = pathSettingsModel;
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final String pathOrURL = m_fileChooserConfig.getPathOrURL();
-        if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
-            throw new InvalidSettingsException("Please enter a valid location");
-        }
+        CheckUtils.checkSetting(m_pathSettings.hasPathOrURL(), "Please enter a valid location");
         // for the time being, readers won't return a spec to avoid IO in configure
         return null;
     }
 
     private List<Path> getPaths(final PortObject[] inObjects) throws IOException, InvalidSettingsException {
-        final FileChooserHelper fch = new FileChooserHelper(
-            FileSystemPortObject.getFileSystemConnection(inObjects, FS_INPUT_PORT), m_fileChooserConfig);
-        return fch.getPaths();
+        return m_pathSettings.getPaths(FileSystemPortObject.getFileSystemConnection(inObjects, FS_INPUT_PORT));
     }
 
     private List<Path> getPaths(final PortObjectSpec[] inSpecs) throws IOException, InvalidSettingsException {
-        final FileChooserHelper fch = new FileChooserHelper(
-            FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, FS_INPUT_PORT), m_fileChooserConfig);
-        return fch.getPaths();
+        return m_pathSettings.getPaths(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, FS_INPUT_PORT));
+
     }
 
     @Override
@@ -190,19 +183,19 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_config.save(settings);
-        m_fileChooserConfig.saveSettingsTo(settings);
+        m_pathSettings.saveSettingsTo(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.validate(settings);
-        m_fileChooserConfig.validateSettings(settings);
+        m_pathSettings.validateSettings(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.loadInModel(settings);
-        m_fileChooserConfig.loadSettingsFrom(settings);
+        m_pathSettings.loadSettingsFrom(settings);
     }
 
     @Override
