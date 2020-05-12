@@ -44,36 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.nio.file.Path;
-import java.util.Map;
-
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
- * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
- * tables that should be read together.
+ * Representation of a column solely by its name.</br>
+ * The name is optional because it should only be set if it is read from the data.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type representing external data types
- * @param <V> the type representing values
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@FunctionalInterface
-public interface MultiTableReadFactory<T, V> {
+class DefaultReaderColumnSpec implements ReaderColumnSpec {
+
+    private final String m_name;
+
+    private final int m_hashCode;
 
     /**
-     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
-     * {@link MultiTableReadConfig config}.
+     * Constructor to be used if the column has a name read from the data.
      *
-     * @param individualSpecs a {@link Map} from {@link Path} to {@link TypedReaderTableSpec} where each
-     *            {@link TypedReaderTableSpec} corresponds to the table stored in its corresponding {@link Path}
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables stored in the keys of <b>individualSpecs</b>
+     * @param name the name of the column read from the data
      */
-    MultiTableRead<V> create(Map<Path, TypedReaderTableSpec<T>> individualSpecs, MultiTableReadConfig<?> config);
+    DefaultReaderColumnSpec(final String name) {
+        m_name = name;
+        m_hashCode = Objects.hash(m_name);
+    }
 
+    @Override
+    public final Optional<String> getName() {
+        return Optional.ofNullable(m_name);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof DefaultReaderColumnSpec) {
+            // if the T doesn't match, m_type.equals(other.m_type) will return false anyway
+            final DefaultReaderColumnSpec other = (DefaultReaderColumnSpec)obj;
+            return Objects.equals(m_name, other.m_name);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        if (m_name == null) {
+            return "<no name>";
+        } else {
+            return m_name;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return m_hashCode;
+    }
 }

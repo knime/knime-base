@@ -89,21 +89,21 @@ public final class TableSpecGuesser<T, V> {
     }
 
     /**
-     * Guesses the {@link ReaderTableSpec} from the rows provided by the {@link Read read}.</br>
+     * Guesses the {@link TypedReaderTableSpec} from the rows provided by the {@link Read read}.</br>
      *
      * @param read providing the rows to guess the spec from
      * @param config providing the user settings
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public ReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config) throws IOException {
+    public TypedReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config) throws IOException {
         try (final ExtractColumnHeaderRead<V> source = wrap(read, config)) {
             return guessSpec(source, config);
         }
     }
 
     /**
-     * Guesses the {@link ReaderTableSpec} from the rows provided by the {@link ExtractColumnHeaderRead read}.</br>
+     * Guesses the {@link TypedReaderTableSpec} from the rows provided by the {@link ExtractColumnHeaderRead read}.</br>
      * <i>Note:</i> The contract of this method is that the read obeys the settings, i.e., it is only processing the
      * proper data rows.
      *
@@ -112,7 +112,7 @@ public final class TableSpecGuesser<T, V> {
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public ReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config)
+    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config)
         throws IOException {
         try (Read<V> filtered = filterColIdx(read, config)) {
             final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows());
@@ -160,7 +160,7 @@ public final class TableSpecGuesser<T, V> {
             .toArray(String[]::new);
     }
 
-    private ReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser, final String[] columnNames) {
+    private TypedReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser, final String[] columnNames) {
         if (columnNames != null) {
             String[] headerArray = uniquify(columnNames);
             // make sure that we have at least as many types as names
@@ -169,9 +169,9 @@ public final class TableSpecGuesser<T, V> {
                 // make sure that we have the same number of names as types
                 headerArray = Arrays.copyOf(headerArray, types.size());
             }
-            return ReaderTableSpec.create(Arrays.asList(headerArray), types);
+            return TypedReaderTableSpec.create(Arrays.asList(headerArray), types);
         } else {
-            return ReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0));
+            return TypedReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0));
         }
     }
 

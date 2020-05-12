@@ -63,7 +63,7 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.TestReadAdapter;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -98,7 +98,7 @@ public class DefaultTypeMappingTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testMapFailsOnSpecOfIncompatibleSize() {
-        m_testInstance.map(ReaderTableSpec.create("hans", "franz", "gunter"));
+        m_testInstance.map(TypedReaderTableSpec.create("hans", "franz", "gunter"));
     }
 
     /**
@@ -106,7 +106,7 @@ public class DefaultTypeMappingTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testMapFailsOnColumnOfIncompatibleType() {
-        m_testInstance.map(ReaderTableSpec.create("hans", "franz"));
+        m_testInstance.map(TypedReaderTableSpec.create("hans", "franz"));
     }
 
     /**
@@ -117,7 +117,7 @@ public class DefaultTypeMappingTest {
         DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE});
         DataTableSpec actual =
-            m_testInstance.map(ReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta")));
+            m_testInstance.map(TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta")));
         assertEquals(expected, actual);
     }
 

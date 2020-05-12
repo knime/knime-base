@@ -61,8 +61,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.mockito.Mockito;
 
 /**
@@ -77,78 +77,78 @@ public class MultiTableUtilsTest {
             Stream.generate(() -> StringCell.TYPE).limit(names.length).toArray(DataType[]::new));
     }
 
-    private static ReaderTableSpec<?> createIndividualSpec(final String... names) {
-        return ReaderTableSpec.create(asList(names), asList(names));
-    }
+	private static TypedReaderTableSpec<?> createIndividualSpec(final String... names) {
+		return TypedReaderTableSpec.create(asList(names), asList(names));
+	}
 
-    /**
-     * Tests the {@link MultiTableUtils#getNameAfterInit(ReaderColumnSpec)} method.
-     */
-    @Test
-    public void testGetNameAfterInit() {
-        assertEquals("test", MultiTableUtils.getNameAfterInit(ReaderColumnSpec.createWithName("test", "foo")));
-    }
+	/**
+	 * Tests the {@link MultiTableUtils#getNameAfterInit(TypedReaderColumnSpec)} method.
+	 */
+	@Test
+	public void testGetNameAfterInit() {
+		assertEquals("test", MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.createWithName("test", "foo")));
+	}
 
-    /**
-     * Tests if {@link MultiTableUtils#getNameAfterInit(ReaderColumnSpec)} fails if the provided
-     * {@link ReaderColumnSpec} has no name.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testGetNameAfterInitFailsIfSpecHasNoName() {
-        MultiTableUtils.getNameAfterInit(ReaderColumnSpec.create("foo"));
-    }
+	/**
+	 * Tests if {@link MultiTableUtils#getNameAfterInit(TypedReaderColumnSpec)} fails if
+	 * the provided {@link TypedReaderColumnSpec} has no name.
+	 */
+	@Test(expected = IllegalStateException.class)
+	public void testGetNameAfterInitFailsIfSpecHasNoName() {
+		MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.create("foo"));
+	}
 
-    /**
-     * Tests the c{@code createIndexMapper} method if no RowID column is contained.
-     */
-    @Test
-    public void testCreateIndexMapperNoRowID() {
-        TableReadConfig<?> config = mock(TableReadConfig.class);
-        final DataTableSpec globalSpec = createGlobalSpec("foo", "bar", "foobar");
-        final ReaderTableSpec<?> individualSpec = createIndividualSpec("bar", "foo");
-        IndexMapper idxMapper = MultiTableUtils.createIndexMapper(globalSpec, individualSpec, config);
-        assertTrue(idxMapper.hasMapping(0));
-        assertTrue(idxMapper.hasMapping(1));
-        assertFalse(idxMapper.hasMapping(2));
-        assertEquals(1, idxMapper.map(0));
-        assertEquals(0, idxMapper.map(1));
-    }
+	/**
+	 * Tests the c{@code createIndexMapper} method if no RowID column is contained.
+	 */
+	@Test
+	public void testCreateIndexMapperNoRowID() {
+		TableReadConfig<?> config = mock(TableReadConfig.class);
+		final DataTableSpec globalSpec = createGlobalSpec("foo", "bar", "foobar");
+		final TypedReaderTableSpec<?> individualSpec = createIndividualSpec("bar", "foo");
+		IndexMapper idxMapper = MultiTableUtils.createIndexMapper(globalSpec, individualSpec, config);
+		assertTrue(idxMapper.hasMapping(0));
+		assertTrue(idxMapper.hasMapping(1));
+		assertFalse(idxMapper.hasMapping(2));
+		assertEquals(1, idxMapper.map(0));
+		assertEquals(0, idxMapper.map(1));
+	}
 
-    /**
-     * Tests the
-     * {@link MultiTableUtils#createIndexMapper(org.knime.core.data.DataTableSpec, org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec, org.knime.filehandling.core.node.table.reader.config.TableReadConfig)}
-     * method if a RowID column is contained.
-     */
-    @Test
-    public void testCreateIndexMapperWithRowID() {
-        TableReadConfig<?> config = mock(TableReadConfig.class);
-        Mockito.when(config.useRowIDIdx()).thenReturn(true);
-        Mockito.when(config.getRowIDIdx()).thenReturn(1);
-        final DataTableSpec globalSpec = createGlobalSpec("foo", "bar", "foobar");
-        final ReaderTableSpec<?> individualSpec = createIndividualSpec("bar", "notInGlobal", "foo");
-        IndexMapper idxMapper = MultiTableUtils.createIndexMapper(globalSpec, individualSpec, config);
-        assertTrue(idxMapper.hasMapping(0));
-        assertTrue(idxMapper.hasMapping(1));
-        assertFalse(idxMapper.hasMapping(2));
-        // the index 1 is occupied by the row idx in the underlying read while index 1
-        // in individualSpec is notInGlobal
-        // therefore we need to increase the indices >= 1 when mapping from
-        // individualSpec indices to read indices
-        assertEquals(3, idxMapper.map(0));
-        assertEquals(0, idxMapper.map(1));
-    }
+	/**
+	 * Tests the
+	 * {@link MultiTableUtils#createIndexMapper(org.knime.core.data.DataTableSpec, org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec, org.knime.filehandling.core.node.table.reader.config.TableReadConfig)}
+	 * method if a RowID column is contained.
+	 */
+	@Test
+	public void testCreateIndexMapperWithRowID() {
+		TableReadConfig<?> config = mock(TableReadConfig.class);
+		Mockito.when(config.useRowIDIdx()).thenReturn(true);
+		Mockito.when(config.getRowIDIdx()).thenReturn(1);
+		final DataTableSpec globalSpec = createGlobalSpec("foo", "bar", "foobar");
+		final TypedReaderTableSpec<?> individualSpec = createIndividualSpec("bar", "notInGlobal", "foo");
+		IndexMapper idxMapper = MultiTableUtils.createIndexMapper(globalSpec, individualSpec, config);
+		assertTrue(idxMapper.hasMapping(0));
+		assertTrue(idxMapper.hasMapping(1));
+		assertFalse(idxMapper.hasMapping(2));
+		// the index 1 is occupied by the row idx in the underlying read while index 1
+		// in individualSpec is notInGlobal
+		// therefore we need to increase the indices >= 1 when mapping from
+		// individualSpec indices to read indices
+		assertEquals(3, idxMapper.map(0));
+		assertEquals(0, idxMapper.map(1));
+	}
 
-    /**
-     * Tests the {@code assingNamesIfMissing} method.
-     */
-    @Test
-    public void testAssignNamesIfMissing() {
-        ReaderTableSpec<String> namesMissing =
-            ReaderTableSpec.create(asList("hubert", null), asList("berta", "frieda"));
-        ReaderTableSpec<String> expected =
-            ReaderTableSpec.create(asList("hubert", "Column1"), asList("berta", "frieda"));
-        ReaderTableSpec<String> actual = MultiTableUtils.assignNamesIfMissing(namesMissing);
-        assertEquals(expected, actual);
-    }
+	/**
+	 * Tests the {@code assingNamesIfMissing} method.
+	 */
+	@Test
+	public void testAssignNamesIfMissing() {
+		TypedReaderTableSpec<String> namesMissing = TypedReaderTableSpec.create(asList("hubert", null),
+				asList("berta", "frieda"));
+		TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("hubert", "Column1"),
+				asList("berta", "frieda"));
+		TypedReaderTableSpec<String> actual = MultiTableUtils.assignNamesIfMissing(namesMissing);
+		assertEquals(expected, actual);
+	}
 
 }

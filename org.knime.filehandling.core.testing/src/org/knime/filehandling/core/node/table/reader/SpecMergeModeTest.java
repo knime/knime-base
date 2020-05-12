@@ -58,7 +58,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
 import org.mockito.Mock;
@@ -91,10 +92,11 @@ public class SpecMergeModeTest {
      */
     @Test
     public void testFailOnDifferingSpecs() {
-        ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        final List<ReaderTableSpec<String>> specs = asList(spec, spec);
+        TypedReaderTableSpec<String> spec =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        final List<TypedReaderTableSpec<String>> specs = asList(spec, spec);
         when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar", "foo", "bar");
-        ReaderTableSpec<String> actual = SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(specs, m_typeHierarchy);
+        TypedReaderTableSpec<String> actual = SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(specs, m_typeHierarchy);
         assertEquals(spec, actual);
     }
 
@@ -103,8 +105,10 @@ public class SpecMergeModeTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testFailOnDifferingSpecsFailsOnDifferentNames() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("berta", "gerta"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 =
+            TypedReaderTableSpec.create(asList("berta", "gerta"), asList("foo", "bar"));
         when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar");
         SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
     }
@@ -114,8 +118,10 @@ public class SpecMergeModeTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testFailOnDifferingSpecsFailsOnDifferentTypes() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bla"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bla"));
         when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar");
         SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
     }
@@ -125,8 +131,9 @@ public class SpecMergeModeTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testFailOnDifferingSpecsFailsOnDifferentSizes() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("berta"), asList("foo"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 = TypedReaderTableSpec.create(asList("berta"), asList("foo"));
         SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
     }
 
@@ -143,11 +150,14 @@ public class SpecMergeModeTest {
      */
     @Test
     public void testIntersection() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("hans", "frieda"), asList("foo", "bla"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 =
+            TypedReaderTableSpec.create(asList("hans", "frieda"), asList("foo", "bla"));
         when(m_typeResolver.getMostSpecificType()).thenReturn("bar");
-        ReaderTableSpec<String> expected = ReaderTableSpec.create(asList("frieda"), asList("bar"));
-        ReaderTableSpec<String> actual = SpecMergeMode.INTERSECTION.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("frieda"), asList("bar"));
+        TypedReaderTableSpec<String> actual =
+            SpecMergeMode.INTERSECTION.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
         assertEquals(expected, actual);
     }
 
@@ -156,8 +166,10 @@ public class SpecMergeModeTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testIntersectionFailsOnEmptyIntersection() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("irmgard", "franz"), asList("foo", "bla"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 =
+            TypedReaderTableSpec.create(asList("irmgard", "franz"), asList("foo", "bla"));
         SpecMergeMode.INTERSECTION.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
     }
 
@@ -174,12 +186,14 @@ public class SpecMergeModeTest {
      */
     @Test
     public void testUnion() {
-        ReaderTableSpec<String> spec1 = ReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        ReaderTableSpec<String> spec2 = ReaderTableSpec.create(asList("hans", "frieda"), asList("foo", "bla"));
+        TypedReaderTableSpec<String> spec1 =
+            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
+        TypedReaderTableSpec<String> spec2 =
+            TypedReaderTableSpec.create(asList("hans", "frieda"), asList("foo", "bla"));
         when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar", "foo");
-        ReaderTableSpec<String> expected =
-            ReaderTableSpec.create(asList("berta", "frieda", "hans"), asList("foo", "bar", "foo"));
-        ReaderTableSpec<String> actual = SpecMergeMode.UNION.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
+        TypedReaderTableSpec<String> expected =
+            TypedReaderTableSpec.create(asList("berta", "frieda", "hans"), asList("foo", "bar", "foo"));
+        TypedReaderTableSpec<String> actual = SpecMergeMode.UNION.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
         assertEquals(expected, actual);
     }
 

@@ -66,7 +66,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleUtils;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusableTypeHierarchy;
@@ -140,7 +140,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     }
 
     @Override
-    public ReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
+    public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
         try (final CsvRead read = new CsvRead(path, config)) {
             return SPEC_GUESSER.guessSpec(read, config);

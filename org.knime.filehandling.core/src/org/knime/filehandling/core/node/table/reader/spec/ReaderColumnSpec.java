@@ -44,111 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 22, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 12, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import static org.knime.core.node.util.CheckUtils.checkArgumentNotNull;
-
-import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Representation of a column as a type and an optional name.</br>
- * The name is optional because it should only be set if it is read from the data.
+ * Representation of a column solely by its name.</br>
+ * The name is optional because it might not be part of the data.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify types
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class ReaderColumnSpec<T> {
-
-    private final String m_name;
-
-    private final T m_type;
-
-    private final int m_hashCode;
+@FunctionalInterface
+public interface ReaderColumnSpec {
 
     /**
-     * Constructor to be used if the column has a name read from the data.
+     * Returns an {@link Optional} containing the name of this column spec if it has been set.
      *
-     * @param name the name of the column read from the data
-     * @param type the most specific type all observed values in the column share
-     */
-    private ReaderColumnSpec(final String name, final T type) {
-        m_name = name;
-        m_type = type;
-        m_hashCode = Objects.hash(m_name, m_type);
-    }
-
-    /**
-     * Creates a new {@link ReaderColumnSpec} with the provided <b>name</b> and <b>type</b>.
-     *
-     * @param name of the column
-     * @param type of the column
-     * @return the new {@link ReaderColumnSpec}
-     */
-    public static <T> ReaderColumnSpec<T> createWithName(final String name, final T type) {
-        return new ReaderColumnSpec<>(name, checkArgumentNotNull(type, "The 'type' argument must not be null"));
-    }
-
-    /**
-     * Creates a new {@link ReaderColumnSpec} with the provided <b>type</b>.
-     *
-     * @param type of the column
-     * @return the new {@link ReaderColumnSpec}
-     */
-    public static <T> ReaderColumnSpec<T> create(final T type) {
-        return new ReaderColumnSpec<>(null, checkArgumentNotNull(type, "The 'type' argument must not be null."));
-    }
-
-    /**
      * @return the name of the column as read from the data or {@link Optional#empty()} if the data doesn't provide a
      *         column name
      */
-    public Optional<String> getName() {
-        return Optional.ofNullable(m_name);
-    }
-
-    /**
-     * @return the most specific type all observed values in the column share
-     */
-    public T getType() {
-        return m_type;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj instanceof ReaderColumnSpec) {
-            // if the T doesn't match, m_type.equals(other.m_type) will return false anyway
-            @SuppressWarnings("rawtypes")
-            final ReaderColumnSpec other = (ReaderColumnSpec)obj;
-            return m_type.equals(other.m_type) && Objects.equals(m_name, other.m_name);
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[");
-        if (m_name == null) {
-            sb.append("<no name>");
-        } else {
-            sb.append(m_name);
-        }
-        sb.append(", ").append(m_type).append("]");
-        return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return m_hashCode;
-    }
-
+    public Optional<String> getName();
 }

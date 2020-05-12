@@ -57,8 +57,8 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
@@ -83,13 +83,13 @@ final class DefaultTypeMapping<V> implements TypeMapping<V> {
     }
 
     @Override
-    public DataTableSpec map(final ReaderTableSpec<?> spec) {
+    public DataTableSpec map(final TypedReaderTableSpec<?> spec) {
         CheckUtils.checkArgument(spec.size() == m_productionPaths.length,
             "The provided spec %s has not the expected number of columns (%s).", spec, m_productionPaths.length);
         final DataColumnSpec[] columns = new DataColumnSpec[m_productionPaths.length];
         for (int i = 0; i < m_productionPaths.length; i++) {
             final ProductionPath productionPath = m_productionPaths[i];
-            final ReaderColumnSpec<?> column = spec.getColumnSpec(i);
+            final TypedReaderColumnSpec<?> column = spec.getColumnSpec(i);
             final Object expectedType = productionPath.getProducerFactory().getSourceType();
             final Object actualType = column.getType();
             CheckUtils.checkArgument(expectedType.equals(actualType),

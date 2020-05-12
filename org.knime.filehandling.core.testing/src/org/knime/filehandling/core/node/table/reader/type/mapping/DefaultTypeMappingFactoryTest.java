@@ -66,7 +66,7 @@ import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.TestReadAdapter;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -114,14 +114,16 @@ public class DefaultTypeMappingFactoryTest {
     }
 
     /**
-     * Tests the {@link TypeMappingFactory#create(org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec)}
+     * Tests the
+     * {@link TypeMappingFactory#create(org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec)}
      * implementation.
      */
     @Test
     public void testCreate() {
         when(m_producerRegistry.getAvailableProductionPaths("berta")).thenReturn(asList(mockProductionPath("berta")));
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(asList(mockProductionPath("frieda")));
-        ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
+        TypedReaderTableSpec<String> spec =
+            TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
         TypeMapping<String> typeMapping = m_testInstance.create(spec);
         DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE});
@@ -135,7 +137,8 @@ public class DefaultTypeMappingFactoryTest {
     @Test(expected = IllegalStateException.class)
     public void testCreateFailsIfNoProductionPathForExternalTypeCanBeFound() {
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(Collections.emptyList());
-        ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
+        TypedReaderTableSpec<String> spec =
+            TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
         m_testInstance.create(spec);
     }
 
@@ -144,7 +147,8 @@ public class DefaultTypeMappingFactoryTest {
      */
     @Test(expected = IllegalStateException.class)
     public void testCreateFailsIfDefaultTypeIsNOTSpecified() {
-        ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("hans", "franz"), asList("gunter", "berta"));
+        TypedReaderTableSpec<String> spec =
+            TypedReaderTableSpec.create(asList("hans", "franz"), asList("gunter", "berta"));
         m_testInstance.create(spec);
     }
 

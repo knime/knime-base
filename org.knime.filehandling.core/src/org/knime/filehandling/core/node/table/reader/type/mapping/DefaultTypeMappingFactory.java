@@ -60,8 +60,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
  * Default implementation of a {@link TypeMappingFactory} based on KNIME's type mapping framework.
@@ -92,9 +92,9 @@ public final class DefaultTypeMappingFactory<T, V> implements TypeMappingFactory
     }
 
     @Override
-    public TypeMapping<V> create(final ReaderTableSpec<T> mergedSpec) {
+    public TypeMapping<V> create(final TypedReaderTableSpec<T> mergedSpec) {
         final ProductionPath[] paths = mergedSpec.stream()//
-            .map(ReaderColumnSpec::getType)//
+            .map(TypedReaderColumnSpec::getType)//
             .map(this::getDefaultPath)//
             .toArray(ProductionPath[]::new);
         return new DefaultTypeMapping<>(m_readAdapterFactory::createReadAdapter, paths);

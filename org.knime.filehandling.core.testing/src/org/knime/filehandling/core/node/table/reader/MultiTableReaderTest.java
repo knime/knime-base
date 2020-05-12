@@ -74,7 +74,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
@@ -131,7 +131,7 @@ public class MultiTableReaderTest {
     @Mock
     private RowOutput m_rowOutput = null;
 
-    private ReaderTableSpec<String> m_readerSpec = null;
+    private TypedReaderTableSpec<String> m_readerSpec = null;
 
     private DataTableSpec m_knimeSpec = null;
 
@@ -143,7 +143,7 @@ public class MultiTableReaderTest {
     @Before
     public void init() {
         m_testInstance = new MultiTableReader<>(m_reader, m_multiTableReadFactory);
-        m_readerSpec = ReaderTableSpec.create("foo", "bar");
+        m_readerSpec = TypedReaderTableSpec.create("foo", "bar");
         m_knimeSpec =
             new DataTableSpec(new String[]{"Column0", "Column1"}, new DataType[]{StringCell.TYPE, StringCell.TYPE});
     }

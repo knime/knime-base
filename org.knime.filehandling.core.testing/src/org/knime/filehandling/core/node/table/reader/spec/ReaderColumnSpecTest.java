@@ -58,25 +58,25 @@ import java.util.Optional;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link ReaderColumnSpec}.
+ * Unit tests for {@link TypedReaderColumnSpec}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class ReaderColumnSpecTest {
 
     /**
-     * Tests the {@link ReaderColumnSpec#create(Object)} and {@link ReaderColumnSpec#createWithName(String, Object)}
-     * name methods as well as {@link ReaderColumnSpec#getName()} and {@link ReaderColumnSpec#getType()}
-     * implementations.
+     * Tests the {@link TypedReaderColumnSpec#create(Object)} and
+     * {@link TypedReaderColumnSpec#createWithName(String, Object)} name methods as well as
+     * {@link TypedReaderColumnSpec#getName()} and {@link TypedReaderColumnSpec#getType()} implementations.
      */
     @Test
     public void testCreation() {
-        ReaderColumnSpec<String> noName = ReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> noName = TypedReaderColumnSpec.create("frieda");
         assertEquals(Optional.empty(), noName.getName());
         assertEquals("frieda", noName.getType());
-        ReaderColumnSpec<String> nameNull = ReaderColumnSpec.createWithName(null, "frieda");
+        TypedReaderColumnSpec<String> nameNull = TypedReaderColumnSpec.createWithName(null, "frieda");
         assertEquals(noName, nameNull);
-        ReaderColumnSpec<String> named = ReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> named = TypedReaderColumnSpec.createWithName("hans", "franz");
         assertEquals("hans", named.getName().get());
         assertEquals("franz", named.getType());
     }
@@ -87,14 +87,14 @@ public class ReaderColumnSpecTest {
     @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testEquals() {
-        ReaderColumnSpec<String> spec = ReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
         assertTrue(spec.equals(spec));
         assertFalse(spec.equals(null));
         assertFalse(spec.equals("foo"));
-        ReaderColumnSpec<String> same = ReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
         assertTrue(spec.equals(same));
         assertTrue(same.equals(spec));
-        ReaderColumnSpec<String> different = ReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
         assertFalse(spec.equals(different));
         assertFalse(different.equals(spec));
     }
@@ -104,12 +104,12 @@ public class ReaderColumnSpecTest {
      */
     @Test
     public void testHashCode() {
-        ReaderColumnSpec<String> spec = ReaderColumnSpec.create("frieda");
-        ReaderColumnSpec<String> same = ReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
         assertEquals(spec.hashCode(), same.hashCode());
-        ReaderColumnSpec<String> different = ReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
         assertNotEquals(spec.hashCode(), different.hashCode());
-        different = ReaderColumnSpec.create("berta");
+        different = TypedReaderColumnSpec.create("berta");
         assertNotEquals(spec.hashCode(), different.hashCode());
     }
 
@@ -118,9 +118,9 @@ public class ReaderColumnSpecTest {
      */
     @Test
     public void testToString() {
-        ReaderColumnSpec<String> different = ReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
         assertEquals("[hans, franz]", different.toString());
-        ReaderColumnSpec<String> spec = ReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
         assertEquals("[<no name>, frieda]", spec.toString());
     }
 

@@ -66,7 +66,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
@@ -125,10 +125,10 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private MultiTableRead<V> createMultiRead(final List<Path> paths, final MultiTableReadConfig<C> config)
         throws IOException {
-        final Map<Path, ReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
+        final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
         // TODO parallelize
         for (Path path : paths) {
-            final ReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
+            final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
             specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
         }
         m_currentMultiRead = m_multiTableReadFactory.create(specs, config);

@@ -65,7 +65,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
@@ -121,7 +121,7 @@ public class DefaultMultiTableReadFactoryTest {
      */
     @Test
     public void testCreate() {
-        final ReaderTableSpec<String> spec = ReaderTableSpec.create(asList("hans"), asList("berta"));
+        final TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans"), asList("berta"));
         when(m_typeMappingFactory.create(spec)).thenReturn(m_typeMapping);
         DataTableSpec knimeSpec = new DataTableSpec(new String[]{"hans"}, new DataType[]{StringCell.TYPE});
         when(m_typeMapping.map(spec)).thenReturn(knimeSpec);

@@ -70,7 +70,7 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.mockito.Mock;
@@ -113,7 +113,7 @@ public class DefaultMultiTableReadTest {
 
     private DataTableSpec m_outputSpec;
 
-    private Map<Path, ReaderTableSpec<String>> m_individualSpecs;
+    private Map<Path, TypedReaderTableSpec<String>> m_individualSpecs;
 
     private DefaultMultiTableRead<String> m_testInstance;
 
@@ -123,8 +123,8 @@ public class DefaultMultiTableReadTest {
     @Before
     public void init() {
         m_individualSpecs = new HashMap<>();
-        m_individualSpecs.put(m_path1, ReaderTableSpec.create(asList("hans", "franz"), asList("ilsa", "berta")));
-        m_individualSpecs.put(m_path2, ReaderTableSpec.create(asList("gunter", "franz"), asList("ilsa", "berta")));
+        m_individualSpecs.put(m_path1, TypedReaderTableSpec.create(asList("hans", "franz"), asList("ilsa", "berta")));
+        m_individualSpecs.put(m_path2, TypedReaderTableSpec.create(asList("gunter", "franz"), asList("ilsa", "berta")));
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
         m_testInstance = new DefaultMultiTableRead<>(m_individualSpecs, m_outputSpec, m_typeMapping, m_keyGenContext);

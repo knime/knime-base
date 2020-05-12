@@ -54,7 +54,7 @@ import java.nio.file.Path;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
  * A row-wise reader for data in table format.
@@ -82,9 +82,9 @@ public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> {
      *
      * @param path to read from
      * @param config specifying the read settings
-     * @return a {@link ReaderTableSpec} representing the data stored in <b>source</b>
+     * @return a {@link TypedReaderTableSpec} representing the data stored in <b>source</b>
      * @throws IOException if reading fails due to IO problems
      */
-    ReaderTableSpec<T> readSpec(final Path path, final TableReadConfig<C> config) throws IOException;
+    TypedReaderTableSpec<T> readSpec(final Path path, final TableReadConfig<C> config) throws IOException;
 
 }

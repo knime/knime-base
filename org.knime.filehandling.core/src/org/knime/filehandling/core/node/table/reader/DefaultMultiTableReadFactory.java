@@ -55,7 +55,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
@@ -78,7 +78,7 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
     private final RowKeyGeneratorContextFactory<V> m_rowKeyGeneratorFactory;
 
     /**
-     * @param typeMappingFactory creates a {@link TypeMapping} from {@link ReaderTableSpec}
+     * @param typeMappingFactory creates a {@link TypeMapping} from {@link TypedReaderTableSpec}
      * @param typeHierarchy
      * @param rowKeyGeneratorFactory
      */
@@ -90,9 +90,9 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
     }
 
     @Override
-    public MultiTableRead<V> create(final Map<Path, ReaderTableSpec<T>> individualSpecs,
+    public MultiTableRead<V> create(final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
         final MultiTableReadConfig<?> config) {
-        final ReaderTableSpec<T> mergedSpec =
+        final TypedReaderTableSpec<T> mergedSpec =
             config.getSpecMergeMode().mergeSpecs(individualSpecs.values(), m_typeHierarchy);
         final TypeMapping<V> typeMapping = m_typeMappingFactory.create(mergedSpec);
         final DataTableSpec outputSpec = typeMapping.map(mergedSpec);

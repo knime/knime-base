@@ -61,6 +61,8 @@ import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
 
 /**
@@ -75,27 +77,27 @@ public final class MultiTableUtils {
     }
 
     /**
-     * Retrieves the name from a {@link ReaderColumnSpec} after it is initialized i.e. its name must be present.
+     * Retrieves the name from a {@link TypedReaderColumnSpec} after it is initialized i.e. its name must be present.
      *
      * @param spec to extract name from
      * @return the name of the spec
      * @throws IllegalStateException if the name is not present
      */
-    public static String getNameAfterInit(final ReaderColumnSpec<?> spec) {
+    public static String getNameAfterInit(final ReaderColumnSpec spec) {
         return spec.getName().orElseThrow(() -> new IllegalStateException(
             "Coding error. After initialization all column specs must be fully qualified."));
     }
 
     /**
      * Creates an {@link IndexMapper} that maps from the indices of the {@link DataTableSpec outputSpec} to the indices
-     * of {@link ReaderTableSpec individualSpec}. This is necessary because the columns in the {@link ReaderTableSpec
-     * individualSpec} might be in a different order and some columns might even be missing.
+     * of {@link TypedReaderTableSpec individualSpec}. This is necessary because the columns in the
+     * {@link TypedReaderTableSpec individualSpec} might be in a different order and some columns might even be missing.
      *
      * @param globalSpec {@link DataTableSpec} of the output table
      * @param individualSpec {@link ReaderTableSpec} of the table stored in a single file
      * @param config {@link TableReadConfig} containing the user's configuration
      * @return an {@link IndexMapper} that maps from indices in {@link DataTableSpec globalSpec} to indices in
-     *         {@link ReaderTableSpec individualSpec}
+     *         {@link TypedReaderTableSpec individualSpec}
      */
     public static IndexMapper createIndexMapper(final DataTableSpec globalSpec, final ReaderTableSpec<?> individualSpec,
         final TableReadConfig<?> config) {
@@ -105,7 +107,7 @@ public final class MultiTableUtils {
             useRowIDIdx ? DefaultIndexMapper.builder(globalSpec.getNumColumns(), rowIDIdx)
                 : DefaultIndexMapper.builder(globalSpec.getNumColumns());
         for (int i = 0; i < individualSpec.size(); i++) {
-            final ReaderColumnSpec<?> colSpec = individualSpec.getColumnSpec(i);
+            final ReaderColumnSpec colSpec = individualSpec.getColumnSpec(i);
             final int jointIdx = globalSpec.findColumnIndex(getNameAfterInit(colSpec));
             if (jointIdx >= 0) {
                 mapperBuilder.addMapping(jointIdx, i);
@@ -115,30 +117,30 @@ public final class MultiTableUtils {
     }
 
     /**
-     * Assigns names to the columns in {@link ReaderTableSpec spec} if they don't contain a name already. The naming
-     * scheme is Column0, Column1 and so on.
+     * Assigns names to the columns in {@link TypedReaderTableSpec spec} if they don't contain a name already. The
+     * naming scheme is Column0, Column1 and so on.
      *
-     * @param spec {@link ReaderTableSpec} containing columns to assign names if they are missing
-     * @return a {@link ReaderTableSpec} with the same types as {@link ReaderTableSpec spec} in which all columns are
-     *         named
+     * @param spec {@link TypedReaderTableSpec} containing columns to assign names if they are missing
+     * @return a {@link TypedReaderTableSpec} with the same types as {@link TypedReaderTableSpec spec} in which all
+     *         columns are named
      */
-    public static <T> ReaderTableSpec<T> assignNamesIfMissing(final ReaderTableSpec<T> spec) {
+    public static <T> TypedReaderTableSpec<T> assignNamesIfMissing(final TypedReaderTableSpec<T> spec) {
         final UniqueNameGenerator nameGen = new UniqueNameGenerator(spec.stream()//
-            .map(ReaderColumnSpec::getName)//
+            .map(TypedReaderColumnSpec::getName)//
             .map(n -> n.orElse(null))//
             .filter(Objects::nonNull)//
             .collect(toSet()));
-        return new ReaderTableSpec<>(IntStream.range(0, spec.size())
+        return new TypedReaderTableSpec<>(IntStream.range(0, spec.size())
             .mapToObj(i -> assignNameIfMissing(i, spec.getColumnSpec(i), nameGen)).collect(Collectors.toList()));
     }
 
-    private static <T> ReaderColumnSpec<T> assignNameIfMissing(final int idx, final ReaderColumnSpec<T> spec,
+    private static <T> TypedReaderColumnSpec<T> assignNameIfMissing(final int idx, final TypedReaderColumnSpec<T> spec,
         final UniqueNameGenerator nameGen) {
         final Optional<String> name = spec.getName();
         if (name.isPresent()) {
             return spec;
         } else {
-            return ReaderColumnSpec.createWithName(nameGen.newName(createDefaultColumnName(idx)), spec.getType());
+            return TypedReaderColumnSpec.createWithName(nameGen.newName(createDefaultColumnName(idx)), spec.getType());
         }
     }
 
