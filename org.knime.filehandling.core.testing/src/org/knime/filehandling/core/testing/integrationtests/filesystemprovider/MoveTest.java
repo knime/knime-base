@@ -49,6 +49,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -142,4 +143,107 @@ public class MoveTest extends AbstractParameterizedFSTest {
         assertEquals(sourceContent, renamedContent.get(0));
     }
 
+    @Test
+    public void test_rename_empty_dir() throws IOException {
+        Path root = m_testInitializer.getRoot();
+
+        Path srcDir = root.resolve("srcDir");
+        Path dstDir = root.resolve("dstDir");
+
+        Files.createDirectory(srcDir);
+
+        assertTrue(Files.isDirectory(srcDir));
+        assertFalse(Files.exists(dstDir));
+
+        Files.move(srcDir, dstDir);
+
+        assertTrue(Files.isDirectory(dstDir));
+        assertFalse(Files.exists(srcDir));
+    }
+
+    @Test
+    public void test_rename_non_empty_dir() throws IOException {
+        Path root = m_testInitializer.getRoot();
+
+        Path srcDir = Files.createDirectory(root.resolve("srcDir"));
+        Path srcFile = m_testInitializer.createFileWithContent("content", "srcDir", "fileA");
+
+        Path dstDir = root.resolve("dstDir");
+        Path dstFile = dstDir.resolve("fileA");
+
+        assertTrue(Files.isRegularFile(srcFile));
+        assertTrue(Files.isDirectory(srcDir));
+        assertFalse(Files.exists(dstDir));
+        assertFalse(Files.exists(dstFile));
+
+        Files.move(srcDir, dstDir);
+
+        assertTrue(Files.isDirectory(dstDir));
+        assertTrue(Files.isRegularFile(dstFile));
+        assertFalse(Files.exists(srcFile));
+        assertFalse(Files.exists(srcDir));
+    }
+
+    @Test
+    public void test_move_empty_dir_into_another() throws IOException {
+        String dirName = "dir";
+        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
+        Path dstParent = Files.createDirectory(m_testInitializer.getRoot().resolve("dstParent"));
+
+        Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
+
+        assertTrue(Files.isDirectory(dirToMove));
+        assertFalse(Files.exists(dstParent.resolve(dirName)));
+
+        Files.move(dirToMove, dstParent.resolve(dirName));
+
+        assertTrue(Files.isDirectory(dstParent.resolve(dirName)));
+        assertFalse(Files.exists(dirToMove));
+    }
+
+    @Test
+    public void test_move_non_empty_dir_into_another() throws IOException {
+        String dirName = "dir";
+        String fileName = "file";
+
+        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
+        Path dstParent = Files.createDirectory(m_testInitializer.getRoot().resolve("dstParent"));
+
+        Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
+        Path fileToMove = m_testInitializer.createFileWithContent("content", "srcParent", dirName, fileName);
+
+        assertTrue(Files.isDirectory(dirToMove));
+        assertTrue(Files.isRegularFile(fileToMove));
+        assertFalse(Files.exists(dstParent.resolve(dirName)));
+        assertFalse(Files.exists(dstParent.resolve(dirName).resolve(fileName)));
+
+        Files.move(dirToMove, dstParent.resolve(dirName));
+
+        assertTrue(Files.isDirectory(dstParent.resolve(dirName)));
+        assertTrue(Files.isRegularFile(dstParent.resolve(dirName).resolve(fileName)));
+        assertFalse(Files.exists(dirToMove));
+        assertFalse(Files.exists(fileToMove));
+    }
+
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_move_dir_to_already_existing_file_throws_exception() throws IOException {
+        Path file = m_testInitializer.createFileWithContent("content", "file");
+        Path dir = Files.createDirectories(m_testInitializer.getRoot().resolve("dir"));
+
+        Files.move(dir, file);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_move_dir_into_not_existing_throws_exception() throws IOException {
+        String dirName = "dir";
+        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
+        Path dstParent = m_testInitializer.getRoot().resolve("dstParent");
+
+        Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
+
+        assertTrue(Files.isDirectory(dirToMove));
+        assertFalse(Files.exists(dstParent));
+
+        Files.move(dirToMove, dstParent.resolve(dirName));
+    }
 }

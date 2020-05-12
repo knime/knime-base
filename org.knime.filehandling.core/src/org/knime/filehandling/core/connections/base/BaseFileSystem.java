@@ -267,6 +267,13 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     }
 
     /**
+     * Clears the attributes cache
+     */
+    public void clearAttributesCache() {
+        m_cache.clearCache();
+    }
+
+    /**
      * Generates a attributes cache key for the given path.
      *
      * @param path the path to generate the key for
