@@ -43,14 +43,21 @@
 			</ul>
 		</option>
 		<option name="Output order">
-			Specifies constraints on the order of the output
+			Depending on the settings of the algorithm the order might change in
+			the output and this option allows you to specify constraints on the
+			order.
 			<ul>
-				<li>No order: No specific order is required for the rows in the
-					output. This is the best option in terms of runtime.</li>
-				<li>Retain order: Ensures that the rows in the output are the same
-					as in the input.</li>
+				<li>No order: The rows are directly output in the order they are
+					returned in by the algorithm. This option doesn't incur any
+					additional runtime costs. Note: It is possible
+					but not guaranteed that the output order is the same as the input order.
+				</li>
+				<li>Retain order: The input order is reestablished for the rows
+					returned by the algorithm. This requires sorting the output table.
+				</li>
 				<li>Sort output: The rows in the output are sorted according to the
-					specified criteria.</li>
+					specified selection criteria.
+				</li>
 			</ul>
 		</option>
 		<option name="Move Missing Cells to end of sorted list">If selected, missing

@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.topk;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -118,8 +119,10 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(5, 0, 5, 0);
         p.add(m_kComp.getComponentPanel(), gbc);
 
+        gbc.insets = new Insets(0, 0, 0, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         ++gbc.gridy;
