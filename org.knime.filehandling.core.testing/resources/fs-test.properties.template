@@ -37,3 +37,10 @@ gs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
 gs.keyFilePath = <P12-KEY-FILE-LOCATION>
 gs.projectId = <PROJECT-ID>
 gs.bucket = knime-file-system-test-bucket
+
+azure-sharepoint.username = <USERNAME>
+azure-sharepoint.password = <PASSWORD>
+azure-sharepoint.tenant = <TENANT-ID>
+azure-sharepoint.site = root
+azure-sharepoint.drive = Test
+azure-sharepoint.testfolder = testfolder
