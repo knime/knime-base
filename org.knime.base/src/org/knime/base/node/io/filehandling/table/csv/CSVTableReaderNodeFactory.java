@@ -65,11 +65,13 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 public final class CSVTableReaderNodeFactory
     extends AbstractTableReaderNodeFactory<CSVTableReaderConfig, Class<?>, String> {
 
+    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+
     private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
         CSVTableReader.TYPE_HIERARCHY.createTypeFocusedHierarchy();
 
     private static SettingsModelFileChooser2 createFileChooserConfig() {
-        return new SettingsModelFileChooser2("file_selection");
+        return new SettingsModelFileChooser2("file_selection", FILE_SUFFIXES);
     }
 
     @Override
@@ -84,7 +86,7 @@ public final class CSVTableReaderNodeFactory
 
     @Override
     protected SettingsModelFileChooser2 createFileChooserModel() {
-        return new SettingsModelFileChooser2("file_selection");
+        return new SettingsModelFileChooser2("file_selection", FILE_SUFFIXES);
     }
 
     @Override

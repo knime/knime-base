@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHier
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusableTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
+import org.knime.filehandling.core.util.FileCompressionUtils;
 
 import com.google.common.io.CountingInputStream;
 import com.univocity.parsers.common.TextParsingException;
@@ -207,7 +208,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @throws IOException if a stream can not be created from the provided file.
          */
         CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(Files.newInputStream(path), Files.size(path), config);
+            this(FileCompressionUtils.createInputStream(path), Files.size(path), config);
         }
 
         /**
