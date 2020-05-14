@@ -301,10 +301,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * Creates a {@link JPanel} filed with dialog components, including file chooser dialog, Spec merge options in case
+     * Creates a {@link JPanel} filled with dialog components, including file chooser dialog, Spec merge options in case
      * of multiple files and options for reading CSV files.
      *
-     * @return a {@link JPanel} filed with dialog components.
+     * @return a {@link JPanel} filled with dialog components.
      */
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
@@ -341,9 +341,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             "Spec merge options (multiple files)"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.insets = new Insets(0, 5, 0, 5);
-        gbc.weightx = 0;
         specMergePanel.add(m_failOnDifferingSpecs, gbc);
         gbc.gridx = 1;
         specMergePanel.add(m_intersection, gbc);
@@ -359,6 +357,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
         outerPanel.add(createMemoryLimitsPanel(), gbc);
         gbc.gridy++;
         outerPanel.add(createQuoteOptionsPanel(), gbc);
@@ -428,9 +427,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel optionsPanel = new JPanel(new GridBagLayout());
         optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options:"));
-
         gbc.weightx = 1;
-        gbc.weighty = 0;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         optionsPanel.add(createAutoDetectOptionsPanel(), gbc);
@@ -525,7 +522,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(5, 6, 5, 5);
         gbc.gridx = 0;
         gbc.gridy += 1;
-        gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
 
@@ -564,19 +560,14 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * Creates a {@link JPanel} filed with dialog components specific to limiting the number of rows that are read.
+     * Creates a {@link JPanel} filled with dialog components specific to limiting the number of rows that are read.
      *
-     * @return a {@link JPanel} filed with dialog components.
+     * @return a {@link JPanel} filled with dialog components.
      */
     private JPanel getLimitRowsPanel() {
         JPanel optionsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridy = 0;
-        gbc.gridx = 0;
+        GridBagConstraints gbc = createAndInitGBC();
         gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
         optionsPanel.add(m_skipFirstLinesChecker, gbc);
         gbc.gridx += 1;
         gbc.weightx = 1;
@@ -627,11 +618,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.insets = new Insets(5, 0, 5, 5);
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         return gbc;
     }
 
