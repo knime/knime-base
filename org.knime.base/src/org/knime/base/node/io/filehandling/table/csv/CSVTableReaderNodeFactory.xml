@@ -80,16 +80,28 @@
 			
 			
 			<option name="Column delimiter">
-			  The character string delimiting columns. Use '\t' for tab character. 
+			  The character string delimiting columns. Use '\t' for tab character. Can get detected automatically.
 			</option>
 			<option name="Row delimiter">
-	          The character string delimiting rows. Use '\n' for new line character.  
+	          The character string delimiting rows. Use '\n' for new line character. Can get detected automatically.
 			</option>
 			<option name="Quote char">
-	          The quote character.  
+	          The quote character. Can get detected automatically. 
 			</option>			
 			<option name="Quote escape char">
-	          The character is used for escaping quotes inside an already quoted value.
+	          The character is used for escaping quotes inside an already quoted value. Can get detected automatically.
+			</option>
+			<option name="Autodetect format">
+	          By pressing this button, the "Column delimiter", "Row delimiter", "Quote char" and "Quote escape char" get 
+	          automatically detected, though it is not guaranteed that the correct values are being detected.<br/>
+	          Only a single file is considered for autodetection, i.e., if "Files in folder" is selected only the first
+	          file is being used.
+	          The auto detection by default is based on the first 1024 * 1024 bytes of the selected file, but
+	          can be adjusted by clicking the settings button next to this option.
+	          The format can only be detected if the read number of bytes comprises one full data row and the 
+	          autodetection will takes at most 20 data rows into account. It is assumed that data rows a seperated by
+	          linebreaks.  Note that the "Skip first lines" option as well as the specified  "Comment char" will be used
+	          when guessing the files format.
 			</option>
 			<option name="Comment char">
 	          A character indicating line comments.

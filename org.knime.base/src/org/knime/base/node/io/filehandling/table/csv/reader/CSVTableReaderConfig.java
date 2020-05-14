@@ -124,6 +124,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** string key used to save the trimming mode */
     private static final String CFG_QUOTE_OPTION = "quote_option";
 
+    /** string key used to save the input buffer size for the csv format autodetection */
+    private static final String CFG_AUTODETECTION_BUFFER_SIZE = "autodetection_buffer_size";
+
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
@@ -157,6 +160,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setSkipLines(toCopy.skipLines());
         setNumLinesToSkip(toCopy.getNumLinesToSkip());
         setCharSetName(toCopy.getCharSetName());
+        setQuoteOption(toCopy.getQuoteOption());
     }
 
     /**
@@ -414,6 +418,23 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         }
     }
 
+    /** Gets the input buffer size used for the format auto detection
+     *
+     * @return the buffer size
+     */
+    public int getAutoDetectionBufferSize() {
+        return m_settings.getInputBufferSize();
+    }
+
+    /**
+     * Sets the input buffer size used for the format auto detection
+     *
+     * @param bufferSize the new buffer size
+     */
+    public void setAutoDetectionBufferSize(final int bufferSize) {
+        m_settings.setInputBufferSize(bufferSize);
+    }
+
     @Override
     public void loadInDialog(final NodeSettingsRO settings) {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
@@ -434,6 +455,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN, true));
 
         setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION, DEFAULT_QUOTE_OPTION.name())));
+
+        setAutoDetectionBufferSize(settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE, 1024 * 1024));
     }
 
     @Override
@@ -456,6 +479,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN));
 
         setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION)));
+
+        setAutoDetectionBufferSize(settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE));
     }
 
     @Override
@@ -478,6 +503,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN);
 
         settings.getString(CFG_QUOTE_OPTION);
+
+        settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE);
     }
 
     @Override
@@ -500,6 +527,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         settings.addBoolean(CFG_LIMIT_CHARS_PER_COLUMN, isCharsPerColumnLimited());
 
         settings.addString(CFG_QUOTE_OPTION, getQuoteOption().name());
+
+        settings.addInt(CFG_AUTODETECTION_BUFFER_SIZE, getAutoDetectionBufferSize());
     }
 
     @Override

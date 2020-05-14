@@ -48,23 +48,32 @@
  */
 package org.knime.base.node.io.filehandling.table.csv;
 
+import java.awt.CardLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
+import java.util.Optional;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -83,12 +92,18 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+
+import com.univocity.parsers.csv.CsvFormat;
+
 
 /**
  * Node dialog of the CSV reader prototype node.
@@ -96,6 +111,18 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 final class CSVTableReaderNodeDialog extends NodeDialogPane {
+
+    private static final String START_AUTODETECT_LABEL = "Autodetect format";
+
+    private static final String AUTODETECT_CANCEL_LABEL = "Cancel";
+
+    private static final String PROGRESS_BAR_CARD = "progress";
+
+    private static final String STATUS_CARD = "status";
+
+    private static final String EMPTY_CARD = "empty";
+
+    private static final int FS_INPUT_PORT = 0;
 
     private final DialogComponentFileChooser2 m_filePanel;
 
@@ -151,6 +178,24 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final ButtonGroup m_quoteOptionsButtonGroup;
 
+    private final JButton m_startAutodetection;
+
+    private final JButton m_autoDetectionSettings;
+
+    private CSVFormatAutoDetectionSwingWorker m_formatAutoDetectionSwingWorker;
+
+    private JProgressBar m_analyzeProgressBar;
+
+    private final JLabel m_autoDetectionStatusLabel;
+
+    private final JLabel m_autoDetectionStatusIcon;
+
+    private final JPanel m_statusProgressCardLayout;
+
+    private Optional<FSConnection> m_fsConnection = null;
+
+    private int m_autoDetectionBufferSize;
+
     /** Create new CsvTableReader dialog. */
     CSVTableReaderNodeDialog(final SettingsModelFileChooser2 fileChooserModel,
         final MultiTableReadConfig<CSVTableReaderConfig> config) {
@@ -184,6 +229,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
         m_skipEmptyDataRowsChecker = new JCheckBox("Skip empty data rows");
         m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
+        m_startAutodetection = new JButton(START_AUTODETECT_LABEL);
+        m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
+        m_autoDetectionStatusLabel = new JLabel();
+        m_autoDetectionStatusIcon = new JLabel();
+        m_statusProgressCardLayout = new JPanel(new CardLayout());
 
         m_skipFirstLinesChecker = new JCheckBox("Skip first lines ");
         m_skipFirstLinesSpinner = new JSpinner(new SpinnerNumberModel(skipOne, rowStart, rowEnd, stepSize));
@@ -210,6 +260,26 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_maxCharsColumnChecker = new JCheckBox();
 
         m_quoteOptionsButtonGroup = new ButtonGroup();
+
+        m_analyzeProgressBar = new JProgressBar();
+        m_analyzeProgressBar.setIndeterminate(true);
+
+        m_startAutodetection.setPreferredSize(new Dimension(135, 25));
+        m_startAutodetection.addActionListener(e -> {
+            if (e.getActionCommand().equals(START_AUTODETECT_LABEL)) {
+                startFormatAutoDetection();
+            } else {
+                m_startAutodetection.setText(START_AUTODETECT_LABEL);
+                if (m_formatAutoDetectionSwingWorker != null) {
+                    m_formatAutoDetectionSwingWorker.cancel(true);
+                    m_formatAutoDetectionSwingWorker = null;
+
+                    resetUIafterAutodetection();
+                }
+            }
+        });
+
+        m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
         addTab("Options", initLayout());
         addTab("Advanced Options", createAdvancedOptionsPanel());
@@ -240,7 +310,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(createFilePanel(), gbc);
         gbc.gridy++;
         panel.add(createSpecMergePanel(), gbc);
@@ -363,53 +433,141 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private JPanel createOptionsPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
-        JPanel optionsPanel = new JPanel(new GridBagLayout());
+        final JPanel optionsPanel = new JPanel(new GridBagLayout());
         optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options:"));
 
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        optionsPanel.add(createAutoDetectOptionsPanel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 1;
+        gbc.insets = new Insets(0, 5, 0, 0);
+        optionsPanel.add(createOptionsSubPanel(), gbc);
+
+        return optionsPanel;
+    }
+
+    private JPanel createAutoDetectOptionsPanel() {
+        final JPanel autoDetectPanel = new JPanel(new GridBagLayout());
+        autoDetectPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Format"));
+        final GridBagConstraints gbc = createAndInitGBC();
+
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints buttonConstraints = createAndInitGBC();
+        buttonConstraints.weightx = 0;
+        buttonPanel.add(m_startAutodetection, buttonConstraints);
+        buttonConstraints.gridx += 1;
+        buttonPanel.add(m_autoDetectionSettings, buttonConstraints);
+
+        gbc.weightx = 0;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.weightx = 0;
+        gbc.insets = new Insets(5, 9, 5, 5);
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        optionsPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column Delimiter ")), gbc);
+        autoDetectPanel.add(buttonPanel, gbc);
+
+        createCardLayout();
         gbc.gridx += 1;
-        optionsPanel.add(getInFlowLayout(m_rowDelimiterField, new JLabel("Row Delimiter ")), gbc);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        autoDetectPanel.add(m_statusProgressCardLayout, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        autoDetectPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column Delimiter ")), gbc);
+
+        gbc.gridx += 1;
+        autoDetectPanel.add(getInFlowLayout(m_rowDelimiterField, new JLabel("Row Delimiter ")), gbc);
+
         gbc.gridx += 1;
         gbc.weightx = 1;
-        optionsPanel.add(new JPanel(), gbc);
+        autoDetectPanel.add(new JPanel(), gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.weightx = 0;
-        optionsPanel.add(getInFlowLayout(m_quoteField, new JLabel("Quote Char ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_quoteField, new JLabel("Quote Char ")), gbc);
+
         gbc.gridx += 1;
         gbc.weightx = 1;
-        optionsPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote Escape Char ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote Escape Char ")), gbc);
 
+        return autoDetectPanel;
+    }
+
+    private void createCardLayout() {
+        JPanel tempPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints tempConstraints = createAndInitGBC();
+        m_statusProgressCardLayout.add(tempPanel, EMPTY_CARD);
+
+        tempPanel = new JPanel(new GridBagLayout());
+        tempConstraints.gridx = 0;
+        tempConstraints.weightx = 1;
+        tempConstraints.fill = GridBagConstraints.HORIZONTAL;
+        tempPanel.add(m_analyzeProgressBar, tempConstraints);
+        m_statusProgressCardLayout.add(tempPanel, PROGRESS_BAR_CARD);
+
+        tempPanel = new JPanel(new GridBagLayout());
+        tempConstraints.gridx = 0;
+        tempConstraints.weightx = 0;
+        tempPanel.add(m_autoDetectionStatusIcon, tempConstraints);
+        tempConstraints.gridx += 1;
+        tempConstraints.insets = new Insets(0, 5, 0, 0);
+        tempPanel.add(m_autoDetectionStatusLabel, tempConstraints);
+        // empty panel to keep icon and label in the same position, even if label text is shor
+        tempConstraints.gridx += 1;
+        tempConstraints.weightx = 1;
+        tempPanel.add(new JPanel(), tempConstraints);
+        m_statusProgressCardLayout.add(tempPanel, STATUS_CARD);
+    }
+
+    private JPanel createOptionsSubPanel() {
+        final JPanel optionSubPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.insets = new Insets(5, 6, 5, 5);
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.weightx = 0;
-        optionsPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
+        optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
+
+        JPanel tempPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints tempGbc = createAndInitGBC();
+        tempPanel.add(m_hasColHeaderChecker, tempGbc);
+        tempGbc.gridx += 1;
+        tempGbc.insets = new Insets(0, 45, 0, 0);
+        tempPanel.add(m_hasRowIDChecker, tempGbc);
+
+        gbc.insets = new Insets(5, 8, 5, 5);
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        optionSubPanel.add(tempPanel, gbc);
+
+        tempPanel = new JPanel(new GridBagLayout());
+        tempGbc = createAndInitGBC();
+        tempPanel.add(m_allowShortDataRowsChecker, tempGbc);
+        tempGbc.gridx += 1;
+        tempGbc.insets = new Insets(0, 17, 0, 0);
+        tempPanel.add(m_skipEmptyDataRowsChecker, tempGbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(m_hasColHeaderChecker, gbc);
-        gbc.gridx += 1;
-        optionsPanel.add(m_hasRowIDChecker, gbc);
+        optionSubPanel.add(tempPanel, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        optionsPanel.add(m_allowShortDataRowsChecker, gbc);
-
-        gbc.gridx += 1;
-        optionsPanel.add(m_skipEmptyDataRowsChecker, gbc);
+        optionSubPanel.add(m_replaceQuotedEmptyStringChecker, gbc);
 
         //empty panel to eat up extra space
         gbc.gridy += 1;
         gbc.gridx = 0;
         gbc.weighty = 1;
-        optionsPanel.add(new JPanel(), gbc);
-        return optionsPanel;
+        optionSubPanel.add(new JPanel(), gbc);
+
+        return optionSubPanel;
     }
 
     /**
@@ -513,7 +671,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         tableReadConfig.setAllowShortRows(m_allowShortDataRowsChecker.isSelected());
         tableReadConfig.setSkipEmptyRows(m_skipEmptyDataRowsChecker.isSelected());
-
     }
 
     /**
@@ -543,6 +700,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         FileReaderNodeSettings s = new FileReaderNodeSettings();
         m_encodingPanel.overrideSettings(s);
         csvReaderConfig.setCharSetName(s.getCharsetName());
+
+        csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
     }
 
     @Override
@@ -553,6 +712,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         loadTableReadSettings();
         loadCSVSettings();
         setSpecMergeMode();
+        m_fsConnection = FileSystemPortObjectSpec.getFileSystemConnection(specs, FS_INPUT_PORT);
+        showCardInCardLayout(EMPTY_CARD);
     }
 
     /**
@@ -605,6 +766,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(csvReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
+        m_autoDetectionBufferSize = csvReaderConfig.getAutoDetectionBufferSize();
     }
 
     /**
@@ -660,6 +822,101 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             default:
                 throw new NotConfigurableException("Unknown spec merge mode " + m_config.getSpecMergeMode());
 
+        }
+    }
+
+    private void startFormatAutoDetection() {
+        m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(m_fsConnection, this);
+
+        setAutodetectComponentsEnabled(false);
+        showCardInCardLayout(PROGRESS_BAR_CARD);
+        m_startAutodetection.setText(AUTODETECT_CANCEL_LABEL);
+
+        m_formatAutoDetectionSwingWorker.execute();
+    }
+
+    void setAutodetectComponentsEnabled(final boolean enabled) {
+        m_commentStartField.setEnabled(enabled);
+        m_skipFirstLinesChecker.setEnabled(enabled);
+        m_skipFirstLinesSpinner.setEnabled(enabled);
+        m_colDelimiterField.setEnabled(enabled);
+        m_rowDelimiterField.setEnabled(enabled);
+        m_quoteField.setEnabled(enabled);
+        m_quoteEscapeField.setEnabled(enabled);
+        m_filePanel.getModel().setEnabled(enabled);
+    }
+
+    void resetUIafterAutodetection() {
+        setAutodetectComponentsEnabled(true);
+        showCardInCardLayout(EMPTY_CARD);
+        m_startAutodetection.setText(CSVTableReaderNodeDialog.START_AUTODETECT_LABEL);
+    }
+
+    void updateAutodetectionFields(final CsvFormat format) {
+        m_colDelimiterField.setText(EscapeUtils.escape(format.getDelimiterString()));
+        m_rowDelimiterField.setText(EscapeUtils.escape(format.getLineSeparatorString()));
+        m_quoteField.setText(Character.toString(format.getQuote()));
+        m_quoteEscapeField.setText(Character.toString(format.getQuoteEscape()));
+    }
+
+    String getCommentStart() {
+        return m_commentStartField.getText();
+    }
+
+    boolean getSkipLines() {
+        return m_skipFirstLinesChecker.isSelected();
+    }
+
+    int getNumLinesToSkip() {
+        return (int)m_skipFirstLinesSpinner.getValue();
+    }
+
+    Charset getSelectedCharset() {
+        final Optional<String> charsetName = m_encodingPanel.getSelectedCharsetName();
+        return charsetName.isPresent() ? Charset.forName(charsetName.get()) : Charset.defaultCharset();
+    }
+
+    SettingsModelFileChooser2 getFileChooserSettingsModel() {
+        return ((SettingsModelFileChooser2)m_filePanel.getModel()).clone();
+    }
+
+    int getBufferSize() {
+        return m_autoDetectionBufferSize;
+    }
+
+    void setStatus(final String text, final String toolTipText, final Icon icon) {
+        m_autoDetectionStatusIcon.setIcon(icon);
+        m_autoDetectionStatusLabel.setText(text);
+        m_autoDetectionStatusLabel.setToolTipText(toolTipText);
+
+        showCardInCardLayout(STATUS_CARD);
+    }
+
+    private void showCardInCardLayout(final String cardName) {
+        final CardLayout cardLayout = (CardLayout)m_statusProgressCardLayout.getLayout();
+        cardLayout.show(m_statusProgressCardLayout, cardName);
+    }
+
+    private void openSettingsDialog() {
+        // figure out the parent to be able to make the dialog modal
+        Frame f = null;
+        Container c = getPanel().getParent();
+        while (c != null) {
+            if (c instanceof Frame) {
+                f = (Frame)c;
+                break;
+            }
+            c = c.getParent();
+        }
+
+        String s = (String)JOptionPane.showInputDialog(f, "Buffer size:", "Adjust buffer size",
+            JOptionPane.PLAIN_MESSAGE, null, null, m_autoDetectionBufferSize);
+
+        try {
+            m_autoDetectionBufferSize =
+                s != null && !s.isEmpty() ? Integer.parseInt(s.trim()) : m_autoDetectionBufferSize;
+        } catch (NumberFormatException e) {
+            setStatus("Please enter an integer", null, SharedIcons.ERROR.get());
         }
     }
 }
