@@ -49,20 +49,21 @@
 package org.knime.filehandling.core.node.table.reader.util;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
  * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
- * tables that should be read together.
+ * tables that should be read together, or based on a stored {@link TableSpecConfig}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type representing external data types
  * @param <V> the type representing values
  */
-@FunctionalInterface
 public interface MultiTableReadFactory<T, V> {
 
     /**
@@ -77,5 +78,17 @@ public interface MultiTableReadFactory<T, V> {
      */
     MultiTableRead<V> create(final String rootPath, Map<Path, TypedReaderTableSpec<T>> individualSpecs,
         MultiTableReadConfig<?> config);
+
+    /**
+     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
+     * {@link MultiTableReadConfig config}.<br>
+     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpec()} is {@code true}.
+     *
+     * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
+     * @param paths the list of paths/files to be read
+     * @param config user provided {@link MultiTableReadConfig}
+     * @return a {@link MultiTableRead} for reading the tables from the given paths
+     */
+    MultiTableRead<V> create(final String rootPath, final List<Path> paths, MultiTableReadConfig<?> config);
 
 }

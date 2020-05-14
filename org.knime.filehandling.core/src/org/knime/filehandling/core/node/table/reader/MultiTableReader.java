@@ -66,6 +66,8 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -113,6 +115,7 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * Creates the {@link DataTableSpec} corresponding to the tables stored in <b>paths</b> combined according to the
      * provided {@link MultiTableReadConfig config}.
      *
+     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
      * @param paths to read from
      * @param config for reading
      * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>paths</b>
@@ -125,19 +128,25 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private MultiTableRead<V> createMultiRead(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config) throws IOException {
-        final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
-        // TODO parallelize
-        for (Path path : paths) {
-            final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
-            specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
+        if (config.hasTableSpec() && config.getTableSpecConfig().isConfiguredWith(rootPath)
+            && config.getTableSpecConfig().isConfiguredWith(paths)) {
+            m_currentMultiRead = m_multiTableReadFactory.create(rootPath, paths, config);
+        } else {
+            final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
+            // TODO parallelize
+            for (Path path : paths) {
+                final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
+                specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
+            }
+            m_currentMultiRead = m_multiTableReadFactory.create(rootPath, specs, config);
         }
-        m_currentMultiRead = m_multiTableReadFactory.create(rootPath, specs, config);
         return m_currentMultiRead;
     }
 
     /**
      * Reads a table from the provided {@link Path paths} according to the provided {@link MultiTableReadConfig config}.
      *
+     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
      * @param paths to read from
      * @param config for reading
      * @param exec for table creation and reporting progress
@@ -160,6 +169,7 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * progress. Note: The {@link RowOutput output} must have a {@link DataTableSpec} compatible with the
      * {@link DataTableSpec} returned by createTableSpec(List, MultiTableReadConfig).
      *
+     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
      * @param paths to read from
      * @param config for reading
      * @param output the {@link RowOutput} to fill
@@ -192,8 +202,8 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
             final TableReadConfig<C> pathSpecificConfig = createIndividualConfig(config.getTableReadConfig());
             final IndividualTableReader<V> reader =
                 multiTableRead.createIndividualTableReader(path, pathSpecificConfig, fsFactory);
-            try (Read<V> read =
-                ReadUtils.decorateForReading(m_reader.read(path, pathSpecificConfig), pathSpecificConfig)) {
+            try (final Read<V> fileReader = m_reader.read(path, pathSpecificConfig);
+                    final Read<V> read = ReadUtils.decorateForReading(fileReader, pathSpecificConfig)) {
                 reader.fillOutput(read, output, progress);
             }
             progress.setProgress(1.0);
@@ -203,6 +213,19 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private TableReadConfig<C> createIndividualConfig(final TableReadConfig<C> generalConfig) {
         return generalConfig.copy();
+    }
+
+    /**
+     * Allows to create the {@link TableSpecConfig}. An exception will be thrown if this method is getting invoked
+     * before the reader calculated the {@link ReaderTableSpec}.
+     *
+     * @return the {@link TableSpecConfig}
+     */
+    public TableSpecConfig createTableSpecConfig() {
+        if (m_currentMultiRead == null) {
+            throw new IllegalStateException("Method can only be invoked after the spec has been computed.");
+        }
+        return m_currentMultiRead.createTableSpec();
     }
 
 }

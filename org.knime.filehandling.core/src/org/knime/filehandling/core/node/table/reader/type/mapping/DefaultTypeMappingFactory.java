@@ -60,6 +60,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -97,6 +98,15 @@ public final class DefaultTypeMappingFactory<T, V> implements TypeMappingFactory
             .map(TypedReaderColumnSpec::getType)//
             .map(this::getDefaultPath)//
             .toArray(ProductionPath[]::new);
+        return create(paths);
+    }
+
+    @Override
+    public TypeMapping<V> create(final TableSpecConfig config) {
+        return create(config.getProductionPaths());
+    }
+
+    private TypeMapping<V> create(final ProductionPath[] paths) {
         return new DefaultTypeMapping<>(m_readAdapterFactory::createReadAdapter, paths);
     }
 

@@ -171,7 +171,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      *
      * @return the {@link ProducerRegistry}
      */
-    public ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry() {
+    protected ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry() {
         return getReadAdapterFactory().getProducerRegistry();
     }
 }

@@ -48,10 +48,12 @@
  */
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Creates {@link TypeMapping TypeMappings} from {@link TypedReaderTableSpec ReaderTableSpecs}.
+ * Creates {@link TypeMapping TypeMappings} from {@link TypedReaderTableSpec ReaderTableSpecs} or based on a
+ * {@link TableSpecConfig}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to represent external data types
@@ -67,5 +69,13 @@ public interface TypeMappingFactory<T, V> {
      * @return a {@link TypeMapping} for {@link TypedReaderTableSpec spec}
      */
     TypeMapping<V> create(TypedReaderTableSpec<T> spec);
+
+    /**
+     * Creates a {@link TypeMapping} for the provided {@link TableSpecConfig}.
+     *
+     * @param config the {@link TableSpecConfig} holding the type mapping
+     * @return the {@link TypeMapping} based on the {@link TableSpecConfig table spec config information}
+     */
+    TypeMapping<V> create(TableSpecConfig config);
 
 }
