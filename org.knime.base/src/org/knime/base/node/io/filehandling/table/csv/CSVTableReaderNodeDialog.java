@@ -703,7 +703,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_config.loadInDialog(settings);
+        // TODO: change this once we introduced the preview
+        m_config.loadInDialog(settings, null);
         m_filePanel.loadSettingsFrom(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();

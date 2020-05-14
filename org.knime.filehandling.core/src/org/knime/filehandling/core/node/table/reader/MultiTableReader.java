@@ -118,20 +118,20 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>paths</b>
      * @throws IOException if reading the specs from {@link Path paths} fails
      */
-    public DataTableSpec createTableSpec(final List<Path> paths, final MultiTableReadConfig<C> config)
-        throws IOException {
-        return createMultiRead(paths, config).getOutputSpec();
+    public DataTableSpec createTableSpec(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config) throws IOException {
+        return createMultiRead(rootPath, paths, config).getOutputSpec();
     }
 
-    private MultiTableRead<V> createMultiRead(final List<Path> paths, final MultiTableReadConfig<C> config)
-        throws IOException {
+    private MultiTableRead<V> createMultiRead(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config) throws IOException {
         final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
         // TODO parallelize
         for (Path path : paths) {
             final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
             specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
         }
-        m_currentMultiRead = m_multiTableReadFactory.create(specs, config);
+        m_currentMultiRead = m_multiTableReadFactory.create(rootPath, specs, config);
         return m_currentMultiRead;
     }
 
@@ -144,10 +144,10 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @return the read table
      * @throws Exception
      */
-    public BufferedDataTable readTable(final List<Path> paths, final MultiTableReadConfig<C> config,
-        final ExecutionContext exec) throws Exception {
+    public BufferedDataTable readTable(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final MultiTableRead<V> runConfig = getMultiRead(paths, config);
+        final MultiTableRead<V> runConfig = getMultiRead(rootPath, paths, config);
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(runConfig.getOutputSpec()));
         fillRowOutput(runConfig, paths, config, output, exec);
@@ -166,17 +166,17 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @param exec needed by the mapping framework
      * @throws Exception
      */
-    public void fillRowOutput(final List<Path> paths, final MultiTableReadConfig<C> config, final RowOutput output,
-        final ExecutionContext exec) throws Exception {
+    public void fillRowOutput(final String rootPath, final List<Path> paths, final MultiTableReadConfig<C> config,
+        final RowOutput output, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final MultiTableRead<V> multiRead = getMultiRead(paths, config);
+        final MultiTableRead<V> multiRead = getMultiRead(rootPath, paths, config);
         fillRowOutput(multiRead, paths, config, output, exec);
     }
 
-    private MultiTableRead<V> getMultiRead(final List<Path> paths, final MultiTableReadConfig<C> config)
-        throws IOException {
+    private MultiTableRead<V> getMultiRead(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config) throws IOException {
         if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(paths)) {
-            return createMultiRead(paths, config);
+            return createMultiRead(rootPath, paths, config);
         } else {
             return m_currentMultiRead;
         }

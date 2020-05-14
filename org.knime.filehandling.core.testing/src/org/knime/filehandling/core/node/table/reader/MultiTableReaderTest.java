@@ -59,6 +59,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -78,6 +79,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -88,6 +90,8 @@ import org.mockito.junit.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTableReaderTest {
+
+    private static final String ROOT_PATH = "path";
 
     private interface DummyReaderSpecificConfig extends ReaderSpecificConfig<DummyReaderSpecificConfig> {
     }
@@ -156,12 +160,13 @@ public class MultiTableReaderTest {
     @Test
     public void testCreateTableSpec() throws IOException {
         stubForCreateSpec();
-        assertEquals(m_knimeSpec, m_testInstance.createTableSpec(asList(m_path1, m_path2), m_multiReadConfig));
+        assertEquals(m_knimeSpec,
+            m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig));
     }
 
     private void stubForCreateSpec() throws IOException {
         when(m_reader.readSpec(any(), any())).thenReturn(m_readerSpec);
-        when(m_multiTableReadFactory.create(any(), any())).thenReturn(m_multiTableRead);
+        when(m_multiTableReadFactory.create(any(), ArgumentMatchers.anyMap(), any())).thenReturn(m_multiTableRead);
         when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
         when(m_multiReadConfig.getTableReadConfig()).thenReturn(m_tableReadConfig);
     }
@@ -176,7 +181,7 @@ public class MultiTableReaderTest {
     public void testFillRowOutputWithoutCallingCreateSpecFirst() throws Exception {
         stubForCreateSpec();
         stubForFillRowOutput();
-        m_testInstance.fillRowOutput(asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
@@ -190,10 +195,10 @@ public class MultiTableReaderTest {
     @Test
     public void testFillRowOutputWithCallingCreateSpecFirstAndValidPaths() throws Exception {
         stubForCreateSpec();
-        m_testInstance.createTableSpec(asList(m_path1, m_path2), m_multiReadConfig);
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
         stubForFillRowOutput();
         when(m_multiTableRead.isValidFor(any())).thenReturn(true);
-        m_testInstance.fillRowOutput(asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
@@ -207,9 +212,9 @@ public class MultiTableReaderTest {
     @Test
     public void testFillRowOutputWithCallingCreateSpecFirstAndInValidPaths() throws Exception {
         stubForCreateSpec();
-        m_testInstance.createTableSpec(asList(m_path1, m_path2), m_multiReadConfig);
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
         stubForFillRowOutput();
-        m_testInstance.fillRowOutput(asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
@@ -223,11 +228,11 @@ public class MultiTableReaderTest {
     @Test
     public void testReset() throws Exception {
         stubForCreateSpec();
-        m_testInstance.createTableSpec(asList(m_path1, m_path2), m_multiReadConfig);
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
         m_testInstance.reset();
         stubForFillRowOutput();
-        m_testInstance.fillRowOutput(asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
-        verify(m_multiTableReadFactory, times(2)).create(any(), any());
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
+        verify(m_multiTableReadFactory, times(2)).create(any(), (Map<Path, TypedReaderTableSpec<String>>)any(), any());
     }
 
     private void stubForFillRowOutput() throws IOException {

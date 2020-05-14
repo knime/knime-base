@@ -50,6 +50,7 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.util.Optional;
 
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
@@ -126,11 +127,12 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
         final SettingsModelFileChooser2 fileChooserModel = createFileChooserModel();
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         final TypeMappingFactory<T, V> typeMappingFactory = new DefaultTypeMappingFactory<>(readAdapterFactory);
-        final RowKeyGeneratorContextFactory<V> rowKeyGenFactory = new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
+        final RowKeyGeneratorContextFactory<V> rowKeyGenFactory =
+            new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
         final MultiTableReadFactory<T, V> multiTableReadFactory =
             new DefaultMultiTableReadFactory<>(typeMappingFactory, getTypeHierarchy(), rowKeyGenFactory);
         final MultiTableReader<C, T, V> reader = new MultiTableReader<>(createReader(), multiTableReadFactory);
-        return new TableReaderNodeModel<>(config, fileChooserModel, reader,
+        return new TableReaderNodeModel<>(config, fileChooserModel, reader, getProducerRegistry(),
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
@@ -162,5 +164,14 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     public final NodeView<TableReaderNodeModel<C>> createNodeView(final int viewIndex,
         final TableReaderNodeModel<C> nodeModel) {
         return null;
+    }
+
+    /**
+     * Returns the {@link ProducerRegistry} used by the {@link ReadAdapterFactory}.
+     *
+     * @return the {@link ProducerRegistry}
+     */
+    public ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry() {
+        return getReadAdapterFactory().getProducerRegistry();
     }
 }

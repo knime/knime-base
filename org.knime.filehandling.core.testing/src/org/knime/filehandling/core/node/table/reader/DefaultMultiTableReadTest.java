@@ -84,6 +84,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMultiTableReadTest {
 
+    private static final String ROOT_PATH = "path";
+
     @Mock
     private TypeMapping<String> m_typeMapping;
 
@@ -127,7 +129,8 @@ public class DefaultMultiTableReadTest {
         m_individualSpecs.put(m_path2, TypedReaderTableSpec.create(asList("gunter", "franz"), asList("ilsa", "berta")));
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
-        m_testInstance = new DefaultMultiTableRead<>(m_individualSpecs, m_outputSpec, m_typeMapping, m_keyGenContext);
+        m_testInstance =
+            new DefaultMultiTableRead<>(ROOT_PATH, m_individualSpecs, m_outputSpec, m_typeMapping, m_keyGenContext);
 
     }
 

@@ -59,6 +59,7 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
@@ -74,6 +75,8 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  */
 final class DefaultMultiTableRead<V> implements MultiTableRead<V> {
 
+    private final String m_rootPath;
+
     private final DataTableSpec m_outputSpec;
 
     private final Map<Path, ? extends ReaderTableSpec<?>> m_individualSpecs;
@@ -82,8 +85,10 @@ final class DefaultMultiTableRead<V> implements MultiTableRead<V> {
 
     private final RowKeyGeneratorContext<V> m_keyGenContext;
 
-    DefaultMultiTableRead(final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs, final DataTableSpec outputSpec,
-        final TypeMapping<V> typeMapping, final RowKeyGeneratorContext<V> keyGenContext) {
+    DefaultMultiTableRead(final String rootPath, final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
+        final DataTableSpec outputSpec, final TypeMapping<V> typeMapping,
+        final RowKeyGeneratorContext<V> keyGenContext) {
+        m_rootPath = rootPath;
         m_outputSpec = outputSpec;
         m_individualSpecs = individualSpecs;
         m_typeMapping = typeMapping;
@@ -109,6 +114,11 @@ final class DefaultMultiTableRead<V> implements MultiTableRead<V> {
         final TypeMapper<V> typeMapper = m_typeMapping.createTypeMapper(fsFactory);
         final RowKeyGenerator<V> keyGen = m_keyGenContext.createKeyGenerator(path);
         return new DefaultIndividualTableReader<>(typeMapper, idxMapper, keyGen);
+    }
+
+    @Override
+    public TableSpecConfig createTableSpec() {
+        return new TableSpecConfig(m_rootPath, m_outputSpec, m_individualSpecs, m_typeMapping.getProductionPaths());
     }
 
 }

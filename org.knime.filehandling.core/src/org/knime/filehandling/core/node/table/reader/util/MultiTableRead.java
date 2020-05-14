@@ -54,6 +54,7 @@ import java.util.Collection;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 
 /**
  * Encapsulates information needed by the MultiTableReader to read tables from multiple {@link Path paths}. Note:
@@ -89,5 +90,12 @@ public interface MultiTableRead<V> {
      */
     IndividualTableReader<V> createIndividualTableReader(Path path, TableReadConfig<?> config,
         FileStoreFactory fsFactory);
+
+    /**
+     * Allows to create the {@link TableSpecConfig}.
+     *
+     * @return the {@link TableSpecConfig}
+     */
+    TableSpecConfig createTableSpec();
 
 }

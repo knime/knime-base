@@ -49,8 +49,9 @@
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
  * Represents a mapping from external types to KNIME types.
@@ -69,12 +70,14 @@ public interface TypeMapping<V> {
     TypeMapper<V> createTypeMapper(FileStoreFactory fsFactory);
 
     /**
-     * Creates the {@link DataTableSpec} that corresponds to {@link TypedReaderTableSpec spec} according to this
+     * Creates the {@link DataTableSpec} that corresponds to {@link ReaderTableSpec spec} according to this
      * {@link TypeMapping}.
      *
-     * @param spec the {@link TypedReaderTableSpec} to map to a {@link DataTableSpec}
-     * @return the {@link DataTableSpec} corresponding to {@link TypedReaderTableSpec spec} and this {@link TypeMapping}
+     * @param spec the {@link ReaderTableSpec} to map to a {@link DataTableSpec}
+     * @return the {@link DataTableSpec} corresponding to {@link ReaderTableSpec spec} and this {@link TypeMapping}
      */
-    DataTableSpec map(TypedReaderTableSpec<?> spec);
+    DataTableSpec map(ReaderTableSpec<?> spec);
+
+    ProductionPath[] getProductionPaths();
 
 }

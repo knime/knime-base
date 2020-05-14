@@ -90,14 +90,14 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
     }
 
     @Override
-    public MultiTableRead<V> create(final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
+    public MultiTableRead<V> create(final String rootPath, final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
         final MultiTableReadConfig<?> config) {
         final TypedReaderTableSpec<T> mergedSpec =
             config.getSpecMergeMode().mergeSpecs(individualSpecs.values(), m_typeHierarchy);
         final TypeMapping<V> typeMapping = m_typeMappingFactory.create(mergedSpec);
         final DataTableSpec outputSpec = typeMapping.map(mergedSpec);
         final RowKeyGeneratorContext<V> keyGenFn = m_rowKeyGeneratorFactory.createContext(config.getTableReadConfig());
-        return new DefaultMultiTableRead<>(individualSpecs, outputSpec, typeMapping, keyGenFn);
+        return new DefaultMultiTableRead<>(rootPath, individualSpecs, outputSpec, typeMapping, keyGenFn);
     }
 
 }

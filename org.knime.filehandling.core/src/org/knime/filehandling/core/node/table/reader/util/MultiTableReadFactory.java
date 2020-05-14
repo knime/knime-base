@@ -69,11 +69,13 @@ public interface MultiTableReadFactory<T, V> {
      * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
      * {@link MultiTableReadConfig config}.
      *
+     * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
      * @param individualSpecs a {@link Map} from {@link Path} to {@link TypedReaderTableSpec} where each
      *            {@link TypedReaderTableSpec} corresponds to the table stored in its corresponding {@link Path}
      * @param config user provided {@link MultiTableReadConfig}
      * @return a {@link MultiTableRead} for reading the tables stored in the keys of <b>individualSpecs</b>
      */
-    MultiTableRead<V> create(Map<Path, TypedReaderTableSpec<T>> individualSpecs, MultiTableReadConfig<?> config);
+    MultiTableRead<V> create(final String rootPath, Map<Path, TypedReaderTableSpec<T>> individualSpecs,
+        MultiTableReadConfig<?> config);
 
 }

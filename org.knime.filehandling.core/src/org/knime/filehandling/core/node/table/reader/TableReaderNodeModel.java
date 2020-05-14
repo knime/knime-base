@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -97,19 +98,27 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     private final MultiTableReader<C, ?, ?> m_tableReader;
 
     /**
+     * The {@link ProducerRegistry} required to load {@link #m_config}.
+     */
+    private final ProducerRegistry<?, ?> m_registry;
+
+    /**
      * Constructs a node model with no inputs and one output.
      *
      * @param config storing the user settings
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
+     * @param registry the {@link ProducerRegistry}
      * @param portsConfig determines the in and outports.
      */
     protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C, ?, ?> tableReader, final PortsConfiguration portsConfig) {
+        final MultiTableReader<C, ?, ?> tableReader, final ProducerRegistry<?, ?> registry,
+        final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
-        m_tableReader = tableReader;
         m_pathSettings = pathSettingsModel;
+        m_tableReader = tableReader;
+        m_registry = registry;
     }
 
     @Override
@@ -131,14 +140,15 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         final List<Path> paths = getPaths(inObjects);
-        return new PortObject[]{m_tableReader.readTable(paths, m_config, exec)};
+        return new PortObject[]{m_tableReader.readTable(m_pathSettings.getPathOrURL(), paths, m_config, exec)};
     }
 
     @Override
     public PortObjectSpec[] computeFinalOutputSpecs(final StreamableOperatorInternals internals,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         try {
-            return new PortObjectSpec[]{m_tableReader.createTableSpec(getPaths(inSpecs), m_config)};
+            return new PortObjectSpec[]{
+                m_tableReader.createTableSpec(m_pathSettings.getPathOrURL(), getPaths(inSpecs), m_config)};
         } catch (IOException ex) {
             throw new InvalidSettingsException(ex);
         }
@@ -158,7 +168,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
                 final RowOutput output = (RowOutput)outputs[0];
-                m_tableReader.fillRowOutput(paths, m_config, output, exec);
+                m_tableReader.fillRowOutput(m_pathSettings.getPathOrURL(), paths, m_config, output, exec);
             }
         };
     }
@@ -188,13 +198,13 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.validate(settings);
+        m_config.validate(settings, m_registry);
         m_pathSettings.validateSettings(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.loadInModel(settings);
+        m_config.loadInModel(settings, m_registry);
         m_pathSettings.loadSettingsFrom(settings);
     }
 

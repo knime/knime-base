@@ -82,6 +82,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMultiTableReadFactoryTest {
 
+    private static final String ROOT_PATH = "path";
+
     @Mock
     private TypeMappingFactory<String, String> m_typeMappingFactory;
 
@@ -129,7 +131,8 @@ public class DefaultMultiTableReadFactoryTest {
         when(m_typeResolver.getMostSpecificType()).thenReturn("berta");
         when(m_config.getSpecMergeMode()).thenReturn(SpecMergeMode.UNION);
 
-        MultiTableRead<String> multiTableRead = m_testInstance.create(Collections.singletonMap(m_path, spec), m_config);
+        MultiTableRead<String> multiTableRead =
+            m_testInstance.create(ROOT_PATH, Collections.singletonMap(m_path, spec), m_config);
         assertEquals(knimeSpec, multiTableRead.getOutputSpec());
         verify(m_typeMappingFactory).create(spec);
         verify(m_typeMapping).map(spec);
