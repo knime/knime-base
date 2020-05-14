@@ -414,6 +414,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
+
         panel.add(createFilePanel(), gbc);
         gbc.gridy++;
         panel.add(createSpecMergePanel(), gbc);
@@ -622,9 +623,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
 
         JPanel tempPanel = createReaderOptions();
-
-        gbc.gridx = 0;
         gbc.gridy += 1;
+        gbc.insets = new Insets(0, 7, 0, 0);
         optionSubPanel.add(tempPanel, gbc);
 
         gbc.gridx = 0;
@@ -643,15 +643,16 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         GridBagConstraints gbc = createAndInitGBC();
         readerOptions.add(m_hasColHeaderChecker, gbc);
         gbc.gridx += 1;
-        gbc.insets = new Insets(0, 17, 0, 0);
+        gbc.insets = new Insets(0, 26, 0, 0);
         readerOptions.add(m_hasRowIDChecker, gbc);
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.insets = new Insets(5, 0, 5, 5);
         readerOptions.add(m_allowShortDataRowsChecker, gbc);
         gbc.gridx += 1;
-        gbc.insets = new Insets(0, 17, 0, 0);
+        gbc.insets = new Insets(5, 26, 0, 0);
         readerOptions.add(m_skipEmptyDataRowsChecker, gbc);
+
         return readerOptions;
     }
 
@@ -922,6 +923,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(m_fsConnection, this);
 
         m_tableReaderPreview.setEnabled(false);
+
         setAutodetectComponentsEnabled(false);
         showCardInCardLayout(PROGRESS_BAR_CARD);
         m_startAutodetection.setText(AUTODETECT_CANCEL_LABEL);
@@ -948,6 +950,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     void updateAutodetectionFields(final CsvFormat format) {
         m_colDelimiterField.setText(EscapeUtils.escape(format.getDelimiterString()));
+
         m_rowDelimiterField.setText(EscapeUtils.escape(format.getLineSeparatorString()));
         m_quoteField.setText(Character.toString(format.getQuote()));
         m_quoteEscapeField.setText(Character.toString(format.getQuoteEscape()));
@@ -1026,5 +1029,4 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_tableReaderPreview.onClose();
         super.onClose();
     }
-
 }
