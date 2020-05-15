@@ -165,7 +165,7 @@ public class MultiTableReaderTest {
     }
 
     private void stubForCreateSpec() throws IOException {
-        when(m_reader.readSpec(any(), any())).thenReturn(m_readerSpec);
+        when(m_reader.readSpec(any(), any(), any())).thenReturn(m_readerSpec);
         when(m_multiTableReadFactory.create(any(), ArgumentMatchers.anyMap(), any())).thenReturn(m_multiTableRead);
         when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
         when(m_multiReadConfig.getTableReadConfig()).thenReturn(m_tableReadConfig);

@@ -102,7 +102,6 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
     public static <T> TypedReaderTableSpec<T> create(final Collection<String> names, final Collection<T> types) {
         CheckUtils.checkArgumentNotNull(names, "The names argument must not be null.");
         CheckUtils.checkArgumentNotNull(types, "The types argument must not be null.");
-        CheckUtils.checkArgument(!names.isEmpty(), "At least one name and type must be provided.");
         CheckUtils.checkArgument(names.size() == types.size(), "Names and types must have the same size.");
         final Iterator<String> nameIterator = names.iterator();
         final Iterator<T> typesIterator = types.iterator();

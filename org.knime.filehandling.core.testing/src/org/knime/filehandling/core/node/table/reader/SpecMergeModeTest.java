@@ -109,22 +109,9 @@ public class SpecMergeModeTest {
             TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
         TypedReaderTableSpec<String> spec2 =
             TypedReaderTableSpec.create(asList("berta", "gerta"), asList("foo", "bar"));
-        when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar");
         SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
     }
 
-    /**
-     * Tests if {@link SpecMergeMode#FAIL_ON_DIFFERING_SPECS} fails on specs with different types.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testFailOnDifferingSpecsFailsOnDifferentTypes() {
-        TypedReaderTableSpec<String> spec1 =
-            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bar"));
-        TypedReaderTableSpec<String> spec2 =
-            TypedReaderTableSpec.create(asList("berta", "frieda"), asList("foo", "bla"));
-        when(m_typeResolver.getMostSpecificType()).thenReturn("foo", "bar");
-        SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(asList(spec1, spec2), m_typeHierarchy);
-    }
 
     /**
      * Tests if {@link SpecMergeMode#FAIL_ON_DIFFERING_SPECS} fails on specs of different size.

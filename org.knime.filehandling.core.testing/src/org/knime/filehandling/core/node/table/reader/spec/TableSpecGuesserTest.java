@@ -63,6 +63,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -89,6 +90,9 @@ public class TableSpecGuesserTest {
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;
+
+    @Mock
+    private ExecutionMonitor m_monitor = null;
 
     private TableSpecGuesser<String, String> m_testInstance;
 
@@ -440,7 +444,7 @@ public class TableSpecGuesserTest {
         final TypedReaderTableSpec<String> expected, final boolean earlyStopping) throws IOException {
         setupTypeHierarchy(expected, earlyStopping);
         Read<String> read = mockRead(table);
-        TypedReaderTableSpec<String> actual = m_testInstance.guessSpec(read, config);
+        TypedReaderTableSpec<String> actual = m_testInstance.guessSpec(read, config, m_monitor);
         int colHeaderIdx = (int)config.getColumnHeaderIdx();
         assertEquals("Specs differed when column header was in row " + colHeaderIdx, expected, actual);
     }

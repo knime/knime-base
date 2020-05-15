@@ -140,7 +140,8 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
             final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
             // TODO parallelize
             for (Path path : paths) {
-                final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig(), exec.createSubProgress(1.0 / paths.size()));
+                final TypedReaderTableSpec<T> spec =
+                    m_reader.readSpec(path, config.getTableReadConfig(), exec.createSubProgress(1.0 / paths.size()));
                 specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
             }
             m_currentMultiRead = m_multiTableReadFactory.create(rootPath, specs, config);
@@ -181,7 +182,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @throws IOException if an I/O error occurs
      */
     public PreviewDataTable<C, V> createPreviewDataTable(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config,        final PreviewExecutionMonitor exec) throws IOException {
+        final MultiTableReadConfig<C> config, final PreviewExecutionMonitor exec) throws IOException {
         // iterate over the data to analyze and find the (most generic) column types
         final MultiTableRead<V> multiRead = createMultiRead(rootPath, paths, config, exec);
         // create the data table that will be displayed as preview

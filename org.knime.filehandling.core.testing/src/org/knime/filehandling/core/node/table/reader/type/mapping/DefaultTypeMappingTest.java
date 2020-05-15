@@ -102,14 +102,6 @@ public class DefaultTypeMappingTest {
     }
 
     /**
-     * Tests if {@code map} fails on columns that have incompatible types.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMapFailsOnColumnOfIncompatibleType() {
-        m_testInstance.map(TypedReaderTableSpec.create("hans", "franz"));
-    }
-
-    /**
      * Tests the {@code map} implementation.
      */
     @Test

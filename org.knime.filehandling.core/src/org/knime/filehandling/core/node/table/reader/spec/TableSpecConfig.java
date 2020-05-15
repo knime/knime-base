@@ -317,7 +317,7 @@ public final class TableSpecConfig {
         final ReaderTableSpec<?>[] individualSpecs = new ReaderTableSpec[numIndividualPaths];
         for (int i = 0; i < numIndividualPaths; i++) {
             individualSpecs[i] = ReaderTableSpec
-                .createReaderColumnSpec(Arrays.asList(nodeSettings.getStringArray(CFG_INDIVIDUAL_SPEC + i)));
+                .createReaderTableSpec(Arrays.asList(nodeSettings.getStringArray(CFG_INDIVIDUAL_SPEC + i)));
         }
         return individualSpecs;
     }

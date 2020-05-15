@@ -78,8 +78,9 @@ final class CheckSameSizeRead<V> extends AbstractReadDecorator<V> {
         if (m_size == -1 && current != null) {
             m_size = current.size();
         } else if (current != null) {
-            CheckUtils.checkArgument(m_size <= current.size(), "The data row has too few data elements.");
-            CheckUtils.checkArgument(m_size >= current.size(), "The data row has too many data elements.");
+            final int size = current.size();
+            CheckUtils.checkArgument(m_size <= size, "The data row has too few data elements.");
+            CheckUtils.checkArgument(m_size >= size, "The data row has too many data elements.");
         } else {
             // either we are at the end of the read or the size matched
         }
