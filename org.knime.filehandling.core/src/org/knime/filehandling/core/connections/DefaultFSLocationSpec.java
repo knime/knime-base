@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
@@ -115,4 +116,37 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
     public Optional<String> getFileSystemSpecifier() {
         return m_fileSystemSpecifier;
     }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof DefaultFSLocationSpec) {
+            return FSLocationSpec.areEqual(this, (DefaultFSLocationSpec)obj);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()//
+                .append(m_fileSystemType)//
+                .append(m_fileSystemSpecifier)//
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("(").append(m_fileSystemType);
+        if (m_fileSystemSpecifier.isPresent()) {
+            sb.append(", ").append(m_fileSystemSpecifier.get());
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+
 }

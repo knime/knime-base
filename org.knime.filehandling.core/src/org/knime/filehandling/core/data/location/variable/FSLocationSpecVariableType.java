@@ -44,141 +44,137 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 12, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.data.location.variable;
-
-import static org.knime.filehandling.core.connections.FSLocation.NULL;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeExtension;
-import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
 
 /**
- * Singleton type of {@link FlowVariable} for handling {@link FSLocation} values. The singleton instance is accessible
- * via the {@link FSLocationVariableType#INSTANCE} field.
+ * Singleton type of {@link FlowVariable} for handling {@link FSLocationSpec} values. The singleton instance is
+ * accessible via the {@link FSLocationSpecVariableType#INSTANCE} field.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class FSLocationVariableType extends VariableType<FSLocation> {
+public final class FSLocationSpecVariableType extends VariableType<FSLocationSpec> {
 
     /**
-     * The singleton instance of the {@link FSLocationVariableType}.
+     * The singleton instance of the {@link FSLocationSpecVariableType}.
      */
-    public static final FSLocationVariableType INSTANCE = new FSLocationVariableType();
+        public static final FSLocationSpecVariableType INSTANCE = new FSLocationSpecVariableType();
 
-    private FSLocationVariableType() {
+    private FSLocationSpecVariableType() {
         // singleton
     }
 
-    private static final class FSLocationValue extends VariableValue<FSLocation> {
+    private static final class FSLocationSpecValue extends VariableValue<FSLocationSpec> {
 
-        private FSLocationValue(final FSLocation fsLocation) {
-            super(INSTANCE, fsLocation);
+        private FSLocationSpecValue(final FSLocationSpec value) {
+            super(INSTANCE, value);
         }
 
         @Override
-        public FSLocation get() {
+        public FSLocationSpec get() {
             return super.get();
         }
+
     }
 
     @Override
-    protected Class<FSLocation> getSimpleType() {
-        return FSLocation.class;
+    protected Class<FSLocationSpec> getSimpleType() {
+        return FSLocationSpec.class;
     }
 
     @Override
-    protected VariableValue<FSLocation> loadValue(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return new FSLocationValue(FSLocationUtils.loadFSLocation(settings));
+    protected VariableValue<FSLocationSpec> loadValue(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return new FSLocationSpecValue(FSLocationUtils.loadFSLocationSpec(settings));
     }
 
     @Override
-    protected VariableValue<FSLocation> newValue(final FSLocation v) {
-        return new FSLocationValue(CheckUtils.checkArgumentNotNull(v, "The value must not be null."));
+    protected void saveValue(final NodeSettingsWO settings, final VariableValue<FSLocationSpec> v) {
+        FSLocationSpecValue value = (FSLocationSpecValue)v;
+        FSLocationUtils.saveFSLocationSpec(value.get(), settings);
     }
 
     @Override
-    protected void saveValue(final NodeSettingsWO settings, final VariableValue<FSLocation> v) {
-        FSLocationValue value = (FSLocationValue)v;
-        FSLocationUtils.saveFSLocation(value.get(), settings);
+    protected VariableValue<FSLocationSpec> newValue(final FSLocationSpec v) {
+        return new FSLocationSpecValue(v);
+    }
+
+    @Override
+    protected VariableValue<FSLocationSpec> defaultValue() {
+        return newValue(FSLocationSpec.NULL);
     }
 
     @Override
     public String getIdentifier() {
-        return "FSLocation";
+        return "FSLocationSpec";
     }
 
-    // TODO overwrite getIcon to return the PathCell/FSLocationCell Icon once https://knime-com.atlassian.net/browse/AP-13751 is done
+    @Override
+    protected boolean canOverwrite(final Config config, final String configKey) {
+        return isFSLocationSpec(config, configKey);
+    }
+
+    private static boolean isFSLocationSpec(final Config config, final String configKey) {
+        try {
+            return FSLocationUtils.isFSLocationSpec(config.getConfig(configKey));
+        } catch (InvalidSettingsException ex) {
+            // the key did not correspond to a config -> this can't be an FSLocationSpec
+            return false;
+        }
+    }
+
+    @Override
+    protected void overwrite(final FSLocationSpec value, final Config config, final String configKey)
+        throws InvalidConfigEntryException {
+        if (!canOverwrite(config, configKey)) {
+            throw new InvalidConfigEntryException(
+                "The provided config does not correspond to a FSLocationSpec.",
+                v -> String.format(
+                    "The variable '%s' can't overwrite the setting '%s' because it is not a FSLocationSpec.",
+                    v, config.getEntry(configKey)));
+        }
+        FSLocationUtils.saveFSLocationSpec(value, config.addConfig(configKey));
+    }
+
+    @Override
+    protected boolean canCreateFrom(final Config config, final String configKey) {
+        return isFSLocationSpec(config, configKey);
+    }
+
+    @Override
+    protected FSLocationSpec createFrom(final Config config, final String configKey)
+        throws InvalidSettingsException, InvalidConfigEntryException {
+        if (!canCreateFrom(config, configKey)) {
+            throw new InvalidConfigEntryException(
+                "The provided config does not correspond to a FSLocationSpec.",
+                v -> String.format("The settings stored in '%s' can't be exposed as flow variable '%s'.",
+                    config.getEntry(configKey), v));
+        }
+        return FSLocationUtils.loadFSLocationSpec(config.getConfig(configKey));
+    }
 
     /**
-     * Used to register {@link FSLocationVariableType} at the Flow Variable extension point.
+     * Used to register {@link FSLocationSpecVariableType} at the Flow Variable extension point.
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public static final class FSLocationVariableTypeExtension implements VariableTypeExtension {
+    public static final class FSLocationSpecVariableTypeExtension implements VariableTypeExtension {
 
         @Override
         public VariableType<?> getVariableType() {
             return INSTANCE;
         }
 
-    }
-
-    @Override
-    protected VariableValue<FSLocation> defaultValue() {
-        return newValue(NULL);
-    }
-
-    @Override
-    protected boolean canOverwrite(final Config config, final String configKey) {
-        return isSettingsModelFSLocation(config, configKey);
-    }
-
-    private static boolean isSettingsModelFSLocation(final Config config, final String configKey) {
-        try {
-            return FSLocationUtils.isFSLocation(config.getConfig(configKey));
-        } catch (InvalidSettingsException ex) {
-            // the key did not correspond to a config -> this can't be an FSLocation
-            return false;
-        }
-    }
-
-    @Override
-    protected void overwrite(final FSLocation value, final Config config, final String configKey)
-        throws InvalidConfigEntryException {
-        if (!canOverwrite(config, configKey)) {
-            throw new InvalidConfigEntryException(
-                "The provided config does not correspond to a FSLocation.",
-                v -> String.format(
-                    "The variable '%s' can't overwrite the setting '%s' because it is not a FSLocation.",
-                    v, config.getEntry(configKey)));
-        }
-        FSLocationUtils.saveFSLocation(value, config.addConfig(configKey));
-    }
-
-    @Override
-    protected boolean canCreateFrom(final Config config, final String configKey) {
-        return isSettingsModelFSLocation(config, configKey);
-    }
-
-    @Override
-    protected FSLocation createFrom(final Config config, final String configKey)
-        throws InvalidSettingsException, InvalidConfigEntryException {
-        if (!canCreateFrom(config, configKey)) {
-            throw new InvalidConfigEntryException(
-                "The provided config does not correspond to a FSLocation.",
-                v -> String.format("The settings stored in '%s' can't be exposed as flow variable '%s'.",
-                    config.getEntry(configKey), v));
-        }
-        return FSLocationUtils.loadFSLocation(config.getConfig(configKey));
     }
 
 }

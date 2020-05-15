@@ -56,6 +56,9 @@
       <VariableType
             extension="org.knime.filehandling.core.data.location.variable.FSLocationVariableType$FSLocationVariableTypeExtension">
       </VariableType>
+      <VariableType
+            extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
+      </VariableType>
    </extension>
 
 </plugin>

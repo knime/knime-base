@@ -53,7 +53,9 @@ import java.util.Optional;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * Utility class for {@link FSLocation} objects.
@@ -76,7 +78,7 @@ public final class FSLocationUtils {
     /**
      * Config key for the file system specifier part of an {@link FSLocation}.
      */
-    public static final String CFG_FS_SPECIFIER = "file_stystem_specifier";
+    public static final String CFG_FS_SPECIFIER = "file_system_specifier";
 
     /**
      * Config key for the file system type part of an {@link FSLocation}.
@@ -96,7 +98,7 @@ public final class FSLocationUtils {
      * @throws InvalidSettingsException if {@link ConfigRO} does not contain a {@link FSLocation} or is otherwise
      *             invalid
      */
-    public static FSLocation load(final ConfigRO config) throws InvalidSettingsException {
+    public static FSLocation loadFSLocation(final ConfigRO config) throws InvalidSettingsException {
         if (config.getBoolean(CFG_LOCATION_PRESENT)) {
             final String fsType = config.getString(CFG_FS_TYPE);
             final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
@@ -108,12 +110,31 @@ public final class FSLocationUtils {
     }
 
     /**
+     *
+     * Loads a {@link FSLocationSpec} from the provided {@link ConfigRO config}.
+     *
+     * @param config the {@link ConfigRO} to load from
+     * @return a new {@link FSLocationSpec} corresponding to the values stored in {@link ConfigRO config}
+     * @throws InvalidSettingsException if {@link ConfigRO} does not contain a {@link FSLocationSpec} or is otherwise
+     *             invalid
+     */
+    public static FSLocationSpec loadFSLocationSpec(final ConfigRO config) throws InvalidSettingsException {
+        if (config.getBoolean(CFG_LOCATION_PRESENT)) {
+            final String fsType = config.getString(CFG_FS_TYPE);
+            final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
+            return new DefaultFSLocationSpec(fsType, fsSpecifier);
+        } else {
+            return FSLocationSpec.NULL;
+        }
+    }
+
+    /**
      * Saves the provided {@link FSLocation location} into {@link ConfigWO config}.
      *
      * @param location the {@link FSLocation} to save
      * @param config the {@link ConfigWO} to save to
      */
-    public static void save(final FSLocation location, final ConfigWO config) {
+    public static void saveFSLocation(final FSLocation location, final ConfigWO config) {
         config.addBoolean(CFG_LOCATION_PRESENT, location != FSLocation.NULL);
         if (location != FSLocation.NULL) {
             config.addString(CFG_FS_TYPE, location.getFileSystemType());
@@ -122,6 +143,17 @@ public final class FSLocationUtils {
                 config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());
             }
             config.addString(CFG_PATH, location.getPath());
+        }
+    }
+
+    public static void saveFSLocationSpec(final FSLocationSpec locationSpec, final ConfigWO config) {
+        config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
+        if (locationSpec != FSLocationSpec.NULL) {
+            config.addString(CFG_FS_TYPE, locationSpec.getFileSystemType());
+            Optional<String> fileSystemSpecifier = locationSpec.getFileSystemSpecifier();
+            if (fileSystemSpecifier.isPresent()) {
+                config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());
+            }
         }
     }
 
@@ -148,6 +180,23 @@ public final class FSLocationUtils {
             }
         } catch (InvalidSettingsException ex) {
             // the config entry does not represent a SettingsModelFSLocation
+        }
+        return false;
+    }
+
+    public static boolean isFSLocationSpec(final ConfigRO config) {
+        try {
+            if (config.getBoolean(CFG_LOCATION_PRESENT)) {
+                config.getString(CFG_FS_TYPE);
+                // the specifier is not necessarily present
+                config.getString(CFG_FS_SPECIFIER, null);
+                return true;
+            } else {
+                // the config represents a FSLocationSpec if it contains only the flag
+                return config.getChildCount() == 1;
+            }
+        } catch (InvalidSettingsException ex) {
+            // the config entry does not represent an FSLocationSpec
         }
         return false;
     }

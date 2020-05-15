@@ -63,6 +63,23 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 public interface FSLocationSpec {
 
     /**
+     * {@code NULL} instance.
+     */
+    public static FSLocationSpec NULL = new FSLocationSpec() {
+
+        @Override
+        public String getFileSystemType() {
+            return null;
+        }
+
+        @Override
+        public Optional<String> getFileSystemSpecifier() {
+            return Optional.empty();
+        }
+
+    };
+
+    /**
      * Returns the file system type.
      *
      * @return the file system type
@@ -85,4 +102,26 @@ public interface FSLocationSpec {
      */
     Optional<String> getFileSystemSpecifier();
 
+    @Override
+    String toString();
+
+    /**
+     * Checks if the provided {@link FSLocationSpec} objects are equal regarding there type and specifier.
+     *
+     * @param first {@link FSLocationSpec}
+     * @param second {@link FSLocationSpec}
+     * @return {@code true} if either both are {@code null} or have the same type and specifier
+     */
+    static boolean areEqual(final FSLocationSpec first, final FSLocationSpec second) {
+        if (first == second) {
+            // both are identical (including null)
+            return true;
+        }
+        if (first == null || second == null) {
+            // both can't be null because then the previous if-switch would have returned already
+            return false;
+        }
+        return first.getFileSystemType().equals(second.getFileSystemType())
+            && first.getFileSystemSpecifier().equals(second.getFileSystemSpecifier());
+    }
 }

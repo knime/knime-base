@@ -141,12 +141,12 @@ public class FSLocationUtilsTest {
 
     private static void testLoadPresent() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(true, true, false);
-        assertEquals(LOCATION_WITH_SPECIFIER, FSLocationUtils.load(config));
+        assertEquals(LOCATION_WITH_SPECIFIER, FSLocationUtils.loadFSLocation(config));
     }
 
     private static void testLoadAbsent() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(false, true, false);
-        assertEquals(NULL, FSLocationUtils.load(config));
+        assertEquals(NULL, FSLocationUtils.loadFSLocation(config));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveWithSpecifier() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.save(LOCATION_WITH_SPECIFIER, config);
+        FSLocationUtils.saveFSLocation(LOCATION_WITH_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
         verify(config).addString(CFG_FS_TYPE, FS_TYPE);
         verify(config).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
@@ -168,7 +168,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveWithoutSpecifier() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.save(LOCATION_WITHOUT_SPECIFIER, config);
+        FSLocationUtils.saveFSLocation(LOCATION_WITHOUT_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
         verify(config).addString(CFG_FS_TYPE, FS_TYPE);
         verify(config).addString(CFG_PATH, PATH);
@@ -177,7 +177,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveNoLocation() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.save(NULL, config);
+        FSLocationUtils.saveFSLocation(NULL, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, false);
         verifyNoMoreInteractions(config);
     }
