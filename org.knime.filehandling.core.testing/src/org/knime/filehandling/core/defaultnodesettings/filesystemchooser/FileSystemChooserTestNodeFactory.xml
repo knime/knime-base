@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./regression_predict.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>File System Chooser Test</name>
+    <shortDescription>Dummy node for testing the file system chooser.</shortDescription>
+    <fullDescription>
+        <intro>
+	        Dummy node for testing the file system chooser.
+		</intro>
+	</fullDescription>
+    <ports>
+	</ports>
+</knimeNode>
