@@ -44,67 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   25.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
-
-import java.util.regex.Pattern;
-
-import javax.swing.JLabel;
-
-import org.apache.commons.lang3.RegExUtils;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
 /**
- * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+ * Combines a status message with a {@link MessageType type} e.g. error.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class WordWrapJLabel extends JLabel {
-
-    private static final long serialVersionUID = 1L;
-
-    private static final int DEFAULT_WIDTH = 700;
-
-    private final String m_html;
-
+public interface StatusMessage extends Comparable<StatusMessage> {
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * The type of status message.
      *
-     * @param text the text to set
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public WordWrapJLabel(final String text) {
-        this(text, DEFAULT_WIDTH);
-    }
+    enum MessageType {
+        INFO(0),
+        WARNING(1),
+        ERROR(2);
 
-    /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     *
-     * @param text the initial text
-     * @param widthInPixel label width in pixels
-     */
-    public WordWrapJLabel(final String text, final int widthInPixel) {
-        super(text);
-        m_html = createHtmlTemplate(widthInPixel);
-    }
+        private final int m_priority;
 
-    private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
+        private MessageType(final int priority) {
+            m_priority = priority;
+        }
+
     }
 
     @Override
-    public void setText(final String text) {
-        if (m_html == null) {
-            // only happens during the call of the super constructor
-            super.setText(text);
-        } else {
-            super.setText(String.format(m_html, addWordBreakHints(text)));
-        }
+    default int compareTo(final StatusMessage o) {
+        return -Integer.compare(getType().m_priority, o.getType().m_priority);
     }
 
-    private static String addWordBreakHints(final String text) {
-        final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
-    }
+    /**
+     * Returns the type of this message.
+     *
+     * @return the type of this message
+     */
+    MessageType getType();
+
+    /**
+     * Returns the actual message.
+     *
+     * @return the message
+     */
+    String getMessage();
+
 }

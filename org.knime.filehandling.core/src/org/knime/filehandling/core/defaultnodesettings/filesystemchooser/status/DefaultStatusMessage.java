@@ -44,67 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   25.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
-import java.util.regex.Pattern;
-
-import javax.swing.JLabel;
-
-import org.apache.commons.lang3.RegExUtils;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+ * Default implementation of a {@link StatusMessage}.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class WordWrapJLabel extends JLabel {
+public final class DefaultStatusMessage implements StatusMessage {
 
-    private static final long serialVersionUID = 1L;
+    private final MessageType m_type;
 
-    private static final int DEFAULT_WIDTH = 700;
-
-    private final String m_html;
-
+    private final String m_msg;
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * Constructor.
      *
-     * @param text the text to set
+     * @param type of message
+     * @param msg the actual message
      */
-    public WordWrapJLabel(final String text) {
-        this(text, DEFAULT_WIDTH);
+    public DefaultStatusMessage(final MessageType type, final String msg) {
+        m_type = CheckUtils.checkArgumentNotNull(type, "The type must not be null.");
+        m_msg = CheckUtils.checkArgumentNotNull(msg, "The msg must not be null.");
     }
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * Convenience constructor that allows to use formatting.
      *
-     * @param text the initial text
-     * @param widthInPixel label width in pixels
+     * @param type of message
+     * @param format defines the format of the message
+     * @param args arguments that are injected into <b>format</b>
+     * @see String#format(String, Object...)
      */
-    public WordWrapJLabel(final String text, final int widthInPixel) {
-        super(text);
-        m_html = createHtmlTemplate(widthInPixel);
-    }
-
-    private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
+    public DefaultStatusMessage(final MessageType type, final String format, final Object...args) {
+        this(type, String.format(format, args));
     }
 
     @Override
-    public void setText(final String text) {
-        if (m_html == null) {
-            // only happens during the call of the super constructor
-            super.setText(text);
-        } else {
-            super.setText(String.format(m_html, addWordBreakHints(text)));
-        }
+    public MessageType getType() {
+        return m_type;
     }
 
-    private static String addWordBreakHints(final String text) {
-        final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
+    @Override
+    public String getMessage() {
+        return m_msg;
     }
+
 }

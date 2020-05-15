@@ -44,67 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   25.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
-import java.util.regex.Pattern;
-
-import javax.swing.JLabel;
-
-import org.apache.commons.lang3.RegExUtils;
+import java.util.function.Consumer;
 
 /**
- * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+ * Reports {@link StatusMessage StatusMessages} to a {@link Consumer} of {@link StatusMessage}.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class WordWrapJLabel extends JLabel {
-
-    private static final long serialVersionUID = 1L;
-
-    private static final int DEFAULT_WIDTH = 700;
-
-    private final String m_html;
-
+@FunctionalInterface
+public interface StatusReporter {
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * Reports the current status to the provided {@link StatusMessage} {@link Consumer}.
      *
-     * @param text the text to set
+     * @param messageConsumer {@link Consumer} of {@link StatusMessage StatusMessages}
      */
-    public WordWrapJLabel(final String text) {
-        this(text, DEFAULT_WIDTH);
-    }
+    void report(Consumer<StatusMessage> messageConsumer);
 
-    /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     *
-     * @param text the initial text
-     * @param widthInPixel label width in pixels
-     */
-    public WordWrapJLabel(final String text, final int widthInPixel) {
-        super(text);
-        m_html = createHtmlTemplate(widthInPixel);
-    }
-
-    private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
-    }
-
-    @Override
-    public void setText(final String text) {
-        if (m_html == null) {
-            // only happens during the call of the super constructor
-            super.setText(text);
-        } else {
-            super.setText(String.format(m_html, addWordBreakHints(text)));
-        }
-    }
-
-    private static String addWordBreakHints(final String text) {
-        final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
-    }
 }

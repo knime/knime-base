@@ -44,67 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   25.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
-import java.util.regex.Pattern;
-
-import javax.swing.JLabel;
-
-import org.apache.commons.lang3.RegExUtils;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.function.Consumer;
 
 /**
- * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+ * A {@link Consumer} of {@link StatusMessage StatusMessages} that prioritizes messages according to their type (error >
+ * warning > info).
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class WordWrapJLabel extends JLabel {
+public final class PriorityStatusConsumer implements Consumer<StatusMessage> {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final int DEFAULT_WIDTH = 700;
-
-    private final String m_html;
-
-
-    /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     *
-     * @param text the text to set
-     */
-    public WordWrapJLabel(final String text) {
-        this(text, DEFAULT_WIDTH);
-    }
-
-    /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     *
-     * @param text the initial text
-     * @param widthInPixel label width in pixels
-     */
-    public WordWrapJLabel(final String text, final int widthInPixel) {
-        super(text);
-        m_html = createHtmlTemplate(widthInPixel);
-    }
-
-    private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
-    }
+    private final PriorityQueue<StatusMessage> m_msgs = new PriorityQueue<>();
 
     @Override
-    public void setText(final String text) {
-        if (m_html == null) {
-            // only happens during the call of the super constructor
-            super.setText(text);
-        } else {
-            super.setText(String.format(m_html, addWordBreakHints(text)));
-        }
+    public void accept(final StatusMessage t) {
+        m_msgs.add(t);
     }
 
-    private static String addWordBreakHints(final String text) {
-        final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
+    /**
+     * Clears the message queue i.e. discards all messages accepted so far.
+     */
+    public void clear() {
+        m_msgs.clear();
     }
+
+    /**
+     * Returns one of the messages with the highest priority (error > warning > info).
+     *
+     * @return one of the messages with the highest priority
+     */
+    public Optional<StatusMessage> get() {
+        return Optional.ofNullable(m_msgs.peek());
+    }
+
 }

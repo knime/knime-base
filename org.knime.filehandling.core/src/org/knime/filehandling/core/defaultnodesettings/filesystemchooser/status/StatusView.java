@@ -44,67 +44,87 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   25.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
-import java.util.regex.Pattern;
+import java.awt.Color;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
 
-import org.apache.commons.lang3.RegExUtils;
+import org.knime.core.node.util.SharedIcons;
+import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
 
 /**
- * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+ * A view that displays status messages.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class WordWrapJLabel extends JLabel {
+public final class StatusView {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final int DEFAULT_WIDTH = 700;
-
-    private final String m_html;
-
+    private final WordWrapJLabel m_statusLabel;
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * Constructor.
      *
-     * @param text the text to set
+     * @param widthInPixel status label width in pixels
      */
-    public WordWrapJLabel(final String text) {
-        this(text, DEFAULT_WIDTH);
+    public StatusView(final int widthInPixel) {
+        m_statusLabel = new WordWrapJLabel(" ", widthInPixel);
     }
 
     /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * Sets a new status message.
      *
-     * @param text the initial text
-     * @param widthInPixel label width in pixels
+     * @param message the {@link StatusMessage} to set
      */
-    public WordWrapJLabel(final String text, final int widthInPixel) {
-        super(text);
-        m_html = createHtmlTemplate(widthInPixel);
+    public void setStatus(final StatusMessage message) {
+        m_statusLabel.setText(message.getMessage());
+        m_statusLabel.setIcon(getIcon(message.getType()));
+        m_statusLabel.setForeground(getColor(message.getType()));
     }
 
-    private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
-    }
+    private static Icon getIcon(final MessageType type) {
+        switch (type) {
+            case ERROR:
+                return SharedIcons.ERROR.get();
+            case WARNING:
+                return SharedIcons.WARNING_YELLOW.get();
+            case INFO:
+            default:
+                return null;
 
-    @Override
-    public void setText(final String text) {
-        if (m_html == null) {
-            // only happens during the call of the super constructor
-            super.setText(text);
-        } else {
-            super.setText(String.format(m_html, addWordBreakHints(text)));
         }
     }
 
-    private static String addWordBreakHints(final String text) {
-        final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
+    private static Color getColor(final MessageType type) {
+        switch (type) {
+            case ERROR:
+                return Color.RED;
+            default:
+                return Color.BLACK;
+        }
     }
+
+    /**
+     * Clears the status.
+     */
+    public void clearStatus() {
+        m_statusLabel.setText(" ");
+        m_statusLabel.setIcon(null);
+    }
+
+    /**
+     * Returns the label that is used to display the status.
+     *
+     * @return the label containing the status message
+     */
+    public JLabel getLabel() {
+        return m_statusLabel;
+    }
+
+
+
 }
