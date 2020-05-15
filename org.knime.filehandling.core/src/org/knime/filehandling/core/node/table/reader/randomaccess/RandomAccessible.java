@@ -80,6 +80,11 @@ public interface RandomAccessible<V> extends Iterable<V> {
      */
     V get(int idx);
 
+    /**
+     * {@inheritDoc}
+     *
+     * The values returned by the iterator are ordered according to their index.
+     */
     @Override
     default Iterator<V> iterator() {
         return new DefaultRandomAccessibleIterator<>(this);
@@ -97,6 +102,7 @@ public interface RandomAccessible<V> extends Iterable<V> {
         }
         return new ArrayListRandomAccessible<>(list);
     }
+
 
     /**
      * Returns a sequential {@link Stream} with this RandomAccessible as its source.<br/>
