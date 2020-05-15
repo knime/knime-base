@@ -81,7 +81,8 @@ public final class CSVTableReaderNodeFactory
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog(createFileChooserConfig(), createConfig());
+        return new CSVTableReaderNodeDialog(createFileChooserConfig(), createConfig(), createMultiTableReader(),
+            getProducerRegistry());
     }
 
     @Override

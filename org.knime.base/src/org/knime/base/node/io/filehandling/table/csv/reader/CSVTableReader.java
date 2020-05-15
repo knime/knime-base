@@ -54,11 +54,13 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -66,8 +68,8 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleUtils;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusableTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
@@ -140,10 +142,10 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     }
 
     @Override
-    public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
-        throws IOException {
+    public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
+        final ExecutionMonitor exec) throws IOException {
         try (final CsvRead read = new CsvRead(path, config)) {
-            return SPEC_GUESSER.guessSpec(read, config);
+            return SPEC_GUESSER.guessSpec(read, config, exec);
         }
     }
 
@@ -200,6 +202,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         /** the {@link CsvParserSettings} */
         private final CsvParserSettings m_csvParserSettings;
 
+        /** the path of the underlying source */
+        private final Path m_path;
+
         /**
          * Constructor
          *
@@ -208,7 +213,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @throws IOException if a stream can not be created from the provided file.
          */
         CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(FileCompressionUtils.createInputStream(path), Files.size(path), config);
+            this(FileCompressionUtils.createInputStream(path), Files.size(path), path, config);
         }
 
         /**
@@ -219,12 +224,13 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @throws IOException if a stream can not be created from the provided file.
          */
         CsvRead(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(inputStream, -1, config);
+            this(inputStream, -1, null, config);
         }
 
-        private CsvRead(final InputStream inputStream, final long size,
+        private CsvRead(final InputStream inputStream, final long size, final Path path,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             m_size = size;
+            m_path = path;
             m_countingStream = new CountingInputStream(inputStream);
 
             final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
@@ -305,6 +311,11 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             for (int i = 0; i < n; i++) {
                 m_reader.readLine();
             }
+        }
+
+        @Override
+        public Optional<Path> getPath() {
+            return Optional.ofNullable(m_path);
         }
     }
 

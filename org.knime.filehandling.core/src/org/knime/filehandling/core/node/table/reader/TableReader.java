@@ -51,6 +51,7 @@ package org.knime.filehandling.core.node.table.reader;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -82,9 +83,11 @@ public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> {
      *
      * @param path to read from
      * @param config specifying the read settings
+     * @param exec the execution monitor
      * @return a {@link TypedReaderTableSpec} representing the data stored in <b>source</b>
      * @throws IOException if reading fails due to IO problems
      */
-    TypedReaderTableSpec<T> readSpec(final Path path, final TableReadConfig<C> config) throws IOException;
+    TypedReaderTableSpec<T> readSpec(final Path path, final TableReadConfig<C> config, final ExecutionMonitor exec)
+        throws IOException;
 
 }

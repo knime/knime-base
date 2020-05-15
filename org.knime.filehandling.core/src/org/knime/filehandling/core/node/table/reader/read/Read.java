@@ -49,6 +49,8 @@
 package org.knime.filehandling.core.node.table.reader.read;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Supplier;
 
@@ -88,6 +90,13 @@ public interface Read<V> extends AutoCloseable {
      * @return the number of bytes this Read already read
      */
     long readBytes();
+
+    /**
+     * Returns the path of the underlying source.
+     *
+     * @return the path of the underlying source
+     */
+    Optional<Path> getPath();
 
     @Override
     void close() throws IOException;

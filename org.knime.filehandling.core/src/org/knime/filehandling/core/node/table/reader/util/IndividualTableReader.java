@@ -60,7 +60,6 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type representing values
  */
-@FunctionalInterface
 public interface IndividualTableReader<V> {
 
     /**
@@ -73,5 +72,14 @@ public interface IndividualTableReader<V> {
      * @throws Exception if something goes astray
      */
     void fillOutput(Read<V> read, RowOutput output, ExecutionMonitor progress) throws Exception;
+
+    /**
+     * Converts the random accessible to a data row.
+     *
+     * @param randomAccessible the random accessible to convert
+     * @return the converted data row
+     * @throws Exception if something goes astray
+     */
+    DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception;
 
 }

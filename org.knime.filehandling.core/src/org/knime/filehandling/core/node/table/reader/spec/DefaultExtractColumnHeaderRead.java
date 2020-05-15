@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader.spec;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -198,6 +199,11 @@ final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead
             ++m_numRowsReturned;
         }
         m_columnHeader = Optional.ofNullable(m_read.next()).map(RandomAccessible::copy);
+    }
+
+    @Override
+    public Optional<Path> getPath() {
+        return m_read.getPath();
     }
 
 }

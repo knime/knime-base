@@ -59,11 +59,14 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeProgressMonitor;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
+import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -81,10 +84,12 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * All I/O is performed in this class and the IndividualTableReader.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @param <C> the type of the {@link ReaderSpecificConfig}
  * @param <T> the type used by the reader to identify individual data types
  * @param <V> the type of tokens the reader produces
  */
-final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
+public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private final TableReader<C, T, V> m_reader;
 
@@ -123,11 +128,11 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      */
     public DataTableSpec createTableSpec(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config) throws IOException {
-        return createMultiRead(rootPath, paths, config).getOutputSpec();
+        return createMultiRead(rootPath, paths, config, new ExecutionMonitor()).getOutputSpec();
     }
 
     private MultiTableRead<V> createMultiRead(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config) throws IOException {
+        final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
         if (config.hasTableSpec() && config.getTableSpecConfig().isConfiguredWith(rootPath)
             && config.getTableSpecConfig().isConfiguredWith(paths)) {
             m_currentMultiRead = m_multiTableReadFactory.create(rootPath, paths, config);
@@ -135,7 +140,7 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
             final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
             // TODO parallelize
             for (Path path : paths) {
-                final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig());
+                final TypedReaderTableSpec<T> spec = m_reader.readSpec(path, config.getTableReadConfig(), exec.createSubProgress(1.0 / paths.size()));
                 specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
             }
             m_currentMultiRead = m_multiTableReadFactory.create(rootPath, specs, config);
@@ -156,11 +161,31 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public BufferedDataTable readTable(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final MultiTableRead<V> runConfig = getMultiRead(rootPath, paths, config);
+        final MultiTableRead<V> runConfig = getMultiRead(rootPath, paths, config, exec.createSubExecutionContext(0.5));
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(runConfig.getOutputSpec()));
-        fillRowOutput(runConfig, paths, config, output, exec);
+        fillRowOutput(runConfig, paths, config, output, exec.createSubExecutionContext(0.5));
         return output.getDataTable();
+    }
+
+    /**
+     * Creates a {@link PreviewDataTable}. During spec creation and row iteration, errors are swallowed and communicated
+     * via a {@link PreviewExecutionMonitor}. Via {@link PreviewExecutionMonitor#getProgressMonitor()} and
+     * {@link NodeProgressMonitor#setExecuteCanceled()} the spec guessing can prematurely be aborted.
+     *
+     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
+     * @param paths to read from
+     * @param config for reading
+     * @param exec for and reporting progress and errors of spec and table creation
+     * @return the preview data table
+     * @throws IOException if an I/O error occurs
+     */
+    public PreviewDataTable<C, V> createPreviewDataTable(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config,        final PreviewExecutionMonitor exec) throws IOException {
+        // iterate over the data to analyze and find the (most generic) column types
+        final MultiTableRead<V> multiRead = createMultiRead(rootPath, paths, config, exec);
+        // create the data table that will be displayed as preview
+        return new PreviewDataTable<>(paths, config, m_reader, multiRead, exec);
     }
 
     /**
@@ -179,14 +204,14 @@ final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public void fillRowOutput(final String rootPath, final List<Path> paths, final MultiTableReadConfig<C> config,
         final RowOutput output, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final MultiTableRead<V> multiRead = getMultiRead(rootPath, paths, config);
+        final MultiTableRead<V> multiRead = getMultiRead(rootPath, paths, config, exec);
         fillRowOutput(multiRead, paths, config, output, exec);
     }
 
     private MultiTableRead<V> getMultiRead(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config) throws IOException {
+        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws IOException {
         if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(paths)) {
-            return createMultiRead(rootPath, paths, config);
+            return createMultiRead(rootPath, paths, config, exec);
         } else {
             return m_currentMultiRead;
         }

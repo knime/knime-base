@@ -57,8 +57,11 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Optional;
 
 import javax.swing.AbstractButton;
@@ -86,6 +89,7 @@ import org.knime.base.node.io.filehandling.table.csv.reader.QuoteOption;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -97,10 +101,13 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
+import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreview;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 import com.univocity.parsers.csv.CsvFormat;
@@ -196,10 +203,20 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private int m_autoDetectionBufferSize;
 
+    private final ProducerRegistry<?, ?> m_producerRegistry;
+
+    private PortObjectSpec[] m_specs;
+
+    private final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
+
     /** Create new CsvTableReader dialog. */
     CSVTableReaderNodeDialog(final SettingsModelFileChooser2 fileChooserModel,
-        final MultiTableReadConfig<CSVTableReaderConfig> config) {
-
+        final MultiTableReadConfig<CSVTableReaderConfig> config,
+        final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader,
+        final ProducerRegistry<?, ?> producerRegistry) {
+        m_producerRegistry = producerRegistry;
+        m_tableReaderPreview =
+            new TableReaderPreview<>(multiReader, fileChooserModel::getPathOrURL, this::getPaths, this::getConfig);
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
             VariableType.StringType.INSTANCE);
@@ -290,6 +307,29 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_config = config;
     }
 
+    private List<Path> getPaths() throws IOException {
+        if (m_specs == null) {
+            throw new IllegalStateException("The spec is not available.");
+        }
+        final FileChooserHelper fch =
+            new FileChooserHelper(FileSystemPortObjectSpec.getFileSystemConnection(m_specs, FS_INPUT_PORT),
+                (SettingsModelFileChooser2)m_filePanel.getModel());
+        try {
+            return fch.getPaths();
+        } catch (InvalidSettingsException e) {
+            throw new IOException(e);
+        }
+    }
+
+    private MultiTableReadConfig<CSVTableReaderConfig> getConfig() {
+        try {
+            saveConfig();
+        } catch (InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+        return m_config;
+    }
+
     /**
      * Enables a {@link JSpinner} based on a corresponding {@link JCheckBox}.
      *
@@ -309,18 +349,16 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
+        gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(createFilePanel(), gbc);
         gbc.gridy++;
         panel.add(createSpecMergePanel(), gbc);
         gbc.gridy++;
         panel.add(createOptionsPanel(), gbc);
-
+        gbc.gridy++;
         gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        panel.add(Box.createVerticalBox(), gbc);
+        panel.add(m_tableReaderPreview, gbc);
         return panel;
     }
 
@@ -435,7 +473,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.weighty = 1;
         gbc.insets = new Insets(0, 5, 0, 0);
         optionsPanel.add(createOptionsSubPanel(), gbc);
-
         return optionsPanel;
     }
 
@@ -625,9 +662,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filePanel.saveSettingsTo(settings);
-        saveTableReadSettings();
-        saveCsvSettings();
-        m_config.setSpecMergeMode(getSpecMergeMode());
+        saveConfig();
         m_config.save(settings);
     }
 
@@ -687,11 +722,17 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
     }
 
+    private void saveConfig() throws InvalidSettingsException {
+        saveTableReadSettings();
+        saveCsvSettings();
+        m_config.setSpecMergeMode(getSpecMergeMode());
+    }
+
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        // TODO: change this once we introduced the preview
-        m_config.loadInDialog(settings, null);
+        m_specs = specs;
+        m_config.loadInDialog(settings, m_producerRegistry);
         m_filePanel.loadSettingsFrom(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
@@ -902,5 +943,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         } catch (NumberFormatException e) {
             setStatus("Please enter an integer", null, SharedIcons.ERROR.get());
         }
+    }
+
+    @Override
+    public void onClose() {
+        m_tableReaderPreview.onClose();
+        super.onClose();
     }
 }

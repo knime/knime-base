@@ -90,14 +90,12 @@ public enum SpecMergeMode {
                     for (TypedReaderColumnSpec<T> colSpec : individualSpec) {
                         final String name = MultiTableUtils.getNameAfterInit(colSpec);
                         final TypeResolver<T, T> resolver = resolversByName.get(name);
-                        // typeHierarchy == null means that the column is not contained in the first spec
-                        CheckUtils.checkArgument(resolver != null, "The column %s is not contained in all files.",
-                            name);
-                        @SuppressWarnings("null") // checked in the preceding line
-                        T hierarchyType = resolver.getMostSpecificType();
-                        T colType = colSpec.getType();
-                        CheckUtils.checkArgument(hierarchyType.equals(colType),
-                            "The type of column %s varies between files: %s vs. %s.", name, hierarchyType, colType);
+                        if (resolver == null) {
+                            // resolver == null means that the column is not contained in the first spec
+                            throw new IllegalArgumentException(
+                                String.format("The column %s is not contained in all files.", name));
+                        }
+                        resolver.accept(colSpec.getType());
                     }
                 }
                 return toReaderTableSpec(resolversByName);

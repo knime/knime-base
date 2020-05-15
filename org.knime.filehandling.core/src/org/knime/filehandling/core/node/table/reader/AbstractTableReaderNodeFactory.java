@@ -125,15 +125,24 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadConfig<C> config = createConfig();
         final SettingsModelFileChooser2 fileChooserModel = createFileChooserModel();
+        final MultiTableReader<C, T, V> reader = createMultiTableReader();
+        return new TableReaderNodeModel<>(config, fileChooserModel, reader, getProducerRegistry(),
+                creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+    }
+
+    /**
+     * Creates a new {@link MultiTableReader} and returns it.
+     *
+     * @return a new multi table reader
+     */
+    protected MultiTableReader<C, T, V> createMultiTableReader() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         final TypeMappingFactory<T, V> typeMappingFactory = new DefaultTypeMappingFactory<>(readAdapterFactory);
         final RowKeyGeneratorContextFactory<V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
         final MultiTableReadFactory<T, V> multiTableReadFactory =
             new DefaultMultiTableReadFactory<>(typeMappingFactory, getTypeHierarchy(), rowKeyGenFactory);
-        final MultiTableReader<C, T, V> reader = new MultiTableReader<>(createReader(), multiTableReadFactory);
-        return new TableReaderNodeModel<>(config, fileChooserModel, reader, getProducerRegistry(),
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        return new MultiTableReader<>(createReader(), multiTableReadFactory);
     }
 
     @Override

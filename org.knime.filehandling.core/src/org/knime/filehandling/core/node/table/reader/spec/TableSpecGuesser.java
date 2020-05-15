@@ -52,11 +52,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.function.Function;
 
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
@@ -71,6 +75,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @param <V> the type used as values
  */
 public final class TableSpecGuesser<T, V> {
+
+    private static final int PROGRESS_UPDATE_INTERVAL = 1000;
 
     private final TypeHierarchy<T, V> m_typeHierarchy;
 
@@ -93,12 +99,14 @@ public final class TableSpecGuesser<T, V> {
      *
      * @param read providing the rows to guess the spec from
      * @param config providing the user settings
+     * @param exec the execution monitor
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public TypedReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config) throws IOException {
+    public TypedReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config,
+        final ExecutionMonitor exec) throws IOException {
         try (final ExtractColumnHeaderRead<V> source = wrap(read, config)) {
-            return guessSpec(source, config);
+            return guessSpec(source, config, exec);
         }
     }
 
@@ -109,13 +117,14 @@ public final class TableSpecGuesser<T, V> {
      *
      * @param read providing the rows to guess the spec from
      * @param config providing the user settings
+     * @param exec the execution monitor
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config)
-        throws IOException {
+    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config,
+        final ExecutionMonitor exec) throws IOException {
         try (Read<V> filtered = filterColIdx(read, config)) {
-            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows());
+            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows(), exec);
             final String[] headerArray = read.getColumnHeaders()//
                 .map(val -> extractColumnHeaders(val, config))//
                 .orElse(null);
@@ -182,14 +191,66 @@ public final class TableSpecGuesser<T, V> {
             .toArray(String[]::new);
     }
 
-    private TypeGuesser<T, V> guessTypes(final Read<V> source, final boolean allowShortRows) throws IOException {
+    private TypeGuesser<T, V> guessTypes(final Read<V> source, final boolean allowShortRows,
+        final ExecutionMonitor exec) throws IOException {
         final TypeGuesser<T, V> typeGuesser = new TypeGuesser<>(m_typeHierarchy, !allowShortRows);
+        final PreviewExecutionMonitor previewExec;
+        final OptionalLong estimatedSizeInBytes = source.getEstimatedSizeInBytes();
+        final long estimatedSize;
+        if (estimatedSizeInBytes.isPresent()) {
+            estimatedSize = estimatedSizeInBytes.getAsLong();
+        } else {
+            estimatedSize = -1L;
+        }
+        previewExec = getPreviewExecutionMonitor(source, exec, estimatedSizeInBytes);
         RandomAccessible<V> row;
-        while (!typeGuesser.canStop() && (row = source.next()) != null) {
-            typeGuesser.update(row);
+        long rowCount = 0;
+        try {
+            while (!typeGuesser.canStop() && (row = source.next()) != null) {
+                exec.checkCanceled();
+                typeGuesser.update(row);
+                rowCount++;
+                final double progress =
+                    estimatedSizeInBytes.isPresent() ? ((double)source.readBytes() / estimatedSize) : 0;
+                setProgress(exec, previewExec, rowCount, progress);
+
+            }
+        } catch (CanceledExecutionException es) {
+            // do nothing, just stop
+        } catch (Exception e) {
+            if (previewExec != null) {
+                previewExec.setSpecGuessingError(rowCount, e.getMessage());
+            } else {
+                throw e;
+            }
         }
         return typeGuesser;
+    }
 
+    private static void setProgress(final ExecutionMonitor exec, final PreviewExecutionMonitor previewExec,
+        final long rowCount, final double progress) {
+        if (rowCount % PROGRESS_UPDATE_INTERVAL == 0) {
+            if (previewExec != null) {
+                previewExec.setProgress(progress, rowCount);
+            } else {
+                final long finalRowCount = rowCount; // variable needs to be effective final
+                exec.setProgress(progress, () -> "Analyzed " + finalRowCount + " rows");
+            }
+        }
+    }
+
+    private PreviewExecutionMonitor getPreviewExecutionMonitor(final Read<V> source, final ExecutionMonitor exec,
+        final OptionalLong estimatedSizeInBytes) {
+        final PreviewExecutionMonitor previewExec;
+        if (exec instanceof PreviewExecutionMonitor) {
+            previewExec = (PreviewExecutionMonitor)exec;
+            previewExec.setSizeAssessable(estimatedSizeInBytes.isPresent());
+            previewExec.setCurrentPath(source.getPath());
+            previewExec.incrementCurrentlyReadingPathIdx();
+        } else {
+            previewExec = null;
+        }
+        return previewExec;
     }
 
 }

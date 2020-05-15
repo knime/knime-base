@@ -90,7 +90,8 @@ final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> 
         m_typeMapper = typeMapper;
     }
 
-    private DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception {
+    @Override
+    public DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception {
         m_mapper.set(randomAccessible);
         final RowKey key = m_rowKeyGenerator.createKey(randomAccessible);
         // reads the tokens from m_readAdapter and converts them into a DataRow

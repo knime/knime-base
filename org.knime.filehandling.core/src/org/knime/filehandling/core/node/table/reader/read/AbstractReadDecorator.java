@@ -49,6 +49,8 @@
 package org.knime.filehandling.core.node.table.reader.read;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.OptionalLong;
 
 import org.knime.core.node.util.CheckUtils;
@@ -96,5 +98,10 @@ public abstract class AbstractReadDecorator<V> implements Read<V> {
     @Override
     public void close() throws IOException {
         m_source.close();
+    }
+
+    @Override
+    public Optional<Path> getPath() {
+        return m_source.getPath();
     }
 }
