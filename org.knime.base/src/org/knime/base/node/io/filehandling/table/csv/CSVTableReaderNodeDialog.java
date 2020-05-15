@@ -314,18 +314,17 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(5, 5, 5, 5);
         panel.add(new JLabel("Limit memory per column"), gbc);
         gbc.gridx += 1;
-        gbc.weightx = 1;
         panel.add(m_maxCharsColumnChecker, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
-        gbc.weightx = 0;
         panel.add(new JLabel("Maximum number of columns"), gbc);
         gbc.gridx += 1;
-        gbc.weightx = 1;
         panel.add(m_maxColsSpinner, gbc);
         ++gbc.gridy;
-
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalBox(),gbc);
         return panel;
     }
 
@@ -335,9 +334,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = new GridBagConstraints();
 
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote options"));
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(5, 0, 5, 0);
+        gbc.insets = new Insets(5, 5, 0, 0);
         gbc.weightx = 0;
         gbc.weighty = 0;
         gbc.gridx = 0;
@@ -347,9 +346,18 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             b.setActionCommand(mode.name());
             m_quoteOptionsButtonGroup.add(b);
             panel.add(b, gbc);
-            gbc.gridx += 1;
-            gbc.weightx = 1;
+            ++gbc.gridy;
+            gbc.insets = new Insets(0, 5, 0, 0);
         }
+        gbc.insets = new Insets(10, 0, 5, 0);
+        gbc.gridx = 0;
+        gbc.gridwidth = QuoteOption.values().length;
+        ++gbc.gridy;
+        panel.add(m_replaceQuotedEmptyStringChecker, gbc);
+        ++gbc.gridy;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalBox(),gbc);
         return panel;
     }
 
@@ -395,10 +403,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         gbc.gridx += 1;
         optionsPanel.add(m_skipEmptyDataRowsChecker, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy += 1;
-        optionsPanel.add(m_replaceQuotedEmptyStringChecker, gbc);
 
         //empty panel to eat up extra space
         gbc.gridy += 1;

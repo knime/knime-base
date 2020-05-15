@@ -107,9 +107,6 @@
 			<option name="Skip empty data rows">
 	          Select this box if rows without any content should not be in the output.
 			</option>
-			<option name="Replace empty quoted strings with missing values">
-	          Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
-			</option>
 		</tab>
 		<tab name="Advanced Options">
 			<option name="Limit memory per column">
@@ -127,6 +124,10 @@
 					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
 				</ul>
 			</option>
+			<option name="Replace empty quoted strings with missing values">
+				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
+			</option>
+			
 		</tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
