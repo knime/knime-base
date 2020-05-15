@@ -51,19 +51,20 @@ package org.knime.filehandling.core.defaultnodesettings;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * Class encapsulating the four different types of file system choices.
+ * Class encapsulating the five different types of file system choices.
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
 public class FileSystemChoice {
 
     /**
-     * Enum stating the four different types of file system choices.
+     * Enum stating the five different types of file system choices.
      *
      * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
      */
@@ -139,7 +140,7 @@ public class FileSystemChoice {
 
     @Override
     public final String toString() {
-        // Overriding. Showing the identifer, since this is what we want to see in dialog components...
+        // Overriding. Showing the identifier, since this is what we want to see in dialog components...
         return getId();
     }
 
@@ -220,7 +221,7 @@ public class FileSystemChoice {
             return false;
         }
         final FileSystemChoice otherChoice = (FileSystemChoice)other;
-        return m_id.equals(otherChoice.m_id) && m_type.equals(otherChoice.m_type);
+        return Objects.equals(m_id, otherChoice.m_id) && m_type.equals(otherChoice.m_type);
     }
 
     @Override
