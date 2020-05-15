@@ -121,7 +121,8 @@ public abstract class UnixStylePath extends FSPath {
     }
 
     /**
-     * Concatenates the given path segments with the path separator as delimiter, ignoring empty segments.
+     * Concatenates the given strings into a path string, introducing the path separator between parts where necessary.
+     * Empty strings will be ignored.
      *
      * @param separator the file system specific separator
      * @param first first part of the path
@@ -129,15 +130,16 @@ public abstract class UnixStylePath extends FSPath {
      * @return the concatenated string
      */
     protected static String concatenatePathSegments(final String separator, final String first, final String... more) {
-
         final StringBuilder sb = new StringBuilder(first);
 
-        for (final String segment : more) {
-            if (segment.length() > 0) {
-                if (sb.length() > 0) {
+        String previousPart = first;
+        for (final String currentPart : more) {
+            if (currentPart.length() > 0) {
+                if (sb.length() > 0 && !previousPart.endsWith(separator)) {
                     sb.append(separator);
                 }
-                sb.append(segment);
+                sb.append(currentPart);
+                previousPart = currentPart;
             }
         }
         return sb.toString();
