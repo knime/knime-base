@@ -263,24 +263,33 @@ class ConcatenateTableFactory {
      * @throws IOException
      * @throws DuplicateKeyException
      */
-    BufferedDataTable createTable(final ExecutionContext exec) throws CanceledExecutionException, DuplicateKeyException, IOException {
+    BufferedDataTable createTable(final ExecutionContext exec)
+        throws CanceledExecutionException, DuplicateKeyException, IOException {
 
-    	//return at least the empty table if thats the only one that is available
-        if(m_tables.size() == 0 && m_emptyTable != null) {
+        //return at least the empty table if thats the only one that is available
+        final BufferedDataTable result;
+        if (m_tables.size() == 0 && m_emptyTable != null) {
             m_emptyTable.close();
-            return m_emptyTable.getTable();
+            result = m_emptyTable.getTable();
+            m_emptyTable = null;
+        } else {
+            m_duplicateChecker.checkForDuplicates();
+
+            //close last used table
+            m_tables.get(m_tables.size() - 1).close();
+            BufferedDataTable[] res = new BufferedDataTable[m_tables.size()];
+            for (int i = 0; i < res.length; i++) {
+                res[i] = m_tables.get(i).getTable();
+            }
+
+            //don't check for duplicates since this already has been done
+            result = exec.createConcatenateTable(exec, Optional.empty(), false, res);
         }
 
-        m_duplicateChecker.checkForDuplicates();
+        // AP-13760: clear everything after we're done
+        clear();
 
-        //close last used table
-        m_tables.get(m_tables.size() - 1).close();
-        BufferedDataTable[] res = new BufferedDataTable[m_tables.size()];
-        for (int i = 0; i < res.length; i++) {
-            res[i] = m_tables.get(i).getTable();
-        }
-        //don't check for duplicates since this already has been done
-        return exec.createConcatenateTable(exec, Optional.empty(), false, res);
+        return result;
     }
 
     /**
@@ -363,5 +372,18 @@ class ConcatenateTableFactory {
         m_tables.add(con);
         m_tables.add(last);
         exec.setProgress("Tables copied into one.");
+    }
+
+    /**
+     * AP-13760: Make sure any trace of this table is deleted.
+     */
+    void clear() {
+        m_tables.clear();
+        if (m_emptyTable != null) {
+            // remove all temporary data.
+            m_emptyTable.close();
+            m_emptyTable.getCloseableTable().close();
+        }
+        m_duplicateChecker.clear();
     }
 }

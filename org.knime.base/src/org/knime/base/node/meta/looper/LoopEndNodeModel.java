@@ -181,6 +181,9 @@ public class LoopEndNodeModel extends NodeModel implements LoopEndNode {
     @Override
     protected void reset() {
         m_startTime = 0;
+        if (m_tableFactory != null) {
+            m_tableFactory.clear();
+        }
         m_tableFactory = null;
         m_count = 0;
         m_iteration = 0;
