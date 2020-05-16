@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.table.csv;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -103,7 +104,6 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 import com.univocity.parsers.csv.CsvFormat;
-
 
 /**
  * Node dialog of the CSV reader prototype node.
@@ -310,14 +310,18 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
+        gbc.weightx = 1;
+        gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(createFilePanel(), gbc);
         gbc.gridy++;
         panel.add(createSpecMergePanel(), gbc);
         gbc.gridy++;
-        gbc.weighty = 1;
         panel.add(createOptionsPanel(), gbc);
 
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        panel.add(Box.createVerticalBox(), gbc);
         return panel;
     }
 
@@ -354,34 +358,29 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel createAdvancedOptionsPanel() {
         final JPanel outerPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
+        gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
         outerPanel.add(createMemoryLimitsPanel(), gbc);
         gbc.gridy++;
-        gbc.weighty = 1;
         outerPanel.add(createQuoteOptionsPanel(), gbc);
         gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.gridy++;
         gbc.weightx = 0;
         gbc.weighty = 1;
-        outerPanel.add(Box.createHorizontalBox(), gbc);
-
+        Box box = Box.createVerticalBox();
+        box.setBackground(Color.red);
+        box.setForeground(Color.BLUE);
+        outerPanel.add(box, gbc);
         return outerPanel;
     }
 
     /** Creates the panel allowing to adjust the memory limits of the reader. */
     private JPanel createMemoryLimitsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.insets = new Insets(5, 5, 5, 5);
 
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader memory limits"));
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(5, 5, 5, 5);
         panel.add(new JLabel("Limit memory per column"), gbc);
         gbc.gridx += 1;
         panel.add(m_maxCharsColumnChecker, gbc);
@@ -394,23 +393,18 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         ++gbc.gridy;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(Box.createHorizontalBox(),gbc);
+        panel.add(Box.createHorizontalBox(), gbc);
         return panel;
     }
 
     /** Creates the panel allowing to set the trimming mode for quoted values. */
     private JPanel createQuoteOptionsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.insets = new Insets(5, 5, 0, 0);
 
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote options"));
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(5, 5, 0, 0);
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+
         for (final QuoteOption mode : QuoteOption.values()) {
             final JRadioButton b = new JRadioButton(mode.toString());
             b.setActionCommand(mode.name());
@@ -427,7 +421,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         ++gbc.gridy;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(Box.createHorizontalBox(),gbc);
+        panel.add(Box.createHorizontalBox(), gbc);
         return panel;
     }
 
@@ -439,6 +433,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.weightx = 1;
         gbc.weighty = 0;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         optionsPanel.add(createAutoDetectOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
@@ -532,26 +527,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
         optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
 
-        JPanel tempPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints tempGbc = createAndInitGBC();
-        tempPanel.add(m_hasColHeaderChecker, tempGbc);
-        tempGbc.gridx += 1;
-        tempGbc.insets = new Insets(0, 45, 0, 0);
-        tempPanel.add(m_hasRowIDChecker, tempGbc);
-
-        gbc.insets = new Insets(5, 8, 5, 5);
-        gbc.gridx = 0;
-        gbc.gridy += 1;
-        optionSubPanel.add(tempPanel, gbc);
-
-        tempPanel = new JPanel(new GridBagLayout());
-        tempGbc = createAndInitGBC();
-        tempPanel.add(m_allowShortDataRowsChecker, tempGbc);
-        tempGbc.gridx += 1;
-        tempGbc.insets = new Insets(0, 17, 0, 0);
-        tempPanel.add(m_skipEmptyDataRowsChecker, tempGbc);
+        JPanel tempPanel = createReaderOptions();
 
         gbc.gridx = 0;
         gbc.gridy += 1;
@@ -561,13 +540,28 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridy += 1;
         optionSubPanel.add(m_replaceQuotedEmptyStringChecker, gbc);
 
-        //empty panel to eat up extra space
         gbc.gridy += 1;
-        gbc.gridx = 0;
-        gbc.weighty = 1;
-        optionSubPanel.add(new JPanel(), gbc);
-
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        optionSubPanel.add(Box.createHorizontalBox(), gbc);
         return optionSubPanel;
+    }
+
+    private JPanel createReaderOptions() {
+        JPanel readerOptions = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = createAndInitGBC();
+        readerOptions.add(m_hasColHeaderChecker, gbc);
+        gbc.gridx += 1;
+        gbc.insets = new Insets(0, 17, 0, 0);
+        readerOptions.add(m_hasRowIDChecker, gbc);
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        gbc.insets = new Insets(5, 0, 5, 5);
+        readerOptions.add(m_allowShortDataRowsChecker, gbc);
+        gbc.gridx += 1;
+        gbc.insets = new Insets(0, 17, 0, 0);
+        readerOptions.add(m_skipEmptyDataRowsChecker, gbc);
+        return readerOptions;
     }
 
     /**
@@ -634,8 +628,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        gbc.weightx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 0, 5, 5);
         return gbc;
     }
 
