@@ -50,11 +50,8 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +69,8 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.util.BomEncodingUtils;
+import org.knime.filehandling.core.util.FileCompressionUtils;
 
 /**
  * Specific implementation of {@link FilesToDataTableReader} to process file(s) line by line.
@@ -128,7 +127,8 @@ final class LineReader implements FilesToDataTableReader {
         final Path path = paths.get(0);
         String colName;
         if (m_readColHeader) {
-            try (final BufferedReader reader = getBufferedReader(path);
+            try (final InputStream in = FileCompressionUtils.createInputStream(path);
+                    final BufferedReader reader = BomEncodingUtils.createBufferedReader(in, getCharset());
                     final Stream<String> currentLines = reader.lines()) {
                 final Optional<String> optColName =
                     currentLines.filter(s -> (!m_skipEmptyLines || !s.trim().isEmpty())).findFirst();
@@ -208,7 +208,8 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readLimited(final long l, final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try (final BufferedReader reader = getBufferedReader(path);
+        try (final InputStream in = FileCompressionUtils.createInputStream(path);
+                final BufferedReader reader = BomEncodingUtils.createBufferedReader(in, getCharset());
                 final Stream<String> lineStream = reader.lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).limit(l).filter(this::regExMatch)
                 .forEachOrdered(rowbuilder);
@@ -217,26 +218,20 @@ final class LineReader implements FilesToDataTableReader {
 
     private void readAllLines(final Path path, final RowBuilder rowbuilder, final boolean skipFirst)
         throws IOException {
-        try (final BufferedReader reader = getBufferedReader(path);
+        try (final InputStream in = FileCompressionUtils.createInputStream(path);
+                final BufferedReader reader = BomEncodingUtils.createBufferedReader(in, getCharset());
                 final Stream<String> lineStream = reader.lines()) {
             lineStream.filter(this::empytFilter).skip(skipFirst ? 1 : 0).filter(this::regExMatch)
                 .forEachOrdered(rowbuilder);
         }
     }
 
-    private final BufferedReader getBufferedReader(final Path path) throws IOException {
-        Charset charset = Charset.defaultCharset();
+    private final Charset getCharset() {
         if (!m_encoding.equals(LineReaderConfig.DEFAULT_ENCODING)) {
-            charset = Charset.forName(m_encoding);
+            return Charset.forName(m_encoding);
+        } else {
+            return Charset.defaultCharset();
         }
-
-        CharsetDecoder charsetDecoder = //
-            charset //
-                .newDecoder() //
-                .onMalformedInput(CodingErrorAction.REPLACE) //
-                .onUnmappableCharacter(CodingErrorAction.REPLACE); //
-
-        return new BufferedReader(new InputStreamReader(Files.newInputStream(path), charsetDecoder));
     }
 
     private boolean regExMatch(final String s) {
