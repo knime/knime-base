@@ -132,7 +132,8 @@
 			</option>
 			<option name="Quote options">
 				<ul>
-					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value and the whitespaces within the quotes will be trimmed.</li>
+					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value followed by trimming
+					any leading/trailing whitespace.</li>
 					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
 				</ul>
 			</option>
