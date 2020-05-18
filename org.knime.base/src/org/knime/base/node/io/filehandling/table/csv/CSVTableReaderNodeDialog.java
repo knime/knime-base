@@ -264,7 +264,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_analyzeProgressBar = new JProgressBar();
         m_analyzeProgressBar.setIndeterminate(true);
 
-        m_startAutodetection.setPreferredSize(new Dimension(135, 25));
         m_startAutodetection.addActionListener(e -> {
             if (e.getActionCommand().equals(START_AUTODETECT_LABEL)) {
                 startFormatAutoDetection();
