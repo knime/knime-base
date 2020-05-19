@@ -53,6 +53,7 @@ import java.net.URI;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -172,7 +173,12 @@ public final class FileChooserHelper {
         final Path pathOrUrl = getPathFromSettings();
         final List<Path> toReturn;
 
-        if (Files.isDirectory(pathOrUrl) && m_settings.readFilesFromFolder()) {
+        final BasicFileAttributes fileAttrs = Files.readAttributes(pathOrUrl, BasicFileAttributes.class);
+
+        if (m_settings.readFilesFromFolder()) {
+            if (!fileAttrs.isDirectory()) {
+                throw new InvalidSettingsException(pathOrUrl.toString() + " is not a folder. Please specify a folder.");
+            }
             toReturn = scanDirectoryTree();
         } else {
             toReturn = Collections.singletonList(pathOrUrl);
