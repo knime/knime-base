@@ -92,13 +92,14 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
     @Override
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final FileChooserHelper fch = createFileChooserHelper(data);
-        final List<Path> paths = fch.getPaths();
-        assert paths.size() == 1;
-        final Path path = paths.get(0);
         try {
+            final List<Path> paths = fch.getPaths();
+            assert paths.size() == 1;
+            final Path path = paths.get(0);
             return readFromPath(path, exec);
         } catch (NoSuchFileException e) {
-            throw new IOException("The file '" + path + "' does not exist.");
+            throw new IOException(
+                "The file '" + getConfig().getFileChooserModel().getPathOrURL() + "' does not exist.");
         }
     }
 

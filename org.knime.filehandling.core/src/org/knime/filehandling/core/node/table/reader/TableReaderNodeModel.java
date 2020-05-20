@@ -50,6 +50,7 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -134,12 +135,19 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     }
 
     private List<Path> getPaths(final PortObject[] inObjects) throws IOException, InvalidSettingsException {
-        return m_pathSettings.getPaths(FileSystemPortObject.getFileSystemConnection(inObjects, FS_INPUT_PORT));
+        try {
+            return m_pathSettings.getPaths(FileSystemPortObject.getFileSystemConnection(inObjects, FS_INPUT_PORT));
+        } catch (NoSuchFileException e) {
+            throw new IOException("The file/folder '" + m_pathSettings.getPathOrURL() + "' does not exist.");
+        }
     }
 
     private List<Path> getPaths(final PortObjectSpec[] inSpecs) throws IOException, InvalidSettingsException {
-        return m_pathSettings.getPaths(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, FS_INPUT_PORT));
-
+        try {
+            return m_pathSettings.getPaths(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, FS_INPUT_PORT));
+        } catch (NoSuchFileException e) {
+            throw new IOException("The file/folder '" + m_pathSettings.getPathOrURL() + "' does not exist.");
+        }
     }
 
     @Override
