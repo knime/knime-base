@@ -71,8 +71,6 @@ final class AdvancedSettingsNodeDialog {
 
     private final DialogComponentButtonGroup m_outputOrder;
 
-    private final DialogComponentButtonGroup m_topKMode;
-
     /**
      * Creates a new Panel with a checkBox for "Move missing cells to end of the list" and a GroupBox for choosing the
      * output order
@@ -85,8 +83,6 @@ final class AdvancedSettingsNodeDialog {
             new DialogComponentBoolean(m_settings.getMissingToEndModel(), "Move missing cells to end of sorted list");
         m_outputOrder = new DialogComponentButtonGroup(m_settings.getOutputOrderModel(), "Output order", true,
             OutputOrder.values());
-        m_topKMode = new DialogComponentButtonGroup(m_settings.getTopKModeModel(), "Selection mode", true,
-            TopKMode.values());
     }
 
     /**
@@ -103,8 +99,6 @@ final class AdvancedSettingsNodeDialog {
         gbc.weighty = 0;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(m_topKMode.getComponentPanel(), gbc);
-        ++gbc.gridy;
         panel.add(m_outputOrder.getComponentPanel(), gbc);
         ++gbc.gridy;
         panel.add(m_missingsToEnd.getComponentPanel(), gbc);

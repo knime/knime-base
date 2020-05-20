@@ -55,6 +55,8 @@ import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
@@ -88,6 +90,9 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DialogComponentNumber m_kComp;
 
+    private final JComboBox<TopKMode> m_topKMode;
+
+
     /**
      * Constructor.
      */
@@ -98,9 +103,11 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         m_settings = new TopKSelectorSettings();
         m_advancedSettings = new AdvancedSettingsNodeDialog(m_settings);
 
+        m_topKMode = new JComboBox<>(TopKMode.values());
+
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
-        m_kComp = new DialogComponentNumber(m_settings.getKModel(), "Number of rows", 1);
+        m_kComp = new DialogComponentNumber(m_settings.getKModel(),"", 1);
 
         super.addTab(TAB, createPanel());
 
@@ -118,12 +125,23 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(5, 0, 5, 0);
-        p.add(m_kComp.getComponentPanel(), gbc);
-
-        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.weightx = 0;
+        gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.insets = new Insets(0, 10, 0,0);
+        p.add(new JLabel("Number of"), gbc);
+        ++gbc.gridx;
+        p.add(m_topKMode, gbc);
+        ++gbc.gridx;
+        gbc.insets =  new Insets(0,0,0,0);
+        p.add(m_kComp.getComponentPanel(), gbc);
+        ++gbc.gridx;
+        gbc.weightx = 1;
+        p.add(Box.createHorizontalBox(), gbc);
+
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridx = 0;
         gbc.weightx = 1;
         ++gbc.gridy;
         p.add(createInnerPanel("Selection criteria", m_panel.getPanel()), gbc);

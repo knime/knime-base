@@ -48,18 +48,16 @@
  */
 package org.knime.base.node.preproc.topk;
 
-import org.knime.core.node.util.ButtonGroupEnumInterface;
-
-enum TopKMode implements ButtonGroupEnumInterface {
+enum TopKMode {
         /**
          * This mode is the standard mode and returns the top k rows.
          */
-        TOP_K_ROWS("Top k rows"),
+        TOP_K_ROWS("rows"),
 
         /**
          * This mode returns the rows associated with the top k unique values.
          */
-        TOP_K_ALL_ROWS_W_UNIQUE("Top k unique values");
+        TOP_K_ALL_ROWS_W_UNIQUE("unique values");
 
     private TopKMode(final String text) {
         m_text = text;
@@ -67,23 +65,9 @@ enum TopKMode implements ButtonGroupEnumInterface {
 
     private final String m_text;
 
+
     @Override
-    public String getText() {
+    public String toString() {
         return m_text;
-    }
-
-    @Override
-    public String getActionCommand() {
-        return name();
-    }
-
-    @Override
-    public String getToolTip() {
-        return null;
-    }
-
-    @Override
-    public boolean isDefault() {
-        return this == TOP_K_ROWS;
     }
 }

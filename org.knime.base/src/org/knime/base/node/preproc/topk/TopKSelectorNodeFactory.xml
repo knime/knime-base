@@ -25,45 +25,51 @@
 			considered as superior.
 		</intro>
 		<tab name="Settings">
-		<option name="Number of rows">The number of rows to select from the input table.
-		</option>
-		<option name="Selection criteria">If you want to extend the selection criteria
-			to a  higher number of columns as displayed, set the number of columns
-			at the bottom and click 'new columns' to add them to the dialog.
-		</option>
+			<option name="Number of rows / unique values">
+				Specifies the mode for the top k selection of the output
+				<ul>
+					<li>Rows: Returns the top k rows based on their first
+						occurrence in the input table.
+					</li>
+					<li>Unique values: Returns all rows associated with the
+						top k unique values.
+					</li>
+				</ul>
+				The number of rows to select from the input
+				table based on the specified mode.
+			</option>
+			<option name="Selection criteria">If you want to extend the selection criteria
+				to a
+				higher number of columns as displayed, set the number of columns
+				at
+				the bottom and click 'new columns' to add them to the dialog.
+			</option>
 		</tab>
 		<tab name="Advanced Settings">
-		<option name="Selection mode">
-			Specifies the mode for the top k selection of the output
-			<ul>
-				<li>Top k rows: Returns the top k rows based on their first
-					occurrence in the input table.</li>
-				<li>Top k unique values: Returns all rows associated with the
-					top k unique values.</li>
-			</ul>
-		</option>
-		<option name="Output order">
-			Depending on the settings of the algorithm the order might change in
-			the output and this option allows you to specify constraints on the
-			order.
-			<ul>
-				<li>No order: The rows are directly output in the order they are
-					returned in by the algorithm. This option doesn't incur any
-					additional runtime costs. Note: It is possible
-					but not guaranteed that the output order is the same as the input order.
-				</li>
-				<li>Retain order: The input order is reestablished for the rows
-					returned by the algorithm. This requires sorting the output table.
-				</li>
-				<li>Sort output: The rows in the output are sorted according to the
-					specified selection criteria.
-				</li>
-			</ul>
-		</option>
-		<option name="Move Missing Cells to end of sorted list">If selected, missing
-			values are always considered
-			to be inferior to present cells.
-		</option>
+			<option name="Output order">
+				Depending on the settings of the algorithm the order might change in
+				the output and this option allows you to specify constraints on the
+				order.
+				<ul>
+					<li>No order: The rows are directly output in the order they are
+						returned in by the algorithm. This option doesn't incur any
+						additional runtime costs. Note: It is possible
+						but not guaranteed
+						that the output order is the same as the input
+						order.
+					</li>
+					<li>Retain order: The input order is reestablished for the rows
+						returned by the algorithm. This requires sorting the output table.
+					</li>
+					<li>Sort output: The rows in the output are sorted according to the
+						specified selection criteria.
+					</li>
+				</ul>
+			</option>
+			<option name="Move Missing Cells to end of sorted list">If selected, missing
+				values are always considered
+				to be inferior to present cells.
+			</option>
 		</tab>
 	</fullDescription>
 	<ports>
