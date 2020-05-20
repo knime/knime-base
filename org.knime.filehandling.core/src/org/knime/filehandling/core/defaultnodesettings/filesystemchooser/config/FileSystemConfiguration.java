@@ -318,8 +318,14 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * @throws InvalidSettingsException if the configuration stored in {@link NodeSettingsRO settings} is invalid
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // the internal settings aren't loaded because they are irrelevant during execution in the model
+        loadInternalSettingsForModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
         setLocationSpec(loadLocation(settings));
+    }
+
+    private void loadInternalSettingsForModel(final NodeSettingsRO internalSettings) throws InvalidSettingsException {
+        for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
+            config.loadInModel(internalSettings);
+        }
     }
 
     private FSLocationSpec loadLocation(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -422,7 +428,7 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
         for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
             config.validateInModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
         }
-        FSLocationSpec locationSpec = FSLocationUtils.loadFSLocationSpec(settings.getNodeSettings(CFG_LOCATION_SPEC));
+        FSLocationSpec locationSpec = FSLocationUtils.loadFSLocationSpec(settings.getNodeSettings(m_locationCfgKey));
         final FileSystemSpecificConfig selected = m_fsSpecificConfigs.get(locationSpec.getFileSystemChoice());
         CheckUtils.checkSettingNotNull(selected, "The specified file system '%s' is not supported by this config.",
             locationSpec);

@@ -176,9 +176,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
         } catch (InvalidSettingsException ex) {
             subsettings = new NodeSettings(m_configName);
         }
-
         m_fsConfig.loadSettingsForDialog(subsettings, specs);
-
     }
 
     @Override

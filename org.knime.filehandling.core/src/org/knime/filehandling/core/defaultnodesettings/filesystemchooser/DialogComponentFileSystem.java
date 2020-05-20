@@ -92,6 +92,8 @@ public final class DialogComponentFileSystem extends DialogComponent {
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
+    private final FlowVariableModel m_fvm;
+
     private boolean m_replacedByFlowVar = false;
 
     /**
@@ -118,8 +120,9 @@ public final class DialogComponentFileSystem extends DialogComponent {
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart();
+        m_fvm = fvm;
         if (fvm != null) {
-            fvm.addChangeListener(e -> handleFVMChange(fvm));
+            fvm.addChangeListener(e -> handleFVMChange());
         }
         if (fvm != null && !config.isConnectedFS()) {
             FlowVariableModelButton fvButton = new FlowVariableModelButton(fvm);
@@ -143,14 +146,16 @@ public final class DialogComponentFileSystem extends DialogComponent {
         this(model, null);
     }
 
-    private void handleFVMChange(final FlowVariableModel fvm) {
-        m_replacedByFlowVar = fvm.isVariableReplacementEnabled();
-        final Optional<FlowVariable> flowVar = fvm.getVariableValue();
-        // we enable "by-hand" to avoid unnecessary events from being fired
-        m_fileSystemChooser.setEnabled(!m_replacedByFlowVar);
-        if (m_replacedByFlowVar && flowVar.isPresent()) {
-            final FSLocationSpec fsLocationSpec = flowVar.get().getValue(FSLocationSpecVariableType.INSTANCE);
-            getSM().getFileSystemConfiguration().setLocationSpec(fsLocationSpec);
+    private void handleFVMChange() {
+        if (m_fvm != null) {
+            m_replacedByFlowVar = m_fvm.isVariableReplacementEnabled();
+            final Optional<FlowVariable> flowVar = m_fvm.getVariableValue();
+            // we enable "by-hand" to avoid unnecessary events from being fired
+            m_fileSystemChooser.setEnabled(!m_replacedByFlowVar);
+            if (m_replacedByFlowVar && flowVar.isPresent()) {
+                final FSLocationSpec fsLocationSpec = flowVar.get().getValue(FSLocationSpecVariableType.INSTANCE);
+                getSM().getFileSystemConfiguration().setLocationSpec(fsLocationSpec);
+            }
         }
     }
 
@@ -173,6 +178,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
         m_statusConsumer.clear();
         sm.getFileSystemConfiguration().report(m_statusConsumer);
         m_statusConsumer.get().ifPresent(m_statusView::setStatus);
+        handleFVMChange();
     }
 
     private SettingsModelFileSystem getSM() {

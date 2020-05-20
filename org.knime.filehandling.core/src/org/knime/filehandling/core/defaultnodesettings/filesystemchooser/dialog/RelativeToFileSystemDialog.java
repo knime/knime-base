@@ -83,6 +83,7 @@ public final class RelativeToFileSystemDialog implements FileSystemSpecificDialo
      */
     public RelativeToFileSystemDialog(final RelativeToSpecificConfig config) {
         m_config = config;
+        m_relativeToCombo.setSelectedItem(config.getRelativeTo());
         m_config.addChangeListener(e -> handleConfigChange());
         m_relativeToCombo.addActionListener(e -> handleComboBoxChange());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
