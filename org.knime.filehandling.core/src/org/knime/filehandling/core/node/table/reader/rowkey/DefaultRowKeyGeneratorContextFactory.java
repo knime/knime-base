@@ -74,7 +74,7 @@ public final class DefaultRowKeyGeneratorContextFactory<V> implements RowKeyGene
     @Override
     public RowKeyGeneratorContext<V> createContext(final TableReadConfig<?> config) {
         if (config.useRowIDIdx()) {
-            return p -> new ExtractingRowKeyGenerator<>("", m_rowKeyExtractor, config.getRowIDIdx());
+            return new ExtractingRowKeyGeneratorContext<>("", m_rowKeyExtractor, config.getRowIDIdx());
         } else {
             return new ContinuousCountingRowKeyGeneratorContext<>();
         }

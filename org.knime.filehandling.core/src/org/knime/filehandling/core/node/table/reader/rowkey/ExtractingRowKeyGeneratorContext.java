@@ -44,42 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.knime.core.data.RowKey;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Contains unit tests for ExtractingRowKeyGenerator.
+ * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ExtractingRowKeyGeneratorTest {
+final class ExtractingRowKeyGeneratorContext<V> extends AbstractRowKeyGenerator<V>
+    implements RowKeyGeneratorContext<V> {
 
-    @Mock
-    private RandomAccessible<String> m_randomAccessible = null;
+    private static final String MISSING_ROW_KEY_PREFIX = "?";
+
+    private final Function<V, String> m_rowKeyExtractor;
+
+    private final int m_colIdx;
+
+    private final AtomicLong m_rowIndex = new AtomicLong(-1);
 
     /**
-     * Tests the {@code createKey} implementation.
+     * Constructor.
+     *
+     * @param prefix common prefix of all generated keys
+     * @param rowKeyExtractor converts a V into a String
+     * @param colIdx index of the column containing the row keys
      */
-    @Test
-    public void testCreateKey() {
-        when(m_randomAccessible.get(3)).thenReturn("foo", "bar", "foobar");
-        when(m_randomAccessible.size()).thenReturn(4);
-        ExtractingRowKeyGenerator<String> keyGen = new ExtractingRowKeyGenerator<>("test_", Object::toString, 3);
-        assertEquals(new RowKey("test_foo"), keyGen.createKey(m_randomAccessible));
-        assertEquals(new RowKey("test_bar"), keyGen.createKey(m_randomAccessible));
-        assertEquals(new RowKey("test_foobar"), keyGen.createKey(m_randomAccessible));
+    ExtractingRowKeyGeneratorContext(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
+        super(prefix);
+        m_rowKeyExtractor = rowKeyExtractor;
+        m_colIdx = colIdx;
     }
 
+    @Override
+    public RowKey createKey(final RandomAccessible<V> tokens) {
+        final long idx = m_rowIndex.incrementAndGet();
+        final V key = tokens.size() < m_colIdx ? null : tokens.get(m_colIdx);
+        final String rowKey = key != null ? m_rowKeyExtractor.apply(key) : MISSING_ROW_KEY_PREFIX + idx;
+        return new RowKey(getPrefix() + rowKey);
+    }
+
+    @Override
+    public RowKeyGenerator<V> createKeyGenerator(final Path path) {
+        return this;
+    }
 }

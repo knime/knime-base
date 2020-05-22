@@ -44,46 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.util.function.Function;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
+import java.nio.file.Paths;
+
+import org.eclipse.core.runtime.Path;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.knime.core.data.RowKey;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import junit.runner.Version;
 
 /**
- * Extracts the {@link RowKey RowKeys} from a single column using a user provided extraction function.
+ * Contains unit tests for ExtractingRowKeyGeneratorContext.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGenerator<V> extends AbstractRowKeyGenerator<V> {
+@RunWith(MockitoJUnitRunner.class)
+public class ExtractingRowKeyGeneratorContextTest {
 
-    private final Function<V, String> m_rowKeyExtractor;
-
-    private final int m_colIdx;
-
+    @Mock
+    private RandomAccessible<String> m_randomAccessible = null;
+    
     /**
-     * Constructor.
-     *
-     * @param prefix common prefix of all generated keys
-     * @param rowKeyExtractor converts a V into a String
-     * @param colIdx index of the column containing the row keys
+     * Tests the {@code createKey} implementation.
      */
-    ExtractingRowKeyGenerator(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
-        m_rowKeyExtractor = rowKeyExtractor;
-        m_colIdx = colIdx;
+    @Test
+    public void testCreateKey() {
+        when(m_randomAccessible.get(3)).thenReturn("foo", "bar", "foobar", null);
+        when(m_randomAccessible.size()).thenReturn(4);
+        
+        // test the case that the rowKeyColIndex is out of bounds
+        ExtractingRowKeyGeneratorContext<String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 6);
+        assertEquals(new RowKey("test_?0"), keyGen.createKey(m_randomAccessible));
+        
+        // test different RowKeys including null
+        keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
+        assertEquals(new RowKey("test_foo"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("test_bar"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("test_foobar"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("test_?3"), keyGen.createKey(m_randomAccessible));
     }
-
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        CheckUtils.checkArgument(tokens.size() > m_colIdx, "Not all rows contain the row key column.");
-        final V key = tokens.get(m_colIdx);
-        CheckUtils.checkArgumentNotNull(key, "Missing row keys are not supported.");
-        return new RowKey(getPrefix() + m_rowKeyExtractor.apply(key));
+    
+    @Test
+    public void testCreateKeyGenerator() {
+        ExtractingRowKeyGeneratorContext<String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
+        assertEquals(keyGen, keyGen.createKeyGenerator(null)); 
     }
-
 }
