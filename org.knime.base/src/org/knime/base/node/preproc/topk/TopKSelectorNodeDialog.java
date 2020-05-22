@@ -52,10 +52,11 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -67,6 +68,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 
 /**
  * Dialog for the Element Selector node.
@@ -90,7 +92,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DialogComponentNumber m_kComp;
 
-    private final JComboBox<TopKMode> m_topKMode;
+    private final DialogComponentStringSelection m_topkMode;
 
 
     /**
@@ -103,11 +105,13 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         m_settings = new TopKSelectorSettings();
         m_advancedSettings = new AdvancedSettingsNodeDialog(m_settings);
 
-        m_topKMode = new JComboBox<>(TopKMode.values());
-
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
         m_kComp = new DialogComponentNumber(m_settings.getKModel(),"", 1);
+
+        m_topkMode = new DialogComponentStringSelection(m_settings.getTopKModeModel(), "", Stream.of(TopKMode.values())
+            .map(TopKMode::getText)
+            .collect(Collectors.toList()));
 
         super.addTab(TAB, createPanel());
 
@@ -132,7 +136,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(0, 10, 0,0);
         p.add(new JLabel("Number of"), gbc);
         ++gbc.gridx;
-        p.add(m_topKMode, gbc);
+        p.add(m_topkMode.getComponentPanel(), gbc);
         ++gbc.gridx;
         gbc.insets =  new Insets(0,0,0,0);
         p.add(m_kComp.getComponentPanel(), gbc);

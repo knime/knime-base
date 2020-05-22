@@ -65,9 +65,16 @@ enum TopKMode {
 
     private final String m_text;
 
-
-    @Override
-    public String toString() {
+    public String getText() {
         return m_text;
+    }
+
+    public static TopKMode getTopKModeByText(final String text) {
+        for (TopKMode mode : values()) {
+            if (mode.m_text.equals(text)) {
+                return mode;
+            }
+        }
+        throw new IllegalArgumentException(String.format("No top k mode with text '%s' found.", text));
     }
 }

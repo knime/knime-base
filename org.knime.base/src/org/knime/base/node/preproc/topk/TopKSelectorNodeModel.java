@@ -212,9 +212,10 @@ final class TopKSelectorNodeModel extends NodeModel {
 
     private TopKSelector createElementSelector(final Comparator<DataRow> comparator) {
         final Comparator<DataRow> inverted = (i, j) -> -comparator.compare(i, j);
-        if (m_settings.getK() == 1 && m_settings.getTopKMode() == TopKMode.TOP_K_ROWS) {
+        final TopKMode topKMode = TopKMode.getTopKModeByText(m_settings.getTopKMode());
+        if (m_settings.getK() == 1 && topKMode == TopKMode.TOP_K_ROWS) {
             return new TopSelector(inverted);
-        } else if (m_settings.getTopKMode() == TopKMode.TOP_K_ALL_ROWS_W_UNIQUE) {
+        } else if (topKMode == TopKMode.TOP_K_ALL_ROWS_W_UNIQUE) {
             return new HeapTopKUniqueRowsSelector(inverted, m_settings.getK());
         } else {
             return new HeapTopKSelector(inverted, m_settings.getK());

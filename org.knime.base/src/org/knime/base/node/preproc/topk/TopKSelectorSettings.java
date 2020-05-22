@@ -87,7 +87,7 @@ final class TopKSelectorSettings {
     }
 
     private static TopKModeSettingsModel createTopKModeModel() {
-        return new TopKModeSettingsModel("selectionMode", TopKMode.TOP_K_ROWS.name());
+        return new TopKModeSettingsModel("selectionMode", TopKMode.TOP_K_ROWS.getText());
     }
 
     private final SettingsModelStringArray m_inclList = createInclListModel();
@@ -167,8 +167,8 @@ final class TopKSelectorSettings {
         return OutputOrder.valueOf(m_outputOrder.getStringValue());
     }
 
-    TopKMode getTopKMode() {
-        return TopKMode.valueOf(m_topKMode.getStringValue());
+    String getTopKMode() {
+        return m_topKMode.getStringValue();
     }
 
     /**
@@ -191,23 +191,24 @@ final class TopKSelectorSettings {
         @Override
         protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
             throws NotConfigurableException {
-            setStringValue(settings.getString(this.getKey(), TopKMode.TOP_K_ROWS.name()));
+            setStringValue(settings.getString(getKey(), TopKMode.TOP_K_ROWS.getText()));
         }
 
         @Override
         protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final String key = settings.getString(this.getKey(), TopKMode.TOP_K_ROWS.name());
-            try {
-                TopKMode.valueOf(key);
-            } catch (final IllegalArgumentException iae) {
-                throw new InvalidSettingsException(iae.getMessage());
-            }
-            setStringValue(key);
+            setStringValue(settings.getString(getKey(), TopKMode.TOP_K_ROWS.getText()));
         }
 
         @Override
         protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.containsKey(this.getKey())) {
+            final String key = getKey();
+            if (settings.containsKey(key)) {
+                final String selectionMode = settings.getString(key);
+                try {
+                    TopKMode.getTopKModeByText(selectionMode);
+                } catch (IllegalArgumentException e) {
+                    throw new InvalidSettingsException(String.format("No matching selectionMode for '%s' found.", selectionMode));
+                }
                 super.validateSettingsForModel(settings);
             }
         }
