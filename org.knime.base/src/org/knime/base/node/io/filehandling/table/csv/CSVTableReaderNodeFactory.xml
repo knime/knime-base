@@ -98,7 +98,7 @@
 	          file is being used.
 	          The auto detection by default is based on the first 1024 * 1024 characters of the selected file, but
 	          can be adjusted by clicking the settings button next to this option.
-	          The format can only be detected if the read number of bytes comprises one full data row and the 
+	          The format can only be detected if the read number of characters comprises one full data row and the 
 	          autodetection will take at most 20 data rows into account. It is assumed that data rows are separated by
 	          linebreaks. Note that the "Skip first lines" option as well as the specified  "Comment char" will be used
 	          when guessing the files format.

@@ -294,6 +294,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
                 startFormatAutoDetection();
             } else {
                 m_startAutodetection.setText(START_AUTODETECT_LABEL);
+
                 if (m_formatAutoDetectionSwingWorker != null) {
                     m_formatAutoDetectionSwingWorker.cancel(true);
                     m_formatAutoDetectionSwingWorker = null;
@@ -566,10 +567,10 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        autoDetectPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column Delimiter ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column delimiter ")), gbc);
 
         gbc.gridx += 1;
-        autoDetectPanel.add(getInFlowLayout(m_rowDelimiterField, new JLabel("Row Delimiter ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_rowDelimiterField, new JLabel("Row delimiter ")), gbc);
 
         gbc.gridx += 1;
         gbc.weightx = 1;
@@ -578,11 +579,11 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.weightx = 0;
-        autoDetectPanel.add(getInFlowLayout(m_quoteField, new JLabel("Quote Char ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_quoteField, new JLabel("Quote char ")), gbc);
 
         gbc.gridx += 1;
         gbc.weightx = 1;
-        autoDetectPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote Escape Char ")), gbc);
+        autoDetectPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote escape char ")), gbc);
 
         return autoDetectPanel;
     }
@@ -620,7 +621,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy += 1;
         gbc.fill = GridBagConstraints.NONE;
-        optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment Char ")), gbc);
+        optionSubPanel.add(getInFlowLayout(m_commentStartField, new JLabel("Comment char ")), gbc);
 
         JPanel tempPanel = createReaderOptions();
         gbc.gridy += 1;
@@ -1006,8 +1007,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             c = c.getParent();
         }
 
-        String s = (String)JOptionPane.showInputDialog(f, "Buffer size:", "Adjust buffer size",
-            JOptionPane.PLAIN_MESSAGE, null, null, m_autoDetectionBufferSize);
+        String s = (String)JOptionPane.showInputDialog(f, "Number of characters for autodetection:",
+            "Adjust characters for autodetection", JOptionPane.PLAIN_MESSAGE, null, null, m_autoDetectionBufferSize);
 
         try {
             m_autoDetectionBufferSize =
