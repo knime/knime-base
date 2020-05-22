@@ -70,7 +70,6 @@ import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMon
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -133,7 +132,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private MultiTableRead<V> createMultiRead(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
-        if (config.hasTableSpec() && config.getTableSpecConfig().isConfiguredWith(rootPath)
+        if (config.hasTableSpecConfig() && config.getTableSpecConfig().isConfiguredWith(rootPath)
             && config.getTableSpecConfig().isConfiguredWith(paths)) {
             m_currentMultiRead = m_multiTableReadFactory.create(rootPath, paths, config);
         } else {

@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
@@ -53,7 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,11 +61,14 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
@@ -74,6 +77,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -83,13 +87,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Contains unit tests for MultiTableReader that also compute the {@link DataTableSpec}.
+ * Contains unit tests for MultiTableReader that rely on a {@link TableSpecConfig}.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class MultiTableReaderTest {
-
+public class MultiTableReaderWithSpecTest {
     private static final String ROOT_PATH = "path";
 
     private interface DummyReaderSpecificConfig extends ReaderSpecificConfig<DummyReaderSpecificConfig> {
@@ -120,12 +124,6 @@ public class MultiTableReaderTest {
     private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig = null;
 
     @Mock
-    private Path m_path1 = null;
-
-    @Mock
-    private Path m_path2 = null;
-
-    @Mock
     private ExecutionContext m_exec = null;
 
     @Mock
@@ -133,6 +131,12 @@ public class MultiTableReaderTest {
 
     @Mock
     private RowOutput m_rowOutput = null;
+
+    private Path m_path1 = null;
+
+    private Path m_path2 = null;
+
+    private Path m_path3 = null;
 
     private TypedReaderTableSpec<String> m_readerSpec = null;
 
@@ -150,11 +154,27 @@ public class MultiTableReaderTest {
         m_testInstance = new MultiTableReader<>(m_reader, m_multiTableReadFactory);
         m_readerSpec = TypedReaderTableSpec.create("foo", "bar");
         m_knimeSpec = TableSpecConfigUtils.createDataTableSpec("Column0", "Column1");
-        m_path1 = mock(Path.class);
-        m_path2 = mock(Path.class);
+        m_path1 = TableSpecConfigUtils.mockPath("fake_path");
+        m_path2 = TableSpecConfigUtils.mockPath("another_fake_path");
+        m_path3 = TableSpecConfigUtils.mockPath("unknown_path");
     }
 
-    private void stubForCreateSpec() throws IOException {
+    private void stubForCreateSpec() {
+        final Map<Path, ReaderTableSpec<?>> individualSpecs = new HashMap<>();
+        individualSpecs.put(m_path1, m_readerSpec);
+        individualSpecs.put(m_path2, m_readerSpec);
+
+        m_tableSpecCfg = new TableSpecConfig(ROOT_PATH, m_knimeSpec, individualSpecs,
+            TableSpecConfigUtils.getProducerRegistry().getAvailableProductionPaths().toArray(new ProductionPath[0]));
+
+        when(m_multiReadConfig.getTableReadConfig()).thenReturn(m_tableReadConfig);
+        when(m_multiReadConfig.hasTableSpecConfig()).thenReturn(true);
+        when(m_multiReadConfig.getTableSpecConfig()).thenReturn(m_tableSpecCfg);
+        when(m_multiTableReadFactory.create(any(), ArgumentMatchers.anyList(), any())).thenReturn(m_multiTableRead);
+        when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
+    }
+
+    private void stubForCreateSpecWithoutTableSpecConfig() throws IOException {
         when(m_reader.readSpec(any(), any(), any())).thenReturn(m_readerSpec);
         when(m_multiTableReadFactory.create(any(), ArgumentMatchers.anyMap(), any())).thenReturn(m_multiTableRead);
         when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
@@ -178,10 +198,29 @@ public class MultiTableReaderTest {
         stubForCreateSpec();
         assertEquals(m_knimeSpec,
             m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig));
-        verify(m_multiReadConfig, never()).getTableSpecConfig();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
+        verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyMap(), any());
+    }
+
+    /**
+     * Tests the {@code createTableSpec} method calculates the proper specs if the provided {@link TableSpecConfig} was
+     * created for another set of files.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testCreateTableSpecWithInvalidSpec() throws IOException {
+        stubForCreateSpec();
+        stubForCreateSpecWithoutTableSpecConfig();
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2, m_path3), m_multiReadConfig);
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
         verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
         verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyList(), any());
-        verify(m_multiTableReadFactory, times(1)).create(any(), ArgumentMatchers.anyMap(), any());
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
+            eq(m_multiReadConfig));
     }
 
     /**
@@ -197,7 +236,29 @@ public class MultiTableReaderTest {
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
-        verify(m_multiReadConfig, never()).getTableSpecConfig();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
+        verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyMap(), any());
+    }
+
+    /**
+     * Tests the {@code fillRowOutput} method if createSpec isn't called first i.e. it first has to create the spec.
+     *
+     * @throws Exception never thrown
+     */
+    @Test
+    public void testFillRowOutputWithoutCallingCreateSpecFirstAndInvalidSpec() throws Exception {
+        stubForCreateSpec();
+        stubForCreateSpecWithoutTableSpecConfig();
+        stubForFillRowOutput();
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2, m_path3), m_multiReadConfig, m_rowOutput,
+            m_exec);
+        verify(m_individualTableReader, times(3)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
+        verify(m_monitor, times(3)).setProgress(1.0);
+        verify(m_rowOutput, times(1)).close();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
         verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
         verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyList(), any());
         verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
@@ -213,13 +274,39 @@ public class MultiTableReaderTest {
     public void testFillRowOutputWithCallingCreateSpecFirstAndValidPaths() throws Exception {
         stubForCreateSpec();
         m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
+
         stubForFillRowOutput();
         when(m_multiTableRead.isValidFor(any())).thenReturn(true);
         m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
-        verify(m_multiReadConfig, never()).getTableSpecConfig();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
+        verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyMap(), any());
+    }
+
+    /**
+     * Tests if {@code fillRowOutput} reuses an existing spec if the paths match.
+     *
+     * @throws Exception never thrown
+     */
+    @Test
+    public void testFillRowOutputWithCallingCreateSpecFirstValidPathsAndInvalidSpec() throws Exception {
+        stubForCreateSpec();
+        stubForCreateSpecWithoutTableSpecConfig();
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2, m_path3), m_multiReadConfig);
+
+        stubForFillRowOutput();
+        when(m_multiTableRead.isValidFor(any())).thenReturn(true);
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2, m_path3), m_multiReadConfig, m_rowOutput,
+            m_exec);
+        verify(m_individualTableReader, times(3)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
+        verify(m_monitor, times(3)).setProgress(1.0);
+        verify(m_rowOutput, times(1)).close();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
         verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
         verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyList(), any());
         verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
@@ -236,15 +323,45 @@ public class MultiTableReaderTest {
         stubForCreateSpec();
         m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
         verify(m_multiReadConfig, times(1)).hasTableSpecConfig();
+
         stubForFillRowOutput();
         m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
         verify(m_monitor, times(2)).setProgress(1.0);
         verify(m_rowOutput, times(1)).close();
-        verify(m_multiReadConfig, never()).getTableSpecConfig();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
         verify(m_multiReadConfig, times(2)).hasTableSpecConfig();
-        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyList(), any());
-        verify(m_multiTableReadFactory, times(2)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
+        verify(m_multiTableReadFactory, times(2)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyMap(), any());
+    }
+
+    /**
+     * Tests if {@code fillRowOutput} creates a new spec if the existing spec doesn't match the provided paths.
+     *
+     * @throws Exception never thrown
+     */
+    @Test
+    public void testFillRowOutputWithCallingCreateSpecFirstInValidPathsAndInvalidSpec() throws Exception {
+        stubForCreateSpec();
+        stubForCreateSpecWithoutTableSpecConfig();
+        m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
+            eq(m_multiReadConfig));
+
+        stubForFillRowOutput();
+        m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2, m_path3), m_multiReadConfig, m_rowOutput,
+            m_exec);
+        verify(m_individualTableReader, times(3)).fillOutput(any(), eq(m_rowOutput), eq(m_monitor));
+        verify(m_monitor, times(3)).setProgress(1.0);
+        verify(m_rowOutput, times(1)).close();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
+        verify(m_multiReadConfig, times(2)).hasTableSpecConfig();
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
+            eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
             eq(m_multiReadConfig));
     }
 
@@ -261,11 +378,11 @@ public class MultiTableReaderTest {
         m_testInstance.reset();
         stubForFillRowOutput();
         m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
-        verify(m_multiReadConfig, never()).getTableSpecConfig();
+        verify(m_multiReadConfig, atLeastOnce()).getTableSpecConfig();
         verify(m_multiReadConfig, times(2)).hasTableSpecConfig();
-        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyList(), any());
-        verify(m_multiTableReadFactory, times(2)).create(eq(ROOT_PATH), ArgumentMatchers.anyMap(),
+        verify(m_multiTableReadFactory, times(2)).create(eq(ROOT_PATH), eq(asList(m_path1, m_path2)),
             eq(m_multiReadConfig));
+        verify(m_multiTableReadFactory, never()).create(any(), ArgumentMatchers.anyMap(), any());
     }
 
 }

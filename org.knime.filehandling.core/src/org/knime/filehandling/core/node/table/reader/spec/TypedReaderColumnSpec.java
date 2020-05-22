@@ -107,13 +107,14 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
 
     @Override
     public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
         if (super.equals(obj)) {
-            if (obj instanceof TypedReaderColumnSpec) {
-                // if the T doesn't match, m_type.equals(other.m_type) will return false anyway
-                @SuppressWarnings("rawtypes")
-                final TypedReaderColumnSpec<?> other = (TypedReaderColumnSpec)obj;
-                return m_type.equals(other.m_type);
-            }
+            // if the T doesn't match, m_type.equals(other.m_type) will return false anyway
+            @SuppressWarnings("rawtypes")
+            final TypedReaderColumnSpec<?> other = (TypedReaderColumnSpec)obj;
+            return m_type.equals(other.m_type);
         }
         return false;
     }

@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 25, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
@@ -64,15 +64,12 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * Contains unit tests for {@link TypedReaderTableSpec}.
+ * Contains unit tests for {@link ReaderTableSpec}.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ *
  */
 public class ReaderTableSpecTest {
-
-    private static final String BAR = "bar";
-
-    private static final String FOO = "foo";
 
     private static final String FRANZ = "franz";
 
@@ -89,12 +86,12 @@ public class ReaderTableSpecTest {
     private static final String FRIEDA = "frieda";
 
     /**
-     * Tests if {@link TypedReaderTableSpec#ReaderTableSpec(Collection)} fails on a {@code null} collection.
+     * Tests if {@link ReaderTableSpec#ReaderTableSpec(Collection)} fails on a {@code null} collection.
      */
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void testColumnListConstructorFailsOnNull() {
-        new TypedReaderTableSpec<String>((Collection<TypedReaderColumnSpec<String>>)null);
+        new ReaderTableSpec<ReaderColumnSpec>((Collection<ReaderColumnSpec>)null);
     }
 
     /**
@@ -103,105 +100,15 @@ public class ReaderTableSpecTest {
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void testColumnArrayConstructorFailsOnNull() {
-        new TypedReaderTableSpec<String>((TypedReaderColumnSpec<String>[])null);
+        new ReaderTableSpec<ReaderColumnSpec>((ReaderColumnSpec[])null);
     }
 
     /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection, Collection)} fails if the names argument is {@code null}.
+     * Tests if {@link ReaderTableSpec#createReaderTableSpec(Collection)} fails if the names argument is {@code null}.
      */
     @Test(expected = IllegalArgumentException.class)
     public void testCreateFromNameTypeFailsOnNullNames() {
-        TypedReaderTableSpec.create(null, asList(FOO));
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection, Collection)} fails if the types argument is {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnNullTypes() {
-        TypedReaderTableSpec.create(asList(FOO), null);
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection, Collection)} fails if individual types are {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnIndividualNullType() {
-        TypedReaderTableSpec.create(asList(FOO, BAR), asList(FOO, null));
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection, Collection)} fails if the arguments differ in size.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnTypesShorter() {
-        TypedReaderTableSpec.create(asList(FOO, BAR), asList(FOO));
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection, Collection)} fails if the arguments differ in size.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromNameTypeFailsOnNamesShorter() {
-        TypedReaderTableSpec.create(asList(FOO), asList(FOO, BAR));
-    }
-
-    /**
-     * Tests if {@link ReaderTableSpec#create(Object...)} fails if the provided array is {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeArrayFailsOnNull() {
-        TypedReaderTableSpec.create((String[])null);
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Object...)} fails if no types are provided (the array is empty).
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeArrayFailsOnEmpty() {
-        TypedReaderTableSpec.create();
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection)} fails if the argument is {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeCollectionFailsOnNull() {
-        TypedReaderTableSpec.create((Collection<String>)null);
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection)} fails if individual types are {@code null}.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeCollectionFailsOnContainedNull() {
-        TypedReaderTableSpec.create(asList(FOO, null));
-    }
-
-    /**
-     * Tests if {@link TypedReaderTableSpec#create(Collection)} fails if the provided collection is empty.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromTypeCollectionFailsOnEmpty() {
-        TypedReaderTableSpec.create(Collections.emptySet());
-    }
-
-    /**
-     * Tests the creation if only types are provided.
-     */
-    @Test
-    public void testCreateOnlyTypes() {
-        final TypedReaderTableSpec<String> constructorArray =
-            new TypedReaderTableSpec<>(TypedReaderColumnSpec.create(FRIEDA), TypedReaderColumnSpec.create(BERTA));
-        final TypedReaderTableSpec<String> constructorList = new TypedReaderTableSpec<>(
-            asList(TypedReaderColumnSpec.create(FRIEDA), TypedReaderColumnSpec.create(BERTA)));
-        final TypedReaderTableSpec<String> createArray = TypedReaderTableSpec.create(FRIEDA, BERTA);
-        final TypedReaderTableSpec<String> createType = TypedReaderTableSpec.create(Arrays.asList(FRIEDA, BERTA));
-        assertEquals(TypedReaderColumnSpec.create(FRIEDA), constructorArray.getColumnSpec(0));
-        assertEquals(TypedReaderColumnSpec.create(BERTA), constructorArray.getColumnSpec(1));
-        assertEquals(constructorArray, constructorList);
-        assertEquals(constructorArray, createArray);
-        assertEquals(constructorArray, createType);
+        ReaderTableSpec.createReaderTableSpec(null);
     }
 
     /**
@@ -209,17 +116,18 @@ public class ReaderTableSpecTest {
      */
     @Test
     public void testCreateWithName() {
-        final TypedReaderTableSpec<String> constructorArray = new TypedReaderTableSpec<>(
+        final ReaderTableSpec<ReaderColumnSpec> constructorArray = new ReaderTableSpec<>(
             TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA), TypedReaderColumnSpec.createWithName(ALFONS, BERTA));
-        final TypedReaderTableSpec<String> constructorList =
-            new TypedReaderTableSpec<>(asList(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA),
+        final ReaderTableSpec<ReaderColumnSpec> constructorList =
+            new ReaderTableSpec<>(asList(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA),
                 TypedReaderColumnSpec.createWithName(ALFONS, BERTA)));
-        final TypedReaderTableSpec<String> createList =
+        final ReaderTableSpec<TypedReaderColumnSpec<String>> createList =
             TypedReaderTableSpec.create(asList(HUBERT, ALFONS), Arrays.asList(FRIEDA, BERTA));
         assertEquals(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA), constructorArray.getColumnSpec(0));
         assertEquals(TypedReaderColumnSpec.createWithName(ALFONS, BERTA), constructorArray.getColumnSpec(1));
         assertEquals(constructorArray, constructorList);
-        assertEquals(constructorArray, createList);
+        assertNotEquals(constructorArray, createList);
+        assertNotEquals(constructorList, createList);
     }
 
     /**
@@ -228,12 +136,12 @@ public class ReaderTableSpecTest {
     @Test
     public void testCreateEmptyTableSpec() {
         //Array based constructor
-        TypedReaderTableSpec<String> noColTableSpecArray = new TypedReaderTableSpec<>();
+        ReaderTableSpec<ReaderColumnSpec> noColTableSpecArray = new ReaderTableSpec<>();
         assertEquals(noColTableSpecArray.size(), 0);
 
         // Collections based constructor
-        final TypedReaderTableSpec<String> noColTableSpecCollection =
-            new TypedReaderTableSpec<>(Collections.emptySet());
+        final ReaderTableSpec<ReaderColumnSpec> noColTableSpecCollection =
+            new ReaderTableSpec<>(Collections.emptySet());
         assertEquals(noColTableSpecCollection.size(), 0);
     }
 
@@ -242,48 +150,51 @@ public class ReaderTableSpecTest {
      */
     @Test
     public void testHashCode() {
-        final TypedReaderTableSpec<String> spec1 = TypedReaderTableSpec.create(FRIEDA, GERTA);
-        final TypedReaderTableSpec<String> spec2 = TypedReaderTableSpec.create(FRIEDA, GERTA);
+        final ReaderTableSpec<ReaderColumnSpec> spec1 = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, GERTA));
+        final ReaderTableSpec<ReaderColumnSpec> spec2 = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, GERTA));
         assertEquals(spec1.hashCode(), spec2.hashCode());
-        final TypedReaderTableSpec<String> spec3 = TypedReaderTableSpec.create(asList(HANS), asList(FRANZ));
+        final TypedReaderTableSpec<String> spec3 =
+            TypedReaderTableSpec.create(asList(FRIEDA, HANS), asList(ALFONS, FRANZ));
         assertNotEquals(spec1, spec3);
         assertNotEquals(spec1.hashCode(), spec3.hashCode());
     }
 
     /**
-     * Tests the {@link TypedReaderTableSpec#equals(Object)} implementation.
+     * Tests the {@link ReaderTableSpec#equals(Object)} implementation.
      */
-    @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testEquals() {
-        final TypedReaderTableSpec<String> spec1 = TypedReaderTableSpec.create(FRIEDA, GERTA);
+        final ReaderTableSpec<ReaderColumnSpec> spec1 = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, GERTA));
         assertTrue(spec1 != null);
         assertTrue(spec1.equals(spec1));
-        final TypedReaderTableSpec<String> spec2 = TypedReaderTableSpec.create(FRIEDA, GERTA);
+
+        final ReaderTableSpec<ReaderColumnSpec> spec2 = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, GERTA));
         assertTrue(spec1.equals(spec2));
         assertTrue(spec2.equals(spec1));
-        final TypedReaderTableSpec<String> spec3 = TypedReaderTableSpec.create(asList(HANS), asList(FRANZ));
+
+        final TypedReaderTableSpec<String> spec3 = TypedReaderTableSpec.create(FRIEDA, GERTA);
         assertFalse(spec1.equals(spec3));
         assertFalse(spec3.equals(spec1));
-        assertFalse(spec1.equals(FOO));
     }
 
     /**
-     * Tests the {@link TypedReaderTableSpec#iterator()} method.
+     * Tests the {@link ReaderTableSpec#iterator()} method.
      */
     @Test
     public void testIterator() {
-        final TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(FRIEDA, BERTA);
-        final Iterator<TypedReaderColumnSpec<String>> iterator = spec.iterator();
+        final ReaderTableSpec<ReaderColumnSpec> spec = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, BERTA));
+        final Iterator<ReaderColumnSpec> iterator = spec.iterator();
         assertTrue(iterator.hasNext());
-        assertEquals(TypedReaderColumnSpec.create(FRIEDA), iterator.next());
+        ReaderColumnSpec next = iterator.next();
+        assertTrue(next.getName().isPresent() && next.getName().get().equals(FRIEDA));
         assertTrue(iterator.hasNext());
-        assertEquals(TypedReaderColumnSpec.create(BERTA), iterator.next());
+        next = iterator.next();
+        assertTrue(next.getName().isPresent() && next.getName().get().equals(BERTA));
         assertFalse(iterator.hasNext());
     }
 
     /**
-     * Tests the {@link TypedReaderTableSpec#stream()} method.
+     * Tests the {@link ReaderTableSpec#stream()} method.
      */
     @Test
     public void testStream() {
@@ -295,7 +206,7 @@ public class ReaderTableSpecTest {
     }
 
     /**
-     * Tests the {@link TypedReaderTableSpec#toString()} method.
+     * Tests the {@link ReaderTableSpec#toString()} method.
      */
     @Test
     public void testToString() {

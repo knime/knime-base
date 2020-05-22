@@ -125,7 +125,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         CheckUtils.checkSetting(m_pathSettings.hasPathOrURL(), "Please enter a valid location");
-        if (m_config.hasTableSpec()) {
+        if (m_config.hasTableSpecConfig()) {
             if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPathOrURL())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }

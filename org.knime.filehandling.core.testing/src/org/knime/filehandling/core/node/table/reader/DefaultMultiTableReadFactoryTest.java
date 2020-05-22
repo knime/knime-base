@@ -50,21 +50,28 @@ package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
@@ -81,6 +88,8 @@ import org.mockito.junit.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMultiTableReadFactoryTest {
+
+    private static final String FAKE_PATH = "fake_path";
 
     private static final String ROOT_PATH = "path";
 
@@ -103,9 +112,6 @@ public class DefaultMultiTableReadFactoryTest {
     private RowKeyGenerator<String> m_rowKeyGen;
 
     @Mock
-    private Path m_path;
-
-    @Mock
     private MultiTableReadConfig<?> m_config;
 
     private DefaultMultiTableReadFactory<String, String> m_testInstance;
@@ -119,23 +125,69 @@ public class DefaultMultiTableReadFactoryTest {
     }
 
     /**
-     * Tests the {@code create} implementation.
+     * Tests the {@link DefaultMultiTableReadFactory#create(String, java.util.Map, MultiTableReadConfig)}
+     * implementation.
      */
     @Test
     public void testCreate() {
-        final TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans"), asList("berta"));
+        final String colName = "hans";
+        final TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList(colName), asList("berta"));
         when(m_typeMappingFactory.create(spec)).thenReturn(m_typeMapping);
-        DataTableSpec knimeSpec = new DataTableSpec(new String[]{"hans"}, new DataType[]{StringCell.TYPE});
+        DataTableSpec knimeSpec = new DataTableSpec(new String[]{colName}, new DataType[]{StringCell.TYPE});
         when(m_typeMapping.map(spec)).thenReturn(knimeSpec);
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("berta");
         when(m_config.getSpecMergeMode()).thenReturn(SpecMergeMode.UNION);
+        when(m_typeMapping.getProductionPaths()).thenReturn(
+            TableSpecConfigUtils.getProducerRegistry().getAvailableProductionPaths().toArray(new ProductionPath[0]));
+        final Path p = TableSpecConfigUtils.mockPath(FAKE_PATH);
 
         MultiTableRead<String> multiTableRead =
-            m_testInstance.create(ROOT_PATH, Collections.singletonMap(m_path, spec), m_config);
+            m_testInstance.create(ROOT_PATH, Collections.singletonMap(p, spec), m_config);
         assertEquals(knimeSpec, multiTableRead.getOutputSpec());
         verify(m_typeMappingFactory).create(spec);
         verify(m_typeMapping).map(spec);
+
+        // check that the proper TableSpecConfig is created
+        final TableSpecConfig tableSpecCfg = multiTableRead.createTableSpec();
+        assertEquals(knimeSpec, tableSpecCfg.getDataTableSpec());
+        assertTrue(tableSpecCfg.getPaths().size() == 1);
+        assertEquals(p.toString(), tableSpecCfg.getPaths().get(0));
+        assertTrue(tableSpecCfg.getSpec(p.toString()) != null);
+
+        final ReaderTableSpec<?> readerTableSpec = tableSpecCfg.getSpec(p.toString());
+        assertTrue(readerTableSpec.size() == 1);
+        assertTrue(readerTableSpec.getColumnSpec(0).getName().isPresent());
+        assertEquals(colName, readerTableSpec.getColumnSpec(0).getName().get());
+    }
+
+    /**
+     * Tests the {@link DefaultMultiTableReadFactory#create(String, java.util.List, MultiTableReadConfig)}
+     * implementation.
+     */
+    @Test
+    public void testCreateFromTableSpecConfig() {
+        final DataTableSpec knimeSpec = TableSpecConfigUtils.createDataTableSpec("A", "B");
+        final ProducerRegistry<String, TableSpecConfigUtils> registry = TableSpecConfigUtils.getProducerRegistry();
+        final ProductionPath[] prodPaths = registry.getAvailableProductionPaths().toArray(new ProductionPath[0]);
+        when(m_typeMapping.getProductionPaths()).thenReturn(prodPaths);
+
+        // create individual specs
+        final Map<Path, ReaderTableSpec<?>> individualSpecs = new HashMap<>();
+        final Path p1 = TableSpecConfigUtils.mockPath(FAKE_PATH);
+        final Path p2 = TableSpecConfigUtils.mockPath("another_path");
+        individualSpecs.put(p1, ReaderTableSpec.createReaderTableSpec(Arrays.asList("C", "D")));
+        individualSpecs.put(p2, ReaderTableSpec.createReaderTableSpec(Arrays.asList("X", "Y")));
+
+        final TableSpecConfig cfg = new TableSpecConfig(ROOT_PATH, knimeSpec, individualSpecs, prodPaths);
+        when(m_config.getTableSpecConfig()).thenReturn(cfg);
+        when(m_typeMappingFactory.create(cfg)).thenReturn(m_typeMapping);
+
+        MultiTableRead<String> multiTableRead = m_testInstance.create(ROOT_PATH, Arrays.asList(p1, p2), m_config);
+        assertEquals(knimeSpec, multiTableRead.getOutputSpec());
+
+        final TableSpecConfig tableSpecCfg = multiTableRead.createTableSpec();
+        assertEquals(cfg, tableSpecCfg);
 
     }
 

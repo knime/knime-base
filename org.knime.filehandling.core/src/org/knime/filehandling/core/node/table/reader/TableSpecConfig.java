@@ -46,7 +46,7 @@
  * History
  *   May 12, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.spec;
+package org.knime.filehandling.core.node.table.reader;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -68,6 +68,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
@@ -170,7 +171,7 @@ public final class TableSpecConfig {
      * @return {@code true} if the {@link TableSpecConfig} has been created using the provded <b>rootPath</b>,
      *         {@code false} otherwise
      */
-    public boolean isConfiguredWith(final String rootPath) {
+    boolean isConfiguredWith(final String rootPath) {
         return m_rootPath.equals(rootPath);
     }
 
@@ -182,7 +183,7 @@ public final class TableSpecConfig {
      * @return {@code true} if the {@link TableSpecConfig} has been created using the provded <b>paths</b>,
      *         {@code false} otherwise
      */
-    public boolean isConfiguredWith(final List<Path> paths) {
+    boolean isConfiguredWith(final List<Path> paths) {
         return m_individualSpecs.size() == paths.size() //
             && paths.stream()//
                 .map(Path::toString)//
@@ -194,7 +195,7 @@ public final class TableSpecConfig {
      *
      * @return the {@link DataTableSpec}
      */
-    public DataTableSpec getDataTableSpec() {
+    DataTableSpec getDataTableSpec() {
         return m_dataTableSpec;
     }
 
@@ -203,7 +204,7 @@ public final class TableSpecConfig {
      *
      * @return the {@link String} representation of the paths to be read
      */
-    public List<String> getPaths() {
+    List<String> getPaths() {
         return Collections.unmodifiableList(new ArrayList<>(m_individualSpecs.keySet()));
     }
 
@@ -213,7 +214,7 @@ public final class TableSpecConfig {
      * @param path the path identifying the {@link ReaderTableSpec}
      * @return the associated {@link ReaderTableSpec}
      */
-    public ReaderTableSpec<?> getSpec(final String path) {
+    ReaderTableSpec<?> getSpec(final String path) {
         return m_individualSpecs.get(path);
     }
 
@@ -286,7 +287,7 @@ public final class TableSpecConfig {
         for (final ReaderTableSpec<?> readerTableSpec : m_individualSpecs.values()) {
             settings.addStringArray(CFG_INDIVIDUAL_SPEC + i++//
                 , readerTableSpec.stream()//
-                    .map(MultiTableUtils::getNameAfterInit)//
+                    .map(spec -> MultiTableUtils.getNameAfterInit(spec))//
                     .toArray(String[]::new)//
             );
         }
@@ -332,6 +333,44 @@ public final class TableSpecConfig {
                     String.format("No production path associated with key <%s>", CFG_PRODUCTION_PATH + idx)));
         }
         return prodPaths;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((m_dataTableSpec == null) ? 0 : m_dataTableSpec.hashCode());
+        result = prime * result + ((m_individualSpecs == null) ? 0 : m_individualSpecs.hashCode());
+        result = prime * result + Arrays.hashCode(m_prodPaths);
+        result = prime * result + ((m_rootPath == null) ? 0 : m_rootPath.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        TableSpecConfig other = (TableSpecConfig)obj;
+        if (!m_dataTableSpec.equals(other.m_dataTableSpec)) {
+            return false;
+        }
+        if (!m_individualSpecs.equals(other.m_individualSpecs)) {
+            return false;
+        }
+        if (!Arrays.equals(m_prodPaths, other.m_prodPaths)) {
+            return false;
+        }
+        if (!m_rootPath.equals(other.m_rootPath)) {
+            return false;
+        }
+        return true;
     }
 
 }

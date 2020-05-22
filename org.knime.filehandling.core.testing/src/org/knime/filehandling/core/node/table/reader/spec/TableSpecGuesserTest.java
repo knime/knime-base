@@ -190,8 +190,8 @@ public class TableSpecGuesserTest {
     }
 
     /**
-     * Tests the {@link TableSpecGuesser#guessSpec(Read, TableReadConfig)} method if no headers are retrieved and all
-     * rows have the same size.
+     * Tests the {@link TableSpecGuesser#guessSpec(Read, TableReadConfig, ExecutionMonitor)} method if no headers are
+     * retrieved and all rows have the same size.
      *
      * @throws IOException never thrown
      */

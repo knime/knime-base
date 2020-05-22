@@ -44,67 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.spec;
+package org.knime.filehandling.core.node.table.reader;
 
-import java.util.Objects;
-import java.util.Optional;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.nio.file.Path;
+import java.util.Arrays;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.convert.map.MappingFramework;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
+import org.knime.core.data.convert.map.Source;
+import org.knime.core.data.def.StringCell;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
- * Representation of a column solely by its name.</br>
- * The name is optional because it should only be set if it is read from the data.
+ * Contains utility methods for testing classes relying on a {@link TableSpecConfig}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ *
  */
-class DefaultReaderColumnSpec implements ReaderColumnSpec {
+final class TableSpecConfigUtils implements Source<String> {
 
-    private final String m_name;
+    private static ProducerRegistry<String, TableSpecConfigUtils> m_registry;
 
-    private final int m_hashCode;
-
-    /**
-     * Constructor to be used if the column has a name read from the data.
-     *
-     * @param name the name of the column read from the data
-     */
-    DefaultReaderColumnSpec(final String name) {
-        m_name = name;
-        m_hashCode = Objects.hash(m_name);
+    private TableSpecConfigUtils() {
+        // static utility class
     }
 
-    @Override
-    public final Optional<String> getName() {
-        return Optional.ofNullable(m_name);
+    static synchronized ProducerRegistry<String, TableSpecConfigUtils> getProducerRegistry() {
+        if (m_registry == null) {
+            m_registry = MappingFramework.forSourceType(TableSpecConfigUtils.class);
+            m_registry.register(new SimpleCellValueProducerFactory<>("foo", String.class, null));
+        }
+        return m_registry;
     }
 
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (getClass() == obj.getClass()) {
-            final DefaultReaderColumnSpec other = (DefaultReaderColumnSpec)obj;
-            return Objects.equals(m_name, other.m_name);
-        } else {
-            return false;
-        }
+    static Path mockPath(final String path) {
+        final Path p = mock(Path.class);
+        when(p.toString()).thenReturn(path);
+        return p;
     }
 
-    @Override
-    public String toString() {
-        if (m_name == null) {
-            return "<no name>";
-        } else {
-            return m_name;
-        }
+    static ReaderTableSpec<ReaderColumnSpec> createSpec(final String... cols) {
+        return ReaderTableSpec.createReaderTableSpec(Arrays.asList(cols));
     }
 
-    @Override
-    public int hashCode() {
-        return m_hashCode;
+    static DataTableSpec createDataTableSpec(final String... cols) {
+        return new DataTableSpec(Arrays.stream(cols)//
+            .map(s -> new DataColumnSpecCreator(s, StringCell.TYPE).createSpec())//
+            .toArray(DataColumnSpec[]::new));
     }
 }

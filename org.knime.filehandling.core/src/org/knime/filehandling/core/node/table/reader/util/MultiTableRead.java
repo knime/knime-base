@@ -53,8 +53,8 @@ import java.util.Collection;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 
 /**
  * Encapsulates information needed by the MultiTableReader to read tables from multiple {@link Path paths}. Note:

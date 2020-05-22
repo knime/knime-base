@@ -167,7 +167,7 @@ public class ReaderTableSpec<S extends ReaderColumnSpec> implements Iterable<S> 
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ReaderTableSpec) {
+        if (getClass() == obj.getClass()) {
             // if the types not match m_columns.equals(other.m_columns) will return false anyway
             @SuppressWarnings("rawtypes")
             final ReaderTableSpec<?> other = (ReaderTableSpec)obj;

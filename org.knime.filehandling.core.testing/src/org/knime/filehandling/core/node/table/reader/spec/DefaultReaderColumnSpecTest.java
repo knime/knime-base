@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
@@ -53,50 +53,58 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.Test;
 
 /**
- * Unit tests for {@link TypedReaderColumnSpec}.
+ * Contains unit tests for {@link DefaultReaderColumnSpec}.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ *
  */
-public class ReaderColumnSpecTest {
+@SuppressWarnings("javadoc")
+public class DefaultReaderColumnSpecTest {
+
+    private static final String FOO = "foo";
+
+    private static final String FRIEDA = "frieda";
 
     /**
-     * Tests the {@link TypedReaderColumnSpec#create(Object)} and
-     * {@link TypedReaderColumnSpec#createWithName(String, Object)} name methods as well as
-     * {@link TypedReaderColumnSpec#getName()} and {@link TypedReaderColumnSpec#getType()} implementations.
+     * Tests the {@link DefaultReaderColumnSpec#DefaultReaderColumnSpec(String)} constructor.
      */
     @Test
     public void testCreation() {
-        TypedReaderColumnSpec<String> noName = TypedReaderColumnSpec.create("frieda");
+        DefaultReaderColumnSpec noName = new DefaultReaderColumnSpec(FRIEDA);
+        assertTrue(noName.getName().isPresent());
+        assertTrue(noName.getName().get().equals(FRIEDA));
+        assertFalse(noName.getName().get().equals(FOO));
+
+        noName = new DefaultReaderColumnSpec(null);
+        assertFalse(noName.getName().isPresent());
         assertEquals(Optional.empty(), noName.getName());
-        assertEquals("frieda", noName.getType());
-        TypedReaderColumnSpec<String> nameNull = TypedReaderColumnSpec.createWithName(null, "frieda");
-        assertEquals(noName, nameNull);
-        TypedReaderColumnSpec<String> named = TypedReaderColumnSpec.createWithName("hans", "franz");
-        assertEquals("hans", named.getName().get());
-        assertEquals("franz", named.getType());
     }
 
     /**
-     * Tests the equals implementation
+     * Tests the equals implementation.
      */
-    @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testEquals() {
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
-        assertTrue(spec.equals(spec));
-        assertFalse(spec.equals(null));
-        assertFalse(spec.equals("foo"));
-        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
-        assertTrue(spec.equals(same));
-        assertTrue(same.equals(spec));
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
-        assertFalse(spec.equals(different));
-        assertFalse(different.equals(spec));
+        final DefaultReaderColumnSpec spec = new DefaultReaderColumnSpec(FRIEDA);
+        assertEquals(spec, spec);
+        assertNotEquals(spec, null);
+        assertNotEquals(spec, FOO);
+
+        assertNotEquals(spec, TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO)));
+        final DefaultReaderColumnSpec same = new DefaultReaderColumnSpec(FRIEDA);
+        assertEquals(spec, same);
+        assertEquals(same, spec);
+
+        final DefaultReaderColumnSpec different = new DefaultReaderColumnSpec(FOO);
+        assertNotEquals(spec, different);
+        assertNotEquals(different, spec);
+
     }
 
     /**
@@ -104,12 +112,13 @@ public class ReaderColumnSpecTest {
      */
     @Test
     public void testHashCode() {
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
-        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
+        final DefaultReaderColumnSpec spec = new DefaultReaderColumnSpec(FRIEDA);
+        assertEquals(spec.hashCode(), spec.hashCode());
+        assertNotEquals(spec, TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO)));
+        final DefaultReaderColumnSpec same = new DefaultReaderColumnSpec(FRIEDA);
         assertEquals(spec.hashCode(), same.hashCode());
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
-        assertNotEquals(spec.hashCode(), different.hashCode());
-        different = TypedReaderColumnSpec.create("berta");
+
+        final DefaultReaderColumnSpec different = new DefaultReaderColumnSpec(FOO);
         assertNotEquals(spec.hashCode(), different.hashCode());
     }
 
@@ -118,10 +127,10 @@ public class ReaderColumnSpecTest {
      */
     @Test
     public void testToString() {
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
-        assertEquals("[hans, franz]", different.toString());
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
-        assertEquals("[<no name>, frieda]", spec.toString());
+        DefaultReaderColumnSpec spec = new DefaultReaderColumnSpec("hans");
+        assertEquals("hans", spec.toString());
+        spec = new DefaultReaderColumnSpec(null);
+        assertEquals("<no name>", spec.toString());
     }
 
 }

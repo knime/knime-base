@@ -59,7 +59,6 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;

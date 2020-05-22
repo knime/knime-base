@@ -53,7 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
 /**
  * Configuration for the table readers that can jointly read tables from multiple sources.
@@ -89,10 +89,10 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      *
      * @return <code>true</code> if the {@link TableSpecConfig} is available, {@code false} otherwise
      */
-    boolean hasTableSpec();
+    boolean hasTableSpecConfig();
 
     /**
-     * Returns the {@link TableSpecConfig}. This method should only be invoked if {@link #hasTableSpec()} returned
+     * Returns the {@link TableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()} returned
      * {@code true}
      *
      * @return the {@link TableSpecConfig}

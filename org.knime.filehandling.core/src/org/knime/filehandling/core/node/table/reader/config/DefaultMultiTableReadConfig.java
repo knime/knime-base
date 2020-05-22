@@ -56,7 +56,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
 /**
  * Default implementation of {@link MultiTableReadConfig}.
@@ -132,7 +132,7 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
         //        m_typeMappingConfig.save(settings.addNodeSettings(CFG_TYPE_MAPPING_CONFIG));
         settings.addString(CFG_SPEC_MERGE_MODE, m_specMergeMode.name());
 
-        if (hasTableSpec()) {
+        if (hasTableSpecConfig()) {
             m_tableSpecConfig.save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
     }
@@ -160,7 +160,7 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
     }
 
     @Override
-    public boolean hasTableSpec() {
+    public boolean hasTableSpecConfig() {
         return m_tableSpecConfig != null;
     }
 

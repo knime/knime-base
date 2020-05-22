@@ -52,8 +52,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -82,7 +82,7 @@ public interface MultiTableReadFactory<T, V> {
     /**
      * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
      * {@link MultiTableReadConfig config}.<br>
-     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpec()} is {@code true}.
+     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpecConfig()} is {@code true}.
      *
      * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
      * @param paths the list of paths/files to be read

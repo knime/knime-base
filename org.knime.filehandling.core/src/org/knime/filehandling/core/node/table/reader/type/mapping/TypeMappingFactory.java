@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import org.knime.filehandling.core.node.table.reader.spec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
