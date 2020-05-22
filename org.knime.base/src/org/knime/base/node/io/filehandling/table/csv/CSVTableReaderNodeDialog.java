@@ -76,7 +76,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -1007,15 +1006,12 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             c = c.getParent();
         }
 
-        String s = (String)JOptionPane.showInputDialog(f, "Number of characters for autodetection:",
-            "Adjust characters for autodetection", JOptionPane.PLAIN_MESSAGE, null, null, m_autoDetectionBufferSize);
+        CSVAutodetectionSettingsDialog settingsDialog =
+            new CSVAutodetectionSettingsDialog(f, m_autoDetectionBufferSize);
 
-        try {
-            m_autoDetectionBufferSize =
-                s != null && !s.isEmpty() ? Integer.parseInt(s.trim()) : m_autoDetectionBufferSize;
-        } catch (NumberFormatException e) {
-            setStatus("Please enter an integer", null, SharedIcons.ERROR.get());
-        }
+        settingsDialog.setVisible(true);
+
+        m_autoDetectionBufferSize = settingsDialog.getBufferSize();
     }
 
     void refreshPreview(final boolean refreshPreview) {
