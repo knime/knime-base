@@ -51,20 +51,17 @@ package org.knime.base.node.io.filehandling.csv.writer.config;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.config.Config;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Advanced setting configurations for CSV writer node
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public final class AdvancedConfig extends SettingsModel {
+public final class AdvancedConfig implements SimpleConfig {
 
     /**
      * Different modes of putting values inside quotes
+     *
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
     public enum QuoteMode {
@@ -80,8 +77,6 @@ public final class AdvancedConfig extends SettingsModel {
 
     private static final String CFGKEY_MISSING_VALUE = "missing_value_pattern";
 
-    private static final String CFGKEY_ROOT = "advanced_settings";
-
     private static final String CFGKEY_COMPRESS_WITH_GZIP = "compress_with_gzip";
 
     private static final String CFGKEY_QUOTE_MODE = "quote_mode";
@@ -96,17 +91,17 @@ public final class AdvancedConfig extends SettingsModel {
 
     private String m_missingValuePattern;
 
-    private boolean m_compressWithGzip;
-
     private String m_quoteModeName;
 
-    private String m_separatorReplacement; // only used with mode=REPLACE
+    private String m_separatorReplacement; // only used with mode=Never
 
     private char m_decimalSeparator;
 
     private boolean m_useScientificFormat;
 
     private boolean m_keepTrailingZero;
+
+    private boolean m_compressWithGzip;
 
     /**
      * Default constructor
@@ -121,192 +116,130 @@ public final class AdvancedConfig extends SettingsModel {
         m_keepTrailingZero = false;
     }
 
-    /**
-     * Copy constructor
-     *
-     * @param source the source object to copy
-     */
-    public AdvancedConfig(final AdvancedConfig source) {
-        m_missingValuePattern = source.getMissingValuePattern();
-        m_compressWithGzip = false;
-        m_quoteModeName = source.getQuoteModeName();
-        m_separatorReplacement = source.getSeparatorReplacement();
-        m_decimalSeparator = source.getDecimalSeparator();
-        m_useScientificFormat = source.useScientificFormat();
-        m_keepTrailingZero = source.useScientificFormat();
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
-    protected AdvancedConfig createClone() {
-        return new AdvancedConfig(this);
+    public void loadInDialog(final NodeSettingsRO settings) {
+        m_missingValuePattern = settings.getString(CFGKEY_MISSING_VALUE, "");
+        m_compressWithGzip = settings.getBoolean(CFGKEY_COMPRESS_WITH_GZIP, false);
+
+        m_quoteModeName = settings.getString(CFGKEY_QUOTE_MODE, QuoteMode.IF_NEEDED.name());
+        m_separatorReplacement = settings.getString(CFGKEY_SEPARATOR_REPL, "");
+
+        m_decimalSeparator = settings.getChar(CFGKEY_DEC_SEPARATOR, '.');
+        m_useScientificFormat = settings.getBoolean(CFGKEY_SCIENTIFIC_FORMAT, false);
+        m_keepTrailingZero = settings.getBoolean(CFGKEY_KEEP_TRAILING_ZERO, false);
     }
 
     @Override
-    protected String getModelTypeID() {
-        return "MODEL_TYPE_ID_" + CFGKEY_ROOT;
+    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_missingValuePattern = settings.getString(CFGKEY_MISSING_VALUE);
+        m_compressWithGzip = settings.getBoolean(CFGKEY_COMPRESS_WITH_GZIP);
+
+        m_quoteModeName = settings.getString(CFGKEY_QUOTE_MODE);
+        m_separatorReplacement = settings.getString(CFGKEY_SEPARATOR_REPL);
+
+        m_decimalSeparator = settings.getChar(CFGKEY_DEC_SEPARATOR);
+        m_useScientificFormat = settings.getBoolean(CFGKEY_SCIENTIFIC_FORMAT);
+        m_keepTrailingZero = settings.getBoolean(CFGKEY_KEEP_TRAILING_ZERO);
     }
 
     @Override
-    protected String getConfigName() {
-        return CFGKEY_ROOT;
+    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+        settings.getString(CFGKEY_MISSING_VALUE);
+        settings.getBoolean(CFGKEY_COMPRESS_WITH_GZIP);
+
+        settings.getString(CFGKEY_QUOTE_MODE);
+        settings.getString(CFGKEY_SEPARATOR_REPL);
+
+        settings.getChar(CFGKEY_DEC_SEPARATOR);
+        settings.getBoolean(CFGKEY_SCIENTIFIC_FORMAT);
+        settings.getBoolean(CFGKEY_KEEP_TRAILING_ZERO);
     }
 
     @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        loadSettingsForDialog(settings);
-    }
+    public void save(final NodeSettingsWO settings) {
+        settings.addString(CFGKEY_MISSING_VALUE, m_missingValuePattern);
+        settings.addBoolean(CFGKEY_COMPRESS_WITH_GZIP, m_compressWithGzip);
 
-    /**
-     * Read the value(s) of this settings model from configuration object for the purpose of loading them into node
-     * dialog. Default values are used if the key to a specific setting is not found.
-     *
-     * @param settings the configuration object
-     * @throws NotConfigurableException if the sub-setting can not be extracted.
-     */
-    public void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
-        Config config;
-        try {
-            config = settings.getConfig(CFGKEY_ROOT);
-        } catch (final InvalidSettingsException ex) {
-            throw new NotConfigurableException(ex.getMessage());
-        }
-        m_missingValuePattern = config.getString(CFGKEY_MISSING_VALUE, "");
-        m_compressWithGzip = config.getBoolean(CFGKEY_COMPRESS_WITH_GZIP, false);
+        settings.addString(CFGKEY_QUOTE_MODE, m_quoteModeName);
+        settings.addString(CFGKEY_SEPARATOR_REPL, m_separatorReplacement);
 
-        m_quoteModeName = config.getString(CFGKEY_QUOTE_MODE, QuoteMode.IF_NEEDED.name());
-        m_separatorReplacement = config.getString(CFGKEY_SEPARATOR_REPL, "");
-
-        m_decimalSeparator = config.getChar(CFGKEY_DEC_SEPARATOR, '.');
-        m_useScientificFormat = config.getBoolean(CFGKEY_SCIENTIFIC_FORMAT, false);
-        m_keepTrailingZero = config.getBoolean(CFGKEY_KEEP_TRAILING_ZERO, false);
-    }
-
-    @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveSettingsForModel(settings);
-    }
-
-    @Override
-    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config = settings.getConfig(CFGKEY_ROOT);
-        config.getString(CFGKEY_MISSING_VALUE);
-        config.getBoolean(CFGKEY_COMPRESS_WITH_GZIP);
-
-        config.getString(CFGKEY_QUOTE_MODE);
-        config.getString(CFGKEY_SEPARATOR_REPL);
-
-        config.getChar(CFGKEY_DEC_SEPARATOR);
-        config.getBoolean(CFGKEY_SCIENTIFIC_FORMAT);
-        config.getBoolean(CFGKEY_KEEP_TRAILING_ZERO);
-    }
-
-    @Override
-    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config = settings.getConfig(CFGKEY_ROOT);
-        m_missingValuePattern = config.getString(CFGKEY_MISSING_VALUE);
-        m_compressWithGzip = config.getBoolean(CFGKEY_COMPRESS_WITH_GZIP);
-
-        m_quoteModeName = config.getString(CFGKEY_QUOTE_MODE);
-        m_separatorReplacement = config.getString(CFGKEY_SEPARATOR_REPL);
-
-        m_decimalSeparator = config.getChar(CFGKEY_DEC_SEPARATOR);
-        m_useScientificFormat = config.getBoolean(CFGKEY_SCIENTIFIC_FORMAT);
-        m_keepTrailingZero = config.getBoolean(CFGKEY_KEEP_TRAILING_ZERO);
-    }
-
-    @Override
-    protected void saveSettingsForModel(final NodeSettingsWO settings) {
-        final Config config = settings.addConfig(CFGKEY_ROOT);
-        config.addString(CFGKEY_MISSING_VALUE, m_missingValuePattern);
-        config.addBoolean(CFGKEY_COMPRESS_WITH_GZIP, m_compressWithGzip);
-
-        config.addString(CFGKEY_QUOTE_MODE, m_quoteModeName);
-        config.addString(CFGKEY_SEPARATOR_REPL, m_separatorReplacement);
-
-        config.addChar(CFGKEY_DEC_SEPARATOR, m_decimalSeparator);
-        config.addBoolean(CFGKEY_SCIENTIFIC_FORMAT, m_useScientificFormat);
-        config.addBoolean(CFGKEY_KEEP_TRAILING_ZERO, m_keepTrailingZero);
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " ('" + CFGKEY_ROOT + "')";
+        settings.addChar(CFGKEY_DEC_SEPARATOR, m_decimalSeparator);
+        settings.addBoolean(CFGKEY_SCIENTIFIC_FORMAT, m_useScientificFormat);
+        settings.addBoolean(CFGKEY_KEEP_TRAILING_ZERO, m_keepTrailingZero);
     }
 
     /**
-     * @return the missingValuePattern
+     * @return the String value used in place of missing values while writing.
      */
     public String getMissingValuePattern() {
         return m_missingValuePattern;
     }
 
     /**
-     * @param missingValuePattern the missingValuePattern to set
+     * @param missingValuePattern the value to be used in place of missing values while writing.
      */
     public void setMissingValuePattern(final String missingValuePattern) {
         m_missingValuePattern = missingValuePattern;
     }
 
     /**
-     * @return the compressWithGzip
+     * @return {@code true} if file should be written with gzip compression
      */
     public boolean compressWithGzip() {
         return m_compressWithGzip;
     }
 
     /**
-     * @param compressWithGzip the compressWithGzip to set
+     * @param compressWithGzip a flag deciding if file should be written with gzip compression
      */
     public void setCompressWithGzip(final boolean compressWithGzip) {
         m_compressWithGzip = compressWithGzip;
     }
 
     /**
-     * @return the quoteMode
+     * @return a {@link QuoteMode} that decides when to put values in quotes.
      */
     public QuoteMode getQuoteMode() {
         return QuoteMode.valueOf(m_quoteModeName);
     }
 
     /**
-     * @return the quoteModeName
+     * @return the name ({@link String}) of {@link QuoteMode} deciding when to put values in quotes.
      */
     public String getQuoteModeName() {
         return m_quoteModeName;
     }
 
     /**
-     * @param quoteModeName the QuoteMode to set
+     * @param quoteModeName the ({@link String}) name of {@link QuoteMode} deciding when to put values in quotes.
      */
     public void setQuoteModeName(final String quoteModeName) {
         m_quoteModeName = quoteModeName;
     }
 
     /**
-     * @return the separatorReplacement
+     * @return the replacement text for the chars used as a column separator.
      */
     public String getSeparatorReplacement() {
         return m_separatorReplacement;
     }
 
     /**
-     * @param separatorReplacement the separatorReplacement to set
+     * @param separatorReplacement the replacement text for the chars used as a column separator.
      */
     public void setSeparatorReplacement(final String separatorReplacement) {
         m_separatorReplacement = separatorReplacement;
     }
 
     /**
-     * @return the decimalSeparator
+     * @return the character used as decimal separator for decimals
      */
     public char getDecimalSeparator() {
         return m_decimalSeparator;
     }
 
     /**
-     * @param decimalSeparator the decimalSeparator to set
+     * @param decimalSeparator the character to be used as decimal separator for decimals
      */
     public void setDecimalSeparator(final char decimalSeparator) {
         m_decimalSeparator = decimalSeparator;
@@ -320,31 +253,31 @@ public final class AdvancedConfig extends SettingsModel {
     }
 
     /**
-     * @return the useScientificFormat
+     * @return {@code true} if very large and very small floating point numbers are written in scientific notation
      */
     public boolean useScientificFormat() {
         return m_useScientificFormat;
     }
 
     /**
-     * @param useScientificFormat the useScientificFormat to set
+     * @param useScientificFormat a flag deciding if very large and very small floating point numbers are to be written
+     *            in scientific notation
      */
     public void setUseScientificFormat(final boolean useScientificFormat) {
         m_useScientificFormat = useScientificFormat;
     }
 
     /**
-     * @return the keepTrailingZero
+     * @return {@code true} if all decimal values should be written with .0 suffix
      */
     public boolean keepTrailingZero() {
         return m_keepTrailingZero;
     }
 
     /**
-     * @param keepTrailingZero the keepTrailingZero to set
+     * @param keepTrailingZero a flag deciding if all decimal values should be written with .0 suffix
      */
     public void setKeepTrailingZero(final boolean keepTrailingZero) {
         m_keepTrailingZero = keepTrailingZero;
     }
-
 }

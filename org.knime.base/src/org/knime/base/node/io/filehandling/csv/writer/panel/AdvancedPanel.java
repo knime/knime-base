@@ -62,7 +62,8 @@ import javax.swing.JTextField;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
-import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NotConfigurableException;
 
 /**
  * A dialog panel for advanced settings of CSV writer node.
@@ -165,7 +166,7 @@ public final class AdvancedPanel extends JPanel {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel advancedQuotePanel = new JPanel(new GridBagLayout());
         advancedQuotePanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote values: "));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote values:"));
 
         gbc.insets = new Insets(5, 3, 3, 5);
         advancedQuotePanel.add(m_quoteIfNeededButton, gbc);
@@ -180,7 +181,7 @@ public final class AdvancedPanel extends JPanel {
         gbc.gridwidth = 2;
         gbc.gridx = 0;
         gbc.gridy++;
-        advancedQuotePanel.add(new JLabel("Replace column separator with "), gbc);
+        advancedQuotePanel.add(new JLabel("Replace column separator with"), gbc);
         gbc.gridwidth = 1;
         gbc.gridx = 2;
         gbc.insets = new Insets(10, 5, 5, 0);
@@ -197,10 +198,10 @@ public final class AdvancedPanel extends JPanel {
         final JPanel advancedNumOptionsPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         advancedNumOptionsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options: "));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options:"));
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        advancedNumOptionsPanel.add(new JLabel("Decimal separator "), gbc);
+        advancedNumOptionsPanel.add(new JLabel("Decimal separator"), gbc);
         gbc.gridx++;
         advancedNumOptionsPanel.add(m_decimalSeparatorField, gbc);
 
@@ -224,7 +225,7 @@ public final class AdvancedPanel extends JPanel {
         GridBagConstraints gbc = createAndInitGBC();
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        advancedOptionsPanel.add(new JLabel("Replace missing value swith "), gbc);
+        advancedOptionsPanel.add(new JLabel("Replace missing value swith"), gbc);
         gbc.gridx++;
         advancedOptionsPanel.add(m_missingValuePatternField, gbc);
 
@@ -255,110 +256,30 @@ public final class AdvancedPanel extends JPanel {
     }
 
     /**
-     * @return the missingValuePattern from the corresponding {@link JTextField}
-     */
-    public String getMissingValuePattern() {
-        return m_missingValuePatternField.getText();
-    }
-
-    /**
-     * @return {@code true} if compressWithGzipChecker is selected
-     */
-    public boolean compressWithGzip() {
-        return m_compressWithGzipChecker.isSelected();
-    }
-
-    /**
      * @return the selected QuoteMode from the radio buttons quoteIfNeededButton, quoteStringsButton, quoteAlwaysButton
      *         and quoteNeverButton
+     * @throws InvalidSettingsException if there is no valid QuoteMode selected
      */
-    public QuoteMode getQuoteMode() {
+    public QuoteMode getQuoteMode() throws InvalidSettingsException {
         if (m_quoteAlwaysButton.isSelected()) {
             return QuoteMode.ALWAYS;
         } else if (m_quoteStringsButton.isSelected()) {
             return QuoteMode.STRINGS_ONLY;
         } else if (m_quoteNeverButton.isSelected()) {
             return QuoteMode.NEVER;
-        } else {
+        } else if (m_quoteIfNeededButton.isSelected()) {
             return QuoteMode.IF_NEEDED;
+        } else {
+            throw new InvalidSettingsException("There is no valid QuoteMode selected!");
         }
-    }
-
-    /**
-     * @return the separatorReplacement from the corresponding {@link JTextField}
-     */
-    public String getSeparatorReplacement() {
-        return m_separatorReplacementField.getText();
-    }
-
-    /**
-     * @return the decimalSeparator from the corresponding {@link JTextField}
-     */
-    public String getDecimalSeparator() {
-        return EscapeUtils.unescape(m_decimalSeparatorField.getText());
-    }
-
-    /**
-     * @return {@code true} if useScientificFormatChecker is selected
-     */
-    public boolean useScientificFormat() {
-        return m_useScientificFormatChecker.isSelected();
-    }
-
-    /**
-     * @return {@code true} if trailingZeroChecker is selected
-     */
-    public boolean keepTrailingZero() {
-        return m_keepTrailingZeroChecker.isSelected();
-    }
-
-    /**
-     * @param missingValuePattern to set in missingValuePatternField
-     */
-    public void setMissingValuePattern(final String missingValuePattern) {
-        m_missingValuePatternField.setText(missingValuePattern);
-    }
-
-    /**
-     * @param compressWithGzip whether or not to select compressWithGzipChecker
-     */
-    public void setCompressWithGzip(final boolean compressWithGzip) {
-        m_compressWithGzipChecker.setSelected(compressWithGzip);
-    }
-
-    /**
-     * @param separatorReplacement
-     */
-    public void setSeparatorReplacement(final String separatorReplacement) {
-        m_separatorReplacementField.setText(separatorReplacement);
-    }
-
-    /**
-     * @param decimalSeparator
-     */
-    public void setDecimalSeparator(final String decimalSeparator) {
-        m_decimalSeparatorField.setText(EscapeUtils.escape(decimalSeparator));
-    }
-
-    /**
-     * @param useScientificFormat whether or not to select scientificFormatChecker
-     */
-    public void setUseScientificFormat(final boolean useScientificFormat) {
-        m_useScientificFormatChecker.setSelected(useScientificFormat);
-    }
-
-    /**
-     * @param keepTrailingZero whether or not to select trailingZeroChecker
-     */
-    public void setKeepTrailingZero(final boolean keepTrailingZero) {
-        m_keepTrailingZeroChecker.setSelected(keepTrailingZero);
     }
 
     /**
      *
      * @param mode the QuoteMode to be selected
+     * @throws NotConfigurableException if unexpected QuoteMode is provided
      */
-    public void setQuoteMode(final QuoteMode mode) {
+    public void setQuoteMode(final QuoteMode mode) throws NotConfigurableException {
         switch (mode) {
             case STRINGS_ONLY:
                 m_quoteStringsButton.setSelected(true);
@@ -373,8 +294,7 @@ public final class AdvancedPanel extends JPanel {
                 m_quoteNeverButton.setSelected(true);
                 break;
             default:
-                m_quoteIfNeededButton.setSelected(true);
-                break;
+                throw new NotConfigurableException("Unexpected QuoteMode " + mode.name() + " is provided!");
         }
     }
 
@@ -382,33 +302,35 @@ public final class AdvancedPanel extends JPanel {
      * Loads dialog components with values from the provided configuration
      *
      * @param config the configuration to read values from
+     * @throws NotConfigurableException if unable to load the QuoteMode
      */
-    public void loadDialogSettings(final AdvancedConfig config) {
-        setMissingValuePattern(config.getMissingValuePattern());
-        setCompressWithGzip(config.compressWithGzip());
+    public void loadDialogSettings(final AdvancedConfig config) throws NotConfigurableException {
+        m_missingValuePatternField.setText(config.getMissingValuePattern());
+        m_compressWithGzipChecker.setSelected(config.compressWithGzip());
 
-        setUseScientificFormat(config.useScientificFormat());
-        setKeepTrailingZero(config.keepTrailingZero());
-        setDecimalSeparator(String.valueOf(config.getDecimalSeparator()));
+        m_useScientificFormatChecker.setSelected(config.useScientificFormat());
+        m_keepTrailingZeroChecker.setSelected(config.keepTrailingZero());
+        m_decimalSeparatorField.setText(String.valueOf(config.getDecimalSeparator()));
 
         setQuoteMode(config.getQuoteMode());
-        setSeparatorReplacement(config.getSeparatorReplacement());
+        m_separatorReplacementField.setText(config.getSeparatorReplacement());
     }
 
     /**
      * Reads values from dialog and updates the provided configuration.
      *
      * @param config the configuration to read values from
+     * @throws InvalidSettingsException
      */
-    public void saveDialogSettings(final AdvancedConfig config) {
-        config.setMissingValuePattern(getMissingValuePattern());
-        config.setCompressWithGzip(compressWithGzip());
+    public void saveDialogSettings(final AdvancedConfig config) throws InvalidSettingsException {
+        config.setMissingValuePattern(m_missingValuePatternField.getText());
+        config.setCompressWithGzip(m_compressWithGzipChecker.isSelected());
 
-        config.setUseScientificFormat(useScientificFormat());
-        config.setKeepTrailingZero(keepTrailingZero());
-        config.setDecimalSeparator(getDecimalSeparator());
+        config.setUseScientificFormat(m_useScientificFormatChecker.isSelected());
+        config.setKeepTrailingZero(m_keepTrailingZeroChecker.isSelected());
+        config.setDecimalSeparator(m_decimalSeparatorField.getText());
 
         config.setQuoteModeName(getQuoteMode().name());
-        config.setSeparatorReplacement(getSeparatorReplacement());
+        config.setSeparatorReplacement(m_separatorReplacementField.getText());
     }
 }

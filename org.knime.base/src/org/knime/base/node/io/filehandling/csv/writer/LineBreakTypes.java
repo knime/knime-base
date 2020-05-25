@@ -49,37 +49,36 @@
 package org.knime.base.node.io.filehandling.csv.writer;
 
 /**
+ * Variants of line brakes across different operating systems.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 public enum LineBreakTypes {
         /** System default from System.getProperty("line.separator") */
-        SYST_DEFAULT(System.getProperty("line.separator")),
+        SYST_DEFAULT(System.getProperty("line.separator"), "System Default"),
         /** Linux and Unix line brakes, LF only. */
-        UNIX_LINUX(new String(new char[]{10})),
+        UNIX_LINUX(new String(new char[]{10}), "Linux/Unix Line break"),
         /** Windows style line breaks CR + LF. */
-        WINDOWS(new String(new char[]{13, 10})),
+        WINDOWS(new String(new char[]{13, 10}), "Windows Line break"),
         /** Old Mac OS style (until Mac OS9), CR only */
-        MAC_OS9(new String(new char[]{13}));
+        MAC_OS9(new String(new char[]{13}), "Mac OS9 Line break");
 
-    private final String m_ending;
+    private final String m_lineBreakType;
 
-    /**
-     * Provides access to the LineBreakTypes with specific order
-     */
-    public static final LineBreakTypes[] lBreakTypes = {SYST_DEFAULT, UNIX_LINUX, WINDOWS, MAC_OS9};
+    private final String m_displayName;
 
-    private LineBreakTypes(final String ending) {
-        m_ending = ending;
+    private LineBreakTypes(final String lBreakType, final String displayName) {
+        m_lineBreakType = lBreakType;
+        m_displayName = displayName;
     }
 
     /** @return the mode specific line ending. */
-    public String getEndString() {
-        return m_ending;
+    public String getLineBreak() {
+        return m_lineBreakType;
     }
 
-    /** @return the display names in specific order of the {@code enum} values. */
-    public static String[] displayNames() {
-        return new String[]{"System Default", "Linux/Unix Style", "Windows Style", "Mac OS9 Style"};
+    @Override
+    public String toString() {
+        return m_displayName;
     }
 }

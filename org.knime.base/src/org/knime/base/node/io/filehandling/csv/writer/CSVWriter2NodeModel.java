@@ -56,6 +56,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
@@ -103,9 +104,9 @@ final class CSVWriter2NodeModel extends NodeModel {
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVWriter2NodeModel.class);
 
-    private CSVWriter2Config m_writerConfig;
+    private final CSVWriter2Config m_writerConfig;
 
-    private PortsConfiguration m_portsConfig;
+    private final PortsConfiguration m_portsConfig;
 
     CSVWriter2NodeModel(final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
@@ -115,15 +116,14 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final String pathOrURL = m_writerConfig.getFileChooserModel().getPathOrURL();
-        if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
+        if (!m_writerConfig.getFileChooserModel().hasPathOrURL()) {
             throw new InvalidSettingsException("Please enter a valid location.");
         }
 
-        DataTableSpec inSpec = (DataTableSpec)inSpecs[getDataTablePortIndex()];
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[getDataTablePortIndex()];
 
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
-            DataType c = inSpec.getColumnSpec(i).getType();
+            final DataType c = inSpec.getColumnSpec(i).getType();
             if (!c.isCompatible(DoubleValue.class) && !c.isCompatible(IntValue.class)
                 && !c.isCompatible(StringValue.class)) {
                 throw new InvalidSettingsException("Input table must only contain String, Int, or Doubles");
@@ -131,7 +131,7 @@ final class CSVWriter2NodeModel extends NodeModel {
         }
         if (inSpec.containsCompatibleType(DoubleValue.class) && m_writerConfig.colSeparatorContainsDecSeparator()) {
             throw new InvalidSettingsException(
-                "The column delimiter shouldn't contain (or be equal to) the  decimal separator!");
+                "The column delimiter cannot contain (or be equal to) the  decimal separator!");
         }
         return new DataTableSpec[0];
     }
@@ -141,7 +141,7 @@ final class CSVWriter2NodeModel extends NodeModel {
         final Path outputPath = getFilePath(data);
         createParentDirIfRequired(outputPath);
         // create BufferedDataTable implementing RowInput
-        BufferedDataTable tbl = (BufferedDataTable)data[getDataTablePortIndex()];
+        final BufferedDataTable tbl = (BufferedDataTable)data[getDataTablePortIndex()];
         final DataTableRowInput rowInput = new DataTableRowInput(tbl);
         return writeToFile(rowInput, exec, outputPath);
     }
@@ -161,23 +161,33 @@ final class CSVWriter2NodeModel extends NodeModel {
     private BufferedDataTable[] writeToFile(final RowInput input, final ExecutionContext exec, final Path outputPath)
         throws IOException, InterruptedException, CanceledExecutionException {
         final boolean isNewFile = !Files.exists(outputPath);
+
         try (final OutputStream outStream = createOutputStream(outputPath);
-                final OutputStreamWriter writer = new OutputStreamWriter(outStream, m_writerConfig.getCharSet());) {
-            CSVWriter2 tableWriter = new CSVWriter2(writer, m_writerConfig, isNewFile);
-            tableWriter.writeCommentHeader(input.getDataTableSpec().getName());
+                final OutputStreamWriter writer = new OutputStreamWriter(outStream, m_writerConfig.getCharSet());
+                CSVWriter2 tableWriter = new CSVWriter2(writer, m_writerConfig);) {
+
+            final boolean realyAppending = m_writerConfig.isFileAppended() && !isNewFile;
+            final boolean realySkipColumnHeader = m_writerConfig.skipColumnHeaderOnAppend() && !isNewFile;
+
+            final List<String> commentLines =
+                m_writerConfig.getCommentConfig().getCommentHeader(input.getDataTableSpec().getName(), realyAppending);
+            tableWriter.writeLines(commentLines);
+
+            if (m_writerConfig.writeColumnHeader() && !realySkipColumnHeader) {
+                tableWriter.writeColumnHeader(input.getDataTableSpec());
+            }
+
             tableWriter.writeRows(input, exec);
             if (tableWriter.hasWarningMessage()) {
                 setWarningMessage(tableWriter.getLastWarningMessage());
             }
-            tableWriter.close();
-            // execution successful return an empty BufferedDataTable array
             return new BufferedDataTable[0];
-        } catch (CanceledExecutionException e) {
+        } catch (final CanceledExecutionException e) {
             if (isNewFile) {
                 deleteIncompleteFile(outputPath);
             } else {
-                LOGGER
-                    .warn("Node exection is canceled. The file '" + outputPath + "' could have partial modifications.");
+                LOGGER.warn(
+                    "Node exection was canceled. The file '" + outputPath + "' could have partial modifications.");
             }
             throw e;
         }
@@ -186,10 +196,10 @@ final class CSVWriter2NodeModel extends NodeModel {
     private static void deleteIncompleteFile(final Path outputPath) {
         try {
             Files.delete(outputPath);
-            LOGGER.debug("File created '" + outputPath + "' deleted after node execution is canceled.");
+            LOGGER.debug("File created '" + outputPath + "' deleted after node execution was canceled.");
 
-        } catch (IOException ex) {
-            LOGGER.warn("Unable to delete created file '" + outputPath + "' after node execution is canceled. "
+        } catch (final IOException ex) {
+            LOGGER.warn("Unable to delete created file '" + outputPath + "' after node execution was canceled. "
                 + ex.getMessage(), ex);
         }
     }
@@ -197,9 +207,8 @@ final class CSVWriter2NodeModel extends NodeModel {
     private OutputStream createOutputStream(final Path outputPath) throws IOException {
         OutputStream outStream;
         try {
-            outStream = Files.newOutputStream(outputPath,
-                FileOverwritePolicy.getFileOpenOption(m_writerConfig.getFileOverwritePolicy()));
-        } catch (FileAlreadyExistsException e) {
+            outStream = Files.newOutputStream(outputPath, m_writerConfig.getFileOverwritePolicy().getOpenOptions());
+        } catch (final FileAlreadyExistsException e) {
             throw new IOException(
                 "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
         }
@@ -239,17 +248,22 @@ final class CSVWriter2NodeModel extends NodeModel {
     }
 
     private int getDataTablePortIndex() {
+        // This is safe because, there should always be a DataTable port
         return m_portsConfig.getInputPortLocation().get(DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
     }
 
     private int getFSConnectionPortIndex() {
-        return getNrInPorts() < 2 ? 0 : m_portsConfig.getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)[0];
+        if (m_portsConfig.getInputPortLocation().containsKey(CONNECTION_INPUT_PORT_GRP_NAME)) {
+            return m_portsConfig.getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)[0];
+        } else {
+            // This port is a DataTable port and will fail the check at FileSystemPortObject.getFileSystemConnection(..)
+            return getDataTablePortIndex();
+        }
     }
-
 
     @Override
     public InputPortRole[] getInputPortRoles() {
-        InputPortRole[] inputPortRoles = new InputPortRole[getNrInPorts()];
+        final InputPortRole[] inputPortRoles = new InputPortRole[getNrInPorts()];
         // Set all ports except the data table input port to NONSTREAMABLE.
         Arrays.fill(inputPortRoles, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE);
         inputPortRoles[getDataTablePortIndex()] = InputPortRole.NONDISTRIBUTED_STREAMABLE;
@@ -263,14 +277,14 @@ final class CSVWriter2NodeModel extends NodeModel {
         try {
             outputPath = getFilePath(inSpecs);
             createParentDirIfRequired(outputPath);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new InvalidSettingsException(ex);
         }
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                RowInput input = (RowInput)inputs[getDataTablePortIndex()];
+                final RowInput input = (RowInput)inputs[getDataTablePortIndex()];
                 writeToFile(input, exec, outputPath);
             }
         };
@@ -283,7 +297,7 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_writerConfig.loadInModel(settings);
+        m_writerConfig.loadSettingsFrom(settings);
     }
 
     @Override

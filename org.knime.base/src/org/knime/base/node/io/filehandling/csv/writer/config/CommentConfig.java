@@ -59,21 +59,15 @@ import org.knime.base.node.io.filehandling.csv.writer.LineBreakTypes;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.config.Config;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Comment related configurations for CSV writer node
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public final class CommentConfig extends SettingsModel {
+public final class CommentConfig implements SimpleConfig {
 
-    private static final String CFGKEY_ROOT = "comment_header_settings";
-
-    private static final String CFGKEY_COMMENT_BEGIN = "comment_begin";
+    private static final String CFGKEY_COMMENT_BEGIN = "comment_line_marker";
 
     private static final String CFGKEY_COMMENT_INDENT = "comment_indentation";
 
@@ -87,148 +81,86 @@ public final class CommentConfig extends SettingsModel {
 
     private static final String CFGKEY_COMMENT_CUSTOM_TEXT = "custom_comment_text";
 
-    private String m_commentBegin;
+    private String m_commentLineMarker;
 
     private String m_commentIndent;
 
-    private boolean m_addCreationTime;
+    private boolean m_addExecutionTime;
 
-    private boolean m_addCreationUser;
+    private boolean m_addUsername;
 
     private boolean m_addTableName;
 
-    private boolean m_addCustomText;
+    private boolean m_addCustomComment;
 
-    private String m_customText;
+    private String m_customComment;
 
     /**
      * Default constructor
      */
     public CommentConfig() {
-        m_commentBegin = "#";
+        m_commentLineMarker = "#";
         m_commentIndent = "\t";
-        m_addCreationTime = false;
-        m_addCreationUser = false;
+        m_addExecutionTime = false;
+        m_addUsername = false;
         m_addTableName = false;
-        m_addCustomText = false;
-        m_customText = "";
-    }
-
-    /**
-     * Copy constructor
-     *
-     * @param source the source object to copy
-     */
-    public CommentConfig(final CommentConfig source) {
-        m_commentBegin = source.getCommentBegin();
-        m_commentIndent = source.getCommentIndent();
-        m_addCreationTime = source.addCreationTime();
-        m_addCreationUser = source.addCreationUser();
-        m_addTableName = source.addTableName();
-        m_addCustomText = source.addCustomText();
-        m_customText = source.getCustomText();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected CommentConfig createClone() {
-        return new CommentConfig(this);
+        m_addCustomComment = false;
+        m_customComment = "";
     }
 
     @Override
-    protected String getModelTypeID() {
-        return "MODEL_TYPE_ID_" + CFGKEY_ROOT;
+    public void loadInDialog(final NodeSettingsRO settings) {
+        m_commentLineMarker = settings.getString(CFGKEY_COMMENT_BEGIN, "#");
+        m_commentIndent = settings.getString(CFGKEY_COMMENT_INDENT, "\t");
+        m_addExecutionTime = settings.getBoolean(CFGKEY_COMMENT_ADD_TIME, false);
+        m_addUsername = settings.getBoolean(CFGKEY_COMMENT_ADD_USER, false);
+        m_addTableName = settings.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME, false);
+        m_addCustomComment = settings.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT, false);
+        m_customComment = settings.getString(CFGKEY_COMMENT_CUSTOM_TEXT, "");
     }
 
     @Override
-    protected String getConfigName() {
-        return CFGKEY_ROOT;
+    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_commentLineMarker = settings.getString(CFGKEY_COMMENT_BEGIN);
+        m_commentIndent = settings.getString(CFGKEY_COMMENT_INDENT);
+        m_addExecutionTime = settings.getBoolean(CFGKEY_COMMENT_ADD_TIME);
+        m_addUsername = settings.getBoolean(CFGKEY_COMMENT_ADD_USER);
+        m_addTableName = settings.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME);
+        m_addCustomComment = settings.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT);
+        m_customComment = settings.getString(CFGKEY_COMMENT_CUSTOM_TEXT);
     }
 
     @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        loadSettingsForDialog(settings);
-    }
-
-    /**
-     * Read the value(s) of this settings model from configuration object for the purpose of loading them into node
-     * dialog. Default values are used if the key to a specific setting is not found.
-     *
-     * @param settings the configuration object
-     * @throws NotConfigurableException if the sub-setting can not be extracted.
-     */
-    public void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
-        Config config;
-        try {
-            config = settings.getConfig(CFGKEY_ROOT);
-        } catch (final InvalidSettingsException ex) {
-            throw new NotConfigurableException(ex.getMessage());
-        }
-        m_commentBegin = config.getString(CFGKEY_COMMENT_BEGIN, "#");
-        m_commentIndent = config.getString(CFGKEY_COMMENT_INDENT, "\t");
-        m_addCreationTime = config.getBoolean(CFGKEY_COMMENT_ADD_TIME, false);
-        m_addCreationUser = config.getBoolean(CFGKEY_COMMENT_ADD_USER, false);
-        m_addTableName = config.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME, false);
-        m_addCustomText = config.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT, false);
-        m_customText = config.getString(CFGKEY_COMMENT_CUSTOM_TEXT, "");
+    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+        settings.getString(CFGKEY_COMMENT_BEGIN);
+        settings.getString(CFGKEY_COMMENT_INDENT);
+        settings.getBoolean(CFGKEY_COMMENT_ADD_TIME);
+        settings.getBoolean(CFGKEY_COMMENT_ADD_USER);
+        settings.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME);
+        settings.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT);
+        settings.getString(CFGKEY_COMMENT_CUSTOM_TEXT);
     }
 
     @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveSettingsForModel(settings);
-    }
-
-
-    @Override
-    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config = settings.getConfig(CFGKEY_ROOT);
-        config.getString(CFGKEY_COMMENT_BEGIN);
-        config.getString(CFGKEY_COMMENT_INDENT);
-        config.getBoolean(CFGKEY_COMMENT_ADD_TIME);
-        config.getBoolean(CFGKEY_COMMENT_ADD_USER);
-        config.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME);
-        config.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT);
-        config.getString(CFGKEY_COMMENT_CUSTOM_TEXT);
-    }
-
-    @Override
-    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final Config config = settings.getConfig(CFGKEY_ROOT);
-        m_commentBegin = config.getString(CFGKEY_COMMENT_BEGIN);
-        m_commentIndent = config.getString(CFGKEY_COMMENT_INDENT);
-        m_addCreationTime = config.getBoolean(CFGKEY_COMMENT_ADD_TIME);
-        m_addCreationUser = config.getBoolean(CFGKEY_COMMENT_ADD_USER);
-        m_addTableName = config.getBoolean(CFGKEY_COMMENT_ADD_TABLENAME);
-        m_addCustomText = config.getBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT);
-        m_customText = config.getString(CFGKEY_COMMENT_CUSTOM_TEXT);
-
-    }
-
-    @Override
-    protected void saveSettingsForModel(final NodeSettingsWO settings) {
-        final Config config = settings.addConfig(CFGKEY_ROOT);
-        config.addString(CFGKEY_COMMENT_BEGIN, m_commentBegin);
-        config.addString(CFGKEY_COMMENT_INDENT, m_commentIndent);
-        config.addBoolean(CFGKEY_COMMENT_ADD_TIME, m_addCreationTime);
-        config.addBoolean(CFGKEY_COMMENT_ADD_USER, m_addCreationUser);
-        config.addBoolean(CFGKEY_COMMENT_ADD_TABLENAME, m_addTableName);
-        config.addBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT, m_addCustomText);
-        config.addString(CFGKEY_COMMENT_CUSTOM_TEXT, m_customText);
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " ('" + CFGKEY_ROOT + "')";
+    public void save(final NodeSettingsWO settings) {
+        settings.addString(CFGKEY_COMMENT_BEGIN, m_commentLineMarker);
+        settings.addString(CFGKEY_COMMENT_INDENT, m_commentIndent);
+        settings.addBoolean(CFGKEY_COMMENT_ADD_TIME, m_addExecutionTime);
+        settings.addBoolean(CFGKEY_COMMENT_ADD_USER, m_addUsername);
+        settings.addBoolean(CFGKEY_COMMENT_ADD_TABLENAME, m_addTableName);
+        settings.addBoolean(CFGKEY_COMMENT_ADD_CUSTOM_TEXT, m_addCustomComment);
+        settings.addString(CFGKEY_COMMENT_CUSTOM_TEXT, m_customComment);
     }
 
     /**
      *
      * @return <code>true</code> if there is something to write as a comment.
      */
-    private boolean commentWritingOn() {
-        return addCreationTime() || addCreationUser() || addTableName() || !StringUtils.isEmpty(getCustomText())
-            || StringUtils.isEmpty(getCommentBegin());
+    private boolean writingComment() {
+        return addExecutionTime() || //
+            addUsername() || //
+            addTableName() || //
+            (addCustomComment() && !StringUtils.isEmpty(getCustomComment()));
     }
 
     /**
@@ -240,13 +172,13 @@ public final class CommentConfig extends SettingsModel {
      */
     public List<String> getCommentHeader(final String tableName, final boolean isAppending) {
         List<String> commentLines = new ArrayList<>();
-        if (commentWritingOn()) {
-            if (m_addCreationTime || m_addCreationUser) {
+        if (writingComment()) {
+            if (m_addExecutionTime || m_addUsername) {
                 String creationLine = isAppending ? "The following data was added" : "This file was created";
-                if (m_addCreationTime) {
+                if (m_addExecutionTime) {
                     creationLine += " on " + new Date();
                 }
-                if (m_addCreationUser) {
+                if (m_addUsername) {
                     creationLine += " by user '" + System.getProperty("user.name") + "'";
                 }
                 commentLines.add(creationLine);
@@ -256,116 +188,119 @@ public final class CommentConfig extends SettingsModel {
                 commentLines.add("The data was read from the \"" + tableName + "\" data table.");
             }
             // at last: add the user comment line
-            if (!StringUtils.isEmpty(m_customText)) {
-                String[] lines = normalizeLines(m_customText).split("\n");
+            if (!StringUtils.isEmpty(m_customComment)) {
+                String[] lines = normalizeLines(m_customComment).split("\n");
                 commentLines.addAll(Arrays.asList(lines));
             }
-            // Modify each entry to start with m_commentBegin + m_commentIndent
-            commentLines = commentLines.stream().map(l -> m_commentBegin + m_commentIndent + l).collect(Collectors.toList());
+            // Modify each entry to start with m_commentLineMarker + m_commentIndent
+            commentLines = commentLines.stream()//
+                .map(l -> m_commentLineMarker + m_commentIndent + l)//
+                .collect(Collectors.toList());
         }
         return commentLines;
     }
 
-    private static String normalizeLines(final String lines) {
-        return lines.replaceAll(LineBreakTypes.WINDOWS.getEndString(), "\n") //
-            .replaceAll(LineBreakTypes.MAC_OS9.getEndString(), "\n");
+    private static final String normalizeLines(final String lines) {
+        return lines.replaceAll(LineBreakTypes.WINDOWS.getLineBreak(), "\n") //
+            .replaceAll(LineBreakTypes.MAC_OS9.getLineBreak(), "\n");
     }
 
     /**
-     * @return the commentBegin
+     * @return the value marking the beginning of a comment line
      */
-    public String getCommentBegin() {
-        return m_commentBegin;
+    public String getCommentLineMarker() {
+        return m_commentLineMarker;
     }
 
     /**
-     * @param commentBegin the commentBegin to set
+     * @param commentLineMarker a value marking the beginning of a comment line
      */
-    public void setCommentBegin(final String commentBegin) {
-        m_commentBegin = commentBegin;
+    public void setCommentLineMarker(final String commentLineMarker) {
+        m_commentLineMarker = commentLineMarker;
     }
 
     /**
-     * @return the commentIndent
+     * @return the value used as indentation after the comment marker
      */
     public String getCommentIndent() {
         return m_commentIndent;
     }
 
     /**
-     * @param commentIndent the commentIndent to set
+     * @param commentIndent the value to be used as indentation after the comment marker
      */
     public void setCommentIndent(final String commentIndent) {
         m_commentIndent = commentIndent;
     }
 
     /**
-     * @return the addCreationTime
+     * @return {@code true} if the current execution time should be added in the comment header
      */
-    public boolean addCreationTime() {
-        return m_addCreationTime;
+    public boolean addExecutionTime() {
+        return m_addExecutionTime;
     }
 
     /**
-     * @param addCreationTime the addCreationTime to set
+     * @param addExecutionTime a flag indicating whether or not to add the current execution time in the comment header
      */
-    public void setAddCreationTime(final boolean addCreationTime) {
-        m_addCreationTime = addCreationTime;
+    public void setAddExecutionTime(final boolean addExecutionTime) {
+        m_addExecutionTime = addExecutionTime;
     }
 
     /**
-     * @return the addCreationUser
+     * @return {@code true} if the user/login name should be added in the comment header
      */
-    public boolean addCreationUser() {
-        return m_addCreationUser;
+    public boolean addUsername() {
+        return m_addUsername;
     }
 
     /**
-     * @param addCreationUser the addCreationUser to set
+     * @param addUsername a flag indicating whether or not to add the user/login name in the comment header
      */
-    public void setAddCreationUser(final boolean addCreationUser) {
-        m_addCreationUser = addCreationUser;
+    public void setAddUsername(final boolean addUsername) {
+        m_addUsername = addUsername;
     }
 
     /**
-     * @return the addTableName
+     * @return {@code true} if the input DataTable name should be added in the comment header
      */
     public boolean addTableName() {
         return m_addTableName;
     }
 
     /**
-     * @param addTableName the addTableName to set
+     * @param addTableName a flag indicating whether or not to add the input DataTable name in the comment header
      */
     public void setAddTableName(final boolean addTableName) {
         m_addTableName = addTableName;
     }
 
     /**
-     * @return the addCustomText
+     * @return {@code true} if a custom text should be added in the comment header
      */
-    public boolean addCustomText() {
-        return m_addCustomText;
+    public boolean addCustomComment() {
+        return m_addCustomComment;
     }
 
     /**
-     * @param addCustomText the addCustomText to set
+     * @param addCustomComment a flag indicating whether or not to add a custom text in the comment header
      */
-    public void setAddCustomText(final boolean addCustomText) {
-        m_addCustomText = addCustomText;
+    public void setAddCustomComment(final boolean addCustomComment) {
+        m_addCustomComment = addCustomComment;
     }
 
     /**
-     * @return the custom comment text
+     * @return the custom comment text that should be added as a comment header
      */
-    public String getCustomText() {
-        return m_customText;
+    public String getCustomComment() {
+        return m_customComment;
     }
 
     /**
-     * @param customText the custom comment text to set
+     * @param customComment the custom comment text that should be added as a comment header
      */
-    public void setCustomtext(final String customText) {
-        m_customText = customText;
+    public void setCustomComment(final String customComment) {
+        m_customComment = customComment;
     }
+
 }

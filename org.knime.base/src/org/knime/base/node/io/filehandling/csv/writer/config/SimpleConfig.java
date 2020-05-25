@@ -44,37 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 27, 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
+ *   Jun 2, 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.writer;
+package org.knime.base.node.io.filehandling.csv.writer.config;
 
-import java.io.OutputStream;
-import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Policy how to proceed when output file exists (overwrite, abort, append).
- *
+ * TODO This is copied from ReaderConfig (org.knime.filehandling.core.node.table.reader.config)
+ * Remove it once we have a good common place
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public enum FileOverwritePolicy {
-        /** Overwrite existing file. */
-        OVERWRITE(new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING}),
-        /** Append table content to existing file. */
-        APPEND(new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND}), //
-        /** Fail during execution. Neither overwrite nor append. */
-        ABORT(new OpenOption[]{StandardOpenOption.CREATE_NEW});
-
-    private final OpenOption[] m_openOption;
-
-    private FileOverwritePolicy(final OpenOption[] openOption) {
-        m_openOption = openOption;
-    }
+interface SimpleConfig {
+    /**
+     * Loads the configuration in the dialog.
+     *
+     * @param settings to load from
+     */
+    void loadInDialog(final NodeSettingsRO settings);
 
     /**
-     * @return an array of {@link OpenOption} used for opening an {@link OutputStream}
+     * Loads the configuration in the node model.
+     *
+     * @param settings to load from
+     * @throws InvalidSettingsException if the settings are invalid or can't be loaded
      */
-    public OpenOption[] getOpenOptions() {
-        return m_openOption;
-    }
+    void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException;
+
+    /**
+     * Checks that this configuration can be loaded from the provided settings.
+     *
+     * @param settings to validate
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
+
+    /**
+     * Saves the configuration to settings.
+     *
+     * @param settings to save to
+     */
+    void save(final NodeSettingsWO settings);
+
 }
