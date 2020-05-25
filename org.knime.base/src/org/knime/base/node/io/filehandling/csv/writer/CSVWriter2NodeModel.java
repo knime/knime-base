@@ -52,7 +52,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -61,8 +60,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.zip.GZIPOutputStream;
 
-import org.knime.base.node.io.csvwriter.CSVWriter;
-import org.knime.base.node.io.csvwriter.FileWriterSettings;
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -121,17 +118,21 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        String warnMsg = "";
         final String pathOrURL = m_writerConfig.getFileChooserModel().getPathOrURL();
         if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location.");
         }
-        if (m_writerConfig.isHardToReadBack()) {
-            // we will write the table out - but it will be hard to read it in again.
-            warnMsg +=
-                "No separator and no quotes and no missing value pattern set. Written data will be hard to read!";
+
+        Path outputPath;
+        try {
+            outputPath = getFilePath(inSpecs);
+            warnAboutExistingFile(outputPath);
+        } catch (IOException | InvalidSettingsException e) {
+            // TODO Auto-generated catch block == IO in configure
         }
+
         DataTableSpec inSpec = (DataTableSpec)inSpecs[getDataTablePortIndex()];
+
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
             DataType c = inSpec.getColumnSpec(i).getType();
             if (!c.isCompatible(DoubleValue.class) && !c.isCompatible(IntValue.class)
@@ -140,19 +141,14 @@ final class CSVWriter2NodeModel extends NodeModel {
             }
         }
         if (inSpec.containsCompatibleType(DoubleValue.class) && m_writerConfig.colSeparatorContainsDecSeparator()) {
-            warnMsg +=
-                "The data separator contains (or is equal to) the  decimal separator. Written data will be hard to read!";
-        }
-
-        if (!warnMsg.isEmpty()) {
-            setWarningMessage(warnMsg.trim());
+            throw new InvalidSettingsException(
+                "The column delimiter shouldn't contain (or be equal to) the  decimal separator!");
         }
         return new DataTableSpec[0];
     }
 
     @Override
     protected BufferedDataTable[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
-
         final Path outputPath = getFilePath(data);
         createParentDirIfRequired(outputPath);
         // create BufferedDataTable implementing RowInput
@@ -172,19 +168,17 @@ final class CSVWriter2NodeModel extends NodeModel {
      */
     private BufferedDataTable[] writeToFile(final RowInput input, final ExecutionContext exec, final Path outputPath)
         throws Exception {
-        final FileWriterSettings writerSettings = createModifiedFileWriterSettings(outputPath);
-        final OutputStream outStream = createOutputStream(outputPath);
-        final String charSet = m_writerConfig.getCharacterSet() != null ? m_writerConfig.getCharacterSet()
-            : Charset.defaultCharset().name();
 
-        CSVWriter tableWriter = new CSVWriter(new OutputStreamWriter(outStream, charSet), writerSettings);
+        final OutputStream outStream = createOutputStream(outputPath);
+        CSVWriter2 tableWriter = new CSVWriter2(new OutputStreamWriter(outStream, m_writerConfig.getCharSet()),
+            m_writerConfig, disableColumnHeaderWriting(outputPath));
 
         // write the comment header, if we are supposed to
         final String tableName = input.getDataTableSpec().getName();
         m_writerConfig.writeCommentHeader(tableWriter, tableName, m_writerConfig.isFileAppended());
 
         try {
-            tableWriter.write(input, exec);
+            tableWriter.writeRow(input, exec);
             tableWriter.close();
             if (tableWriter.hasWarningMessage()) {
                 setWarningMessage(tableWriter.getLastWarningMessage());
@@ -209,24 +203,12 @@ final class CSVWriter2NodeModel extends NodeModel {
         }
     }
 
-    /**
-     * Creates a {@link FileWriterSettings} with modified option to write column header. Writing column headers will be
-     * disabled if a) skipColumnHeaderOnAppend option is enabled, b) the file exists and we are appending to it.
-     *
-     * @return a FileWriterSettings with a modified option to write column header
-     */
-    private FileWriterSettings createModifiedFileWriterSettings(final Path outputPath) {
-        FileWriterSettings writerSettings = m_writerConfig.createFileWriterSettings();
-
-        final boolean doNotWriteColumnHeader = m_writerConfig.skipColumnHeaderOnAppend() // a) skipColumnHeaderOnAppend enabled
-            && outputPath.toFile().exists() && m_writerConfig.isFileAppended(); // b) file exists and appending
-        writerSettings.setWriteColumnHeader(m_writerConfig.writeColumnHeader() && !doNotWriteColumnHeader);
-
-        return writerSettings;
+    private boolean disableColumnHeaderWriting(final Path outputPath) {
+        return m_writerConfig.skipColumnHeaderOnAppend() // a) skipColumnHeaderOnAppend enabled
+            && Files.exists(outputPath) && m_writerConfig.isFileAppended(); // b) file exists and appending
     }
 
     private OutputStream createOutputStream(final Path outputPath) throws IOException {
-        warnAboutExistingFile(outputPath);
         OutputStream outStream;
         try {
             outStream = Files.newOutputStream(outputPath, getFileOpenOption());
@@ -255,7 +237,7 @@ final class CSVWriter2NodeModel extends NodeModel {
     }
 
     private void warnAboutExistingFile(final Path outputPath) {
-        if (outputPath.toFile().exists()) {
+        if (Files.exists(outputPath)) {
             if (m_writerConfig.isFileAppended()) {
                 setWarningMessage("Output file " + outputPath.toString() + " exists and will be appended!");
             } else if (m_writerConfig.isFileOverwritten()) {
@@ -267,8 +249,8 @@ final class CSVWriter2NodeModel extends NodeModel {
     private void createParentDirIfRequired(final Path outputPath) throws IOException {
         // create parent directories according to the state of m_createDirectoryConfig.
         final Path parentPath = outputPath.getParent();
-        if (parentPath != null && !parentPath.toFile().exists()) {
-            if (m_writerConfig.createParentDirIfRequired()) {
+        if (parentPath != null && ! Files.exists(parentPath)) {
+            if (m_writerConfig.createParentDirectoryIfRequired()) {
                 Files.createDirectories(parentPath);
             } else {
                 throw new IOException(String.format(

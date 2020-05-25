@@ -104,16 +104,20 @@ public final class CommentPanel extends JPanel {
         m_addUserChecker = new JCheckBox("the user account name");
         m_addTableNameChecker = new JCheckBox("the input table name");
         m_addCustomCommentChecker = new JCheckBox("the following text:");
-        m_customCommentTextArea = new JTextArea("", 4, 50);
+        m_customCommentTextArea = new JTextArea("", 4, 45);
         // make the JTextArea border look similar to that of a JTextField
         (m_customCommentTextArea).setBorder(m_commentBeginField.getBorder());
 
-        m_addDateChecker.addChangeListener(e -> selectionChanged());
-        m_addUserChecker.addChangeListener(e -> selectionChanged());
-        m_addTableNameChecker.addChangeListener(e -> selectionChanged());
-        m_addCustomCommentChecker.addChangeListener(e -> selectionChanged());
+        m_addDateChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addUserChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addTableNameChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addCustomCommentChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addCustomCommentChecker.addChangeListener(e -> customCommentSelectionChanged());
 
         initLayout();
+
+        commentSelectionChanged();
+        customCommentSelectionChanged();
     }
 
     /**
@@ -181,7 +185,6 @@ public final class CommentPanel extends JPanel {
 
         return commentSettingsPanel;
     }
-
 
     private JPanel createCommentContentPanel() {
 
@@ -320,22 +323,30 @@ public final class CommentPanel extends JPanel {
     }
 
     /**
-     * Disables or Enables the comment pattern text boxes depending on the selected comments to add.
+     * Enables or disables the comment pattern text boxes depending on whether there is a comments to add or not.
      */
-    public void selectionChanged() {
+    private void commentSelectionChanged() {
+        final boolean notEmpty = notEmptyComment();
+        m_commentBeginField.setEnabled(notEmpty);
+        m_commentEndField.setEnabled(notEmpty);
+        m_commentIndentField.setEnabled(notEmpty);
+    }
 
-        boolean addComment = false;
-
-        addComment |= m_addCustomCommentChecker.isSelected();
-        addComment |= m_addDateChecker.isSelected();
-        addComment |= m_addUserChecker.isSelected();
-        addComment |= m_addTableNameChecker.isSelected();
-
+    /**
+     * Enables or disables the custom comment text area depending on the state of m_addCustomCommentChecker.
+     */
+    private void customCommentSelectionChanged() {
         m_customCommentTextArea.setEnabled(m_addCustomCommentChecker.isSelected());
+    }
 
-        m_commentBeginField.setEnabled(addComment);
-        m_commentEndField.setEnabled(addComment);
-        m_commentIndentField.setEnabled(addComment);
+    /**
+     * @return {@code true} if there is actually a comment to write.
+     */
+    private boolean notEmptyComment() {
+        return m_addDateChecker.isSelected() //
+            || m_addUserChecker.isSelected() //
+            || m_addTableNameChecker.isSelected() //
+            || m_addCustomCommentChecker.isSelected();
     }
 
     /**

@@ -68,6 +68,7 @@ import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config.FileOverwritePolicy;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
+import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
@@ -92,8 +93,6 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
     private static final String FILE_HISTORY_ID = "csv_file_writer_history";
 
-    private static final String[] LINE_ENDING_NAMES = {"System Default", "Linux/Unix Style", "Windows Style", "Mac OS9 Style"};
-
     /** textfield to enter file name. */
     private final DialogComponentFileChooser2 m_filePanel;
 
@@ -114,7 +113,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
     private final JTextField m_colDelimiterField;
 
-    private final JComboBox m_lineEndingSelection;
+    private final JComboBox<String> m_lineBreakSelection;
 
     private final JTextField m_quoteField;
 
@@ -169,8 +168,8 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_quoteField = new JTextField("\"", textWidth);
         m_quoteEscapeField = new JTextField("\"", textWidth);
 
-        m_lineEndingSelection = new JComboBox(LINE_ENDING_NAMES);
-        m_lineEndingSelection.setEnabled(true);
+        m_lineBreakSelection = new JComboBox<>(LineBreakTypes.displayNames());
+        m_lineBreakSelection.setEnabled(true);
 
         addTab("Options", initLayout());
 
@@ -287,7 +286,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         formatOptionsPanel.add(new JLabel("Column Delimiter "), gbc);
         gbc.gridx++;
         gbc.insets = columnPad;
-        formatOptionsPanel.add(m_lineEndingSelection, gbc);
+        formatOptionsPanel.add(m_lineBreakSelection, gbc);
         gbc.gridx++;
         gbc.insets = labelPad;
         formatOptionsPanel.add(new JLabel("Line Ending Mode "), gbc);
@@ -367,13 +366,19 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_skipColumnHeaderOnAppendChecker.setSelected(m_writerConfig.skipColumnHeaderOnAppend());
         m_writeRowHeaderChecker.setSelected(m_writerConfig.writeRowHeader());
 
+        m_colDelimiterField.setText(EscapeUtils.escape(m_writerConfig.getColumnDelimeter()));
+        m_lineBreakSelection.setSelectedIndex(m_writerConfig.getLineBreakIndex());
+
+        m_quoteField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteChar())));
+        m_quoteEscapeField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteEscapeChar())));
+
         selectFileOverwritePolicy();
-        m_createParentDirChecker.setSelected(m_writerConfig.createParentDirIfRequired());
+        m_createParentDirChecker.setSelected(m_writerConfig.createParentDirectoryIfRequired());
 
         m_advancedPanel.loadDialogSettings(m_writerConfig.getAdvancedConfig());
         m_commentPanel.loadDialogSettings(m_writerConfig.getCommentConfig());
 
-        m_encodingPanel.setCharsetName(m_writerConfig.getCharacterSet());
+        m_encodingPanel.setCharsetName(m_writerConfig.getCharsetName());
 
         checkCheckerState();
     }
@@ -399,6 +404,12 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_writerConfig.setSkipColumnHeaderOnAppend(m_skipColumnHeaderOnAppendChecker.isSelected());
         m_writerConfig.setWriteRowHeader(m_writeRowHeaderChecker.isSelected());
 
+        m_writerConfig.setColumnDelimeter(EscapeUtils.unescape(m_colDelimiterField.getText()));
+        m_writerConfig.setLineBreak(m_lineBreakSelection.getSelectedIndex());
+
+        m_writerConfig.setQuoteChar(EscapeUtils.unescape(m_quoteField.getText()));
+        m_writerConfig.setQuoteEscapeChar(EscapeUtils.unescape(m_quoteEscapeField.getText()));
+
         m_writerConfig.setFileOverwritePolicy(getSelectedFileOverwritePolicy());
         m_writerConfig.setCreateParentDirectory(m_createParentDirChecker.isSelected());
 
@@ -407,7 +418,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
         FileReaderNodeSettings s = new FileReaderNodeSettings();
         m_encodingPanel.overrideSettings(s);
-        m_writerConfig.setCharacterSet(s.getCharsetName());
+        m_writerConfig.setCharSetName(s.getCharsetName());
         m_writerConfig.saveSettingsTo(settings);
     }
 

@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.csv.writer.config;
 
-import org.knime.base.node.io.csvwriter.FileWriterSettings.quoteMode;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -63,6 +62,17 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 public final class AdvancedConfig extends SettingsModel {
+
+    public enum QuoteMode {
+            /** use quotes only if needed. */
+            IF_NEEDED,
+            /** use quotes always on non-numerical data. */
+            STRINGS_ONLY,
+            /** always put quotes around the data. */
+            ALWAYS,
+            /** don't use quotes, replace separator pattern in data. */
+            NEVER
+    }
 
     private static final String CFGKEY_MISSING_VALUE = "missing_value_pattern";
 
@@ -84,7 +94,7 @@ public final class AdvancedConfig extends SettingsModel {
 
     private boolean m_compressWithGzip;
 
-    private quoteMode m_quoteMode;
+    private String m_quoteModeName;
 
     private String m_separatorReplacement; // only used with mode=REPLACE
 
@@ -100,7 +110,7 @@ public final class AdvancedConfig extends SettingsModel {
     public AdvancedConfig() {
         m_missingValuePattern = "";
         m_compressWithGzip = false;
-        m_quoteMode = quoteMode.STRINGS;
+        m_quoteModeName = QuoteMode.IF_NEEDED.name();
         m_separatorReplacement = "";
         m_decimalSeparator = '.';
         m_useScientificFormat = false;
@@ -115,7 +125,7 @@ public final class AdvancedConfig extends SettingsModel {
     public AdvancedConfig(final AdvancedConfig source) {
         m_missingValuePattern = source.getMissingValuePattern();
         m_compressWithGzip = false;
-        m_quoteMode = source.getQuoteMode();
+        m_quoteModeName = source.getQuoteModeName();
         m_separatorReplacement = source.getSeparatorReplacement();
         m_decimalSeparator = source.getDecimalSeparator();
         m_useScientificFormat = source.useScientificFormat();
@@ -161,7 +171,7 @@ public final class AdvancedConfig extends SettingsModel {
         m_missingValuePattern = config.getString(CFGKEY_MISSING_VALUE, "");
         m_compressWithGzip = config.getBoolean(CFGKEY_COMPRESS_WITH_GZIP, false);
 
-        m_quoteMode = quoteMode.valueOf(config.getString(CFGKEY_QUOTE_MODE, quoteMode.STRINGS.name()));
+        m_quoteModeName = config.getString(CFGKEY_QUOTE_MODE, QuoteMode.IF_NEEDED.name());
         m_separatorReplacement = config.getString(CFGKEY_SEPARATOR_REPL, "");
 
         m_decimalSeparator = config.getChar(CFGKEY_DEC_SEPARATOR, '.');
@@ -194,13 +204,13 @@ public final class AdvancedConfig extends SettingsModel {
         m_missingValuePattern = config.getString(CFGKEY_MISSING_VALUE);
         m_compressWithGzip = config.getBoolean(CFGKEY_COMPRESS_WITH_GZIP);
 
-        m_quoteMode = quoteMode.valueOf(config.getString(CFGKEY_QUOTE_MODE));
+        m_quoteModeName = config.getString(CFGKEY_QUOTE_MODE);
         m_separatorReplacement = config.getString(CFGKEY_SEPARATOR_REPL);
 
         m_decimalSeparator = config.getChar(CFGKEY_DEC_SEPARATOR);
         m_useScientificFormat = config.getBoolean(CFGKEY_SCIENTIFIC_FORMAT);
         m_keepTrailingZero = config.getBoolean(CFGKEY_KEEP_TRAILING_ZERO);
-   }
+    }
 
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -208,7 +218,7 @@ public final class AdvancedConfig extends SettingsModel {
         config.addString(CFGKEY_MISSING_VALUE, m_missingValuePattern);
         config.addBoolean(CFGKEY_COMPRESS_WITH_GZIP, m_compressWithGzip);
 
-        config.addString(CFGKEY_QUOTE_MODE, m_quoteMode.name());
+        config.addString(CFGKEY_QUOTE_MODE, m_quoteModeName);
         config.addString(CFGKEY_SEPARATOR_REPL, m_separatorReplacement);
 
         config.addChar(CFGKEY_DEC_SEPARATOR, m_decimalSeparator);
@@ -252,15 +262,22 @@ public final class AdvancedConfig extends SettingsModel {
     /**
      * @return the quoteMode
      */
-    public quoteMode getQuoteMode() {
-        return m_quoteMode;
+    public QuoteMode getQuoteMode() {
+        return QuoteMode.valueOf(m_quoteModeName);
     }
 
     /**
-     * @param quoteMode the quoteMode to set
+     * @return the quoteModeName
      */
-    public void setQuoteMode(final quoteMode quoteMode) {
-        m_quoteMode = quoteMode;
+    public String getQuoteModeName() {
+        return m_quoteModeName;
+    }
+
+    /**
+     * @param quoteModeName the QuoteMode to set
+     */
+    public void setQuoteModeName(final String quoteModeName) {
+        m_quoteModeName = quoteModeName;
     }
 
     /**
@@ -289,6 +306,13 @@ public final class AdvancedConfig extends SettingsModel {
      */
     public void setDecimalSeparator(final char decimalSeparator) {
         m_decimalSeparator = decimalSeparator;
+    }
+
+    /**
+     * @param str a String containing the decimalSeparator to set
+     */
+    public void setDecimalSeparator(final String str) {
+        setDecimalSeparator(CSVWriter2Config.getFirstChar(str, "Decimal Separator"));
     }
 
     /**

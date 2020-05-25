@@ -60,8 +60,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import org.knime.base.node.io.csvwriter.FileWriterSettings.quoteMode;
+import org.knime.base.node.io.filehandling.csv.writer.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig;
+import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
 
 /**
  * A dialog panel for advanced settings of CSV writer node.
@@ -114,13 +115,19 @@ public final class AdvancedPanel extends JPanel {
         m_quoteNeverButton = new JRadioButton("Never");
         bg.add(m_quoteNeverButton);
 
+        m_quoteNeverButton.addChangeListener(e -> selectionChanged());
+
         m_separatorReplacementField = new JTextField("", TEXT_FIELD_WIDTH);
 
         m_decimalSeparatorField = new JTextField(".", TEXT_FIELD_WIDTH);
+
         m_useScientificFormatChecker = new JCheckBox("Use scientific format for very large and very small values");
-        m_keepTrailingZeroChecker = new JCheckBox("Keep trailing zeros from double values");
+        m_keepTrailingZeroChecker = new JCheckBox("Append .0 suffix for decimal values without fractions");
+        m_useScientificFormatChecker.addChangeListener(e -> scientificNotationChanged());
 
         initLayout();
+        selectionChanged();
+        scientificNotationChanged();
     }
 
     /**
@@ -144,53 +151,23 @@ public final class AdvancedPanel extends JPanel {
         gbc.insets = new Insets(5, 0, 5, 0);
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
-        add(createAdvancedSubOptionsPanel(), gbc);
-        gbc.gridy++;
         add(createAdvancedQuoteOptionsPanel(), gbc);
         gbc.gridy++;
         add(createAdvancedNumericOptionsPanel(), gbc);
+        gbc.gridy++;
+        add(createMiscAdvancedOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         add(Box.createVerticalBox(), gbc);
     }
 
-    private JPanel createAdvancedSubOptionsPanel() {
-        final JPanel advancedOptionsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = createAndInitGBC();
-        advancedOptionsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Advanced: "));
-
-        gbc.insets = new Insets(5, 5, 5, 5);
-        advancedOptionsPanel.add(new JLabel("Missing values pattern"), gbc);
-        gbc.gridx++;
-        advancedOptionsPanel.add(m_missingValuePatternField, gbc);
-
-        gbc.insets = new Insets(10, 5, 5, 5);
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.gridwidth = 2;
-        advancedOptionsPanel.add(m_compressWithGzipChecker, gbc);
-
-        gbc.gridx++;
-        gbc.weightx = 1;
-        advancedOptionsPanel.add(Box.createHorizontalBox(), gbc);
-        return advancedOptionsPanel;
-    }
-
     private JPanel createAdvancedQuoteOptionsPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel advancedQuotePanel = new JPanel(new GridBagLayout());
-        advancedQuotePanel.setBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Advanced quote settings: "));
+        advancedQuotePanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote values: "));
 
-        gbc.gridwidth = 5;
-        gbc.insets = new Insets(5, 0, 3, 0);
-        advancedQuotePanel.add(new JLabel("Enclose values inside quotes "), gbc);
-
-        gbc.insets = new Insets(0, 5, 0, 0);
-        gbc.gridwidth = 1;
-        gbc.gridy++;
-        gbc.gridx++;
+        gbc.insets = new Insets(5, 3, 3, 5);
         advancedQuotePanel.add(m_quoteIfNeededButton, gbc);
         gbc.gridx++;
         advancedQuotePanel.add(m_quoteStringsButton, gbc);
@@ -199,14 +176,14 @@ public final class AdvancedPanel extends JPanel {
         gbc.gridx++;
         advancedQuotePanel.add(m_quoteNeverButton, gbc);
 
-        gbc.insets = new Insets(10, 0, 5, 0);
-        gbc.gridwidth = 3;
+        gbc.insets = new Insets(10, 5, 5, 0);
+        gbc.gridwidth = 2;
         gbc.gridx = 0;
         gbc.gridy++;
-        advancedQuotePanel.add(new JLabel("Column separator replacement"), gbc);
-        gbc.gridwidth = 2;
-        gbc.gridx = 3;
-        gbc.insets = new Insets(10, 10, 5, 0);
+        advancedQuotePanel.add(new JLabel("Replace column separator with "), gbc);
+        gbc.gridwidth = 1;
+        gbc.gridx = 2;
+        gbc.insets = new Insets(10, 5, 5, 0);
         advancedQuotePanel.add(m_separatorReplacementField, gbc);
 
         gbc.gridx++;
@@ -219,8 +196,8 @@ public final class AdvancedPanel extends JPanel {
     private JPanel createAdvancedNumericOptionsPanel() {
         final JPanel advancedNumOptionsPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
-        advancedNumOptionsPanel.setBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Advanced numeric options: "));
+        advancedNumOptionsPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options: "));
 
         gbc.insets = new Insets(5, 5, 5, 5);
         advancedNumOptionsPanel.add(new JLabel("Decimal separator character "), gbc);
@@ -242,6 +219,41 @@ public final class AdvancedPanel extends JPanel {
         return advancedNumOptionsPanel;
     }
 
+    private JPanel createMiscAdvancedOptionsPanel() {
+        final JPanel advancedOptionsPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = createAndInitGBC();
+
+        gbc.insets = new Insets(5, 5, 5, 5);
+        advancedOptionsPanel.add(new JLabel("Missing values pattern"), gbc);
+        gbc.gridx++;
+        advancedOptionsPanel.add(m_missingValuePatternField, gbc);
+
+        gbc.insets = new Insets(10, 5, 5, 5);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        advancedOptionsPanel.add(m_compressWithGzipChecker, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        advancedOptionsPanel.add(Box.createHorizontalBox(), gbc);
+        return advancedOptionsPanel;
+    }
+
+    /**
+     * Disables or Enables the separator replacement text boxe depending on the quote mode.
+     */
+    private void selectionChanged() {
+        m_separatorReplacementField.setEnabled(m_quoteNeverButton.isSelected());
+    }
+
+    /**
+     * Disables or Enables the m_keepTrailingZeroChecker depending on the m_useScientificFormatChecker.
+     */
+    private void scientificNotationChanged() {
+        m_keepTrailingZeroChecker.setEnabled(!m_useScientificFormatChecker.isSelected());
+    }
+
     /**
      * @return the missingValuePattern from the corresponding {@link JTextField}
      */
@@ -257,18 +269,18 @@ public final class AdvancedPanel extends JPanel {
     }
 
     /**
-     * @return the selected quoteMode from the radio buttons quoteIfNeededButton, quoteStringsButton, quoteAlwaysButton
+     * @return the selected QuoteMode from the radio buttons quoteIfNeededButton, quoteStringsButton, quoteAlwaysButton
      *         and quoteNeverButton
      */
-    public quoteMode getQuoteMode() {
+    public QuoteMode getQuoteMode() {
         if (m_quoteAlwaysButton.isSelected()) {
-            return quoteMode.ALWAYS;
-        } else if (m_quoteIfNeededButton.isSelected()) {
-            return quoteMode.IF_NEEDED;
+            return QuoteMode.ALWAYS;
+        } else if (m_quoteStringsButton.isSelected()) {
+            return QuoteMode.STRINGS_ONLY;
         } else if (m_quoteNeverButton.isSelected()) {
-            return quoteMode.REPLACE;
+            return QuoteMode.NEVER;
         } else {
-            return quoteMode.STRINGS;
+            return QuoteMode.IF_NEEDED;
         }
     }
 
@@ -282,9 +294,8 @@ public final class AdvancedPanel extends JPanel {
     /**
      * @return the decimalSeparator from the corresponding {@link JTextField}
      */
-    public char getDecimalSeparator() {
-        //TODO check if single char is provided
-        return m_decimalSeparatorField.getText().charAt(0);
+    public String getDecimalSeparator() {
+        return EscapeUtils.unescape(m_decimalSeparatorField.getText());
     }
 
     /**
@@ -325,8 +336,8 @@ public final class AdvancedPanel extends JPanel {
     /**
      * @param decimalSeparator
      */
-    public void setDecimalSeparator(final char decimalSeparator) {
-        m_decimalSeparatorField.setText(String.valueOf(decimalSeparator));
+    public void setDecimalSeparator(final String decimalSeparator) {
+        m_decimalSeparatorField.setText(EscapeUtils.escape(decimalSeparator));
     }
 
     /**
@@ -345,11 +356,11 @@ public final class AdvancedPanel extends JPanel {
 
     /**
      *
-     * @param mode the quoteMode to be selected
+     * @param mode the QuoteMode to be selected
      */
-    public void setQuoteMode(final quoteMode mode) {
+    public void setQuoteMode(final QuoteMode mode) {
         switch (mode) {
-            case STRINGS:
+            case STRINGS_ONLY:
                 m_quoteStringsButton.setSelected(true);
                 break;
             case ALWAYS:
@@ -358,11 +369,11 @@ public final class AdvancedPanel extends JPanel {
             case IF_NEEDED:
                 m_quoteIfNeededButton.setSelected(true);
                 break;
-            case REPLACE:
+            case NEVER:
                 m_quoteNeverButton.setSelected(true);
                 break;
             default:
-                m_quoteStringsButton.setSelected(true);
+                m_quoteIfNeededButton.setSelected(true);
                 break;
         }
     }
@@ -378,7 +389,7 @@ public final class AdvancedPanel extends JPanel {
 
         setUseScientificFormat(config.useScientificFormat());
         setKeepTrailingZero(config.keepTrailingZero());
-        setDecimalSeparator(config.getDecimalSeparator());
+        setDecimalSeparator(String.valueOf(config.getDecimalSeparator()));
 
         setQuoteMode(config.getQuoteMode());
         setSeparatorReplacement(config.getSeparatorReplacement());
@@ -397,7 +408,7 @@ public final class AdvancedPanel extends JPanel {
         config.setKeepTrailingZero(keepTrailingZero());
         config.setDecimalSeparator(getDecimalSeparator());
 
-        config.setQuoteMode(getQuoteMode());
+        config.setQuoteModeName(getQuoteMode().name());
         config.setSeparatorReplacement(getSeparatorReplacement());
     }
 }
