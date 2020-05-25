@@ -225,7 +225,7 @@ public final class AdvancedPanel extends JPanel {
         GridBagConstraints gbc = createAndInitGBC();
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        advancedOptionsPanel.add(new JLabel("Replace missing value swith"), gbc);
+        advancedOptionsPanel.add(new JLabel("Replace missing values with"), gbc);
         gbc.gridx++;
         advancedOptionsPanel.add(m_missingValuePatternField, gbc);
 

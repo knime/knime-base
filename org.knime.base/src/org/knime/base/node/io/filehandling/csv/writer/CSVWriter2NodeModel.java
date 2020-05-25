@@ -94,13 +94,6 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 final class CSVWriter2NodeModel extends NodeModel {
-
-    /** The name of the optional connection input port group. */
-    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
-
-    /** The name of the data table input port group. */
-    static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Data Table";
-
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVWriter2NodeModel.class);
 
@@ -250,12 +243,12 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     private int getDataTablePortIndex() {
         // This is safe because, there should always be a DataTable port
-        return m_portsConfig.getInputPortLocation().get(DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
+        return m_portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
     }
 
     private int getFSConnectionPortIndex() {
-        if (m_portsConfig.getInputPortLocation().containsKey(CONNECTION_INPUT_PORT_GRP_NAME)) {
-            return m_portsConfig.getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)[0];
+        if (m_portsConfig.getInputPortLocation().containsKey(CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
+            return m_portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)[0];
         } else {
             // This port is a DataTable port and will fail the check at FileSystemPortObject.getFileSystemConnection(..)
             return getDataTablePortIndex();

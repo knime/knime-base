@@ -141,7 +141,7 @@ public class CSVWriter2Config extends SettingsModel {
         m_quoteChar = '"';
         m_quoteEscapeChar = '"';
 
-        m_writeColumnHeader = false;
+        m_writeColumnHeader = true;
         m_skipColumnHeaderOnAppend = false;
         m_writeRowHeader = false;
 
@@ -219,28 +219,10 @@ public class CSVWriter2Config extends SettingsModel {
      */
     public void loadInDialog(final NodeSettingsRO settings) throws NotConfigurableException {
         try {
-            m_fileChooserModel.loadSettingsFrom(settings);
-            m_lineBreak = LineBreakTypes.loadSettings(settings);
+            loadSettingsForModel(settings);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
-        m_fileOverwritePolicy =
-            FileOverwritePolicy.valueOf(settings.getString(CFG_OVERWRITE_POLICY, FileOverwritePolicy.ABORT.name()));
-
-        m_createParentDirectoryIfRequired = settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY, false);
-
-        m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER, ",");
-
-        m_quoteChar = settings.getChar(CFG_QUOTE_CHAR, '"');
-        m_quoteEscapeChar = settings.getChar(CFG_QUOTE_ESCAPE_CHAR, '"');
-
-        m_writeColumnHeader = settings.getBoolean(CFG_WRITE_COLUMN_HEADER, false);
-        m_skipColumnHeaderOnAppend = settings.getBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND, false);
-        m_writeRowHeader = settings.getBoolean(CFG_WRITE_ROW_HEADER, false);
-
-        m_advancedConfig.loadInDialog(getConfigForDialog(settings, CFG_ADVANCED));
-        m_commentConfig.loadInDialog(getConfigForDialog(settings, CFG_COMMENT));
-        m_charsetName = settings.getString(CFG_CHAR_ENCODING, null);
     }
 
     static NodeSettingsRO getConfigForDialog(final NodeSettingsRO settings, final String configKey) {

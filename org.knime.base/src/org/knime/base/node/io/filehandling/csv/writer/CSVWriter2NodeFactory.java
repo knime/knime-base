@@ -63,12 +63,17 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 public final class CSVWriter2NodeFactory extends ConfigurableNodeFactory<CSVWriter2NodeModel> {
+    /** The name of the optional connection input port group. */
+    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
+
+    /** The name of the data table input port group. */
+    static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Data Table";
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(CSVWriter2NodeModel.CONNECTION_INPUT_PORT_GRP_NAME , FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(CSVWriter2NodeModel.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        builder.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        builder.addFixedInputPortGroup(DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         return Optional.of(builder);
     }
 

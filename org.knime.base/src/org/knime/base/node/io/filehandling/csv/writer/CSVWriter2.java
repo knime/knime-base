@@ -55,6 +55,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
@@ -89,6 +90,8 @@ class CSVWriter2 implements Closeable {
 
     private String m_lastWarning;
 
+    private final Pattern m_columnOrRowDelimiter;
+
     /**
      * Creates new writer which writes {@link DataTable} to a CSV files based on the provided {@link CSVWriter2Config}
      *
@@ -112,6 +115,7 @@ class CSVWriter2 implements Closeable {
         m_integerFormatter = new DecimalFormat("#", symbolFormat);
 
         m_quoteReplacement = String.valueOf(m_config.getQuoteEscapeChar()) + String.valueOf(m_config.getQuoteChar());
+        m_columnOrRowDelimiter = Pattern.compile(m_config.getColumnDelimiter() + "|\r|\n");
 
     }
 
@@ -254,11 +258,10 @@ class CSVWriter2 implements Closeable {
 
     private boolean needsQuote(final String value, final boolean isNumerical) {
         final QuoteMode qMode = m_config.getAdvancedConfig().getQuoteMode();
-        // FIXME: check for line breaks in strings
         return qMode == QuoteMode.ALWAYS //
             || (qMode == QuoteMode.STRINGS_ONLY && !isNumerical) //
             || (qMode == QuoteMode.IF_NEEDED // quote if the column delimiter is in the value
-                && value.contains(m_config.getColumnDelimiter()));
+                && m_columnOrRowDelimiter.matcher(value).find());
     }
 
     private boolean replaceDelimiter(final String value) {

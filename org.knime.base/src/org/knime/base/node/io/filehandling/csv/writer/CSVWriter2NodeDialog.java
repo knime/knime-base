@@ -180,7 +180,10 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
         m_advancedPanel.loadDialogSettings(m_writerConfig.getAdvancedConfig());
         m_commentPanel.loadDialogSettings(m_writerConfig.getCommentConfig());
-        m_encodingPanel.setCharsetName(m_writerConfig.getCharsetName());
+
+        FileReaderSettings fReadSettings = new FileReaderSettings();
+        fReadSettings.setCharsetName(m_writerConfig.getCharsetName());
+        m_encodingPanel.loadSettings(fReadSettings);
     }
 
     @Override
@@ -194,6 +197,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         final FileReaderNodeSettings s = new FileReaderNodeSettings();
         m_encodingPanel.overrideSettings(s);
         m_writerConfig.setCharSetName(s.getCharsetName());
+
         m_writerConfig.saveSettingsTo(settings);
     }
 }
