@@ -53,8 +53,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -65,6 +67,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -86,6 +90,8 @@ public class CharsetNamePanel extends JPanel {
     private static final String CUSTOM_LABEL = "Other";
 
     private static final Icon ERROR_ICON = SharedIcons.ERROR.get();
+
+    private final CopyOnWriteArrayList<ChangeListener> m_listeners;
 
     private final ButtonGroup m_group = new ButtonGroup();
 
@@ -132,6 +138,8 @@ public class CharsetNamePanel extends JPanel {
         this.setSize(520, 375);
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(getSelectionPanel());
+        m_listeners = new CopyOnWriteArrayList<>();
+        registerChangeListeners();
     }
 
     /**
@@ -412,5 +420,57 @@ public class CharsetNamePanel extends JPanel {
             }
         }
         return Optional.empty();
+    }
+
+    private void registerChangeListeners() {
+        for (final AbstractButton b : Collections.list(m_group.getElements())) {
+            b.addActionListener(l -> notifyChangeListeners());
+        }
+        m_customName.getDocument().addDocumentListener(new DocumentListener() {
+
+            @Override
+            public void removeUpdate(final DocumentEvent e) {
+                notifyChangeListeners();
+            }
+
+            @Override
+            public void insertUpdate(final DocumentEvent e) {
+                notifyChangeListeners();
+            }
+
+            @Override
+            public void changedUpdate(final DocumentEvent e) {
+                notifyChangeListeners();
+            }
+        });
+    }
+
+    /**
+     * Adds a listener (to the end of the listener list) which is notified, whenever a the selection changes or a new
+     * custom charset is set. Does nothing if the listener is already registered.
+     *
+     * @param l listener to add
+     * @since 4.2
+     */
+    public void addChangeListener(final ChangeListener l) {
+        if (!m_listeners.contains(l)) {
+            m_listeners.add(l);
+        }
+    }
+
+    /**
+     * Remove a specific listener.
+     *
+     * @param l listener to remove
+     * @since 4.2
+     */
+    public void removeChangeListener(final ChangeListener l) {
+        m_listeners.remove(l);
+    }
+
+    private void notifyChangeListeners() {
+        for (ChangeListener l : m_listeners) {
+            l.stateChanged(new ChangeEvent(this));
+        }
     }
 }

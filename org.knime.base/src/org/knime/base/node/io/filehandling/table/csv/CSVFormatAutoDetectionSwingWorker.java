@@ -117,7 +117,7 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
     @Override
     protected void doneWithContext() {
         m_dialog.resetUIafterAutodetection();
-
+        // m_dialog#setStatus must always be called so that the preview is refreshed
         try {
             final CsvFormat detectedFormat = get();
             m_dialog.updateAutodetectionFields(detectedFormat);

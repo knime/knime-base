@@ -56,9 +56,11 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
@@ -81,6 +83,9 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
@@ -108,6 +113,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreview;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 import com.univocity.parsers.csv.CsvFormat;
 
@@ -208,6 +214,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
 
+    private final boolean m_isRemoteWorkflowContext;
+
     /** Create new CsvTableReader dialog. */
     CSVTableReaderNodeDialog(final SettingsModelFileChooser2 fileChooserModel,
         final MultiTableReadConfig<CSVTableReaderConfig> config,
@@ -219,6 +227,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
             VariableType.StringType.INSTANCE);
+        m_isRemoteWorkflowContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
         m_filePanel = new DialogComponentFileChooser2(0, fileChooserModel, "csv_reader_prototype",
             JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, fvm);
@@ -304,6 +313,61 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         addTab("Encoding", m_encodingPanel);
 
         m_config = config;
+        registerPreviewChangeListeners();
+    }
+
+    private void registerPreviewChangeListeners() {
+        final DocumentListener documentListener = new DocumentListener() {
+
+            @Override
+            public void removeUpdate(final DocumentEvent e) {
+                m_tableReaderPreview.configChanged();
+            }
+
+            @Override
+            public void insertUpdate(final DocumentEvent e) {
+                m_tableReaderPreview.configChanged();
+            }
+
+            @Override
+            public void changedUpdate(final DocumentEvent e) {
+                m_tableReaderPreview.configChanged();
+            }
+        };
+        final ActionListener actionListener = l -> m_tableReaderPreview.configChanged();
+        final ChangeListener changeListener = l -> m_tableReaderPreview.configChanged();
+
+        m_colDelimiterField.getDocument().addDocumentListener(documentListener);
+        m_rowDelimiterField.getDocument().addDocumentListener(documentListener);
+        m_quoteField.getDocument().addDocumentListener(documentListener);
+        m_quoteEscapeField.getDocument().addDocumentListener(documentListener);
+        m_commentStartField.getDocument().addDocumentListener(documentListener);
+
+        m_failOnDifferingSpecs.addActionListener(actionListener);
+        m_intersection.addActionListener(actionListener);
+        m_union.addActionListener(actionListener);
+        m_hasRowIDChecker.addActionListener(actionListener);
+        m_hasColHeaderChecker.addActionListener(actionListener);
+        m_allowShortDataRowsChecker.addActionListener(actionListener);
+        m_skipEmptyDataRowsChecker.addActionListener(actionListener);
+        m_replaceQuotedEmptyStringChecker.addActionListener(actionListener);
+        m_limitRowsChecker.addActionListener(actionListener);
+        m_skipFirstRowsChecker.addActionListener(actionListener);
+        m_skipFirstLinesChecker.addActionListener(actionListener);
+        m_limitAnalysisChecker.addActionListener(actionListener);
+        m_maxCharsColumnChecker.addActionListener(actionListener);
+        for (final AbstractButton b : Collections.list(m_quoteOptionsButtonGroup.getElements())) {
+            b.addActionListener(actionListener);
+        }
+
+        m_skipFirstLinesSpinner.getModel().addChangeListener(changeListener);
+        m_skipFirstRowsSpinner.getModel().addChangeListener(changeListener);
+        m_limitRowsSpinner.getModel().addChangeListener(changeListener);
+        m_limitAnalysisSpinner.getModel().addChangeListener(changeListener);
+        m_maxColsSpinner.getModel().addChangeListener(changeListener);
+
+        m_encodingPanel.addChangeListener(changeListener);
+        m_filePanel.getModel().addChangeListener(changeListener);
     }
 
     private List<Path> getPaths() throws IOException {
@@ -726,6 +790,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        m_tableReaderPreview.setEnabled(false);
         m_specs = specs;
         m_config.loadInDialog(settings, m_producerRegistry);
         m_filePanel.loadSettingsFrom(settings, specs);
@@ -740,6 +805,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner);
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
+
+        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
+        m_tableReaderPreview.configChanged();
     }
 
     /**
@@ -854,6 +922,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private void startFormatAutoDetection() {
         m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(m_fsConnection, this);
 
+        m_tableReaderPreview.setEnabled(false);
         setAutodetectComponentsEnabled(false);
         showCardInCardLayout(PROGRESS_BAR_CARD);
         m_startAutodetection.setText(AUTODETECT_CANCEL_LABEL);
@@ -916,6 +985,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_autoDetectionStatusLabel.setToolTipText(toolTipText);
 
         showCardInCardLayout(STATUS_CARD);
+
+        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
+        m_tableReaderPreview.configChanged();
     }
 
     private void showCardInCardLayout(final String cardName) {
@@ -951,4 +1023,5 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_tableReaderPreview.onClose();
         super.onClose();
     }
+
 }

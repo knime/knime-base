@@ -107,7 +107,7 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private long m_maxRows = 50;
 
-    private boolean m_limitRowsForSpec = false;
+    private boolean m_limitRowsForSpec = true;
 
     private long m_maxRowsForSpec = 50;
 

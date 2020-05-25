@@ -58,6 +58,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
@@ -65,7 +67,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -100,18 +101,9 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private static final Color COLOR_ERROR = Color.RED;
 
-    private static final Color COLOR_WARNING = Color.BLACK;
-
-    private static final TitledBorder PREVIEW_BORDER =
-        BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview");
-
-    private static final TitledBorder PREVIEW_REFRESH_BORDER = BorderFactory.createTitledBorder(
-        BorderFactory.createEtchedBorder(), "Preview: the configuration has changed, please refresh",
-        TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, null, Color.BLUE);
-
     private static final String EMPTY_SPACE_RESERVING_LABEL_TEXT = " ";
 
-    private final JButton m_refreshPreviewButton = new JButton("Refresh");
+    private static final int DELAY_ANALYSIS = 1000;
 
     private final JButton m_quickScanButton = new JButton("Quick Scan");
 
@@ -162,7 +154,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         createPanel();
         setVisibleAnalysisComponents(false);
 
-        m_refreshPreviewButton.addActionListener(l -> refresh());
         m_quickScanButton.addActionListener(l -> {
             m_quickScanButton.setEnabled(false);
             m_execMonitor.getProgressMonitor().setExecuteCanceled();
@@ -171,23 +162,22 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private void createPanel() {
         setLayout(new GridBagLayout());
-        setBorder(PREVIEW_BORDER);
+        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.weightx = 0;
-        gbc.insets = new Insets(5, 1, 1, 1);
-        add(m_refreshPreviewButton, gbc);
-        gbc.gridx++;
-        gbc.insets = new Insets(10, 5, 1, 1);
+        gbc.insets = new Insets(5, 5, 1, 1);
+        gbc.ipadx = 50;
         add(m_analysisProgressBar, gbc);
+        gbc.ipadx = 0;
         gbc.gridx++;
-        gbc.insets = new Insets(5, 5, 1, 5);
+        gbc.insets = new Insets(0, 5, 1, 5);
         add(m_quickScanButton, gbc);
         gbc.gridx++;
         gbc.weightx = 1;
-        gbc.insets = new Insets(10, 5, 1, 1);
+        gbc.insets = new Insets(5, 5, 1, 1);
         add(m_analysisProgressLabel, gbc);
         gbc.gridx = 0;
         gbc.gridy++;
@@ -195,7 +185,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         gbc.insets = new Insets(5, 5, 5, 5);
         m_errorLabel.setForeground(COLOR_ERROR);
         add(m_errorLabel, gbc);
-        gbc.gridx++;
         add(m_analysisProgressPathLabel, gbc);
         gbc.insets = new Insets(1, 1, 1, 1);
         gbc.fill = GridBagConstraints.BOTH;
@@ -206,7 +195,10 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
     }
 
     private void refresh() {
-        setBorder(PREVIEW_BORDER);
+        // cancel the thread if still running
+        if (m_analyzeThread != null) {
+            m_analyzeThread.cancel(true);
+        }
         m_previewTableView.setDataTable(null);
         resetPreviewError();
         resetAnalysisComponents();
@@ -217,11 +209,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         // add listener to the execution monitor that updates the progress during spec guessing
         m_execMonitor.getProgressMonitor().addProgressListener(this::updateSpecGuessingProgress);
-
-        // should never be still running since we disable the Refresh button but just in case interrupt
-        if (m_analyzeThread != null) {
-            m_analyzeThread.cancel(true);
-        }
         // start the spec guessing in a separated thread, exceptions are swallowed and put into the error label.
         // afterwards, (in the same thread) the preview table view is filled with the created data table
         m_analyzeThread = new AnalyzeSwingWorker();
@@ -272,11 +259,9 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
     }
 
     private void resetAnalysisComponents() {
-        m_analyzing = false;
         m_analysisProgressBar.setValue(0);
         m_analysisProgressLabel.setIcon(null);
-        m_analysisProgressLabel.setForeground(new JLabel().getForeground());
-        m_analysisProgressLabel.setText("");
+        m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
         m_quickScanButton.setEnabled(true);
     }
 
@@ -294,62 +279,102 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
      * Inform the preview panel that the config has changed. It will display a hint that the preview needs to be
      * refreshed.
      */
-    public void configChanged() {
-        setBorder(PREVIEW_REFRESH_BORDER);
+    public synchronized void configChanged() {
+        if (isEnabled()) {
+            if (m_analyzing || m_previewTable != null) {
+                // always refresh if a preview is already displayed or an analysis must be interrupted
+                refresh();
+            } else {
+                // otherwise, only refresh if no IO error occurs
+                try {
+                    m_pathsSupplier.call();
+                    refresh();
+                } catch (Exception e) { // can only be an IOException
+                    // if an IO error occurs but not preview is set, just do nothing
+                    // (an error msg is most likely already displayed and an additional one is displayed in the file
+                    // selection panel)
+                }
+            }
+        }
     }
 
     private class AnalyzeSwingWorker extends SwingWorkerWithContext<Void, Void> {
+
+        private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
+
         PreviewDataTable<C, V> m_table = null;
+
+        private boolean m_errorOccurred = false;
 
         @Override
         protected Void doInBackgroundWithContext() throws Exception {
+            // wait a bit, the thread may be interrupted immediately when several config changes are made
+            // we don't want to open unnecessary connections
+            Thread.sleep(DELAY_ANALYSIS);
+            m_analyzing = true;
+            setVisibleAnalysisComponents(true);
 
-            synchronized (m_refreshPreviewButton) {
-                m_refreshPreviewButton.setEnabled(false);
-                m_analyzing = true;
-                setVisibleAnalysisComponents(true);
-                try {
-                    final List<Path> paths = m_pathsSupplier.call();
-                    m_execMonitor.setNumPathsToRead(paths.size());
-                    m_table = m_multiTableReader.createPreviewDataTable(m_rootPathSupplier.get(), paths,
-                        m_configSupplier.get(), m_execMonitor);
-                } catch (Exception e) {
-                    if (!isCancelled()) {
-                        setError(-1, e.getMessage());
-                    }
-                }
-            }
+            final List<Path> paths = m_pathsSupplier.call();
+            m_execMonitor.setNumPathsToRead(paths.size());
+            m_table = m_multiTableReader.createPreviewDataTable(m_rootPathSupplier.get(), paths, m_configSupplier.get(),
+                m_execMonitor);
             return null;
         }
 
         @Override
         protected void doneWithContext() {
+            boolean isInterrupted = checkForExceptions();
+            m_analyzing = false;
             m_analysisProgressPathLabel.setText("");
-            if (isCancelled()) { // may happen if the user closes the dialog during the analysis
+            if (isInterrupted || isCancelled()) { // may happen if the user closes the dialog during the analysis
                 resetPreviewError();
                 if (m_table != null) {
                     m_table.getExecutionMonitor().removeAllChangeListeners();
                     m_table.dispose();
                 }
             } else {
-                if (m_execMonitor.isSpecGuessingErrorOccurred()) {
+                final boolean specGuessingErrorOccurred = m_execMonitor.isSpecGuessingErrorOccurred();
+                if (specGuessingErrorOccurred) {
                     setError(m_execMonitor.getSpecGuessingErrorRow(), m_execMonitor.getSpecGuessingErrorMsg());
                 }
                 setDataTable(m_table);
+                try {
+                    m_execMonitor.checkCanceled();
+                    if (!specGuessingErrorOccurred && !m_errorOccurred) {
+                        m_analysisProgressLabel.setIcon(SharedIcons.SUCCESS.get());
+                        m_analysisProgressLabel.setText("File analysis successfully completed.");
+                    } else {
+                        m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
+                    }
+                    m_analysisProgressPathLabel.setText("");
+                } catch (CanceledExecutionException ex) {
+                    m_analysisProgressLabel.setIcon(SharedIcons.WARNING_YELLOW.get());
+                    m_analysisProgressLabel
+                        .setText("The suggested column types are based on a partial file analysis only!");
+                }
             }
             setVisibleAnalysisComponents(false);
+        }
+
+        private boolean checkForExceptions() {
             try {
-                m_execMonitor.checkCanceled();
-                m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
-                m_analysisProgressPathLabel.setText("");
-            } catch (CanceledExecutionException ex) {
-                m_analysisProgressLabel.setIcon(SharedIcons.WARNING_YELLOW.get());
-                m_analysisProgressLabel.setForeground(COLOR_WARNING);
-                m_analysisProgressLabel
-                    .setText("The suggested column types are based on a partial file analysis only!");
+                get();
+            } catch (CancellationException | InterruptedException e) {
+                return true;
+            } catch (ExecutionException e) {
+                m_errorOccurred = true;
+                final Throwable cause = e.getCause();
+                if (cause != null) {
+                    if (cause instanceof IOException || cause.getCause() instanceof IOException) {
+                        setError(-1, IO_ERROR);
+                    } else {
+                        setError(-1, cause.getMessage());
+                    }
+                } else {
+                    setError(-1, e.getMessage());
+                }
             }
-            m_analyzing = false;
-            m_refreshPreviewButton.setEnabled(true);
+            return false;
         }
 
         private void setDataTable(final PreviewDataTable<C, V> previewTable) {
