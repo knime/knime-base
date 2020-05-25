@@ -60,9 +60,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import org.knime.base.node.io.filehandling.csv.writer.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
+import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 
 /**
  * A dialog panel for advanced settings of CSV writer node.
@@ -200,7 +200,7 @@ public final class AdvancedPanel extends JPanel {
             .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options: "));
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        advancedNumOptionsPanel.add(new JLabel("Decimal separator character "), gbc);
+        advancedNumOptionsPanel.add(new JLabel("Decimal separator "), gbc);
         gbc.gridx++;
         advancedNumOptionsPanel.add(m_decimalSeparatorField, gbc);
 
@@ -224,7 +224,7 @@ public final class AdvancedPanel extends JPanel {
         GridBagConstraints gbc = createAndInitGBC();
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        advancedOptionsPanel.add(new JLabel("Missing values pattern"), gbc);
+        advancedOptionsPanel.add(new JLabel("Replace missing value swith "), gbc);
         gbc.gridx++;
         advancedOptionsPanel.add(m_missingValuePatternField, gbc);
 

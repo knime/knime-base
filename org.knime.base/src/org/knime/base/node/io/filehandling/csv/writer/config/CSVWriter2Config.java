@@ -48,13 +48,12 @@
  */
 package org.knime.base.node.io.filehandling.csv.writer.config;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.knime.base.node.io.filehandling.csv.writer.FileOverwritePolicy;
 import org.knime.base.node.io.filehandling.csv.writer.LineBreakTypes;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.InvalidSettingsException;
@@ -67,26 +66,12 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
 /**
  * Settings configuration for the CSV writer node
  *
- * @author ohl, University of Konstanz
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
 public class CSVWriter2Config {
 
-    /**
-     * Policy how to proceed when output file exists (overwrite, abort, append).
-     *
-     */
-    public enum FileOverwritePolicy {
-            /** Overwrite existing file. */
-            OVERWRITE,
-            /** Append table content to existing file. */
-            APPEND, //
-            /** Fail during execution. Neither overwrite nor append. */
-            ABORT;
-    }
-
     /** The allowed/recommended suffixes for writing a CSV file */
-    public static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
+    protected final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
 
     /** The settings key for the file chooser dialog */
     public static final String CFG_FILE_CHOOSER = "file_chooser_settings";
@@ -163,6 +148,8 @@ public class CSVWriter2Config {
 
     /**
      * Copy constructor
+     *
+     * @param source the object to copy
      */
     public CSVWriter2Config(final CSVWriter2Config source) {
         m_fileChooserModel = source.getFileChooserModel();
@@ -239,7 +226,6 @@ public class CSVWriter2Config {
         m_charsetName = settings.getString(CFG_CHAR_ENCODING);
 
         checkColSeparator();
-        checkCommentSettings();
         checkGzipSettings();
     }
 
@@ -328,27 +314,6 @@ public class CSVWriter2Config {
         }
     }
 
-    private void checkCommentSettings() throws InvalidSettingsException {
-        // if we are supposed to add some creation data, we need to know the comment pattern
-        // if the end pattern is empty, assume a single line comment and
-        // write the comment begin pattern in every line.
-
-        final String commBigin = m_commentConfig.getCommentBegin();
-        final String commEnd = m_commentConfig.getCommentEnd();
-        final String commText = m_commentConfig.getCustomText();
-        if ((m_commentConfig.addCreationTime() || m_commentConfig.addCreationUser() || m_commentConfig.addTableName()
-            || !StringUtils.isEmpty(commText)) && StringUtils.isEmpty(commBigin)) {
-            throw new InvalidSettingsException(
-                "The comment pattern must be defined in order to add user, creation date or table name");
-        }
-
-        // if a custom comment line is specified, is must not contain the comment end pattern
-        if (!StringUtils.isEmpty(commText) && !StringUtils.isEmpty(commEnd) && commText.contains(commEnd)) {
-            throw new InvalidSettingsException(
-                "The specified comment to add must not contain the comment end pattern.");
-        }
-    }
-
     private void checkGzipSettings() throws InvalidSettingsException {
         boolean isAppend = FileOverwritePolicy.APPEND.equals(getFileOverwritePolicy());
         if (m_advancedConfig.compressWithGzip() && isAppend) {
@@ -366,25 +331,11 @@ public class CSVWriter2Config {
     }
 
     /**
-     * Writes a comment header to the file, if specified so in the settings.
-     *
-     * @param file the writer to write the header out to
-     * @param tableName the name of input table being written
-     * @param append If the output will be appended to an existing file
-     * @throws IOException if something went wrong during writing
-     */
-    public void writeCommentHeader(final BufferedWriter file, final String tableName, final boolean append)
-        throws IOException {
-        m_commentConfig.writeCommentHeader(file, tableName, append);
-    }
-
-    /**
      * @return {@code true} if the column separator is similar to or contains the decimal separator.
      */
     public boolean colSeparatorContainsDecSeparator() {
         return (m_columnDelimeter.indexOf(m_advancedConfig.getDecimalSeparator()) >= 0);
     }
-
 
     /*
      * ----------------------------------------------------------------------

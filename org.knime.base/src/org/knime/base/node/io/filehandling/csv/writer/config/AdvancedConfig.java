@@ -63,8 +63,12 @@ import org.knime.core.node.port.PortObjectSpec;
  */
 public final class AdvancedConfig extends SettingsModel {
 
+    /**
+     * Different modes of putting values inside quotes
+     * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+     */
     public enum QuoteMode {
-            /** use quotes only if needed. */
+            /** use quotes only if a value contains a column separator */
             IF_NEEDED,
             /** use quotes always on non-numerical data. */
             STRINGS_ONLY,

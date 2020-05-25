@@ -65,7 +65,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config.FileOverwritePolicy;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
 import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
@@ -174,6 +173,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         addTab("Options", initLayout());
 
         m_advancedPanel = new AdvancedPanel();
+
         addTab("Advanced Options", m_advancedPanel);
 
         m_commentPanel = new CommentPanel();
@@ -339,22 +339,6 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_skipColumnHeaderOnAppendChecker
             .setEnabled(m_writeColumnHeaderChecker.isSelected() && m_overwritePolicyAppendButton.isSelected());
     }
-
-    /**
-     * Adds or removes '.gz' extension to the selected filename based on the selection state of compressWithGZIP
-     */
-    //    private void addGZipExtensionIfApproprate() {
-    //        final String url = m_writerConfig.getFileChooserModel().getPathOrURL();
-    //        if (url != null && !url.trim().isEmpty()) {
-    //            if (m_compressWithGzipChecker.isSelected() && !url.endsWith(".gz")) {
-    //                m_writerConfig.getFileChooserModel().setPathOrURL(url.concat(".gz"));
-    //                m_filePanel.updateComponent();
-    //            } else if (!m_compressWithGzipChecker.isSelected() && url.endsWith(".gz")) {
-    //                m_writerConfig.getFileChooserModel().setPathOrURL(url.substring(0, url.lastIndexOf(".gz")));
-    //                m_filePanel.updateComponent();
-    //            }
-    //        }
-    //    }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)

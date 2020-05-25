@@ -59,7 +59,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.commons.lang.StringUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.CommentConfig;
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * A dialog panel for comment header related settings of CSV writer node.
@@ -75,13 +77,11 @@ public final class CommentPanel extends JPanel {
 
     private final JTextField m_commentBeginField;
 
-    private final JTextField m_commentEndField;
-
     private final JTextField m_commentIndentField;
 
-    private final JCheckBox m_addDateChecker;
+    private final JCheckBox m_addCreationTimeChecker;
 
-    private final JCheckBox m_addUserChecker;
+    private final JCheckBox m_addCreationUserChecker;
 
     private final JCheckBox m_addTableNameChecker;
 
@@ -96,20 +96,19 @@ public final class CommentPanel extends JPanel {
         super(new GridBagLayout());
 
         m_commentBeginField = new JTextField("#", TEXT_FIELD_WIDTH);
-        m_commentEndField = new JTextField("", TEXT_FIELD_WIDTH);
         m_commentIndentField = new JTextField("\\t", TEXT_FIELD_WIDTH);
         m_commentIndentField.setToolTipText("Use \\n or \\t for a new line or the " + "tab character");
 
-        m_addDateChecker = new JCheckBox("the current creation time");
-        m_addUserChecker = new JCheckBox("the user account name");
+        m_addCreationTimeChecker = new JCheckBox("the current creation time");
+        m_addCreationUserChecker = new JCheckBox("the user account name");
         m_addTableNameChecker = new JCheckBox("the input table name");
         m_addCustomCommentChecker = new JCheckBox("the following text:");
         m_customCommentTextArea = new JTextArea("", 4, 45);
         // make the JTextArea border look similar to that of a JTextField
         (m_customCommentTextArea).setBorder(m_commentBeginField.getBorder());
 
-        m_addDateChecker.addChangeListener(e -> commentSelectionChanged());
-        m_addUserChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addCreationTimeChecker.addChangeListener(e -> commentSelectionChanged());
+        m_addCreationUserChecker.addChangeListener(e -> commentSelectionChanged());
         m_addTableNameChecker.addChangeListener(e -> commentSelectionChanged());
         m_addCustomCommentChecker.addChangeListener(e -> commentSelectionChanged());
         m_addCustomCommentChecker.addChangeListener(e -> customCommentSelectionChanged());
@@ -156,29 +155,19 @@ public final class CommentPanel extends JPanel {
             .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Comment pattern: "));
 
         final Insets labelPad = new Insets(5, 5, 5, 5);
-        final Insets columnPad = new Insets(5, 60, 5, 5);
 
         gbc.insets = labelPad;
         commentSettingsPanel.add(m_commentBeginField, gbc);
         gbc.gridx++;
         commentSettingsPanel.add(new JLabel("Comment Begin "), gbc);
-        gbc.gridx++;
-        gbc.insets = columnPad;
-        commentSettingsPanel.add(m_commentEndField, gbc);
-        m_commentEndField.setToolTipText("If specified, a block comment is assumed.");
-        gbc.gridx++;
-        gbc.insets = labelPad;
-        commentSettingsPanel.add(new JLabel("Comment End  "), gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
-        gbc.insets = labelPad;
         m_commentIndentField.setToolTipText("\"Use \\t for a tab character");
         commentSettingsPanel.add(m_commentIndentField, gbc);
-
         gbc.gridx++;
         commentSettingsPanel.add(new JLabel("Comment Lines Indentation "), gbc);
-        gbc.gridx++;
+
         gbc.gridx++;
         gbc.weightx = 1;
         commentSettingsPanel.add(Box.createHorizontalBox(), gbc);
@@ -194,9 +183,9 @@ public final class CommentPanel extends JPanel {
             BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Included comment content: "));
 
         gbc.insets = new Insets(5, 5, 5, 5);
-        commentContentPanel.add(m_addUserChecker, gbc);
+        commentContentPanel.add(m_addCreationUserChecker, gbc);
         gbc.gridy++;
-        commentContentPanel.add(m_addDateChecker, gbc);
+        commentContentPanel.add(m_addCreationTimeChecker, gbc);
         gbc.gridy++;
         commentContentPanel.add(m_addTableNameChecker, gbc);
         gbc.gridy++;
@@ -218,16 +207,9 @@ public final class CommentPanel extends JPanel {
     }
 
     /**
-     * @return the commentEnd
+     * @return the custom text from the TextArea
      */
-    public String getCommentEnd() {
-        return m_commentEndField.getText();
-    }
-
-    /**
-     * @return the commentLine
-     */
-    public String getCommentLine() {
+    public String getCustomText() {
         return m_customCommentTextArea.getText();
     }
 
@@ -239,23 +221,23 @@ public final class CommentPanel extends JPanel {
     }
 
     /**
-     * @return the addDate
+     * @return {@code true} if the user name should be included in the comment
      */
-    public boolean getAddDate() {
-        return m_addDateChecker.isSelected();
+    public boolean addCreationTime() {
+        return m_addCreationTimeChecker.isSelected();
     }
 
     /**
-     * @return the addUser
+     * @return {@code true} if the user name should be included in the comment
      */
-    public boolean getAddUser() {
-        return m_addUserChecker.isSelected();
+    public boolean addCreationUser() {
+        return m_addCreationUserChecker.isSelected();
     }
 
     /**
      * @return the addTableName
      */
-    public boolean getAddTableName() {
+    public boolean addTableName() {
         return m_addTableNameChecker.isSelected();
     }
 
@@ -274,13 +256,6 @@ public final class CommentPanel extends JPanel {
     }
 
     /**
-     * @param commentEnd the commentEnd to set
-     */
-    public void setCommentEnd(final String commentEnd) {
-        m_commentEndField.setText(commentEnd);
-    }
-
-    /**
      * @param commentLine the commentLine to set
      */
     public void setCommentLine(final String commentLine) {
@@ -295,17 +270,17 @@ public final class CommentPanel extends JPanel {
     }
 
     /**
-     * @param addDate the addDate to set
+     * @param addCreationTime the addDate to set
      */
-    public void setAddDate(final boolean addDate) {
-        m_addDateChecker.setSelected(addDate);
+    public void setAddCreationTime(final boolean addCreationTime) {
+        m_addCreationTimeChecker.setSelected(addCreationTime);
     }
 
     /**
-     * @param addUser the addUser to set
+     * @param addCreationUser the addUser to set
      */
-    public void setAddUser(final boolean addUser) {
-        m_addUserChecker.setSelected(addUser);
+    public void setAddCreationUser(final boolean addCreationUser) {
+        m_addCreationUserChecker.setSelected(addCreationUser);
     }
 
     /**
@@ -328,7 +303,6 @@ public final class CommentPanel extends JPanel {
     private void commentSelectionChanged() {
         final boolean notEmpty = notEmptyComment();
         m_commentBeginField.setEnabled(notEmpty);
-        m_commentEndField.setEnabled(notEmpty);
         m_commentIndentField.setEnabled(notEmpty);
     }
 
@@ -343,10 +317,19 @@ public final class CommentPanel extends JPanel {
      * @return {@code true} if there is actually a comment to write.
      */
     private boolean notEmptyComment() {
-        return m_addDateChecker.isSelected() //
-            || m_addUserChecker.isSelected() //
+        return m_addCreationTimeChecker.isSelected() //
+            || m_addCreationUserChecker.isSelected() //
             || m_addTableNameChecker.isSelected() //
-            || m_addCustomCommentChecker.isSelected();
+            || (m_addCustomCommentChecker.isSelected());
+    }
+
+    private void checkCommentSettings() throws InvalidSettingsException {
+        // if we are supposed to add some creation data, we need to know the comment pattern
+        if ((addCreationTime() || addCreationUser() || addTableName()
+            || StringUtils.isNotEmpty(getCustomText())) && StringUtils.isEmpty(getCommentBegin())) {
+            throw new InvalidSettingsException(
+                "The comment begin can not be empty if there is comment content to write!");
+        }
     }
 
     /**
@@ -356,9 +339,9 @@ public final class CommentPanel extends JPanel {
      */
     public void loadDialogSettings(final CommentConfig config) {
         setCommentBegin(config.getCommentBegin());
-        setCommentEnd(config.getCommentEnd());
         setCommentIndent(config.getCommentIndent());
-        setAddDate(config.addCreationTime());
+        setAddCreationTime(config.addCreationTime());
+        setAddCreationUser(config.addCreationUser());
         setAddTableName(config.addTableName());
         setAddCustom(config.addCustomText());
         setCommentLine(config.getCustomText());
@@ -368,14 +351,16 @@ public final class CommentPanel extends JPanel {
      * Reads values from dialog and updates the provided configuration.
      *
      * @param config the configuration to read values from
+     * @throws InvalidSettingsException if configured settings are not valid
      */
-    public void saveDialogSettings(final CommentConfig config) {
+    public void saveDialogSettings(final CommentConfig config) throws InvalidSettingsException {
+        checkCommentSettings();
         config.setCommentBegin(getCommentBegin());
-        config.setCommentEnd(getCommentEnd());
         config.setCommentIndent(getCommentIndent());
-        config.setAddCreationTime(getAddDate());
-        config.setAddTableName(getAddTableName());
+        config.setAddCreationTime(addCreationTime());
+        config.setAddCreationUser(addCreationUser());
+        config.setAddTableName(addTableName());
         config.setAddCustomText(getAddCustom());
-        config.setCustomtext(getCommentLine());
+        config.setCustomtext(getCustomText());
     }
 }

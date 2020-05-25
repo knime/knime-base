@@ -54,9 +54,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.zip.GZIPOutputStream;
 
@@ -92,7 +90,6 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 /**
  * NodeModel to write a DataTable to a CSV file.
  *
- * @author Bernd Wiswedel, University of Konstanz
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 final class CSVWriter2NodeModel extends NodeModel {
@@ -121,14 +118,6 @@ final class CSVWriter2NodeModel extends NodeModel {
         final String pathOrURL = m_writerConfig.getFileChooserModel().getPathOrURL();
         if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location.");
-        }
-
-        Path outputPath;
-        try {
-            outputPath = getFilePath(inSpecs);
-            warnAboutExistingFile(outputPath);
-        } catch (IOException | InvalidSettingsException e) {
-            // TODO Auto-generated catch block == IO in configure
         }
 
         DataTableSpec inSpec = (DataTableSpec)inSpecs[getDataTablePortIndex()];
@@ -164,54 +153,52 @@ final class CSVWriter2NodeModel extends NodeModel {
      * @param exec the execution context
      * @param outputPath the path of the output file
      * @return an empty array of BufferedDataTable
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws CanceledExecutionException
      * @throws Exception If the writing to file fails.
      */
     private BufferedDataTable[] writeToFile(final RowInput input, final ExecutionContext exec, final Path outputPath)
-        throws Exception {
-
-        final OutputStream outStream = createOutputStream(outputPath);
-        CSVWriter2 tableWriter = new CSVWriter2(new OutputStreamWriter(outStream, m_writerConfig.getCharSet()),
-            m_writerConfig, disableColumnHeaderWriting(outputPath));
-
-        // write the comment header, if we are supposed to
-        final String tableName = input.getDataTableSpec().getName();
-        m_writerConfig.writeCommentHeader(tableWriter, tableName, m_writerConfig.isFileAppended());
-
-        try {
-            tableWriter.writeRow(input, exec);
-            tableWriter.close();
+        throws IOException, InterruptedException, CanceledExecutionException {
+        final boolean isNewFile = !Files.exists(outputPath);
+        try (final OutputStream outStream = createOutputStream(outputPath);
+                final OutputStreamWriter writer = new OutputStreamWriter(outStream, m_writerConfig.getCharSet());) {
+            CSVWriter2 tableWriter = new CSVWriter2(writer, m_writerConfig, isNewFile);
+            tableWriter.writeCommentHeader(input.getDataTableSpec().getName());
+            tableWriter.writeRows(input, exec);
             if (tableWriter.hasWarningMessage()) {
                 setWarningMessage(tableWriter.getLastWarningMessage());
             }
+            tableWriter.close();
             // execution successful return an empty BufferedDataTable array
             return new BufferedDataTable[0];
         } catch (CanceledExecutionException e) {
-            try {
-                tableWriter.close();
-            } catch (IOException ex) {
-                // may happen if the stream is already closed by the interrupted thread
-            }
-            try {
-                Files.delete(outputPath);
-                LOGGER.debug("File '" + outputPath + "' deleted after node has been canceled.");
-            } catch (IOException ex) {
-                LOGGER.warn("Unable to delete file '" + outputPath + "' after cancellation: " + ex.getMessage(), ex);
+            if (isNewFile) {
+                deleteIncompleteFile(outputPath);
+            } else {
+                LOGGER
+                    .warn("Node exection is canceled. The file '" + outputPath + "' could have partial modifications.");
             }
             throw e;
-        } finally {
-            outStream.close();
         }
     }
 
-    private boolean disableColumnHeaderWriting(final Path outputPath) {
-        return m_writerConfig.skipColumnHeaderOnAppend() // a) skipColumnHeaderOnAppend enabled
-            && Files.exists(outputPath) && m_writerConfig.isFileAppended(); // b) file exists and appending
+    private static void deleteIncompleteFile(final Path outputPath) {
+        try {
+            Files.delete(outputPath);
+            LOGGER.debug("File created '" + outputPath + "' deleted after node execution is canceled.");
+
+        } catch (IOException ex) {
+            LOGGER.warn("Unable to delete created file '" + outputPath + "' after node execution is canceled. "
+                + ex.getMessage(), ex);
+        }
     }
 
     private OutputStream createOutputStream(final Path outputPath) throws IOException {
         OutputStream outStream;
         try {
-            outStream = Files.newOutputStream(outputPath, getFileOpenOption());
+            outStream = Files.newOutputStream(outputPath,
+                FileOverwritePolicy.getFileOpenOption(m_writerConfig.getFileOverwritePolicy()));
         } catch (FileAlreadyExistsException e) {
             throw new IOException(
                 "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
@@ -223,33 +210,10 @@ final class CSVWriter2NodeModel extends NodeModel {
         return outStream;
     }
 
-    /**
-     * @return an array of {@link OpenOption} used for opening an {@link OutputStream}
-     */
-    private OpenOption[] getFileOpenOption() {
-        if (m_writerConfig.isFileAppended()) {
-            return new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND};
-        } else if (m_writerConfig.isFileOverwritten()) {
-            return new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
-        } else {
-            return new OpenOption[]{StandardOpenOption.CREATE_NEW};
-        }
-    }
-
-    private void warnAboutExistingFile(final Path outputPath) {
-        if (Files.exists(outputPath)) {
-            if (m_writerConfig.isFileAppended()) {
-                setWarningMessage("Output file " + outputPath.toString() + " exists and will be appended!");
-            } else if (m_writerConfig.isFileOverwritten()) {
-                setWarningMessage("Output file " + outputPath.toString() + " exists and will be overwritten!");
-            }
-        }
-    }
-
     private void createParentDirIfRequired(final Path outputPath) throws IOException {
         // create parent directories according to the state of m_createDirectoryConfig.
         final Path parentPath = outputPath.getParent();
-        if (parentPath != null && ! Files.exists(parentPath)) {
+        if (parentPath != null && !Files.exists(parentPath)) {
             if (m_writerConfig.createParentDirectoryIfRequired()) {
                 Files.createDirectories(parentPath);
             } else {
@@ -271,7 +235,6 @@ final class CSVWriter2NodeModel extends NodeModel {
         final FileChooserHelper fch =
             new FileChooserHelper(FileSystemPortObject.getFileSystemConnection(inObjects, getFSConnectionPortIndex()),
                 m_writerConfig.getFileChooserModel());
-
         return fch.getPathFromSettings();
     }
 
@@ -282,6 +245,7 @@ final class CSVWriter2NodeModel extends NodeModel {
     private int getFSConnectionPortIndex() {
         return getNrInPorts() < 2 ? 0 : m_portsConfig.getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)[0];
     }
+
 
     @Override
     public InputPortRole[] getInputPortRoles() {

@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
 
@@ -82,46 +83,81 @@ class CSVWriter2 extends BufferedWriter {
     private String m_lastWarning;
 
     /**
-     * Creates a new writer with default settings.
+     * Creates a new {@link Writer} with default {@link CSVWriter2Config}.
      *
-     * @param writer the writer to write the table to.
+     * @param writer the {@link Writer} object
      */
     public CSVWriter2(final Writer writer) {
         this(writer, new CSVWriter2Config());
-        m_lastWarning = null;
     }
 
     /**
-     * Creates new instance which writes tables to the given writer class. An immediate write operation, will write the
-     * table headers (both column and row headers) and will write missing values as "" (empty string).
+     * Creates new writer which writes {@link DataTable} to a CSV files based on the provided {@link CSVWriter2Config}
      *
-     * @param writer to write to
-     * @param config the object holding all settings, influencing how data tables are written to file.
+     * @param writer the {@link Writer} object
+     * @param config the {@link CSVWriter2Config} object determining how the {@link DataTable} is written to file.
      */
     public CSVWriter2(final Writer writer, final CSVWriter2Config config) {
-        this(writer, new CSVWriter2Config(), false);
+        this(writer, config, false);
     }
 
-    public CSVWriter2(final Writer writer, final CSVWriter2Config config, final boolean disableHeaderWriting) {
+    /**
+     * Creates new writer which writes {@link DataTable} to a CSV files based on the provided {@link CSVWriter2Config}.
+     * An additional flag indicating if the file is created new or is opened for appending. This is useful when
+     * appending to a file,
+     *
+     * a) to decide if column header skipping should be disabled. b) to decided on comments header format (file created
+     * vs data appended)
+     *
+     * @param writer the {@link Writer} object
+     * @param config the {@link CSVWriter2Config} object determining how the {@link DataTable} is written to file.
+     * @param isNewFile a flag indicating if the file is created new or is opened for appending
+     */
+    public CSVWriter2(final Writer writer, final CSVWriter2Config config, final boolean isNewFile) {
         super(writer);
         if (config == null) {
             throw new NullPointerException("The CSVWriter doesn't accept null settings.");
         }
         m_lastWarning = null;
-        m_config = config;
-        if (disableHeaderWriting) {
-            m_config.setWriteColumnHeader(false);
+        m_config = new CSVWriter2Config(config);
+
+        if (isNewFile && m_config.isFileAppended()) {
+            m_config.setFileOverwritePolicy(FileOverwritePolicy.OVERWRITE);
         }
+        modifyColumnHeaderWriting(isNewFile);
+
         final String decFormat = m_config.getAdvancedConfig().keepTrailingZero() ? "#.0" : "#.#";
         m_decimalFormatter = new DecimalFormat(decFormat, DecimalFormatSymbols.getInstance(Locale.ENGLISH));
         m_decimalFormatter.setMaximumFractionDigits(340); // DecimalFormat.DOUBLE_FRACTION_DIGITS = 340
     }
 
-    public void writeRow(final RowInput input, final ExecutionMonitor exec)
+
+    private void modifyColumnHeaderWriting(final boolean isNewFile) {
+        if(isNewFile) { // leave unchanged
+            return;
+        } else if (m_config.skipColumnHeaderOnAppend() && m_config.isFileAppended()) {
+            m_config.setWriteColumnHeader(false);
+        }
+    }
+
+
+    /**
+     * Writes a comment header to the file, if specified so in the settings.
+     *
+     * @param tableName the name of input table being written
+     * @throws IOException if something went wrong during writing
+     */
+    public void writeCommentHeader(final String tableName) throws IOException {
+        List<String> commentLines = m_config.getCommentConfig().getCommentHeader(tableName, m_config.isFileAppended());
+        for (String cLine : commentLines) {
+            writeLine(cLine);
+        }
+    }
+
+    public void writeRows(final RowInput input, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException, InterruptedException {
 
         DataTableSpec inSpec = input.getDataTableSpec();
-        final int colCount = inSpec.getNumColumns();
         m_lastWarning = null; // reset any previous warning
 
         // write column names
@@ -130,11 +166,11 @@ class CSVWriter2 extends BufferedWriter {
             if (m_config.writeRowHeader()) {
                 rowJoiner.add(replaceAndQuote("row ID", false)); // RowHeader header
             }
-            for (int i = 0; i < colCount; i++) { // for each column name
+            for (int i = 0; i < inSpec.getNumColumns(); i++) { // for each column name
                 rowJoiner.add(replaceAndQuote(inSpec.getColumnSpec(i).getName(), false)); // RowHeader header
             }
             writeLine(rowJoiner.toString());
-        } // end of if write column names
+        }
 
         // write each row of the data
         long rowIdx = 0;
@@ -145,39 +181,35 @@ class CSVWriter2 extends BufferedWriter {
 
         DataRow row;
         while ((row = input.poll()) != null) {
-            StringJoiner rowJoiner = new StringJoiner(m_config.getColumnDelimeter());
-            String rowKey = row.getKey().toString();
-            checkAndSetExecProgress(rowIdx, rowCnt, rowKey, exec);
-            if (m_config.writeRowHeader()) {
-                rowJoiner.add(replaceAndQuote(row.getKey().getString(), false));
-            }
-            // Iterate over all data cells in a row
-            for (int colIdx = 0; colIdx < colCount; colIdx++) {
-                final DataCell dCell = row.getCell(colIdx);
-                if (dCell.isMissing()) {
-                    rowJoiner.add(m_config.getAdvancedConfig().getMissingValuePattern());
-                } else {
-
-                    if (inSpec.getColumnSpec(colIdx).getType().isCompatible(DoubleValue.class)) { // numeric type
-                        final String formattedNumber = formatNumericalValue(dCell, rowIdx, colIdx);
-                        rowJoiner.add(replaceAndQuote(formattedNumber, true));
-                    } else {
-                        rowJoiner.add(replaceAndQuote(dCell.toString(), false));
-                    }
-                }
-            }
-            writeLine(rowJoiner.toString());
+            checkAndSetExecProgress(rowIdx, rowCnt, row.getKey().toString(), exec);
+            writeLine(dataRowToLine(row, rowIdx, inSpec));
             rowIdx++;
         }
     }
 
-    /**
-     * @param finalI
-     * @param finalRowCnt
-     * @param rowKey
-     * @param exec
-     * @throws CanceledExecutionException
-     */
+    private String dataRowToLine(final DataRow row, final long rowIdx, final DataTableSpec inSpec) {
+        StringJoiner rowJoiner = new StringJoiner(m_config.getColumnDelimeter());
+        if (m_config.writeRowHeader()) {
+            rowJoiner.add(replaceAndQuote(row.getKey().toString(), false));
+        }
+        // Iterate over all data cells in a row
+        for (int colIdx = 0; colIdx < inSpec.getNumColumns(); colIdx++) {
+            final DataCell dCell = row.getCell(colIdx);
+            if (dCell.isMissing()) {
+                rowJoiner.add(m_config.getAdvancedConfig().getMissingValuePattern());
+            } else {
+
+                if (inSpec.getColumnSpec(colIdx).getType().isCompatible(DoubleValue.class)) { // numeric type
+                    final String formattedNumber = formatNumericalValue(dCell, rowIdx, colIdx);
+                    rowJoiner.add(replaceAndQuote(formattedNumber, true));
+                } else {
+                    rowJoiner.add(replaceAndQuote(dCell.toString(), false));
+                }
+            }
+        }
+        return rowJoiner.toString();
+    }
+
     private static void checkAndSetExecProgress(final long rowIdx, final long rowCnt, final String rowKey,
         final ExecutionMonitor exec) throws CanceledExecutionException {
         if (rowCnt <= 0) {
@@ -191,13 +223,14 @@ class CSVWriter2 extends BufferedWriter {
     }
 
     /**
-     * If the specified string contains exactly one dot it is replaced by the specified character.
+     * Formats a numerical value from a {@link DataCell} according to the settings. Custom decimal separator used only
+     * if scientific notation is not on and the number contains exactly one dot.
      *
-     * @param val the string to replace the standard decimal separator ('.') in
-     * @param newSeparator the new separator
-     * @return a string with the dot replaced by the new separator. Could be the passed argument itself.
+     * @param dCell the {@link DataCell} with numeric value
+     * @param rowIdx the row index of the {@link DataCell}. Required for warnings.
+     * @param colIdx the column index of the {@link DataCell}. Required for warnings.
+     * @return a formated string representing the number in a numerical {@link DataCell}
      */
-
     private String formatNumericalValue(final DataCell dCell, final long rowIdx, final int colIdx) {
         String strVal = dCell.toString();
         final boolean isDouble = StringUtils.countMatches(strVal, ".") == 1;
@@ -226,6 +259,12 @@ class CSVWriter2 extends BufferedWriter {
         return strVal;
     }
 
+    /**
+     * Writes a string to file and appends a newline, which can be different from the system default.
+     *
+     * @param value the {@link String} value to write
+     * @throws IOException if something went wrong during writing
+     */
     private void writeLine(final String value) throws IOException {
         write(value);
         newLine();
@@ -239,25 +278,28 @@ class CSVWriter2 extends BufferedWriter {
                 && value.contains(m_config.getColumnDelimeter()));
     }
 
-    private boolean needsDelimiterRelacement(final String value, final boolean isNumerical) {
-        return !isNumerical && m_config.getAdvancedConfig().getQuoteMode() == QuoteMode.NEVER
+    private boolean replaceDelimiter(final String value) {
+        return m_config.getAdvancedConfig().getQuoteMode() == QuoteMode.NEVER
             && value.contains(m_config.getColumnDelimeter());
     }
 
     /**
-     * Replaces the quote end pattern contained in the string and puts quotes around the string.
+     * Returns a quoted string after escaping occurrences of the quote character with the provided quote escape.
+     * Numerical values are treated differently.
      *
      * @param value the string to examine and change
-     * @param isNumerical
-     * @return the input string with quotes around it and either replaced or escaped quote end patterns in the string.
+     * @param isNumerical whether the value is numeric or not
+     * @return the input string with quotes around it when appropriate.
      */
     private String replaceAndQuote(final String value, final boolean isNumerical) {
-        if (needsDelimiterRelacement(value, isNumerical)) {
+        // if never quote is selected and there is a replacement for delimiter
+
+        if (!isNumerical && replaceDelimiter(value)) {
             return value.replace(String.valueOf(m_config.getColumnDelimeter()),
                 m_config.getAdvancedConfig().getSeparatorReplacement());
-        } else if (!needsQuote(value, isNumerical)) {
-            return value;
-        } else {
+        }
+
+        if (needsQuote(value, isNumerical)) {
             String result = String.valueOf(m_config.getQuoteChar());
             final String quteReplacement =
                 String.valueOf(m_config.getQuoteEscapeChar()) + String.valueOf(m_config.getQuoteChar());
@@ -265,6 +307,7 @@ class CSVWriter2 extends BufferedWriter {
             result += m_config.getQuoteChar();
             return result;
         }
+        return value;
     }
 
     /**
