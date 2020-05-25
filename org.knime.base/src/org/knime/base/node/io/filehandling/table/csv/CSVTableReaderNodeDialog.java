@@ -49,7 +49,6 @@
 package org.knime.base.node.io.filehandling.table.csv;
 
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -255,22 +254,22 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_skipFirstLinesChecker = new JCheckBox("Skip first lines ");
         m_skipFirstLinesSpinner = new JSpinner(new SpinnerNumberModel(skipOne, rowStart, rowEnd, stepSize));
         m_skipFirstLinesChecker
-            .addChangeListener(e -> controlSpinner(m_skipFirstLinesChecker, m_skipFirstLinesSpinner));
+            .addActionListener(e -> controlSpinner(m_skipFirstLinesChecker, m_skipFirstLinesSpinner));
         m_skipFirstLinesChecker.doClick();
 
         m_skipFirstRowsChecker = new JCheckBox("Skip first data rows ");
         m_skipFirstRowsSpinner = new JSpinner(new SpinnerNumberModel(skipOne, rowStart, rowEnd, stepSize));
-        m_skipFirstRowsChecker.addChangeListener(e -> controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner));
+        m_skipFirstRowsChecker.addActionListener(e -> controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner));
         m_skipFirstRowsChecker.doClick();
 
         m_limitRowsChecker = new JCheckBox("Limit data rows ");
         m_limitRowsSpinner = new JSpinner(new SpinnerNumberModel(initLimit, rowStart, rowEnd, initLimit));
-        m_limitRowsChecker.addChangeListener(e -> controlSpinner(m_limitRowsChecker, m_limitRowsSpinner));
+        m_limitRowsChecker.addActionListener(e -> controlSpinner(m_limitRowsChecker, m_limitRowsSpinner));
         m_limitRowsChecker.doClick();
 
         m_limitAnalysisChecker = new JCheckBox("Limit data rows scanned for spec ");
         m_limitAnalysisSpinner = new JSpinner(new SpinnerNumberModel(initLimit, rowStart, rowEnd, initLimit));
-        m_limitAnalysisChecker.addChangeListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
+        m_limitAnalysisChecker.addActionListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
 
         m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
@@ -395,7 +394,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
         outerPanel.add(createMemoryLimitsPanel(), gbc);
         gbc.gridy++;
         outerPanel.add(createQuoteOptionsPanel(), gbc);
@@ -403,10 +401,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridy++;
         gbc.weightx = 0;
         gbc.weighty = 1;
-        Box box = Box.createVerticalBox();
-        box.setBackground(Color.red);
-        box.setForeground(Color.BLUE);
-        outerPanel.add(box, gbc);
+        outerPanel.add(Box.createVerticalBox(), gbc);
         return outerPanel;
     }
 
@@ -739,6 +734,12 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         setSpecMergeMode();
         m_fsConnection = FileSystemPortObjectSpec.getFileSystemConnection(specs, FS_INPUT_PORT);
         showCardInCardLayout(EMPTY_CARD);
+
+        // enable/disable spinners
+        controlSpinner(m_skipFirstLinesChecker, m_skipFirstLinesSpinner);
+        controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner);
+        controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
+        controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
     }
 
     /**
@@ -892,8 +893,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         return m_skipFirstLinesChecker.isSelected();
     }
 
-    int getNumLinesToSkip() {
-        return (int)m_skipFirstLinesSpinner.getValue();
+    long getNumLinesToSkip() {
+        return (long)m_skipFirstLinesSpinner.getValue();
     }
 
     Charset getSelectedCharset() {

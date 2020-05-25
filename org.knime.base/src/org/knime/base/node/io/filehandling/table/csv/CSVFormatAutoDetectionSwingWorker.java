@@ -124,8 +124,9 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
             m_dialog.setStatus("Successfully autodetected!", null, SharedIcons.SUCCESS.get());
 
         } catch (final ExecutionException e) {
-            m_dialog.setStatus("Error during autodetection!", "See log file for details", SharedIcons.ERROR.get());
-            LOGGER.debug(e.getMessage(), e);
+            m_dialog.setStatus("Error during autodetection! See log file for details.", "See log file for details",
+                SharedIcons.ERROR.get());
+            LOGGER.warn(e.getMessage(), e);
         } catch (InterruptedException | CancellationException ex) {
             // ignore
         }

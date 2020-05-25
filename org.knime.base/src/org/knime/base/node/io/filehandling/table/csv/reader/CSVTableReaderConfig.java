@@ -139,6 +139,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** Setting used to store the character set name (encoding) */
     private String m_charSet = null;
 
+    /** Setting used to store the buffer size (autodetection) */
+    private int m_bufferSize;
+
     private QuoteOption m_quoteOption;
 
     /**
@@ -161,6 +164,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setNumLinesToSkip(toCopy.getNumLinesToSkip());
         setCharSetName(toCopy.getCharSetName());
         setQuoteOption(toCopy.getQuoteOption());
+        setAutoDetectionBufferSize(toCopy.getAutoDetectionBufferSize());
     }
 
     /**
@@ -418,12 +422,13 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         }
     }
 
-    /** Gets the input buffer size used for the format auto detection
+    /**
+     * Gets the input buffer size used for the format auto detection
      *
      * @return the buffer size
      */
     public int getAutoDetectionBufferSize() {
-        return m_settings.getInputBufferSize();
+        return m_bufferSize;
     }
 
     /**
@@ -432,7 +437,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      * @param bufferSize the new buffer size
      */
     public void setAutoDetectionBufferSize(final int bufferSize) {
-        m_settings.setInputBufferSize(bufferSize);
+        m_bufferSize = bufferSize;
     }
 
     @Override
@@ -550,7 +555,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
             return '\0';
         } else {
             final String cleanStr = str.replace("\0", "");
-            CheckUtils.checkArgument(cleanStr.length() <= 2,
+            CheckUtils.checkArgument(cleanStr.length() < 2,
                 "Only a single character is allowed for %s. Escape sequences, such as \\n can be used.", fieldName);
             return cleanStr.charAt(0);
         }
