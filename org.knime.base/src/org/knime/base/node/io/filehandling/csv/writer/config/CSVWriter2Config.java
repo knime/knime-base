@@ -136,7 +136,7 @@ public class CSVWriter2Config extends SettingsModel {
         m_createParentDirectoryIfRequired = false;
 
         m_columnDelimiter = ",";
-        m_lineBreak = LineBreakTypes.SYST_DEFAULT;
+        m_lineBreak = LineBreakTypes.SYS_DEFAULT;
 
         m_quoteChar = '"';
         m_quoteEscapeChar = '"';

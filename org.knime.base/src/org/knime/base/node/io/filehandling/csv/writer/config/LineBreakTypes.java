@@ -61,7 +61,7 @@ import org.knime.core.node.NodeSettingsWO;
  */
 public enum LineBreakTypes {
         /** System default from System.getProperty("line.separator") */
-        SYST_DEFAULT(System.getProperty("line.separator"), "System Default"),
+        SYS_DEFAULT(System.getProperty("line.separator"), "System Default"),
 
         /** Linux and Unix line brakes, LF only. */
         UNIX_LINUX(new String(new char[]{10}), "Linux/Unix Line break"),
@@ -100,7 +100,7 @@ public enum LineBreakTypes {
      */
     void saveSettings(final NodeSettingsWO settings) {
         final String value;
-        if (this == SYST_DEFAULT) {
+        if (this == SYS_DEFAULT) {
             value = null;
         } else {
             value = getLineBreak();
@@ -118,9 +118,10 @@ public enum LineBreakTypes {
     static LineBreakTypes loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final String val = settings.getString(CFG_LINE_ENDING_MODE);
         if (val == null) {
-            return SYST_DEFAULT;
+            return SYS_DEFAULT;
         }
         return Arrays.stream(values())//
+            .filter(lbt -> lbt != SYS_DEFAULT) // SYS_DEFAULT is written as null & handled separately above
             .filter(lbt -> lbt.getLineBreak().equals(val))//
             .findFirst()//
             .orElseThrow(() -> new InvalidSettingsException("Unable to parse the line break type"));
