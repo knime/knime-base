@@ -56,6 +56,7 @@ import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
@@ -144,10 +145,23 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
+    /**
+     * Checks whether the underlying file system is still open and throws a {@link ClosedFileSystemException} if not.
+     *
+     * @throws ClosedFileSystemException when the file system has already been closed.
+     */
+    protected void checkFileSystemOpen() {
+        if (!m_fileSystem.isOpen()) {
+            throw new ClosedFileSystemException();
+        }
+    }
+
     @SuppressWarnings({"resource"})
     @Override
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
+
+        checkFileSystemOpen();
 
         final Set<OpenOption> sanitizedOptions = validateAndSanitizeChannelOpenOptions(options);
 
@@ -249,6 +263,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
+        checkFileSystemOpen();
         checkOpenOptionsForReading(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
         return new BaseInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
@@ -270,6 +285,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @SuppressWarnings("unchecked")
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+
+        checkFileSystemOpen();
+
         final P checkedSource = checkCastAndAbsolutizePath(source);
         final P checkedTarget = checkCastAndAbsolutizePath(target);
 
@@ -304,6 +322,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @SuppressWarnings("unchecked")
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+
+        checkFileSystemOpen();
+
         final P checkedSource = checkCastAndAbsolutizePath(source);
         final P checkedTarget = checkCastAndAbsolutizePath(target);
 
@@ -354,6 +375,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
+        checkFileSystemOpen();
+
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
@@ -400,6 +423,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
 
+        checkFileSystemOpen();
+
         final P checkedDir = checkCastAndAbsolutizePath(dir);
 
         // readAttributes() will also throw NoSuchFileException when file does not exist.
@@ -426,6 +451,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+        checkFileSystemOpen();
+
         final P checkedDir = checkCastAndAbsolutizePath(dir);
         checkParentDirectoryExists(checkedDir);
 
@@ -478,16 +505,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         m_fileSystem = null;
     }
 
-    /**
-     * Returns whether a file system for the given URI exists in the list of file systems.
-     *
-     * @param uri the URI to the file system
-     * @return whether a file system for the uri exists
-     */
-    public synchronized boolean isOpen(final URI uri) {
-        return m_fileSystem != null;
-    }
-
     @SuppressWarnings("unchecked")
     protected P checkCastAndAbsolutizePath(final Path path) {
         checkPathProvider(path);
@@ -524,6 +541,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
+
+        checkFileSystemOpen();
+
         checkPathProvider(path);
         if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
             || type == FileOwnerAttributeView.class) {
@@ -540,6 +560,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
+
+        checkFileSystemOpen();
+
 
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
@@ -586,6 +609,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
+
+        checkFileSystemOpen();
+
         checkPathProvider(path);
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
             attributes);
@@ -594,6 +620,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
+
+        checkFileSystemOpen();
+
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
         if (!existsCached(checkedPath)) {
@@ -618,6 +647,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void delete(final Path path) throws IOException {
+
+        checkFileSystemOpen();
+
         final P checkedPath = checkCastAndAbsolutizePath(path);
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
@@ -653,6 +685,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
+        checkFileSystemOpen();
+
         if (path.getFileSystem().provider() != this) {
             return false;
         }
@@ -726,5 +760,4 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throws IOException {
         throw new UnsupportedOperationException();
     }
-
 }
