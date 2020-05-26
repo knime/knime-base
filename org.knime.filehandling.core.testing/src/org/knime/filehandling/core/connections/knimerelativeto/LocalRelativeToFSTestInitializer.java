@@ -65,6 +65,7 @@ import org.knime.core.node.workflow.WorkflowPersistor.WorkflowLoadResult;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.LockFailedException;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
@@ -85,7 +86,7 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
 
     /**
      * Default constructor.
-     * 
+     *
      * @param rootDirectory  temporary directory to use as mountpoint root
      * @param fileSystemHost hostname of knime FS (knime.mountpoint or knime.workflow)
      * @throws IOException
@@ -101,8 +102,8 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
     }
 
     @Override
-    public Path getRoot() {
-        return m_fileSystem.getRootDirectories().iterator().next();
+    public FSPath getRoot() {
+        return (FSPath)m_fileSystem.getRootDirectories().iterator().next();
     }
 
     protected LocalRelativeToFileSystem getFileSystem() {
@@ -138,8 +139,8 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer 
     }
 
     private static File findInPlugin(final String name) throws IOException {
-        Bundle thisBundle = FrameworkUtil.getBundle(LocalRelativeToFSTestInitializer.class);
-        URL url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
+        final Bundle thisBundle = FrameworkUtil.getBundle(LocalRelativeToFSTestInitializer.class);
+        final URL url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
         if (url == null) {
             throw new FileNotFoundException(thisBundle.getLocation() + name);
         }

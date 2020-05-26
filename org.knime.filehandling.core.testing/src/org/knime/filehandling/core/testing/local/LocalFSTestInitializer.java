@@ -48,11 +48,9 @@
  */
 package org.knime.filehandling.core.testing.local;
 
-import java.nio.file.Path;
-
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
-import org.knime.filehandling.core.connections.local.LocalPath;
 
 /**
  * Implementation of a local file system test initializer.
@@ -71,9 +69,10 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
         m_connection = new LocalFSConnection();
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public Path getRoot() {
-        return new LocalPath(getTempFolder());
+    public FSPath getRoot() {
+        return m_connection.getFileSystem().getPath(getTempFolder().toString());
     }
 
     @Override
@@ -82,12 +81,12 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
     }
 
     @Override
-    public Path createFile(final String... pathComponents) {
+    public FSPath createFile(final String... pathComponents) {
         return createFileWithContent("", pathComponents);
     }
 
     @Override
-    public Path createFileWithContent(final String content, final String... pathComponents) {
-        return new LocalPath(createLocalFileWithContent(content, pathComponents));
+    public FSPath createFileWithContent(final String content, final String... pathComponents) {
+        return m_connection.getFileSystem().getPath(createLocalFileWithContent(content, pathComponents).toString());
     }
 }

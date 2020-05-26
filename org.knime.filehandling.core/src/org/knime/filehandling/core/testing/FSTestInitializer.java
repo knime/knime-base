@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSPath;
 
 /**
  * Interface defining the life cycle management of file system test environments. <br>
@@ -95,7 +96,7 @@ public interface FSTestInitializer {
      *
      * @return the test root
      */
-    public Path getRoot();
+    public FSPath getRoot();
 
     /**
      * Creates a file with the provided path, starting from the configured root directory.
@@ -104,7 +105,7 @@ public interface FSTestInitializer {
      * @return the path to the created file
      * @throws IOException
      */
-    public Path createFile(String... pathComponents) throws IOException;
+    public FSPath createFile(String... pathComponents) throws IOException;
 
     /**
      * Creates a file at the provided path destination, starting from the configured root directory, with the provided
@@ -115,7 +116,7 @@ public interface FSTestInitializer {
      * @return the path to the created file
      * @throws IOException
      */
-    public Path createFileWithContent(String content, String... pathComponents) throws IOException;
+    public FSPath createFileWithContent(String content, String... pathComponents) throws IOException;
 
     /**
      * Creates a {@link Path} object for the given name components. The returned path has the path from
@@ -125,7 +126,7 @@ public interface FSTestInitializer {
      * @return a {@link Path} object for the given name components.
      */
     @SuppressWarnings("resource")
-    public default Path makePath(final String... pathComponents) {
+    public default FSPath makePath(final String... pathComponents) {
         return getFSConnection().getFileSystem().getPath(getRoot().toString(), pathComponents);
     }
 }
