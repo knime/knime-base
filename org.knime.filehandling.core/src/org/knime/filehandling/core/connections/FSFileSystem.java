@@ -143,10 +143,12 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
-     * Checks whether this this file system instance is compatible with {@link FSLocation} objects that have the given
+     * Checks whether this file system instance is compatible with {@link FSLocation} objects that have the given
      * {@link FSLocationSpec}.
      *
      * @param fsLocationSpec The {@link FSLocationSpec} to check for compatibility.
+     * @throws IllegalArgumentException if the given {@link FSLocation} object is not compatible with this file system
+     *             instance.
      */
     public void checkCompatibility(final FSLocationSpec fsLocationSpec) {
         CheckUtils.checkArgument(
@@ -159,13 +161,25 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
+     * Checks whether this file system instance is compatible with {@link FSLocation} objects that have the given
+     * {@link FSLocationSpec}.
+     *
+     * @param fsLocationSpec The {@link FSLocationSpec} to check for compatibility.
+     * @return true, if compatible, false otherwise.
+     */
+    public boolean isCompatible(final FSLocationSpec fsLocationSpec) {
+        return fsLocationSpec.getFileSystemType() != null
+            && fsLocationSpec.getFileSystemChoice() == getFileSystemChoice()
+            && getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier());
+    }
+
+    /**
      * Converts the given {@link FSLocation} to a path object.
      *
      * @param fsLocation The {@link FSLocation} to convert.
      * @return the path object.
      */
     public T getPath(final FSLocation fsLocation) {
-        checkCompatibility(fsLocation);
         return getPath(fsLocation.getPath());
     }
 

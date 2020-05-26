@@ -155,7 +155,6 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
     @Override
     public URIPath getPath(final FSLocation fsLocation) {
-        checkCompatibility(fsLocation);
         final URI uri = URI.create(fsLocation.getPath().replace(" ", "%20"));
 
         final StringBuilder pathBuilder = new StringBuilder(uri.getPath());

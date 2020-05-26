@@ -117,7 +117,7 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
             case CUSTOM_URL_FS:
                 return new URLFSPathProviderFactory();
             case CONNECTED_FS:
-                return createConnectedFSPathProviderFactory(portObjectConnection, fsLocationSpec);
+                return createConnectedFSPathProviderFactory(portObjectConnection);
             default:
                 throw new IllegalArgumentException(
                     String.format("Cannot create FSPathProviderFactory for NULL FSLocation."));
@@ -126,11 +126,10 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
 
     @SuppressWarnings("resource")
     private static FSPathProviderFactory createConnectedFSPathProviderFactory(
-        final Optional<FSConnection> portObjectConnection, final FSLocationSpec fsLocationSpec) {
+        final Optional<FSConnection> portObjectConnection) {
 
         if (portObjectConnection.isPresent()) {
             final FSConnection fsConnection = portObjectConnection.get();
-            fsConnection.getFileSystem().checkCompatibility(fsLocationSpec);
             return new DefaultFSPathProviderFactory(fsConnection);
         } else {
             throw new IllegalArgumentException(
