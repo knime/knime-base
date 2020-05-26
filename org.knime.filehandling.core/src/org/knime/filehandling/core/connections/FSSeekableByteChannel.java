@@ -46,29 +46,32 @@
  * History
  *   19.03.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
 /**
- * Wrapper class for an {@link SeekableByteChannel} which registers itself at a {@link BaseFileSystem} in order to be
+ * Wrapper class for an {@link SeekableByteChannel} which registers itself at a {@link FSFileSystem} in order to be
  * closed when the file system gets closed.
  *
  * @author Mareike Hoeger, KNIME GmbH
  * @since 4.2
  */
-public class BaseSeekableByteChannel implements SeekableByteChannel {
+public class FSSeekableByteChannel implements SeekableByteChannel {
 
     private final SeekableByteChannel m_seekableByteChannel;
 
-    private final BaseFileSystem<?> m_fileSystem;
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
-     * @param seekableByteChannel
+     * Wraps the given byte channel and registers it at the file system.
+     *
+     * @param seekableByteChannel the input stream to wrap
+     * @param fileSystem the handling file system
      */
-    public BaseSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final BaseFileSystem<?> fileSystem) {
+    public FSSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final FSFileSystem<?> fileSystem) {
         m_seekableByteChannel = seekableByteChannel;
         m_fileSystem = fileSystem;
         m_fileSystem.registerCloseable(this);
@@ -93,9 +96,6 @@ public class BaseSeekableByteChannel implements SeekableByteChannel {
         return m_seekableByteChannel.read(dst);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int write(final ByteBuffer src) throws IOException {
         return m_seekableByteChannel.write(src);

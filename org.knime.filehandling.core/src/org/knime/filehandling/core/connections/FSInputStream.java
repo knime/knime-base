@@ -46,7 +46,7 @@
  * History
  *   14.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,11 +57,11 @@ import java.io.InputStream;
  * @author Mareike Hoeger, KNIME GmbH
  * @since 4.2
  */
-public class BaseInputStream extends InputStream {
+public class FSInputStream extends InputStream {
 
     private final InputStream m_inputStream;
 
-    private final BaseFileSystem<?> m_fileSystem;
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
      * Wraps the given inputStream and registers it at the file system.
@@ -69,86 +69,58 @@ public class BaseInputStream extends InputStream {
      * @param inputStream the input stream to wrap
      * @param fileSystem the handling file system
      */
-    public BaseInputStream(final InputStream inputStream, final BaseFileSystem<?> fileSystem) {
+    public FSInputStream(final InputStream inputStream, final FSFileSystem<?> fileSystem) {
         m_inputStream = inputStream;
         m_fileSystem = fileSystem;
-        m_fileSystem.addCloseable(this);
+        m_fileSystem.registerCloseable(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int read(final byte[] b) throws IOException {
         return m_inputStream.read(b);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
         return m_inputStream.read(b, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int read() throws IOException {
         return m_inputStream.read();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public long skip(final long n) throws IOException {
         return m_inputStream.skip(n);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int available() throws IOException {
         return m_inputStream.available();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() throws IOException {
         try {
             m_inputStream.close();
         } finally {
-            m_fileSystem.notifyClosed(this);
+            m_fileSystem.unregisterCloseable(this);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public synchronized void mark(final int readlimit) {
         m_inputStream.mark(readlimit);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public synchronized void reset() throws IOException {
         m_inputStream.reset();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean markSupported() {
         return m_inputStream.markSupported();
     }
-
 }

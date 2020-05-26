@@ -90,7 +90,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSInputStream;
+import org.knime.filehandling.core.connections.FSOutputStream;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.FSSeekableByteChannel;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributeView;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
@@ -190,7 +193,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             checkParentDirectoryExists(checkedPath);
         }
 
-        return new BaseSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem);
+        return new FSSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem);
     }
 
     /**
@@ -266,7 +269,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         checkFileSystemOpen();
         checkOpenOptionsForReading(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
-        return new BaseInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
+        return new FSInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
     }
 
     /**
@@ -380,7 +383,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
-        return new BaseOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
+        return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
     }
 
     /**

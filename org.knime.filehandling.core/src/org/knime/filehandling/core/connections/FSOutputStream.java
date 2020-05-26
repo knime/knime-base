@@ -46,7 +46,7 @@
  * History
  *   15.01.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,68 +57,51 @@ import java.io.OutputStream;
  * @author Mareike Hoeger, KNIME GmbH
  * @since 4.2
  */
-public class BaseOutputStream extends OutputStream {
+public class FSOutputStream extends OutputStream {
 
     private final OutputStream m_outputStream;
 
-    private final BaseFileSystem<?> m_fileSystem;
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
-     * Wraps the given outputStream and registers it at the file system.
+     * Wraps the given output stream and registers it at the file system.
      *
      * @param outputStream outputStreamt to wrap
      * @param fileSystem the handling file system
      */
-    public BaseOutputStream(final OutputStream outputStream, final BaseFileSystem<?> fileSystem) {
+    public FSOutputStream(final OutputStream outputStream, final FSFileSystem<?> fileSystem) {
         m_outputStream = outputStream;
         m_fileSystem = fileSystem;
-        m_fileSystem.addCloseable(this);
+        m_fileSystem.registerCloseable(this);
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void write(final int b) throws IOException {
         m_outputStream.write(b);
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void write(final byte b[]) throws IOException {
         m_outputStream.write(b, 0, b.length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void write(final byte b[], final int off, final int len) throws IOException {
         m_outputStream.write(b, off, len);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void flush() throws IOException {
         m_outputStream.flush();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() throws IOException {
         try {
             m_outputStream.close();
         } finally {
-            m_fileSystem.notifyClosed(this);
+            m_fileSystem.unregisterCloseable(this);
         }
     }
-
 }
