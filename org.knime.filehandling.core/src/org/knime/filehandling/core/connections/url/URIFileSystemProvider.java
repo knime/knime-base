@@ -203,14 +203,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         throw new UnsupportedOperationException("Moving files is not supported with custom URLs");
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isHidden(final Path path) throws IOException {
-        return false;
-    }
-
     @SuppressWarnings("resource")
     @Override
     public FileStore getFileStore(final Path path) throws IOException {

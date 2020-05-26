@@ -700,6 +700,28 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     @Override
+    public boolean isHidden(final Path path) throws IOException {
+        checkFileSystemOpen();
+        final P checkedPath = checkCastAndAbsolutizePath(path);
+        return isHiddenInternal(checkedPath);
+    }
+
+    /**
+     * Tells whether or not a file is considered <em>hidden</em>. Depending on the file system, this method may require
+     * to do I/O if the file is considered hidden. This "internal" method has a default implementation that simply
+     * returns false. Subclasses may choose to override the method if they have a concept of hidden files.
+     *
+     * @param path The absolute, normalized path.
+     * @return true if the file is considered hidden, false otherwise.
+     * @throws NoSuchFileException if the file does not exist <i>(optional specific exception)</i>
+     * @throws IOException if an I/O error occurs
+     * @see Files#isHidden(Path)
+     */
+    protected boolean isHiddenInternal(final P path) throws IOException {
+        return false;
+    }
+
+    @Override
     public void setAttribute(final Path arg0, final String arg1, final Object arg2, final LinkOption... arg3)
             throws IOException {
         throw new UnsupportedOperationException();

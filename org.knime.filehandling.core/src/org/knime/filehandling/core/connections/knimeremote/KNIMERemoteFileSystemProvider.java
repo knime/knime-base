@@ -124,12 +124,6 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     }
 
     @Override
-    public boolean isHidden(final Path path) throws IOException {
-        checkPathProvider(path);
-        return false;
-    }
-
-    @Override
     public FileStore getFileStore(final Path path) throws IOException {
         return path.getFileSystem().getFileStores().iterator().next();
     }
