@@ -140,7 +140,7 @@ class LocalFileSystem extends FSFileSystem<LocalPath> {
     }
 
     @Override
-    protected void ensureClosed() throws IOException {
+    protected void ensureClosedInternal() throws IOException {
         // do nothing
     }
 }

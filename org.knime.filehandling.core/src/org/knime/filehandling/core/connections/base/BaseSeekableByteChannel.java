@@ -71,7 +71,7 @@ public class BaseSeekableByteChannel implements SeekableByteChannel {
     public BaseSeekableByteChannel(final SeekableByteChannel seekableByteChannel, final BaseFileSystem<?> fileSystem) {
         m_seekableByteChannel = seekableByteChannel;
         m_fileSystem = fileSystem;
-        m_fileSystem.addCloseable(this);
+        m_fileSystem.registerCloseable(this);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class BaseSeekableByteChannel implements SeekableByteChannel {
         try {
             m_seekableByteChannel.close();
         } finally {
-            m_fileSystem.notifyClosed(this);
+            m_fileSystem.unregisterCloseable(this);
         }
     }
 

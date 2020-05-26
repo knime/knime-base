@@ -2,6 +2,7 @@ package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser;
 
 /**
@@ -14,15 +15,18 @@ public interface FSConnection extends AutoCloseable {
 
     /**
      * Closes the file system in this connection and releases any resources allocated by it.
+     *
      * @since 4.2
      */
+    @SuppressWarnings("resource")
     @Override
     public default void close() {
-        try (FSFileSystem<?> fileSystem = getFileSystem()) {
-            fileSystem.ensureClosed();
-            FSConnectionRegistry.getInstance().deregister(this);
+        try {
+            getFileSystem().ensureClosed();
         } catch (IOException ex) {
-            // nothing to do here
+            NodeLogger.getLogger(this.getClass()).error("Exception closing file system: " + ex.getMessage(), ex);
+        } finally {
+            FSConnectionRegistry.getInstance().deregister(this);
         }
     }
 
@@ -31,12 +35,12 @@ public interface FSConnection extends AutoCloseable {
      *
      * @return a file system for this connection
      */
-    public FSFileSystem<?> getFileSystem();
+    FSFileSystem<?> getFileSystem();
 
     /**
      * Returns a file system browser for this connection.
      *
      * @return a file system browser for this connection
      */
-    public FileSystemBrowser getFileSystemBrowser();
+    FileSystemBrowser getFileSystemBrowser();
 }

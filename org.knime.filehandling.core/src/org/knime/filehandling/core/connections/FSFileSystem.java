@@ -48,9 +48,14 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileSystem;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -64,6 +69,7 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
  * <li>Support for a working directory (see {@link #getWorkingDirectory()})</li>
  * <li>Support for {@link FSLocation} (see {@link #getPath(FSLocation)} and
  * {@link #checkCompatibility(FSLocationSpec)})</li>
+ * <li>Support for cleaning up blocked resources when closing the file system.</li>
  * </ul>
  *
  * @author Bjoern Lohrmann, KNIME GmbH
@@ -81,6 +87,13 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      * The working directory, which allows the file system provider methods to resolve paths to absolute ones.
      */
     private final String m_workingDirectory;
+
+    /**
+     * A set of {@link Closeable}s that will be closed when the file system is closed.
+     */
+    private final Set<Closeable> m_closeables = new HashSet<>();
+
+    private boolean m_isOpen = true;
 
     /**
      * Creates a new instance.
@@ -111,6 +124,11 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
         return m_fsLocationSpec.getFileSystemSpecifier();
     }
 
+    @Override
+    public synchronized boolean isOpen() {
+        return m_isOpen;
+    }
+
     /**
      * Does nothing, since a file system must only be closed by the connection node that instantiated it. Nodes that
      * only *use* a file system should invoke {@link FSConnection#close()} on the respective {@link FSConnection} object
@@ -124,11 +142,71 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     /**
      * Actually closes this file system and releases any blocked resources (streams, etc). This method must only be
      * called by the connection node, which has control of the file system lifecycle (hence the reduced visibility).
-     * Implementations are free to increase method visibility for their purposes.
      *
      * @throws IOException when something went wrong while closing the file system.
      */
-    protected abstract void ensureClosed() throws IOException;
+    synchronized final void ensureClosed() throws IOException {
+        if (m_isOpen) {
+            try {
+                m_isOpen = false;
+                closeAllCloseables();
+            } finally {
+                ensureClosedInternal();
+            }
+        }
+    }
+
+    /**
+     * Closes all registered {@link Closeable}s (streams, temp files, ...). This method is openly accessible only
+     * for testing purposes and must not be called by any nodes.
+     */
+    protected synchronized void closeAllCloseables() {
+        for (final Closeable closeable : new ArrayList<>(m_closeables)) {
+            closeSafely(closeable);
+        }
+    }
+
+    private static void closeSafely(final Closeable closeable) {
+        try {
+            closeable.close();
+        } catch (final IOException ex) {
+            // Nothing we could do here.
+        }
+    }
+
+    /**
+     * Concrete file systems can implement this method to release any blocked resources, e.g. network connections. This
+     * method is called at the end when the file system is being closed. Registered {@link Closeable}s have already been
+     * closed before.
+     *
+     * @throws IOException when something went wrong while closing the file system.
+     */
+    protected abstract void ensureClosedInternal() throws IOException;
+
+    /**
+     * Informs the file system, that the corresponding {@link Closeable} was closed and does not need to be tracked
+     * anymore.
+     *
+     * @param closeable The closeable.
+     */
+    public synchronized void unregisterCloseable(final Closeable closeable) {
+        m_closeables.remove(closeable);
+    }
+
+    /**
+     * Adds a {@link Closeable} for tracking, so it can be closed when the file system is closed.
+     *
+     * @param closeable The closeable.
+     * @throws ClosedFileSystemException when the file system has already been closed. The given {@link Closeable} will
+     *             be closed prior to throwing the exception in order to not cause any resource leaks.
+     */
+    public synchronized void registerCloseable(final Closeable closeable) {
+        if (!m_isOpen) {
+            closeSafely(closeable);
+            throw new ClosedFileSystemException();
+        }
+        m_closeables.add(closeable);
+    }
 
     /**
      * Each file system has a working directory, aka current directory. The working directory allows users of the file

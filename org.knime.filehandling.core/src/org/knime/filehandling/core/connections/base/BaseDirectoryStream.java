@@ -67,7 +67,7 @@ public class BaseDirectoryStream implements DirectoryStream<Path> {
 
     private volatile boolean m_isClosed = false;
 
-    private final BaseFileSystem m_fileSystem;
+    private final BaseFileSystem<?> m_fileSystem;
 
     /**
      * Constructs a DirectoryStream with the given iterator.
@@ -75,25 +75,19 @@ public class BaseDirectoryStream implements DirectoryStream<Path> {
      * @param iterator the iterator to use in the directory stream
      * @param fileSystem the file system this stream belongs to
      */
-    public BaseDirectoryStream(final Iterator<Path> iterator, final BaseFileSystem fileSystem) {
+    public BaseDirectoryStream(final Iterator<Path> iterator, final BaseFileSystem<?> fileSystem) {
         Validate.notNull(iterator, "Iterator must not be null.");
         m_iterator = iterator;
         m_fileSystem = fileSystem;
-        m_fileSystem.addCloseable(this);
+        m_fileSystem.registerCloseable(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() throws IOException {
         m_isClosed = true;
-        m_fileSystem.notifyClosed(this);
+        m_fileSystem.unregisterCloseable(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Iterator<Path> iterator() {
         if (m_isClosed) {
@@ -102,5 +96,4 @@ public class BaseDirectoryStream implements DirectoryStream<Path> {
 
         return m_iterator;
     }
-
 }

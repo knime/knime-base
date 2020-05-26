@@ -115,7 +115,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
         m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, opts);
 
         if (file.getFileSystem() instanceof BaseFileSystem) {
-            ((BaseFileSystem<?>) file.getFileSystem()).addCloseable(this);
+            ((BaseFileSystem<?>) file.getFileSystem()).registerCloseable(this);
         }
     }
 
@@ -155,7 +155,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
             Files.delete(m_tempFile);
             m_isClosed = true;
             if (m_file.getFileSystem() instanceof BaseFileSystem) {
-                ((BaseFileSystem<?>)m_file.getFileSystem()).notifyClosed(this);
+                ((BaseFileSystem<?>)m_file.getFileSystem()).unregisterCloseable(this);
             }
         }
     }

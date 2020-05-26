@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.connections.base;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
@@ -56,11 +55,8 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -88,8 +84,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     private final URI m_uri;
 
     private final AttributesCache m_cache;
-
-    private final Map<Integer, Closeable> m_closeables = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Constructs {@FileSystem} with the given file system provider, identifying uri and name an type of the file
@@ -126,22 +120,18 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     }
 
     @Override
-    public void ensureClosed() throws IOException {
+    public final void ensureClosedInternal() throws IOException {
         try {
             prepareClose();
         } finally {
-
-            final ArrayList<Closeable> valuesCopy = new ArrayList<>(m_closeables.values());
-            for (final Closeable closeable : valuesCopy) {
-                try {
-                    closeable.close();
-                } catch (final IOException ex) {
-                    //Nothing we could do here.
-                }
-            }
             m_cache.clearCache();
             m_fileSystemProvider.removeFileSystem(m_uri);
         }
+    }
+
+    @Override
+    public final void closeAllCloseables() {
+        super.closeAllCloseables();
     }
 
     /**
@@ -158,14 +148,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * closeable objects associated with this file system.
      */
     protected abstract void prepareClose();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isOpen() {
-        return m_fileSystemProvider.isOpen(m_uri);
-    }
 
     /**
      * {@inheritDoc}
@@ -281,24 +263,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      */
     protected String getCachedAttributesKey(final Path path) {
         return path.toAbsolutePath().normalize().toString();
-    }
-
-    /**
-     * Informs the file system, that the corresponding closeable was closed and does not need to be tracked anymore.
-     *
-     * @param closeable the closeable
-     */
-    public void notifyClosed(final Closeable closeable) {
-        m_closeables.remove(closeable.hashCode());
-    }
-
-    /**
-     * Adds a {@link Closeable} for tracking, so it can be closed on file system close.
-     *
-     * @param closeable the closeable
-     */
-    public void addCloseable(final Closeable closeable) {
-        m_closeables.put(closeable.hashCode(), closeable);
     }
 
     /**
