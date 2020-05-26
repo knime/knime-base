@@ -48,6 +48,8 @@ package org.knime.filehandling.core.testing.integrationtests;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.knime.filehandling.core.testing.integrationtests.files.TempDirectoriesTest;
+import org.knime.filehandling.core.testing.integrationtests.files.TempFilesTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystem.GetPathTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.ByteChannelTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.CheckAccessTest;
@@ -83,7 +85,9 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
     EndsStartsWithTest.class, //
     GetFileNameTest.class, //
     CompareTest.class, //
-    OutputStreamTest.class//
+    OutputStreamTest.class,//
+    TempFilesTest.class,//
+    TempDirectoriesTest.class//
 })
 public class FSIntegrationTestSuite {
 
