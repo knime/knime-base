@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.local;
 
+import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -59,9 +60,22 @@ import org.knime.filehandling.core.connections.FSFileSystem;
  */
 public class LocalFSConnection implements FSConnection {
 
+    private static final String WORKSPACE_PATH = Platform.getInstanceLocation().getURL().getPath();
+
+    private final LocalFileSystem m_fileSystem;
+
+    public LocalFSConnection() {
+        this(WORKSPACE_PATH);
+    }
+
+    public LocalFSConnection(final String workingDir) {
+        final LocalFileSystemProvider provider = new LocalFileSystemProvider();
+        m_fileSystem = provider.getOrCreateFileSystem(workingDir);
+    }
+
     @Override
     public FSFileSystem<?> getFileSystem() {
-        return LocalFileSystem.INSTANCE;
+        return m_fileSystem;
     }
 
     @Override

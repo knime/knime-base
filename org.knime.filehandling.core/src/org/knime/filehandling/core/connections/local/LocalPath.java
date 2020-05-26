@@ -64,12 +64,15 @@ import org.knime.filehandling.core.connections.FSPath;
 /**
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalPath extends FSPath {
+class LocalPath extends FSPath {
+
+    private final LocalFileSystem m_fileSystem;
 
     private final Path m_wrappedPath;
 
-    public LocalPath(final Path wrappedPath) {
+    LocalPath(final LocalFileSystem fileSystem, final Path wrappedPath) {
         m_wrappedPath = wrappedPath;
+        m_fileSystem = fileSystem;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class LocalPath extends FSPath {
     public Path getRoot() {
         final Path wrappedPathRoot = m_wrappedPath.getRoot();
         if (wrappedPathRoot != null) {
-            return new LocalPath(wrappedPathRoot);
+            return new LocalPath(m_fileSystem, wrappedPathRoot);
         } else {
             return null;
         }
@@ -91,7 +94,7 @@ public class LocalPath extends FSPath {
     public Path getFileName() {
         final Path wrappedPathFileName = m_wrappedPath.getFileName();
         if (wrappedPathFileName != null) {
-            return new LocalPath(wrappedPathFileName);
+            return new LocalPath(m_fileSystem, wrappedPathFileName);
         } else {
             return null;
         }
@@ -101,7 +104,7 @@ public class LocalPath extends FSPath {
     public Path getParent() {
         final Path wrappedPathParent = m_wrappedPath.getParent();
         if (wrappedPathParent != null) {
-            return new LocalPath(wrappedPathParent);
+            return new LocalPath(m_fileSystem, wrappedPathParent);
         } else {
             return null;
         }
@@ -114,12 +117,12 @@ public class LocalPath extends FSPath {
 
     @Override
     public Path getName(final int index) {
-        return new LocalPath(m_wrappedPath.getName(index));
+        return new LocalPath(m_fileSystem, m_wrappedPath.getName(index));
     }
 
     @Override
     public Path subpath(final int beginIndex, final int endIndex) {
-        return new LocalPath(m_wrappedPath.subpath(beginIndex, endIndex));
+        return new LocalPath(m_fileSystem, m_wrappedPath.subpath(beginIndex, endIndex));
     }
 
     @Override
@@ -152,7 +155,7 @@ public class LocalPath extends FSPath {
 
     @Override
     public Path normalize() {
-        return new LocalPath(m_wrappedPath.normalize());
+        return new LocalPath(m_fileSystem, m_wrappedPath.normalize());
     }
 
     @Override
@@ -161,12 +164,12 @@ public class LocalPath extends FSPath {
             throw new IllegalArgumentException(LocalFileSystemProvider.PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
 
-        return new LocalPath(m_wrappedPath.resolve(((LocalPath)other).m_wrappedPath));
+        return new LocalPath(m_fileSystem, m_wrappedPath.resolve(((LocalPath)other).m_wrappedPath));
     }
 
     @Override
     public Path resolve(final String other) {
-        return new LocalPath(m_wrappedPath.resolve(other));
+        return new LocalPath(m_fileSystem, m_wrappedPath.resolve(other));
     }
 
     @Override
@@ -175,12 +178,12 @@ public class LocalPath extends FSPath {
             throw new IllegalArgumentException(LocalFileSystemProvider.PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
 
-        return new LocalPath(m_wrappedPath.resolveSibling(((LocalPath)other).m_wrappedPath));
+        return new LocalPath(m_fileSystem, m_wrappedPath.resolveSibling(((LocalPath)other).m_wrappedPath));
     }
 
     @Override
     public Path resolveSibling(final String other) {
-        return new LocalPath(m_wrappedPath.resolveSibling(other));
+        return new LocalPath(m_fileSystem, m_wrappedPath.resolveSibling(other));
     }
 
     @Override
@@ -189,7 +192,7 @@ public class LocalPath extends FSPath {
             throw new IllegalArgumentException(LocalFileSystemProvider.PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
 
-        return new LocalPath(m_wrappedPath.relativize(((LocalPath)other).m_wrappedPath));
+        return new LocalPath(m_fileSystem, m_wrappedPath.relativize(((LocalPath)other).m_wrappedPath));
     }
 
     @Override
@@ -197,14 +200,15 @@ public class LocalPath extends FSPath {
         return m_wrappedPath.toUri();
     }
 
+    @SuppressWarnings("resource")
     @Override
     public Path toAbsolutePath() {
-        return new LocalPath(m_wrappedPath.toAbsolutePath());
+        return getFileSystem().getWorkingDirectory().resolve(this);
     }
 
     @Override
     public Path toRealPath(final LinkOption... options) throws IOException {
-        return new LocalPath(m_wrappedPath.toRealPath(options));
+        return new LocalPath(m_fileSystem, m_wrappedPath.toRealPath(options));
     }
 
     @Override
@@ -235,7 +239,7 @@ public class LocalPath extends FSPath {
 
             @Override
             public Path next() {
-                return new LocalPath(wrappedIter.next());
+                return new LocalPath(m_fileSystem, wrappedIter.next());
             }
         };
     }
@@ -252,7 +256,7 @@ public class LocalPath extends FSPath {
 
     @Override
     public LocalFileSystem getFileSystem() {
-        return LocalFileSystem.INSTANCE;
+        return m_fileSystem;
     }
 
     public Path getWrappedPath() {

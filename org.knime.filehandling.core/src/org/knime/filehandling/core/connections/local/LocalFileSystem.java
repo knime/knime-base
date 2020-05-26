@@ -63,7 +63,6 @@ import java.util.Set;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSFileSystemProvider;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
@@ -72,71 +71,72 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
  */
 class LocalFileSystem extends FSFileSystem<LocalPath> {
 
-    public static final LocalFileSystem INSTANCE = new LocalFileSystem();
+    private static final FileSystem PLATFORM_DEFAULT_FS = FileSystems.getDefault();
 
-    private static final FileSystem DEFAULT_FS = FileSystems.getDefault();
+    private final LocalFileSystemProvider m_provider;
 
-    private LocalFileSystem() {
-        super(new DefaultFSLocationSpec(Choice.LOCAL_FS), System.getProperty("user.dir"));
+    LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir) {
+        super(new DefaultFSLocationSpec(Choice.LOCAL_FS), workingDir);
+        m_provider = provider;
     }
 
     @Override
-    public FSFileSystemProvider provider() {
-        return LocalFileSystemProvider.INSTANCE;
+    public LocalFileSystemProvider provider() {
+        return m_provider;
     }
 
     @Override
     public LocalPath getPath(final String first, final String... more) {
-        return new LocalPath(Paths.get(first, more));
+        return new LocalPath(this, Paths.get(first, more));
     }
 
     @Override
     public boolean isOpen() {
-        return DEFAULT_FS.isOpen();
+        return PLATFORM_DEFAULT_FS.isOpen();
     }
 
     @Override
     public boolean isReadOnly() {
-        return DEFAULT_FS.isReadOnly();
+        return PLATFORM_DEFAULT_FS.isReadOnly();
     }
 
     @Override
     public String getSeparator() {
-        return DEFAULT_FS.getSeparator();
+        return PLATFORM_DEFAULT_FS.getSeparator();
     }
 
     @Override
     public Iterable<Path> getRootDirectories() {
         final List<Path> roots = new ArrayList<>();
-        for (Path localRoot : DEFAULT_FS.getRootDirectories()) {
-            roots.add(new LocalPath(localRoot));
+        for (Path localRoot : PLATFORM_DEFAULT_FS.getRootDirectories()) {
+            roots.add(new LocalPath(this, localRoot));
         }
         return roots;
     }
 
     @Override
     public Iterable<FileStore> getFileStores() {
-        return DEFAULT_FS.getFileStores();
+        return PLATFORM_DEFAULT_FS.getFileStores();
     }
 
     @Override
     public Set<String> supportedFileAttributeViews() {
-        return DEFAULT_FS.supportedFileAttributeViews();
+        return PLATFORM_DEFAULT_FS.supportedFileAttributeViews();
     }
 
     @Override
     public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-        return DEFAULT_FS.getPathMatcher(syntaxAndPattern);
+        return PLATFORM_DEFAULT_FS.getPathMatcher(syntaxAndPattern);
     }
 
     @Override
     public UserPrincipalLookupService getUserPrincipalLookupService() {
-        return DEFAULT_FS.getUserPrincipalLookupService();
+        return PLATFORM_DEFAULT_FS.getUserPrincipalLookupService();
     }
 
     @Override
     public WatchService newWatchService() throws IOException {
-        return DEFAULT_FS.newWatchService();
+        return PLATFORM_DEFAULT_FS.newWatchService();
     }
 
     @Override

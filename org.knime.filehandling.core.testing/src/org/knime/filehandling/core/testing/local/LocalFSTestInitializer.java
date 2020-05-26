@@ -66,7 +66,7 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer {
      */
     public LocalFSTestInitializer(final String root) {
         super(root);
-        m_connection = new LocalFSConnection();
+        m_connection = new LocalFSConnection(root);
     }
 
     @SuppressWarnings("resource")

@@ -56,6 +56,8 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
@@ -69,6 +71,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSSeekableByteChannel;
 
 /**
  *
@@ -76,25 +79,46 @@ import org.knime.filehandling.core.connections.FSFileSystemProvider;
  */
 class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileSystem> {
 
-    public static final LocalFileSystemProvider INSTANCE = new LocalFileSystemProvider();
-
     static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different provider";
 
-    private static final FileSystemProvider DEFAULT_PROVIDER = FileSystems.getDefault().provider();
+    static final String KEY_WORKING_DIR = "workingDir";
+
+    private static final FileSystemProvider PLATFORM_DEFAULT_PROVIDER = FileSystems.getDefault().provider();
+
+    private LocalFileSystem m_fileSystem;
 
     @Override
-    public LocalFileSystem newFileSystem(final URI uri, final Map env) throws IOException {
-        return LocalFileSystem.INSTANCE;
+    public synchronized LocalFileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+        if (m_fileSystem != null) {
+            throw new FileSystemAlreadyExistsException();
+        }
+
+        final String workingDir = (String)env.get(KEY_WORKING_DIR);
+        return getOrCreateFileSystem(workingDir);
+    }
+
+    /**
+     * Gets or creates a new local {@link FileSystem}.
+     *
+     * @param workingDir
+     * @return a file system
+     */
+    public synchronized LocalFileSystem getOrCreateFileSystem(final String workingDir) {
+        if (m_fileSystem == null) {
+            m_fileSystem = new LocalFileSystem(this, workingDir);
+        }
+
+        return m_fileSystem;
     }
 
     @Override
     public LocalFileSystem getFileSystem(final URI uri) {
-        return LocalFileSystem.INSTANCE;
+        return m_fileSystem;
     }
 
     @Override
     public LocalPath getPath(final URI uri) {
-        return new LocalPath(DEFAULT_PROVIDER.getPath(uri));
+        return new LocalPath(m_fileSystem, PLATFORM_DEFAULT_PROVIDER.getPath(uri));
     }
 
     @Override
@@ -102,12 +126,14 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
         return "file";
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs)
-        throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
+    public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
+        final FileAttribute<?>... attrs) throws IOException {
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
 
-        return DEFAULT_PROVIDER.newByteChannel(localPath.getWrappedPath(), options, attrs);
+        return new FSSeekableByteChannel(
+            PLATFORM_DEFAULT_PROVIDER.newByteChannel(localPath.getWrappedPath(), options, attrs), m_fileSystem);
     }
 
     @SuppressWarnings("resource")
@@ -115,13 +141,19 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     public DirectoryStream<Path> newDirectoryStream(final Path path, final Filter<? super Path> filter)
         throws IOException {
 
-        final LocalPath localPath = checkAndCastPath(path);
-        final DirectoryStream<Path> wrappedStream = DEFAULT_PROVIDER.newDirectoryStream(localPath.getWrappedPath(), filter);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        final DirectoryStream<Path> wrappedStream =
+            PLATFORM_DEFAULT_PROVIDER.newDirectoryStream(localPath.getWrappedPath(), filter);
+        final boolean relativizeResults = !path.isAbsolute();
 
-        return new DirectoryStream<Path>() {
+        final DirectoryStream<Path> toReturn = new DirectoryStream<Path>() {
             @Override
             public void close() throws IOException {
-                wrappedStream.close();
+                try {
+                    wrappedStream.close();
+                } finally {
+                    m_fileSystem.unregisterCloseable(this);
+                }
             }
 
             @Override
@@ -136,101 +168,111 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
                     @Override
                     public Path next() {
-                        return new LocalPath(wrappedIter.next());
+                        Path defaultFSPath = wrappedIter.next();
+                        if (relativizeResults) {
+                            defaultFSPath = localPath.getWrappedPath().relativize(defaultFSPath);
+                        }
+                        return new LocalPath(m_fileSystem, defaultFSPath);
                     }
                 };
             }
-
         };
+        m_fileSystem.registerCloseable(toReturn);
+        return toReturn;
     }
 
     @Override
     public void createDirectory(final Path path, final FileAttribute<?>... attrs) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        DEFAULT_PROVIDER.createDirectory(localPath.getWrappedPath(), attrs);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        PLATFORM_DEFAULT_PROVIDER.createDirectory(localPath.getWrappedPath(), attrs);
 
     }
 
     @Override
     public void delete(final Path path) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        DEFAULT_PROVIDER.delete(localPath.getWrappedPath());
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        PLATFORM_DEFAULT_PROVIDER.delete(localPath.getWrappedPath());
     }
 
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
-        final LocalPath localSourcePath = checkAndCastPath(source);
-        final LocalPath localTargetPath = checkAndCastPath(target);
-        DEFAULT_PROVIDER.copy(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
+        final LocalPath localSourcePath = checkCastAndAbsolutizePath(source);
+        final LocalPath localTargetPath = checkCastAndAbsolutizePath(target);
+        PLATFORM_DEFAULT_PROVIDER.copy(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
     }
 
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
-        final LocalPath localSourcePath = checkAndCastPath(source);
-        final LocalPath localTargetPath = checkAndCastPath(target);
-        DEFAULT_PROVIDER.move(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
+        final LocalPath localSourcePath = checkCastAndAbsolutizePath(source);
+        final LocalPath localTargetPath = checkCastAndAbsolutizePath(target);
+        PLATFORM_DEFAULT_PROVIDER.move(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
     }
 
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        final LocalPath localPath2 = checkAndCastPath(path2);
-        return DEFAULT_PROVIDER.isSameFile(localPath.getWrappedPath(), localPath2.getWrappedPath());
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        final LocalPath localPath2 = checkCastAndAbsolutizePath(path2);
+        return PLATFORM_DEFAULT_PROVIDER.isSameFile(localPath.getWrappedPath(), localPath2.getWrappedPath());
 
     }
 
     @Override
     public boolean isHidden(final Path path) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        return DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        return PLATFORM_DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
     }
 
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        return DEFAULT_PROVIDER.getFileStore(localPath.getWrappedPath());
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        return PLATFORM_DEFAULT_PROVIDER.getFileStore(localPath.getWrappedPath());
     }
 
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        DEFAULT_PROVIDER.checkAccess(localPath.getWrappedPath(), modes);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        PLATFORM_DEFAULT_PROVIDER.checkAccess(localPath.getWrappedPath(), modes);
     }
 
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
-        final LocalPath localPath = checkAndCastPath(path);
-        return DEFAULT_PROVIDER.getFileAttributeView(localPath.getWrappedPath(), type, options);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        return PLATFORM_DEFAULT_PROVIDER.getFileAttributeView(localPath.getWrappedPath(), type, options);
     }
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        return DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), type, options);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        return PLATFORM_DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), type, options);
     }
 
     @Override
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        return DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), attributes, options);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        return PLATFORM_DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), attributes, options);
     }
 
     @Override
     public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
         throws IOException {
-        final LocalPath localPath = checkAndCastPath(path);
-        DEFAULT_PROVIDER.setAttribute(localPath.getWrappedPath(), attribute, value, options);
+        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        PLATFORM_DEFAULT_PROVIDER.setAttribute(localPath.getWrappedPath(), attribute, value, options);
     }
 
-    @SuppressWarnings("unchecked")
-    protected LocalPath checkAndCastPath(final Path path) {
+    @SuppressWarnings("resource")
+    protected LocalPath checkCastAndAbsolutizePath(final Path path) {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException(PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
-        return (LocalPath)path;
-    }
 
+        LocalPath toReturn = (LocalPath)path;
+        if (!toReturn.isAbsolute()) {
+            toReturn = (LocalPath)m_fileSystem.getWorkingDirectory().resolve(toReturn);
+        }
+
+        return toReturn;
+    }
 }

@@ -56,7 +56,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
-import org.knime.filehandling.core.connections.local.LocalPath;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 
 /**
@@ -101,13 +100,13 @@ public abstract class BasicLocalTestInitializer implements FSTestInitializer {
         final Path file = directories.resolve(pathComponents[pathComponents.length - 1]);
         try {
             Files.createDirectories(directories);
-            Path createdPath = Files.createFile(file);
+            final Path createdPath = Files.createFile(file);
             try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
                 writer.write(content);
             }
 
             return createdPath;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
         }
     }
