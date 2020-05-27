@@ -806,8 +806,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
 
-        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
-        m_tableReaderPreview.configChanged();
+        refreshPreview(true);
     }
 
     /**
@@ -985,9 +984,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_autoDetectionStatusLabel.setToolTipText(toolTipText);
 
         showCardInCardLayout(STATUS_CARD);
-
-        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
-        m_tableReaderPreview.configChanged();
     }
 
     private void showCardInCardLayout(final String cardName) {
@@ -1015,6 +1011,13 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
                 s != null && !s.isEmpty() ? Integer.parseInt(s.trim()) : m_autoDetectionBufferSize;
         } catch (NumberFormatException e) {
             setStatus("Please enter an integer", null, SharedIcons.ERROR.get());
+        }
+    }
+
+    void refreshPreview(final boolean refreshPreview) {
+        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
+        if (refreshPreview) {
+            m_tableReaderPreview.configChanged();
         }
     }
 

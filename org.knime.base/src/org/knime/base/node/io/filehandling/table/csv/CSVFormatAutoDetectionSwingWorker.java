@@ -117,18 +117,21 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
     @Override
     protected void doneWithContext() {
         m_dialog.resetUIafterAutodetection();
-        // m_dialog#setStatus must always be called so that the preview is refreshed
+        boolean refreshPreview = false;
         try {
             final CsvFormat detectedFormat = get();
             m_dialog.updateAutodetectionFields(detectedFormat);
+            refreshPreview = true;
             m_dialog.setStatus("Successfully autodetected!", null, SharedIcons.SUCCESS.get());
-
         } catch (final ExecutionException e) {
             m_dialog.setStatus("Error during autodetection! See log file for details.", "See log file for details",
                 SharedIcons.ERROR.get());
             LOGGER.warn(e.getMessage(), e);
         } catch (InterruptedException | CancellationException ex) {
             // ignore
+        } finally {
+            // always call m_dialog#refreshPreview, it enables the preview
+            m_dialog.refreshPreview(refreshPreview);
         }
     }
 

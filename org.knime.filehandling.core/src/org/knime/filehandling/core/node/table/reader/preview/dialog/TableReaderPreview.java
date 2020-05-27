@@ -344,6 +344,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                         m_analysisProgressLabel.setIcon(SharedIcons.SUCCESS.get());
                         m_analysisProgressLabel.setText("File analysis successfully completed.");
                     } else {
+                        m_analysisProgressLabel.setIcon(null);
                         m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
                     }
                     m_analysisProgressPathLabel.setText("");
