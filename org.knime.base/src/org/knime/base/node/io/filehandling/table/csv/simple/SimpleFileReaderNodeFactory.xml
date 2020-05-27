@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="../csvreader.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Simple File Reader</name>
+	<shortDescription>
+		Reads simple files of various formats.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			<p>
+			This node reads local and remote files. It can be configured to read the most common formats. 
+			If the file has a more complex structure, use the <i>File Reader</i> node which has more configuration
+			options.<br />
+			<br />
+			When you open the node's configuration dialog and provide a filename, 
+			it tries to guess
+			the column specs by analyzing the content of the file. By default, only the first 50 rows are analyzed. 
+			You can change this setting in the 'Limit Rows' tab. The file analysis can also be cut short by clicking
+			the &quot;Quick scan&quot; button, which shows up if the analysis takes longer. If the file is not 
+			analyzed completely, it could happen that
+			the preview appears looking fine, but the execution of the node
+			fails when it reads the lines it didn't analyze.
+			Check the results of the analyzed file in the preview table and increase the number of rows scanned
+			for spec if necessary.<br />
+	        </p>
+		</intro>
+		<tab name="Options">
+			<option name="Input location">
+				Enter a valid file name or URL. You can also choose a previously read file from the drop-down list, 
+				or select a file from the "Browse..." dialog.
+			</option>	
+			
+			<option name="Column delimiter">
+			  The character string delimiting columns. Use '\t' for tab character. Can get detected automatically.
+			</option>
+			<option name="Row delimiter">
+	          The character string delimiting rows. Use '\n' for new line character. Can get detected automatically.
+			</option>
+			<option name="Quote char">
+	          The quote character. Can get detected automatically. 
+			</option>			
+			<option name="Quote escape char">
+	          The character is used for escaping quotes inside an already quoted value. Can get detected automatically.
+			</option>
+			<option name="Autodetect format">
+	          By pressing this button, the "Column delimiter", "Row delimiter", "Quote char" and "Quote escape char" get 
+	          automatically detected, though it is not guaranteed that the correct values are being detected.<br/>
+	          The auto detection by default is based on the first 1024 * 1024 bytes of the selected file, but
+	          can be adjusted by clicking the settings button next to this option.
+	          The format can only be detected if the read number of bytes comprises one full data row and the 
+	          autodetection will take at most 20 data rows into account. It is assumed that data rows are separated by
+	          linebreaks.  Note that the "Skip first lines" option as well as the specified  "Comment char" will be used
+	          when guessing the files format.
+			</option>
+			<option name="Comment char">
+	          A character indicating line comments.
+			</option>
+			<option name="Has column header">
+	          Select this box if the first row contains column name headers.  
+			</option>
+			<option name="Has row ID">
+	          Select this box if the first column contains row IDs 
+	          (no duplicates allowed).  
+			</option>
+			<option name="Support short data rows">
+	          Select this box if some rows may be shorter than others (filled with missing values).
+			</option>
+			<option name="Skip empty data rows">
+	          Select this box if rows without any content should not be in the output.
+			</option>
+		</tab>
+		<tab name="Advanced Options">
+			<option name="Limit memory per column">
+				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
+				this option to disable these memory restrictions.
+			</option>
+			<option name="Maximum number of columns">
+				Sets the number of allowed columns (default 8192 columns) to
+				prevent memory exhaustion. The node will fail if the number of columns
+				exceed the set limit.
+			</option>
+			<option name="Quote options">
+				<ul>
+					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value followed by trimming
+					any leading/trailing whitespace.</li>
+					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
+				</ul>
+			</option>
+			<option name="Replace empty quoted strings with missing values">
+				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
+			</option>
+			
+		</tab>
+	    <tab name="Limit Rows">
+			<option name="Skip first lines">
+	          If enabled, the specified number of lines are skipped in the input file before the parsing starts. 
+	          Use this option to skip lines that do not fit in the table structure (e.g. mult-line comments) 
+			</option>
+			<option name="Skip first data rows">
+	          If enabled, the specified number of valid data rows are skipped. This has no effect on which row will be 
+	          chosen as column header.
+			</option>
+			<option name="Limit data rows">
+	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
+	          not taken into account.
+			</option>
+			<option name="Limit data rows scanned for spec">
+	          If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
+	          representative for the whole file. The "Skip first data rows"
+	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are independent from each other
+	          i.e. if the value in "Limit data rows" is smaller than the value specified here, we will still read as many rows as specified here.
+			</option>
+        </tab>
+        <tab name="Simple File Reader Encoding">
+	        <option name="Encoding">
+	            To read a file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
+	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
+	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
+	        </option>
+        </tab>	
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="File Table">
+		  File being read with number and types of columns guessed automatically.
+		</outPort>
+	</ports>
+</knimeNode>   
+        
+        
+        
+        

@@ -191,7 +191,9 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public PreviewDataTable<C, V> createPreviewDataTable(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config, final PreviewExecutionMonitor exec) throws IOException {
         // iterate over the data to analyze and find the (most generic) column types
+        config.setTableSpecConfig(null);
         final MultiTableRead<V> multiRead = createMultiRead(rootPath, paths, config, exec);
+        config.setTableSpecConfig(multiRead.createTableSpec());
         // create the data table that will be displayed as preview
         return new PreviewDataTable<>(paths, config, m_reader, multiRead, exec);
     }

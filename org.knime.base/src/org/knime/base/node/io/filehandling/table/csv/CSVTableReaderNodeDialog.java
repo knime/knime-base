@@ -50,31 +50,25 @@ package org.knime.base.node.io.filehandling.table.csv;
 
 import java.awt.CardLayout;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Optional;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -93,7 +87,6 @@ import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -101,26 +94,23 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
-import org.knime.core.node.workflow.VariableType;
-import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreview;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 import com.univocity.parsers.csv.CsvFormat;
 
 /**
- * Node dialog of the CSV reader prototype node.
+ * Abstract node dialog for the CSV readers based on the new table reader framework.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class CSVTableReaderNodeDialog extends NodeDialogPane {
+public abstract class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private static final String START_AUTODETECT_LABEL = "Autodetect format";
 
@@ -131,16 +121,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private static final String STATUS_CARD = "status";
 
     private static final String EMPTY_CARD = "empty";
-
-    private static final int FS_INPUT_PORT = 0;
-
-    private final DialogComponentFileChooser2 m_filePanel;
-
-    private final JRadioButton m_failOnDifferingSpecs = new JRadioButton("Fail if specs differ");
-
-    private final JRadioButton m_union = new JRadioButton("Union");
-
-    private final JRadioButton m_intersection = new JRadioButton("Intersection");
 
     private final JTextField m_colDelimiterField;
 
@@ -184,8 +164,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final CharsetNamePanel m_encodingPanel;
 
-    private final MultiTableReadConfig<CSVTableReaderConfig> m_config;
-
     private final ButtonGroup m_quoteOptionsButtonGroup;
 
     private final JButton m_startAutodetection;
@@ -194,7 +172,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private CSVFormatAutoDetectionSwingWorker m_formatAutoDetectionSwingWorker;
 
-    private JProgressBar m_analyzeProgressBar;
+    private final JProgressBar m_analyzeProgressBar;
 
     private final JLabel m_autoDetectionStatusLabel;
 
@@ -206,32 +184,41 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final ProducerRegistry<?, ?> m_producerRegistry;
 
-    private PortObjectSpec[] m_specs;
+    private final PathSettings m_pathSettings;
 
-    private final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
+    /**
+     * If the preview, autodetection, etc. components should be disabled (by default when opened in remote job view).
+     * Might be overridden.
+     */
+    protected boolean m_disableComponentsRemoteContext;
 
-    private final boolean m_isRemoteWorkflowContext;
+    /** The multi table reader config. */
+    protected final MultiTableReadConfig<CSVTableReaderConfig> m_config;
 
-    /** Create new CsvTableReader dialog. */
-    CSVTableReaderNodeDialog(final SettingsModelFileChooser2 fileChooserModel,
+    /** The table preview. */
+    protected final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
+
+    /** The current specs, set during loading. */
+    protected PortObjectSpec[] m_specs;
+
+    /**
+     * Create new CsvTableReader dialog.
+     *
+     * @param pathSettings the path settings
+     * @param config the config
+     * @param multiReader the multi reader
+     * @param producerRegistry the producer registry
+     */
+    protected CSVTableReaderNodeDialog(final PathSettings pathSettings,
         final MultiTableReadConfig<CSVTableReaderConfig> config,
         final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader,
         final ProducerRegistry<?, ?> producerRegistry) {
+        init(pathSettings);
+        m_pathSettings = pathSettings;
         m_producerRegistry = producerRegistry;
         m_tableReaderPreview =
-            new TableReaderPreview<>(multiReader, fileChooserModel::getPathOrURL, this::getPaths, this::getConfig);
-        final FlowVariableModel fvm = createFlowVariableModel(
-            new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY},
-            VariableType.StringType.INSTANCE);
-        m_isRemoteWorkflowContext = CheckNodeContextUtil.isRemoteWorkflowContext();
-
-        m_filePanel = new DialogComponentFileChooser2(0, fileChooserModel, "csv_reader_prototype",
-            JFileChooser.OPEN_DIALOG, JFileChooser.FILES_AND_DIRECTORIES, fvm);
-
-        ButtonGroup specMergeGroup = new ButtonGroup();
-        specMergeGroup.add(m_failOnDifferingSpecs);
-        specMergeGroup.add(m_intersection);
-        specMergeGroup.add(m_union);
+            new TableReaderPreview<>(multiReader, m_pathSettings, this::getFSConnection, this::saveAndGetConfig);
+        m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
         int textWidth = 3;
         Long stepSize = Long.valueOf(1);
@@ -254,7 +241,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
 
         // disable auto-detection for remote view
-        if (m_isRemoteWorkflowContext) {
+        if (m_disableComponentsRemoteContext) {
             m_startAutodetection.setEnabled(false);
             m_autoDetectionSettings.setEnabled(false);
         }
@@ -313,7 +300,27 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         registerPreviewChangeListeners();
     }
 
-    private void registerPreviewChangeListeners() {
+    /**
+     * Initializes additional components and members of the sub class.
+     *
+     * @param pathSettings the path settings
+     */
+    protected abstract void init(final PathSettings pathSettings);
+
+    /**
+     * @return the panels to be add to the dialog at the top
+     */
+    protected abstract JPanel[] getPanels();
+
+    /**
+     * @return the optional fs connection, may be empty
+     */
+    protected abstract Optional<FSConnection> getFSConnection();
+
+    /**
+     * Register listeners that trigger a preview refresh.
+     */
+    protected void registerPreviewChangeListeners() {
         final DocumentListener documentListener = new DocumentListener() {
 
             @Override
@@ -340,9 +347,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_quoteEscapeField.getDocument().addDocumentListener(documentListener);
         m_commentStartField.getDocument().addDocumentListener(documentListener);
 
-        m_failOnDifferingSpecs.addActionListener(actionListener);
-        m_intersection.addActionListener(actionListener);
-        m_union.addActionListener(actionListener);
         m_hasRowIDChecker.addActionListener(actionListener);
         m_hasColHeaderChecker.addActionListener(actionListener);
         m_allowShortDataRowsChecker.addActionListener(actionListener);
@@ -364,24 +368,9 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_maxColsSpinner.getModel().addChangeListener(changeListener);
 
         m_encodingPanel.addChangeListener(changeListener);
-        m_filePanel.getModel().addChangeListener(changeListener);
     }
 
-    private List<Path> getPaths() throws IOException {
-        if (m_specs == null) {
-            throw new IllegalStateException("The spec is not available.");
-        }
-        final FileChooserHelper fch =
-            new FileChooserHelper(FileSystemPortObjectSpec.getFileSystemConnection(m_specs, FS_INPUT_PORT),
-                (SettingsModelFileChooser2)m_filePanel.getModel());
-        try {
-            return fch.getPaths();
-        } catch (InvalidSettingsException e) {
-            throw new IOException(e);
-        }
-    }
-
-    private MultiTableReadConfig<CSVTableReaderConfig> getConfig() {
+    private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() {
         try {
             saveConfig();
         } catch (InvalidSettingsException e) {
@@ -411,43 +400,15 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
-
-        panel.add(createFilePanel(), gbc);
-        gbc.gridy++;
-        panel.add(createSpecMergePanel(), gbc);
-        gbc.gridy++;
+        for (final JPanel p : getPanels()) {
+            panel.add(p, gbc);
+            gbc.gridy++;
+        }
         panel.add(createOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         panel.add(m_tableReaderPreview, gbc);
         return panel;
-    }
-
-    private JPanel createFilePanel() {
-        final JPanel filePanel = new JPanel();
-        filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input location"));
-        filePanel.setMaximumSize(
-            new Dimension(Integer.MAX_VALUE, m_filePanel.getComponentPanel().getPreferredSize().height));
-        filePanel.add(m_filePanel.getComponentPanel());
-        filePanel.add(Box.createHorizontalGlue());
-        return filePanel;
-    }
-
-    private JPanel createSpecMergePanel() {
-        final JPanel specMergePanel = new JPanel(new GridBagLayout());
-        specMergePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            "Spec merge options (multiple files)"));
-        final GridBagConstraints gbc = createAndInitGBC();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 5, 0, 5);
-        specMergePanel.add(m_failOnDifferingSpecs, gbc);
-        gbc.gridx = 1;
-        specMergePanel.add(m_intersection, gbc);
-        gbc.gridx = 2;
-        gbc.weightx = 1.0;
-        specMergePanel.add(m_union, gbc);
-        return specMergePanel;
     }
 
     /** Creates the {@link JPanel} for the Advanced Settings Tab. */
@@ -708,7 +669,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
      *
      * @return initialized {@link GridBagConstraints}
      */
-    private static final GridBagConstraints createAndInitGBC() {
+    protected static final GridBagConstraints createAndInitGBC() {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -718,7 +679,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_filePanel.saveSettingsTo(settings);
         saveConfig();
         m_config.save(settings);
     }
@@ -779,23 +739,31 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
     }
 
-    private void saveConfig() throws InvalidSettingsException {
+    /**
+     * Save the current config.
+     *
+     * @throws InvalidSettingsException if a setting could not be saved
+     */
+    protected void saveConfig() throws InvalidSettingsException {
         saveTableReadSettings();
         saveCsvSettings();
-        m_config.setSpecMergeMode(getSpecMergeMode());
     }
 
+    /**
+     * Use {@link #loadAdditionalSettings(NodeSettingsRO, PortObjectSpec[])} instead of overriding this function.</br>
+     * </br>
+     * {@inheritDoc}
+     */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_tableReaderPreview.setEnabled(false);
         m_specs = specs;
         m_config.loadInDialog(settings, m_producerRegistry);
-        m_filePanel.loadSettingsFrom(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
-        setSpecMergeMode();
         showCardInCardLayout(EMPTY_CARD);
+        loadAdditionalSettings(settings, specs);
 
         // enable/disable spinners
         controlSpinner(m_skipFirstLinesChecker, m_skipFirstLinesSpinner);
@@ -805,6 +773,18 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
         refreshPreview(true);
     }
+
+    /**
+     * Loads additional settings.
+     *
+     * @see #loadAdditionalSettings(NodeSettingsRO, PortObjectSpec[])
+     *
+     * @param settings the settings to load
+     * @param specs the input specs
+     * @throws NotConfigurableException if a component cannot be configured
+     */
+    protected abstract void loadAdditionalSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException;
 
     /**
      * Fill in dialog components with TableReadConfig values
@@ -875,48 +855,8 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         }
     }
 
-    /**
-     * get the selected {@link SpecMergeMode} from the dialog.
-     *
-     * @return the selected {@link SpecMergeMode}
-     * @throws InvalidSettingsException
-     */
-    private SpecMergeMode getSpecMergeMode() throws InvalidSettingsException {
-        if (m_failOnDifferingSpecs.isSelected()) {
-            return SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
-        } else if (m_intersection.isSelected()) {
-            return SpecMergeMode.INTERSECTION;
-        } else if (m_union.isSelected()) {
-            return SpecMergeMode.UNION;
-        } else {
-            throw new InvalidSettingsException("No spec merge mode selected!");
-        }
-    }
-
-    /**
-     * sets the Spec merge options in the dialog.
-     *
-     * @throws NotConfigurableException
-     */
-    private void setSpecMergeMode() throws NotConfigurableException {
-        switch (m_config.getSpecMergeMode()) {
-            case FAIL_ON_DIFFERING_SPECS:
-                m_failOnDifferingSpecs.setSelected(true);
-                break;
-            case INTERSECTION:
-                m_intersection.setSelected(true);
-                break;
-            case UNION:
-                m_union.setSelected(true);
-                break;
-            default:
-                throw new NotConfigurableException("Unknown spec merge mode " + m_config.getSpecMergeMode());
-
-        }
-    }
-
     private void startFormatAutoDetection() {
-        m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(this::getPaths, this);
+        m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(this, m_pathSettings);
 
         m_tableReaderPreview.setEnabled(false);
 
@@ -936,12 +876,16 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         resetUIafterAutodetection();
     }
 
-    void setAutodetectComponentsEnabled(final boolean enabled) {
+    /**
+     * Set the autodetection components enabled or disabled.
+     *
+     * @param enabled if the components should be enabled or disabled
+     */
+    protected void setAutodetectComponentsEnabled(final boolean enabled) {
         m_colDelimiterField.setEnabled(enabled);
         m_rowDelimiterField.setEnabled(enabled);
         m_quoteField.setEnabled(enabled);
         m_quoteEscapeField.setEnabled(enabled);
-        m_filePanel.getModel().setEnabled(enabled);
     }
 
     void resetUIafterAutodetection() {
@@ -973,10 +917,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     Charset getSelectedCharset() {
         final Optional<String> charsetName = m_encodingPanel.getSelectedCharsetName();
         return charsetName.isPresent() ? Charset.forName(charsetName.get()) : Charset.defaultCharset();
-    }
-
-    SettingsModelFileChooser2 getFileChooserSettingsModel() {
-        return ((SettingsModelFileChooser2)m_filePanel.getModel()).clone();
     }
 
     int getBufferSize() {
@@ -1017,7 +957,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     void refreshPreview(final boolean refreshPreview) {
-        m_tableReaderPreview.setEnabled(!m_isRemoteWorkflowContext);
+        m_tableReaderPreview.setEnabled(!m_disableComponentsRemoteContext);
         if (refreshPreview) {
             m_tableReaderPreview.configChanged();
         }

@@ -660,7 +660,7 @@
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory"/>
+            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory2"/>
       <node
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
@@ -2264,6 +2264,12 @@
             category-path="/manipulation/column/column-convert+replace"
             hidden="true"
             factory-class="org.knime.base.node.preproc.colconvert.ColConvertNodeFactory">
+      </node>
+      <node
+            category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.table.csv.simple.SimpleFileReaderNodeFactory"
+            hidden="false">
       </node>
    </extension>
    <extension

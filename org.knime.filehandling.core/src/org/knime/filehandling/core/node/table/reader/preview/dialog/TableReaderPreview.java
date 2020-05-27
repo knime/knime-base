@@ -57,7 +57,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
@@ -70,6 +69,7 @@ import javax.swing.JProgressBar;
 import javax.swing.table.TableColumn;
 
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.tableview.TableContentView;
 import org.knime.core.node.tableview.TableRowHeaderView;
 import org.knime.core.node.tableview.TableView;
@@ -78,9 +78,11 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.util.ViewUtils;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 
@@ -121,11 +123,11 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private final transient MultiTableReader<C, ?, V> m_multiTableReader;
 
-    private final transient Callable<List<Path>> m_pathsSupplier;
-
     private final transient Supplier<MultiTableReadConfig<C>> m_configSupplier;
 
-    private final transient Supplier<String> m_rootPathSupplier;
+    private final transient PathSettings m_pathSettings;
+
+    private final transient Supplier<Optional<FSConnection>> m_fsConnection;
 
     private transient PreviewDataTable<C, V> m_previewTable = null;
 
@@ -137,16 +139,14 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
      * Constructor.
      *
      * @param multiTableReader the reader used to read in the table
-     * @param rootPathSupplier a {@link Supplier} that returns the currently selected root path
-     * @param pathsSupplier a {@link Callable} that either returns a list of paths to be read or throws an
-     *            {@link IOException}
+     * @param pathSettings the path settings
+     * @param fsConnection an optional being empty or containing the {@link FSConnection}
      * @param configSupplier a {@link Supplier} that returns the {@link MultiTableReadConfig} used for reading
      */
-    public TableReaderPreview(final MultiTableReader<C, ?, V> multiTableReader, final Supplier<String> rootPathSupplier,
-        final Callable<List<Path>> pathsSupplier, final Supplier<MultiTableReadConfig<C>> configSupplier) {
-        m_rootPathSupplier =
-            CheckUtils.checkArgumentNotNull(rootPathSupplier, "The root path supplier must not be null.");
-        m_pathsSupplier = CheckUtils.checkArgumentNotNull(pathsSupplier, "The paths supplier must not be null.");
+    public TableReaderPreview(final MultiTableReader<C, ?, V> multiTableReader, final PathSettings pathSettings,
+        final Supplier<Optional<FSConnection>> fsConnection, final Supplier<MultiTableReadConfig<C>> configSupplier) {
+        m_pathSettings = CheckUtils.checkArgumentNotNull(pathSettings, "The path settings must not be null.");
+        m_fsConnection = CheckUtils.checkArgumentNotNull(fsConnection, "The file system supplier must not be null.");
         m_configSupplier = CheckUtils.checkArgumentNotNull(configSupplier, "The config supplier must not be null.");
         m_multiTableReader =
             CheckUtils.checkArgumentNotNull(multiTableReader, "The multi table reader must not be null.");
@@ -287,10 +287,10 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
             } else {
                 // otherwise, only refresh if no IO error occurs
                 try {
-                    m_pathsSupplier.call();
+                    m_pathSettings.getPaths(m_fsConnection.get());
                     refresh();
-                } catch (Exception e) { // can only be an IOException
-                    // if an IO error occurs but not preview is set, just do nothing
+                } catch (IOException | InvalidSettingsException e) {
+                    // if an error occurs but no preview is set, just do nothing
                     // (an error msg is most likely already displayed and an additional one is displayed in the file
                     // selection panel)
                 }
@@ -306,6 +306,10 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         private boolean m_errorOccurred = false;
 
+        private boolean m_limitRowsForSpec;
+
+        private long m_maxRowsForSpec;
+
         @Override
         protected Void doInBackgroundWithContext() throws Exception {
             // wait a bit, the thread may be interrupted immediately when several config changes are made
@@ -314,10 +318,13 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
             m_analyzing = true;
             setVisibleAnalysisComponents(true);
 
-            final List<Path> paths = m_pathsSupplier.call();
+            final List<Path> paths = m_pathSettings.getPaths(m_fsConnection.get());
             m_execMonitor.setNumPathsToRead(paths.size());
-            m_table = m_multiTableReader.createPreviewDataTable(m_rootPathSupplier.get(), paths, m_configSupplier.get(),
-                m_execMonitor);
+            final MultiTableReadConfig<C> config = m_configSupplier.get();
+            m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
+            m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
+            m_table =
+                m_multiTableReader.createPreviewDataTable(m_pathSettings.getPathOrURL(), paths, config, m_execMonitor);
             return null;
         }
 
@@ -340,13 +347,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                 setDataTable(m_table);
                 try {
                     m_execMonitor.checkCanceled();
-                    if (!specGuessingErrorOccurred && !m_errorOccurred) {
-                        m_analysisProgressLabel.setIcon(SharedIcons.SUCCESS.get());
-                        m_analysisProgressLabel.setText("File analysis successfully completed.");
-                    } else {
-                        m_analysisProgressLabel.setIcon(null);
-                        m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
-                    }
+                    setAnalysisStatus(specGuessingErrorOccurred);
                     m_analysisProgressPathLabel.setText("");
                 } catch (CanceledExecutionException ex) {
                     m_analysisProgressLabel.setIcon(SharedIcons.WARNING_YELLOW.get());
@@ -355,6 +356,22 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                 }
             }
             setVisibleAnalysisComponents(false);
+        }
+
+        private void setAnalysisStatus(final boolean specGuessingErrorOccurred) {
+            if (!specGuessingErrorOccurred && !m_errorOccurred) {
+                if (m_limitRowsForSpec) {
+                    m_analysisProgressLabel.setIcon(SharedIcons.INFO.get());
+                    m_analysisProgressLabel.setText("The suggested column types are based on the first "
+                        + m_maxRowsForSpec + " rows only. See 'Limit Rows' tab.");
+                } else {
+                    m_analysisProgressLabel.setIcon(SharedIcons.SUCCESS.get());
+                    m_analysisProgressLabel.setText("File analysis successfully completed.");
+                }
+            } else {
+                m_analysisProgressLabel.setIcon(null);
+                m_analysisProgressLabel.setText(EMPTY_SPACE_RESERVING_LABEL_TEXT);
+            }
         }
 
         private boolean checkForExceptions() {
@@ -366,7 +383,10 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                 m_errorOccurred = true;
                 final Throwable cause = e.getCause();
                 if (cause != null) {
-                    if (cause instanceof IOException || cause.getCause() instanceof IOException) {
+                    // check for the exceptions that are thrown by PathSettings#getPaths
+                    // and for IOExceptions during execution
+                    if (cause instanceof IOException || cause instanceof InvalidSettingsException
+                        || cause.getCause() instanceof IOException) {
                         setError(-1, IO_ERROR);
                     } else {
                         setError(-1, cause.getMessage());

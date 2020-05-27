@@ -44,56 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.table.csv.simple;
 
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReader;
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
-import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
-import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import java.util.Optional;
+
+import org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.context.NodeCreationConfiguration;
 
 /**
- * Abstract node factory for the CSV readers based on the new table reader framework.
+ * Node factory for the simple file reader node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public abstract class CSVTableReaderNodeFactory
-    extends AbstractTableReaderNodeFactory<CSVTableReaderConfig, Class<?>, String> {
-
-    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
-        CSVTableReader.TYPE_HIERARCHY.createTypeFocusedHierarchy();
+public final class SimpleFileReaderNodeFactory extends CSVTableReaderNodeFactory {
 
     @Override
-    protected boolean hasDialog() {
-        return true;
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new SimpleFileReaderNodeDialog(createPathSettings(), createConfig(), createMultiTableReader(),
+            getProducerRegistry());
     }
 
     @Override
-    protected CSVTableReaderConfig createReaderSpecificConfig() {
-        return new CSVTableReaderConfig();
+    protected PathAwareFileHistoryPanel createPathSettings() {
+        return new PathAwareFileHistoryPanel("file_location");
     }
 
     @Override
-    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
-        return new StringReadAdapterFactory();
-    }
-
-    @Override
-    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-        return TYPE_HIERARCHY;
-    }
-
-    @Override
-    protected CSVTableReader createReader() {
-        return new CSVTableReader();
-    }
-
-    @Override
-    protected String extractRowKey(final String value) {
-        return value;
+    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        builder.addFixedOutputPortGroup("Data Table", BufferedDataTable.TYPE);
+        return Optional.of(builder);
     }
 
 }

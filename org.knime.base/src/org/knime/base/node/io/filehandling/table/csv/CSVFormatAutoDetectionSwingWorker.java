@@ -53,15 +53,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
 
@@ -78,9 +77,9 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVFormatAutoDetectionSwingWorker.class);
 
-    private final Callable<List<Path>> m_pathsSupplier;
-
     private final CSVTableReaderNodeDialog m_dialog;
+
+    private final PathSettings m_pathSettings;
 
     private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
 
@@ -88,15 +87,14 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private static final String AUTO_DETECTION_ERROR = "Error during autodetection! See log file for details.";
 
-    public CSVFormatAutoDetectionSwingWorker(final Callable<List<Path>> pathsSupplier,
-        final CSVTableReaderNodeDialog dialog) {
+    CSVFormatAutoDetectionSwingWorker(final CSVTableReaderNodeDialog dialog, final PathSettings pathSettings) {
         m_dialog = dialog;
-        m_pathsSupplier = CheckUtils.checkArgumentNotNull(pathsSupplier, "The paths supplier must not be null.");
+        m_pathSettings = pathSettings;
     }
 
     @Override
-    protected CsvFormat doInBackgroundWithContext() throws Exception {
-        final List<Path> paths = m_pathsSupplier.call();
+    protected CsvFormat doInBackgroundWithContext() throws IOException, InvalidSettingsException, InterruptedException {
+        final List<Path> paths = m_pathSettings.getPaths(m_dialog.getFSConnection());
         final CsvParser csvParser =
             new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
 
