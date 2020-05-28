@@ -49,7 +49,9 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -60,6 +62,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -214,6 +217,11 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public FSLocationSpec getLocationSpec() {
         return m_locationSpec;
+    }
+
+    @Override
+    public Set<FileSelectionMode> getSupportedFileSelectionModes() {
+        return EnumSet.allOf(FileSelectionMode.class);
     }
 
 }

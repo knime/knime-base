@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.event.ChangeListener;
 
@@ -58,6 +59,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.DeepCopy;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusReporter;
@@ -110,6 +112,13 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      * @return the file system connection
      */
     Optional<FSConnection> getConnection();
+
+    /**
+     * Returns the file selection modes supported by this file system.
+     *
+     * @return the file selection modes supported by this file system
+     */
+    Set<FileSystemBrowser.FileSelectionMode> getSupportedFileSelectionModes();
 
     /**
      * Updates the config with the provided <b>specs</b> in the NodeModel of a node.</br>

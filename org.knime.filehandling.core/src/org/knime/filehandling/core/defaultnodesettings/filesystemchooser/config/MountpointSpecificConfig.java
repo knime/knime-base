@@ -52,10 +52,12 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.swing.ComboBoxModel;
@@ -68,6 +70,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -276,6 +279,11 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
         // nothing to configure
         CheckUtils.checkSetting(m_mountpoint.isValid(), "The selected mountpoint '%s' is no longer valid.",
             m_mountpoint);
+    }
+
+    @Override
+    public Set<FileSelectionMode> getSupportedFileSelectionModes() {
+        return EnumSet.allOf(FileSelectionMode.class);
     }
 
 }

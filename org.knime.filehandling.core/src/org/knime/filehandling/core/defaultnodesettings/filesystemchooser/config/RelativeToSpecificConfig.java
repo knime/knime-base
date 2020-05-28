@@ -48,7 +48,9 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -57,6 +59,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -175,6 +178,11 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
             throw new InvalidSettingsException(
                 String.format("Unsupported relative to option '%s' encountered.", specifier.get()), iae);
         }
+    }
+
+    @Override
+    public Set<FileSelectionMode> getSupportedFileSelectionModes() {
+        return EnumSet.allOf(FileSelectionMode.class);
     }
 
 }

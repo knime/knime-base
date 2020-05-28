@@ -48,7 +48,9 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -178,6 +180,11 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
         } else {
             throw new InvalidSettingsException("No timeout specified for custom url file system.");
         }
+    }
+
+    @Override
+    public Set<FileSelectionMode> getSupportedFileSelectionModes() {
+        return EnumSet.of(FileSelectionMode.FILES_ONLY);
     }
 
 }
