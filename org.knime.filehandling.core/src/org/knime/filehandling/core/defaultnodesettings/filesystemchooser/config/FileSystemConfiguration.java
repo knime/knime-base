@@ -55,6 +55,7 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.swing.event.ChangeEvent;
@@ -69,11 +70,11 @@ import org.knime.core.node.context.DeepCopy;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
@@ -92,18 +93,13 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.
  * connected file systems, it isn't possible to overwrite the settings with flow variables.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <L> the type of {@link FSLocationSpecConfig} used
  */
-public final class FileSystemConfiguration implements DeepCopy<FileSystemConfiguration>, StatusReporter {
+public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
+    implements DeepCopy<FileSystemConfiguration<L>>, StatusReporter {
 
     private static final String CFG_FILE_SYSTEM_CHOOSER_INTERNALS =
         "file_system_chooser_" + SettingsModel.CFGKEY_INTERNAL;
-
-    /**
-     * Config key for the file system (saved as {@link FSLocationSpec})
-     */
-    public static final String CFG_LOCATION_SPEC = "location_spec";
-
-    private final String m_locationCfgKey;
 
     private final EnumMap<Choice, FileSystemSpecificConfig> m_fsSpecificConfigs = new EnumMap<>(Choice.class);
 
@@ -113,7 +109,7 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
 
     private final int m_portIdx;
 
-    private FSLocationSpec m_locationSpec;
+    private final L m_locationConfig;
 
     /**
      * Constructor to be used in the case where there is no file system port.</br>
@@ -121,11 +117,12 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * The {@link ConnectedFileSystemSpecificConfig} is not supported in this constructor.</br>
      * The created configuration can be overwritten using the flow variable tab of the corresponding node dialog.
      *
+     * @param locationConfig {@link FSLocationSpecConfig} used to handle {@link FSLocationSpec} instances
      * @param configs the {@link FileSystemSpecificConfig configs} for the default file systems to choose from (must not
      *            contain {@link ConnectedFileSystemSpecificConfig})
      */
-    public FileSystemConfiguration(final FileSystemSpecificConfig... configs) {
-        this(-1, configs);
+    public FileSystemConfiguration(final L locationConfig, final FileSystemSpecificConfig... configs) {
+        this(-1, locationConfig, configs);
         CheckUtils.checkArgument(Arrays.stream(configs).noneMatch(c -> c instanceof ConnectedFileSystemSpecificConfig),
             "Connected file system config detected even though there is no file system port.");
     }
@@ -134,17 +131,19 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * Constructor to be used in the case where there is a file system input port.</br>
      * Configurations created by this constructor cannot be overwritten using flow variables.
      *
+     * @param locationConfig {@link FSLocationSpecConfig} used to handle {@link FSLocationSpec} instances
      * @param config an instance of {@link ConnectedFileSystemSpecificConfig}
      */
-    public FileSystemConfiguration(final ConnectedFileSystemSpecificConfig config) {
-        this(config.getPortIdx(), config);
+    public FileSystemConfiguration(final L locationConfig, final ConnectedFileSystemSpecificConfig config) {
+        this(config.getPortIdx(), locationConfig, config);
     }
 
-    private FileSystemConfiguration(final int portIdx, final FileSystemSpecificConfig... configs) {
+    private FileSystemConfiguration(final int portIdx, final L locationConfig,
+        final FileSystemSpecificConfig... configs) {
+        m_locationConfig = CheckUtils.checkArgumentNotNull(locationConfig, "The locationSpecConfig must not be null.");
+        m_locationConfig.addChangeListener(e -> handleLocationChange());
         m_portIdx = portIdx;
-        // by appending the internal key, we can hide settings in the flow variable tab
-        m_locationCfgKey = m_portIdx >= 0 ? CFG_LOCATION_SPEC + SettingsModel.CFGKEY_INTERNAL : CFG_LOCATION_SPEC;
-        m_locationSpec = configs[0].getLocationSpec();
+        m_locationConfig.setLocationSpec(configs[0].getLocationSpec());
         for (FileSystemSpecificConfig config : configs) {
             final Choice choice = config.getLocationSpec().getFileSystemChoice();
             CheckUtils.checkArgument(!m_fsSpecificConfigs.containsKey(choice),
@@ -152,6 +151,10 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
             m_fsSpecificConfigs.put(choice, config);
             config.addChangeListener(e -> handleSpecificConfigChange());
         }
+    }
+
+    private void handleLocationChange() {
+        notifyChangeListeners();
     }
 
     private void handleSpecificConfigChange() {
@@ -165,10 +168,9 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      *
      * @param toCopy the instance to copy
      */
-    private FileSystemConfiguration(final FileSystemConfiguration toCopy) {
+    private FileSystemConfiguration(final FileSystemConfiguration<L> toCopy) {
         m_portIdx = toCopy.m_portIdx;
-        m_locationCfgKey = toCopy.m_locationCfgKey;
-        m_locationSpec = toCopy.m_locationSpec;
+        m_locationConfig = toCopy.m_locationConfig.copy();
         toCopy.m_fsSpecificConfigs.entrySet().forEach(e -> m_fsSpecificConfigs.put(e.getKey(), e.getValue().copy()));
     }
 
@@ -181,8 +183,27 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
         return new FSLocationFactory(getLocationSpec(), getConnection());
     }
 
-    private Optional<FSConnection> getConnection() {
+    /**
+     * Returns an {@link Optional} containing the FSConnection if used with a file system provided via input port or
+     * {@link Optional#empty()} in case the file system isn't connected or a convenience file system is selected.
+     *
+     * @return an {@link Optional} containing the {@link FSConnection} or empty if not connected or a convenience file
+     *         system is selected
+     */
+    public Optional<FSConnection> getConnection() {
         return getCurrentSpecificConfig().flatMap(FileSystemSpecificConfig::getConnection);
+    }
+
+    /**
+     * Returns the supported file selection modes of the currently selected file system.
+     *
+     * @return the supported file selection modes of the currently selected file system
+     * @throws IllegalStateException if the current configuration is invalid
+     */
+    public Set<FileSystemBrowser.FileSelectionMode> getSupportedFileSelectionModes() {
+        return getCurrentSpecificConfig()
+            .orElseThrow(() -> new IllegalStateException("The current configuration is invalid."))
+            .getSupportedFileSelectionModes();
     }
 
     /**
@@ -191,7 +212,16 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * @return the {@link FSLocationSpec}
      */
     public FSLocationSpec getLocationSpec() {
-        return m_locationSpec;
+        return m_locationConfig.getLocationSpec();
+    }
+
+    /**
+     * Returns the {@link FSLocationSpecConfig}.
+     *
+     * @return the {@link FSLocationSpecConfig}
+     */
+    public L getLocationConfig() {
+        return m_locationConfig;
     }
 
     /**
@@ -200,20 +230,15 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * @param spec the {@link FSLocationSpec} to set
      */
     public void setLocationSpec(final FSLocationSpec spec) {
-        CheckUtils.checkArgumentNotNull(spec, "The spec must not be null.");
-        if (!FSLocationSpec.areEqual(getLocationSpec(), spec)) {
-            m_locationSpec = spec;
-            getCurrentSpecificConfig().ifPresent(c -> c.overwriteWith(spec));
-            notifyChangeListeners();
-        }
+        m_locationConfig.setLocationSpec(spec);
     }
 
     /**
      * NOTE: Listeners are not copied!
      */
     @Override
-    public FileSystemConfiguration copy() {
-        return new FileSystemConfiguration(this);
+    public FileSystemConfiguration<L> copy() {
+        return new FileSystemConfiguration<>(this);
     }
 
     /**
@@ -266,7 +291,7 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * @return the current {@link Choice} of file system
      */
     public Choice getChoice() {
-        return m_locationSpec.getFileSystemChoice();
+        return m_locationConfig.getLocationSpec().getFileSystemChoice();
     }
 
     /**
@@ -279,11 +304,10 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      * @throws IllegalArgumentException if the provided {@link Choice} is not supported by this instance
      */
     public void setChoice(final Choice choice) {
-        if (choice != m_locationSpec.getFileSystemChoice()) {
+        if (choice != getLocationSpec().getFileSystemChoice()) {
             setLocationSpec(getSpecificConfig(choice)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported file system choice: " + choice))
                 .getLocationSpec());
-            notifyChangeListeners();
         }
     }
 
@@ -297,15 +321,8 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        FSLocationSpec locationSpec = null;
-        try {
-            locationSpec = loadLocation(settings);
-        } catch (InvalidSettingsException ise) {
-            throw new IllegalStateException("Loading the FSLocationSpec failed.", ise);
-        }
         loadInternalSettingsInDialog(getChildSettingsOrEmpty(settings, CFG_FILE_SYSTEM_CHOOSER_INTERNALS), specs);
-        // sets the location spec AND updates the selected specific config IF the location spec corresponds to a config
-        setLocationSpec(locationSpec);
+        m_locationConfig.loadSettingsForDialog(settings);
     }
 
     /**
@@ -319,17 +336,13 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         loadInternalSettingsForModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
-        setLocationSpec(loadLocation(settings));
+        m_locationConfig.loadSettingsForModel(settings);
     }
 
     private void loadInternalSettingsForModel(final NodeSettingsRO internalSettings) throws InvalidSettingsException {
         for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
             config.loadInModel(internalSettings);
         }
-    }
-
-    private FSLocationSpec loadLocation(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return FSLocationUtils.loadFSLocationSpec(settings.getNodeSettings(m_locationCfgKey));
     }
 
     /**
@@ -408,7 +421,7 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
 
     private void save(final NodeSettingsWO fsSettings) {
         saveInternalSettings(fsSettings.addNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
-        FSLocationUtils.saveFSLocationSpec(getLocationSpec(), fsSettings.addNodeSettings(m_locationCfgKey));
+        m_locationConfig.save(fsSettings);
     }
 
     private void saveInternalSettings(final NodeSettingsWO internalSettings) {
@@ -428,7 +441,12 @@ public final class FileSystemConfiguration implements DeepCopy<FileSystemConfigu
         for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
             config.validateInModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
         }
-        FSLocationSpec locationSpec = FSLocationUtils.loadFSLocationSpec(settings.getNodeSettings(m_locationCfgKey));
+        // validates the config e.g. ensures that a path is present if we are in a file chooser
+        m_locationConfig.validateForModel(settings);
+        // We can't change the actual locationConfig, so copy it and load the settings into the copy
+        final L locationConfig = m_locationConfig.copy();
+        locationConfig.loadSettingsForModel(settings);
+        final FSLocationSpec locationSpec = locationConfig.getLocationSpec();
         final FileSystemSpecificConfig selected = m_fsSpecificConfigs.get(locationSpec.getFileSystemChoice());
         CheckUtils.checkSettingNotNull(selected, "The specified file system '%s' is not supported by this config.",
             locationSpec);
