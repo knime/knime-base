@@ -359,7 +359,7 @@ final class FilterOptionsPanel extends JPanel {
         final boolean visibleFileComps = filterOption == FilterMode.FILE || filterOption == FilterMode.FILES_IN_FOLDERS
             || filterOption == FilterMode.FILES_AND_FOLDERS;
         final boolean visibleFolderComps = filterOption == FilterMode.FOLDER || filterOption == FilterMode.FOLDERS
-            || filterOption == FilterMode.FILES_AND_FOLDERS;
+            || filterOption == FilterMode.FILES_AND_FOLDERS || filterOption == FilterMode.FILES_IN_FOLDERS;
         m_filePanel.setVisible(visibleFileComps);
         m_folderPanel.setVisible(visibleFolderComps);
     }
