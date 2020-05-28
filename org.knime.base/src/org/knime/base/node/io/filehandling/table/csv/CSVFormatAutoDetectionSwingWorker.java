@@ -71,11 +71,7 @@ import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
 /**
-<<<<<<< HEAD
  * Swing worker to automatically detect column delimiter, row delimiter, quote char and quote escape char of a csv-file.
-=======
- * Swing worker to detect column delimiter, row delimiter, quote char and quote escape char of a csv-file automatically
->>>>>>> AP-14012: Added auto-guessing option to CSV Reader (new filehandling)
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  */
