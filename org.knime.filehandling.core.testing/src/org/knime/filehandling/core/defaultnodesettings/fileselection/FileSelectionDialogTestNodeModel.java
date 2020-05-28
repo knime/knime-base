@@ -51,13 +51,16 @@ package org.knime.filehandling.core.defaultnodesettings.fileselection;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  *
@@ -65,12 +68,17 @@ import org.knime.core.node.NodeSettingsWO;
  */
 final class FileSelectionDialogTestNodeModel extends NodeModel {
 
-    FileSelectionDialogTestNodeModel() {
-        super(0, 0);
+    FileSelectionDialogTestNodeModel(final PortsConfiguration portsConfig) {
+        super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
     }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return null;
+    }
+    
+    @Override
+    protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
         return null;
     }
 

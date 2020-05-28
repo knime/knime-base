@@ -52,24 +52,27 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Arrays;
 
-import javax.swing.ButtonGroup;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
-import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
-import org.knime.filehandling.core.connections.local.LocalFileSystemBrowser;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.DialogComponentFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -79,25 +82,30 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
 
-    private final FileSelectionDialog m_readDialog;
+    private final DialogComponentFileChooser3 m_readDialog;
 
-    private final FileSelectionDialog m_writeDialog;
+    private final DialogComponentFileChooser3 m_writeDialog;
 
     private final JTextField m_extensions = new JTextField(20);
 
-    private final JRadioButton m_onlyFiles = new JRadioButton("Files");
+    FileSelectionDialogTestNodeDialog(final PortsConfiguration portsConfig, final String fileSystemPortIdentifier) {
+        final SettingsModelFileChooser3 readSettings =
+            new SettingsModelFileChooser3("read", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
+        final FlowVariableModel readFvm =
+            createFlowVariableModel(readSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_readDialog =
+            new DialogComponentFileChooser3(readSettings, DialogType.OPEN_DIALOG, readFvm, FilterMode.values());
+        m_readDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
-    private final JRadioButton m_onlyFolders = new JRadioButton("Folders");
+        final SettingsModelFileChooser3 writeSettings =
+            new SettingsModelFileChooser3("write", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
 
-    private final JRadioButton m_filesAndFolders = new JRadioButton("Files and Folders");
+        final FlowVariableModel writeFvm =
+            createFlowVariableModel(writeSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_writeDialog = new DialogComponentFileChooser3(writeSettings, DialogType.SAVE_DIALOG, writeFvm);
 
-    FileSelectionDialogTestNodeDialog() {
-        //		FileSystemBrowser fileSystemBrowser = new NioFileSystemBrowser(new LocalFSConnection());
-        FileSystemBrowser fileSystemBrowser = new LocalFileSystemBrowser();
-        m_readDialog = new FileSelectionDialog("testReadDialog", 8, fileSystemBrowser, DialogType.OPEN_DIALOG,
-            FileSelectionMode.FILES_ONLY, new String[0]);
-        m_writeDialog = new FileSelectionDialog("testWriteDialog", 8, fileSystemBrowser, DialogType.SAVE_DIALOG,
-            FileSelectionMode.FILES_ONLY, new String[0]);
+        m_writeDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Write"));
+
         m_extensions.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -115,72 +123,41 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
                 handleExtensionChange();
             }
         });
-        setupFileSelectionModeButtonGroup();
         addTab("Options", layout());
     }
 
     private JPanel layout() {
         final JPanel panel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder(new Insets(5, 5, 5, 5)).resetX().resetY();
-        panel.add(m_onlyFiles, gbc.build());
-        panel.add(m_onlyFolders, gbc.incX().build());
-        panel.add(m_filesAndFolders, gbc.incX().build());
         panel.add(new JLabel("File extensions:"), gbc.resetX().incY().build());
         panel.add(m_extensions, gbc.incX().build());
-        panel.add(m_readDialog.getPanel(), gbc.resetX().incY().setWidth(3).fillHorizontal().setWeightX(1).build());
-        panel.add(m_writeDialog.getPanel(), gbc.incY().build());
+        panel.add(m_readDialog.getComponentPanel(),
+            gbc.resetX().incY().setWidth(3).fillHorizontal().setWeightX(1).build());
+        panel.add(m_writeDialog.getComponentPanel(), gbc.incY().build());
         return panel;
-    }
-
-    private void setupFileSelectionModeButtonGroup() {
-        ButtonGroup bg = new ButtonGroup();
-        bg.add(m_onlyFiles);
-        bg.add(m_onlyFolders);
-        bg.add(m_filesAndFolders);
-        bg.setSelected(m_onlyFiles.getModel(), true);
-        m_onlyFiles.addActionListener(e -> handleFileSelectionModeChange());
-        m_onlyFolders.addActionListener(e -> handleFileSelectionModeChange());
-        m_filesAndFolders.addActionListener(e -> handleFileSelectionModeChange());
     }
 
     private void handleExtensionChange() {
         final String[] extensions = getExtensions();
-        m_readDialog.setFileExtensions(extensions);
-        m_writeDialog.setFileExtensions(extensions);
+        m_readDialog.getSettingsModel().setFileExtensions(extensions);
+        m_writeDialog.getSettingsModel().setFileExtensions(extensions);
     }
 
     private String[] getExtensions() {
         return Arrays.stream(m_extensions.getText().split(",")).filter(s -> !s.isEmpty()).toArray(String[]::new);
     }
 
-    private void handleFileSelectionModeChange() {
-        final FileSelectionMode newMode = getCurrentMode();
-        m_readDialog.setFileSelectionMode(newMode);
-        m_writeDialog.setFileSelectionMode(newMode);
-    }
-
-    private FileSelectionMode getCurrentMode() {
-        if (m_onlyFiles.isSelected()) {
-            return FileSelectionMode.FILES_ONLY;
-        } else if (m_onlyFolders.isSelected()) {
-            return FileSelectionMode.DIRECTORIES_ONLY;
-        } else if (m_filesAndFolders.isSelected()) {
-            return FileSelectionMode.FILES_AND_DIRECTORIES;
-        } else {
-            throw new IllegalStateException("No file selection mode selected.");
-        }
-    }
-
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_readDialog.addCurrentSelectionToHistory();
-        m_writeDialog.addCurrentSelectionToHistory();
+        m_readDialog.saveSettingsTo(settings);
+        m_writeDialog.saveSettingsTo(settings);
     }
 
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        // nothing to load
+        m_readDialog.loadSettingsFrom(settings, specs);
+        m_writeDialog.loadSettingsFrom(settings, specs);
     }
 
 }

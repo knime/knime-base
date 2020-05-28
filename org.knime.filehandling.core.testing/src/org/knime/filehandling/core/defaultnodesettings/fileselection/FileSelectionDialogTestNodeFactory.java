@@ -48,21 +48,22 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.fileselection;
 
+import java.util.Optional;
+
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  * Node factory for testing {@link FileSelectionDialog}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class FileSelectionDialogTestNodeFactory extends NodeFactory<FileSelectionDialogTestNodeModel> {
-
-    @Override
-    public FileSelectionDialogTestNodeModel createNodeModel() {
-        return new FileSelectionDialogTestNodeModel();
-    }
+public final class FileSelectionDialogTestNodeFactory
+    extends ConfigurableNodeFactory<FileSelectionDialogTestNodeModel> {
 
     @Override
     protected int getNrNodeViews() {
@@ -81,8 +82,20 @@ public final class FileSelectionDialogTestNodeFactory extends NodeFactory<FileSe
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new FileSelectionDialogTestNodeDialog();
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        builder.addOptionalInputPortGroup("file_system", FileSystemPortObject.TYPE);
+        return Optional.of(builder);
+    }
+
+    @Override
+    protected FileSelectionDialogTestNodeModel createNodeModel(NodeCreationConfiguration creationConfig) {
+        return new FileSelectionDialogTestNodeModel(creationConfig.getPortConfig().get());
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(NodeCreationConfiguration creationConfig) {
+        return new FileSelectionDialogTestNodeDialog(creationConfig.getPortConfig().get(), "file_system");
     }
 
 }

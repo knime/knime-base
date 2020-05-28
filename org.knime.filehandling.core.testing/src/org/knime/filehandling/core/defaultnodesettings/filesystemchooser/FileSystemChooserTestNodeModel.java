@@ -51,8 +51,6 @@ package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -70,22 +68,22 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class FileSystemChooserTestNodeModel extends NodeModel {
-	
+
 	private final SettingsModelFileSystem m_settings;
-	
-    FileSystemChooserTestNodeModel(final PortsConfiguration portsConfig, SettingsModelFileSystem settings) {
+
+    FileSystemChooserTestNodeModel(final PortsConfiguration portsConfig, final SettingsModelFileSystem settings) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_settings = settings;
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_settings.configureInModel(inSpecs);
+        m_settings.configureInModel(inSpecs, m -> setWarningMessage(m.getMessage()));
         return null;
     }
-    
+
     @Override
-    protected PortObject[] execute(PortObject[] inData, ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         return null;
     }
 
