@@ -51,9 +51,10 @@ package org.knime.filehandling.core.defaultnodesettings.filtermode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -68,7 +69,7 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("javadoc")
-public final class FileAndFolderFilter implements Predicate<Path> {
+public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAttributes> {
 
     /**
      * FilterType enumeration used for {@link FileAndFolderFilter}.
@@ -170,7 +171,8 @@ public final class FileAndFolderFilter implements Predicate<Path> {
             m_filterOptionsSettings.getFoldersNameExpression(), m_filterOptionsSettings.isFoldersNameCaseSensitive());
     }
 
-    private static Pattern createRegex(final FilterType filterType, final String expression, final boolean caseSensitive) {
+    private static Pattern createRegex(final FilterType filterType, final String expression,
+        final boolean caseSensitive) {
         final String regexString =
             filterType == FilterType.WILDCARD ? WildcardToRegexUtil.wildcardToRegex(expression, false) : expression;
         return caseSensitive ? Pattern.compile(regexString) : Pattern.compile(regexString, Pattern.CASE_INSENSITIVE);
@@ -261,12 +263,12 @@ public final class FileAndFolderFilter implements Predicate<Path> {
     }
 
     @Override
-    public boolean test(final Path path) {
-        if (Files.isDirectory(path)) {
+    public boolean test(final Path path, final BasicFileAttributes attrs) {
+        if (attrs.isDirectory()) {
             return isSatisfiedFolderHidden(path) && //
                 isSatisfiedFolderName(path);
         }
-        return Files.isRegularFile(path) && //
+        return attrs.isRegularFile() && //
             isSatisfiedFilterHidden(path) && //
             isSatisfiedFileExtension(path) && //
             isSatisfiedFileName(path);
