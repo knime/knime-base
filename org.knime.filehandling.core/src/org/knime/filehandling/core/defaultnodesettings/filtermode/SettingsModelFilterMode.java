@@ -56,6 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 
 /**
  * Settings model for {@link DialogComponentFilterMode}.
@@ -177,7 +178,7 @@ public final class SettingsModelFilterMode extends SettingsModel {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelFilterMode createClone() {
+    public SettingsModelFilterMode createClone() {
         return new SettingsModelFilterMode(this);
     }
 
@@ -192,13 +193,15 @@ public final class SettingsModelFilterMode extends SettingsModel {
     }
 
     @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
             final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
             m_filterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
             m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS, DEFAULT_INCLUDE_SUBFOLDERS);
             m_filterOptionsSettings.loadFromConfigForDialog(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+            notifyChangeListeners();
+
         } catch (InvalidSettingsException ex) {
             // nothing to do
         }
@@ -245,20 +248,23 @@ public final class SettingsModelFilterMode extends SettingsModel {
      */
     public enum FilterMode implements ButtonGroupEnumInterface {
             /** Only one file */
-            FILE("File"),
+            FILE("File", FileSelectionMode.FILES_ONLY),
             /** Only one folder */
-            FOLDER("Folder"),
+            FOLDER("Folder", FileSelectionMode.DIRECTORIES_ONLY),
             /** Several files in a folder */
-            FILES_IN_FOLDERS("Files in folder"),
+            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.FILES_AND_DIRECTORIES),
             /** Multiple folders */
-            FOLDERS("Folders"),
+            FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY),
             /** Multiple files and folders */
-            FILES_AND_FOLDERS("Files and folders");
+            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.FILES_AND_DIRECTORIES);
 
         private final String m_label;
 
-        private FilterMode(final String label) {
+        private final FileSelectionMode m_fileSelectionMode;
+
+        private FilterMode(final String label, final FileSelectionMode fileSelectionMode) {
             m_label = label;
+            m_fileSelectionMode = fileSelectionMode;
         }
 
         @Override
@@ -279,6 +285,16 @@ public final class SettingsModelFilterMode extends SettingsModel {
         @Override
         public boolean isDefault() {
             return this == FILE;
+        }
+
+        /**
+         * Returns the {@link org.knime.core.node.util.FileSystemBrowser.FileSelectionMode FileSelectionMode} associated
+         * with this filter mode.
+         *
+         * @return the selection mode
+         */
+        public FileSelectionMode getFileSelectionMode() {
+            return m_fileSelectionMode;
         }
     }
 }
