@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,13 +60,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
-import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
@@ -102,8 +99,8 @@ public final class FileChooserHelper {
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @throws IOException thrown when the file system could not be retrieved.
      */
-    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection, final SettingsModelFileChooser2 settings)
-        throws IOException {
+    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection,
+        final SettingsModelFileChooser2 settings) throws IOException {
         this(portObjectFSConnection, settings, FileUtil.getDefaultURLTimeoutMillis());
     }
 
@@ -114,8 +111,8 @@ public final class FileChooserHelper {
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @param timeoutInMillis timeout in milliseconds, or -1 if not applicable.
      */
-    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection, final SettingsModelFileChooser2 settings,
-        final int timeoutInMillis) {
+    public FileChooserHelper(final Optional<FSConnection> portObjectFSConnection,
+        final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
         m_filter = new FileFilter(settings.getFileFilterSettings());
         m_settings = settings;
         m_portObjectFSConnection = portObjectFSConnection;
@@ -130,7 +127,8 @@ public final class FileChooserHelper {
      */
     public final FSFileSystem<?> getFileSystem() throws IOException {
         if (m_fsConnection == null) {
-            m_fsConnection = FileSystemHelper.retrieveFSConnection(m_portObjectFSConnection, m_settings, m_timeoutInMillis);
+            m_fsConnection =
+                FileSystemHelper.retrieveFSConnection(m_portObjectFSConnection, m_settings, m_timeoutInMillis);
         }
         return m_fsConnection.getFileSystem();
     }
@@ -171,7 +169,6 @@ public final class FileChooserHelper {
      */
     public final List<Path> getPaths() throws IOException, InvalidSettingsException {
         final Path pathOrUrl = getPathFromSettings();
-        final List<Path> toReturn;
 
         final BasicFileAttributes fileAttrs = Files.readAttributes(pathOrUrl, BasicFileAttributes.class);
 
@@ -179,12 +176,10 @@ public final class FileChooserHelper {
             if (!fileAttrs.isDirectory()) {
                 throw new InvalidSettingsException(pathOrUrl.toString() + " is not a folder. Please specify a folder.");
             }
-            toReturn = scanDirectoryTree();
+            return scanDirectoryTree();
         } else {
-            toReturn = Collections.singletonList(pathOrUrl);
+            return Collections.singletonList(pathOrUrl);
         }
-
-        return toReturn;
     }
 
     /**
@@ -221,98 +216,36 @@ public final class FileChooserHelper {
             throw new InvalidSettingsException("No path specified");
         }
 
-        final Path pathOrUrl;
+        final FSPath pathOrUrl;
         final Choice fileSystemChoice = m_settings.getFileSystemChoice().getType();
         switch (fileSystemChoice) {
             case CONNECTED_FS:
-                pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
-                break;
+                return getFileSystem().getPath(m_settings.getPathOrURL());
             case CUSTOM_URL_FS:
-                final URI uri = URI.create(m_settings.getPathOrURL().replace(" ", "%20"));
-                validateCustomURL(uri);
-                pathOrUrl = getFileSystem().getPath(getURIPathQueryAndFragment(uri));
-                break;
+                return getFileSystem().getPath(ValidationUtils.toCustomURL(m_settings.getPathOrURL()));
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
-                if (pathOrUrl.isAbsolute()) {
-                    throw new InvalidSettingsException("The path must be relative, i.e. it must not start with '/'.");
-                }
-                break;
+                ValidationUtils.validateKnimeFSPath(pathOrUrl);
+                return pathOrUrl;
             case KNIME_MOUNTPOINT:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 if (!pathOrUrl.isAbsolute()) {
                     throw new InvalidSettingsException("The path must be absolute, i.e. it must start with '/'.");
                 }
-                break;
+                return pathOrUrl;
             case LOCAL_FS:
-                validateLocalFsAccess();
+                ValidationUtils.validateLocalFsAccess();
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 if (!pathOrUrl.isAbsolute()) {
                     throw new InvalidSettingsException("The path must be absolute.");
                 }
-                break;
+                return pathOrUrl;
             default:
                 final String errMsg =
                     String.format("Unknown choice enum '%s', make sure the switch covers all cases!", fileSystemChoice);
                 throw new RuntimeException(errMsg);
         }
-
-
-
-        return pathOrUrl;
     }
-
-    private String getURIPathQueryAndFragment(final URI uri) {
-        final StringBuilder toReturn = new StringBuilder(uri.getPath());
-
-        if (uri.getQuery() != null) {
-            toReturn.append("?");
-            toReturn.append(uri.getQuery());
-        }
-
-        if (uri.getFragment() != null) {
-            toReturn.append("#");
-            toReturn.append(uri.getFragment());
-        }
-        return toReturn.toString();
-    }
-
-    private void validateCustomURL(final URI uri) throws InvalidSettingsException {
-        // validate scheme
-        if (!uri.isAbsolute()) {
-            throw new InvalidSettingsException("URL must start with a scheme, e.g. http:");
-        }
-
-        if (uri.getScheme().equals("file")) {
-            validateLocalFsAccess();
-        }
-
-        if (uri.isOpaque()) {
-            throw new InvalidSettingsException("URL must have forward slash ('/') after scheme, e.g. http://");
-        }
-
-        if (uri.getPath() == null) {
-            throw new InvalidSettingsException("URL must specify a path, as in https://host/path/to/file");
-        }
-    }
-
-    private void validateLocalFsAccess() throws InvalidSettingsException {
-        final NodeContext nodeContext = NodeContext.getContext();
-
-        if (nodeContext == null) {
-            throw new InvalidSettingsException("No node context available");
-        }
-
-        final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
-        if (workflowContext == null) {
-            throw new InvalidSettingsException("No workflow context available");
-        }
-
-        if (isOnServer(workflowContext) && !FSPluginConfig.load().allowLocalFsAccessOnServer()) {
-            throw new InvalidSettingsException("Direct access to the local file system is not allowed on KNIME Server.");
-        }
-    }
-
 
     /**
      * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
@@ -321,10 +254,6 @@ public final class FileChooserHelper {
      */
     public final SettingsModelFileChooser2 getSettingsModel() {
         return m_settings.clone();
-    }
-
-    private static boolean isOnServer(final WorkflowContext context) {
-        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
     }
 
 }
