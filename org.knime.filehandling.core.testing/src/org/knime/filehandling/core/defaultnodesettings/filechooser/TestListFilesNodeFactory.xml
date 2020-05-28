@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./regression_predict.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>Test List Files</name>
+    <shortDescription>Dummy list files implementation using the new dialog.</shortDescription>
+    <fullDescription>
+        <intro>
+	        Dummy list files implementation using the new dialog.
+		</intro>
+	</fullDescription>
+    <ports>
+	</ports>
+</knimeNode>
