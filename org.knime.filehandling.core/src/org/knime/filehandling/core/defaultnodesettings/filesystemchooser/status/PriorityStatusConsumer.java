@@ -52,9 +52,11 @@ import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+
 /**
- * A {@link Consumer} of {@link StatusMessage StatusMessages} that prioritizes messages according to their type (error >
- * warning > info).
+ * A {@link Consumer} of {@link StatusMessage StatusMessages} that prioritizes messages according to their
+ * {@link MessageType} (error > warning > info).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */

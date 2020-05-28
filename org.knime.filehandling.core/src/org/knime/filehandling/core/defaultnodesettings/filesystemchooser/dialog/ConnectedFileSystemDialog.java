@@ -51,7 +51,6 @@ package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog
 import java.awt.Color;
 import java.awt.Component;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 
@@ -75,7 +74,7 @@ public final class ConnectedFileSystemDialog implements FileSystemSpecificDialog
 
     @Override
     public Component getSpecifierComponent() {
-        throw new NotImplementedException("The ConnectedFileSystemDialog provides no specifier.");
+        throw new UnsupportedOperationException("The ConnectedFileSystemDialog provides no specifier.");
     }
 
     @Override

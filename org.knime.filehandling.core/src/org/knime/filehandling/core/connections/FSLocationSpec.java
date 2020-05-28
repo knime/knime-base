@@ -109,6 +109,7 @@ public interface FSLocationSpec {
     @Override
     String toString();
 
+
     /**
      * Checks if the provided {@link FSLocationSpec} objects are equal regarding there type and specifier.
      *

@@ -134,6 +134,7 @@ public final class DialogComponentFilterMode extends DialogComponent {
 
         initComponent(showFilterOptionsPanel);
         getModel().addChangeListener(e -> updateComponent());
+        updateComponent();
     }
 
     private void initComponent(final boolean showFilterOptionsPanel) {

@@ -53,12 +53,11 @@ import org.knime.core.node.config.Config;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter.FilterType;
 
 /**
- * This class stores the data from the {@link FilterOptionsPanel}.
+ * This class stores the data from the FilterOptionsPanel.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("javadoc")
 final class FilterOptionsSettings {
 
     /** Configuration key for the option to filter files by extension in selected folder. */
