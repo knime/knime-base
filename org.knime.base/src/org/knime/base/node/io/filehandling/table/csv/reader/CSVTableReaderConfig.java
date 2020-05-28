@@ -79,6 +79,11 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     private static final int DEFAULT_MAX_CHARS_PER_COLUMN = 1024 * (1024 / 2);
 
     /**
+     * The default number of characters used for csv format autodetection
+     */
+    private static final int DEFAULT_AUTODETECTION_BUFFER_SIZE = 1024 * 1024;
+
+    /**
      * The default maximum number of columns to parse.
      *
      * @see CsvParserSettings#setMaxColumns(int)
@@ -156,6 +161,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setReplaceEmptyWithMissing(true);
         limitCharsPerColumn(true);
         setMaxColumns(DEFAULT_MAX_COLUMNS);
+        setAutoDetectionBufferSize(DEFAULT_AUTODETECTION_BUFFER_SIZE);
     }
 
     private CSVTableReaderConfig(final CSVTableReaderConfig toCopy) {
