@@ -147,6 +147,7 @@ public final class FSLocationUtils {
     }
 
     public static void saveFSLocationSpec(final FSLocationSpec locationSpec, final ConfigWO config) {
+        // TODO reference check doesn't solve the issue since FSLocation.NULL is also valid NULL FSLocationSpec
         config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
         if (locationSpec != FSLocationSpec.NULL) {
             config.addString(CFG_FS_TYPE, locationSpec.getFileSystemType());
@@ -184,13 +185,57 @@ public final class FSLocationUtils {
         return false;
     }
 
+    public static boolean canOverwriteWithFSLocation(final ConfigRO config) {
+        try {
+            if (config.getBoolean(CFG_LOCATION_PRESENT)) {
+                config.getString(CFG_FS_TYPE);
+                int expectedChildren = 2;
+                // the path must not be present if we are overwriting an FSLocationSpec
+                if (config.getString(CFG_PATH, null) != null) {
+                    expectedChildren++;
+                }
+                // the specifier is not necessarily present
+                if (config.getString(CFG_FS_SPECIFIER, null) != null) {
+                    expectedChildren++;
+                }
+                // we can't overwrite if there are more children than expected
+                return config.getChildCount() == expectedChildren;
+            } else {
+                // the config represents a FSLocation if it contains only the flag
+                return config.getChildCount() == 1;
+            }
+        } catch (InvalidSettingsException ex) {
+            // the config entry does not represent a SettingsModelFSLocation
+        }
+        return false;
+    }
+
+    public static boolean canCreateFromFSLocation(final ConfigRO config) {
+        try {
+            if (config.getBoolean(CFG_LOCATION_PRESENT)) {
+                config.getString(CFG_FS_TYPE);
+                config.getString(CFG_PATH);
+                // the specifier is not necessarily present
+                final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
+                // we can't overwrite if there are more children than expected
+                return config.getChildCount() == (fsSpecifier == null ? 3 : 4);
+            } else {
+                // the config represents a FSLocation if it contains only the flag
+                return config.getChildCount() == 1;
+            }
+        } catch (InvalidSettingsException ex) {
+            // the config entry does not represent a SettingsModelFSLocation
+        }
+        return false;
+    }
+
     public static boolean isFSLocationSpec(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
                 config.getString(CFG_FS_TYPE);
                 // the specifier is not necessarily present
-                config.getString(CFG_FS_SPECIFIER, null);
-                return true;
+                String specifier = config.getString(CFG_FS_SPECIFIER, null);
+                return config.getChildCount() == (specifier == null ? 2 : 3);
             } else {
                 // the config represents a FSLocationSpec if it contains only the flag
                 return config.getChildCount() == 1;

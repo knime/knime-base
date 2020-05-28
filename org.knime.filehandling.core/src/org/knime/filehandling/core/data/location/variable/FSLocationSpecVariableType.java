@@ -89,7 +89,7 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
     }
 
     @Override
-    protected Class<FSLocationSpec> getSimpleType() {
+    public Class<FSLocationSpec> getSimpleType() {
         return FSLocationSpec.class;
     }
 
