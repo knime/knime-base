@@ -59,6 +59,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -81,7 +82,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
 
     private static final int DEFAULT = 1000;
 
-    private long m_timeout = DEFAULT;
+    private int m_timeout = DEFAULT;
 
     /**
      * Constructor.
@@ -98,7 +99,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
      *
      * @return the timeout in milliseconds
      */
-    public long getTimeout() {
+    public int getTimeout() {
         return m_timeout;
     }
 
@@ -107,7 +108,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
      *
      * @param timeout the new timeout
      */
-    public void setTimeout(final long timeout) {
+    public void setTimeout(final int timeout) {
         if (m_timeout != timeout) {
             m_timeout = timeout;
             notifyListeners();
@@ -122,12 +123,12 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
     @Override
     public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        setTimeout(settings.getLong(CFG_CUSTOM_URL_TIMEOUT, DEFAULT));
+        setTimeout(settings.getInt(CFG_CUSTOM_URL_TIMEOUT, DEFAULT));
     }
 
     @Override
     public void overwriteWith(final FSLocationSpec locationSpec) {
-        long timeout = Long.parseLong(locationSpec.getFileSystemSpecifier()
+        final int timeout = Integer.parseInt(locationSpec.getFileSystemSpecifier()
             .orElseThrow(() -> new IllegalArgumentException("No timeout for custom URL file system provided.")));
         CheckUtils.checkArgument(timeout >= 0, "The custom URL timeout must not be negative.");
         setTimeout(timeout);
@@ -135,7 +136,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
 
     @Override
     public void validateInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        validateTimeout(settings.getLong(CFG_CUSTOM_URL_TIMEOUT));
+        validateTimeout(settings.getInt(CFG_CUSTOM_URL_TIMEOUT));
     }
 
     @Override
@@ -145,20 +146,20 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
         }
     }
 
-    private static void validateTimeout(final long timeout) throws InvalidSettingsException {
+    private static void validateTimeout(final int timeout) throws InvalidSettingsException {
         CheckUtils.checkSetting(timeout >= 0, "The custom URL timeout must not be negative.");
     }
 
     @Override
     public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final long timeout = settings.getLong(CFG_CUSTOM_URL_TIMEOUT);
+        final int timeout = settings.getInt(CFG_CUSTOM_URL_TIMEOUT);
         validateTimeout(timeout);
         m_timeout = timeout;
     }
 
     @Override
     public void save(final NodeSettingsWO settings) {
-        settings.addLong(CFG_CUSTOM_URL_TIMEOUT, m_timeout);
+        settings.addInt(CFG_CUSTOM_URL_TIMEOUT, m_timeout);
     }
 
     @Override
@@ -171,7 +172,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
         final Optional<String> specifier = location.getFileSystemSpecifier();
         if (specifier.isPresent()) {
             try {
-                long timeout = Long.parseLong(specifier.get());
+                int timeout = Integer.parseInt(specifier.get());
                 CheckUtils.checkSetting(timeout >= 0, "The timeout must be non-negative but was %s.", timeout);
             } catch (NumberFormatException ex) {
                 throw new InvalidSettingsException(

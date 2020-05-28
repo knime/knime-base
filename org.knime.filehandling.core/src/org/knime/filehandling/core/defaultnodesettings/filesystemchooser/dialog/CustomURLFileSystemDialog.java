@@ -70,17 +70,13 @@ public final class CustomURLFileSystemDialog implements FileSystemSpecificDialog
 
     private static final String ID = FileSystemChoice.getCustomFsUrlChoice().getId();
 
-    private final JSpinner m_timeoutSpinner = createLongSpinner(1000L, 0L, Long.MAX_VALUE, 1000L);
+    private final JSpinner m_timeoutSpinner = new JSpinner(new SpinnerNumberModel(1000, 0, Integer.MAX_VALUE, 1000));
 
     private final JPanel m_timeoutPanel = new JPanel();
 
     private final JLabel m_timeoutLabel = new JLabel("Timeout");
 
     private final CustomURLSpecificConfig m_config;
-
-    private static JSpinner createLongSpinner(final Long value, final Long min, final Long max, final Long step) {
-        return new JSpinner(new SpinnerNumberModel(value, min, max, step));
-    }
 
     /**
      * Constructor.
@@ -100,7 +96,7 @@ public final class CustomURLFileSystemDialog implements FileSystemSpecificDialog
     }
 
     private void handleSpinnerChange() {
-        m_config.setTimeout((long)m_timeoutSpinner.getValue());
+        m_config.setTimeout((int)m_timeoutSpinner.getValue());
     }
 
     @Override
