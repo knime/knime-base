@@ -104,7 +104,17 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder incX() {
-        m_gbc.gridx++;
+        return incX(1);
+    }
+
+    /**
+     * Increments the {@link GridBagConstraints#gridx} property by the provided <b>increment</b>.
+     *
+     * @param increment to add to the x position in the grid
+     * @return this builder
+     */
+    public GBCBuilder incX(final int increment) {
+        m_gbc.gridx += increment;
         return this;
     }
 
@@ -234,6 +244,16 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#CENTER}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder anchorCenter() {
+        m_gbc.anchor = GridBagConstraints.CENTER;
+        return this;
+    }
+
+    /**
      * Set the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#WEST}.
      *
      * @return this builder
@@ -252,6 +272,30 @@ public final class GBCBuilder {
      */
     public GBCBuilder setInsets(final Insets insets) {
         m_gbc.insets = CheckUtils.checkArgumentNotNull(insets, "The insets must not be null.");
+        return this;
+    }
+
+    /**
+     * Sets the right padding of the {@link GridBagConstraints#insets} property to the provided value.
+     *
+     * @param insetRight the external padding on the right side
+     * @return this builder
+     */
+    public GBCBuilder insetRight(final int insetRight) {
+        final Insets oldInsets = m_gbc.insets;
+        m_gbc.insets = new Insets(oldInsets.top, oldInsets.left, oldInsets.bottom, insetRight);
+        return this;
+    }
+
+    /**
+     * Sets the left external padding of the {@link GridBagConstraints#insets} property to the provided value.
+     *
+     * @param insetLeft the external padding on the left side
+     * @return this builder
+     */
+    public GBCBuilder insetLeft(final int insetLeft) {
+        final Insets oldInsets = m_gbc.insets;
+        m_gbc.insets = new Insets(oldInsets.top, insetLeft, oldInsets.bottom, oldInsets.right);
         return this;
     }
 
