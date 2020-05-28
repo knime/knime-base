@@ -53,6 +53,7 @@ import java.nio.file.FileSystem;
 import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
@@ -64,7 +65,11 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class FileSystemHelper {
+public final class FileSystemHelper {
+
+    private FileSystemHelper() {
+        // static uitlity class
+    }
 
     /**
      * Method to obtain the file system for a given settings model.
@@ -76,38 +81,80 @@ public class FileSystemHelper {
      */
     public static final FSConnection retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
-
         final FileSystemChoice choice = settings.getFileSystemChoice();
-        final FSConnection toReturn;
-
         switch (choice.getType()) {
             case LOCAL_FS:
-                toReturn = new LocalFSConnection();
-                break;
+                return new LocalFSConnection();
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
-                toReturn = new URIFSConnection(uri, timeoutInMillis);
-                break;
+                return new URIFSConnection(uri, timeoutInMillis);
             case KNIME_MOUNTPOINT:
                 final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
                 final KNIMEConnection connection =
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-                toReturn = new KNIMERemoteFSConnection(connection);
-                break;
+                return new KNIMERemoteFSConnection(connection);
             case KNIME_FS:
                 final String knimeFileSystemHost = settings.getKNIMEFileSystem();
                 final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
-                toReturn = new LocalRelativeToFSConnection(connectionTypeForHost);
-                break;
+                return new LocalRelativeToFSConnection(connectionTypeForHost);
             case CONNECTED_FS:
-                toReturn = portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
+                return portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
                     "No file system connection available for \"" + choice.getId() + "\""));
-                break;
             default:
                 throw new IllegalArgumentException("Unsupported file system choice: " + choice.getType());
         }
+    }
 
-        return toReturn;
+    /**
+     * Method to obtain the file system for a given {@link FSLocation}.
+     *
+     * @param portObjectConnection optional {@link FSConnection}.
+     * @param location {@link FSLocation} instance.
+     * @return {@link FileSystem} to use.
+     */
+    public static Optional<FSConnection> retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
+        final FSLocation location) {
+        final FileSystemChoice.Choice choice = location.getFileSystemChoice();
+        switch (choice) {
+            case CONNECTED_FS:
+                return portObjectConnection;
+            case CUSTOM_URL_FS:
+                final URI uri = URI.create(location.getPath().replace(" ", "%20"));
+                return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
+            case KNIME_FS:
+                return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location)));
+            case KNIME_MOUNTPOINT:
+                return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location)));
+            case LOCAL_FS:
+                return Optional.of(new LocalFSConnection());
+            default:
+                throw new IllegalArgumentException("Unknown file system choice: " + choice);
+
+        }
+    }
+
+    private static Type extractRelativeToHost(final FSLocation location) {
+        final String knimeFileSystemHost =
+            location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(String
+                .format("The provided relative to location '%s' does not specify the relative to type.", location)));
+        return KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
+    }
+
+    private static KNIMEConnection extractMountpoint(final FSLocation location) {
+        final String knimeFileSystem = location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
+            String.format("The provided mountpoint location '%s' does not specify a mountpoint.", location)));
+        return KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
+    }
+
+    private static int extractCustomURLTimeout(final FSLocation location) {
+        final String timeoutString = location.getFileSystemSpecifier()
+            .orElseThrow(() -> new IllegalArgumentException("A custom URL location must always specify a timeout."));
+        try {
+            return Integer.parseInt(timeoutString);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                String.format("The provided specifier for the URL location '%s' is not a valid timeout.", location));
+        }
     }
 
 }
