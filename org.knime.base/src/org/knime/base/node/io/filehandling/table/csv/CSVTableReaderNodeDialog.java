@@ -292,14 +292,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
             if (e.getActionCommand().equals(START_AUTODETECT_LABEL)) {
                 startFormatAutoDetection();
             } else {
-                m_startAutodetection.setText(START_AUTODETECT_LABEL);
-
-                if (m_formatAutoDetectionSwingWorker != null) {
-                    m_formatAutoDetectionSwingWorker.cancel(true);
-                    m_formatAutoDetectionSwingWorker = null;
-
-                    resetUIafterAutodetection();
-                }
+                cancelFormatAutoDetection();
             }
         });
 
@@ -931,6 +924,15 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_formatAutoDetectionSwingWorker.execute();
     }
 
+    private void cancelFormatAutoDetection() {
+        if (m_formatAutoDetectionSwingWorker != null) {
+            m_formatAutoDetectionSwingWorker.cancel(true);
+            m_formatAutoDetectionSwingWorker = null;
+        }
+        m_startAutodetection.setText(START_AUTODETECT_LABEL);
+        resetUIafterAutodetection();
+    }
+
     void setAutodetectComponentsEnabled(final boolean enabled) {
         m_commentStartField.setEnabled(enabled);
         m_skipFirstLinesChecker.setEnabled(enabled);
@@ -1023,6 +1025,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
 
     @Override
     public void onClose() {
+        cancelFormatAutoDetection();
         m_tableReaderPreview.onClose();
         super.onClose();
     }
