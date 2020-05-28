@@ -252,11 +252,11 @@ public final class SettingsModelFilterMode extends SettingsModel {
             /** Only one folder */
             FOLDER("Folder", FileSelectionMode.DIRECTORIES_ONLY),
             /** Several files in a folder */
-            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.FILES_AND_DIRECTORIES),
+            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.DIRECTORIES_ONLY),
             /** Multiple folders */
             FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY),
             /** Multiple files and folders */
-            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.FILES_AND_DIRECTORIES);
+            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY);
 
         private final String m_label;
 
