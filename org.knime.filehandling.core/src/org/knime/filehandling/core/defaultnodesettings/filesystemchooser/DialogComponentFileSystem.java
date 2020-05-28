@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import java.awt.GridBagLayout;
+import java.util.EnumSet;
 import java.util.Optional;
 
 import javax.swing.JPanel;
@@ -64,17 +65,8 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.ConnectedFileSystemDialog;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.CustomURLFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.LocalFileSystemDialog;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.RelativeToFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -109,13 +101,8 @@ public final class DialogComponentFileSystem extends DialogComponent {
     public DialogComponentFileSystem(final SettingsModelFileSystem model, final FlowVariableModel fvm) {
         super(model);
         CheckUtils.checkArgumentNotNull(model, "The model must not be null.");
-        FileSystemConfiguration config = model.getFileSystemConfiguration();
-        if (config.isConnectedFS()) {
-            m_fileSystemChooser = new FileSystemChooser(config, new ConnectedFileSystemDialog(
-                (ConnectedFileSystemSpecificConfig)config.getFileSystemSpecifcConfig(Choice.CONNECTED_FS)));
-        } else {
-            m_fileSystemChooser = createDefaultFileSystemChooser(config);
-        }
+        FileSystemConfiguration<?> config = model.getFileSystemConfiguration();
+        m_fileSystemChooser = FileSystemChooserUtils.createFileSystemChooser(config, EnumSet.allOf(Choice.class));
         model.addChangeListener(e -> updateComponent());
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
@@ -157,17 +144,6 @@ public final class DialogComponentFileSystem extends DialogComponent {
                 getSM().getFileSystemConfiguration().setLocationSpec(fsLocationSpec);
             }
         }
-    }
-
-    private static FileSystemChooser createDefaultFileSystemChooser(final FileSystemConfiguration config) {
-        final LocalFileSystemDialog local = LocalFileSystemDialog.INSTANCE;
-        final MountpointFileSystemDialog mountpoint = new MountpointFileSystemDialog(
-            (MountpointSpecificConfig)config.getFileSystemSpecifcConfig(Choice.KNIME_MOUNTPOINT));
-        final RelativeToFileSystemDialog relativeTo = new RelativeToFileSystemDialog(
-            (RelativeToSpecificConfig)config.getFileSystemSpecifcConfig(Choice.KNIME_FS));
-        final CustomURLFileSystemDialog customUrl = new CustomURLFileSystemDialog(
-            (CustomURLSpecificConfig)config.getFileSystemSpecifcConfig(Choice.CUSTOM_URL_FS));
-        return new FileSystemChooser(config, local, mountpoint, relativeTo, customUrl);
     }
 
     @Override

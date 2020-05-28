@@ -59,12 +59,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.DefaultFSLocationSpecConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 
 /**
  * {@link SettingsModel} that stores information about a file system.
@@ -75,7 +71,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
 
     private final String m_configName;
 
-    private final FileSystemConfiguration m_fsConfig;
+    private final FileSystemConfiguration<DefaultFSLocationSpecConfig> m_fsConfig;
 
     /**
      * Constructor.
@@ -87,22 +83,13 @@ public final class SettingsModelFileSystem extends SettingsModel {
     public SettingsModelFileSystem(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier) {
         if (portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null) {
-            m_fsConfig = new FileSystemConfiguration(
-                new ConnectedFileSystemSpecificConfig(portsConfig, fileSystemPortIdentifier));
             m_configName = configName + SettingsModel.CFGKEY_INTERNAL;
         } else {
-            m_fsConfig = createDefaultConfig();
             m_configName = configName;
         }
+        m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
+            new DefaultFSLocationSpecConfig());
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
-    }
-
-    private static FileSystemConfiguration createDefaultConfig() {
-        return new FileSystemConfiguration(//
-            new LocalSpecificConfig(), //
-            new RelativeToSpecificConfig(), //
-            new MountpointSpecificConfig(), //
-            new CustomURLSpecificConfig());
     }
 
     /**
@@ -116,7 +103,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
     }
 
     String[] getKeysForFSLocation() {
-        return new String[]{m_configName, FileSystemConfiguration.CFG_LOCATION_SPEC};
+        return new String[]{m_configName, DefaultFSLocationSpecConfig.CFG_LOCATION_SPEC};
     }
 
     /**
@@ -137,7 +124,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
         return m_fsConfig.createLocationFactory();
     }
 
-    FileSystemConfiguration getFileSystemConfiguration() {
+    FileSystemConfiguration<DefaultFSLocationSpecConfig> getFileSystemConfiguration() {
         return m_fsConfig;
     }
 

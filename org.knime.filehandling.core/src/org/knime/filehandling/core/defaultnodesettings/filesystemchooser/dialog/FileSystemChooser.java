@@ -84,7 +84,7 @@ public final class FileSystemChooser {
 
     private final EnumMap<Choice, FileSystemSpecificDialog> m_fileSystemDialogs = new EnumMap<>(Choice.class);
 
-    private final FileSystemConfiguration m_config;
+    private final FileSystemConfiguration<?> m_config;
 
     /**
      * Constructor.
@@ -92,7 +92,7 @@ public final class FileSystemChooser {
      * @param fsConfig the {@link FileSystemConfiguration} displayed by this {@link FileSystemChooser}
      * @param fileSystemDialogs the dialogs of the individual file systems
      */
-    public FileSystemChooser(final FileSystemConfiguration fsConfig,
+    public FileSystemChooser(final FileSystemConfiguration<?> fsConfig,
         final FileSystemSpecificDialog... fileSystemDialogs) {
         CheckUtils.checkArgumentNotNull(fileSystemDialogs, "The fileSystemDialogs must not be null.");
         CheckUtils.checkArgument(fileSystemDialogs.length > 0, "At least one FileSystemDialog must be provided.");
@@ -163,7 +163,7 @@ public final class FileSystemChooser {
     }
 
     private FileSystemSpecificDialog getSelectedFileSystem() {
-        return (FileSystemSpecificDialog)m_fileSystemComboBox.getSelectedItem();
+        return m_fileSystemComboBox.getItemAt(m_fileSystemComboBox.getSelectedIndex());
     }
 
     /**
