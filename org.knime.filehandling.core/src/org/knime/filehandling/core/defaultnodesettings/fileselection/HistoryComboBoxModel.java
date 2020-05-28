@@ -44,41 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.defaultnodesettings.fileselection;
 
-import java.awt.Dimension;
-import java.awt.Event;
+import java.util.Objects;
 
-import javax.swing.JComboBox;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
 
-import org.knime.core.node.util.ConvenientComboBoxRenderer;
+import org.knime.core.node.util.StringHistory;
 
 /**
- * An editable combobox for specifying file paths that allows to store paths in a history.
+ * {@link ComboBoxModel} based on {@link StringHistory}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class FileSelectionComboBox extends JComboBox<String> {
+final class HistoryComboBoxModel extends AbstractListModel<String> implements ComboBoxModel<String> {
 
     private static final long serialVersionUID = 1L;
 
+    private final transient StringHistory m_history;
 
-    @SuppressWarnings("unchecked")
-    FileSelectionComboBox(final HistoryComboBoxModel model) {
-        super(model);
-        setEditable(true);
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        setPreferredSize(new Dimension(300, 25));
-        setRenderer(new ConvenientComboBoxRenderer());
-        enableEvents(Event.ACTION_EVENT & Event.LOST_FOCUS & Event.GOT_FOCUS);
-        super.setSelectedItem("");
+    private String m_selected;
+
+    HistoryComboBoxModel(final String id, final int length) {
+        m_history = StringHistory.getInstance(id, length);
+    }
+
+    @Override
+    public int getSize() {
+        return m_history.getHistory().length;
+    }
+
+    @Override
+    public String getElementAt(final int index) {
+        return m_history.getHistory()[index];
+    }
+
+    @Override
+    public void setSelectedItem(final Object anItem) {
+        if (!Objects.equals(m_selected, anItem)) {
+            m_selected = (String)anItem;
+            fireContentsChanged(this, -1, -1);
+        }
+    }
+
+    void addCurrentSelectionToHistory() {
+        if (m_selected != null && m_selected.trim().length() > 0) {
+            m_history.add(m_selected);
+        }
     }
 
     @Override
     public String getSelectedItem() {
-        return (String)super.getSelectedItem();
+        return m_selected;
     }
 
 }

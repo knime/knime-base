@@ -89,11 +89,15 @@ public final class FileSelectionDialog {
 
     private final FileSelectionComboBox m_fileSelectionComboBox;
 
+    private final HistoryComboBoxModel m_historyModel;
+
     private final DialogType m_dialogType;
 
     private final ChangeEvent m_event;
 
     private FileSelectionMode m_fileSelectionMode;
+
+    private boolean m_browsingEnabled = true;
 
     private FileSystemBrowser m_fsBrowser;
 
@@ -113,9 +117,9 @@ public final class FileSelectionDialog {
     public FileSelectionDialog(final String historyID, final int historyLength,
         final FileSystemBrowser fileSystemBrowser, final DialogType dialogType,
         final FileSelectionMode fileSelectionMode, final String[] fileExtensions) {
+        m_historyModel = new HistoryComboBoxModel(historyID, historyLength);
         CheckUtils.checkArgument(historyLength > 0, "The historyLength must be positive.");
-        m_fileSelectionComboBox = new FileSelectionComboBox(
-            CheckUtils.checkArgumentNotNull(historyID, "The historyID must not be null."), historyLength);
+        m_fileSelectionComboBox = new FileSelectionComboBox(m_historyModel);
         m_fsBrowser = CheckUtils.checkArgumentNotNull(fileSystemBrowser, "The fileSystemBrowser must not be null.");
         m_dialogType = CheckUtils.checkArgumentNotNull(dialogType, "The dialogType must not be null.");
         m_fileExtensions = CheckUtils.checkArgumentNotNull(fileExtensions, "The suffixes must not be null.");
@@ -198,7 +202,7 @@ public final class FileSelectionDialog {
         // selectedInBrowser is null if browsing was canceled via the cancel button or closing the browser
         if (selectedInBrowser != null && !Objects.equals(currentlySelected, selectedInBrowser)) {
             m_fileSelectionComboBox.setSelectedItem(selectedInBrowser);
-            m_fileSelectionComboBox.addCurrentSelectionToHistory();
+            m_historyModel.addCurrentSelectionToHistory();
         }
         notifyListeners();
     }
@@ -266,14 +270,36 @@ public final class FileSelectionDialog {
      * @param enableBrowsing {@code true} if browsing should be enabled
      */
     public void setEnableBrowsing(final boolean enableBrowsing) {
-        m_browseButton.setEnabled(enableBrowsing);
+        m_browsingEnabled = enableBrowsing;
+        // in case the whole dialog is disabled, we can't enable the browse button
+        m_browseButton.setEnabled(enableBrowsing && m_fileSelectionComboBox.isEnabled());
     }
 
     /**
      * Adds the currently selected file to the history.
      */
     public void addCurrentSelectionToHistory() {
-        m_fileSelectionComboBox.addCurrentSelectionToHistory();
+        m_historyModel.addCurrentSelectionToHistory();
+    }
+
+    /**
+     * Sets the provided tooltip on all contained components.
+     *
+     * @param tooltip to set
+     */
+    public void setTooltip(final String tooltip) {
+        m_browseButton.setToolTipText(tooltip);
+        m_fileSelectionComboBox.setToolTipText(tooltip);
+    }
+
+    /**
+     * Enables/disables the dialog.
+     *
+     * @param enabled {@code true} if the dialog should be enabled {@code false} if it should be disabled
+     */
+    public void setEnabled(final boolean enabled) {
+        m_browseButton.setEnabled(m_browsingEnabled && enabled);
+        m_fileSelectionComboBox.setEnabled(enabled);
     }
 
 }
