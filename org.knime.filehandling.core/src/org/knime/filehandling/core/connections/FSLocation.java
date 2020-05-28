@@ -130,7 +130,16 @@ public final class FSLocation implements FSLocationSpec {
 
     @Override
     public String toString() {
-        return this == NULL ? "NULL" : m_path;
+        if (this == NULL) {
+            return "NULL";
+        }
+        final StringBuilder sb = new StringBuilder("(");
+        sb.append(m_fileSystemType).append(", ");
+        if (m_fileSystemSpecifier.isPresent()) {
+            sb.append(m_fileSystemSpecifier.get()).append(", ");
+        }
+        sb.append(m_path).append(")");
+        return sb.toString();
     }
 
     @Override
