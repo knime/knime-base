@@ -49,10 +49,12 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
 
 /**
  * Abstract implementation of {@link FileSystemSpecificConfig} for the convenience file systems.
@@ -67,7 +69,7 @@ abstract class AbstractConvenienceFileSystemSpecificConfig extends AbstractFileS
     }
 
     @Override
-    public void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException {
+    public void configureInModel(final PortObjectSpec[] specs, Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
         // default implementation is empty since convenience file systems don't have to do anything
         // during configure (with the exception of the mountpoint file system)
     }

@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -67,13 +68,17 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * SettingsModel for the {@link DialogComponentFileChooser3}.</br>
  * It allows to create {@link ReadPathAccessor} and {@link WritePathAccessor} objects for accessing the {@link FSPath
- * paths} specified in the dialog.
+ * paths} specified in the dialog.</br>
+ * <b>IMPORTANT NOTE:</b> Nodes that use this settings model must call the
+ * {@link #configureInModel(PortObjectSpec[], Consumer)} method in the respective {@code configure} method of the node
+ * model before retrieving e.g. the {@link FSLocation} via {@link #getLocation()}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -112,6 +117,20 @@ public final class SettingsModelFileChooser3 extends SettingsModel {
         m_fsConfig = toCopy.m_fsConfig.copy();
         m_fileExtensions = toCopy.m_fileExtensions.clone();
         m_filterModeModel = toCopy.m_filterModeModel.createClone();
+    }
+
+    /**
+     * Validates the provided specs against the settings and either provides warnings via the
+     * <b>statusMessageConsumer</b> if the issues are non fatal or throws an InvalidSettingsException if the current
+     * configuration and the provided specs make a successful execution impossible.
+     *
+     * @param specs the input {@link PortObjectSpec specs} of the node
+     * @param statusMessageConsumer consumer for status messages e.g. warnings
+     * @throws InvalidSettingsException if the specs are not compatible with the settings
+     */
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        m_fsConfig.configureInModel(specs, statusMessageConsumer);
     }
 
     /**
@@ -161,11 +180,10 @@ public final class SettingsModelFileChooser3 extends SettingsModel {
     /**
      * Creates a {@link WritePathAccessor} to be used in writer nodes.
      *
-     * @param portObjectConnection connection provided via the optional file system input port
      * @return a {@link WritePathAccessor}
      */
-    public WritePathAccessor createWritePathAccessor(final Optional<FSConnection> portObjectConnection) {
-        return new FileChooserPathAccessor(this, portObjectConnection);
+    public WritePathAccessor createWritePathAccessor() {
+        return createPathAccessor();
     }
 
     SettingsModelFilterMode getFilterModeModel() {

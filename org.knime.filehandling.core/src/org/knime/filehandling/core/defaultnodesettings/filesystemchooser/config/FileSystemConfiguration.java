@@ -158,7 +158,8 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     }
 
     private void handleSpecificConfigChange() {
-        getCurrentSpecificConfig().ifPresent(c -> setLocationSpec(c.getLocationSpec()));
+        // update location config if the currently selected fs config changed
+        getCurrentSpecificConfig().ifPresent(c -> m_locationConfig.setLocationSpec(c.getLocationSpec()));
         // always notify the listeners because the above call does not necessarily fire a change event
         notifyChangeListeners();
     }
@@ -191,7 +192,14 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      *         system is selected
      */
     public Optional<FSConnection> getConnection() {
-        return getCurrentSpecificConfig().flatMap(FileSystemSpecificConfig::getConnection);
+        if (hasFSPort()) {
+            // in the connected case we always have to take the connection from the connected FS config
+            // because the input file system always takes precedence but the location might be overwritten
+            // with a flow variable pointing to a different fs
+            return m_fsSpecificConfigs.get(Choice.CONNECTED_FS).getConnection();
+        } else {
+            return getCurrentSpecificConfig().flatMap(FileSystemSpecificConfig::getConnection);
+        }
     }
 
     /**
@@ -259,7 +267,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      *
      * @return {@code true} if the configuration deals with a connected file system (via a node input port)
      */
-    public boolean isConnectedFS() {
+    public boolean hasFSPort() {
         return m_portIdx != -1;
     }
 
@@ -268,12 +276,29 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      * To be called in the {@code configure} method of the NodeModel.
      *
      * @param specs the input specs of the node
+     * @param statusMessageConsumer consumer for status messages e.g. for warnings
      * @throws InvalidSettingsException if the specs aren't compatible with the configuration
      */
-    public void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException {
-        final Optional<FileSystemSpecificConfig> current = getCurrentSpecificConfig();
-        if (current.isPresent()) {
-            current.get().configureInModel(specs);
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        if (hasFSPort()) {
+            final Choice fsFromSettings = getLocationSpec().getFileSystemChoice();
+            if (fsFromSettings != Choice.CONNECTED_FS) {
+                statusMessageConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
+                    "The file system specified via flow variable ('%s') is not compatible with the "
+                        + "file system provided via the input port.",
+                    fsFromSettings));
+            }
+            // must be there in the connected case
+            FileSystemSpecificConfig connectedConfig = m_fsSpecificConfigs.get(Choice.CONNECTED_FS);
+            connectedConfig.configureInModel(specs, statusMessageConsumer);
+            m_locationConfig.setLocationSpec(connectedConfig.getLocationSpec());
+        } else {
+            final Optional<FileSystemSpecificConfig> current = getCurrentSpecificConfig();
+            if (current.isPresent()) {
+                final FileSystemSpecificConfig fsConfig = current.get();
+                fsConfig.configureInModel(specs, statusMessageConsumer);
+            }
         }
     }
 
@@ -323,6 +348,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         throws NotConfigurableException {
         loadInternalSettingsInDialog(getChildSettingsOrEmpty(settings, CFG_FILE_SYSTEM_CHOOSER_INTERNALS), specs);
         m_locationConfig.loadSettingsForDialog(settings);
+        getCurrentSpecificConfig().ifPresent(c -> c.overwriteWith(getLocationSpec()));
     }
 
     /**
@@ -337,6 +363,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         loadInternalSettingsForModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
         m_locationConfig.loadSettingsForModel(settings);
+        getCurrentSpecificConfig().ifPresent(c -> c.overwriteWith(getLocationSpec()));
     }
 
     private void loadInternalSettingsForModel(final NodeSettingsRO internalSettings) throws InvalidSettingsException {
@@ -447,10 +474,15 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         final L locationConfig = m_locationConfig.copy();
         locationConfig.loadSettingsForModel(settings);
         final FSLocationSpec locationSpec = locationConfig.getLocationSpec();
+        // will be null if we have a fs port and overwrite with a flow variable that specifies a different fs
         final FileSystemSpecificConfig selected = m_fsSpecificConfigs.get(locationSpec.getFileSystemChoice());
-        CheckUtils.checkSettingNotNull(selected, "The specified file system '%s' is not supported by this config.",
-            locationSpec);
-        selected.validate(locationSpec);
+        if (selected != null) {
+            selected.validate(locationSpec);
+        } else {
+            // the settings have been overwritten by a flow variable of an incompatible fs type
+            // ideally we would warn the user here but the settings model API doesn't allow it
+            // therefore the warning will be issued in #configureInModel
+        }
     }
 
     /**

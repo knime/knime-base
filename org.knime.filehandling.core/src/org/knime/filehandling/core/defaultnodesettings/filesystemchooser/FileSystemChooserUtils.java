@@ -118,7 +118,7 @@ public final class FileSystemChooserUtils {
      */
     public static FileSystemChooser createFileSystemChooser(final FileSystemConfiguration<?> config,
         final Set<Choice> choices) {
-        if (config.isConnectedFS()) {
+        if (config.hasFSPort()) {
             return new FileSystemChooser(config, new ConnectedFileSystemDialog(
                 (ConnectedFileSystemSpecificConfig)config.getFileSystemSpecifcConfig(Choice.CONNECTED_FS)));
         } else {

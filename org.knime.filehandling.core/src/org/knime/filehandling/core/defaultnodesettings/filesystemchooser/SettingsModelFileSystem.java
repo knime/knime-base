@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
+import java.util.function.Consumer;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -61,6 +63,7 @@ import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.DefaultFSLocationSpecConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
 
 /**
  * {@link SettingsModel} that stores information about a file system.
@@ -132,10 +135,12 @@ public final class SettingsModelFileSystem extends SettingsModel {
      * Updates the settings with the input specs in the node model.
      *
      * @param specs the input {@link PortObjectSpec specs} of the node
+     * @param statusMessageConsumer consumer for status messages e.g. warnings
      * @throws InvalidSettingsException if the specs are not compatible with the settings
      */
-    public void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException {
-        m_fsConfig.configureInModel(specs);
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        m_fsConfig.configureInModel(specs, statusMessageConsumer);
     }
 
     @SuppressWarnings("unchecked")

@@ -111,7 +111,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
         if (fvm != null) {
             fvm.addChangeListener(e -> handleFVMChange());
         }
-        if (fvm != null && !config.isConnectedFS()) {
+        if (fvm != null && !config.hasFSPort()) {
             FlowVariableModelButton fvButton = new FlowVariableModelButton(fvm);
             panel.add(fvButton, gbc.build());
             gbc.incX();

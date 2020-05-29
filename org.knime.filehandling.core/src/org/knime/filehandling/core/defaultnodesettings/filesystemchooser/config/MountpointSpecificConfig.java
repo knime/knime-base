@@ -218,9 +218,13 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
                 new DefaultStatusMessage(MessageType.ERROR, "The selected mountpoint '%s' is invalid.", m_mountpoint));
         }
         if (m_mountpoint != null && m_mountpoint.isValid() && !m_mountpoint.isConnected()) {
-            statusConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
-                "The selected mountpoint '%s' is not connected.", m_mountpoint));
+            issueNotConnectedWarning(statusConsumer);
         }
+    }
+
+    private void issueNotConnectedWarning(final Consumer<StatusMessage> statusConsumer) {
+        statusConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
+            "The selected mountpoint '%s' is not connected.", m_mountpoint));
     }
 
     @Override
@@ -275,10 +279,14 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
     }
 
     @Override
-    public void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException {
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
         // nothing to configure
         CheckUtils.checkSetting(m_mountpoint.isValid(), "The selected mountpoint '%s' is no longer valid.",
             m_mountpoint);
+        if (!m_mountpoint.isConnected()) {
+            issueNotConnectedWarning(statusMessageConsumer);
+        }
     }
 
     @Override

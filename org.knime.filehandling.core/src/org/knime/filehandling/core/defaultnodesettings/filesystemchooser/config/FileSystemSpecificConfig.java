@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.event.ChangeListener;
 
@@ -62,6 +63,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusReporter;
 
 /**
@@ -104,7 +106,6 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      */
     void validate(final FSLocationSpec location) throws InvalidSettingsException;
 
-
     /**
      * Getter for the file system connection.</br>
      * In case of convenience file systems, this method always returns {@link Optional#empty()}.
@@ -125,9 +126,11 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      * To be called in the {@code configure} method of the NodeModel.
      *
      * @param specs the input specs of the node
-     * @throws InvalidSettingsException if the specs are incompatible with the configuration
+     * @param statusMessageConsumer consumer for non-fatal problems and status messages
+     * @throws InvalidSettingsException if the specs are incompatible with the configuration and execution is impossible
      */
-    void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException;
+    void configureInModel(final PortObjectSpec[] specs, Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException;
 
     /**
      * Validates if the configuration stored in {@link NodeSettingsRO settings} is valid WITHOUT actually overwriting

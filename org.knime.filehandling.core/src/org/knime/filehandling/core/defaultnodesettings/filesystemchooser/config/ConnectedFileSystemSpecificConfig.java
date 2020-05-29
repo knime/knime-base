@@ -85,8 +85,6 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
 
     private Optional<FSConnection> m_connection = Optional.empty();
 
-    private String m_specifier = null;
-
     private String m_fileSystemName = null;
 
     private FSLocationSpec m_locationSpec = new DefaultFSLocationSpec(Choice.CONNECTED_FS, null);
@@ -113,8 +111,8 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     private ConnectedFileSystemSpecificConfig(final ConnectedFileSystemSpecificConfig toCopy) {
         m_portIdx = toCopy.m_portIdx;
         m_connection = toCopy.m_connection;
-        m_specifier = toCopy.m_specifier;
         m_fileSystemName = toCopy.m_fileSystemName;
+        m_locationSpec = toCopy.m_locationSpec;
     }
 
     /**
@@ -143,7 +141,8 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
         }
         m_fileSystemName = FileSystemPortObjectSpec.getFileSystemType(specs, m_portIdx).orElse(null);
         m_connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
-        m_specifier = retrieveSpecifier(specs);
+        final String specifier = retrieveSpecifier(specs);
+        m_locationSpec = new DefaultFSLocationSpec(Choice.CONNECTED_FS, specifier);
         notifyListeners();
     }
 
@@ -173,9 +172,13 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
             statusConsumer.accept(new DefaultStatusMessage(MessageType.ERROR, "No file system connected."));
         }
         if (!m_connection.isPresent()) {
-            statusConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
-                "No connection available. Execute the connector node first."));
+            issueNotConnectedWarning(statusConsumer);
         }
+    }
+
+    private static void issueNotConnectedWarning(final Consumer<StatusMessage> statusConsumer) {
+        statusConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
+            "No connection available. Execute the connector node first."));
     }
 
     @Override
@@ -204,9 +207,14 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     }
 
     @Override
-    public void configureInModel(final PortObjectSpec[] specs) throws InvalidSettingsException {
-        m_specifier = retrieveSpecifier(specs);
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        final String specifier = retrieveSpecifier(specs);
+        m_locationSpec = new DefaultFSLocationSpec(Choice.CONNECTED_FS, specifier);
         m_connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
+        if (!m_connection.isPresent()) {
+            issueNotConnectedWarning(statusMessageConsumer);
+        }
     }
 
     @Override
