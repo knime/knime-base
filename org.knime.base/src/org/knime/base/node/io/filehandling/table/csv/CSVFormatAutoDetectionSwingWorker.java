@@ -53,16 +53,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
 
@@ -79,20 +78,19 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVFormatAutoDetectionSwingWorker.class);
 
-    private final Optional<FSConnection> m_fsConnection;
+    private final Callable<List<Path>> m_pathsSupplier;
 
     private final CSVTableReaderNodeDialog m_dialog;
 
-    public CSVFormatAutoDetectionSwingWorker(final Optional<FSConnection> fsConnection,
+    public CSVFormatAutoDetectionSwingWorker(final Callable<List<Path>> pathsSupplier,
         final CSVTableReaderNodeDialog dialog) {
         m_dialog = dialog;
-        m_fsConnection = fsConnection;
+        m_pathsSupplier = CheckUtils.checkArgumentNotNull(pathsSupplier, "The paths supplier must not be null.");
     }
 
     @Override
-    protected CsvFormat doInBackgroundWithContext() throws IOException, InvalidSettingsException, InterruptedException {
-        final FileChooserHelper fch = new FileChooserHelper(m_fsConnection, m_dialog.getFileChooserSettingsModel());
-        final List<Path> paths = fch.getPaths();
+    protected CsvFormat doInBackgroundWithContext() throws Exception {
+        final List<Path> paths = m_pathsSupplier.call();
         final CsvParser csvParser =
             new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
 

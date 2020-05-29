@@ -102,7 +102,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.VariableType;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
@@ -202,8 +201,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     private final JLabel m_autoDetectionStatusIcon;
 
     private final JPanel m_statusProgressCardLayout;
-
-    private Optional<FSConnection> m_fsConnection = null;
 
     private int m_autoDetectionBufferSize;
 
@@ -791,7 +788,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         loadTableReadSettings();
         loadCSVSettings();
         setSpecMergeMode();
-        m_fsConnection = FileSystemPortObjectSpec.getFileSystemConnection(specs, FS_INPUT_PORT);
         showCardInCardLayout(EMPTY_CARD);
 
         // enable/disable spinners
@@ -913,7 +909,7 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     private void startFormatAutoDetection() {
-        m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(m_fsConnection, this);
+        m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(this::getPaths, this);
 
         m_tableReaderPreview.setEnabled(false);
 
