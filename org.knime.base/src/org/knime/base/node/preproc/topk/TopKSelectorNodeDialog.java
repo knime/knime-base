@@ -133,12 +133,13 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.insets = new Insets(0, 10, 0,0);
+        gbc.insets = new Insets(0, 10, 0, 0);
         p.add(new JLabel("Number of"), gbc);
         ++gbc.gridx;
+        gbc.insets = new Insets(0, -9, 0, 0);
         p.add(m_topkMode.getComponentPanel(), gbc);
         ++gbc.gridx;
-        gbc.insets =  new Insets(0,0,0,0);
+//        gbc.insets =  new Insets(0,0,0,0);
         p.add(m_kComp.getComponentPanel(), gbc);
         ++gbc.gridx;
         gbc.weightx = 1;
