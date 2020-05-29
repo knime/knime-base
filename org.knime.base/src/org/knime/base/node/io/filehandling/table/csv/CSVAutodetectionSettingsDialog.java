@@ -52,8 +52,6 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -70,11 +68,15 @@ import javax.swing.SpinnerNumberModel;
  */
 public class CSVAutodetectionSettingsDialog extends JDialog {
 
+    private static final long serialVersionUID = 1L;
+
     private int m_autoDetectionBufferSize;
 
     private JSpinner m_bufferSizeSelection;
 
     /**
+     * @param parent the parent frame
+     * @param bufferSize the last saved buffer size
      *
      */
     public CSVAutodetectionSettingsDialog(final Frame parent, final int bufferSize) {
@@ -83,9 +85,6 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
         initialize();
     }
 
-    /**
-     * This method initializes the dialog.
-     */
     private void initialize() {
         this.setContentPane(getJContentPane());
         this.pack();
@@ -111,11 +110,6 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
         return contentPane;
     }
 
-    /**
-     * This method initializes controlPanel.
-     *
-     * @return javax.swing.JPanel
-     */
     private JPanel getControlPanel() {
         final JPanel controlPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = new GridBagConstraints();
@@ -135,7 +129,8 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
         final JPanel mainPanel = new JPanel(new GridBagLayout());
         final JLabel header = new JLabel("Number of characters for autodetection:");
 
-        final SpinnerNumberModel spinnerModel = new SpinnerNumberModel(m_autoDetectionBufferSize, 1, Integer.MAX_VALUE, 1024);
+        final SpinnerNumberModel spinnerModel =
+            new SpinnerNumberModel(m_autoDetectionBufferSize, 1, Integer.MAX_VALUE, 1024);
         m_bufferSizeSelection = new JSpinner(spinnerModel);
 
         final GridBagConstraints gbc = new GridBagConstraints();
@@ -156,30 +151,21 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
     private JButton getOkButton() {
         final JButton okButton = new JButton();
         okButton.setText("Ok");
-        okButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                final String errMsg = checkSetting();
-                if (errMsg != null) {
-                    JOptionPane.showMessageDialog(
-                            CSVAutodetectionSettingsDialog.this, errMsg,
-                            "Invalid Settings", JOptionPane.ERROR_MESSAGE);
-                    // dialog stays open
-                    return;
-                }
-                m_autoDetectionBufferSize = (int) m_bufferSizeSelection.getValue();
-                setVisible(false);
+        okButton.addActionListener(e -> {
+            final String errMsg = checkSetting();
+            if (errMsg != null) {
+                JOptionPane.showMessageDialog(CSVAutodetectionSettingsDialog.this, errMsg, "Invalid Settings",
+                    JOptionPane.ERROR_MESSAGE);
+                // dialog stays open
+                return;
             }
+            m_autoDetectionBufferSize = (int)m_bufferSizeSelection.getValue();
+            setVisible(false);
         });
 
         return okButton;
     }
 
-    /**
-     * This method initializes cancelButton.
-     *
-     * @return javax.swing.JButton
-     */
     private JButton getCancelButton() {
         final JButton cancelButton = new JButton();
         cancelButton.setText("Cancel");
@@ -193,7 +179,7 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
 
     private String checkSetting() {
         final Object selectedValue = m_bufferSizeSelection.getValue();
-        if (selectedValue == null || !(selectedValue instanceof Integer)) {
+        if (!(selectedValue instanceof Integer)) {
             return "Please specify a valid number of characters for the autodetection!";
         }
 
