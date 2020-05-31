@@ -60,16 +60,17 @@ import java.util.List;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for move operations on file systems.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  *
  */
 public class MoveTest extends AbstractParameterizedFSTest {
 
-    public MoveTest(String fsType, FSTestInitializer testInitializer) {
+    public MoveTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 

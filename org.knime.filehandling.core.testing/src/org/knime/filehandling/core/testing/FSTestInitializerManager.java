@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.testing;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,8 +59,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.testing.FSTestInitializer;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * Manager which knows all registered {@link FSTestInitializerProvider} instances and can instantiate a configured
@@ -136,19 +136,37 @@ public class FSTestInitializerManager {
     }
 
     /**
-     * Creates a {@link FSTestInitializer} of the provided type, configured according to the configuration.
+     * Creates a {@link FSTestInitializer} of the provided type, configured according to the configuration. This method
+     * may perform I/O, such an opening network connections and therefore throws an {@link IOException}.
      *
-     * @param fsType        the type of the file system
-     * @param configuration the configuration of the file system
+     * @param fsType The type of the file system.
+     * @param configuration The configuration of the file system.
      * @return a configured file system of the provided type
+     * @throws IOException
      */
-    public FSTestInitializer createInitializer(final String fsType, final Map<String, String> configuration) {
+    public FSTestInitializer createInitializer(final String fsType, final Map<String, String> configuration) throws IOException {
         final FSTestInitializerProvider provider = m_providers.get(fsType);
         if (provider == null) {
             throw new IllegalArgumentException(
                 String.format("The file system type '%s' has no registered test initializer provider", fsType));
         }
         return provider.setup(configuration);
+    }
+
+    /**
+     * Provides the {@link FSLocationSpec} of a file system with the given type and configuration.
+     *
+     * @param fsType The type of the file system.
+     * @param configuration The configuration of the file system.
+     * @return a configured file system of the given type.
+     */
+    public FSLocationSpec createFSLocationSpec(final String fsType, final Map<String, String> configuration) {
+        final FSTestInitializerProvider provider = m_providers.get(fsType);
+        if (provider == null) {
+            throw new IllegalArgumentException(
+                String.format("The file system type '%s' has no registered test initializer provider", fsType));
+        }
+        return provider.createFSLocationSpec(configuration);
     }
 
     /**

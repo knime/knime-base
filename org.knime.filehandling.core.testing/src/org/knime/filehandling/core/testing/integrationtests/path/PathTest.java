@@ -51,6 +51,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -59,10 +60,11 @@ import java.util.Set;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 public class PathTest extends AbstractParameterizedFSTest {
 
-    public PathTest(final String fsType, final FSTestInitializer testInitializer) {
+    public PathTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 

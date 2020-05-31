@@ -56,15 +56,16 @@ import java.nio.file.Path;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for create operations on file systems.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
 public class CreateTest extends AbstractParameterizedFSTest {
 
-    public CreateTest(String fsType, FSTestInitializer testInitializer) {
+    public CreateTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 

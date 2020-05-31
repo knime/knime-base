@@ -58,6 +58,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * The parent class of the test suite in our file system testing framework. All
@@ -75,7 +76,7 @@ public abstract class AbstractParameterizedFSTest {
     protected static final String GS = "gs";
 
     @Parameters(name = "File System: {0}")
-    public static Collection<Object[]> allFileSystemTestInitializers() {
+    public static Collection<Object[]> allFileSystemTestInitializerProviders() {
         return FSTestParameters.get();
     }
 
@@ -95,24 +96,25 @@ public abstract class AbstractParameterizedFSTest {
 
     /**
      * Creates a new instance for a file system.
-     * 
+     *
      * @param fsType
      *            the file system type
      * @param testInitializer
      *            the initializer for the file system
+     * @throws IOException
      */
-    public AbstractParameterizedFSTest(final String fsType, final FSTestInitializer testInitializer) {
-        m_testInitializer = testInitializer;
+    public AbstractParameterizedFSTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
+        m_testInitializer = testInitializer.get();
         m_connection = m_testInitializer.getFSConnection();
         m_fsType = fsType;
     }
 
     /**
      * Ignores a test case for the specified file systems.
-     * 
+     *
      * This is helpful in the case where a general test case is true for most file
      * system, but not all. Every file system given as a parameter will be ignored.
-     * 
+     *
      * @param fileSystems
      *            the file systems to be ignored for this test case
      */
@@ -124,10 +126,10 @@ public abstract class AbstractParameterizedFSTest {
 
     /**
      * Ignores a test case for the specified file system and provides a reason why.
-     * 
+     *
      * This is helpful in the case where a general test case is true for most file
      * systems, but not all.
-     * 
+     *
      * @param fileSystem
      *            the file system to be ignored for this test case
      */
@@ -151,7 +153,7 @@ public abstract class AbstractParameterizedFSTest {
         final String errMsg = String.format("Test case has been ignored for the file system '%s'", m_fsType);
         Assume.assumeFalse(errMsg, shouldBeIgnored);
     }
-    
+
     /**
      * @return the underlying file system instance.
      */

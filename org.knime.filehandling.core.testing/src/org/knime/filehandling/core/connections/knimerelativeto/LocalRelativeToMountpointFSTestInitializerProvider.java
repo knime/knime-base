@@ -47,6 +47,9 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.util.Map;
 
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -61,6 +64,8 @@ public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTes
 
     private static final String KNIME_FS_HOST = "knime.mountpoint";
 
+    private static final FSLocationSpec FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.KNIME_FS, KNIME_FS_HOST);
+
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) {
         return new LocalRelativeToFSTestInitializer(configuration.get("root"), KNIME_FS_HOST);
@@ -69,5 +74,10 @@ public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTes
     @Override
     public String getFSType() {
         return FS_NAME;
+    }
+
+    @Override
+    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
+        return FS_LOCATION_SPEC;
     }
 }

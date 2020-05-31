@@ -64,16 +64,18 @@ import java.util.List;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for byte channel operations on file systems.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  *
  */
 public class ByteChannelTest extends AbstractParameterizedFSTest {
 
-    public ByteChannelTest(String fsType, FSTestInitializer testInitializer) {
+    public ByteChannelTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         super(fsType, testInitializer);
     }
 
@@ -216,7 +218,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
         assertEquals(contentToWrite, result.get(0));
     }
 
-    private String readFromByteChannel(SeekableByteChannel byteChannel) throws IOException {
+    private String readFromByteChannel(final SeekableByteChannel byteChannel) throws IOException {
         String result = "";
         Charset charset = Charset.defaultCharset();
         ByteBuffer buffer = ByteBuffer.allocate(10);

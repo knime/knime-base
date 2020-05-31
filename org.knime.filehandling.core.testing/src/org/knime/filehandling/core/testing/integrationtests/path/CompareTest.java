@@ -47,16 +47,18 @@ package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 public class CompareTest extends AbstractParameterizedFSTest {
 
-    public CompareTest(final String fsType, final FSTestInitializer testInitializer) {
+    public CompareTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 

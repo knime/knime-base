@@ -121,7 +121,14 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
 
     }
 
-    private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final Type type) {
+    /**
+     *
+     * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
+     *            ({@link Choice#KNIME_FS})
+     * @param type The type of the file system (mountpoint- or workflow relative).
+     * @return the {@link FSLocationSpec}
+     */
+    public static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final Type type) {
         final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_FS;
         final String specifier = type == Type.MOUNTPOINT_RELATIVE ? "knime.mountpoint" : "knime.workflow";
         return new DefaultFSLocationSpec(choice, specifier);

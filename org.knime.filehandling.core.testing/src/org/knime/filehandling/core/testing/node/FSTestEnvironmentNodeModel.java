@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -79,60 +80,69 @@ public class FSTestEnvironmentNodeModel extends NodeModel {
 
     private FSConnection m_fsConnection;
     private String m_fsId;
-    private String m_fsName;
+    private String m_fsType;
 
     protected FSTestEnvironmentNodeModel() {
         super(null, new PortType[]{FileSystemPortObject.TYPE});
     }
 
     @Override
-    protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        m_fsId = FSConnectionRegistry.getInstance().getKey();
+
+        final Properties fsTestProperties = FSTestPropertiesResolver.forWorkflowTests();
+
+        m_fsType = fsTestProperties.getProperty("test-fs");
+        if (m_fsType == null) {
+            throw new InvalidSettingsException(
+                    "Missing property 'test-fs'. Please add it to fs-test.properties and specify the file system to test.");
+        }
+
+        final Map<String, String> fsConfiguration = FSTestConfigurationReader.read(m_fsType, fsTestProperties);
+        final FSLocationSpec fsLocationSpec = FSTestInitializerManager.instance().createFSLocationSpec(m_fsType, fsConfiguration);
+
+
+        return new PortObjectSpec[]{createSpec(fsLocationSpec)};
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         final Properties testProperties = FSTestPropertiesResolver.forWorkflowTests();
-        final Map<String, String> configuration = FSTestConfigurationReader.read(m_fsName, testProperties);
-        final FSTestInitializer initializer = FSTestInitializerManager.instance().createInitializer(m_fsName, configuration);
+        final Map<String, String> configuration = FSTestConfigurationReader.read(m_fsType, testProperties);
+        final FSTestInitializer initializer = FSTestInitializerManager.instance().createInitializer(m_fsType, configuration);
 
         m_fsConnection = initializer.getFSConnection();
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
-        return new PortObject[]{new FileSystemPortObject(createSpec())};
+        return new PortObject[]{
+            new FileSystemPortObject(createSpec(m_fsConnection.getFileSystem().getFSLocationSpec()))};
+    }
+
+    private FileSystemPortObjectSpec createSpec(final FSLocationSpec fsLocationSpec) {
+        return new FileSystemPortObjectSpec(m_fsType, m_fsId, fsLocationSpec);
     }
 
     @Override
-    protected PortObjectSpec[] configure(PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_fsId = FSConnectionRegistry.getInstance().getKey();
-
-        m_fsName = FSTestPropertiesResolver.forWorkflowTests().getProperty("test-fs");
-        if (m_fsName == null) {
-            throw new InvalidSettingsException(
-                    "Missing property 'test-fs'. Please add it to fs-test.properties and specify the file system to test.");
-        }
-        return new PortObjectSpec[]{createSpec()};
-    }
-
-    private FileSystemPortObjectSpec createSpec() {
-        return new FileSystemPortObjectSpec(m_fsName, m_fsId);
-    }
-
-    @Override
-    protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
     }
 
     @Override
-    protected void saveInternals(File nodeInternDir,
-        ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir,
+        final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
     }
 
     @Override
-    protected void saveSettingsTo(NodeSettingsWO settings) {
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
     }
 
     @Override
-    protected void validateSettings(NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
     }
 
     @Override
-    protected void loadValidatedSettingsFrom(NodeSettingsRO settings) throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
     }
 
     @Override

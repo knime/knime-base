@@ -47,13 +47,17 @@ package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 public class GetFileNameTest extends AbstractParameterizedFSTest {
 
-    public GetFileNameTest(final String fsType, final FSTestInitializer testInitializer) {
+    public GetFileNameTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         super(fsType, testInitializer);
     }
 
@@ -71,12 +75,12 @@ public class GetFileNameTest extends AbstractParameterizedFSTest {
     public void testEmptyPath() {
         assertEquals(getFileSystem().getPath(""), getFileSystem().getPath("").getFileName());
     }
-    
+
     @Test
     public void testDot() {
         assertEquals(getFileSystem().getPath("."), getFileSystem().getPath(".").getFileName());
     }
-    
+
     @Test
     public void testDotSlash() {
         assertEquals(getFileSystem().getPath("./"), getFileSystem().getPath("./").getFileName());

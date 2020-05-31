@@ -47,6 +47,7 @@ package org.knime.filehandling.core.testing.integrationtests.filesystem;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
@@ -54,16 +55,17 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for copy operations on file systems.
- * 
+ *
  * @author Bjoern Lohrmann, KNIME GmbH, Berlin, Germany
  *
  */
 public class GetPathTest extends AbstractParameterizedFSTest {
 
-    public GetPathTest(final String fsType, final FSTestInitializer testInitializer) {
+    public GetPathTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 

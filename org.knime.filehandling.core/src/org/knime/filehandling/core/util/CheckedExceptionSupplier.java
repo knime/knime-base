@@ -63,6 +63,6 @@ public interface CheckedExceptionSupplier <R, E extends Exception> {
      * @return object of type <R>
      * @throws E <E>
      */
-    R apply() throws E;
+    R get() throws E;
 
 }

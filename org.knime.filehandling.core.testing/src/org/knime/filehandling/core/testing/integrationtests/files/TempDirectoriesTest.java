@@ -13,6 +13,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Tests temporary directory creation.
@@ -21,7 +22,8 @@ import org.knime.filehandling.core.testing.integrationtests.AbstractParameterize
  */
 public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
-    public TempDirectoriesTest(String fsType, FSTestInitializer testInitializer) {
+    public TempDirectoriesTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         super(fsType, testInitializer);
     }
 

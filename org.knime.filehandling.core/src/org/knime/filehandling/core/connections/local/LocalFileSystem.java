@@ -63,20 +63,26 @@ import java.util.Set;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  *
  * @author bjoern
  */
-class LocalFileSystem extends FSFileSystem<LocalPath> {
+public class LocalFileSystem extends FSFileSystem<LocalPath> {
 
     private static final FileSystem PLATFORM_DEFAULT_FS = FileSystems.getDefault();
+
+    /**
+     * The {@link FSLocationSpec} for local file systems.
+     */
+    public static final FSLocationSpec FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.LOCAL_FS);
 
     private final LocalFileSystemProvider m_provider;
 
     LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir) {
-        super(new DefaultFSLocationSpec(Choice.LOCAL_FS), workingDir);
+        super(FS_LOCATION_SPEC, workingDir);
         m_provider = provider;
     }
 

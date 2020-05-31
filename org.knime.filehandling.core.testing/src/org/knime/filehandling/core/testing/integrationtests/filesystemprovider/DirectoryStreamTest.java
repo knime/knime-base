@@ -47,6 +47,7 @@ package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -57,6 +58,7 @@ import java.util.List;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for file system directory streams.
@@ -66,7 +68,8 @@ import org.knime.filehandling.core.testing.integrationtests.AbstractParameterize
  */
 public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
-    public DirectoryStreamTest(final String fsType, final FSTestInitializer testInitializer) {
+    public DirectoryStreamTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         super(fsType, testInitializer);
     }
 

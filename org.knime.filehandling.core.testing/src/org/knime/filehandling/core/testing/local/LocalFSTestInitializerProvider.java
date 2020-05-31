@@ -50,6 +50,9 @@ package org.knime.filehandling.core.testing.local;
 
 import java.util.Map;
 
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.local.LocalFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -64,7 +67,12 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
 
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) {
+        validateConfiguration(configuration);
         return new LocalFSTestInitializer(configuration.get("root"));
+    }
+
+    private static void validateConfiguration(final Map<String, String> configuration) {
+        CheckUtils.checkArgumentNotNull(configuration.get("root"), "root must be specified.");
     }
 
     @Override
@@ -72,4 +80,9 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
         return FS_NAME;
     }
 
+    @Override
+    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
+        validateConfiguration(configuration);
+        return LocalFileSystem.FS_LOCATION_SPEC;
+    }
 }

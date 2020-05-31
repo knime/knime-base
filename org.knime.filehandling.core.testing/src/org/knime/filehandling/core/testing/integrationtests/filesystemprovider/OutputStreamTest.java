@@ -47,6 +47,7 @@ package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,16 +57,18 @@ import java.util.List;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Test class for output stream operations on file systems.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  *
  */
 public class OutputStreamTest extends AbstractParameterizedFSTest {
 
-    public OutputStreamTest(String fsType, FSTestInitializer testInitializer) {
+    public OutputStreamTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         super(fsType, testInitializer);
     }
 

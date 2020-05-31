@@ -1,6 +1,10 @@
 package org.knime.filehandling.core.testing;
 
+import java.io.IOException;
 import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * The interface backing an extension point which allows any file system implementation to register a provider needed
@@ -18,14 +22,16 @@ public interface FSTestInitializerProvider {
      */
     public static final int CONNECTION_TIMEOUT = 30 * 1000;
 
-	/**
-     * Creates a {@link FSTestInitializer} configured for testing purposes. The configuration map is implementation
-     * dependent.
+    /**
+     * Creates a {@link FSTestInitializer} configured for testing purposes, including opening an {@link FSConnection}.
+     * The configuration map is implementation dependent.
      *
-     * @param configuration configuration of the test connection
-     * @return a configured FSConnection
+     * @param configuration Configuration of the test connection
+     * @return a configured {@link FSTestInitializer}.
+     * @throws IllegalArgumentException If configuration in the given map contained was invalid or unusable.
+     * @throws IOException If something went wrong while opening the {@link FSConnection}.
      */
-    public FSTestInitializer setup(Map<String, String> configuration);
+    public FSTestInitializer setup(Map<String, String> configuration) throws IOException;
 
     /**
      * Returns the file system type.
@@ -33,5 +39,16 @@ public interface FSTestInitializerProvider {
      * @return the file system type
      */
     public String getFSType();
+
+    /**
+     * Creates the {@link FSLocationSpec} of the file system that would be created by {@link #setup(Map)}.
+     * Implementations must not perform any network I/O in this method, hence it also does not throw an
+     * {@link IOException}.
+     *
+     * @param configuration Configuration of the test connection.
+     * @return {@link FSLocationSpec} of the file system that would be created by {@link #setup(Map)}.
+     * @throws IllegalArgumentException If configuration in the given map contained was invalid or unusable.
+     */
+    public FSLocationSpec createFSLocationSpec(Map<String, String> configuration);
 
 }
