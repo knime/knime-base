@@ -60,6 +60,7 @@ import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.D
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.InputStreamTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.MoveTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.OutputStreamTest;
+import org.knime.filehandling.core.testing.integrationtests.location.FSLocationTest;
 import org.knime.filehandling.core.testing.integrationtests.path.CompareTest;
 import org.knime.filehandling.core.testing.integrationtests.path.EndsStartsWithTest;
 import org.knime.filehandling.core.testing.integrationtests.path.GetFileNameTest;
@@ -87,7 +88,8 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
     CompareTest.class, //
     OutputStreamTest.class,//
     TempFilesTest.class,//
-    TempDirectoriesTest.class//
+    TempDirectoriesTest.class,//
+    FSLocationTest.class//
 })
 public class FSIntegrationTestSuite {
 
