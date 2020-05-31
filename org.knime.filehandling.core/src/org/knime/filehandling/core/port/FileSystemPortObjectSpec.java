@@ -55,8 +55,10 @@ import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.port.AbstractSimplePortObjectSpec;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec.DefaultFSLocationSpecSerializer;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * File handling {@link PortObjectSpec} implementation.
@@ -74,25 +76,38 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
 
     private static final String CFG_FILE_SYSTEM_ID = "fileSystemId";
 
+    private static final String CFG_FS_LOCATION_SPEC = "fsLocationSpec";
+
     private String m_fileSystemType;
 
     private String m_fileSystemId;
 
     /**
+     * {@link FSLocationSpec} of the underlying file system. May be null for workflows that were executed and saved in
+     * KNIME AP version 4.1. In this case {@link #getFSLocationSpec()} will throw an exception.
+     *
+     * @since 4.2
+     */
+    private FSLocationSpec m_fsLocationSpec;
+
+    /**
      * Default constructor.
      */
     public FileSystemPortObjectSpec() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
      * @param fileSystemType the file system type
      * @param fileSystemId unique file system id
-     *
+     * @param fsLocationSpec {@link FSLocationSpec} of the underlying file system.
+     * @since 4.2
      */
-    public FileSystemPortObjectSpec(final String fileSystemType, final String fileSystemId) {
+    public FileSystemPortObjectSpec(final String fileSystemType, final String fileSystemId,
+        final FSLocationSpec fsLocationSpec) {
         m_fileSystemType = fileSystemType;
         m_fileSystemId = fileSystemId;
+        m_fsLocationSpec = fsLocationSpec;
     }
 
     /**
@@ -109,6 +124,23 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
         return m_fileSystemId;
     }
 
+
+    /**
+     * Provides the {@link FSLocationSpec} of the underlying file system, or throws an exception when invoked on a
+     * workflow that was executed and saved with KNIME 4.1.
+     *
+     * @return the {@link FSLocationSpec} of the underlying file system.
+     * @throws IllegalStateException if there was no {@link FSLocationSpec} due to the port object having been saved in
+     *             KNIME 4.1.
+     * @since 4.2
+     */
+    public FSLocationSpec getFSLocationSpec() {
+        if (m_fsLocationSpec == null) {
+            throw new IllegalStateException("Please reset and reexecute the file system connection node.");
+        }
+        return m_fsLocationSpec;
+    }
+
     /**
      * @return the {@link FSConnection} if available
      */
@@ -116,22 +148,25 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
         return FSConnectionRegistry.getInstance().retrieve(getFileSystemId());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void save(final ModelContentWO model) {
         model.addString(CFG_FILE_SYSTEM_NAME, m_fileSystemType);
         model.addString(CFG_FILE_SYSTEM_ID, m_fileSystemId);
+        if (m_fsLocationSpec != null) {
+            new DefaultFSLocationSpecSerializer().save(m_fsLocationSpec, model.addModelContent(CFG_FS_LOCATION_SPEC));
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void load(final ModelContentRO model) throws InvalidSettingsException {
         m_fileSystemType = model.getString(CFG_FILE_SYSTEM_NAME);
         m_fileSystemId = model.getString(CFG_FILE_SYSTEM_ID);
+
+        if (model.containsKey(CFG_FS_LOCATION_SPEC)) {
+            m_fsLocationSpec = new DefaultFSLocationSpecSerializer().load(model.getModelContent(CFG_FS_LOCATION_SPEC));
+        } else {
+            m_fsLocationSpec = null;
+        }
     }
 
     /**
@@ -154,9 +189,6 @@ public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
                 ? Optional.of(((FileSystemPortObjectSpec) inData[i]).getFileSystemType()) : Optional.empty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

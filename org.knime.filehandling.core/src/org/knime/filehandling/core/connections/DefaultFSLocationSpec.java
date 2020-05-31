@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.core.node.config.ConfigRO;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
@@ -149,4 +150,17 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
         return sb.toString();
     }
 
+    /**
+     * Default implementation of {@link FSLocationSpec.FSLocationSpecSerializer} that creates
+     * {@link DefaultFSLocationSpec} instances.
+     *
+     * @author Bjoern Lohrmann, KNIME GmbH
+     */
+    public static final class DefaultFSLocationSpecSerializer extends FSLocationSpecSerializer<FSLocationSpec> {
+        @Override
+        public DefaultFSLocationSpec createFSLocationSpec(final String fileSystemType, final String fileSystemSpecifier,
+            final ConfigRO config) {
+            return new DefaultFSLocationSpec(fileSystemType, fileSystemSpecifier);
+        }
+    }
 }

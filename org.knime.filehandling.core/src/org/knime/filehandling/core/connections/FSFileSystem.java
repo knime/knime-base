@@ -107,18 +107,29 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
-     * Returns the {@link Choice file system choice}.
+     * Returns the {@link FSLocationSpec} for this file system instance.
+     *
+     * @return the {@link FSLocationSpec} for this file system instance.
+     */
+    public FSLocationSpec getFSLocationSpec() {
+        return m_fsLocationSpec;
+    }
+
+    /**
+     * Returns the {@link Choice file system choice} of the {@link FSLocationSpec} for this file system instance.
      *
      * @return the file system choice.
+     * @see #getFSLocationSpec()
      */
     public final Choice getFileSystemChoice() {
         return m_fsLocationSpec.getFileSystemChoice();
     }
 
     /**
-     * Returns the optional file system specifier.
+     * Returns the optional file system specifier of the {@link FSLocationSpec} for this file system instance.
      *
      * @return the file system specifier.
+     * @see #getFSLocationSpec()
      */
     public final Optional<String> getFileSystemSpecifier() {
         return m_fsLocationSpec.getFileSystemSpecifier();

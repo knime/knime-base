@@ -50,6 +50,10 @@ package org.knime.filehandling.core.connections;
 
 import java.util.Optional;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.config.ConfigRO;
+import org.knime.core.node.config.ConfigWO;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
@@ -123,5 +127,55 @@ public interface FSLocationSpec {
         }
         return first.getFileSystemType().equals(second.getFileSystemType())
             && first.getFileSystemSpecifier().equals(second.getFileSystemSpecifier());
+    }
+
+    /**
+     * Abstract superclass for {@link FSLocationSpec} serializers.
+     *
+     * @author Bjoern Lohrmann, KNIME GmbH
+     * @param <T> The concrete subtype of FSLocationSpec to (de)serialize.
+     * @since 4.2
+     */
+    public abstract static class FSLocationSpecSerializer<T extends FSLocationSpec> {
+
+        private static final String CFG_FS_TYPE = "fs_type";
+
+        private static final String CFG_FS_SPECIFIER = "fs_specifier";
+
+        /**
+         * Serializes the given {@link FSLocationSpec} to the given {@link ConfigWO}.
+         *
+         * @param fsLocationSpec The {@link FSLocationSpec} to serialize.
+         * @param config The {@link ConfigWO} to seralize to.
+         */
+        public void save(final T fsLocationSpec, final ConfigWO config) {
+            CheckUtils.checkNotNull(fsLocationSpec, "The FSLocationSpec provided to the serializer must not be null.");
+            config.addString(CFG_FS_TYPE, fsLocationSpec.getFileSystemType());
+            config.addString(CFG_FS_SPECIFIER, fsLocationSpec.getFileSystemSpecifier().orElse(null));
+        }
+
+        /**
+         * Deserializes a new {@link FSLocationSpec} to the given {@link ConfigRO}.
+         *
+         * @param config The {@link ConfigRO} to deseralize from.
+         * @return the deserialized {@link FSLocationSpec}.
+         * @throws InvalidSettingsException If something went wrong during deserialization (e.g. missing entries in the
+         *             {@link ConfigRO}).
+         */
+        public T load(final ConfigRO config) throws InvalidSettingsException {
+            final String fileSystemType = config.getString(CFG_FS_TYPE);
+            final String fileSystemSpecifier = config.getString(CFG_FS_SPECIFIER);
+            return createFSLocationSpec(fileSystemType, fileSystemSpecifier, config);
+        }
+
+        /**
+         * Abstract method to to create the concrete instance of a {@link FSLocationSpec} subclass.
+         *
+         * @param fileSystemType The file system type.
+         * @param fileSystemSpecifier The file system specifier.
+         * @param config The {@link ConfigRO} to (optionally) deserialize further fields from.
+         * @return an instance of {@link FSLocationSpec} subclass.
+         */
+        protected abstract T createFSLocationSpec(String fileSystemType, String fileSystemSpecifier, ConfigRO config);
     }
 }
