@@ -85,4 +85,10 @@ public interface AttributesCache {
      */
     void removeAttribute(String path);
 
+    /**
+     * Removes all of the paths that starts with a given prefix from the attributes cache.
+     *
+     * @param prefix The prefix.
+     */
+    void removeAttributes(String prefix);
 }

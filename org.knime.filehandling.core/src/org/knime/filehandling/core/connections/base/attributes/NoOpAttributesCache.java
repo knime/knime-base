@@ -90,4 +90,13 @@ public class NoOpAttributesCache implements AttributesCache {
         //Nothing to do
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeAttributes(final String prefix) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

@@ -229,6 +229,17 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     }
 
     /**
+     * Removes an attribute for the path and all of it's children from the attribute cache.
+     *
+     * @param path the path
+     */
+    public void removeFromAttributeCacheDeep(final Path path) {
+        String key = getCachedAttributesKey(path);
+        m_cache.removeAttribute(key);
+        m_cache.removeAttributes(key + getSeparator());
+    }
+
+    /**
      * Returns an Optional containing the cached file-attributes for a path if present.
      *
      * @param path the path
