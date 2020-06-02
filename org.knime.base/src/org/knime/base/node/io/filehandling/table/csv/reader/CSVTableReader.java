@@ -253,7 +253,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 row = m_parser.parseNext();
             } catch (final TextParsingException e) {
                 //Log original exception message
-                LOGGER.debug(e.getMessage());
+                LOGGER.debug(e.getMessage(), e);
                 final Throwable cause = e.getCause();
                 if (cause instanceof ArrayIndexOutOfBoundsException) {
                     //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
