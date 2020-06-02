@@ -104,6 +104,8 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
         m_specMergeMode = SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             m_tableSpecConfig = TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), registry);
+        } else {
+            m_tableSpecConfig = null;
         }
     }
 
@@ -123,6 +125,8 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
                  * exception does not occur.
                  */
             }
+        } else {
+            m_tableSpecConfig = null;
         }
     }
 

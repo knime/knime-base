@@ -132,8 +132,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private MultiTableRead<V> createMultiRead(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
-        if (config.hasTableSpecConfig() && config.getTableSpecConfig().isConfiguredWith(rootPath)
-            && config.getTableSpecConfig().isConfiguredWith(paths)) {
+        if (isSpecConfigured(rootPath, paths, config)) {
             m_currentMultiRead = m_multiTableReadFactory.create(rootPath, paths, config);
         } else {
             final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
@@ -161,11 +160,20 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
     public BufferedDataTable readTable(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
-        final MultiTableRead<V> runConfig = getMultiRead(rootPath, paths, config, exec.createSubExecutionContext(0.5));
+        final boolean specConfigured = isSpecConfigured(rootPath, paths, config);
+        final MultiTableRead<V> runConfig =
+            getMultiRead(rootPath, paths, config, exec.createSubExecutionContext(specConfigured ? 0 : 0.5));
+        exec.setMessage("Reading table");
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(runConfig.getOutputSpec()));
-        fillRowOutput(runConfig, paths, config, output, exec.createSubExecutionContext(0.5));
+        fillRowOutput(runConfig, paths, config, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
         return output.getDataTable();
+    }
+
+    private boolean isSpecConfigured(final String rootPath, final List<Path> paths,
+        final MultiTableReadConfig<C> config) {
+        return config.hasTableSpecConfig() && config.getTableSpecConfig().isConfiguredWith(rootPath)
+            && config.getTableSpecConfig().isConfiguredWith(paths);
     }
 
     /**
@@ -205,6 +213,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
         final RowOutput output, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
         final MultiTableRead<V> multiRead = getMultiRead(rootPath, paths, config, exec);
+        exec.setMessage("Reading table");
         fillRowOutput(multiRead, paths, config, output, exec);
     }
 
@@ -219,7 +228,6 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private void fillRowOutput(final MultiTableRead<V> multiTableRead, final List<Path> paths,
         final MultiTableReadConfig<C> config, final RowOutput output, final ExecutionContext exec) throws Exception {
-        exec.setMessage("Reading table");
         // TODO parallelize
         final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
         for (Path path : paths) {

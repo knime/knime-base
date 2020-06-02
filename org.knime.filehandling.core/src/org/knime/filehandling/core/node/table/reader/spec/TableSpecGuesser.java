@@ -229,7 +229,7 @@ public final class TableSpecGuesser<T, V> {
 
     private static void setProgress(final ExecutionMonitor exec, final PreviewExecutionMonitor previewExec,
         final long rowCount, final double progress) {
-        if (rowCount % PROGRESS_UPDATE_INTERVAL == 1) { // check for 1 so that the first iteration resets the progress
+        if (rowCount == 1 || rowCount % PROGRESS_UPDATE_INTERVAL == 0) {
             if (previewExec != null) {
                 previewExec.setProgress(progress, rowCount);
             } else {
