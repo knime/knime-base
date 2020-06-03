@@ -12,6 +12,27 @@
             name="File Handling (Labs)"
             path="/labs/">
       </category>
+       <category
+      		icon="icons/cfilehandling16x16.png"
+            level-id="file-handling-IO"
+            locked="true"
+            name="IO"
+            path="/labs/file-handling-prototype">
+      </category>
+      <category
+      		icon="icons/cfilehandling16x16.png"
+            level-id="file-handling-Write"
+            locked="true"
+            name="Write"
+            path="/labs/file-handling-prototype/file-handling-IO">
+      </category>
+      <category
+      		icon="icons/cfilehandling16x16.png"
+            level-id="file-handling-Read"
+            locked="true"
+            name="Read"
+            path="/labs/file-handling-prototype/file-handling-IO">
+      </category>
    </extension>
    <extension
          point="org.knime.core.PortType">
