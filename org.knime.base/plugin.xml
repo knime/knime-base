@@ -2094,7 +2094,7 @@
       <node
             after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
             category-path="/io/read"
-            deprecated="true"
+            deprecated="false"
             factory-class="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2">
       </node>
       <node
@@ -2233,14 +2233,12 @@
             factory-class="org.knime.base.node.preproc.filter.row2.RowSplitterNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
-            category-path="/io/read"
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
       </node>

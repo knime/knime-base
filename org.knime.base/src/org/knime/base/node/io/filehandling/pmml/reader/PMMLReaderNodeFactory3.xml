@@ -3,7 +3,7 @@
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>PMML Reader</name>
+	<name>PMML Reader (Labs)</name>
 
 	<shortDescription>
         Reads models from a PMML compliant XML file.
