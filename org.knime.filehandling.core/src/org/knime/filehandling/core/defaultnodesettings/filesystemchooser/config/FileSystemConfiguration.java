@@ -77,10 +77,10 @@ import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusReporter;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * The configuration of {@link FileSystemChooser}.</br>

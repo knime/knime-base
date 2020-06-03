@@ -56,10 +56,10 @@ import java.util.concurrent.Callable;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * Computes the status message for dialogs of type "save".

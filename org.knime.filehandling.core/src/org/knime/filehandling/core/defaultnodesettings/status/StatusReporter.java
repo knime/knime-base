@@ -46,7 +46,7 @@
  * History
  *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
 import java.util.function.Consumer;
 

@@ -63,7 +63,7 @@ import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.DefaultFSLocationSpecConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * {@link SettingsModel} that stores information about a file system.

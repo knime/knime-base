@@ -51,11 +51,11 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * Computes the status message for dialogs of type "open".

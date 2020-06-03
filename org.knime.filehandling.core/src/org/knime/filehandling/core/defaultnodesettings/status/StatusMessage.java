@@ -46,7 +46,7 @@
  * History
  *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
 /**
  * Combines a status message with a {@link MessageType type} e.g. error.

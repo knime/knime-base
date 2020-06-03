@@ -67,12 +67,12 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * Allows access to the {@link FSPath FSPaths} referred to by the {@link SettingsModelFileChooser3} provided in the

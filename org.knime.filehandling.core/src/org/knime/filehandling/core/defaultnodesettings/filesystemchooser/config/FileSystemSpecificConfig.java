@@ -63,8 +63,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusReporter;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 
 /**
  * Config for a specific file system.

@@ -53,7 +53,7 @@ import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * Allows to access the output {@link FSPath} for writer nodes.

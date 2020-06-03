@@ -44,94 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
-import java.util.Optional;
-
-import javax.swing.Icon;
-import javax.swing.JLabel;
-
-import org.knime.core.node.util.SharedIcons;
-import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * A view that displays status messages.
+ * Default implementation of a {@link StatusMessage}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class StatusView {
+public final class DefaultStatusMessage implements StatusMessage {
 
-    private final WordWrapJLabel m_statusLabel;
+    private final MessageType m_type;
 
-    private StatusMessage m_statusMsg = null;
+    private final String m_msg;
 
     /**
      * Constructor.
      *
-     * @param widthInPixel status label width in pixels
+     * @param type of message
+     * @param msg the actual message
      */
-    public StatusView(final int widthInPixel) {
-        m_statusLabel = new WordWrapJLabel(" ", widthInPixel);
+    public DefaultStatusMessage(final MessageType type, final String msg) {
+        m_type = CheckUtils.checkArgumentNotNull(type, "The type must not be null.");
+        m_msg = CheckUtils.checkArgumentNotNull(msg, "The msg must not be null.");
     }
 
     /**
-     * Returns the currently set {@link StatusMessage} or {@link Optional#empty()} if no status message is set.
+     * Convenience constructor that allows to use formatting.
      *
-     * @return the current status message
+     * @param type of message
+     * @param format defines the format of the message
+     * @param args arguments that are injected into <b>format</b>
+     * @see String#format(String, Object...)
      */
-    public Optional<StatusMessage> getStatus() {
-        return Optional.ofNullable(m_statusMsg);
+    public DefaultStatusMessage(final MessageType type, final String format, final Object...args) {
+        this(type, String.format(format, args));
     }
 
-    /**
-     * Sets a new status message.
-     *
-     * @param message the {@link StatusMessage} to set
-     */
-    public void setStatus(final StatusMessage message) {
-        m_statusMsg = message;
-        m_statusLabel.setText(message.getMessage());
-        m_statusLabel.setIcon(getIcon(message.getType()));
-        // make sure that we don't show the info icon if there is no message
-        // (warning and error icons will still be shown)
-        if (message.getType() == MessageType.INFO && message.getMessage().trim().length() == 0) {
-            m_statusLabel.setIcon(null);
-        }
+    @Override
+    public MessageType getType() {
+        return m_type;
     }
 
-    private static Icon getIcon(final MessageType type) {
-        switch (type) {
-            case ERROR:
-                return SharedIcons.ERROR.get();
-            case WARNING:
-                return SharedIcons.WARNING_YELLOW.get();
-            case INFO:
-                return SharedIcons.INFO_BALLOON.get();
-            default:
-                return null;
-
-        }
-    }
-
-    /**
-     * Clears the status.
-     */
-    public void clearStatus() {
-        m_statusMsg = null;
-        m_statusLabel.setText(" ");
-        m_statusLabel.setIcon(null);
-    }
-
-    /**
-     * Returns the label that is used to display the status.
-     *
-     * @return the label containing the status message
-     */
-    public JLabel getLabel() {
-        return m_statusLabel;
+    @Override
+    public String getMessage() {
+        return m_msg;
     }
 
 }

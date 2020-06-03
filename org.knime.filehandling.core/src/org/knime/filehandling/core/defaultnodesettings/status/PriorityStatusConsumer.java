@@ -44,54 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
-import org.knime.core.node.util.CheckUtils;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.function.Consumer;
+
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * Default implementation of a {@link StatusMessage}.
+ * A {@link Consumer} of {@link StatusMessage StatusMessages} that prioritizes messages according to their
+ * {@link MessageType} (error > warning > info).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DefaultStatusMessage implements StatusMessage {
+public final class PriorityStatusConsumer implements Consumer<StatusMessage> {
 
-    private final MessageType m_type;
+    private final PriorityQueue<StatusMessage> m_msgs = new PriorityQueue<>();
 
-    private final String m_msg;
-
-    /**
-     * Constructor.
-     *
-     * @param type of message
-     * @param msg the actual message
-     */
-    public DefaultStatusMessage(final MessageType type, final String msg) {
-        m_type = CheckUtils.checkArgumentNotNull(type, "The type must not be null.");
-        m_msg = CheckUtils.checkArgumentNotNull(msg, "The msg must not be null.");
+    @Override
+    public void accept(final StatusMessage t) {
+        m_msgs.add(t);
     }
 
     /**
-     * Convenience constructor that allows to use formatting.
-     *
-     * @param type of message
-     * @param format defines the format of the message
-     * @param args arguments that are injected into <b>format</b>
-     * @see String#format(String, Object...)
+     * Clears the message queue i.e. discards all messages accepted so far.
      */
-    public DefaultStatusMessage(final MessageType type, final String format, final Object...args) {
-        this(type, String.format(format, args));
+    public void clear() {
+        m_msgs.clear();
     }
 
-    @Override
-    public MessageType getType() {
-        return m_type;
-    }
-
-    @Override
-    public String getMessage() {
-        return m_msg;
+    /**
+     * Returns one of the messages with the highest priority (error > warning > info).
+     *
+     * @return one of the messages with the highest priority
+     */
+    public Optional<StatusMessage> get() {
+        return Optional.ofNullable(m_msgs.peek());
     }
 
 }

@@ -73,8 +73,8 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * Node model for the Test List Files node.

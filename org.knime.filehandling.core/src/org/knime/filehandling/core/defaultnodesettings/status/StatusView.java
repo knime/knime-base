@@ -46,43 +46,92 @@
  * History
  *   May 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
 import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.function.Consumer;
 
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+
+import org.knime.core.node.util.SharedIcons;
+import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * A {@link Consumer} of {@link StatusMessage StatusMessages} that prioritizes messages according to their
- * {@link MessageType} (error > warning > info).
+ * A view that displays status messages.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class PriorityStatusConsumer implements Consumer<StatusMessage> {
+public final class StatusView {
 
-    private final PriorityQueue<StatusMessage> m_msgs = new PriorityQueue<>();
+    private final WordWrapJLabel m_statusLabel;
 
-    @Override
-    public void accept(final StatusMessage t) {
-        m_msgs.add(t);
-    }
+    private StatusMessage m_statusMsg = null;
 
     /**
-     * Clears the message queue i.e. discards all messages accepted so far.
-     */
-    public void clear() {
-        m_msgs.clear();
-    }
-
-    /**
-     * Returns one of the messages with the highest priority (error > warning > info).
+     * Constructor.
      *
-     * @return one of the messages with the highest priority
+     * @param widthInPixel status label width in pixels
      */
-    public Optional<StatusMessage> get() {
-        return Optional.ofNullable(m_msgs.peek());
+    public StatusView(final int widthInPixel) {
+        m_statusLabel = new WordWrapJLabel(" ", widthInPixel);
+    }
+
+    /**
+     * Returns the currently set {@link StatusMessage} or {@link Optional#empty()} if no status message is set.
+     *
+     * @return the current status message
+     */
+    public Optional<StatusMessage> getStatus() {
+        return Optional.ofNullable(m_statusMsg);
+    }
+
+    /**
+     * Sets a new status message.
+     *
+     * @param message the {@link StatusMessage} to set
+     */
+    public void setStatus(final StatusMessage message) {
+        m_statusMsg = message;
+        m_statusLabel.setText(message.getMessage());
+        m_statusLabel.setIcon(getIcon(message.getType()));
+        // make sure that we don't show the info icon if there is no message
+        // (warning and error icons will still be shown)
+        if (message.getType() == MessageType.INFO && message.getMessage().trim().length() == 0) {
+            m_statusLabel.setIcon(null);
+        }
+    }
+
+    private static Icon getIcon(final MessageType type) {
+        switch (type) {
+            case ERROR:
+                return SharedIcons.ERROR.get();
+            case WARNING:
+                return SharedIcons.WARNING_YELLOW.get();
+            case INFO:
+                return SharedIcons.INFO_BALLOON.get();
+            default:
+                return null;
+
+        }
+    }
+
+    /**
+     * Clears the status.
+     */
+    public void clearStatus() {
+        m_statusMsg = null;
+        m_statusLabel.setText(" ");
+        m_statusLabel.setIcon(null);
+    }
+
+    /**
+     * Returns the label that is used to display the status.
+     *
+     * @return the label containing the status message
+     */
+    public JLabel getLabel() {
+        return m_statusLabel;
     }
 
 }

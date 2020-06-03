@@ -67,8 +67,8 @@ import org.knime.filehandling.core.data.location.variable.FSLocationSpecVariable
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusView;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**

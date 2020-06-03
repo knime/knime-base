@@ -54,7 +54,7 @@ import java.util.function.Consumer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * Abstract implementation of {@link FileSystemSpecificConfig} for the convenience file systems.

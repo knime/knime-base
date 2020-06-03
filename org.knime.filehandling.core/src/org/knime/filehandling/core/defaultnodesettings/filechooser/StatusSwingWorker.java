@@ -59,9 +59,9 @@ import javax.swing.SwingWorker;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * Validates the user provided path in the background and also performs filtering given the filter options. Any errors
