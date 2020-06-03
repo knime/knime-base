@@ -199,6 +199,15 @@ public final class SettingsModelFileChooser3 extends SettingsModel {
     }
 
     /**
+     * Sets the given {@link FSLocation}.
+     *
+     * @param location the {@link FSLocation} to be set
+     */
+    public void setLocation(final FSLocation location) {
+        m_fsConfig.setLocationSpec(location);
+    }
+
+    /**
      * Returns the currently configured {@link FSLocation}.
      *
      * @return the currently configured {@link FSLocation}
