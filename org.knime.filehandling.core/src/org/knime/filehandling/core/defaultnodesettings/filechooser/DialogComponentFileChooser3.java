@@ -62,11 +62,13 @@ import javax.swing.JPanel;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.FlowVariableModelButton;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -77,7 +79,10 @@ import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelecti
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusView;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.DialogComponentFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
@@ -111,6 +116,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 public final class DialogComponentFileChooser3 extends DialogComponent {
 
+    private final DialogType m_dialogType;
+
     private final FileSystemChooser m_fsChooser;
 
     private final FileSelectionDialog m_fileSelection;
@@ -127,7 +134,9 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
 
     private boolean m_replacedByFlowVar = false;
 
-    private FSConnection m_connection;
+    private FSConnection m_connection = null;
+
+    private StatusSwingWorker m_statusMessageWorker = null;
 
     /**
      * Constructor.
@@ -143,6 +152,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
         final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
         final FilterMode... filterModes) {
         super(model);
+        m_dialogType = dialogType;
         m_locationFvm =
             CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         Set<FilterMode> selectableFilterModes =
@@ -173,19 +183,23 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1);
-        if (displayFilterModes) {
-            panel.add(m_filterMode.getComponentPanel(), gbc.widthRemainder().build());
-        }
-        panel.add(new JLabel("Read from:"), gbc.incY().setWeightX(0).setWidth(1).build());
+        panel.add(new JLabel("Read from:"), gbc.setWeightX(0).setWidth(1).build());
         panel.add(m_fsChooser.getPanel(), gbc.incX().fillNone().build());
-        panel.add(m_fileSelectionLabel, gbc.setWidth(1).setWeightX(0).resetX().incY().build());
+        if (displayFilterModes) {
+            panel.add(new JLabel("Mode:"), gbc.resetX().incY().insetLeft(-4).setWidth(1).build());
+            panel.add(m_filterMode.getComponentPanel(), gbc.incX().widthRemainder().build());
+            panel.add(m_filterMode.getFilterConfigPanel(), gbc.insetLeft(4).incY().build());
+        }
+        panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(), gbc.incX().fillHorizontal().setWeightX(1).setWidth(2).build());
         panel.add(new FlowVariableModelButton(m_locationFvm), gbc.incX(2).setWeightX(0).setWidth(1).build());
-        panel.add(m_filterMode.getFilterConfigPanel(), gbc.insetLeft(4).setX(1).incY().build());
-        panel.add(m_statusView.getLabel(), gbc.anchorLineStart().incY().build());
+        panel.add(m_statusView.getLabel(), gbc.anchorLineStart().insetLeft(4).setX(1).widthRemainder().incY().build());
     }
 
     private void handleFlowVariableModelChange() {
+        // FIXME when the flow variable is no longer present, the fvm still signals that the value is replaced which is wrong
+        // and causes the components to stay disabled. A quick investigation did not find the bug,
+        // so we will postpone this to a later bugfix in order to get this enhancement resolved
         m_replacedByFlowVar = m_locationFvm.isVariableReplacementEnabled();
         final Optional<FlowVariable> flowVar = m_locationFvm.getVariableValue();
         if (m_replacedByFlowVar && flowVar.isPresent()) {
@@ -238,11 +252,50 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
     }
 
     private void updateStatus() {
-        m_statusView.clearStatus();
         m_statusConsumer.clear();
-        getSettingsModel().getFileSystemConfiguration().report(m_statusConsumer);
-        m_statusConsumer.get().ifPresent(m_statusView::setStatus);
-        // TODO don't start swing worker if there are already erros or we are in remote job view
+        getSettingsModel().report(m_statusConsumer);
+        Optional<StatusMessage> status = m_statusConsumer.get();
+        boolean isWarningOrError = false;
+        if (status.isPresent()) {
+            status.ifPresent(m_statusView::setStatus);
+            MessageType type = status.get().getType();
+            isWarningOrError = type == MessageType.ERROR || type == MessageType.WARNING;
+        }
+        // don't check file if there are warnings/errors or we are in a convenience fs on the server
+        if (!isWarningOrError && !(executedOnServer() && isConvenienceFS())) {
+            triggerSwingWorker();
+        } else if (!status.isPresent()) {
+            m_statusView.clearStatus();
+        } else {
+            // there is a status message that needs to be displayed
+        }
+    }
+
+    private static boolean executedOnServer() {
+        return CheckNodeContextUtil.isRemoteWorkflowContext();
+    }
+
+    private boolean isConvenienceFS() {
+        return !isConnectedFS();
+    }
+
+    private boolean isConnectedFS() {
+        return getSettingsModel().getFileSystemConfiguration().hasFSPort();
+    }
+
+    private void triggerSwingWorker() {
+        if (m_statusMessageWorker != null) {
+            m_statusMessageWorker.cancel(true);
+        }
+        try {
+            m_statusMessageWorker = new StatusSwingWorker(getSettingsModel(), m_statusView::setStatus, m_dialogType);
+            m_statusMessageWorker.execute();
+        } catch (Exception ex) {
+            NodeLogger.getLogger(DialogComponentFileChooser3.class)
+                .error("An exception occurred while updating the status message.", ex);
+            m_statusView.setStatus(new DefaultStatusMessage(MessageType.ERROR,
+                "An error occurred while updating the status message: %s", ex.getMessage()));
+        }
     }
 
     private void updateBrowser() {
@@ -255,10 +308,11 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
             final Optional<FSConnection> connection = getConnection();
             final Optional<FileSystemBrowser> browser = connection.map(FSConnection::getFileSystemBrowser);
             // we can only browse if the file system connection is available
-            if (!CheckNodeContextUtil.isRemoteWorkflowContext() && browser.isPresent()) {
+            if (!executedOnServer() && browser.isPresent()) {
                 // the connection is present, otherwise browser couldn't be
                 m_connection = connection.get();
                 m_fileSelection.setEnableBrowsing(true);
+                m_fileSelection.setFileExtensions(sm.getFileExtensions());
                 m_fileSelection.setFileSystemBrowser(browser.get());
                 m_fileSelection.setFileSelectionMode(getFileSelectionMode());
             } else {
@@ -315,11 +369,27 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
 
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
-        getSettingsModel().getFileSystemConfiguration().validate();
-        // TODO only store if valid (will be determined by swing worker when it updates the status)
-        m_fileSelection.addCurrentSelectionToHistory();
+        if (m_statusMessageWorker != null) {
+            m_statusMessageWorker.cancel(true);
+            m_statusMessageWorker = null;
+        }
         if (m_connection != null) {
             m_connection.close();
+            m_connection = null;
+        }
+        getSettingsModel().getFileSystemConfiguration().validate();
+        // checkStatus() only fails if the swing worker found an error,
+        // otherwise the previous call should already have failed
+        checkStatus();
+        m_fileSelection.addCurrentSelectionToHistory();
+    }
+
+    private void checkStatus() throws InvalidSettingsException {
+        final Optional<StatusMessage> status = m_statusView.getStatus();
+        if (status.isPresent()) {
+            final StatusMessage actualStatus = status.get();
+            final MessageType type = actualStatus.getType();
+            CheckUtils.checkSetting(type != MessageType.ERROR, actualStatus.getMessage());
         }
     }
 

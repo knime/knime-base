@@ -68,7 +68,11 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status.StatusReporter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -82,7 +86,10 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class SettingsModelFileChooser3 extends SettingsModel {
+public final class SettingsModelFileChooser3 extends SettingsModel implements StatusReporter {
+
+    private static final DefaultStatusMessage NO_LOCATION_ERROR =
+        new DefaultStatusMessage(MessageType.ERROR, "Please specify a location");
 
     private final FileSystemConfiguration<FSLocationConfig> m_fsConfig;
 
@@ -130,7 +137,20 @@ public final class SettingsModelFileChooser3 extends SettingsModel {
      */
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
+        checkLocation();
+        CheckUtils.checkSetting(getLocation().getPath().length() > 0, "Please specify a location");
         m_fsConfig.configureInModel(specs, statusMessageConsumer);
+    }
+
+    private void checkLocation() throws InvalidSettingsException {
+        final PriorityStatusConsumer locationStatusConsumer = new PriorityStatusConsumer();
+        reportOnLocation(locationStatusConsumer);
+        Optional<StatusMessage> locationStatus = locationStatusConsumer.get();
+        if (locationStatus.isPresent()) {
+            final StatusMessage actualLocationStatus = locationStatus.get();
+            CheckUtils.checkSetting(actualLocationStatus.getType() != MessageType.ERROR,
+                    actualLocationStatus.getMessage());
+        }
     }
 
     /**
@@ -277,6 +297,18 @@ public final class SettingsModelFileChooser3 extends SettingsModel {
     @Override
     public String toString() {
         return getClass().getSimpleName() + " ('" + m_configName + "')";
+    }
+
+    @Override
+    public void report(final Consumer<StatusMessage> messageConsumer) {
+        reportOnLocation(messageConsumer);
+        m_fsConfig.report(messageConsumer);
+    }
+
+    private void reportOnLocation(final Consumer<StatusMessage> messageConsumer) {
+        if (getLocation().getPath().length() == 0) {
+            messageConsumer.accept(NO_LOCATION_ERROR);
+        }
     }
 
 }
