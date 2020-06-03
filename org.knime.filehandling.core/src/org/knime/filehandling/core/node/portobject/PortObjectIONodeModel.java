@@ -47,7 +47,6 @@ package org.knime.filehandling.core.node.portobject;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -58,15 +57,11 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectFromPathReaderNodeModel;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectToPathWriterNodeModel;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Abstract node model for port object reader and writer nodes.
@@ -75,10 +70,7 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * @param <C> the config used by the node
  * @noextend extend either {@link PortObjectFromPathReaderNodeModel} or {@link PortObjectToPathWriterNodeModel}
  */
-public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> extends NodeModel {
-
-    /** The name of the optional connection input port group. */
-    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
+public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig<?>> extends NodeModel {
 
     /** The ports configuration. */
     private final PortsConfiguration m_portsConfig;
@@ -100,23 +92,15 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
 
     @Override
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final String pathOrURL = m_config.getFileChooserModel().getPathOrURL();
-        if (pathOrURL == null || pathOrURL.trim().isEmpty()) {
-            throw new InvalidSettingsException("Please enter a valid location.");
-        }
-        // Check if the connected file system is actually available. Could be unavailable if, e.g., the S3 node has been
-        // loaded and not re-executed.
-        final int[] inputPortIdx = getPortsConfig().getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME);
-        if (inputPortIdx != null) {
-            final Optional<FSConnection> fileSystemConnection =
-                FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, inputPortIdx[0]);
-            if (!fileSystemConnection.isPresent()) {
-                throw new InvalidSettingsException(
-                    "The file system connection is not available. Re-executing the preceding node might fix this.");
-            }
-        }
+        m_config.getFileChooserModel().configureInModel(inSpecs, this::processStatusMessage);
         configureInternal(inSpecs);
         return null;
+    }
+
+    private void processStatusMessage(final StatusMessage statusMsg) {
+        if (statusMsg.getType() != MessageType.INFO) {
+            setWarningMessage(statusMsg.getMessage());
+        }
     }
 
     /**
@@ -131,24 +115,6 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig> ex
      */
     protected void configureInternal(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // nothing to do here
-    }
-
-    /**
-     * Creates a file chooser helper.
-     *
-     * @param data the input data
-     * @return a file chooser helper
-     * @throws IOException if the file system could not be retrieved
-     */
-    protected FileChooserHelper createFileChooserHelper(final PortObject[] data) throws IOException {
-        final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
-
-        // get the fs connection if it exists
-        final Optional<FSConnection> fs =
-            Optional.ofNullable(getPortsConfig().getInputPortLocation().get(CONNECTION_INPUT_PORT_GRP_NAME)) //
-                .map(arr -> FileSystemPortObject.getFileSystemConnection(data, arr[0]).get()); // save due to framework
-
-        return new FileChooserHelper(fs, fileChooserModel, m_config.getTimeoutModel().getIntValue());
     }
 
     /**

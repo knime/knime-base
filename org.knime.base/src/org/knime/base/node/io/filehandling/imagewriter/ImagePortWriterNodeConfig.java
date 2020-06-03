@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter;
 
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
 /**
@@ -55,15 +56,17 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeCo
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-final class ImagePortWriterNodeConfig  extends PortObjectWriterNodeConfig {
+final class ImagePortWriterNodeConfig extends PortObjectWriterNodeConfig {
 
     /** The model file extension/suffix. */
     private static final String[] MODEL_SUFFIX = new String[]{".svg", ".png"};
 
     /**
      * Constructor.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      */
-    ImagePortWriterNodeConfig() {
-        super(MODEL_SUFFIX);
+    ImagePortWriterNodeConfig(final NodeCreationConfiguration creationConfig) {
+        super(creationConfig, MODEL_SUFFIX);
     }
 }

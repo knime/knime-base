@@ -47,9 +47,7 @@ package org.knime.filehandling.core.node.portobject.writer;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
@@ -63,13 +61,6 @@ import org.knime.core.node.port.PortObject;
  */
 public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriterNodeConfig>
     extends PortObjectToPathWriterNodeModel<C> {
-
-    /** The don't overwrite open options. */
-    private static final OpenOption[] NO_OVERWRITE_OPTIONS = new OpenOption[]{StandardOpenOption.CREATE_NEW};
-
-    /** The overwrite open options. */
-    private static final OpenOption[] OVERWRITE_OPTIONS =
-        new OpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
 
     /**
      * Constructor.
@@ -85,7 +76,7 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
     protected final void writeToPath(final PortObject object, final Path outputPath, final ExecutionContext exec)
         throws Exception {
         try (final OutputStream outputStream = Files.newOutputStream(outputPath,
-            getConfig().getOverwriteModel().getBooleanValue() ? OVERWRITE_OPTIONS : NO_OVERWRITE_OPTIONS)) {
+            getConfig().getFileChooserModel().getFileOverwritePolicy().getOpenOptions())) {
             write(object, outputStream, exec);
         }
     }

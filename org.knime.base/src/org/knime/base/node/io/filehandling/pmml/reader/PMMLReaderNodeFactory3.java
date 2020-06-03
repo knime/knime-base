@@ -45,8 +45,6 @@
  */
 package org.knime.base.node.io.filehandling.pmml.reader;
 
-import javax.swing.JFileChooser;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
@@ -71,14 +69,13 @@ public final class PMMLReaderNodeFactory3
 
     @Override
     protected PMMLReaderNodeModel3 createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new PMMLReaderNodeModel3(creationConfig, getConfig());
+        return new PMMLReaderNodeModel3(creationConfig, getConfig(creationConfig));
     }
 
     @Override
     protected PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<>(creationConfig.getPortConfig().get(), getConfig(), HISTORY_ID,
-            JFileChooser.FILES_ONLY);
+        return new PortObjectReaderNodeDialog<>(getConfig(creationConfig), HISTORY_ID);
     }
 
     @Override
@@ -89,9 +86,10 @@ public final class PMMLReaderNodeFactory3
     /**
      * Returns the port object reader node configuration.
      *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      * @return the reader configuration
      */
-    private static PortObjectReaderNodeConfig getConfig() {
-        return new PortObjectReaderNodeConfig(PMML_SUFFIX);
+    private static PortObjectReaderNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectReaderNodeConfig(creationConfig, PMML_SUFFIX);
     }
 }

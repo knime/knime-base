@@ -91,7 +91,7 @@ public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>
     @Override
     protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(PortObjectIONodeConfig.CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
         addAdditionalPorts(b);
         return Optional.of(b);
     }

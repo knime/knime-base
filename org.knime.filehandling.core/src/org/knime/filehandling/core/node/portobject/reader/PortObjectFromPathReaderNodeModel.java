@@ -55,8 +55,12 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortObject;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -68,9 +72,6 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectReaderNodeConfig>
     extends PortObjectIONodeModel<C> {
 
-    /** The name of the fixed port object output port group. */
-    static final String PORT_OBJECT_OUTPUT_GRP_NAME = "Port Object";
-
     /**
      * Constructor.
      *
@@ -78,28 +79,30 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
      * @param config the reader configuration
      */
     protected PortObjectFromPathReaderNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
-        super(creationConfig.getPortConfig().get(), config);
+        super(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), config);
         // Check if a URL is already configured and set it if so.
         // This is, e.g., the case when a file has been dropped into AP and the node has automatically been created.
         final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
-            // we get an URL so the file system need sto be custom url
-            getConfig().getFileChooserModel().setFileSystem(FileSystemChoice.getCustomFsUrlChoice().getId());
-            getConfig().getFileChooserModel().setPathOrURL(urlConfig.get().getUrl().toString());
+            // we get an URL so the file system needs to be custom url
+            getConfig().getFileChooserModel().setLocation(new FSLocation(
+                FileSystemChoice.getCustomFsUrlChoice().toString(), "1000", urlConfig.get().getUrl().toString()));
         }
     }
 
     @Override
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
-        final FileChooserHelper fch = createFileChooserHelper(data);
-        try {
-            final List<Path> paths = fch.getPaths();
+        try (final ReadPathAccessor accessor = getConfig().getFileChooserModel().createReadPathAccessor()) {
+            final PriorityStatusConsumer statusConsumer = new PriorityStatusConsumer();
+            final List<FSPath> paths = accessor.getFSPaths(statusConsumer);
             assert paths.size() == 1;
-            final Path path = paths.get(0);
-            return readFromPath(path, exec);
+            final Optional<StatusMessage> statusMessage = statusConsumer.get();
+            if (statusMessage.isPresent()) {
+                setWarningMessage(statusMessage.get().getMessage());
+            }
+            return readFromPath(paths.get(0), exec);
         } catch (NoSuchFileException e) {
-            throw new IOException(
-                "The file '" + getConfig().getFileChooserModel().getPathOrURL() + "' does not exist.");
+            throw new IOException(String.format("The file '%s' does not exist.", e.getFile()));
         }
     }
 

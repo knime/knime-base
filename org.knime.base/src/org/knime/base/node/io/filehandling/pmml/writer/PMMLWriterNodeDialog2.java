@@ -51,14 +51,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
@@ -76,11 +75,11 @@ final class PMMLWriterNodeDialog2 extends PortObjectWriterNodeDialog<PMMLWriterN
     /**
      * Constructor.
      *
-     * @param portsConfig the ports configuration
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
      */
-    PMMLWriterNodeDialog2(final PortsConfiguration portsConfiguration, final String fileChooserHistoryId) {
-        super(portsConfiguration, new PMMLWriterNodeConfig2(), fileChooserHistoryId, JFileChooser.FILES_ONLY);
+    PMMLWriterNodeDialog2(final NodeCreationConfiguration creationConfig, final String fileChooserHistoryId) {
+        super(new PMMLWriterNodeConfig2(creationConfig), fileChooserHistoryId);
         m_validatePMMLCheckbox =
             new DialogComponentBoolean(getConfig().getValidatePMMLModel(), "Validate PMML before export");
         addAdditionalPanel(createValidationSettingsPanel());

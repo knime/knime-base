@@ -43,39 +43,55 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 3, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.node.portobject.reader;
+package org.knime.filehandling.core.node.portobject;
 
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
 
 /**
- * Configuration class for port object reader nodes that can be extended with additional configurations.
+ * The allowed selection for the {@link DialogComponentReaderFileChooser} in the context of PortObject reader and
+ * writers.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig<SettingsModelReaderFileChooser> {
+public enum SelectionMode {
 
-    /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
-     *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
-     */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig) {
-        this(creationConfig, new String[0]);
+        /** Corresponds to {@link FilterMode#FILE}. */
+        FILE(FilterMode.FILE),
+
+        /** Corresponds to {@link FilterMode#FOLDER}. */
+        FOLDER(FilterMode.FOLDER),
+
+        /** Corresponds to {@link FilterMode#FILE} and {@link FilterMode#FOLDER}. */
+        FILE_AND_FOLDER(FilterMode.FILE, FilterMode.FOLDER);
+
+    private final FilterMode[] m_filters;
+
+    private final FilterMode m_defaultFilter;
+
+    private SelectionMode(final FilterMode... filters) {
+        m_filters = filters;
+        m_defaultFilter = filters[0];
     }
 
     /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     * Returns the associated {@link FilterMode}s.
      *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
-     * @param fileSuffixes the file suffixes to filter on
+     * @return the associated {@link FilterMode}s
      */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes) {
-        super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            FilterMode.FILE, fileSuffixes));
+    public FilterMode[] getFilters() {
+        return m_filters;
+    }
+
+    /**
+     * Returns the associated default {@link FilterMode}.
+     *
+     * @return the associated default {@link FilterMode}
+     */
+    public FilterMode getDefaultFilter() {
+        return m_defaultFilter;
     }
 }

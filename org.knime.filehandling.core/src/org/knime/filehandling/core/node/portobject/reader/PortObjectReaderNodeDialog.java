@@ -45,11 +45,11 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
-import javax.swing.JFileChooser;
-
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
+import org.knime.filehandling.core.node.portobject.SelectionMode;
 
 /**
  * Node dialog for port object reader nodes that can be extended with additional settings components.
@@ -62,16 +62,35 @@ public class PortObjectReaderNodeDialog<C extends PortObjectReaderNodeConfig> ex
     /**
      * Constructor.
      *
-     * @param portsConfig the ports configuration
      * @param config the config
-     * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
-     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
-     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
-     *            {@link JFileChooser#DIRECTORIES_ONLY}
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
+     *            from <b>model</b> is used)
      */
-    public PortObjectReaderNodeDialog(final PortsConfiguration portsConfig, final C config,
-        final String fileChooserHistoryId, final int fileChooserSelectionMode) {
-        super(portsConfig, config, fileChooserHistoryId, JFileChooser.OPEN_DIALOG, fileChooserSelectionMode);
+    private PortObjectReaderNodeDialog(final C config, final String historyID, final FilterMode[] filterModes) {
+        super(config,
+            fvm -> new DialogComponentReaderFileChooser(config.getFileChooserModel(), historyID, fvm, filterModes));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param config the config
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param selectionMode the available {@link SelectionMode}s
+     */
+    public PortObjectReaderNodeDialog(final C config, final String historyID, final SelectionMode selectionMode) {
+        this(config, historyID, selectionMode.getFilters());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param config the config
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     */
+    public PortObjectReaderNodeDialog(final C config, final String historyID) {
+        this(config, historyID, new FilterMode[0]);
     }
 
 }

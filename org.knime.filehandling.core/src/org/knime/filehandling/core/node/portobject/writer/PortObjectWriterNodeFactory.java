@@ -58,10 +58,12 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeFactory;
 public abstract class PortObjectWriterNodeFactory<M extends PortObjectToPathWriterNodeModel<?>,
         D extends PortObjectWriterNodeDialog<?>> extends PortObjectIONodeFactory<M, D> {
 
+    /** The name of the fixed port object input port group. */
+    static final String PORT_OBJECT_INPUT_GRP_NAME = "Port Object";
 
     @Override
     protected final void addAdditionalPorts(final PortsConfigurationBuilder b) {
-        b.addFixedInputPortGroup(PortObjectToPathWriterNodeModel.PORT_OBJECT_INPUT_GRP_NAME, getInputPortType());
+        b.addFixedInputPortGroup(PORT_OBJECT_INPUT_GRP_NAME, getInputPortType());
     }
 
     /**

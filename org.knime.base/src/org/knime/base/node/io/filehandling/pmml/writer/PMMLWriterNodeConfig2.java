@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.pmml.writer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
@@ -71,9 +72,11 @@ final class PMMLWriterNodeConfig2 extends PortObjectWriterNodeConfig {
 
     /**
      * Constructor.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      */
-    PMMLWriterNodeConfig2() {
-        super(PMML_SUFFIX);
+    PMMLWriterNodeConfig2(final NodeCreationConfiguration creationConfig) {
+        super(creationConfig, PMML_SUFFIX);
     }
 
     /**

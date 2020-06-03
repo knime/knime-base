@@ -45,24 +45,11 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-
-import javax.swing.BorderFactory;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
+import org.knime.filehandling.core.node.portobject.SelectionMode;
 
 /**
  * Node dialog for port object writer nodes that can be extended with additional settings components.
@@ -72,90 +59,47 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
  */
 public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> extends PortObjectIONodeDialog<C> {
 
-    private final DialogComponentBoolean m_overwriteCheckbox;
-
-    private final DialogComponentBoolean m_createDirectoriesCheckbox;
-
-    private final PortsConfiguration m_portsConfig;
+    /**
+     * Constructor.
+     *
+     * @param config the config
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param filterModes the available {@link FilterMode FilterModes} (if none are provided, the default filter mode
+     *            from <b>model</b> is used)
+     */
+    private PortObjectWriterNodeDialog(final C config, final String historyID, final FilterMode[] filterModes) {
+        super(config,
+            fvm -> new DialogComponentWriterFileChooser(config.getFileChooserModel(), historyID, fvm, filterModes));
+    }
 
     /**
      * Constructor.
      *
-     * @param portsConfig the ports configuration
      * @param config the config
-     * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
-     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
-     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
-     *            {@link JFileChooser#DIRECTORIES_ONLY}
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param selectionMode the available {@link SelectionMode}s
      */
-    public PortObjectWriterNodeDialog(final PortsConfiguration portsConfig, final C config,
-        final String fileChooserHistoryId, final int fileChooserSelectionMode) {
-        super(portsConfig, config, fileChooserHistoryId, JFileChooser.SAVE_DIALOG, fileChooserSelectionMode);
-        m_overwriteCheckbox =
-            new DialogComponentBoolean(getConfig().getOverwriteModel(), getOverwriteLabel(fileChooserSelectionMode));
-        m_createDirectoriesCheckbox =
-            new DialogComponentBoolean(getConfig().getCreateDirectoryModel(), "Create parent directories if required");
-        addAdditionalPanel(createOverwriteSettingsPanel());
-        m_portsConfig = portsConfig;
+    public PortObjectWriterNodeDialog(final C config, final String historyID, final SelectionMode selectionMode) {
+        this(config, historyID, selectionMode.getFilters());
     }
 
     /**
-     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
-     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
-     *            {@link JFileChooser#DIRECTORIES_ONLY}
+     * Constructor.
      *
-     * @return the label of the overwrite checkbox w.r.t. the selection mode
+     * @param config the config
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
      */
-    private static String getOverwriteLabel(final int fileChooserSelectionMode) {
-        if (fileChooserSelectionMode == JFileChooser.FILES_ONLY) {
-            return "Overwrite file if exists";
-        } else if (fileChooserSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
-            return "Overwrite folder content if exists";
-        } else if (fileChooserSelectionMode == JFileChooser.FILES_AND_DIRECTORIES) {
-            return "Overwrite folder content/file if exists";
-        }
-        throw new IllegalArgumentException("The provided selection mode is not invalid.");
-    }
-
-    private JPanel createOverwriteSettingsPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Writing"));
-        final GridBagConstraints gbc = createAndInitGBC();
-        gbc.weightx = 1;
-        panel.add(m_overwriteCheckbox.getComponentPanel(), gbc);
-        gbc.gridy++;
-        panel.add(m_createDirectoriesCheckbox.getComponentPanel(), gbc);
-        return panel;
-    }
-
-    @Override
-    protected void updateFileChooserBasedEnabledness(final SettingsModelFileChooser2 model) {
-        super.updateFileChooserBasedEnabledness(model);
-        final FileSystemChoice choice = model.getFileSystemChoice();
-        m_createDirectoriesCheckbox.getModel().setEnabled(!FileSystemChoice.getCustomFsUrlChoice().equals(choice));
+    public PortObjectWriterNodeDialog(final C config, final String historyID) {
+        this(config, historyID, new FilterMode[0]);
     }
 
     /**
-     * Method to obtain the index of port object written by this writer.
+     * Returns the name of the fixed port object input port group.
      *
-     * @return the index of the to be-written port object
+     * @return the name of the fixed port object input port group
      */
-    protected int getPortObjectIndex() {
-        return m_portsConfig.getInputPortLocation().get(PortObjectToPathWriterNodeModel.PORT_OBJECT_INPUT_GRP_NAME)[0];
+    protected String getPortObjectInputGrpName() {
+        return PortObjectWriterNodeFactory.PORT_OBJECT_INPUT_GRP_NAME;
     }
 
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_overwriteCheckbox.saveSettingsTo(settings);
-        m_createDirectoriesCheckbox.saveSettingsTo(settings);
-        super.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_overwriteCheckbox.loadSettingsFrom(settings, specs);
-        m_createDirectoriesCheckbox.loadSettingsFrom(settings, specs);
-        super.loadSettingsFrom(settings, specs);
-    }
 }

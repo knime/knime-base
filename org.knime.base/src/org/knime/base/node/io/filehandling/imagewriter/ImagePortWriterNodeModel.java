@@ -74,7 +74,7 @@ public class ImagePortWriterNodeModel extends PortObjectToFileWriterNodeModel<Im
      * @param creationConfig node creation configuration
      */
     protected ImagePortWriterNodeModel(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, new ImagePortWriterNodeConfig());
+        super(creationConfig, new ImagePortWriterNodeConfig(creationConfig));
     }
 
     @Override

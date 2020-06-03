@@ -174,6 +174,15 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         layout(selectableFilterModes.size() > 1);
     }
 
+    /**
+     * Returns the {@link DialogType}.
+     *
+     * @return the type of this dialog
+     */
+    public final DialogType getDialogType() {
+        return m_dialogType;
+    }
+
     private void hookUpListeners() {
         m_fileSelection.addListener(e -> handleFileSelectionChange());
         getModel().addChangeListener(e -> updateComponent());

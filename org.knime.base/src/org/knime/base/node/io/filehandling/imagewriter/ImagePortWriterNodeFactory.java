@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter;
 
-import javax.swing.JFileChooser;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.image.ImagePortObject;
@@ -61,8 +59,8 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeFa
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public final class ImagePortWriterNodeFactory
-extends PortObjectWriterNodeFactory<ImagePortWriterNodeModel, PortObjectWriterNodeDialog<ImagePortWriterNodeConfig>> {
+public final class ImagePortWriterNodeFactory extends
+    PortObjectWriterNodeFactory<ImagePortWriterNodeModel, PortObjectWriterNodeDialog<ImagePortWriterNodeConfig>> {
 
     @Override
     protected PortType getInputPortType() {
@@ -72,8 +70,7 @@ extends PortObjectWriterNodeFactory<ImagePortWriterNodeModel, PortObjectWriterNo
     @Override
     protected PortObjectWriterNodeDialog<ImagePortWriterNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeDialog<>(creationConfig.getPortConfig().get(), new ImagePortWriterNodeConfig(),
-                "image_port_writer", JFileChooser.FILES_ONLY);
+        return new PortObjectWriterNodeDialog<>(new ImagePortWriterNodeConfig(creationConfig), "image_port_writer");
     }
 
     @Override

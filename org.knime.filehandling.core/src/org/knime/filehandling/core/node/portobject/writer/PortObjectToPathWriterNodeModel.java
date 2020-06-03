@@ -49,12 +49,14 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.port.PortObject;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -66,9 +68,6 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriterNodeConfig>
     extends PortObjectIONodeModel<C> {
 
-    /** The name of the fixed port object input port group. */
-    static final String PORT_OBJECT_INPUT_GRP_NAME = "Port Object";
-
     /**
      * Constructor.
      *
@@ -76,34 +75,39 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
      * @param config the config
      */
     protected PortObjectToPathWriterNodeModel(final NodeCreationConfiguration creationConfig, final C config) {
-        super(creationConfig.getPortConfig().get(), config);
+        super(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), config);
     }
 
     @Override
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
-        final FileChooserHelper fch = createFileChooserHelper(data);
-        final Path path = fch.getPathFromSettings();
-
-        // create parent directories
-        final Path parentPath = path.getParent();
-        final SettingsModelBoolean createDirectoryModel = getConfig().getCreateDirectoryModel();
-        if (parentPath != null && !Files.exists(parentPath)) {
-            if (createDirectoryModel.isEnabled() && createDirectoryModel.getBooleanValue()) {
-                Files.createDirectories(parentPath);
-            } else {
-                throw new IOException(String.format(
-                    "The directory '%s' does not exist and must not be created due to user settings.", parentPath));
+        try (final WritePathAccessor accessor = getConfig().getFileChooserModel().createWritePathAccessor()) {
+            final PriorityStatusConsumer statusConsumer = new PriorityStatusConsumer();
+            final Path path = accessor.getOutputPath(statusConsumer);
+            final Optional<StatusMessage> statusMessage = statusConsumer.get();
+            if (statusMessage.isPresent()) {
+                setWarningMessage(statusMessage.get().getMessage());
             }
+            // create parent directories
+            final Path parentPath = path.getParent();
+            final boolean createParentDir = getConfig().getFileChooserModel().isCreateParentDirectories();
+            if (parentPath != null && !Files.exists(parentPath)) {
+                if (createParentDir) {
+                    Files.createDirectories(parentPath);
+                } else {
+                    throw new IOException(String.format(
+                        "The directory '%s' does not exist and must not be created due to user settings.", parentPath));
+                }
+            }
+            // write path
+            try {
+                writeToPath(data[getPortsConfig().getInputPortLocation()
+                    .get(PortObjectWriterNodeFactory.PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
+            } catch (FileAlreadyExistsException e) {
+                throw new IOException(
+                    "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
+            }
+            return new PortObject[0];
         }
-
-        // write path
-        try {
-            writeToPath(data[getPortsConfig().getInputPortLocation().get(PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
-        } catch (FileAlreadyExistsException e) {
-            throw new IOException(
-                "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
-        }
-        return null;
     }
 
     /**

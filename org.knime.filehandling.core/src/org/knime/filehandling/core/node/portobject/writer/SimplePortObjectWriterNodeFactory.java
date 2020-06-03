@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
-import javax.swing.JFileChooser;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 
@@ -59,8 +57,7 @@ import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDi
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public abstract class SimplePortObjectWriterNodeFactory extends
-    PortObjectWriterNodeFactory<SimplePortObjectWriterNodeModel, PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>>
-{
+    PortObjectWriterNodeFactory<SimplePortObjectWriterNodeModel, PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>> {
 
     /** The file chooser history id. */
     private final String m_fileChooserHistoryId;
@@ -84,21 +81,22 @@ public abstract class SimplePortObjectWriterNodeFactory extends
     @Override
     protected final PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>(creationConfig.getPortConfig().get(),
-            getConfig(), m_fileChooserHistoryId, JFileChooser.FILES_ONLY);
+        return new PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>(getConfig(creationConfig),
+            m_fileChooserHistoryId);
     }
 
     @Override
     protected final SimplePortObjectWriterNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new SimplePortObjectWriterNodeModel(creationConfig, getConfig());
+        return new SimplePortObjectWriterNodeModel(creationConfig, getConfig(creationConfig));
     }
 
     /**
      * Returns the port object writer node configuration.
      *
+     * @param creationConfig the {@link NodeCreationConfiguration}
      * @return the writer configuration
      */
-    private PortObjectWriterNodeConfig getConfig() {
-        return new PortObjectWriterNodeConfig(m_fileSuffixes);
+    private PortObjectWriterNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectWriterNodeConfig(creationConfig, m_fileSuffixes);
     }
 }

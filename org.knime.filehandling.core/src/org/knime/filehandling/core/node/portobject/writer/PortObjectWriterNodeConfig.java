@@ -46,77 +46,71 @@
  */
 package org.knime.filehandling.core.node.portobject.writer;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import java.util.EnumSet;
+
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
+import org.knime.filehandling.core.node.portobject.SelectionMode;
 
 /**
  * Configuration class for port object writer nodes that can be extended with additional configurations.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig {
+public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsModelWriterFileChooser> {
 
-    /** Config key for overwrite checkbox. */
-    private static final String CFG_OVERWRITE = "overwrite";
-
-    /** Config key for create directory checkbox. */
-    private static final String CFG_CREATE_DIRECTORY = "create_directory";
-
-    private final SettingsModelBoolean m_overwriteModel = new SettingsModelBoolean(CFG_OVERWRITE, false);
-
-    private final SettingsModelBoolean m_createDirectoryModel = new SettingsModelBoolean(CFG_CREATE_DIRECTORY, false);
+    private static final String[] EMPTY_SUFFIX = new String[0];
 
     /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     * Constructor for configurations for which the default filter mode is set to the default associated with the given
+     * {@link SelectionMode} and no valid suffixes are available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param defaultSelectionMode the default {@link SelectionMode}
      */
-    public PortObjectWriterNodeConfig() {
-        super();
+    public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig,
+        final SelectionMode defaultSelectionMode) {
+        this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter());
     }
 
     /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     * Constructor for configurations for which the file filter mode is {@link SelectionMode#FILE} and no file suffixes
+     * are available.
      *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     */
+    public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig) {
+        this(creationConfig, EMPTY_SUFFIX);
+    }
+
+    /**
+     * Constructor for configurations for which the default filter mode is {@link SelectionMode#FILE} and a set of valid
+     * suffixes is available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      * @param fileSuffixes the suffixes to filter on
      */
-    public PortObjectWriterNodeConfig(final String[] fileSuffixes) {
-        super(fileSuffixes);
+    public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes) {
+        this(creationConfig, fileSuffixes, FilterMode.FILE);
     }
 
     /**
-     * @return the overwriteModel
+     * Constructor for configurations for which the default filter mode is set according the provided {@link FilterMode}
+     * and a set of valid suffixes is available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param fileSuffixes the suffixes to filter on
+     * @param defaultFilterMode the default {@link FilterMode}
      */
-    public SettingsModelBoolean getOverwriteModel() {
-        return m_overwriteModel;
+    private PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes,
+        final FilterMode defaultFilterMode) {
+        super(new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER,
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
+            defaultFilterMode, FileOverwritePolicy.FAIL,
+            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL), fileSuffixes));
     }
 
-    /**
-     * @return the createDirectoryModel
-     */
-    public SettingsModelBoolean getCreateDirectoryModel() {
-        return m_createDirectoryModel;
-    }
-
-    @Override
-    protected void validateConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.validateConfigurationForModel(settings);
-        m_overwriteModel.validateSettings(settings);
-        m_createDirectoryModel.validateSettings(settings);
-    }
-
-    @Override
-    protected void saveConfigurationForModel(final NodeSettingsWO settings) {
-        super.saveConfigurationForModel(settings);
-        m_overwriteModel.saveSettingsTo(settings);
-        m_createDirectoryModel.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        super.loadConfigurationForModel(settings);
-        m_overwriteModel.loadSettingsFrom(settings);
-        m_createDirectoryModel.loadSettingsFrom(settings);
-    }
 }

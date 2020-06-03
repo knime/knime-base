@@ -50,9 +50,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
@@ -61,15 +61,10 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable.Type;
-import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDialog;
 
@@ -80,51 +75,29 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDi
  * @param <C> the node config of the node
  * @noextend extend either {@link PortObjectReaderNodeDialog} or {@link PortObjectWriterNodeDialog}
  */
-@SuppressWarnings("deprecation")
-public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> extends NodeDialogPane {
+public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>> extends NodeDialogPane {
 
     /** The config. */
     private final C m_config;
 
     private final List<JPanel> m_additionalPanels = new ArrayList<>();
 
-    private final DialogComponentFileChooser2 m_filePanel;
-
-    private final DialogComponentNumber m_timeoutSpinner;
+    private AbstractDialogComponentFileChooser m_filePanel;
 
     /**
      * Constructor.
      *
-     * @param portsConfig the ports configuration
      * @param config the config
-     * @param fileChooserHistoryId id used to store file history used by {@link FilesHistoryPanel}
-     * @param fileChooserDialogType integer defining the file chooser dialog type (see {@link JFileChooser#OPEN_DIALOG},
-     *            {@link JFileChooser#SAVE_DIALOG})
-     * @param fileChooserSelectionMode integer defining the file chooser dialog type (see
-     *            {@link JFileChooser#FILES_ONLY}, {@link JFileChooser#FILES_AND_DIRECTORIES} and
-     *            {@link JFileChooser#DIRECTORIES_ONLY}
+     * @param createPanel {@link Function} to create an instance of {@link AbstractDialogComponentFileChooser}
      */
-    protected PortObjectIONodeDialog(final PortsConfiguration portsConfig, final C config,
-        final String fileChooserHistoryId, final int fileChooserDialogType, final int fileChooserSelectionMode) {
+    protected PortObjectIONodeDialog(final C config,
+        final Function<FlowVariableModel, ? extends AbstractDialogComponentFileChooser> createPanel) {
         m_config = config;
-        final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
-        final FlowVariableModel fvm = createFlowVariableModel(
-            new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
-        m_filePanel = new DialogComponentFileChooser2(portsConfig, PortObjectIONodeModel.CONNECTION_INPUT_PORT_GRP_NAME,
-            fileChooserModel, fileChooserHistoryId, fileChooserDialogType, fileChooserSelectionMode, fvm);
-        final String[] defaultSuffixes = fileChooserModel.getDefaultSuffixes();
-        final boolean isReaerdDialog = fileChooserDialogType == JFileChooser.OPEN_DIALOG;
-        if (!isReaerdDialog && (defaultSuffixes != null && defaultSuffixes.length > 0)) {
-            m_filePanel.setForceExtensionOnSave(defaultSuffixes[0]);
-        }
-
-        SettingsModelIntegerBounded timeoutModel = m_config.getTimeoutModel();
-        m_timeoutSpinner = new DialogComponentNumber(timeoutModel, "Timeout (ms)", 500, 6);
-        m_timeoutSpinner.setToolTipText("Timeout to connect to the server in milliseconds");
-        timeoutModel.addChangeListener(l -> m_filePanel.setTimeout(timeoutModel.getIntValue()));
-        fileChooserModel.addChangeListener(l -> updateFileChooserBasedEnabledness(fileChooserModel));
-        m_additionalPanels.add(createInputLocationPanel(isReaerdDialog ? "Input location" : "Output location"));
-        m_additionalPanels.add(createConnectionPanel());
+        m_filePanel = createPanel.apply(createFlowVariableModel(config.getFileChooserModel().getKeysForFSLocation(),
+            FSLocationVariableType.INSTANCE));
+        m_additionalPanels
+            .add(createInputLocationPanel(m_filePanel.getDialogType() == FileSystemBrowser.DialogType.OPEN_DIALOG
+                ? "Input location" : "Output location"));
     }
 
     /**
@@ -148,19 +121,6 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
      */
     protected final void addAdditionalPanel(final int index, final JPanel panel) {
         m_additionalPanels.add(index, panel);
-    }
-
-    /**
-     * Enables/disables components based on the file chooser state. This method is called during loading and whenever
-     * the file chooser notifies the change listener. Can be extended by overwriting it. Don't forget to call the super
-     * method in this case.
-     *
-     * @param model the model of the file chooser dialog component
-     */
-    protected void updateFileChooserBasedEnabledness(final SettingsModelFileChooser2 model) {
-        // Enable/Disable timeout spinner
-        final FileSystemChoice choice = model.getFileSystemChoice();
-        m_timeoutSpinner.getModel().setEnabled(FileSystemChoice.getCustomFsUrlChoice().equals(choice));
     }
 
     final void finalizeOptionsPanel() {
@@ -188,15 +148,6 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         gbc.insets = new Insets(0, 5, 0, 5);
         gbc.weighty = 1;
         panel.add(m_filePanel.getComponentPanel(), gbc);
-        return panel;
-    }
-
-    private JPanel createConnectionPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Connection"));
-        final GridBagConstraints gbc = createAndInitGBC();
-        gbc.weighty = 1;
-        panel.add(m_timeoutSpinner.getComponentPanel(), gbc);
         return panel;
     }
 
@@ -230,7 +181,6 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
 
         // save file panel and timeout settings
         m_filePanel.saveSettingsTo(settings);
-        m_timeoutSpinner.saveSettingsTo(settings);
     }
 
     @Override
@@ -241,10 +191,6 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
 
         // load file panel and timeout settings
         m_filePanel.loadSettingsFrom(settings, specs);
-        m_timeoutSpinner.loadSettingsFrom(settings, specs);
-
-        // update the spinner
-        updateFileChooserBasedEnabledness((SettingsModelFileChooser2)m_filePanel.getModel());
     }
 
 }

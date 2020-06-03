@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
-import javax.swing.JFileChooser;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
 
 /**
@@ -58,8 +56,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public abstract class SimplePortObjectReaderNodeFactory extends
-    PortObjectReaderNodeFactory<SimplePortObjectReaderNodeModel, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>>
-{
+    PortObjectReaderNodeFactory<SimplePortObjectReaderNodeModel, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>> {
 
     /** The file chooser history id. */
     private final String m_fileChooserHistoryId;
@@ -83,22 +80,22 @@ public abstract class SimplePortObjectReaderNodeFactory extends
     @Override
     protected final PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>(creationConfig.getPortConfig().get(),
-            getConfig(), m_fileChooserHistoryId, JFileChooser.FILES_ONLY);
+        return new PortObjectReaderNodeDialog<>(getConfig(creationConfig), m_fileChooserHistoryId);
     }
 
     @Override
     protected final SimplePortObjectReaderNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new SimplePortObjectReaderNodeModel(creationConfig, getConfig());
+        return new SimplePortObjectReaderNodeModel(creationConfig, getConfig(creationConfig));
     }
 
     /**
      * Returns the port object reader node configuration.
      *
+     * @param creationConfig the {@link NodeCreationConfiguration}
      * @return the reader configuration
      */
-    private PortObjectReaderNodeConfig getConfig() {
-        return new PortObjectReaderNodeConfig(m_fileSuffixes);
+    private PortObjectReaderNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectReaderNodeConfig(creationConfig, m_fileSuffixes);
     }
 
 }

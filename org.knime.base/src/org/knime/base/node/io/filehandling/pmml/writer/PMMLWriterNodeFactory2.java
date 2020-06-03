@@ -68,7 +68,7 @@ public final class PMMLWriterNodeFactory2
 
     @Override
     protected PMMLWriterNodeDialog2 createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PMMLWriterNodeDialog2(creationConfig.getPortConfig().get(), HISTORY_ID);
+        return new PMMLWriterNodeDialog2(creationConfig, HISTORY_ID);
     }
 
     @Override

@@ -68,7 +68,7 @@ final class PMMLWriterNodeModel2 extends PortObjectToFileWriterNodeModel<PMMLWri
      * @param creationConfig the node creation configuration
      */
     PMMLWriterNodeModel2(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, new PMMLWriterNodeConfig2());
+        super(creationConfig, new PMMLWriterNodeConfig2(creationConfig));
     }
 
     @Override

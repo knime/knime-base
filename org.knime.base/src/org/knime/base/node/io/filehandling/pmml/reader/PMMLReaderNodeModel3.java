@@ -78,7 +78,7 @@ final class PMMLReaderNodeModel3 extends PortObjectFromFileReaderNodeModel<PortO
     protected PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception {
         try {
             final PMMLPortObject pmmlPortObject =
-                new PMMLImport(inputStream, getConfig().getFileChooserModel().getPathOrURL()).getPortObject();
+                new PMMLImport(inputStream, getConfig().getFileChooserModel().getLocation().getPath()).getPortObject();
             return new PortObject[]{pmmlPortObject};
         } catch (XmlException e) {
             throw new IOException("The provided file does not contain a valid PMML document.", e);
