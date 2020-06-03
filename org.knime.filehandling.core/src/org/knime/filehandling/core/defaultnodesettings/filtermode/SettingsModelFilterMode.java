@@ -75,8 +75,6 @@ public final class SettingsModelFilterMode extends SettingsModel {
 
     private static final boolean DEFAULT_INCLUDE_SUBFOLDERS = false;
 
-    private static final FilterOptionsSettings DEFAULT_FILTER_OPTIONS_SETTINGS = new FilterOptionsSettings();
-
     private final String m_configName;
 
     private FilterMode m_filterMode;
@@ -110,7 +108,7 @@ public final class SettingsModelFilterMode extends SettingsModel {
         m_configName = configName;
         m_filterMode = defaultFilterMode;
         m_includeSubfolders = defaultIncludeSubfolders;
-        m_filterOptionsSettings = DEFAULT_FILTER_OPTIONS_SETTINGS;
+        m_filterOptionsSettings = new FilterOptionsSettings();
     }
 
     private SettingsModelFilterMode(final SettingsModelFilterMode toCopy) {
