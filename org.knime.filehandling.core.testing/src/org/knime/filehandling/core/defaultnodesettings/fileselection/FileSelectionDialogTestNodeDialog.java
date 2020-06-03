@@ -59,7 +59,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -93,8 +92,8 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
             new SettingsModelFileChooser3("read", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
         final FlowVariableModel readFvm =
             createFlowVariableModel(readSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_readDialog =
-            new DialogComponentFileChooser3(readSettings, DialogType.OPEN_DIALOG, readFvm, FilterMode.values());
+        m_readDialog = new DialogComponentFileChooser3(readSettings, "dummy_history", DialogType.OPEN_DIALOG, readFvm,
+            FilterMode.values());
         m_readDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
         final SettingsModelFileChooser3 writeSettings =
@@ -102,24 +101,25 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
 
         final FlowVariableModel writeFvm =
             createFlowVariableModel(writeSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_writeDialog = new DialogComponentFileChooser3(writeSettings, DialogType.SAVE_DIALOG, writeFvm);
+        m_writeDialog =
+            new DialogComponentFileChooser3(writeSettings, "dummy_history", DialogType.SAVE_DIALOG, writeFvm);
 
         m_writeDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Write"));
 
         m_extensions.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
-            public void insertUpdate(DocumentEvent e) {
+            public void insertUpdate(final DocumentEvent e) {
                 handleExtensionChange();
             }
 
             @Override
-            public void removeUpdate(DocumentEvent e) {
+            public void removeUpdate(final DocumentEvent e) {
                 handleExtensionChange();
             }
 
             @Override
-            public void changedUpdate(DocumentEvent e) {
+            public void changedUpdate(final DocumentEvent e) {
                 handleExtensionChange();
             }
         });

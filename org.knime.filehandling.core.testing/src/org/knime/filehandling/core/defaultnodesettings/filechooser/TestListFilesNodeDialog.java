@@ -79,8 +79,8 @@ final class TestListFilesNodeDialog extends NodeDialogPane {
     TestListFilesNodeDialog(final SettingsModelFileChooser3 settings) {
         final FlowVariableModel readFvm =
             createFlowVariableModel(settings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_dialog =
-            new DialogComponentFileChooser3(settings, DialogType.OPEN_DIALOG, readFvm, FilterMode.values());
+        m_dialog = new DialogComponentFileChooser3(settings, "list_files_history", DialogType.OPEN_DIALOG, readFvm,
+            FilterMode.values());
         m_dialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
         addTab("Options", layout());
     }
@@ -88,8 +88,7 @@ final class TestListFilesNodeDialog extends NodeDialogPane {
     private JPanel layout() {
         final JPanel panel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder(new Insets(5, 5, 5, 5)).resetX().resetY();
-        panel.add(m_dialog.getComponentPanel(),
-            gbc.resetX().incY().setWidth(3).fillHorizontal().setWeightX(1).build());
+        panel.add(m_dialog.getComponentPanel(), gbc.resetX().incY().setWidth(3).fillHorizontal().setWeightX(1).build());
         return panel;
     }
 

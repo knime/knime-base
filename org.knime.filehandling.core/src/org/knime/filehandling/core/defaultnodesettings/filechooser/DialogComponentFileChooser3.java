@@ -133,12 +133,13 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
      * Constructor.
      *
      * @param model the {@link SettingsModelFileChooser3} the dialog component interacts with
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
      * @param dialogType the type of dialog i.e. open or save
      * @param locationFvm the {@link FlowVariableModel} for the location
      * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
      *            from <b>model</b> is used)
      */
-    public DialogComponentFileChooser3(final SettingsModelFileChooser3 model,
+    public DialogComponentFileChooser3(final SettingsModelFileChooser3 model, final String historyID,
         final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
         final FilterMode... filterModes) {
         super(model);
@@ -156,7 +157,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
             selectableFilterModes.toArray(new FilterMode[0]));
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =
             model.getFileSystemConfiguration().getSupportedFileSelectionModes();
-        m_fileSelection = new FileSelectionDialog("file_chooser3", 10, new LocalFileSystemBrowser(), dialogType,
+        m_fileSelection = new FileSelectionDialog(historyID, 10, new LocalFileSystemBrowser(), dialogType,
             supportedModes.iterator().next(), model.getFileExtensions());
         hookUpListeners();
         layout(selectableFilterModes.size() > 1);
@@ -273,7 +274,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
     private Optional<FSConnection> getConnection() {
         Optional<FSConnection> connection;
         try {
-            // FIXME throws exception for EXAMPLES server -> Ask Björn what's up there
+            // FIXME throws exception for EXAMPLES server -> Ask Bjï¿½rn what's up there
             connection = getSettingsModel().getConnection();
         } catch (Exception ex) {
             connection = Optional.empty();
