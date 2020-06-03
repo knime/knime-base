@@ -158,6 +158,7 @@ public final class FileSelectionDialog {
                 }
             });
         }
+
     }
 
     /**
@@ -251,7 +252,7 @@ public final class FileSelectionDialog {
      * @return the current selection
      */
     public String getSelected() {
-        return m_fileSelectionComboBox.getSelectedItem();
+        return (String)m_fileSelectionComboBox.getEditor().getItem();
     }
 
     /**
@@ -260,8 +261,10 @@ public final class FileSelectionDialog {
      * @param selected the file that should be selected
      */
     public void setSelected(final String selected) {
+        if (!Objects.equals(selected, getSelected())) {
         m_fileSelectionComboBox
             .setSelectedItem(CheckUtils.checkArgumentNotNull(selected, "Selected must not be null."));
+        }
     }
 
     /**

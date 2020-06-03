@@ -75,8 +75,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by the {@link SettingsModelFileChooser3} provided in the constructor.
- * The paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
+ * Allows access to the {@link FSPath FSPaths} referred to by the {@link SettingsModelFileChooser3} provided in the
+ * constructor. The paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -90,6 +90,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private final Optional<FSConnection> m_portObjectConnection;
 
     private final SettingsModelFileChooser3 m_settings;
+
+    private final FilterMode m_filterMode;
 
     private FileFilterStatistic m_fileFilterStatistic;
 
@@ -115,6 +117,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         m_rootLocation = settings.getLocation();
         m_portObjectConnection = portObjectConnection;
         m_settings = settings.createClone();
+        m_filterMode = m_settings.getFilterModeModel().getFilterMode();
     }
 
     private FSConnection getConnection() {
@@ -144,8 +147,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
      * @throws InvalidSettingsException if the settings provided in the constructor are invalid
      */
     @Override
-    public FSPath getOutputPath(final Consumer<StatusMessage> statusMessageConsumer)
-        throws InvalidSettingsException {
+    public FSPath getOutputPath(final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
         CheckUtils.checkArgumentNotNull(statusMessageConsumer, "The statusMessageConsumer must not be null.");
 
         initializeFileSystem();
@@ -198,9 +200,11 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     public final List<FSPath> getPaths(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
         final FSPath rootPath = getOutputPath(statusMessageConsumer);
+        // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
+        CheckUtils.checkSetting(Files.exists(rootPath), "The specified %s %s does not exist.",
+            m_filterMode == FilterMode.FILE ? "file" : "folder", rootPath);
 
-        final FilterMode filterMode = getFilterMode();
-        if (filterMode == FilterMode.FILE || filterMode == FilterMode.FOLDER) {
+        if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.FOLDER) {
             return handleSinglePath(rootPath);
         } else {
             return walkFileTree(rootPath);
@@ -210,15 +214,14 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
 
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
-        final FilterMode filterMode = getFilterMode();
-        if (filterMode == FilterMode.FILE) {
+        if (m_filterMode == FilterMode.FILE) {
             CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
             m_fileFilterStatistic = new FileFilterStatistic(0, 1, 0, 0);
-        } else if (filterMode == FilterMode.FOLDER) {
-            CheckUtils.checkSetting(attr.isDirectory(), "%s is not a folder. Please specify a folder.", rootPath);
+        } else if (m_filterMode == FilterMode.FOLDER) {
+            checkIsFolder(rootPath, attr);
             m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 1);
         } else {
-            throw new IllegalStateException("Unexpected filter mode in handleSingleCase: " + filterMode);
+            throw new IllegalStateException("Unexpected filter mode in handleSingleCase: " + m_filterMode);
         }
         return Collections.singletonList(rootPath);
     }
@@ -229,7 +232,9 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         return m_fileFilterStatistic;
     }
 
-    private List<FSPath> walkFileTree(final Path rootPath) throws IOException {
+    private List<FSPath> walkFileTree(final Path rootPath) throws IOException, InvalidSettingsException {
+        final BasicFileAttributes attrs = Files.readAttributes(rootPath, BasicFileAttributes.class);
+        checkIsFolder(rootPath, attrs);
         final FilterVisitor visitor = createVisitor();
         final boolean includeSubfolders = m_settings.getFilterModeModel().isIncludeSubfolders();
         Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), includeSubfolders ? Integer.MAX_VALUE : 1,
@@ -241,12 +246,16 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         return fsPaths;
     }
 
+    private static void checkIsFolder(final Path rootPath, final BasicFileAttributes attrs)
+        throws InvalidSettingsException {
+        CheckUtils.checkSetting(attrs.isDirectory(), "%s is not a folder. Please specify a folder.", rootPath);
+    }
+
     private FilterVisitor createVisitor() {
         final SettingsModelFilterMode settings = m_settings.getFilterModeModel();
         final boolean includeSubfolders = settings.isIncludeSubfolders();
         final FileAndFolderFilter filter = new FileAndFolderFilter(settings.getFilterOptionsSettings());
-        final FilterMode filterMode = getFilterMode();
-        switch (filterMode) {
+        switch (m_filterMode) {
             case FILES_AND_FOLDERS:
                 return new FilterVisitor(filter, true, true, includeSubfolders);
             case FILES_IN_FOLDERS:
@@ -258,12 +267,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
                 throw new IllegalStateException(
                     "Encountered file/folder filter mode when walking the file tree. This is a coding error.");
             default:
-                throw new IllegalStateException("Unknown filter mode: " + filterMode);
+                throw new IllegalStateException("Unknown filter mode: " + m_filterMode);
         }
-    }
-
-    private FilterMode getFilterMode() {
-        return m_settings.getFilterModeModel().getFilterMode();
     }
 
     @Override

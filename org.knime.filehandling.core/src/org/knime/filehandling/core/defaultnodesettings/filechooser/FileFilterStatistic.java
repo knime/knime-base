@@ -71,19 +71,57 @@ public final class FileFilterStatistic {
         m_visitedFolders = visitedFolders;
     }
 
-    int getFilteredFiles() {
+    /**
+     * Returns the number of filtered out files.
+     *
+     * @return the number of filtered out files
+     */
+    public int getFilteredFiles() {
         return m_filteredFiles;
     }
 
-    int getVisitedFiles() {
+    /**
+     * Returns the number of included files.
+     *
+     * @return the number of included files
+     */
+    public int getIncludedFiles() {
+        return m_visitedFiles - m_filteredFiles;
+    }
+
+    /**
+     * Returns the number of visited files.
+     *
+     * @return the number of visited files
+     */
+    public int getVisitedFiles() {
         return m_visitedFiles;
     }
 
-    int getFilteredFolders() {
+    /**
+     * Returns the number of filtered out folders.
+     *
+     * @return the number of filtered out folders
+     */
+    public int getFilteredFolders() {
         return m_filteredFolders;
     }
 
-    int getVisitedFolders() {
+    /**
+     * Returns the number of included folders.
+     *
+     * @return the number of included folders
+     */
+    public int getIncludedFolders() {
+        return m_visitedFolders - m_filteredFolders;
+    }
+
+    /**
+     * Returns the number of visited folders.
+     *
+     * @return the number of visited folders
+     */
+    public int getVisitedFolders() {
         return m_visitedFolders;
     }
 }
