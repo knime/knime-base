@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.status;
 
-import java.awt.Color;
+import java.util.Optional;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -66,6 +66,8 @@ public final class StatusView {
 
     private final WordWrapJLabel m_statusLabel;
 
+    private StatusMessage m_statusMsg = null;
+
     /**
      * Constructor.
      *
@@ -76,14 +78,28 @@ public final class StatusView {
     }
 
     /**
+     * Returns the currently set {@link StatusMessage} or {@link Optional#empty()} if no status message is set.
+     *
+     * @return the current status message
+     */
+    public Optional<StatusMessage> getStatus() {
+        return Optional.ofNullable(m_statusMsg);
+    }
+
+    /**
      * Sets a new status message.
      *
      * @param message the {@link StatusMessage} to set
      */
     public void setStatus(final StatusMessage message) {
+        m_statusMsg = message;
         m_statusLabel.setText(message.getMessage());
         m_statusLabel.setIcon(getIcon(message.getType()));
-        m_statusLabel.setForeground(getColor(message.getType()));
+        // make sure that we don't show the info icon if there is no message
+        // (warning and error icons will still be shown)
+        if (message.getType() == MessageType.INFO && message.getMessage().trim().length() == 0) {
+            m_statusLabel.setIcon(null);
+        }
     }
 
     private static Icon getIcon(final MessageType type) {
@@ -93,18 +109,10 @@ public final class StatusView {
             case WARNING:
                 return SharedIcons.WARNING_YELLOW.get();
             case INFO:
+                return SharedIcons.INFO_BALLOON.get();
             default:
                 return null;
 
-        }
-    }
-
-    private static Color getColor(final MessageType type) {
-        switch (type) {
-            case ERROR:
-                return Color.RED;
-            default:
-                return Color.BLACK;
         }
     }
 
@@ -112,6 +120,7 @@ public final class StatusView {
      * Clears the status.
      */
     public void clearStatus() {
+        m_statusMsg = null;
         m_statusLabel.setText(" ");
         m_statusLabel.setIcon(null);
     }
@@ -124,7 +133,5 @@ public final class StatusView {
     public JLabel getLabel() {
         return m_statusLabel;
     }
-
-
 
 }
