@@ -110,7 +110,7 @@
 	          Select this box if the first row contains column name headers.  
 			</option>
 			<option name="Has row ID">
-	          Select this box if the first column contains row name headers 
+	          Select this box if the first column contains row IDs
 	          (no duplicates allowed).  
 			</option>
 			<option name="Support short data rows">
@@ -126,7 +126,7 @@
 				this option to disable these memory restrictions.
 			</option>
 			<option name="Maximum number of columns">
-				Sets the number of allowed columns (default 8192 columns) per column to
+				Sets the number of allowed columns (default 8192 columns) to
 				prevent memory exhaustion. The node will fail if the number of columns
 				exceed the set limit.
 			</option>
