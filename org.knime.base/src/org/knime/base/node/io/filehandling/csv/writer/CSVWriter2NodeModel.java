@@ -124,8 +124,8 @@ final class CSVWriter2NodeModel extends NodeModel {
 
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
             final DataType c = inSpec.getColumnSpec(i).getType();
-            if (!c.isCompatible(DoubleValue.class) && !c.isCompatible(IntValue.class)
-                && !c.isCompatible(StringValue.class)) {
+            if (!c.isCompatible(StringValue.class) && !c.isCompatible(DoubleValue.class)
+                && !c.isCompatible(IntValue.class)) {
                 throw new InvalidSettingsException("Input table must only contain String, Int, or Doubles");
             }
         }

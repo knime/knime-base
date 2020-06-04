@@ -46,7 +46,13 @@
  * History
  *   May 26, 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.writer;
+package org.knime.base.node.io.filehandling.csv.writer.config;
+
+import java.util.Arrays;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
  * Variants of line brakes across different operating systems.
@@ -56,12 +62,17 @@ package org.knime.base.node.io.filehandling.csv.writer;
 public enum LineBreakTypes {
         /** System default from System.getProperty("line.separator") */
         SYST_DEFAULT(System.getProperty("line.separator"), "System Default"),
+
         /** Linux and Unix line brakes, LF only. */
         UNIX_LINUX(new String(new char[]{10}), "Linux/Unix Line break"),
+
         /** Windows style line breaks CR + LF. */
         WINDOWS(new String(new char[]{13, 10}), "Windows Line break"),
+
         /** Old Mac OS style (until Mac OS9), CR only */
         MAC_OS9(new String(new char[]{13}), "Mac OS9 Line break");
+
+    private static final String CFG_LINE_ENDING_MODE = "line_separator";
 
     private final String m_lineBreakType;
 
@@ -81,4 +92,38 @@ public enum LineBreakTypes {
     public String toString() {
         return m_displayName;
     }
+
+    /**
+     * Saves the {@link LineBreakTypes} to the settings
+     *
+     * @param settings the settings
+     */
+    void saveSettings(final NodeSettingsWO settings) {
+        final String value;
+        if (this == SYST_DEFAULT) {
+            value = null;
+        } else {
+            value = getLineBreak();
+        }
+        settings.addString(CFG_LINE_ENDING_MODE, value);
+    }
+
+    /**
+     * Loads the settings
+     *
+     * @param settings the settings holding the {@link LineBreakTypes} to be loaded
+     * @return the loaded {@link LineBreakTypes}
+     * @throws InvalidSettingsException - If the settings are not valid
+     */
+    static LineBreakTypes loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final String val = settings.getString(CFG_LINE_ENDING_MODE);
+        if (val == null) {
+            return SYST_DEFAULT;
+        }
+        return Arrays.stream(values())//
+            .filter(lbt -> lbt.getLineBreak().equals(val))//
+            .findFirst()//
+            .orElseThrow(() -> new InvalidSettingsException("Unable to parse the line break type"));
+    }
+
 }

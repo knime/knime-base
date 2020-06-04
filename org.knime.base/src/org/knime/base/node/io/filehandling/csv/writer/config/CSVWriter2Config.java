@@ -53,7 +53,6 @@ import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.commons.lang.StringUtils;
 import org.knime.base.node.io.filehandling.csv.writer.FileOverwritePolicy;
-import org.knime.base.node.io.filehandling.csv.writer.LineBreakTypes;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -89,8 +88,6 @@ public class CSVWriter2Config extends SettingsModel {
     private static final String CFG_CREATE_PARENT_DIRECTORY = "create_parent_directory";
 
     private static final String CFG_COLUMN_DELIMITER = "column_delimiter";
-
-    private static final String CFG_LINE_ENDING_MODE = "line_separator";
 
     private static final String CFG_QUOTE_CHAR = "quote_char";
 
@@ -193,7 +190,7 @@ public class CSVWriter2Config extends SettingsModel {
         settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY);
 
         settings.getString(CFG_COLUMN_DELIMITER);
-        settings.getString(CFG_LINE_ENDING_MODE);
+        LineBreakTypes.loadSettings(settings);
 
         settings.getChar(CFG_QUOTE_CHAR);
         settings.getChar(CFG_QUOTE_ESCAPE_CHAR);
@@ -223,6 +220,7 @@ public class CSVWriter2Config extends SettingsModel {
     public void loadInDialog(final NodeSettingsRO settings) throws NotConfigurableException {
         try {
             m_fileChooserModel.loadSettingsFrom(settings);
+            m_lineBreak = LineBreakTypes.loadSettings(settings);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
@@ -232,8 +230,6 @@ public class CSVWriter2Config extends SettingsModel {
         m_createParentDirectoryIfRequired = settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY, false);
 
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER, ",");
-        m_lineBreak =
-            LineBreakTypes.valueOf(settings.getString(CFG_LINE_ENDING_MODE, LineBreakTypes.SYST_DEFAULT.name()));
 
         m_quoteChar = settings.getChar(CFG_QUOTE_CHAR, '"');
         m_quoteEscapeChar = settings.getChar(CFG_QUOTE_ESCAPE_CHAR, '"');
@@ -267,7 +263,7 @@ public class CSVWriter2Config extends SettingsModel {
         m_createParentDirectoryIfRequired = settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY);
 
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER);
-        m_lineBreak = LineBreakTypes.valueOf(settings.getString(CFG_LINE_ENDING_MODE));
+        m_lineBreak = LineBreakTypes.loadSettings(settings);
 
         m_quoteChar = settings.getChar(CFG_QUOTE_CHAR);
         m_quoteEscapeChar = settings.getChar(CFG_QUOTE_ESCAPE_CHAR);
@@ -293,8 +289,7 @@ public class CSVWriter2Config extends SettingsModel {
 
         settings.addString(CFG_COLUMN_DELIMITER, m_columnDelimiter);
 
-        //TODO: change to getLineBreak
-        settings.addString(CFG_LINE_ENDING_MODE, m_lineBreak.name());
+        m_lineBreak.saveSettings(settings);
 
         settings.addChar(CFG_QUOTE_CHAR, m_quoteChar);
         settings.addChar(CFG_QUOTE_ESCAPE_CHAR, m_quoteEscapeChar);

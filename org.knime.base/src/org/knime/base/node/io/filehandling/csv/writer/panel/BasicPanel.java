@@ -62,8 +62,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import org.knime.base.node.io.filehandling.csv.writer.FileOverwritePolicy;
-import org.knime.base.node.io.filehandling.csv.writer.LineBreakTypes;
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
+import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
 import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;

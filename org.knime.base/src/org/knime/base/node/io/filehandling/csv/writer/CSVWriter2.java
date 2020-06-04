@@ -56,14 +56,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
 
-import org.apache.commons.lang.StringUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
 import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.DataTableRowInput;
@@ -82,14 +83,16 @@ class CSVWriter2 implements Closeable {
 
     private final DecimalFormat m_decimalFormatter;
 
-    private final String m_quteReplacement;
+    private final DecimalFormat m_integerFormatter;
+
+    private final String m_quoteReplacement;
 
     private String m_lastWarning;
 
     /**
      * Creates new writer which writes {@link DataTable} to a CSV files based on the provided {@link CSVWriter2Config}
      *
-     * @param writer the {@link Writer} object
+     * @param writer the {@link Writer}
      * @param config the {@link CSVWriter2Config} object determining how the {@link DataTable} is written to file.
      */
     public CSVWriter2(final Writer writer, final CSVWriter2Config config) {
@@ -100,10 +103,15 @@ class CSVWriter2 implements Closeable {
         m_config = config;
         m_lastWarning = null;
 
+        final DecimalFormatSymbols symbolFormat = DecimalFormatSymbols.getInstance(Locale.ENGLISH);
+
         final String decFormat = m_config.getAdvancedConfig().keepTrailingZero() ? "#.0" : "#.#";
-        m_decimalFormatter = new DecimalFormat(decFormat, DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+        m_decimalFormatter = new DecimalFormat(decFormat, symbolFormat);
         m_decimalFormatter.setMaximumFractionDigits(340); // DecimalFormat.DOUBLE_FRACTION_DIGITS = 340
-        m_quteReplacement = String.valueOf(m_config.getQuoteEscapeChar()) + String.valueOf(m_config.getQuoteChar());
+
+        m_integerFormatter = new DecimalFormat("#", symbolFormat);
+
+        m_quoteReplacement = String.valueOf(m_config.getQuoteEscapeChar()) + String.valueOf(m_config.getQuoteChar());
 
     }
 
@@ -130,19 +138,16 @@ class CSVWriter2 implements Closeable {
         if (m_config.writeRowHeader()) {
             rowJoiner.add(replaceAndQuote("row ID", false)); // RowHeader header
         }
-        for (int i = 0; i < inSpec.getNumColumns(); i++) { // for each column name
-            rowJoiner.add(replaceAndQuote(inSpec.getColumnSpec(i).getName(), false)); // RowHeader header
-        }
+        inSpec.stream()//
+            .forEachOrdered(s -> rowJoiner.add(replaceAndQuote(s.getName(), false)));
         writeLine(rowJoiner.toString());
     }
 
     /**
      * Writes the column headers of a DataTable to file.
      *
-     * @param input
-     * @param exec
-     *
-     * @param lines list of lines to write
+     * @param input the {@link RowInput} to be written
+     * @param exec the {@link ExecutionMonitor}
      * @throws IOException if something went wrong during writing
      * @throws CanceledExecutionException
      * @throws InterruptedException
@@ -160,20 +165,24 @@ class CSVWriter2 implements Closeable {
             rowCnt = ((DataTableRowInput)input).getRowCount();
         }
 
-        final boolean[] isNumericColumn = new boolean[inSpec.getNumColumns()];
+        final boolean[] isDoubleColumn = new boolean[inSpec.getNumColumns()];
+        final boolean[] isNumericalColumn = new boolean[inSpec.getNumColumns()];
         for (int i = 0; i < inSpec.getNumColumns(); i++) { // for each column name
-            isNumericColumn[i] = inSpec.getColumnSpec(i).getType().isCompatible(DoubleValue.class);
+            final DataType type = inSpec.getColumnSpec(i).getType();
+            isNumericalColumn[i] = type.isCompatible(DoubleValue.class);
+            isDoubleColumn[i] = type == DoubleCell.TYPE;
         }
 
         DataRow row;
         while ((row = input.poll()) != null) {
             checkAndSetExecProgress(rowIdx, rowCnt, row.getKey().toString(), exec);
-            writeLine(dataRowToLine(row, rowIdx, isNumericColumn));
+            writeLine(dataRowToLine(row, rowIdx, isNumericalColumn, isDoubleColumn));
             rowIdx++;
         }
     }
 
-    private String dataRowToLine(final DataRow row, final long rowIdx, final boolean[] isNumericColumn) {
+    private String dataRowToLine(final DataRow row, final long rowIdx, final boolean[] isNumericColumn,
+        final boolean[] isDoubleColumn) {
         final StringJoiner rowJoiner = new StringJoiner(m_config.getColumnDelimiter());
         if (m_config.writeRowHeader()) {
             rowJoiner.add(replaceAndQuote(row.getKey().toString(), false));
@@ -184,9 +193,9 @@ class CSVWriter2 implements Closeable {
             if (dCell.isMissing()) {
                 rowJoiner.add(m_config.getAdvancedConfig().getMissingValuePattern());
             } else {
-
                 if (isNumericColumn[colIdx]) { // numeric type
-                    final String formattedNumber = formatNumericalValue(dCell, rowIdx, colIdx);
+                    final String formattedNumber =
+                        convertNumericCellToString(dCell, rowIdx, colIdx, isDoubleColumn[colIdx]);
                     rowJoiner.add(replaceAndQuote(formattedNumber, true));
                 } else {
                     rowJoiner.add(replaceAndQuote(dCell.toString(), false));
@@ -208,45 +217,32 @@ class CSVWriter2 implements Closeable {
         exec.checkCanceled();
     }
 
-    /**
-     * Formats a numerical value from a {@link DataCell} according to the settings. Custom decimal separator used only
-     * if scientific notation is not on and the number contains exactly one dot.
-     *
-     * @param dCell the {@link DataCell} with numeric value
-     * @param rowIdx the row index of the {@link DataCell}. Required for warnings.
-     * @param colIdx the column index of the {@link DataCell}. Required for warnings.
-     * @return a formated string representing the number in a numerical {@link DataCell}
-     */
-    private String formatNumericalValue(final DataCell dCell, final long rowIdx, final int colIdx) {
-        String strVal = dCell.toString();
-        final boolean isDouble = StringUtils.countMatches(strVal, ".") == 1;
-
-        if (!m_config.getAdvancedConfig().useScientificFormat() && isDouble) {
-            strVal = m_decimalFormatter.format(((DoubleValue)dCell).getDoubleValue());
+    private String convertNumericCellToString(final DataCell dCell, final long rowIdx, final int colIdx,
+        final boolean isDouble) {
+        if (m_config.getAdvancedConfig().useScientificFormat()) {
+            return dCell.toString();
         }
-
+        final double dVal = ((DoubleValue)dCell).getDoubleValue();
+        if (!isDouble) {
+            return m_integerFormatter.format(dVal);
+        }
+        final String strVal = m_decimalFormatter.format(dVal);
         final char customDecSeparator = m_config.getAdvancedConfig().getDecimalSeparator();
-        if (customDecSeparator != '.') {
-            // use the new separator only if it is not already
-            // contained in the value.
+        if ('.' != customDecSeparator) {
             if (strVal.indexOf(customDecSeparator) < 0) {
-                // If a dot exists and occurs only once. Otherwise it is not a floating point number
-                if (StringUtils.countMatches(strVal, ".") == 1) {
-                    strVal = strVal.replace('.', customDecSeparator);
-                }
+                // TODO: can be done more efficiently
+                return strVal.replace('.', customDecSeparator);
             } else {
-                if (m_lastWarning == null) {
-                    m_lastWarning = "Specified decimal separator ('" + customDecSeparator + "') is"
-                        + " contained in the numerical value. Not replacing decimal separator (e.g." + " in row #"
-                        + rowIdx + " column #" + colIdx + ").";
-                }
+                m_lastWarning = "Specified decimal separator ('" + customDecSeparator + "') is"
+                    + " contained in the numerical value. Not replacing decimal separator (e.g." + " in row #" + rowIdx
+                    + " column #" + colIdx + ").";
             }
         }
         return strVal;
     }
 
     /**
-     * Writes a string to file and appends a newline, which can be different from the system default.
+     * Writes a string to file and appends a newline, which can be different from the system default. (
      *
      * @param value the {@link String} value to write
      * @throws IOException if something went wrong during writing
@@ -258,6 +254,7 @@ class CSVWriter2 implements Closeable {
 
     private boolean needsQuote(final String value, final boolean isNumerical) {
         final QuoteMode qMode = m_config.getAdvancedConfig().getQuoteMode();
+        // FIXME: check for line breaks in strings
         return qMode == QuoteMode.ALWAYS //
             || (qMode == QuoteMode.STRINGS_ONLY && !isNumerical) //
             || (qMode == QuoteMode.IF_NEEDED // quote if the column delimiter is in the value
@@ -280,13 +277,12 @@ class CSVWriter2 implements Closeable {
     private String replaceAndQuote(final String value, final boolean isNumerical) {
         // if never quote is selected and there is a replacement for delimiter
         if (!isNumerical && replaceDelimiter(value)) {
-            return value.replace(String.valueOf(m_config.getColumnDelimiter()),
-                m_config.getAdvancedConfig().getSeparatorReplacement());
+            return value.replace(m_config.getColumnDelimiter(), m_config.getAdvancedConfig().getSeparatorReplacement());
         }
 
         if (needsQuote(value, isNumerical)) {
             final StringBuilder result = new StringBuilder(String.valueOf(m_config.getQuoteChar()));
-            result.append(value.replaceAll(String.valueOf(m_config.getQuoteChar()), m_quteReplacement));
+            result.append(value.replaceAll(String.valueOf(m_config.getQuoteChar()), m_quoteReplacement));
             result.append(m_config.getQuoteChar());
             return result.toString();
         }
