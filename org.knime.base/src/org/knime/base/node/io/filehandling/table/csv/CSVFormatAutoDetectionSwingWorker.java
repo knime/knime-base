@@ -82,6 +82,12 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private final CSVTableReaderNodeDialog m_dialog;
 
+    private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
+
+    private static final String STATUS_TOOLTIP_TEXT = "See log file for details";
+
+    private static final String AUTO_DETECTION_ERROR = "Error during autodetection! See log file for details.";
+
     public CSVFormatAutoDetectionSwingWorker(final Callable<List<Path>> pathsSupplier,
         final CSVTableReaderNodeDialog dialog) {
         m_dialog = dialog;
@@ -123,9 +129,17 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
             refreshPreview = true;
             m_dialog.setStatus("Successfully autodetected!", null, SharedIcons.SUCCESS.get());
         } catch (final ExecutionException e) {
-            m_dialog.setStatus("Error during autodetection! See log file for details.", "See log file for details",
-                SharedIcons.ERROR.get());
-            LOGGER.warn(e.getMessage(), e);
+            final Throwable cause = e.getCause();
+
+            if (cause != null) {
+                if (cause instanceof IOException || cause.getCause() instanceof IOException) {
+                    m_dialog.setStatus(IO_ERROR, STATUS_TOOLTIP_TEXT, SharedIcons.ERROR.get());
+                    LOGGER.warn(e.getMessage(), e);
+                } else {
+                    m_dialog.setStatus(AUTO_DETECTION_ERROR, STATUS_TOOLTIP_TEXT, SharedIcons.ERROR.get());
+                    LOGGER.warn(e.getMessage(), e);
+                }
+            }
         } catch (InterruptedException | CancellationException ex) {
             // ignore
         } finally {
