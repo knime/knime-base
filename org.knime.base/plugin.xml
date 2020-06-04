@@ -1216,11 +1216,10 @@
       <node
             after="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
             category-path="/io/write"
-            deprecated="true"
+            deprecated="false"
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
-            after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
             category-path="/io/write"
             factory-class="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
             >
@@ -2245,7 +2244,7 @@
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
       </node>
       <node
-            category-path="/io/write"
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory">
       </node>
