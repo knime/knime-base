@@ -56,10 +56,10 @@ import java.awt.Insets;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.text.DefaultFormatter;
 
 /**
  * Dialog for setting the number of characters used for the format autodetection.
@@ -74,10 +74,15 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
 
     private JSpinner m_bufferSizeSelection;
 
+    private static final int MINIMUM_BUFFER_SIZE = 1;
+
+    private static final int MAXIMUM_BUFFER_SIZE = Integer.MAX_VALUE;
+
     /**
-     * @param parent the parent frame
-     * @param bufferSize the last saved buffer size
+     * Initalizes a new dialog window with the last saved buffer size.
      *
+     * @param parent the parent frame needed to make the dialog modal
+     * @param bufferSize the last saved buffer size
      */
     public CSVAutodetectionSettingsDialog(final Frame parent, final int bufferSize) {
         super(parent, "Autodetection settings", true);
@@ -130,8 +135,12 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
         final JLabel header = new JLabel("Number of characters for autodetection:");
 
         final SpinnerNumberModel spinnerModel =
-            new SpinnerNumberModel(m_autoDetectionBufferSize, 1, Integer.MAX_VALUE, 1024);
+            new SpinnerNumberModel(m_autoDetectionBufferSize, MINIMUM_BUFFER_SIZE, MAXIMUM_BUFFER_SIZE, 1024);
+
         m_bufferSizeSelection = new JSpinner(spinnerModel);
+
+        ((DefaultFormatter)((JSpinner.DefaultEditor)m_bufferSizeSelection.getEditor()).getTextField().getFormatter())
+            .setAllowsInvalid(false);
 
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -145,20 +154,12 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
         mainPanel.add(m_bufferSizeSelection, gbc);
 
         return mainPanel;
-
     }
 
     private JButton getOkButton() {
         final JButton okButton = new JButton();
         okButton.setText("Ok");
         okButton.addActionListener(e -> {
-            final String errMsg = checkSetting();
-            if (errMsg != null) {
-                JOptionPane.showMessageDialog(CSVAutodetectionSettingsDialog.this, errMsg, "Invalid Settings",
-                    JOptionPane.ERROR_MESSAGE);
-                // dialog stays open
-                return;
-            }
             m_autoDetectionBufferSize = (int)m_bufferSizeSelection.getValue();
             setVisible(false);
         });
@@ -175,14 +176,5 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
 
     int getBufferSize() {
         return m_autoDetectionBufferSize;
-    }
-
-    private String checkSetting() {
-        final Object selectedValue = m_bufferSizeSelection.getValue();
-        if (!(selectedValue instanceof Integer)) {
-            return "Please specify a valid number of characters for the autodetection!";
-        }
-
-        return null;
     }
 }
