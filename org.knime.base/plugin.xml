@@ -762,7 +762,7 @@
             factory-class="org.knime.base.node.mine.neural.mlp.MLPPredictorNodeFactory"/>
       <node
             after="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2"
-            deprecated="true"
+            deprecated="false"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.predictor.PredictorReaderNodeFactory"/>
       <node
@@ -2234,7 +2234,7 @@
             factory-class="org.knime.base.node.preproc.filter.row2.RowSplitterNodeFactory">
       </node>
       <node
-            category-path="/io/read"
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
@@ -2401,12 +2401,6 @@
               NodeFactory="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
            <FileExtension
                  extension=".pmml">
-           </FileExtension>
-        </FileExtensionMapping>
-        <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
-           <FileExtension
-                 extension=".model">
            </FileExtension>
         </FileExtensionMapping>
      </extension>
