@@ -3,7 +3,7 @@
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>PMML Writer</name>
+	<name>PMML Writer (Labs)</name>
 
 	<shortDescription>
 		Writes a PMML model into a PMML compliant file.

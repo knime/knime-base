@@ -1209,7 +1209,7 @@
       <node
             after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
             category-path="/io/write"
-            deprecated="true"
+            deprecated="false"
             factory-class="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
             >
       </node>
@@ -2250,7 +2250,7 @@
             factory-class="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory">
       </node>
       <node
-            category-path="/io/write"
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2">
       </node>
