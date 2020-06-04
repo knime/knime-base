@@ -79,7 +79,7 @@ public class CSVAutodetectionSettingsDialog extends JDialog {
     private static final int MAXIMUM_BUFFER_SIZE = Integer.MAX_VALUE;
 
     /**
-     * Initalizes a new dialog window with the last saved buffer size.
+     * Initializes a new dialog window with the last saved buffer size.
      *
      * @param parent the parent frame needed to make the dialog modal
      * @param bufferSize the last saved buffer size

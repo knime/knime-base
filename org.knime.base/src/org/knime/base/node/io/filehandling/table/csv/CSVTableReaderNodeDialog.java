@@ -252,6 +252,13 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
         m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
         m_startAutodetection = new JButton(START_AUTODETECT_LABEL);
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
+
+        // disable auto-detection for remote view
+        if (m_isRemoteWorkflowContext) {
+            m_startAutodetection.setEnabled(false);
+            m_autoDetectionSettings.setEnabled(false);
+        }
+
         m_autoDetectionStatusLabel = new JLabel();
         m_autoDetectionStatusIcon = new JLabel();
         m_statusProgressCardLayout = new JPanel(new CardLayout());
@@ -930,9 +937,6 @@ final class CSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     void setAutodetectComponentsEnabled(final boolean enabled) {
-        m_commentStartField.setEnabled(enabled);
-        m_skipFirstLinesChecker.setEnabled(enabled);
-        m_skipFirstLinesSpinner.setEnabled(enabled);
         m_colDelimiterField.setEnabled(enabled);
         m_rowDelimiterField.setEnabled(enabled);
         m_quoteField.setEnabled(enabled);
