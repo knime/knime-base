@@ -613,7 +613,7 @@
             category-path="/io/write"
             factory-class="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"/>
       <node
-            category-path="/io/write"
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
             factory-class="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
