@@ -131,4 +131,30 @@ public class TableSpecConfigTest {
         assertEquals(cfg, load);
     }
 
+    /**
+     * Tests that a {@link TableSpecConfig} can be initialized when production paths are empty.
+     *
+     * @throws InvalidSettingsException - does not happen
+     */
+    @Test
+    public void testEmptyProdPathCreation() throws InvalidSettingsException {
+        // create a TableSpecConfig
+        final String rootPath = "root";
+        final DataTableSpec outputSpec = TableSpecConfigUtils.createDataTableSpec("a", "b");
+        final ProducerRegistry<String, TableSpecConfigUtils> registry = TableSpecConfigUtils.getProducerRegistry();
+        final ProductionPath[] prodPaths = new ProductionPath[0];
+        final Map<Path, ReaderTableSpec<?>> individualSpecs = new HashMap<>();
+        final Path p1 = TableSpecConfigUtils.mockPath("first");
+        final Path p2 = TableSpecConfigUtils.mockPath("second");
+        individualSpecs.put(p1, TableSpecConfigUtils.createSpec("A", "B"));
+        individualSpecs.put(p2, TableSpecConfigUtils.createSpec("C", "E"));
+        final TableSpecConfig cfg = new TableSpecConfig(rootPath, outputSpec, individualSpecs, prodPaths);
+
+        // tests save / load
+        final NodeSettings s = new NodeSettings("origin");
+        cfg.save(s);
+        TableSpecConfig.validate(s, registry);
+        final TableSpecConfig load = TableSpecConfig.load(s, registry);
+        assertEquals(cfg, load);
+    }
 }

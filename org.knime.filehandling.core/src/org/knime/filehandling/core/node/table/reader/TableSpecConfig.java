@@ -125,7 +125,6 @@ public final class TableSpecConfig {
         // check for size
         CheckUtils.checkArgument(!rootPath.trim().isEmpty(), "The rootPath cannot be empty");
         CheckUtils.checkArgument(!individualSpecs.isEmpty(), "The individual specs cannot be empty");
-        CheckUtils.checkArgument(paths.length > 0, "The paths cannot be empty");
 
         m_rootPath = rootPath;
         m_dataTableSpec = outputSpec;
