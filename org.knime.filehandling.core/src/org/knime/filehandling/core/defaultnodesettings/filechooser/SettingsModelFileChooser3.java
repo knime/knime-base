@@ -73,8 +73,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 
 /**
  * SettingsModel for the {@link DialogComponentFileChooser3}.</br>
@@ -86,7 +86,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class SettingsModelFileChooser3 extends SettingsModel implements StatusReporter {
+public class SettingsModelFileChooser3 extends SettingsModel implements StatusReporter {
 
     private static final DefaultStatusMessage NO_LOCATION_ERROR =
         new DefaultStatusMessage(MessageType.ERROR, "Please specify a location");
@@ -119,7 +119,12 @@ public final class SettingsModelFileChooser3 extends SettingsModel implements St
         m_filterModeModel.addChangeListener(e -> notifyChangeListeners());
     }
 
-    private SettingsModelFileChooser3(final SettingsModelFileChooser3 toCopy) {
+    /**
+     * Copy constructor for use in {@link #createClone()}.
+     *
+     * @param toCopy instance to copy
+     */
+    protected SettingsModelFileChooser3(final SettingsModelFileChooser3 toCopy) {
         m_configName = toCopy.m_configName;
         m_fsConfig = toCopy.m_fsConfig.copy();
         m_fileExtensions = toCopy.m_fileExtensions.clone();
@@ -149,7 +154,7 @@ public final class SettingsModelFileChooser3 extends SettingsModel implements St
         if (locationStatus.isPresent()) {
             final StatusMessage actualLocationStatus = locationStatus.get();
             CheckUtils.checkSetting(actualLocationStatus.getType() != MessageType.ERROR,
-                    actualLocationStatus.getMessage());
+                actualLocationStatus.getMessage());
         }
     }
 
@@ -253,11 +258,24 @@ public final class SettingsModelFileChooser3 extends SettingsModel implements St
     }
 
     @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected final void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         final NodeSettingsRO topLevel = getChildOrEmpty(settings, m_configName);
         m_fsConfig.loadSettingsForDialog(topLevel, specs);
         m_filterModeModel.loadSettingsForDialog(topLevel, specs);
+        loadAdditionalSettingsForDialog(topLevel, specs);
+    }
+
+    /**
+     * Hook for extending classes to load further settings in the dialog.
+     *
+     * @param settings the top level settings of this settings model (already extracted with the config name)
+     * @param specs input specs of the node
+     * @throws NotConfigurableException if the node is not configurable with the provided settings
+     */
+    protected void loadAdditionalSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        // no additional settings to load
     }
 
     private static NodeSettingsRO getChildOrEmpty(final NodeSettingsRO settings, final String childKey) {
@@ -269,27 +287,75 @@ public final class SettingsModelFileChooser3 extends SettingsModel implements St
     }
 
     @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveSettingsForModel(settings);
+    protected final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        final NodeSettingsWO topLevel = settings.addNodeSettings(m_configName);
+        save(topLevel);
+        saveAdditionalSettingsForDialog(topLevel);
+    }
+
+    /**
+     * Hook for extending classes to save additional settings in the node dialog.
+     *
+     * @param settings corresponding to this settings model
+     * @throws InvalidSettingsException if the current settings are invalid
+     */
+    protected void saveAdditionalSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // no additional settings to save
     }
 
     @Override
-    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected final void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO topLevel = settings.getNodeSettings(m_configName);
         m_fsConfig.validateSettingsForModel(topLevel);
         m_filterModeModel.validateSettings(topLevel);
+        validateAdditionalSettingsForModel(topLevel);
+    }
+
+    /**
+     * Hook for extending classes to validate additional settings in the node model.
+     *
+     * @param settings corresponding to this settings model
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // no additional settings to validate
     }
 
     @Override
-    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    protected final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO topLevel = settings.getNodeSettings(m_configName);
         m_fsConfig.loadSettingsForModel(topLevel);
         m_filterModeModel.loadSettingsFrom(topLevel);
+        loadAdditionalSettingsForModel(topLevel);
+    }
+
+    /**
+     * Hook for extending classes to load additional settings in the node model.
+     *
+     * @param settings corresponding to this settings model
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    protected void loadAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // no additional settings to load
     }
 
     @Override
-    protected void saveSettingsForModel(final NodeSettingsWO settings) {
+    protected final void saveSettingsForModel(final NodeSettingsWO settings) {
         final NodeSettingsWO topLevel = settings.addNodeSettings(m_configName);
+        save(topLevel);
+        saveAdditionalSettingsForModel(topLevel);
+    }
+
+    /**
+     * Hook for extending classes to save additional settings in the node model.
+     *
+     * @param settings corresponding to this settings model
+     */
+    protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
+        // nothing to do
+    }
+
+    private void save(final NodeSettingsWO topLevel) {
         m_fsConfig.saveSettingsForModel(topLevel);
         m_filterModeModel.saveSettingsTo(topLevel);
     }

@@ -51,6 +51,7 @@ package org.knime.filehandling.core.defaultnodesettings.fileselection;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.Arrays;
+import java.util.EnumSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -71,6 +72,9 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.DialogComponentFileChooser3;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 
@@ -81,9 +85,13 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
 
+    private static final String HISTORY_ID = "dummy_history";
+
     private final DialogComponentFileChooser3 m_readDialog;
 
-    private final DialogComponentFileChooser3 m_writeDialog;
+    private final DialogComponentWriterFileChooser m_overwriteDialog;
+
+    private final DialogComponentWriterFileChooser m_overwritePolicyDialog;
 
     private final JTextField m_extensions = new JTextField(20);
 
@@ -92,19 +100,30 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
             new SettingsModelFileChooser3("read", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
         final FlowVariableModel readFvm =
             createFlowVariableModel(readSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_readDialog = new DialogComponentFileChooser3(readSettings, "dummy_history", DialogType.OPEN_DIALOG, readFvm,
+        m_readDialog = new DialogComponentFileChooser3(readSettings, HISTORY_ID, DialogType.OPEN_DIALOG, readFvm,
             FilterMode.values());
         m_readDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
-        final SettingsModelFileChooser3 writeSettings =
-            new SettingsModelFileChooser3("write", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
+        final SettingsModelWriterFileChooser binaryPolicySettings =
+            new SettingsModelWriterFileChooser("write", portsConfig, fileSystemPortIdentifier, FilterMode.FILE,
+                FileOverwritePolicy.OVERWRITE, EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL));
 
         final FlowVariableModel writeFvm =
-            createFlowVariableModel(writeSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_writeDialog =
-            new DialogComponentFileChooser3(writeSettings, "dummy_history", DialogType.SAVE_DIALOG, writeFvm);
+            createFlowVariableModel(binaryPolicySettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_overwriteDialog = new DialogComponentWriterFileChooser(binaryPolicySettings, HISTORY_ID, writeFvm);
 
-        m_writeDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Write"));
+        m_overwriteDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Write"));
+
+        final SettingsModelWriterFileChooser allPolicySettings =
+            new SettingsModelWriterFileChooser("overwrite_policy", portsConfig, fileSystemPortIdentifier,
+                FilterMode.FILE, FileOverwritePolicy.FAIL, EnumSet.allOf(FileOverwritePolicy.class));
+
+        final FlowVariableModel overwritePolicyFvm =
+            createFlowVariableModel(allPolicySettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_overwritePolicyDialog =
+            new DialogComponentWriterFileChooser(allPolicySettings, HISTORY_ID, overwritePolicyFvm);
+
+        m_overwritePolicyDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Overwrite policy"));
 
         m_extensions.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -133,14 +152,16 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
         panel.add(m_extensions, gbc.incX().build());
         panel.add(m_readDialog.getComponentPanel(),
             gbc.resetX().incY().setWidth(3).fillHorizontal().setWeightX(1).build());
-        panel.add(m_writeDialog.getComponentPanel(), gbc.incY().build());
+        panel.add(m_overwriteDialog.getComponentPanel(), gbc.incY().build());
+        panel.add(m_overwritePolicyDialog.getComponentPanel(), gbc.incY().build());
         return panel;
     }
 
     private void handleExtensionChange() {
         final String[] extensions = getExtensions();
         m_readDialog.getSettingsModel().setFileExtensions(extensions);
-        m_writeDialog.getSettingsModel().setFileExtensions(extensions);
+        m_overwriteDialog.getSettingsModel().setFileExtensions(extensions);
+        m_overwritePolicyDialog.getSettingsModel().setFileExtensions(extensions);
     }
 
     private String[] getExtensions() {
@@ -150,14 +171,16 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_readDialog.saveSettingsTo(settings);
-        m_writeDialog.saveSettingsTo(settings);
+        m_overwriteDialog.saveSettingsTo(settings);
+        m_overwritePolicyDialog.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_readDialog.loadSettingsFrom(settings, specs);
-        m_writeDialog.loadSettingsFrom(settings, specs);
+        m_overwriteDialog.loadSettingsFrom(settings, specs);
+        m_overwritePolicyDialog.loadSettingsFrom(settings, specs);
     }
 
 }

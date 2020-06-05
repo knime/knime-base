@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -114,7 +115,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class DialogComponentFileChooser3 extends DialogComponent {
+public class DialogComponentFileChooser3 extends DialogComponent {
 
     private final DialogType m_dialogType;
 
@@ -193,7 +194,19 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(), gbc.incX().fillHorizontal().setWeightX(1).setWidth(2).build());
         panel.add(new FlowVariableModelButton(m_locationFvm), gbc.incX(2).setWeightX(0).setWidth(1).build());
+        addAdditionalComponents(panel, gbc.resetX().incY());
         panel.add(m_statusView.getLabel(), gbc.anchorLineStart().insetLeft(4).setX(1).widthRemainder().incY().build());
+    }
+
+    /**
+     * Hook for extending classes to add additional components to the dialog.</br>
+     * The additional components are added below the file selection panel but above the status message.
+     *
+     * @param panel the dialog panel
+     * @param gbc convenience builder for {@link GridBagConstraints}
+     */
+    protected void addAdditionalComponents(final JPanel panel, final GBCBuilder gbc) {
+        // no additonal components to add
     }
 
     private void handleFlowVariableModelChange() {
@@ -223,7 +236,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
     }
 
     @Override
-    protected void updateComponent() {
+    protected final void updateComponent() {
         final SettingsModelFileChooser3 sm = getSettingsModel();
         final FileSystemConfiguration<FSLocationConfig> config = sm.getFileSystemConfiguration();
         final FSLocationConfig locationConfig = config.getLocationConfig();
@@ -238,6 +251,13 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
 
         updateStatus();
         handleFlowVariableModelChange();
+    }
+
+    /**
+     * Hook for extending classes that allows to update additional components
+     */
+    protected void updateAdditionalComponents() {
+        // no additional components to update
     }
 
     private void updateFilterMode() {
