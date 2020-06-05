@@ -244,6 +244,26 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#PAGE_START}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder anchorPageStart() {
+        m_gbc.anchor = GridBagConstraints.PAGE_START;
+        return this;
+    }
+
+    /**
+     * Sets the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#FIRST_LINE_START}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder anchorFirstLineStart() {
+        m_gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+        return this;
+    }
+
+    /**
      * Sets the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#CENTER}.
      *
      * @return this builder
@@ -260,6 +280,16 @@ public final class GBCBuilder {
      */
     public GBCBuilder anchorWest() {
         m_gbc.anchor = GridBagConstraints.WEST;
+        return this;
+    }
+
+    /**
+     * Set the {@link GridBagConstraints#anchor} property to {@link GridBagConstraints#LINE_END}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder anchorLineEnd() {
+        m_gbc.anchor = GridBagConstraints.LINE_END;
         return this;
     }
 
