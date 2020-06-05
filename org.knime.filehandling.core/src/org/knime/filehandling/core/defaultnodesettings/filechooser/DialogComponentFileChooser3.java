@@ -85,8 +85,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.GBCBuilder;
 
@@ -262,7 +262,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
             isWarningOrError = type == MessageType.ERROR || type == MessageType.WARNING;
         }
         // don't check file if there are warnings/errors or we are in a convenience fs on the server
-        if (!isWarningOrError && !(executedOnServer() && isConvenienceFS())) {
+        if (!isWarningOrError && !isRemoteJobView()) {
             triggerSwingWorker();
         } else if (!status.isPresent()) {
             m_statusView.clearStatus();
@@ -271,12 +271,8 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
         }
     }
 
-    private static boolean executedOnServer() {
+    private static boolean isRemoteJobView() {
         return CheckNodeContextUtil.isRemoteWorkflowContext();
-    }
-
-    private boolean isConvenienceFS() {
-        return !isConnectedFS();
     }
 
     private boolean isConnectedFS() {
@@ -308,7 +304,7 @@ public final class DialogComponentFileChooser3 extends DialogComponent {
             final Optional<FSConnection> connection = getConnection();
             final Optional<FileSystemBrowser> browser = connection.map(FSConnection::getFileSystemBrowser);
             // we can only browse if the file system connection is available
-            if (!executedOnServer() && browser.isPresent()) {
+            if (!isRemoteJobView() && browser.isPresent()) {
                 // the connection is present, otherwise browser couldn't be
                 m_connection = connection.get();
                 m_fileSelection.setEnableBrowsing(true);
