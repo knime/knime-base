@@ -110,6 +110,23 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
      * @param registry the {@link ProducerRegistry}
+     */
+    protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
+        final MultiTableReader<C, ?, ?> tableReader, final ProducerRegistry<?, ?> registry) {
+        super(0, 1);
+        m_config = config;
+        m_pathSettings = pathSettingsModel;
+        m_tableReader = tableReader;
+        m_registry = registry;
+    }
+
+    /**
+     * Constructs a node model with no inputs and one output.
+     *
+     * @param config storing the user settings
+     * @param pathSettingsModel storing the paths selected by the user
+     * @param tableReader reader for reading tables
+     * @param registry the {@link ProducerRegistry}
      * @param portsConfig determines the in and outports.
      */
     protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,

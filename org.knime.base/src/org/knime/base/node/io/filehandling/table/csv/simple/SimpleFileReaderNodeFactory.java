@@ -51,9 +51,9 @@ package org.knime.base.node.io.filehandling.table.csv.simple;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.table.csv.AbstractCSVTableReaderNodeFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 
 /**
  * Node factory for the simple file reader node.
@@ -64,20 +64,19 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new SimpleFileReaderNodeDialog(createPathSettings(), createConfig(), createMultiTableReader(),
-            getProducerRegistry());
+        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig.getURLConfig()), createConfig(),
+            createMultiTableReader(), getProducerRegistry());
     }
 
     @Override
-    protected PathAwareFileHistoryPanel createPathSettings() {
+    protected PathAwareFileHistoryPanel createPathSettings(final Optional<? extends URLConfiguration> optional) {
+        // FIXME handle urls
         return new PathAwareFileHistoryPanel("file_location");
     }
 
     @Override
     protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addFixedOutputPortGroup("Data Table", BufferedDataTable.TYPE);
-        return Optional.of(builder);
+        return Optional.empty();
     }
 
 }

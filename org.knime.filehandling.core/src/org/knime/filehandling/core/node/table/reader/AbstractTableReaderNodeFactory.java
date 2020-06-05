@@ -55,6 +55,8 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -78,12 +80,17 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
     extends ConfigurableNodeFactory<TableReaderNodeModel<C>> {
 
+    /** The file system ports group id. */
+    protected static final String FS_CONNECT_GRP_ID = "File System Connection";
+
     /**
      * Creates a {@link PathSettings} object configured for this reader node.
      *
+     * @param optional the {@link URLConfiguration}
+     *
      * @return a new path settings object configured for this reader
      */
-    protected abstract PathSettings createPathSettings();
+    protected abstract PathSettings createPathSettings(Optional<? extends URLConfiguration> optional);
 
     /**
      * Creates the {@link ReaderSpecificConfig} that holds all the configurations specific to this reader node.
@@ -124,10 +131,14 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     @Override
     public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadConfig<C> config = createConfig();
-        final PathSettings pathSettings = createPathSettings();
+        final PathSettings pathSettings = createPathSettings(creationConfig.getURLConfig());
         final MultiTableReader<C, T, V> reader = createMultiTableReader();
-        return new TableReaderNodeModel<>(config, pathSettings, reader, getProducerRegistry(),
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
+        if (portConfig.isPresent()) {
+            return new TableReaderNodeModel<>(config, pathSettings, reader, getProducerRegistry(), portConfig.get());
+        } else {
+            return new TableReaderNodeModel<>(config, pathSettings, reader, getProducerRegistry());
+        }
     }
 
     /**
@@ -149,7 +160,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
         // Don't forget to update TableReaderNodeModel.FS_CONNECTION_PORT if the index changes
-        builder.addOptionalInputPortGroup("File System Connection", FileSystemPortObject.TYPE);
+        builder.addOptionalInputPortGroup(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE);
         builder.addFixedOutputPortGroup("Data Table", BufferedDataTable.TYPE);
         return Optional.of(builder);
     }

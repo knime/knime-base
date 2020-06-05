@@ -48,8 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.table.csv;
 
+import java.util.Optional;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
 /**
@@ -64,12 +67,13 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog2(createPathSettings(), createConfig(), createMultiTableReader(),
-            getProducerRegistry());
+        return new CSVTableReaderNodeDialog2(createPathSettings(creationConfig.getURLConfig()), createConfig(),
+            createMultiTableReader(), getProducerRegistry());
     }
 
     @Override
-    protected SettingsModelFileChooser2 createPathSettings() {
+    protected SettingsModelFileChooser2 createPathSettings(final Optional<? extends URLConfiguration> optional) {
+        // FIXME handle urls
         return new SettingsModelFileChooser2("file_selection", FILE_SUFFIXES);
     }
 
