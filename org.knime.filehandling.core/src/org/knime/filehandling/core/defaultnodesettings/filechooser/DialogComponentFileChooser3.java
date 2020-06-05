@@ -184,7 +184,7 @@ public class DialogComponentFileChooser3 extends DialogComponent {
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1);
-        panel.add(new JLabel("Read from:"), gbc.setWeightX(0).setWidth(1).build());
+        panel.add(new JLabel(getFSLabel()), gbc.setWeightX(0).setWidth(1).build());
         panel.add(m_fsChooser.getPanel(), gbc.incX().fillNone().build());
         if (displayFilterModes) {
             panel.add(new JLabel("Mode:"), gbc.resetX().incY().insetLeft(-4).setWidth(1).build());
@@ -196,6 +196,18 @@ public class DialogComponentFileChooser3 extends DialogComponent {
         panel.add(new FlowVariableModelButton(m_locationFvm), gbc.incX(2).setWeightX(0).setWidth(1).build());
         addAdditionalComponents(panel, gbc.resetX().incY());
         panel.add(m_statusView.getLabel(), gbc.anchorLineStart().insetLeft(4).setX(1).widthRemainder().incY().build());
+    }
+
+    private String getFSLabel() {
+        switch (m_dialogType) {
+            case OPEN_DIALOG:
+                return "Read from:";
+            case SAVE_DIALOG:
+                return "Write to:";
+            default:
+                throw new IllegalStateException("Unsupported DialogType: " + m_dialogType);
+
+        }
     }
 
     /**
