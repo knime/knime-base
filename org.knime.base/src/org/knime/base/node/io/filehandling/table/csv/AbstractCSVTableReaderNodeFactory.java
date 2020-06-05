@@ -48,29 +48,52 @@
  */
 package org.knime.base.node.io.filehandling.table.csv;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReader;
+import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
+import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
- * Node factory for the prototype CSV reader based on the new table reader framework.
+ * Abstract node factory for the CSV readers based on the new table reader framework.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory {
+public abstract class AbstractCSVTableReaderNodeFactory
+    extends AbstractTableReaderNodeFactory<CSVTableReaderConfig, Class<?>, String> {
 
-    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
+        CSVTableReader.TYPE_HIERARCHY.createTypeFocusedHierarchy();
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog2(createPathSettings(), createConfig(), createMultiTableReader(),
-            getProducerRegistry());
+    protected boolean hasDialog() {
+        return true;
     }
 
     @Override
-    protected SettingsModelFileChooser2 createPathSettings() {
-        return new SettingsModelFileChooser2("file_selection", FILE_SUFFIXES);
+    protected CSVTableReaderConfig createReaderSpecificConfig() {
+        return new CSVTableReaderConfig();
+    }
+
+    @Override
+    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
+        return new StringReadAdapterFactory();
+    }
+
+    @Override
+    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+        return TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected CSVTableReader createReader() {
+        return new CSVTableReader();
+    }
+
+    @Override
+    protected String extractRowKey(final String value) {
+        return value;
     }
 
 }

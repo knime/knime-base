@@ -50,7 +50,7 @@ package org.knime.base.node.io.filehandling.table.csv.simple;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory;
+import org.knime.base.node.io.filehandling.table.csv.AbstractCSVTableReaderNodeFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
@@ -60,7 +60,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class SimpleFileReaderNodeFactory extends CSVTableReaderNodeFactory {
+public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
