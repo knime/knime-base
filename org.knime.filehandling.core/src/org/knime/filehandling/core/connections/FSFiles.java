@@ -51,6 +51,9 @@ package org.knime.filehandling.core.connections;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class is the FS*-specific companion class of {@link Files}, i.e. it consists exclusively of static methods that
@@ -157,5 +160,47 @@ public final class FSFiles {
     public static FSPath createTempFile(final FSPath parent, final String prefix, final String suffix)
         throws IOException {
         return provider(parent).createTempFile(parent, prefix, suffix);
+    }
+
+    /**
+     * Recursively deletes the given directory. When deletion of any of the contained files or directories fails, then
+     * recursive deletion will continue, but the exception will be thrown at the end as an {@link IOException}. If the
+     * deletion of multiple files fails, then only the exception of the first failed deletion will be thrown.
+     *
+     * @param toDelete The directory to delete.
+     * @throws IOException When something went wrong while recursively listing the files, or the exception of the first
+     *             failed deletion.
+     */
+    public static void deleteRecursively(final Path toDelete) throws IOException {
+        AtomicReference<IOException> ioeRef = new AtomicReference<>();
+        Files.walk(toDelete).sorted(Comparator.reverseOrder()).forEach((p) -> deleteSafely(p, ioeRef));
+
+        if (ioeRef.get() != null) {
+            throw ioeRef.get();
+        }
+    }
+
+    /**
+     * Deletes the given file or directory (must be empty for successful deletion). Any exceptions occuring during
+     * deletion will be silently ignored.
+     *
+     * @param toDelete The file or (empty) directory to delete.
+     */
+    public static void deleteSafely(final Path toDelete) {
+        deleteSafely(toDelete, null);
+    }
+
+    private static void deleteSafely(final Path toDelete, final AtomicReference<IOException> ioeRef) {
+        try {
+            Files.deleteIfExists(toDelete);
+        } catch (Exception e) {
+            if (ioeRef != null) {
+                if (e instanceof IOException) {
+                    ioeRef.compareAndSet(null, (IOException)e);
+                } else {
+                    ioeRef.compareAndSet(null, new IOException(e));
+                }
+            }
+        }
     }
 }

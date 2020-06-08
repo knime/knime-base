@@ -53,9 +53,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -155,7 +153,7 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
             @Override
             public void close() {
                 try {
-                    deleteRecursively(folderToDelete);
+                    FSFiles.deleteRecursively(folderToDelete);
                 } catch (IOException e) {
                     // nothing to do here
                 } finally {
@@ -165,25 +163,13 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
         };
     }
 
-    private static void deleteRecursively(final Path toDelete) throws IOException {
-        Files.walk(toDelete).sorted(Comparator.reverseOrder()).forEach(FSFileSystemProvider::deleteSafely);
-    }
-
-    private static void deleteSafely(final Path toDelete) {
-        try {
-            Files.deleteIfExists(toDelete);
-        } catch (IOException e) {
-            // nothing to do here
-        }
-    }
-
     private static Closeable wrapDelete(final FSPath toDelete) {
         return new Closeable() {
             @SuppressWarnings("resource")
             @Override
             public void close() {
                 try {
-                    deleteSafely(toDelete);
+                    FSFiles.deleteSafely(toDelete);
                 } finally {
                     toDelete.getFileSystem().unregisterCloseable(this);
                 }
