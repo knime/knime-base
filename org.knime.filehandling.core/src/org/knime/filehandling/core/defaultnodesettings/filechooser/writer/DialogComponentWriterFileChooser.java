@@ -73,7 +73,9 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * File chooser dialog component for writer nodes.</br>
  * In addition to the components offered by {@link DialogComponentFileChooser3}, this dialog component adds a check box
  * for specifying whether parent directories should be created, as well as radio buttons to select the desired policy
- * for existing files.
+ * for existing files. </br>
+ * If the settings model provided in the constructor supports fewer than two {@link FileOverwritePolicy
+ * FileOverwritePolicies}, no radio buttons are provided because the user has no choice.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
@@ -157,7 +159,9 @@ public final class DialogComponentWriterFileChooser extends DialogComponentFileC
         final JPanel additional = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart();
         additional.add(m_createParentDirectories, gbc.build());
-        additional.add(createOverwritePolicyPanel(), gbc.incX().insetLeft(40).build());
+        if (getSettingsModel().hasPolicyChoice()) {
+            additional.add(createOverwritePolicyPanel(), gbc.incX().insetLeft(40).build());
+        }
         additional.add(new JPanel(), gbc.incX().setWeightX(1).build());
         return additional;
     }
@@ -173,7 +177,9 @@ public final class DialogComponentWriterFileChooser extends DialogComponentFileC
     @Override
     protected void updateAdditionalComponents() {
         updateCreateParentDirectoriesComponent();
-        updatePolicyComponent();
+        if (getSettingsModel().hasPolicyChoice()) {
+            updatePolicyComponent();
+        }
     }
 
     private void updatePolicyComponent() {

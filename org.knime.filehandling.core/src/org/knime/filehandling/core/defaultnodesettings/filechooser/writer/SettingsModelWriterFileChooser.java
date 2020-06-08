@@ -66,7 +66,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 /**
  * File chooser settings model for writer nodes. </br>
  * Adds the setting for creating parent directores and the {@link FileOverwritePolicy}.</br>
- * At least two supported policies must be provided.
+ * The policy is not stored in the settings if fewer than two policies are supported by the settings model.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
@@ -85,17 +85,17 @@ public final class SettingsModelWriterFileChooser extends SettingsModelFileChoos
 
     private boolean m_createParentDirectories = false;
 
-
     /**
      * Constructor.
      *
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode}
-     * @param defaultPolicy the policy selected by default (serves as config key if only two possible policies are
-     *            provided)
-     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain at least two)
+     * @param defaultFilterMode the default {@link FilterMode} (may be {@code null} if there is no policy for existing
+     *            files)
+     * @param defaultPolicy the policy selected by default
+     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
@@ -103,9 +103,13 @@ public final class SettingsModelWriterFileChooser extends SettingsModelFileChoos
         final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies,
         final String... fileExtensions) {
         super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, fileExtensions);
-        CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
-            "The default policy must be among the possible policies.");
-        CheckUtils.checkArgument(supportedPolicies.size() > 1, "At least two possible policies are required.");
+        if (defaultPolicy == null) {
+            CheckUtils.checkArgument(supportedPolicies.isEmpty(),
+                "The must not be any supported policy if the default policy is null.");
+        } else {
+            CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
+                "The default policy must be among the possible policies.");
+        }
         m_defaultPolicy = defaultPolicy;
         m_supportedPolicies = Collections.unmodifiableSet(EnumSet.copyOf(supportedPolicies));
         m_selectedPolicy = defaultPolicy;
@@ -177,35 +181,54 @@ public final class SettingsModelWriterFileChooser extends SettingsModelFileChoos
     protected void loadAdditionalSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         setCreateParentDirectories(settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES, false));
-        setFileOverwritePolicy(loadPolicyInDialog(settings));
+        if (hasPolicyChoice()) {
+            setFileOverwritePolicy(loadPolicyInDialog(settings));
+        }
     }
 
     @Override
     protected void saveAdditionalSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         super.saveAdditionalSettingsForDialog(settings);
         settings.addBoolean(CFG_CREATE_PARENT_DIRECTORIES, m_createParentDirectories);
-        savePolicy(settings);
+        if (hasPolicyChoice()) {
+            savePolicy(settings);
+        }
     }
 
     @Override
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.validateAdditionalSettingsForModel(settings);
         settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES);
-        loadPolicyInModel(settings);
+        if (hasPolicyChoice()) {
+            loadPolicyInModel(settings);
+        }
     }
 
     @Override
     protected void loadAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.loadAdditionalSettingsForModel(settings);
         setCreateParentDirectories(settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES));
-        setFileOverwritePolicy(loadPolicyInModel(settings));
+        if (hasPolicyChoice()) {
+            setFileOverwritePolicy(loadPolicyInModel(settings));
+        }
+    }
+
+    /**
+     * Indicates whether the user has any choice in selecting a {@link FileOverwritePolicy}.
+     *
+     * @return {@code true} if the user can select a {@link FileOverwritePolicy}
+     */
+    public boolean hasPolicyChoice() {
+        return m_supportedPolicies.size() > 1;
     }
 
     @Override
     protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
         super.saveAdditionalSettingsForModel(settings);
         settings.addBoolean(CFG_CREATE_PARENT_DIRECTORIES, m_createParentDirectories);
-        savePolicy(settings);
+        if (hasPolicyChoice()) {
+            savePolicy(settings);
+        }
     }
 
     private FileOverwritePolicy loadPolicyInDialog(final NodeSettingsRO settings) {
