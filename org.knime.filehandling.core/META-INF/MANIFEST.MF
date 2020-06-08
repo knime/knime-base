@@ -1,4 +1,3 @@
-Eclipse-BundleShape: dir
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Filehandling functionality for KNIME
