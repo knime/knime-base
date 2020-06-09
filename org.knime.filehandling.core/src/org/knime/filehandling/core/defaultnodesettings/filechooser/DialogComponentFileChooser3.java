@@ -330,7 +330,8 @@ public class DialogComponentFileChooser3 extends DialogComponent {
         final SettingsModelFileChooser3 sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
         if (m_connection != null) {
-            m_connection.close();
+            // FIXME we should create or close FSConnections in code that's run in the UI thread
+            m_connection.closeInBackground();
         }
         if (location.getFileSystemChoice() != Choice.CUSTOM_URL_FS) {
             final Optional<FSConnection> connection = getConnection();
@@ -345,7 +346,8 @@ public class DialogComponentFileChooser3 extends DialogComponent {
                 m_fileSelection.setFileSelectionMode(getFileSelectionMode());
             } else {
                 // if we are in the remote job view, we need to close the connection since we can't browse anyway
-                connection.ifPresent(FSConnection::close);
+                // FIXME we should create or close FSConnections in code that's run in the UI thread
+                connection.ifPresent(FSConnection::closeInBackground);
                 m_fileSelection.setEnableBrowsing(false);
             }
         } else {
@@ -402,7 +404,8 @@ public class DialogComponentFileChooser3 extends DialogComponent {
             m_statusMessageWorker = null;
         }
         if (m_connection != null) {
-            m_connection.close();
+            // FIXME we should create or close FSConnections in code that's run in the UI thread
+            m_connection.closeInBackground();
             m_connection = null;
         }
         getSettingsModel().getFileSystemConfiguration().validate();

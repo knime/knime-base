@@ -60,6 +60,11 @@ class UncloseableFSConnection implements FSConnection {
     private final FSConnection m_wrapped;
 
     @Override
+    public final void closeInBackground() {
+        // do nothing
+    }
+
+    @Override
     public final void close() {
         // do nothing
     }

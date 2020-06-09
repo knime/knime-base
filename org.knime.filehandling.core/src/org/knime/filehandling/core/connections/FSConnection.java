@@ -14,17 +14,40 @@ import org.knime.core.node.util.FileSystemBrowser;
 public interface FSConnection extends AutoCloseable {
 
     /**
+     * Closes the file system in this connection and releases any resources allocated by it using a background thread.
+     * Any errors during closing will be logged to the {@link NodeLogger} of the {@link FSConnection} implementation.
+     *
+     * @since 4.2
+     */
+    public default void closeInBackground() {
+
+        final NodeLogger logger = NodeLogger.getLogger(this.getClass());
+        final String fsName = getClass().getSimpleName();
+
+        final String threadName = fsName + "Closer";
+
+        final Runnable closeRunnable = () -> {
+            try {
+                FSConnection.this.close();
+            } catch (Exception ex) {
+                logger.error(String.format("Exception closing %s: %s", fsName, ex.getMessage()));
+            }
+        };
+
+        new Thread(closeRunnable, threadName).start();
+    }
+
+    /**
      * Closes the file system in this connection and releases any resources allocated by it.
      *
+     * @throws IOException when something went wrong while closing the file system.
      * @since 4.2
      */
     @SuppressWarnings("resource")
     @Override
-    public default void close() {
+    public default void close() throws IOException {
         try {
             getFileSystem().ensureClosed();
-        } catch (IOException ex) {
-            NodeLogger.getLogger(this.getClass()).error("Exception closing file system: " + ex.getMessage(), ex);
         } finally {
             FSConnectionRegistry.getInstance().deregister(this);
         }

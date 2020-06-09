@@ -153,7 +153,10 @@ public class FSTestEnvironmentNodeModel extends NodeModel {
 
     @Override
     protected void reset() {
-        m_fsConnection.close();
+        if (m_fsConnection != null) {
+            m_fsConnection.closeInBackground();
+            m_fsConnection = null;
+        }
     }
 
 }
