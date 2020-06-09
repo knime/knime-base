@@ -124,7 +124,7 @@ final class SettingsModelTempDir extends SettingsModel {
     }
 
     private SettingsModelTempDir(final SettingsModelTempDir source) {
-        m_parentDirChooserModel = source.getParentDirChooserModel();
+        m_parentDirChooserModel = source.getParentDirChooserModel().createClone();
 
         m_deleteDirOnReset = source.deleteDirOnReset();
 
