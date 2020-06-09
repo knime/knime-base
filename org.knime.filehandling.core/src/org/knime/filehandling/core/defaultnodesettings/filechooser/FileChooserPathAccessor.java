@@ -107,7 +107,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
      * Creates a new FileChooserAccessor for the provided {@link SettingsModelFileChooser3} and {@link FSConnection
      * connection} (if provided).</br>
      * The settings are not validated in this constructor but instead if {@link #getOutputPath(Consumer)} or
-     * {@link #getPaths(Consumer)} are called.
+     * {@link #getFSPaths(Consumer)} are called.
      *
      * @param settings {@link SettingsModelFileChooser3} provided by the user
      * @param portObjectConnection connection retrieved from the file system port object (if the node has one)
@@ -197,7 +197,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
      * @throws InvalidSettingsException if the settings are invalid e.g. the root path is invalid
      */
     @Override
-    public final List<FSPath> getPaths(final Consumer<StatusMessage> statusMessageConsumer)
+    public final List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
         final FSPath rootPath = getOutputPath(statusMessageConsumer);
         // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
@@ -228,7 +228,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
 
     @Override
     public FileFilterStatistic getFileFilterStatistic() {
-        CheckUtils.checkState(m_fileFilterStatistic != null, "No statistic available. Call getPaths() first.");
+        CheckUtils.checkState(m_fileFilterStatistic != null,
+            "No statistic available. Call getFSPaths() or getPaths() first.");
         return m_fileFilterStatistic;
     }
 

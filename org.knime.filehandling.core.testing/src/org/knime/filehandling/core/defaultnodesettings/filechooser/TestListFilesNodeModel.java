@@ -112,7 +112,7 @@ final class TestListFilesNodeModel extends NodeModel {
         final BufferedDataContainer container = exec.createDataContainer(createOutputSpec());
         try (final ReadPathAccessor accessor = m_settings.createReadPathAccessor()) {
             final PriorityStatusConsumer statusConsumer = new PriorityStatusConsumer();
-            final Iterator<FSPath> paths = accessor.getPaths(statusConsumer).iterator();
+            final Iterator<FSPath> paths = accessor.getFSPaths(statusConsumer).iterator();
             final Optional<StatusMessage> statusMessage = statusConsumer.get();
             if (statusMessage.isPresent()) {
                 setWarningMessage(statusMessage.get().getMessage());

@@ -48,16 +48,15 @@
  */
 package org.knime.filehandling.core.node.table.reader.paths;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * Interface defining classes that can be validated, saved to, and loaded from {@link NodeSettings} and allow to access
@@ -68,29 +67,30 @@ import org.knime.filehandling.core.connections.FSConnection;
 public interface PathSettings {
 
     /**
-     * Returns the stored path or URL. Before calling this method make sure that such a path or URL exists by invoking
-     * {@link #hasPathOrURL()}.
+     * Returns the stored path, which can be {@code null}.
      *
-     * @return the {@code String} representation of the stored path or URL
+     * @return the {@code String} representation of the stored path
      */
-    String getPathOrURL();
+    String getPath();
 
     /**
-     * Returns a flag indicating whether a path or URL is present, or not.
+     * Validates the provided specs against the settings and either provides warnings via the
+     * <b>statusMessageConsumer</b> if the issues are non fatal or throws an InvalidSettingsException if the current
+     * configuration and the provided specs make a successful execution impossible.
      *
-     * @return {@code true} if a path or URL is present, {@code false} otherwise
+     * @param specs the input {@link PortObjectSpec specs} of the node
+     * @param statusMessageConsumer consumer for status messages e.g. warnings
+     * @throws InvalidSettingsException if the specs are not compatible with the settings
      */
-    boolean hasPathOrURL();
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException;
 
     /**
-     * Returns the list of path.
+     * Creates a {@link ReadPathAccessor} to be used in reader nodes.
      *
-     * @param fsConnection the {@link Optional} {@link FSConnection}
-     * @return the list of paths to be processed
-     * @throws IOException - If an error occurred while compiling the list of paths
-     * @throws InvalidSettingsException - If the settings required to resolve all paths are incorrect
+     * @return a {@link ReadPathAccessor}
      */
-    List<Path> getPaths(final Optional<FSConnection> fsConnection) throws IOException, InvalidSettingsException;
+    public ReadPathAccessor createReadPathAccessor();
 
     /**
      * Serializes the class specific settings to the given <code>NodeSettingsWO</code>.

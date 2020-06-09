@@ -116,7 +116,8 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (!m_writerConfig.getFileChooserModel().hasPathOrURL()) {
+        if (m_writerConfig.getFileChooserModel().getPathOrURL() == null
+            && m_writerConfig.getFileChooserModel().getPathOrURL().trim().isEmpty()) {
             throw new InvalidSettingsException("Please enter a valid location.");
         }
 

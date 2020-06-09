@@ -60,6 +60,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -77,7 +78,7 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVFormatAutoDetectionSwingWorker.class);
 
-    private final CSVTableReaderNodeDialog m_dialog;
+    private final AbstractCSVTableReaderNodeDialog m_dialog;
 
     private final PathSettings m_pathSettings;
 
@@ -87,32 +88,34 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     private static final String AUTO_DETECTION_ERROR = "Error during autodetection! See log file for details.";
 
-    CSVFormatAutoDetectionSwingWorker(final CSVTableReaderNodeDialog dialog, final PathSettings pathSettings) {
+    CSVFormatAutoDetectionSwingWorker(final AbstractCSVTableReaderNodeDialog dialog, final PathSettings pathSettings) {
         m_dialog = dialog;
         m_pathSettings = pathSettings;
     }
 
     @Override
     protected CsvFormat doInBackgroundWithContext() throws IOException, InvalidSettingsException, InterruptedException {
-        final List<Path> paths = m_pathSettings.getPaths(m_dialog.getFSConnection());
-        final CsvParser csvParser =
-            new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
+        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+            final List<Path> paths = accessor.getPaths(s -> {});
+            final CsvParser csvParser =
+                new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
 
-        if (!paths.isEmpty()) {
-            // use only first file for parsing
-            try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
-                    final BufferedReader reader =
-                        BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
-                if (m_dialog.getSkipLines()) {
-                    skipLines(reader, m_dialog.getNumLinesToSkip());
+            if (!paths.isEmpty()) {
+                // use only first file for parsing
+                try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
+                        final BufferedReader reader =
+                            BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
+                    if (m_dialog.getSkipLines()) {
+                        skipLines(reader, m_dialog.getNumLinesToSkip());
+                    }
+
+                    csvParser.beginParsing(reader);
+                    csvParser.stopParsing();
                 }
-
-                csvParser.beginParsing(reader);
-                csvParser.stopParsing();
+                return csvParser.getDetectedFormat();
+            } else {
+                throw new InvalidSettingsException("Please specify a file before running format autodetection");
             }
-            return csvParser.getDetectedFormat();
-        } else {
-            throw new InvalidSettingsException("Please specify a file before running format autodetection");
         }
     }
 

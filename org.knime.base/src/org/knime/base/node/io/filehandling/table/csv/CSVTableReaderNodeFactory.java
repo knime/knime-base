@@ -53,7 +53,10 @@ import java.util.Optional;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Node factory for the prototype CSV reader based on the new table reader framework.
@@ -67,14 +70,21 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog2(createPathSettings(creationConfig.getURLConfig()), createConfig(),
+        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
             createMultiTableReader(), getProducerRegistry());
     }
 
     @Override
-    protected SettingsModelFileChooser2 createPathSettings(final Optional<? extends URLConfiguration> optional) {
-        // FIXME handle urls
-        return new SettingsModelFileChooser2("file_selection", FILE_SUFFIXES);
+    protected SettingsModelFileChooser3 createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final SettingsModelFileChooser3 settingsModel = new SettingsModelFileChooser3("file_selection",
+            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
+            FilterMode.FILE, FILE_SUFFIXES);
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            settingsModel.setLocation(
+                new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), urlConfig.get().getUrl().toString()));
+        }
+        return settingsModel;
     }
 
 }

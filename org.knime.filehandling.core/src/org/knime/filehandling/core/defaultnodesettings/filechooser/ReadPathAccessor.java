@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSPath;
@@ -66,6 +67,18 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 public interface ReadPathAccessor extends Closeable {
 
     /**
+     * Retrieves the {@link FSPath paths} corresponding to the settings provided in the constructor.</br>
+     * Reader nodes should make use of this method.
+     *
+     * @param statusMessageConsumer for communicating non-fatal errors and warnings
+     * @return the list of paths corresponding to the settings
+     * @throws IOException if an I/O problem occurs while listing the files
+     * @throws InvalidSettingsException if the settings are invalid e.g. the root path is invalid
+     */
+    List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
+        throws IOException, InvalidSettingsException;
+
+    /**
      * Retrieves the {@link Path paths} corresponding to the settings provided in the constructor.</br>
      * Reader nodes should make use of this method.
      *
@@ -74,11 +87,15 @@ public interface ReadPathAccessor extends Closeable {
      * @throws IOException if an I/O problem occurs while listing the files
      * @throws InvalidSettingsException if the settings are invalid e.g. the root path is invalid
      */
-    List<FSPath> getPaths(final Consumer<StatusMessage> statusMessageConsumer)
-        throws IOException, InvalidSettingsException;
+    default List<Path> getPaths(final Consumer<StatusMessage> statusMessageConsumer)
+        throws IOException, InvalidSettingsException {
+        return getFSPaths(statusMessageConsumer).stream()//
+            .map(Path.class::cast)//
+            .collect(Collectors.toList());
+    }
 
     /**
-     * Returns the root {@link FSPath} from which {@link #getPaths(Consumer)} starts its search.
+     * Returns the root {@link FSPath} from which {@link #getFSPaths(Consumer)} starts its search.
      *
      * @param statusMessageConsumer consumer for status messages
      * @return the root {@link FSPath}
@@ -89,10 +106,11 @@ public interface ReadPathAccessor extends Closeable {
         throws IOException, InvalidSettingsException;
 
     /**
-     * Returns the {@link FileFilterStatistic} of the last {@link #getPaths(Consumer)} call.
+     * Returns the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)} call.
      *
-     * @return the {@link FileFilterStatistic} of the last {@link #getPaths(Consumer)} call
-     * @throws IllegalStateException if {@link #getPaths(Consumer)} hasn't been called yet
+     * @return the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)} call
+     * @throws IllegalStateException if {@link #getFSPaths(Consumer)} hasn't been called yet
      */
     FileFilterStatistic getFileFilterStatistic();
+
 }

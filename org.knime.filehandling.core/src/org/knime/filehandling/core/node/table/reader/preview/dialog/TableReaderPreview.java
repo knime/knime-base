@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
@@ -78,7 +79,8 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.util.ViewUtils;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -107,6 +109,9 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private static final int DELAY_ANALYSIS = 1000;
 
+    private static final Consumer<StatusMessage> NO_OP_CONSUMER = w -> {
+    };
+
     private final JButton m_quickScanButton = new JButton("Quick Scan");
 
     private final TableView m_previewTableView = new TableView(new TableContentView());
@@ -127,8 +132,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private final transient PathSettings m_pathSettings;
 
-    private final transient Supplier<Optional<FSConnection>> m_fsConnection;
-
     private transient PreviewDataTable<C, V> m_previewTable = null;
 
     private transient AnalyzeSwingWorker m_analyzeThread;
@@ -140,13 +143,11 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
      *
      * @param multiTableReader the reader used to read in the table
      * @param pathSettings the path settings
-     * @param fsConnection an optional being empty or containing the {@link FSConnection}
      * @param configSupplier a {@link Supplier} that returns the {@link MultiTableReadConfig} used for reading
      */
     public TableReaderPreview(final MultiTableReader<C, ?, V> multiTableReader, final PathSettings pathSettings,
-        final Supplier<Optional<FSConnection>> fsConnection, final Supplier<MultiTableReadConfig<C>> configSupplier) {
+        final Supplier<MultiTableReadConfig<C>> configSupplier) {
         m_pathSettings = CheckUtils.checkArgumentNotNull(pathSettings, "The path settings must not be null.");
-        m_fsConnection = CheckUtils.checkArgumentNotNull(fsConnection, "The file system supplier must not be null.");
         m_configSupplier = CheckUtils.checkArgumentNotNull(configSupplier, "The config supplier must not be null.");
         m_multiTableReader =
             CheckUtils.checkArgumentNotNull(multiTableReader, "The multi table reader must not be null.");
@@ -286,8 +287,8 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                 refresh();
             } else {
                 // otherwise, only refresh if no IO error occurs
-                try {
-                    m_pathSettings.getPaths(m_fsConnection.get());
+                try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+                    accessor.getFSPaths(NO_OP_CONSUMER);
                     refresh();
                 } catch (IOException | InvalidSettingsException e) {
                     // if an error occurs but no preview is set, just do nothing
@@ -317,15 +318,16 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
             Thread.sleep(DELAY_ANALYSIS);
             m_analyzing = true;
             setVisibleAnalysisComponents(true);
-
-            final List<Path> paths = m_pathSettings.getPaths(m_fsConnection.get());
-            m_execMonitor.setNumPathsToRead(paths.size());
-            final MultiTableReadConfig<C> config = m_configSupplier.get();
-            m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
-            m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
-            m_table =
-                m_multiTableReader.createPreviewDataTable(m_pathSettings.getPathOrURL(), paths, config, m_execMonitor);
-            return null;
+            try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+                final List<Path> paths = accessor.getPaths(NO_OP_CONSUMER);
+                m_execMonitor.setNumPathsToRead(paths.size());
+                final MultiTableReadConfig<C> config = m_configSupplier.get();
+                m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
+                m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
+                m_table =
+                    m_multiTableReader.createPreviewDataTable(m_pathSettings.getPath(), paths, config, m_execMonitor);
+                return null;
+            }
         }
 
         @Override

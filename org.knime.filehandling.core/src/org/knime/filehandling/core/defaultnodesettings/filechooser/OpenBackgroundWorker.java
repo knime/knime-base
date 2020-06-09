@@ -74,7 +74,7 @@ final class OpenBackgroundWorker implements Callable<StatusMessage> {
     public StatusMessage call() throws Exception {
         try (final ReadPathAccessor accessor = m_settings.createReadPathAccessor()) {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
-            accessor.getPaths(consumer);
+            accessor.getFSPaths(consumer);
             final Optional<StatusMessage> scanningStatus = consumer.get();
             if (scanningStatus.isPresent()) {
                 return scanningStatus.get();

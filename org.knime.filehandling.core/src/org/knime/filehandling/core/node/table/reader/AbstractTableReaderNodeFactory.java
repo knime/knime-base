@@ -56,7 +56,6 @@ import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -86,11 +85,11 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     /**
      * Creates a {@link PathSettings} object configured for this reader node.
      *
-     * @param optional the {@link URLConfiguration}
+     * @param nodeCreationConfig the {@link NodeCreationConfiguration}
      *
      * @return a new path settings object configured for this reader
      */
-    protected abstract PathSettings createPathSettings(Optional<? extends URLConfiguration> optional);
+    protected abstract PathSettings createPathSettings(final NodeCreationConfiguration nodeCreationConfig);
 
     /**
      * Creates the {@link ReaderSpecificConfig} that holds all the configurations specific to this reader node.
@@ -131,7 +130,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     @Override
     public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadConfig<C> config = createConfig();
-        final PathSettings pathSettings = createPathSettings(creationConfig.getURLConfig());
+        final PathSettings pathSettings = createPathSettings(creationConfig);
         final MultiTableReader<C, T, V> reader = createMultiTableReader();
         final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
         if (portConfig.isPresent()) {

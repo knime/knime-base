@@ -50,9 +50,9 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.CanceledExecutionException;
@@ -72,12 +72,12 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Generic implementation of a Reader node that reads tables.
@@ -91,6 +91,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     private final MultiTableReadConfig<C> m_config;
 
     private final PathSettings m_pathSettings;
+
+    final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
     /**
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
@@ -141,9 +143,9 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        CheckUtils.checkSetting(m_pathSettings.hasPathOrURL(), "Please enter a valid location");
+        m_pathSettings.configureInModel(inSpecs, m -> setWarningMessage(m.getMessage()));
         if (m_config.hasTableSpecConfig()) {
-            if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPathOrURL())) {
+            if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPath())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }
             setWarningMessage("The stored spec has not been created with the given file/path.");
@@ -151,35 +153,21 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
         return null;
     }
 
-    private List<Path> getPaths(final PortObject[] inObjects) throws IOException, InvalidSettingsException {
-        try {
-            return m_pathSettings.getPaths(FileSystemPortObject.getFileSystemConnection(inObjects, FS_INPUT_PORT));
-        } catch (NoSuchFileException e) {
-            throw new IOException("The file/folder '" + m_pathSettings.getPathOrURL() + "' does not exist.");
-        }
-    }
-
-    private List<Path> getPaths(final PortObjectSpec[] inSpecs) throws IOException, InvalidSettingsException {
-        try {
-            return m_pathSettings.getPaths(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, FS_INPUT_PORT));
-        } catch (NoSuchFileException e) {
-            throw new IOException("The file/folder '" + m_pathSettings.getPathOrURL() + "' does not exist.");
-        }
-    }
-
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final List<Path> paths = getPaths(inObjects);
-        return new PortObject[]{m_tableReader.readTable(m_pathSettings.getPathOrURL(), paths, m_config, exec)};
+        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+            final List<Path> paths = getPaths(accessor);
+            return new PortObject[]{m_tableReader.readTable(m_pathSettings.getPath(), paths, m_config, exec)};
+        }
     }
 
     @Override
     public PortObjectSpec[] computeFinalOutputSpecs(final StreamableOperatorInternals internals,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        try {
-            return new PortObjectSpec[]{
-                m_tableReader.createTableSpec(m_pathSettings.getPathOrURL(), getPaths(inSpecs), m_config)};
-        } catch (IOException ex) {
+        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+            final List<Path> paths = getPaths(accessor);
+            return new PortObjectSpec[]{m_tableReader.createTableSpec(m_pathSettings.getPath(), paths, m_config)};
+        } catch (IOException ex) { // TODO: do we rlly have to catch IOException and throw InvalidSettings instead?
             throw new InvalidSettingsException(ex);
         }
     }
@@ -187,20 +175,33 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final List<Path> paths;
-        try {
-            paths = getPaths(inSpecs);
-        } catch (IOException ex) {
-            throw new InvalidSettingsException(ex);
-        }
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                final RowOutput output = (RowOutput)outputs[0];
-                m_tableReader.fillRowOutput(m_pathSettings.getPathOrURL(), paths, m_config, output, exec);
+                try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
+                    final List<Path> paths = getPaths(accessor);
+                    final RowOutput output = (RowOutput)outputs[0];
+                    m_tableReader.fillRowOutput(m_pathSettings.getPath(), paths, m_config, output, exec);
+                } catch (IOException ex) { // TODO: do we rlly have to catch IOException and throw InvalidSettings instead?
+                    throw new InvalidSettingsException(ex);
+                }
             }
         };
+    }
+
+    private List<Path> getPaths(final ReadPathAccessor accessor) throws IOException, InvalidSettingsException {
+        final List<Path> paths = accessor.getPaths(m_statusConsumer);
+        reportWarnings();
+        return paths;
+    }
+
+    private void reportWarnings() {
+        final Optional<StatusMessage> statusMessage = m_statusConsumer.get();
+        if (statusMessage.isPresent()) {
+            setWarningMessage(statusMessage.get().getMessage());
+        }
+        m_statusConsumer.clear();
     }
 
     @Override

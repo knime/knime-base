@@ -48,11 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -63,9 +58,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.filefilter.FileFilterSettings;
-import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
@@ -74,7 +67,7 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
-public final class SettingsModelFileChooser2 extends SettingsModel implements PathSettings, Cloneable {
+public final class SettingsModelFileChooser2 extends SettingsModel implements Cloneable {
 
     /** Configuration key to store the selected file system. */
     private static final String FILE_SYSTEM_KEY = "filesystem";
@@ -313,20 +306,13 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Pa
         return m_knimeMountpointFileSystem;
     }
 
-    @Override
+    /**
+     * Returns the path of the selected file or folder.
+     *
+     * @return The path of the selected file or folder
+     */
     public String getPathOrURL() {
         return m_pathOrURL;
-    }
-
-    @Override
-    public boolean hasPathOrURL() {
-        final String p = getPathOrURL();
-        return p != null && !p.trim().isEmpty();
-    }
-
-    @Override
-    public List<Path> getPaths(final Optional<FSConnection> fsConnection) throws IOException, InvalidSettingsException {
-        return new FileChooserHelper(fsConnection, this).getPaths();
     }
 
     /**
@@ -506,40 +492,25 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Pa
             m_selectionMode = mode;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getText() {
             return m_label;
         }
 
-        /**
-         * @return the selectionMode
-         */
         public FileSelectionMode getSelectionMode() {
             return m_selectionMode;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getActionCommand() {
             return name();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getToolTip() {
             return m_desc;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public boolean isDefault() {
             return FILE.equals(this);

@@ -49,10 +49,12 @@
 package org.knime.base.node.io.filehandling.table.csv.simple;
 
 import java.io.IOException;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.swing.JFileChooser;
 
@@ -60,10 +62,19 @@ import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.FileFilterStatistic;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
@@ -98,8 +109,16 @@ final class PathAwareFileHistoryPanel implements PathSettings {
         return m_filePanel;
     }
 
+    void setPath(final String url) {
+        if (m_filePanel == null) {
+            m_selectedFile = url;
+        } else {
+            m_filePanel.setSelectedFile(url);
+        }
+    }
+
     @Override
-    public String getPathOrURL() {
+    public String getPath() {
         if (m_filePanel == null) {
             // accessing from node model
             return m_selectedFile;
@@ -108,30 +127,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
     }
 
     @Override
-    public boolean hasPathOrURL() {
-        final String p = getPathOrURL();
-        return p != null && !p.trim().isEmpty();
-    }
-
-    @Override
-    public List<Path> getPaths(final Optional<FSConnection> fsConnection) throws IOException, InvalidSettingsException {
-        final String p = getPathOrURL();
-        try {
-            final Path path = FileUtil.resolveToPath(FileUtil.toURL(p));
-            if (path == null) {
-                throw new IllegalArgumentException("Remote files not yet supported."); // FIXME
-            }
-            final List<Path> list = new ArrayList<>();
-            list.add(path);
-            return list;
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-    }
-
-    @Override
     public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addString(m_configKey, getPathOrURL().trim());
+        settings.addString(m_configKey, getPath().trim());
         if (m_filePanel != null) {
             m_filePanel.addToHistory();
         }
@@ -155,6 +152,86 @@ final class PathAwareFileHistoryPanel implements PathSettings {
      */
     public String getConfigKey() {
         return m_configKey;
+    }
+
+    @Override
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        if (!hasPath()) {
+            throw new InvalidSettingsException("Please specify a location");
+        }
+    }
+
+    @Override
+    public ReadPathAccessor createReadPathAccessor() {
+        return new PathAwareReadAccessor();
+    }
+
+    private boolean hasPath() {
+        final String p = getPath();
+        return p != null && !p.trim().isEmpty();
+    }
+
+    private class PathAwareReadAccessor implements ReadPathAccessor {
+
+        private FSConnection m_connection;
+
+        private FSLocation m_fsLocation;
+
+        private boolean m_wasClosed = false;
+
+        @Override
+        public void close() throws IOException {
+            if (m_connection != null) {
+                m_connection.close();
+            }
+            m_wasClosed = true;
+            m_connection = null;
+        }
+
+        @Override
+        public List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
+            throws IOException, InvalidSettingsException {
+            return Arrays.asList(getRootPath(statusMessageConsumer));
+        }
+
+        @SuppressWarnings("resource")
+        @Override
+        public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
+            throws IOException, InvalidSettingsException {
+            if (m_wasClosed) {
+                throw new ClosedFileSystemException();
+            }
+            if (m_connection == null) {
+                final String p = getPath();
+                final Path path;
+                try {
+                    path = FileUtil.resolveToPath(FileUtil.toURL(p));
+                } catch (Exception e) {
+                    throw new IOException(e);
+                }
+                final FileSystemChoice.Choice fsChoice;
+                final String fsSpecifier;
+                if (path == null) {
+                    fsChoice = FileSystemChoice.Choice.CUSTOM_URL_FS;
+                    fsSpecifier = "5000";
+                } else {
+                    fsChoice = FileSystemChoice.Choice.LOCAL_FS;
+                    fsSpecifier = null;
+                }
+                m_fsLocation = new FSLocation(fsChoice.toString(), fsSpecifier, p);
+                m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation).get();
+            }
+            return m_connection.getFileSystem().getPath(m_fsLocation);
+        }
+
+        @Override
+        public FileFilterStatistic getFileFilterStatistic() {
+            CheckUtils.checkState(m_connection != null,
+                "No statistic available. Call getFSPaths() or getPaths() first.");
+            return new FileFilterStatistic(0, 1, 0, 0);
+        }
+
     }
 
 }

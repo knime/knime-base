@@ -75,6 +75,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusCons
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
  * SettingsModel for the {@link DialogComponentFileChooser3}.</br>
@@ -86,7 +87,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class SettingsModelFileChooser3 extends SettingsModel implements StatusReporter {
+public class SettingsModelFileChooser3 extends SettingsModel implements StatusReporter, PathSettings {
 
     private static final DefaultStatusMessage NO_LOCATION_ERROR =
         new DefaultStatusMessage(MessageType.ERROR, "Please specify a location");
@@ -131,15 +132,7 @@ public class SettingsModelFileChooser3 extends SettingsModel implements StatusRe
         m_filterModeModel = toCopy.m_filterModeModel.createClone();
     }
 
-    /**
-     * Validates the provided specs against the settings and either provides warnings via the
-     * <b>statusMessageConsumer</b> if the issues are non fatal or throws an InvalidSettingsException if the current
-     * configuration and the provided specs make a successful execution impossible.
-     *
-     * @param specs the input {@link PortObjectSpec specs} of the node
-     * @param statusMessageConsumer consumer for status messages e.g. warnings
-     * @throws InvalidSettingsException if the specs are not compatible with the settings
-     */
+    @Override
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
         checkLocation();
@@ -189,11 +182,7 @@ public class SettingsModelFileChooser3 extends SettingsModel implements StatusRe
         }
     }
 
-    /**
-     * Creates a {@link ReadPathAccessor} to be used in reader nodes.
-     *
-     * @return a {@link ReadPathAccessor}
-     */
+    @Override
     public ReadPathAccessor createReadPathAccessor() {
         return createPathAccessor();
     }
@@ -375,6 +364,11 @@ public class SettingsModelFileChooser3 extends SettingsModel implements StatusRe
         if (getLocation().getPath().length() == 0) {
             messageConsumer.accept(NO_LOCATION_ERROR);
         }
+    }
+
+    @Override
+    public String getPath() {
+        return getLocation().getPath();
     }
 
 }

@@ -64,19 +64,26 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig.getURLConfig()), createConfig(),
+        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
             createMultiTableReader(), getProducerRegistry());
-    }
-
-    @Override
-    protected PathAwareFileHistoryPanel createPathSettings(final Optional<? extends URLConfiguration> optional) {
-        // FIXME handle urls
-        return new PathAwareFileHistoryPanel("file_location");
     }
 
     @Override
     protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         return Optional.empty();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel("file_location");
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            settings.setPath(urlConfig.get().getUrl().toString());
+        }
+        return settings;
     }
 
 }

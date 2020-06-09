@@ -49,14 +49,13 @@
 package org.knime.base.node.io.filehandling.table.csv.simple;
 
 import java.awt.Dimension;
-import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeDialog;
+import org.knime.base.node.io.filehandling.table.csv.AbstractCSVTableReaderNodeDialog;
 import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
@@ -66,7 +65,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.workflow.VariableType.StringType;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -76,7 +74,7 @@ import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class SimpleFileReaderNodeDialog extends CSVTableReaderNodeDialog {
+final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     private PathAwareFileHistoryPanel m_filePanel;
 
@@ -113,11 +111,6 @@ final class SimpleFileReaderNodeDialog extends CSVTableReaderNodeDialog {
         m_filePanel.createFileHistoryPanel(
             createFlowVariableModel(m_filePanel.getConfigKey(), StringType.INSTANCE),
             SimpleFileReaderNodeDialog.HISTORY_ID);
-    }
-
-    @Override
-    protected Optional<FSConnection> getFSConnection() {
-        return Optional.empty();
     }
 
     @Override
