@@ -46,13 +46,18 @@
  * History
  *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.table.csv.reader;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.blob.BinaryObjectDataCell;
 import org.knime.core.data.convert.map.CellValueProducer;
 import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.convert.map.DoubleCellValueProducer;
@@ -76,8 +81,9 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
  * Factory for StringReadAdapter objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 4.2
  */
-final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
+public final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
 
     private static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
 
@@ -93,6 +99,7 @@ final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
         defaultTypes.put(Float.class, DoubleCell.TYPE);
         defaultTypes.put(Double.class, DoubleCell.TYPE);
         defaultTypes.put(String.class, StringCell.TYPE);
+        defaultTypes.put(InputStream.class, BinaryObjectDataCell.TYPE);
         return Collections.unmodifiableMap(defaultTypes);
     }
 
@@ -104,6 +111,13 @@ final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
         registry.register(createProducerFactory(Long.class, new StringToLongCellValueProducer()));
         registry.register(new SimpleCellValueProducerFactory<>(String.class, String.class,
             StringReadAdapterFactory::readStringFromSource));
+        registry.register(new SimpleCellValueProducerFactory<>(LocalDate.class, LocalDate.class,
+            StringReadAdapterFactory::readLocalDateFromSource));
+        registry.register(new SimpleCellValueProducerFactory<>(LocalTime.class, LocalTime.class,
+            StringReadAdapterFactory::readLocalTimeFromSource));
+        registry.register(new SimpleCellValueProducerFactory<>(InputStream.class, InputStream.class,
+                StringReadAdapterFactory::readByteFieldsFromSource));
+
         return registry;
     }
 
@@ -115,6 +129,24 @@ final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     private static String readStringFromSource(final StringReadAdapter source,
         final ReadAdapterParams<StringReadAdapter> params) {
         return source.get(params);
+    }
+
+    private static LocalDate readLocalDateFromSource(final StringReadAdapter source,
+        final ReadAdapterParams<StringReadAdapter> params) {
+        final String localDate = source.get(params);
+        return LocalDate.parse(localDate);
+    }
+
+    private static LocalTime readLocalTimeFromSource(final StringReadAdapter source,
+        final ReadAdapterParams<StringReadAdapter> params) {
+        final String localTime = source.get(params);
+        return LocalTime.parse(localTime);
+    }
+
+    private static InputStream readByteFieldsFromSource(final StringReadAdapter source,
+        final ReadAdapterParams<StringReadAdapter> params) {
+        final String bytes = source.get(params);
+        return new ByteArrayInputStream(bytes.getBytes());
     }
 
     private abstract static class AbstractReadAdapterToPrimitiveCellValueProducer<S extends ReadAdapter<?, ?>, T>

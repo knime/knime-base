@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.table.csv;
 
 import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReader;
 import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.table.csv.reader.StringReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;

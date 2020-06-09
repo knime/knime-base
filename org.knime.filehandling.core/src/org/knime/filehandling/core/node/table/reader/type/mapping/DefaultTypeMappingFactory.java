@@ -112,8 +112,20 @@ public final class DefaultTypeMappingFactory<T, V> implements TypeMappingFactory
 
     private ProductionPath getDefaultPath(final T externalType) {
         final DataType knimeType = m_defaultKnimeTypes.get(externalType);
+
+        if (knimeType == null) {
+            final ProductionPath productionPath = getFirstPath(externalType);
+            if (productionPath != null) {
+                return productionPath;
+            }
+        }
+
         CheckUtils.checkState(knimeType != null, "No default KNIME type defined for external type '%s'.", externalType);
         return getPath(externalType, knimeType);
+    }
+
+    private ProductionPath getFirstPath(final T externalType) {
+        return m_producerRegistry.getAvailableProductionPaths(externalType).stream().findFirst().orElse(null);
     }
 
     private ProductionPath getPath(final T externalType, final DataType knimeType) {
