@@ -33,6 +33,13 @@
             name="Read"
             path="/labs/file-handling-prototype/file-handling-IO">
       </category>
+      <category
+            icon="icons/cfilehandling16x16.png"
+            level-id="file-handling-Other"
+            locked="true"
+            name="Other"
+            path="/labs/file-handling-prototype/file-handling-IO">
+      </category>
    </extension>
    <extension
          point="org.knime.core.PortType">

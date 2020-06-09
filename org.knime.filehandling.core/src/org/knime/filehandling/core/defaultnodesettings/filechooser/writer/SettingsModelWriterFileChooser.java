@@ -106,7 +106,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
         super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, fileExtensions);
         if (defaultPolicy == null) {
             CheckUtils.checkArgument(supportedPolicies.isEmpty(),
-                "The must not be any supported policy if the default policy is null.");
+                "There must not be any supported policy if the default policy is null.");
         } else {
             CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
                 "The default policy must be among the possible policies.");

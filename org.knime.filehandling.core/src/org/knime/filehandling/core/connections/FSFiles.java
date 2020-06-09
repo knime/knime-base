@@ -73,6 +73,22 @@ public final class FSFiles {
     }
 
     /**
+     * Creates a new directory with a randomized name in the given parent directory.
+     *
+     * @param parent The parent directory in which to create the temp directory.
+     * @param prefix A string prefix for the directory name.
+     * @param suffix A string suffix for the directory name.
+     * @return the path of the newly created directory.
+     *
+     * @throws NoSuchFileException when the parent directory does not exist.
+     * @throws IOException When something else went wrong while creating the directory.
+     */
+    public static FSPath createRandomizedDirectory(final FSPath parent, final String prefix, final String suffix)
+        throws IOException {
+        return provider(parent).createRandomizedDirectory(parent, prefix, suffix);
+    }
+
+    /**
      * Creates a new temporary directory in the working directory of the given {@link FSFileSystem}. The temp directory
      * and everything in it will be automatically deleted when the given {@link FSFileSystem} is closed.
      *

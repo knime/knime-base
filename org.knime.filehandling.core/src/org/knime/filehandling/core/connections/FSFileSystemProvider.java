@@ -85,6 +85,28 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
     public abstract P getPath(URI uri);
 
     /**
+     * Creates a new directory with a randomized name in the given parent directory.
+     *
+     * @param parent The parent directory in which to create the temp directory.
+     * @param prefix A string prefix for the directory name.
+     * @param suffix A string suffix for the directory name.
+     * @return the path of the newly created temporary directory.
+     *
+     * @throws NoSuchFileException when the parent directory does not exist.
+     * @throws IOException When something else went wrong while creating the directory.
+     * @see FSFiles#createTempDirectory(FSPath, String, String)
+     */
+    public P createRandomizedDirectory(final P parent, final String prefix, final String suffix) throws IOException {
+        CheckUtils.checkArgumentNotNull(parent, "parent directory must not be null");
+        CheckUtils.checkArgumentNotNull(prefix, "prefix must not be null");
+        CheckUtils.checkArgumentNotNull(suffix, "suffix must not be null");
+
+        final P tempDir = createNonExistentPath(parent, prefix, suffix);
+        createDirectory(tempDir);
+        return tempDir;
+    }
+
+    /**
      * Creates a new temporary directory in the given parent directory. The directory and everything in it will be
      * automatically deleted when the underlying {@link FSFileSystem} is closed.
      *
@@ -99,12 +121,7 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
      */
     @SuppressWarnings({"resource"})
     public P createTempDirectory(final P parent, final String prefix, final String suffix) throws IOException {
-        CheckUtils.checkArgumentNotNull(parent, "parent directory must not be null");
-        CheckUtils.checkArgumentNotNull(prefix, "prefix must not be null");
-        CheckUtils.checkArgumentNotNull(suffix, "suffix must not be null");
-
-        final P tempDir = createNonExistentPath(parent, prefix, suffix);
-        createDirectory(tempDir);
+        final P tempDir = createRandomizedDirectory(parent, prefix, suffix);
         tempDir.getFileSystem().registerCloseable(wrapRecursiveDelete(tempDir));
         return tempDir;
     }
@@ -119,7 +136,7 @@ public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSys
      * @return the path of the newly created temporary file.
      *
      * @throws NoSuchFileException when the parent directory does not exist.
-     * @throws IOException When something else went wrong while creating the temp  file.
+     * @throws IOException When something else went wrong while creating the temp file.
      * @see FSFiles#createTempFile(FSPath, String, String)
      */
     @SuppressWarnings({"resource"})
