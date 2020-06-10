@@ -156,19 +156,29 @@ public abstract class BlobStorePath extends UnixStylePath {
         return m_isDirectory;
     }
 
+    /**
+     * @return a {@link BlobStorePath} for which {@link #isDirectory()} returns true.
+     */
+    @SuppressWarnings("resource")
+    public BlobStorePath toDirectoryPath() {
+        if (!isDirectory()) {
+            return (BlobStorePath)getFileSystem().getPath(toString(), getFileSystem().getSeparator());
+        } else {
+            return this;
+        }
+    }
+
     @Override
     public String toString() {
         String toString = super.toString();
-        if (isDirectory() && !m_pathParts.isEmpty()) {
+
+        if (isDirectory() && !isRoot() && !isEmptyPath()) {
             toString = toString.concat(m_pathSeparator);
         }
-        return toString;
 
+        return toString;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path getFileName() {
         if (m_pathParts.isEmpty()) {
@@ -187,9 +197,6 @@ public abstract class BlobStorePath extends UnixStylePath {
         return getFileSystem().getPath(name);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path getName(final int index) {
         if (index < 0 || index >= m_pathParts.size()) {
@@ -203,9 +210,6 @@ public abstract class BlobStorePath extends UnixStylePath {
         return getFileSystem().getPath(name);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Path normalize() {
         if (m_pathParts.isEmpty()) {
@@ -226,5 +230,4 @@ public abstract class BlobStorePath extends UnixStylePath {
 
         return getFileSystem().getPath(first, normalized.toArray(new String[normalized.size()]));
     }
-
 }

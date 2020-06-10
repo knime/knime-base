@@ -439,7 +439,11 @@ public abstract class UnixStylePath extends FSPath {
 
         UnixStylePath unixOther = (UnixStylePath) other;
 
-        if (m_pathParts.isEmpty() || (m_pathParts.size() == 1 && m_pathParts.get(0).isEmpty())) {
+        if (isEmptyPath()) {
+            return unixOther;
+        }
+
+        if (isRoot()) {
             return getFileSystem().getPath(String.join(unixOther.m_pathSeparator, unixOther.m_pathParts));
         }
 
@@ -605,5 +609,19 @@ public abstract class UnixStylePath extends FSPath {
     public String toString() {
         final String root = isAbsolute() ? m_pathSeparator : "";
         return root + String.join(m_pathSeparator, m_pathParts);
+    }
+
+    /**
+     * @return whether this path is the root directory.
+     */
+    public boolean isRoot() {
+        return m_pathParts.isEmpty() && isAbsolute();
+    }
+
+    /**
+     * @return whether this path is the empty path
+     */
+    public boolean isEmptyPath() {
+        return !isAbsolute() && m_pathParts.size() == 1 && m_pathParts.get(0).equals("");
     }
 }
