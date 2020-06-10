@@ -42,46 +42,36 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jun 5, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.integrationtests;
+package org.knime.filehandling.core.testing;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.UUID;
 
 /**
- * This class is responsible for reading the test configuration for a specific file system and put all the properties in
- * a map.
+ * Base implementation of a {@link FSTestInitializerProvider}. At the moment, this class only provides a static utility
+ * method to randomize the working directory name of the file system.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- *
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class FSTestConfigurationReader {
+public abstract class DefaultFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    @SuppressWarnings("unchecked")
     /**
-     * Reads all the properties with prefix fsType into a map. The suffix of each property will be removed from the keys
-     * in the map.
+     * Generates a randomized path with the given prefix. Implementations should call this method to randomize
+     * the working directory path of the file system (prior to its instantiation).
      *
-     * @param fsType         the file system type for which the configuration is read
-     * @param testProperties the test properties
-     * @return a map containing all the fsType specific properties
+     * @param workingDirPrefix The prefix of the working directory, which should be an absolute path.
+     * @param sep The path separator used by the concrete file system.
+     * @return a randomized path with the given prefix
      */
-    public static Map<String, String> read(final String fsType, final Properties testProperties) {
-        final Map<String, String> configuration = new HashMap<>();
-        final String fsTypePrefix = fsType + ".";
-
-        for (String key : Collections.list((Enumeration<String>)testProperties.propertyNames())) {
-            if (key.startsWith(fsTypePrefix)) {
-                final String value = testProperties.getProperty(key);
-                final String keyWithoutFSType = key.substring(fsTypePrefix.length());
-                configuration.put(keyWithoutFSType, value);
-            }
-        }
-
-        return configuration;
+    protected static String generateRandomizedWorkingDir(final String workingDirPrefix, final String sep) {
+        return String.format("%s%s%s%s", //
+            workingDirPrefix, //
+            sep, //
+            UUID.randomUUID().toString(), //
+            sep);
     }
 
 }

@@ -45,6 +45,7 @@
  */
 package org.knime.filehandling.core.testing.integrationtests;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -87,7 +88,7 @@ public class FSTestParameters {
                 () -> manager.createInitializer(fsType, FSTestConfigurationReader.read(fsType, fsTestProperties));
 
             fsTestInitializers[i][0] = fsType;
-            fsTestInitializers[i][1] = initializerSupplier;
+            fsTestInitializers[i][1] = new CachingSupplier(initializerSupplier);
         }
 
         return Arrays.asList(fsTestInitializers);
@@ -101,5 +102,26 @@ public class FSTestParameters {
             testInitializerKeys.addAll(FSTestInitializerManager.instance().getAllTestInitializerKeys());
         }
         return testInitializerKeys;
+    }
+
+    private static class CachingSupplier implements IOESupplier<FSTestInitializer> {
+
+        private FSTestInitializer m_toSupply;
+
+        private final IOESupplier<FSTestInitializer> m_newInstanceSupplier;
+
+        CachingSupplier(final IOESupplier<FSTestInitializer> newInstanceSupplier) {
+            m_newInstanceSupplier = newInstanceSupplier;
+        }
+
+        @Override
+        public synchronized FSTestInitializer get() throws IOException {
+            if (m_toSupply == null) {
+                m_toSupply = m_newInstanceSupplier.get();
+            }
+
+            return m_toSupply;
+        }
+
     }
 }

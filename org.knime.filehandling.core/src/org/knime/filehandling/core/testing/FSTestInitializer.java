@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
 
 /**
@@ -66,21 +67,33 @@ import org.knime.filehandling.core.connections.FSPath;
  * {@link FSTestInitializer} is only meant to be instantiated from corresponding {@link FSTestInitializerProvider}.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @param <P> The concrete path type of the file system.
+ * @param <F> The concrete file system type.
  */
-public interface FSTestInitializer {
+public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> {
 
     /**
      * Hook called before each test case, allowing each implementation to modify the initializer before each test case.
+     *
+     * @throws IOException
      */
-    default public void beforeTestCase() throws IOException {
-        // default: do nothing
-    }
+    public void beforeTestCase() throws IOException;
 
     /**
      * Hook called after each test case, allowing each implementation to modify the initializer after each test case.
+     *
+     * @throws IOException
      */
-    default public void afterTestCase() throws IOException {
-        // default: do nothing
+    public void afterTestCase() throws IOException;
+
+    /**
+     * Called after all test cases of a {@link AbstractParameterizedFSTest} have completed. The default implementation
+     * does nothing, but some file systems may need to do final cleanup, e.g. delete their working directory.
+     *
+     * @throws IOException
+     */
+    public default void afterClass() throws IOException {
+        // default implementation does nothing
     }
 
     /**
@@ -91,12 +104,19 @@ public interface FSTestInitializer {
     public FSConnection getFSConnection();
 
     /**
-     * Returns the test root from which all test directories and files are resolved from. The root is read from the
-     * test configuration.
+     * Returns the underlying file system of this test initializer.
      *
-     * @return the test root
+     * @return the underlying file system
      */
-    public FSPath getRoot();
+    public F getFileSystem();
+
+    /**
+     * Returns a directory in the underlying {@link FSFileSystem} which is supposed to be used by all integration tests
+     * to store and read their data.
+     *
+     * @return the scratch directory to be used by all integration tests to store and read their data.
+     */
+    public P getTestCaseScratchDir();
 
     /**
      * Creates a file with the provided path, starting from the configured root directory.
@@ -105,7 +125,7 @@ public interface FSTestInitializer {
      * @return the path to the created file
      * @throws IOException
      */
-    public FSPath createFile(String... pathComponents) throws IOException;
+    public P createFile(String... pathComponents) throws IOException;
 
     /**
      * Creates a file at the provided path destination, starting from the configured root directory, with the provided
@@ -116,17 +136,18 @@ public interface FSTestInitializer {
      * @return the path to the created file
      * @throws IOException
      */
-    public FSPath createFileWithContent(String content, String... pathComponents) throws IOException;
+    public P createFileWithContent(String content, String... pathComponents) throws IOException;
 
     /**
-     * Creates a {@link Path} object for the given name components. The returned path has the path from
-     * {@link #getRoot()} as prefix. Note that this method does not create a file or folder.
+     * Creates a {@link Path} object for the given name components. The returned path is absolute and has the path from
+     * {@link #getTestCaseScratchDir()} as prefix. Note that this method does not create a file or folder.
      *
      * @param pathComponents The path components of the path to create.
      * @return a {@link Path} object for the given name components.
      */
     @SuppressWarnings("resource")
-    public default FSPath makePath(final String... pathComponents) {
-        return getFSConnection().getFileSystem().getPath(getRoot().toString(), pathComponents);
+    public default P makePath(final String... pathComponents) {
+        return getFileSystem().getPath(getTestCaseScratchDir().toString(), pathComponents);
     }
+
 }

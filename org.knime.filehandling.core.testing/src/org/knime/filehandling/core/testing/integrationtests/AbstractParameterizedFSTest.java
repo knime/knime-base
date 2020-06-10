@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -71,23 +72,38 @@ import org.knime.filehandling.core.util.IOESupplier;
 @RunWith(Parameterized.class)
 public abstract class AbstractParameterizedFSTest {
 
+    private static Collection<Object[]> allFileSystemTestInitializerProviders;
+
     protected static final String LOCAL = "local";
-    protected static final String S3 = "s3";
-    protected static final String GS = "gs";
+    protected static final String S3 = "amazon-s3";
+    protected static final String GS = "google-cs";
+
+    private static FSTestInitializer currentTestInitializer;
+
 
     @Parameters(name = "File System: {0}")
-    public static Collection<Object[]> allFileSystemTestInitializerProviders() {
-        return FSTestParameters.get();
+    public synchronized static Collection<Object[]> allFileSystemTestInitializerProviders() {
+        if (allFileSystemTestInitializerProviders == null) {
+            allFileSystemTestInitializerProviders = FSTestParameters.get();
+        }
+
+        return allFileSystemTestInitializerProviders;
     }
 
     @Before
     public void beforeTestCase() throws IOException {
+        currentTestInitializer = m_testInitializer;
         m_testInitializer.beforeTestCase();
     }
 
     @After
     public void afterTestCase() throws IOException {
         m_testInitializer.afterTestCase();
+    }
+
+    @AfterClass
+    public static void afterClass() throws IOException {
+        currentTestInitializer.afterClass();
     }
 
     protected final FSTestInitializer m_testInitializer;

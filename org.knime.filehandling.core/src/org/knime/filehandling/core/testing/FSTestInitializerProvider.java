@@ -14,6 +14,7 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
  * map and to instantiate a {@link FSTestInitializer} using these properties.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ *
  */
 public interface FSTestInitializerProvider {
 
