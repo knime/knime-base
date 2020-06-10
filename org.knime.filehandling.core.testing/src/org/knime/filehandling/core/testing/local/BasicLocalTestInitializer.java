@@ -52,39 +52,52 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import org.apache.commons.io.FileUtils;
-import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSFiles;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.testing.DefaultFSTestInitializer;
 
 /**
  * Implementation of a test initializer using the local file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public abstract class BasicLocalTestInitializer implements FSTestInitializer {
+public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFileSystem<P>>
+    extends DefaultFSTestInitializer<P, F> {
 
-    private final String m_rootFolder;
+    private final Path m_localWorkingDir;
 
-    private Path m_currTempFolder;
-
-    protected BasicLocalTestInitializer(final String root) {
-        m_rootFolder = root;
+    /**
+     * @throws IOException when something went wrong while creating the temporary test root folder.
+     */
+    public BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) throws IOException {
+        super(fsConnection);
+        m_localWorkingDir = localWorkingDir;
     }
 
     @Override
-    public void beforeTestCase() throws IOException {
-        m_currTempFolder = Files.createTempDirectory(Paths.get(m_rootFolder), null);
+    protected void afterTestCaseInternal() throws IOException {
+        try {
+            FSFiles.deleteRecursively(getLocalTestCaseScratchDir());
+        } catch (NoSuchFileException e) {
+            // ignore
+        }
     }
 
     @Override
-    public void afterTestCase() throws IOException {
-        FileUtils.deleteDirectory(m_currTempFolder.toFile());
+    public P getTestCaseScratchDir() {
+        return (P)getFileSystem().getWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
     }
 
-    protected Path getTempFolder() {
-        return m_currTempFolder;
+    /**
+     * @return the testcase scratch dir as a path from the platform default provider.
+     */
+    protected Path getLocalTestCaseScratchDir() {
+        return m_localWorkingDir.resolve(Integer.toString(getTestCaseId()));
     }
 
     protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
@@ -92,7 +105,7 @@ public abstract class BasicLocalTestInitializer implements FSTestInitializer {
             throw new IllegalArgumentException("path components can not be empty or null");
         }
 
-        Path directories = m_currTempFolder;
+        Path directories = getLocalTestCaseScratchDir();
         for (int i = 0; i < pathComponents.length - 1; i++) {
             directories = directories.resolve(pathComponents[i]);
         }

@@ -48,12 +48,14 @@
  */
 package org.knime.filehandling.core.testing.local;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFileSystem;
-import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -65,14 +67,12 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
 
     private final static String FS_NAME = "local";
 
+    @SuppressWarnings("resource")
     @Override
-    public FSTestInitializer setup(final Map<String, String> configuration) {
-        validateConfiguration(configuration);
-        return new LocalFSTestInitializer(configuration.get("root"));
-    }
-
-    private static void validateConfiguration(final Map<String, String> configuration) {
-        CheckUtils.checkArgumentNotNull(configuration.get("root"), "root must be specified.");
+    public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+        final Path workingDir = Files.createTempDirectory("knime-localfs-test");
+        final LocalFSConnection fsConn = new LocalFSConnection(workingDir.toString());
+        return new LocalFSTestInitializer(fsConn);
     }
 
     @Override
@@ -82,7 +82,6 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
 
     @Override
     public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        validateConfiguration(configuration);
         return LocalFileSystem.FS_LOCATION_SPEC;
     }
 }
