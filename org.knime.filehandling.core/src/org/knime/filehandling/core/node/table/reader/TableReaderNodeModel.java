@@ -75,6 +75,7 @@ import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -143,7 +144,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_pathSettings.configureInModel(inSpecs, m -> setWarningMessage(m.getMessage()));
+        m_pathSettings.configureInModel(inSpecs, this::processStatusMessage);
         if (m_config.hasTableSpecConfig()) {
             if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPath())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
@@ -167,7 +168,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
         try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
             final List<Path> paths = getPaths(accessor);
             return new PortObjectSpec[]{m_tableReader.createTableSpec(m_pathSettings.getPath(), paths, m_config)};
-        } catch (IOException ex) { // TODO: do we rlly have to catch IOException and throw InvalidSettings instead?
+        } catch (IOException ex) {
             throw new InvalidSettingsException(ex);
         }
     }
@@ -183,8 +184,6 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
                     final List<Path> paths = getPaths(accessor);
                     final RowOutput output = (RowOutput)outputs[0];
                     m_tableReader.fillRowOutput(m_pathSettings.getPath(), paths, m_config, output, exec);
-                } catch (IOException ex) { // TODO: do we rlly have to catch IOException and throw InvalidSettings instead?
-                    throw new InvalidSettingsException(ex);
                 }
             }
         };
@@ -192,16 +191,20 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     private List<Path> getPaths(final ReadPathAccessor accessor) throws IOException, InvalidSettingsException {
         final List<Path> paths = accessor.getPaths(m_statusConsumer);
-        reportWarnings();
+        processStatus();
         return paths;
     }
 
-    private void reportWarnings() {
+    private void processStatus() {
         final Optional<StatusMessage> statusMessage = m_statusConsumer.get();
-        if (statusMessage.isPresent()) {
-            setWarningMessage(statusMessage.get().getMessage());
-        }
+        statusMessage.ifPresent(this::processStatusMessage);
         m_statusConsumer.clear();
+    }
+
+    private void processStatusMessage(final StatusMessage statusMsg) {
+        if (statusMsg.getType() != MessageType.INFO) {
+            setWarningMessage(statusMsg.getMessage());
+        }
     }
 
     @Override

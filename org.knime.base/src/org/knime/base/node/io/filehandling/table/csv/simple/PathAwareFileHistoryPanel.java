@@ -164,7 +164,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public ReadPathAccessor createReadPathAccessor() {
-        return new PathAwareReadAccessor();
+        return new PathAwareReadAccessor(getPath());
     }
 
     private boolean hasPath() {
@@ -172,13 +172,19 @@ final class PathAwareFileHistoryPanel implements PathSettings {
         return p != null && !p.trim().isEmpty();
     }
 
-    private class PathAwareReadAccessor implements ReadPathAccessor {
+    private static class PathAwareReadAccessor implements ReadPathAccessor {
+
+        private final String m_path;
 
         private FSConnection m_connection;
 
         private FSLocation m_fsLocation;
 
         private boolean m_wasClosed = false;
+
+        PathAwareReadAccessor(final String path) {
+            m_path = path;
+        }
 
         @Override
         public void close() throws IOException {
@@ -203,10 +209,9 @@ final class PathAwareFileHistoryPanel implements PathSettings {
                 throw new ClosedFileSystemException();
             }
             if (m_connection == null) {
-                final String p = getPath();
                 final Path path;
                 try {
-                    path = FileUtil.resolveToPath(FileUtil.toURL(p));
+                    path = FileUtil.resolveToPath(FileUtil.toURL(m_path));
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
@@ -219,7 +224,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
                     fsChoice = FileSystemChoice.Choice.LOCAL_FS;
                     fsSpecifier = null;
                 }
-                m_fsLocation = new FSLocation(fsChoice.toString(), fsSpecifier, p);
+                m_fsLocation = new FSLocation(fsChoice.toString(), fsSpecifier, m_path);
                 m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation).get();
             }
             return m_connection.getFileSystem().getPath(m_fsLocation);

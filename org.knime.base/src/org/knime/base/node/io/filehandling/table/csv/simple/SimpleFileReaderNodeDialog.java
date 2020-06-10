@@ -108,15 +108,24 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     @Override
     protected void init(final PathSettings pathSettings) {
         m_filePanel = (PathAwareFileHistoryPanel)pathSettings;
-        m_filePanel.createFileHistoryPanel(
-            createFlowVariableModel(m_filePanel.getConfigKey(), StringType.INSTANCE),
+        m_filePanel.createFileHistoryPanel(createFlowVariableModel(m_filePanel.getConfigKey(), StringType.INSTANCE),
             SimpleFileReaderNodeDialog.HISTORY_ID);
     }
 
     @Override
     protected void registerPreviewChangeListeners() {
-        m_filePanel.getFileHistoryPanel().addChangeListener(l -> m_tableReaderPreview.configChanged());
+        m_filePanel.getFileHistoryPanel().addChangeListener(l -> {
+            if (validateFileSelection()) {
+                m_tableReaderPreview.configChanged();
+            }
+        });
         super.registerPreviewChangeListeners();
+    }
+
+    @Override
+    protected boolean validateFileSelection() {
+        return m_filePanel.getFileHistoryPanel().getSelectedFile() != null
+            && !m_filePanel.getFileHistoryPanel().getSelectedFile().trim().isEmpty();
     }
 
     @Override

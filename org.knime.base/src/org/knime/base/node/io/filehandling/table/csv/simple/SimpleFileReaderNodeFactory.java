@@ -73,9 +73,6 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
         return Optional.empty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel("file_location");

@@ -81,8 +81,8 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
             FilterMode.FILE, FILE_SUFFIXES);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
-            settingsModel.setLocation(
-                new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), urlConfig.get().getUrl().toString()));
+            settingsModel.setLocation(new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "1000",
+                urlConfig.get().getUrl().toString()));
         }
         return settingsModel;
     }

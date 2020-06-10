@@ -106,10 +106,13 @@ public interface ReadPathAccessor extends Closeable {
         throws IOException, InvalidSettingsException;
 
     /**
-     * Returns the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)} call.
+     * Returns the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)}/{@link #getPaths(Consumer)}
+     * call.
      *
-     * @return the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)} call
-     * @throws IllegalStateException if {@link #getFSPaths(Consumer)} hasn't been called yet
+     * @return the {@link FileFilterStatistic} of the last {@link #getFSPaths(Consumer)}/{@link #getPaths(Consumer)}
+     *         call
+     * @throws IllegalStateException if {@link #getFSPaths(Consumer)} or {@link #getPaths(Consumer)} hasn't been called
+     *             yet
      */
     FileFilterStatistic getFileFilterStatistic();
 

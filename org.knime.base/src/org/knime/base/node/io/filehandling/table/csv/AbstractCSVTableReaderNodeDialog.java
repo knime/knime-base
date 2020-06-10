@@ -303,6 +303,13 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     protected abstract void init(final PathSettings pathSettings);
 
     /**
+     * Returns {@code true} if the selected file appears to be valid, {@code false} otherwise.
+     *
+     * @return {@code true} if the selected file appears to be valid, {@code false} otherwise
+     */
+    protected abstract boolean validateFileSelection();
+
+    /**
      * @return the panels to be add to the dialog at the top
      */
     protected abstract JPanel[] getPanels();
@@ -315,21 +322,35 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
             @Override
             public void removeUpdate(final DocumentEvent e) {
-                m_tableReaderPreview.configChanged();
+                if (validateFileSelection()) {
+                    m_tableReaderPreview.configChanged();
+                }
             }
 
             @Override
             public void insertUpdate(final DocumentEvent e) {
-                m_tableReaderPreview.configChanged();
+                if (validateFileSelection()) {
+                    m_tableReaderPreview.configChanged();
+                }
             }
 
             @Override
             public void changedUpdate(final DocumentEvent e) {
+                if (validateFileSelection()) {
+                    m_tableReaderPreview.configChanged();
+                }
+            }
+        };
+        final ActionListener actionListener = l -> {
+            if (validateFileSelection()) {
                 m_tableReaderPreview.configChanged();
             }
         };
-        final ActionListener actionListener = l -> m_tableReaderPreview.configChanged();
-        final ChangeListener changeListener = l -> m_tableReaderPreview.configChanged();
+        final ChangeListener changeListener = l -> {
+            if (validateFileSelection()) {
+                m_tableReaderPreview.configChanged();
+            }
+        };
 
         m_colDelimiterField.getDocument().addDocumentListener(documentListener);
         m_rowDelimiterField.getDocument().addDocumentListener(documentListener);
@@ -947,7 +968,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     void refreshPreview(final boolean refreshPreview) {
         m_tableReaderPreview.setEnabled(!m_disableComponentsRemoteContext);
-        if (refreshPreview) {
+        if (refreshPreview && validateFileSelection()) {
             m_tableReaderPreview.configChanged();
         }
     }
