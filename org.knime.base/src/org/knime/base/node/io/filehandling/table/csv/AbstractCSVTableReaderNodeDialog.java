@@ -185,20 +185,17 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final PathSettings m_pathSettings;
 
-    /**
-     * If the preview, autodetection, etc. components should be disabled (by default when opened in remote job view).
-     * Might be overridden.
-     */
-    protected boolean m_disableComponentsRemoteContext;
-
     /** The multi table reader config. */
     protected final MultiTableReadConfig<CSVTableReaderConfig> m_config;
 
     /** The table preview. */
     protected final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
 
-    /** The current specs, set during loading. */
-    protected PortObjectSpec[] m_specs;
+    /**
+     * If the preview, autodetection, etc. components should be disabled (by default when opened in remote job view).
+     * Might be overridden.
+     */
+    protected boolean m_disableComponentsRemoteContext;
 
     /**
      * Create new CsvTableReader dialog.
@@ -215,8 +212,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         init(pathSettings);
         m_pathSettings = pathSettings;
         m_producerRegistry = producerRegistry;
-        m_tableReaderPreview =
-            new TableReaderPreview<>(multiReader, m_pathSettings, this::saveAndGetConfig);
+        m_tableReaderPreview = new TableReaderPreview<>(multiReader, m_pathSettings, this::saveAndGetConfig);
         m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
         int textWidth = 3;
@@ -752,7 +748,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_tableReaderPreview.setEnabled(false);
-        m_specs = specs;
         m_config.loadInDialog(settings, m_producerRegistry);
         loadTableReadSettings();
         loadCSVSettings();

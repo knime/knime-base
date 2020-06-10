@@ -138,6 +138,8 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private transient PreviewExecutionMonitor m_execMonitor;
 
+    private ReadPathAccessor m_accessor;
+
     /**
      * Constructor.
      *
@@ -210,10 +212,21 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         // add listener to the execution monitor that updates the progress during spec guessing
         m_execMonitor.getProgressMonitor().addProgressListener(this::updateSpecGuessingProgress);
+
+        closeReadPathAccessor();
+        m_accessor = m_pathSettings.createReadPathAccessor();
+
         // start the spec guessing in a separated thread, exceptions are swallowed and put into the error label.
         // afterwards, (in the same thread) the preview table view is filled with the created data table
-        m_analyzeThread = new AnalyzeSwingWorker();
+        m_analyzeThread = new AnalyzeSwingWorker(m_accessor);
         m_analyzeThread.execute();
+    }
+
+    private synchronized void closeReadPathAccessor() {
+        if (m_accessor != null) {
+            new DeleteReadPathAccessorSwingWorker(m_accessor).execute();
+            m_accessor = null;
+        }
     }
 
     private void updateSpecGuessingProgress(final NodeProgressEvent pEvent) {
@@ -253,6 +266,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         }
         resetAnalysisComponents();
         resetPreviewError();
+        closeReadPathAccessor();
     }
 
     private static String createAnalysisProgressText(final String progress) {
@@ -279,29 +293,20 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
     /**
      * Inform the preview panel that the config has changed. It will display a hint that the preview needs to be
      * refreshed.
+     *
+     * @param accessor the {@link ReadPathAccessor} providing the files to shown by the preview
      */
     public synchronized void configChanged() {
         if (isEnabled()) {
-            if (m_analyzing || m_previewTable != null) {
-                // always refresh if a preview is already displayed or an analysis must be interrupted
-                refresh();
-            } else {
-                // otherwise, only refresh if no IO error occurs
-                try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-                    accessor.getFSPaths(NO_OP_CONSUMER);
-                    refresh();
-                } catch (IOException | InvalidSettingsException e) {
-                    // if an error occurs but no preview is set, just do nothing
-                    // (an error msg is most likely already displayed and an additional one is displayed in the file
-                    // selection panel)
-                }
-            }
+            refresh();
         }
     }
 
     private class AnalyzeSwingWorker extends SwingWorkerWithContext<Void, Void> {
 
         private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
+
+        private final ReadPathAccessor m_readPathAccessor;
 
         PreviewDataTable<C, V> m_table = null;
 
@@ -311,6 +316,10 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         private long m_maxRowsForSpec;
 
+        AnalyzeSwingWorker(final ReadPathAccessor accessor) {
+            m_readPathAccessor = accessor;
+        }
+
         @Override
         protected Void doInBackgroundWithContext() throws Exception {
             // wait a bit, the thread may be interrupted immediately when several config changes are made
@@ -318,16 +327,14 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
             Thread.sleep(DELAY_ANALYSIS);
             m_analyzing = true;
             setVisibleAnalysisComponents(true);
-            try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-                final List<Path> paths = accessor.getPaths(NO_OP_CONSUMER);
-                m_execMonitor.setNumPathsToRead(paths.size());
-                final MultiTableReadConfig<C> config = m_configSupplier.get();
-                m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
-                m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
-                m_table =
-                    m_multiTableReader.createPreviewDataTable(m_pathSettings.getPath(), paths, config, m_execMonitor);
-                return null;
-            }
+            final List<Path> paths = m_readPathAccessor.getPaths(NO_OP_CONSUMER);
+            m_execMonitor.setNumPathsToRead(paths.size());
+            final MultiTableReadConfig<C> config = m_configSupplier.get();
+            m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
+            m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
+            m_table = m_multiTableReader.createPreviewDataTable(
+                m_readPathAccessor.getRootPath(NO_OP_CONSUMER).toString(), paths, config, m_execMonitor);
+            return null;
         }
 
         @Override
@@ -454,4 +461,18 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         }
     }
 
+    private static class DeleteReadPathAccessorSwingWorker extends SwingWorkerWithContext<Void, Void> {
+
+        private final ReadPathAccessor m_readPathAccessor;
+
+        DeleteReadPathAccessorSwingWorker(final ReadPathAccessor accessor) {
+            m_readPathAccessor = accessor;
+        }
+
+        @Override
+        protected Void doInBackgroundWithContext() throws Exception {
+            m_readPathAccessor.close();
+            return null;
+        }
+    }
 }

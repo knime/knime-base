@@ -191,7 +191,7 @@ public final class PreviewDataTable<C extends ReaderSpecificConfig<C>, V> implem
         }
 
         private void dispose() {
-            if (m_currentIterator!=null) {
+            if (m_currentIterator != null) {
                 m_currentIterator.dispose();
             }
         }
