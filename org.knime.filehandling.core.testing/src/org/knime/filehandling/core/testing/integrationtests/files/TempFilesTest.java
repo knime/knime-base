@@ -30,7 +30,7 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_file_simple() throws IOException {
-        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getRoot());
+        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getTestCaseScratchDir());
         assertTrue(Files.isRegularFile(tempFile));
         assertArrayEquals(new byte[0], Files.readAllBytes(tempFile));
 
@@ -41,7 +41,7 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_file_with_prefix_and_suffix() throws IOException {
-        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getRoot(), "testprefix", "testsuffix");
+        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getTestCaseScratchDir(), "testprefix", "testsuffix");
         assertTrue(Files.isRegularFile(tempFile));
         assertArrayEquals(new byte[0], Files.readAllBytes(tempFile));
         assertTrue(tempFile.getFileName().toString().startsWith("testprefix"));
@@ -50,7 +50,7 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_file_cleanup() throws IOException {
-        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getRoot(), "testprefix", "testsuffix");
+        final FSPath tempFile = FSFiles.createTempFile(m_testInitializer.getTestCaseScratchDir(), "testprefix", "testsuffix");
 
         assertTrue(Files.isRegularFile(tempFile));
         if (getFileSystem() instanceof BaseFileSystem) {
@@ -77,6 +77,6 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_create_temp_file_in_non_existent_folder() throws IOException {
-        FSFiles.createTempFile((FSPath) m_testInitializer.getRoot().resolve("doesnotexist"));
+        FSFiles.createTempFile((FSPath) m_testInitializer.getTestCaseScratchDir().resolve("doesnotexist"));
     }
 }

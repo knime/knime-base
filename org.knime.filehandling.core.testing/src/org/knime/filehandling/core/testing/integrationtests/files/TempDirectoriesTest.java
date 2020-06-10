@@ -29,14 +29,14 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_empty_temp_dir() throws IOException {
-        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getRoot());
+        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir());
         assertTrue(Files.isDirectory(tempDir));
         assertEquals(0, Files.list(tempDir).toArray().length);
     }
 
     @Test
     public void test_create_temp_dir_with_prefix_and_suffix() throws IOException {
-        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getRoot(), "testprefix", "testsuffix");
+        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir(), "testprefix", "testsuffix");
         assertTrue(Files.isDirectory(tempDir));
         String dirname = tempDir.getFileName().toString();
         if (dirname.endsWith("/")) {
@@ -48,7 +48,7 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_dir_cleanup() throws IOException {
-        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getRoot());
+        final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir());
         Files.createFile(tempDir.resolve("file1"));
         Files.createDirectory(tempDir.resolve("dir1"));
         Files.createFile(tempDir.resolve("dir1").resolve("file2"));
@@ -77,7 +77,7 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_create_temp_dir_in_non_existent_folder() throws IOException {
-        FSFiles.createTempDirectory((FSPath) m_testInitializer.getRoot().resolve("doesnotexist"));
+        FSFiles.createTempDirectory((FSPath) m_testInitializer.getTestCaseScratchDir().resolve("doesnotexist"));
     }
 
 }

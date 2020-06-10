@@ -90,7 +90,7 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_move_non_existing_file() throws Exception {
-        final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
+        final Path source = m_testInitializer.getTestCaseScratchDir().resolve("non-existing-file");
         final Path target = source.getParent().resolve("movedFile");
 
         Files.move(source, target);
@@ -125,7 +125,7 @@ public class MoveTest extends AbstractParameterizedFSTest {
     public void test_move_file_to_non_existing_directory_throws_exception() throws Exception {
         String sourceContent = "The source content";
         Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
-        Path target = m_testInitializer.getRoot().resolve("dirB").resolve("fileB");
+        Path target = m_testInitializer.getTestCaseScratchDir().resolve("dirB").resolve("fileB");
 
         Files.move(source, target);
     }
@@ -146,7 +146,7 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_rename_empty_dir() throws IOException {
-        Path root = m_testInitializer.getRoot();
+        Path root = m_testInitializer.getTestCaseScratchDir();
 
         Path srcDir = root.resolve("srcDir");
         Path dstDir = root.resolve("dstDir");
@@ -164,7 +164,7 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_rename_non_empty_dir() throws IOException {
-        Path root = m_testInitializer.getRoot();
+        Path root = m_testInitializer.getTestCaseScratchDir();
 
         Path srcDir = Files.createDirectory(root.resolve("srcDir"));
         Path srcFile = m_testInitializer.createFileWithContent("content", "srcDir", "fileA");
@@ -188,8 +188,8 @@ public class MoveTest extends AbstractParameterizedFSTest {
     @Test
     public void test_move_empty_dir_into_another() throws IOException {
         String dirName = "dir";
-        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
-        Path dstParent = Files.createDirectory(m_testInitializer.getRoot().resolve("dstParent"));
+        Path srcParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("srcParent"));
+        Path dstParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("dstParent"));
 
         Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
 
@@ -207,8 +207,8 @@ public class MoveTest extends AbstractParameterizedFSTest {
         String dirName = "dir";
         String fileName = "file";
 
-        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
-        Path dstParent = Files.createDirectory(m_testInitializer.getRoot().resolve("dstParent"));
+        Path srcParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("srcParent"));
+        Path dstParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("dstParent"));
 
         Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
         Path fileToMove = m_testInitializer.createFileWithContent("content", "srcParent", dirName, fileName);
@@ -229,7 +229,7 @@ public class MoveTest extends AbstractParameterizedFSTest {
     @Test(expected = FileAlreadyExistsException.class)
     public void test_move_dir_to_already_existing_file_throws_exception() throws IOException {
         Path file = m_testInitializer.createFileWithContent("content", "file");
-        Path dir = Files.createDirectories(m_testInitializer.getRoot().resolve("dir"));
+        Path dir = Files.createDirectories(m_testInitializer.getTestCaseScratchDir().resolve("dir"));
 
         Files.move(dir, file);
     }
@@ -237,8 +237,8 @@ public class MoveTest extends AbstractParameterizedFSTest {
     @Test(expected = NoSuchFileException.class)
     public void test_move_dir_into_not_existing_throws_exception() throws IOException {
         String dirName = "dir";
-        Path srcParent = Files.createDirectory(m_testInitializer.getRoot().resolve("srcParent"));
-        Path dstParent = m_testInitializer.getRoot().resolve("dstParent");
+        Path srcParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("srcParent"));
+        Path dstParent = m_testInitializer.getTestCaseScratchDir().resolve("dstParent");
 
         Path dirToMove = Files.createDirectory(srcParent.resolve(dirName));
 

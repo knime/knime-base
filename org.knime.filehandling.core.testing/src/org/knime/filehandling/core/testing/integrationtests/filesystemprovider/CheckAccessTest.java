@@ -81,7 +81,7 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
     @Test
     public void test_file_does_not_exist() throws IOException {
         FileSystem fileSystem = m_connection.getFileSystem();
-        String rootFolder = m_testInitializer.getRoot().toString();
+        String rootFolder = m_testInitializer.getTestCaseScratchDir().toString();
         Path pathToNonExistingFile = fileSystem.getPath(rootFolder, "non-existing-file");
 
         try {

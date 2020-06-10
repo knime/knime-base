@@ -90,7 +90,7 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_copy_non_existing_file() throws Exception {
-        final Path source = m_testInitializer.getRoot().resolve("non-existing-file");
+        final Path source = m_testInitializer.getTestCaseScratchDir().resolve("non-existing-file");
         final Path target = source.getParent().resolve("copiedFile");
 
         Files.copy(source, target);

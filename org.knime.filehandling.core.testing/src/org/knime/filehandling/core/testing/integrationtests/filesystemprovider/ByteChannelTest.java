@@ -202,7 +202,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_new_file_and_write() throws Exception {
-        Path directory = m_testInitializer.getRoot().resolve("dir");
+        Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
 
         Path nonExistingFile = directory.resolve("non-existing");
@@ -233,7 +233,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IOException.class)
     public void test_read_directory() throws IOException {
-        Path directory = m_testInitializer.getRoot().resolve("dir");
+        Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
 
         Files.newByteChannel(directory, StandardOpenOption.READ).read(ByteBuffer.allocate(1));
@@ -241,7 +241,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IOException.class)
     public void test_write_directory() throws IOException {
-        Path directory = m_testInitializer.getRoot().resolve("dir");
+        Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
         Files.newByteChannel(directory, StandardOpenOption.WRITE);
     }

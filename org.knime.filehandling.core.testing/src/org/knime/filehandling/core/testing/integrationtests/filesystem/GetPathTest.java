@@ -72,13 +72,13 @@ public class GetPathTest extends AbstractParameterizedFSTest {
     @Test
     public void test_get_path_testing_root() throws Exception {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        assertEquals(m_testInitializer.getRoot(), fileSystem.getPath(m_testInitializer.getRoot().toString()));
+        assertEquals(m_testInitializer.getTestCaseScratchDir(), fileSystem.getPath(m_testInitializer.getTestCaseScratchDir().toString()));
     }
 
     @Test
     public void test_get_path_testing_root2() throws Exception {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path testingRoot = m_testInitializer.getRoot();
+        final Path testingRoot = m_testInitializer.getTestCaseScratchDir();
         final String[] pathComponents = IntStream.range(0, testingRoot.getNameCount())//
             .mapToObj(i -> testingRoot.getName(i).toString())//
             .toArray(String[]::new);
@@ -90,14 +90,14 @@ public class GetPathTest extends AbstractParameterizedFSTest {
     @Test
     public void test_get_path_appending_file() {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path testingRoot = m_testInitializer.getRoot();
+        final Path testingRoot = m_testInitializer.getTestCaseScratchDir();
         assertEquals(testingRoot.resolve("file"), fileSystem.getPath(testingRoot.toString(), "file"));
     }
 
     @Test
     public void test_get_path_appending_folders() {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final Path testingRoot = m_testInitializer.getRoot();
+        final Path testingRoot = m_testInitializer.getTestCaseScratchDir();
 
         assertEquals(testingRoot.resolve("folder1").resolve("folder2" + fileSystem.getSeparator()),
             fileSystem.getPath(testingRoot.toString(), "folder1", "folder2" + fileSystem.getSeparator()));

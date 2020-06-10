@@ -165,8 +165,6 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testRealtivizeRealtiveEmptyPath() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
         final FileSystem fileSystem = getFileSystem();
         final String that = "";
         final String other = "as/de/";
@@ -174,7 +172,7 @@ public class PathTest extends AbstractParameterizedFSTest {
         final Path otherPath = fileSystem.getPath(other);
 
         final Path backForth = path.relativize(path.resolve(other));
-        assertEquals(otherPath.toString(), backForth.toString());
+        assertEquals(otherPath, backForth);
     }
 
     @Test

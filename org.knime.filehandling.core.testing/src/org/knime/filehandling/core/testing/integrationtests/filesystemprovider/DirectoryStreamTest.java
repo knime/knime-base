@@ -92,7 +92,7 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_emtpy_directory() throws Exception {
-        final Path directory = m_testInitializer.getRoot();
+        final Path directory = m_testInitializer.getTestCaseScratchDir();
         // root directory might contains files (e.g. workflows), use a fresh empty
         // directory
         final Path emptyDirectory = Files.createDirectories(directory.resolve("empty-directory"));
@@ -107,7 +107,7 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_non_existent_directory() throws Exception {
-        final Path directory = m_testInitializer.getRoot().resolve("doesnotexist");
+        final Path directory = m_testInitializer.getTestCaseScratchDir().resolve("doesnotexist");
 
         final List<Path> paths = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory, (path) -> true)) {
