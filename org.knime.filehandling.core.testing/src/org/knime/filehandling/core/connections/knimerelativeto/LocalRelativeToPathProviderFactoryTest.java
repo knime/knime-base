@@ -26,7 +26,7 @@ public class LocalRelativeToPathProviderFactoryTest extends FSPathProviderFactor
     @Test
     public void test_relativeto_mountpoint_fs_location() throws IOException {
         final WorkflowManager workflowManager = LocalRelativeToTestUtil
-                .loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+                .createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] bytesToWrite = "bla".getBytes();
@@ -50,7 +50,7 @@ public class LocalRelativeToPathProviderFactoryTest extends FSPathProviderFactor
     @Test
     public void test_relativeto_workflow_fs_location() throws IOException {
         final WorkflowManager workflowManager = LocalRelativeToTestUtil
-                .loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+                .createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] bytesToWrite = "bla".getBytes();

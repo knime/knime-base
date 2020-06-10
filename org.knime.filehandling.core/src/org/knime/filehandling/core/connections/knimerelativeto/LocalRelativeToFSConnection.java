@@ -54,7 +54,6 @@ import java.net.URI;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -84,7 +83,7 @@ public class LocalRelativeToFSConnection implements FSConnection {
     }
 
     @Override
-    public FSFileSystem<?> getFileSystem() {
+    public LocalRelativeToFileSystem getFileSystem() {
         return m_fileSystem;
     }
 

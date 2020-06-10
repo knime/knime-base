@@ -142,7 +142,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
     @Test
     public void test_knime_workflow_relative_with_unencoded_spaces() throws IOException {
         final WorkflowManager workflowManager =
-            LocalRelativeToTestUtil.loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+            LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] expectedBytes = "bla".getBytes();
@@ -167,7 +167,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
     @Test
     public void test_knime_workflow_relative_with_encoded_spaces() throws IOException {
         final WorkflowManager workflowManager =
-            LocalRelativeToTestUtil.loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+            LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] expectedBytes = "bla".getBytes();
@@ -192,7 +192,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
     @Test
     public void test_knime_mountpoint_relative_with_unencoded_spaces() throws IOException {
         final WorkflowManager workflowManager =
-            LocalRelativeToTestUtil.loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+            LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] expectedBytes = "bla".getBytes();
@@ -217,7 +217,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
     @Test
     public void test_knime_mountpoint_relative_with_encoded_spaces() throws IOException {
         final WorkflowManager workflowManager =
-            LocalRelativeToTestUtil.loadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
+            LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
 
         try {
             final byte[] expectedBytes = "bla".getBytes();

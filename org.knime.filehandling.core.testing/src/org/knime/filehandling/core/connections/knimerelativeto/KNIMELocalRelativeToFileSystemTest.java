@@ -48,8 +48,6 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSTestInitializer.createWorkflowDir;
-import static org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSTestInitializer.getWorkflowManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,9 +80,9 @@ public class KNIMELocalRelativeToFileSystemTest {
     @Before
     public void beforeTestCase() throws IOException {
         final File mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
-        final Path currentWorkflow = createWorkflowDir(mountpointRoot.toPath(), "current-workflow");
-        createWorkflowDir(mountpointRoot.toPath(), "other-workflow");
-        m_workflowManager = getWorkflowManager(mountpointRoot, currentWorkflow, false);
+        final Path currentWorkflow = LocalRelativeToTestUtil.createWorkflowDir(mountpointRoot.toPath(), "current-workflow");
+        LocalRelativeToTestUtil.createWorkflowDir(mountpointRoot.toPath(), "other-workflow");
+        m_workflowManager = LocalRelativeToTestUtil.getWorkflowManager(mountpointRoot, currentWorkflow, false);
         NodeContext.pushContext(m_workflowManager);
     }
 
@@ -102,8 +100,8 @@ public class KNIMELocalRelativeToFileSystemTest {
         // replace the current workflow manager with a server side workflow manager
         NodeContext.removeLastContext();
         final File mountpointRoot = m_tempFolder.newFolder("other-mountpoint-root");
-        final Path currentWorkflow = createWorkflowDir(mountpointRoot.toPath(), "current-workflow");
-        m_workflowManager = getWorkflowManager(mountpointRoot, currentWorkflow, true);
+        final Path currentWorkflow = LocalRelativeToTestUtil.createWorkflowDir(mountpointRoot.toPath(), "current-workflow");
+        m_workflowManager = LocalRelativeToTestUtil.getWorkflowManager(mountpointRoot, currentWorkflow, true);
         NodeContext.pushContext(m_workflowManager);
 
         // initialization should fail
@@ -130,47 +128,47 @@ public class KNIMELocalRelativeToFileSystemTest {
 
     public void outsideMountpointWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("../../../somewhere-outside");
+        final LocalRelativeToPath path = fs.getPath("../../../somewhere-outside");
         assertFalse(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     public void outsideMountpointMountpointRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("/../../../somewhere-outside");
+        final LocalRelativeToPath path = fs.getPath("/../../../somewhere-outside");
         assertFalse(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     @Test
     public void insideCurrentWorkflowWithWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("../current-workflow/some-file.txt");
+        final LocalRelativeToPath path = fs.getPath("../current-workflow/some-file.txt");
         assertTrue(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     public void insideCurrentWorkflowWithMountpointRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("/current-workflow/some-file.txt");
+        final LocalRelativeToPath path = fs.getPath("/current-workflow/some-file.txt");
         assertFalse(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     public void insideOtherWorkflowWithWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("../other-workflow/some-file.txt");
+        final LocalRelativeToPath path = fs.getPath("../other-workflow/some-file.txt");
         assertFalse(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     public void insideOtherWorkflowWithMountpointRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        final LocalRelativeToPath path = (LocalRelativeToPath)fs.getPath("/other-workflow/some-file.txt");
+        final LocalRelativeToPath path = fs.getPath("/other-workflow/some-file.txt");
         assertFalse(fs.getPathConfig().isLocalPathAccessible(path.toAbsoluteLocalPath()));
     }
 
     @Test
     public void isWorkflow() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        assertFalse(fs.getPathConfig().isWorkflow((LocalRelativeToPath)fs.getPath("/")));
-        assertTrue(fs.getPathConfig().isWorkflow((LocalRelativeToPath)fs.getPath("/current-workflow")));
-        assertTrue(fs.getPathConfig().isWorkflow((LocalRelativeToPath)fs.getPath("/other-workflow")));
+        assertFalse(fs.getPathConfig().isWorkflow(fs.getPath("/")));
+        assertTrue(fs.getPathConfig().isWorkflow(fs.getPath("/current-workflow")));
+        assertTrue(fs.getPathConfig().isWorkflow(fs.getPath("/other-workflow")));
     }
 
     @Test
@@ -182,15 +180,15 @@ public class KNIMELocalRelativeToFileSystemTest {
     @Test
     public void isRegularFileWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        assertFalse(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/")));
-        assertFalse(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/current-workflow")));
-        assertTrue(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/other-workflow")));
+        assertFalse(fs.isRegularFile(fs.getPath("/")));
+        assertFalse(fs.isRegularFile(fs.getPath("/current-workflow")));
+        assertTrue(fs.isRegularFile(fs.getPath("/other-workflow")));
 
-        final LocalRelativeToPath filePath = (LocalRelativeToPath)fs.getPath("/some-file.txt");
+        final LocalRelativeToPath filePath = fs.getPath("/some-file.txt");
         Files.createFile(filePath);
         assertTrue(fs.isRegularFile(filePath));
 
-        final LocalRelativeToPath directoryPath = (LocalRelativeToPath)fs.getPath("/some-directory");
+        final LocalRelativeToPath directoryPath = fs.getPath("/some-directory");
         Files.createDirectory(directoryPath);
         assertFalse(fs.isRegularFile(directoryPath));
     }
@@ -198,15 +196,15 @@ public class KNIMELocalRelativeToFileSystemTest {
     @Test
     public void isRegularFileMountpointRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        assertFalse(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/")));
-        assertTrue(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/current-workflow")));
-        assertTrue(fs.isRegularFile((LocalRelativeToPath)fs.getPath("/other-workflow")));
+        assertFalse(fs.isRegularFile(fs.getPath("/")));
+        assertTrue(fs.isRegularFile(fs.getPath("/current-workflow")));
+        assertTrue(fs.isRegularFile(fs.getPath("/other-workflow")));
 
-        final LocalRelativeToPath filePath = (LocalRelativeToPath)fs.getPath("/some-file.txt");
+        final LocalRelativeToPath filePath = fs.getPath("/some-file.txt");
         Files.createFile(filePath);
         assertTrue(fs.isRegularFile(filePath));
 
-        final LocalRelativeToPath directoryPath = (LocalRelativeToPath)fs.getPath("/some-directory");
+        final LocalRelativeToPath directoryPath = fs.getPath("/some-directory");
         Files.createDirectory(directoryPath);
         assertFalse(fs.isRegularFile(directoryPath));
     }

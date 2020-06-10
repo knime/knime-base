@@ -45,11 +45,16 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
+import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -60,15 +65,22 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  */
 public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    private static final String FS_NAME = "relativeToWorkflow";
+    private static final String FS_NAME = "knime-relative-workflow";
 
     private static final String KNIME_FS_HOST = "knime.workflow";
 
     private static final FSLocationSpec FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.KNIME_FS, KNIME_FS_HOST);
 
     @Override
-    public FSTestInitializer setup(final Map<String, String> configuration) {
-        return new LocalRelativeToFSTestInitializer(configuration.get("root"), KNIME_FS_HOST);
+    public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+        final Path localMountPointRoot = Files.createTempDirectory("knime-relative-workflow-test");
+
+        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
+        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.WORKFLOW_RELATIVE);
+        LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
+        LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
+
+        return new LocalRelativeToFSTestInitializer(fsConnection);
     }
 
     @Override
