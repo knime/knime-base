@@ -1,13 +1,13 @@
 # Default configuration file for our file system integration tests.
 #
-# The purpose of this file (in source control) is to demonstrate  
-# which properties each system under test needs in order to operate
-# correctly.
+# The purpose of this file (in source control) demonstrates  
+# which settings each file system needs. Note that not every file
+# system requires settings.
 #
 # ***IMPORTANT***
-# DO NOT push any user names or secrets to our source control!!!
+# DO NOT push any user names or secrets to git!!!
 #
-# Best practice is to copy this file to any location on your disc 
+# Best practice is to copy this file to any location on your disk 
 # and make an environment variable named 'KNIME_FS_TEST_PROPERTIES'
 # point to it. This file can be populated with your credentials for
 # testing.
@@ -16,31 +16,43 @@
 # implemented or an existing one has been modified. Then the file 
 # system specific properties should be listed and checked in to 
 # source control with dummy values.
+#
 
-# To test only one specific file system uncomment and adapt this line
+# Limits the integration tests to only one file system. The currently available file systems are:
+#   local
+#   knime-relative-workflow-local
+#   knime-relative-mountpoint-local
+#   amazon-s3
+#   google-cs
+#   microsoft-sharepoint
 # test-fs = local
 
-local.root = <name-of-the-folder-created-in-temp-directory>
+################## Test fixtures for workflow tests ##################
+# A local directory that contains test fixtures for workflow tests. If set, the "Create Test File
+# System Connection" node will copy the fixtures to the file system under test, into a directory called "fixtures"
+# below the working directory. Note that the fixtures being copied can be limited using the
+# "Create Test File System Connection" node.
+#
+# fixture-dir = 
 
-relativeToMountpoint.root = <name-of-the-folder-created-in-temp-directory>
-relativeToWorkflow.root = <name-of-the-folder-created-in-temp-directory>
 
-s3.host = eu-west-1
-s3.protocol = s3
-s3.account = <YOUR-S3-SWITCH_ROLE-ACCOUNT>
-s3.roleName = NormalUserAccessRole
-s3.user = <YOUR-S3-USER>
-s3.secretKey = <YOUR-S3-SECRET>
-s3.bucket = knime-file-system-test-bucket
+################ Amazon S3 ################ 
+amazon-s3.workingDirPrefix = /knime-s3-file-handling-v2-test-temp
+amazon-s3.region = eu-west-1
+amazon-s3.accessKeyId = <YOUR-ACCESS_KEY-ID>
+amazon-s3.accessKeySecret = <SECRET-FOR-YOUR-ACCESS-KEY>
+amazon-s3.roleSwitchAccount = <YOUR-S3-SWITCH_ROLE-ACCOUNT>
+amazon-s3.roleSwitchName = <ROLE-TO-SWITCH-TO>
 
-gs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
-gs.keyFilePath = <P12-KEY-FILE-LOCATION>
-gs.projectId = <PROJECT-ID>
-gs.bucket = knime-file-system-test-bucket
+################ Google Cloud Storage ################
+google-cs.workingDirPrefix = /knime-filehandling-test-bucket
+google-cs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
+google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
+google-cs.projectId = <PROJECT-ID>
 
-azure-sharepoint.username = <USERNAME>
-azure-sharepoint.password = <PASSWORD>
-azure-sharepoint.tenant = <TENANT-ID>
-azure-sharepoint.site = root
-azure-sharepoint.drive = Test
-azure-sharepoint.testfolder = testfolder
+################ Microsoft SharePoint Online ################
+microsoft-sharepoint.username = <USERNAME>
+microsoft-sharepoint.password = <PASSWORD>
+microsoft-sharepoint.tenant = <TENANT-ID>
+microsoft-sharepoint.siteWebURL = https://knimedev.sharepoint.com/
+microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
