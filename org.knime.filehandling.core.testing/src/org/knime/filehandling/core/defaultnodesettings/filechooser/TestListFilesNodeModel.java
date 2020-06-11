@@ -73,6 +73,8 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
@@ -83,9 +85,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  */
 final class TestListFilesNodeModel extends NodeModel {
 
-    private final SettingsModelFileChooser3 m_settings;
+    private final SettingsModelReaderFileChooser m_settings;
 
-    TestListFilesNodeModel(final PortsConfiguration portsConfig, final SettingsModelFileChooser3 settings) {
+    TestListFilesNodeModel(final PortsConfiguration portsConfig, final SettingsModelReaderFileChooser settings) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_settings = settings;
     }

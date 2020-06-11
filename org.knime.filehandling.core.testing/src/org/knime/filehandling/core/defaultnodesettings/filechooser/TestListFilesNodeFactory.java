@@ -56,6 +56,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
@@ -98,8 +99,8 @@ public final class TestListFilesNodeFactory extends ConfigurableNodeFactory<Test
         return new TestListFilesNodeModel(portsConfiguration, createSettings(portsConfiguration));
     }
 
-    private static SettingsModelFileChooser3 createSettings(final PortsConfiguration portsConfiguration) {
-        return new SettingsModelFileChooser3("file_chooser", portsConfiguration, FS_PORT_ID, FilterMode.FILE);
+    private static SettingsModelReaderFileChooser createSettings(final PortsConfiguration portsConfiguration) {
+        return new SettingsModelReaderFileChooser("file_chooser", portsConfiguration, FS_PORT_ID, FilterMode.FILE);
     }
 
     @Override

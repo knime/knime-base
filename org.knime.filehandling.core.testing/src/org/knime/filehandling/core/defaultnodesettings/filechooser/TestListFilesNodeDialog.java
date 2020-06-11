@@ -61,8 +61,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -74,12 +75,12 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 final class TestListFilesNodeDialog extends NodeDialogPane {
 
-    private final DialogComponentFileChooser3 m_dialog;
+    private final AbstractDialogComponentFileChooser m_dialog;
 
-    TestListFilesNodeDialog(final SettingsModelFileChooser3 settings) {
+    TestListFilesNodeDialog(final SettingsModelReaderFileChooser settings) {
         final FlowVariableModel readFvm =
             createFlowVariableModel(settings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_dialog = new DialogComponentFileChooser3(settings, "list_files_history", DialogType.OPEN_DIALOG, readFvm,
+        m_dialog = new DialogComponentReaderFileChooser(settings, "list_files_history", readFvm,
             FilterMode.values());
         m_dialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
         addTab("Options", layout());

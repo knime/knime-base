@@ -68,10 +68,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.DialogComponentFileChooser3;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
@@ -87,7 +86,7 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
 
     private static final String HISTORY_ID = "dummy_history";
 
-    private final DialogComponentFileChooser3 m_readDialog;
+    private final DialogComponentReaderFileChooser m_readDialog;
 
     private final DialogComponentWriterFileChooser m_overwriteDialog;
 
@@ -96,11 +95,11 @@ final class FileSelectionDialogTestNodeDialog extends NodeDialogPane {
     private final JTextField m_extensions = new JTextField(20);
 
     FileSelectionDialogTestNodeDialog(final PortsConfiguration portsConfig, final String fileSystemPortIdentifier) {
-        final SettingsModelFileChooser3 readSettings =
-            new SettingsModelFileChooser3("read", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
+        final SettingsModelReaderFileChooser readSettings =
+            new SettingsModelReaderFileChooser("read", portsConfig, fileSystemPortIdentifier, FilterMode.FILE);
         final FlowVariableModel readFvm =
             createFlowVariableModel(readSettings.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_readDialog = new DialogComponentFileChooser3(readSettings, HISTORY_ID, DialogType.OPEN_DIALOG, readFvm,
+        m_readDialog = new DialogComponentReaderFileChooser(readSettings, HISTORY_ID, readFvm,
             FilterMode.values());
         m_readDialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
