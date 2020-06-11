@@ -44,47 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 10, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
-import java.util.Optional;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
- * Node factory for the prototype CSV reader based on the new table reader framework.
+ * File chooser settings model for reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
+public final class SettingsModelReaderFileChooser extends AbstractSettingsModelFileChooser implements PathSettings {
 
-    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+    /**
+     * Constructor.
+     *
+     * @param configName under which to store the settings
+     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
+     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
+     * @param defaultFilterMode the default {@link FilterMode}
+     * @param fileExtensions the supported file extensions
+     */
+    public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, fileExtensions);
+    }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader(), getProducerRegistry());
+    private SettingsModelReaderFileChooser(final SettingsModelReaderFileChooser toCopy) {
+        super(toCopy);
     }
 
     @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            FilterMode.FILE, FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel.setLocation(new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "1000",
-                urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
+    public ReadPathAccessor createReadPathAccessor() {
+        return super.createPathAccessor();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected SettingsModelReaderFileChooser createClone() {
+        return new SettingsModelReaderFileChooser(this);
+    }
+
+    @Override
+    public String getPath() {
+        return getLocation().getPath();
     }
 
 }

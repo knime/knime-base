@@ -72,8 +72,8 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.FileFilterStatistic;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 

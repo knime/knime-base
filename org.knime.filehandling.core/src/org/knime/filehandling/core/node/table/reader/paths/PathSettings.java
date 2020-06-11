@@ -55,7 +55,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**

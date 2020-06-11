@@ -46,7 +46,7 @@
  * History
  *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
 /**
  * Statistics on the number of files/folders visited and filtered.

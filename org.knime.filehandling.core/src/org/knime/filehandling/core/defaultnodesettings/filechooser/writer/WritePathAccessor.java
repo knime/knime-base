@@ -46,7 +46,7 @@
  * History
  *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.writer;
 
 import java.io.Closeable;
 import java.util.function.Consumer;

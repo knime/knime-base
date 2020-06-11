@@ -56,6 +56,7 @@ import java.util.concurrent.Callable;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
@@ -72,15 +73,15 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SaveBackgroundWorker.class);
 
-    private final SettingsModelFileChooser3 m_settings;
+    private final AbstractSettingsModelFileChooser m_settings;
 
-    SaveBackgroundWorker(final SettingsModelFileChooser3 settings) {
+    SaveBackgroundWorker(final AbstractSettingsModelFileChooser settings) {
         m_settings = settings;
     }
 
     @Override
     public StatusMessage call() throws Exception {
-        try (final WritePathAccessor accessor = m_settings.createWritePathAccessor()) {
+        try (final WritePathAccessor accessor = m_settings.createPathAccessor()) {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             final FSPath path = accessor.getOutputPath(consumer);
             if (Files.exists(path)) {

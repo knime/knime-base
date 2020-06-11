@@ -44,47 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 10, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
-import java.util.Optional;
-
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.util.FileSystemBrowser.DialogType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * Node factory for the prototype CSV reader based on the new table reader framework.
+ * File chooser dialog component for reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
+public final class DialogComponentReaderFileChooser extends AbstractDialogComponentFileChooser {
 
-    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader(), getProducerRegistry());
-    }
-
-    @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            FilterMode.FILE, FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel.setLocation(new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "1000",
-                urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
+    /**
+     * Constructor.
+     *
+     * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param locationFvm the {@link FlowVariableModel} for the location
+     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
+     *            from <b>model</b> is used)
+     */
+    public DialogComponentReaderFileChooser(final SettingsModelReaderFileChooser model, final String historyID,
+        final FlowVariableModel locationFvm, final FilterMode... filterModes) {
+        super(model, historyID, DialogType.OPEN_DIALOG, locationFvm, filterModes);
     }
 
 }

@@ -115,7 +115,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DialogComponentFileChooser3 extends DialogComponent {
+public abstract class AbstractDialogComponentFileChooser extends DialogComponent {
 
     private final DialogType m_dialogType;
 
@@ -142,14 +142,14 @@ public class DialogComponentFileChooser3 extends DialogComponent {
     /**
      * Constructor.
      *
-     * @param model the {@link SettingsModelFileChooser3} the dialog component interacts with
+     * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
      * @param dialogType the type of dialog i.e. open or save
      * @param locationFvm the {@link FlowVariableModel} for the location
      * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
      *            from <b>model</b> is used)
      */
-    public DialogComponentFileChooser3(final SettingsModelFileChooser3 model, final String historyID,
+    public AbstractDialogComponentFileChooser(final AbstractSettingsModelFileChooser model, final String historyID,
         final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
         final FilterMode... filterModes) {
         super(model);
@@ -249,7 +249,7 @@ public class DialogComponentFileChooser3 extends DialogComponent {
 
     @Override
     protected final void updateComponent() {
-        final SettingsModelFileChooser3 sm = getSettingsModel();
+        final AbstractSettingsModelFileChooser sm = getSettingsModel();
         final FileSystemConfiguration<FSLocationConfig> config = sm.getFileSystemConfiguration();
         final FSLocationConfig locationConfig = config.getLocationConfig();
         final FSLocation location = locationConfig.getLocationSpec();
@@ -273,7 +273,7 @@ public class DialogComponentFileChooser3 extends DialogComponent {
     }
 
     private void updateFilterMode() {
-        final SettingsModelFileChooser3 sm = getSettingsModel();
+        final AbstractSettingsModelFileChooser sm = getSettingsModel();
         SettingsModelFilterMode filterModeModel = sm.getFilterModeModel();
         if (sm.getLocation().getFileSystemChoice() == Choice.CUSTOM_URL_FS) {
             filterModeModel.setFilterMode(FilterMode.FILE);
@@ -307,10 +307,6 @@ public class DialogComponentFileChooser3 extends DialogComponent {
         return CheckNodeContextUtil.isRemoteWorkflowContext();
     }
 
-    private boolean isConnectedFS() {
-        return getSettingsModel().getFileSystemConfiguration().hasFSPort();
-    }
-
     private void triggerSwingWorker() {
         if (m_statusMessageWorker != null) {
             m_statusMessageWorker.cancel(true);
@@ -319,7 +315,7 @@ public class DialogComponentFileChooser3 extends DialogComponent {
             m_statusMessageWorker = new StatusSwingWorker(getSettingsModel(), m_statusView::setStatus, m_dialogType);
             m_statusMessageWorker.execute();
         } catch (Exception ex) {
-            NodeLogger.getLogger(DialogComponentFileChooser3.class)
+            NodeLogger.getLogger(AbstractDialogComponentFileChooser.class)
                 .error("An exception occurred while updating the status message.", ex);
             m_statusView.setStatus(new DefaultStatusMessage(MessageType.ERROR,
                 "An error occurred while updating the status message: %s", ex.getMessage()));
@@ -327,7 +323,7 @@ public class DialogComponentFileChooser3 extends DialogComponent {
     }
 
     private void updateBrowser() {
-        final SettingsModelFileChooser3 sm = getSettingsModel();
+        final AbstractSettingsModelFileChooser sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
         if (m_connection != null) {
             // FIXME we should create or close FSConnections in code that's run in the UI thread
@@ -389,12 +385,12 @@ public class DialogComponentFileChooser3 extends DialogComponent {
     }
 
     /**
-     * Returns the {@link SettingsModelFileChooser3} of this dialog component.
+     * Returns the {@link AbstractSettingsModelFileChooser} of this dialog component.
      *
-     * @return the {@link SettingsModelFileChooser3} of this dialog component
+     * @return the {@link AbstractSettingsModelFileChooser} of this dialog component
      */
-    public SettingsModelFileChooser3 getSettingsModel() {
-        return (SettingsModelFileChooser3)getModel();
+    public AbstractSettingsModelFileChooser getSettingsModel() {
+        return (AbstractSettingsModelFileChooser)getModel();
     }
 
     @Override

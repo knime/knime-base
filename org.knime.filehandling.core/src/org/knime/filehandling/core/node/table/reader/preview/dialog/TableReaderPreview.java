@@ -79,7 +79,7 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.util.ViewUtils;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;

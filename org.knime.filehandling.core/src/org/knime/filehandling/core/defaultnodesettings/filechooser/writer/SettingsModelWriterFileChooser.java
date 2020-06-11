@@ -60,18 +60,18 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * File chooser settings model for writer nodes. </br>
- * Adds the setting for creating parent directores and the {@link FileOverwritePolicy}.</br>
+ * Adds the setting for creating parent directories and the {@link FileOverwritePolicy}.</br>
  * The policy is not stored in the settings if fewer than two policies are supported by the settings model.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class SettingsModelWriterFileChooser extends SettingsModelFileChooser3 {
+public final class SettingsModelWriterFileChooser extends AbstractSettingsModelFileChooser {
 
     private static final String CFG_CREATE_PARENT_DIRECTORIES = "create_parent_directories";
 
@@ -121,6 +121,15 @@ public final class SettingsModelWriterFileChooser extends SettingsModelFileChoos
         m_createParentDirectories = toCopy.m_createParentDirectories;
         m_supportedPolicies = toCopy.m_supportedPolicies;
         m_defaultPolicy = toCopy.m_defaultPolicy;
+    }
+
+    /**
+     * Creates a {@link WritePathAccessor} to be used in writer nodes.
+     *
+     * @return a {@link WritePathAccessor}
+     */
+    public WritePathAccessor createWritePathAccessor() {
+        return createPathAccessor();
     }
 
     /**
@@ -252,6 +261,7 @@ public final class SettingsModelWriterFileChooser extends SettingsModelFileChoos
             String.format("The file overwrite policy '%s' is not supported by this node.", policyText)));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected SettingsModelWriterFileChooser createClone() {
         return new SettingsModelWriterFileChooser(this);

@@ -81,7 +81,7 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
     private final Callable<StatusMessage> m_backgroundWorker;
 
-    StatusSwingWorker(final SettingsModelFileChooser3 settings, final Consumer<StatusMessage> statusMessageConsumer,
+    StatusSwingWorker(final AbstractSettingsModelFileChooser settings, final Consumer<StatusMessage> statusMessageConsumer,
         final DialogType dialogType) {
         m_statusMessageConsumer = statusMessageConsumer;
         m_backgroundWorker = dialogType == DialogType.OPEN_DIALOG ? new OpenBackgroundWorker(settings)

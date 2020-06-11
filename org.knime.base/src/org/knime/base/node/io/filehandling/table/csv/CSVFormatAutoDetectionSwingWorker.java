@@ -60,7 +60,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;

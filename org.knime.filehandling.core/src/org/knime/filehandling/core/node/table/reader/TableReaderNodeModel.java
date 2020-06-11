@@ -72,7 +72,7 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;

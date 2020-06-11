@@ -70,11 +70,11 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.DialogComponentFileChooser3;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.SettingsModelFileChooser3;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
@@ -91,9 +91,7 @@ import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
  */
 final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
-    private static final int FS_INPUT_PORT = 0;
-
-    private DialogComponentFileChooser3 m_filePanel;
+    private AbstractDialogComponentFileChooser m_filePanel;
 
     private JRadioButton m_failOnDifferingSpecs;
 
@@ -101,7 +99,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     private JRadioButton m_intersection;
 
-    CSVTableReaderNodeDialog(final SettingsModelFileChooser3 fileChooserModel,
+    CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final MultiTableReadConfig<CSVTableReaderConfig> config,
         final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader,
         final ProducerRegistry<?, ?> producerRegistry) {
@@ -138,9 +136,9 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     @Override
     protected void init(final PathSettings fileChooserModel) {
         final FlowVariableModel readFvm = createFlowVariableModel(
-            ((SettingsModelFileChooser3)fileChooserModel).getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_filePanel = new DialogComponentFileChooser3((SettingsModelFileChooser3)fileChooserModel,
-            "csv_reader_prototype", DialogType.OPEN_DIALOG, readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
+            ((SettingsModelReaderFileChooser)fileChooserModel).getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_filePanel = new DialogComponentReaderFileChooser((SettingsModelReaderFileChooser)fileChooserModel,
+            "csv_reader_prototype", readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
 
         m_failOnDifferingSpecs = new JRadioButton("Fail if specs differ");
         m_union = new JRadioButton("Union");

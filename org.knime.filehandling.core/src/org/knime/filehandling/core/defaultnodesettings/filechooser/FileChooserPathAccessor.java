@@ -67,6 +67,9 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -75,7 +78,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by the {@link SettingsModelFileChooser3} provided in the
+ * Allows access to the {@link FSPath FSPaths} referred to by the {@link AbstractSettingsModelFileChooser} provided in the
  * constructor. The paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -89,7 +92,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
 
     private final Optional<FSConnection> m_portObjectConnection;
 
-    private final SettingsModelFileChooser3 m_settings;
+    private final AbstractSettingsModelFileChooser m_settings;
 
     private final FilterMode m_filterMode;
 
@@ -104,19 +107,19 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private FSFileSystem<?> m_fileSystem;
 
     /**
-     * Creates a new FileChooserAccessor for the provided {@link SettingsModelFileChooser3} and {@link FSConnection
+     * Creates a new FileChooserAccessor for the provided {@link AbstractSettingsModelFileChooser} and {@link FSConnection
      * connection} (if provided).</br>
      * The settings are not validated in this constructor but instead if {@link #getOutputPath(Consumer)} or
      * {@link #getFSPaths(Consumer)} are called.
      *
-     * @param settings {@link SettingsModelFileChooser3} provided by the user
+     * @param settings {@link AbstractSettingsModelFileChooser} provided by the user
      * @param portObjectConnection connection retrieved from the file system port object (if the node has one)
      */
-    public FileChooserPathAccessor(final SettingsModelFileChooser3 settings,
+    public FileChooserPathAccessor(final AbstractSettingsModelFileChooser settings,
         final Optional<FSConnection> portObjectConnection) {
         m_rootLocation = settings.getLocation();
         m_portObjectConnection = portObjectConnection;
-        m_settings = settings.createClone();
+        m_settings = settings;
         m_filterMode = m_settings.getFilterModeModel().getFilterMode();
     }
 

@@ -56,6 +56,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter;
 
 /**
