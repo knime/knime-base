@@ -105,6 +105,6 @@ public final class WordWrapJLabel extends JLabel {
 
     private static String addWordBreakHints(final String text) {
         final String wordBreaksText = text.replaceAll("\\\\", "\\\\<wbr>");
-        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("([^<]\\/)"), "<wbr>/");
+        return RegExUtils.replaceAll(wordBreaksText, Pattern.compile("((?<!<)\\/)"), "<wbr>/");
     }
 }
