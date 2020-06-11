@@ -87,11 +87,12 @@ public final class ReaderConfigUtils {
      * Creates a new {@link MultiTableReadConfig} that contains the provided {@link TableReadConfig}.
      *
      * @param tableReadConfig the config specifying how to read individual tables
+     * @param producerRegistry for serialization of type mappings
      * @return a new MultiTableReadConfig
      */
     public static <C extends ReaderSpecificConfig<C>> MultiTableReadConfig<C> createMultiTableReadConfig(
-        final TableReadConfig<C> tableReadConfig) {
-        return new DefaultMultiTableReadConfig<>(tableReadConfig);
+        final TableReadConfig<C> tableReadConfig, final ProducerRegistry<?, ?> producerRegistry) {
+        return new DefaultMultiTableReadConfig<>(tableReadConfig, producerRegistry);
     }
 
     /**
@@ -104,7 +105,7 @@ public final class ReaderConfigUtils {
      */
     public static <C extends ReaderSpecificConfig<C>> MultiTableReadConfig<C>
         createMultiTableReadConfig(final C readerSpecificConfig, final ProducerRegistry<?, ?> producerRegistry) {
-        return createMultiTableReadConfig(createTableReadConfig(readerSpecificConfig));
+        return createMultiTableReadConfig(createTableReadConfig(readerSpecificConfig), producerRegistry);
     }
 
     /**

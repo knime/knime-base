@@ -86,7 +86,6 @@ import org.knime.base.node.io.filehandling.table.csv.reader.QuoteOption;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -181,8 +180,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private int m_autoDetectionBufferSize;
 
-    private final ProducerRegistry<?, ?> m_producerRegistry;
-
     private final PathSettings m_pathSettings;
 
     /** The multi table reader config. */
@@ -203,15 +200,12 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * @param pathSettings the path settings
      * @param config the config
      * @param multiReader the multi reader
-     * @param producerRegistry the producer registry
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
         final MultiTableReadConfig<CSVTableReaderConfig> config,
-        final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader,
-        final ProducerRegistry<?, ?> producerRegistry) {
+        final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
         init(pathSettings);
         m_pathSettings = pathSettings;
-        m_producerRegistry = producerRegistry;
         m_tableReaderPreview = new TableReaderPreview<>(multiReader, m_pathSettings, this::saveAndGetConfig);
         m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
@@ -769,7 +763,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_tableReaderPreview.setEnabled(false);
-        m_config.loadInDialog(settings, m_producerRegistry);
+        m_config.loadInDialog(settings);
         loadTableReadSettings();
         loadCSVSettings();
         showCardInCardLayout(EMPTY_CARD);

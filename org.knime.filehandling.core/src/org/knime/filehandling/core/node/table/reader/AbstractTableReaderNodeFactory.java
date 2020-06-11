@@ -134,9 +134,9 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
         final MultiTableReader<C, T, V> reader = createMultiTableReader();
         final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
         if (portConfig.isPresent()) {
-            return new TableReaderNodeModel<>(config, pathSettings, reader, getProducerRegistry(), portConfig.get());
+            return new TableReaderNodeModel<>(config, pathSettings, reader, portConfig.get());
         } else {
-            return new TableReaderNodeModel<>(config, pathSettings, reader, getProducerRegistry());
+            return new TableReaderNodeModel<>(config, pathSettings, reader);
         }
     }
 

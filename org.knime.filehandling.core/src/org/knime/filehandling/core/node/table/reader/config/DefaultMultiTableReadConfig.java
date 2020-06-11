@@ -67,23 +67,22 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
 
     private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
 
-    //    private static final String CFG_TYPE_MAPPING_CONFIG = "type_mapping_config";
-
     private static final String CFG_TABLE_READ_CONFIG = "table_read_config";
 
     private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
-    private TableSpecConfig m_tableSpecConfig = null;
+    private final ProducerRegistry<?, ?> m_producerRegistry;
 
     private final TableReadConfig<C> m_tableReadConfig;
 
-    //    private final TypeMappingConfig m_typeMappingConfig;
+    private TableSpecConfig m_tableSpecConfig = null;
 
     private SpecMergeMode m_specMergeMode = SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
 
-    DefaultMultiTableReadConfig(final TableReadConfig<C> tableReadConfig) {
+    DefaultMultiTableReadConfig(final TableReadConfig<C> tableReadConfig,
+        final ProducerRegistry<?, ?> producerRegistry) {
         m_tableReadConfig = tableReadConfig;
-        //        m_typeMappingConfig = typeMappingConfig;
+        m_producerRegistry = producerRegistry;
     }
 
     @Override
@@ -97,28 +96,27 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
     }
 
     @Override
-    public void loadInModel(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
-        throws InvalidSettingsException {
+    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_tableReadConfig.loadInModel(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
-        //        m_typeMappingConfig.loadInModel(settings.getNodeSettings(CFG_TYPE_MAPPING_CONFIG));
         m_specMergeMode = SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            m_tableSpecConfig = TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), registry);
+            m_tableSpecConfig =
+                TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
         } else {
             m_tableSpecConfig = null;
         }
     }
 
     @Override
-    public void loadInDialog(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry) {
+    public void loadInDialog(final NodeSettingsRO settings) {
         m_tableReadConfig.loadInDialog(getOrEmpty(settings, CFG_TABLE_READ_CONFIG));
-        //        m_typeMappingConfig.loadInDialog(getOrEmpty(settings, CFG_TYPE_MAPPING_CONFIG));
         m_specMergeMode = SpecMergeMode
             .valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS.name()));
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                m_tableSpecConfig = TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), registry);
+                m_tableSpecConfig =
+                    TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -133,7 +131,6 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
     @Override
     public void save(final NodeSettingsWO settings) {
         m_tableReadConfig.save(settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
-        //        m_typeMappingConfig.save(settings.addNodeSettings(CFG_TYPE_MAPPING_CONFIG));
         settings.addString(CFG_SPEC_MERGE_MODE, m_specMergeMode.name());
 
         if (hasTableSpecConfig()) {
@@ -142,14 +139,12 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
     }
 
     @Override
-    public void validate(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
-        throws InvalidSettingsException {
+    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_tableReadConfig.validate(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
-        //        m_typeMappingConfig.validate(settings.getNodeSettings(CFG_TYPE_MAPPING_CONFIG));
         settings.getString(CFG_SPEC_MERGE_MODE);
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            TableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), registry);
+            TableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
         }
     }
 

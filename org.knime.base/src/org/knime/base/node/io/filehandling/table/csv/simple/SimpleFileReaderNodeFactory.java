@@ -65,7 +65,7 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader(), getProducerRegistry());
+            createMultiTableReader());
     }
 
     @Override

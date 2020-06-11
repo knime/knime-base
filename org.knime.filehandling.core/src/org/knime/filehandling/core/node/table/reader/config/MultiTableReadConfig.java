@@ -48,10 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
@@ -61,7 +57,7 @@ import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of the {@link ReaderSpecificConfig}
  */
-public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
+public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends ReaderConfig {
 
     /**
      * Returns the configuration for reading an individual table.
@@ -105,38 +101,5 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      * @param config the {@link TableSpecConfig} to set
      */
     public void setTableSpecConfig(TableSpecConfig config);
-
-    /**
-     * Loads the configuration in the dialog.
-     *
-     * @param settings to load from
-     * @param registry the {@link ProducerRegistry}
-     */
-    void loadInDialog(NodeSettingsRO settings, final ProducerRegistry<?, ?> registry);
-
-    /**
-     * Loads the configuration in the node model.
-     *
-     * @param settings to load from
-     * @param registry the {@link ProducerRegistry}
-     * @throws InvalidSettingsException if the settings are invalid or can't be loaded
-     */
-    void loadInModel(NodeSettingsRO settings, final ProducerRegistry<?, ?> registry) throws InvalidSettingsException;
-
-    /**
-     * Checks that this configuration can be loaded from the provided settings.
-     *
-     * @param settings to validate
-     * @param registry the {@link ProducerRegistry}
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    void validate(NodeSettingsRO settings, ProducerRegistry<?, ?> registry) throws InvalidSettingsException;
-
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(NodeSettingsWO settings);
 
 }

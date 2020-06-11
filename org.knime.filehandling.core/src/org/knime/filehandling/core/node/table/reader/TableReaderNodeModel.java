@@ -54,7 +54,6 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -101,10 +100,6 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      */
     private final MultiTableReader<C, ?, ?> m_tableReader;
 
-    /**
-     * The {@link ProducerRegistry} required to load {@link #m_config}.
-     */
-    private final ProducerRegistry<?, ?> m_registry;
 
     /**
      * Constructs a node model with no inputs and one output.
@@ -112,15 +107,13 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param config storing the user settings
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
-     * @param registry the {@link ProducerRegistry}
      */
     protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C, ?, ?> tableReader, final ProducerRegistry<?, ?> registry) {
+        final MultiTableReader<C, ?, ?> tableReader) {
         super(0, 1);
         m_config = config;
         m_pathSettings = pathSettingsModel;
         m_tableReader = tableReader;
-        m_registry = registry;
     }
 
     /**
@@ -129,17 +122,15 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param config storing the user settings
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
-     * @param registry the {@link ProducerRegistry}
      * @param portsConfig determines the in and outports.
      */
     protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C, ?, ?> tableReader, final ProducerRegistry<?, ?> registry,
+        final MultiTableReader<C, ?, ?> tableReader,
         final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
         m_pathSettings = pathSettingsModel;
         m_tableReader = tableReader;
-        m_registry = registry;
     }
 
     @Override
@@ -221,13 +212,13 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.validate(settings, m_registry);
+        m_config.validate(settings);
         m_pathSettings.validateSettings(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.loadInModel(settings, m_registry);
+        m_config.loadInModel(settings);
         m_pathSettings.loadSettingsFrom(settings);
     }
 
