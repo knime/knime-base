@@ -56,8 +56,9 @@ import org.knime.core.node.NodeSettingsWO;
  * Default implementation of {@link TableReadConfig}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> The type of {@link ReaderSpecificConfig} used
  */
-final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
+public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
 
     private static final String CFG_ALLOW_SHORT_ROWS = "allow_short_rows";
 
@@ -111,7 +112,12 @@ final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements
 
     private long m_maxRowsForSpec = 50;
 
-    DefaultTableReadConfig(final C readerSpecificConfig) {
+    /**
+     * Constructor.
+     *
+     * @param readerSpecificConfig containing reader specific settings
+     */
+    public DefaultTableReadConfig(final C readerSpecificConfig) {
         m_readerSpecificConfig = readerSpecificConfig;
     }
 

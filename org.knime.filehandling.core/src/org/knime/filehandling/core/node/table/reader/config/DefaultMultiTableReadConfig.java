@@ -62,8 +62,9 @@ import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
  * Default implementation of {@link MultiTableReadConfig}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> The type of {@link ReaderSpecificConfig} used
  */
-final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> implements MultiTableReadConfig<C> {
+public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> implements MultiTableReadConfig<C> {
 
     private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
 
@@ -79,7 +80,13 @@ final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> imple
 
     private SpecMergeMode m_specMergeMode = SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
 
-    DefaultMultiTableReadConfig(final TableReadConfig<C> tableReadConfig,
+    /**
+     * Constructor.
+     *
+     * @param tableReadConfig holding settings for reading a single table
+     * @param producerRegistry needed for serialization of type mapping
+     */
+    public DefaultMultiTableReadConfig(final TableReadConfig<C> tableReadConfig,
         final ProducerRegistry<?, ?> producerRegistry) {
         m_tableReadConfig = tableReadConfig;
         m_producerRegistry = producerRegistry;

@@ -56,8 +56,9 @@ import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
@@ -170,7 +171,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @return {@link MultiTableReadConfig} for a node model
      */
     protected MultiTableReadConfig<C> createConfig() {
-        return ReaderConfigUtils.createMultiTableReadConfig(createReaderSpecificConfig(),
+        return new DefaultMultiTableReadConfig<>(new DefaultTableReadConfig<>(createReaderSpecificConfig()),
             getReadAdapterFactory().getProducerRegistry());
     }
 

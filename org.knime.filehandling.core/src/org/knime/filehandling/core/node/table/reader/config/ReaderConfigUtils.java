@@ -51,7 +51,6 @@ package org.knime.filehandling.core.node.table.reader.config;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -61,7 +60,7 @@ import org.knime.core.node.NodeSettingsRO;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class ReaderConfigUtils {
+final class ReaderConfigUtils {
 
     private ReaderConfigUtils() {
         // utility class
@@ -81,42 +80,6 @@ public final class ReaderConfigUtils {
         } catch (InvalidSettingsException ex) {
             return new NodeSettings(key);
         }
-    }
-
-    /**
-     * Creates a new {@link MultiTableReadConfig} that contains the provided {@link TableReadConfig}.
-     *
-     * @param tableReadConfig the config specifying how to read individual tables
-     * @param producerRegistry for serialization of type mappings
-     * @return a new MultiTableReadConfig
-     */
-    public static <C extends ReaderSpecificConfig<C>> MultiTableReadConfig<C> createMultiTableReadConfig(
-        final TableReadConfig<C> tableReadConfig, final ProducerRegistry<?, ?> producerRegistry) {
-        return new DefaultMultiTableReadConfig<>(tableReadConfig, producerRegistry);
-    }
-
-    /**
-     * Creates a new {@link MultiTableReadConfig} that contains a {@link TableReadConfig} holding the provided
-     * {@link ReaderSpecificConfig}.
-     *
-     * @param readerSpecificConfig the config specific to the concrete reader implementation
-     * @param producerRegistry used to deserialize production paths
-     * @return a new MultiTableReadConfig
-     */
-    public static <C extends ReaderSpecificConfig<C>> MultiTableReadConfig<C>
-        createMultiTableReadConfig(final C readerSpecificConfig, final ProducerRegistry<?, ?> producerRegistry) {
-        return createMultiTableReadConfig(createTableReadConfig(readerSpecificConfig), producerRegistry);
-    }
-
-    /**
-     * Creates a new {@link TableReadConfig} that holds the provided {@link ReaderSpecificConfig}.
-     *
-     * @param readerSpecificConfig config specific to the concrete reader implementation
-     * @return a new TableReadConfig
-     */
-    public static <C extends ReaderSpecificConfig<C>> TableReadConfig<C>
-        createTableReadConfig(final C readerSpecificConfig) {
-        return new DefaultTableReadConfig<>(readerSpecificConfig);
     }
 
 }
