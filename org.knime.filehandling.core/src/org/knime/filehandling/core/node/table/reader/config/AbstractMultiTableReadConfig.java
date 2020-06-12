@@ -44,53 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 12, 2020 (Adrian Nembach): created
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
 /**
- * Base interface for configuration classes used in the table reader framework.
+ * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and setters but doesn't implement
+ * serialization.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> the type of {@link ReaderSpecificConfig} used in the node implementation
+ * @param <TC> the type of {@link TableReadConfig} used in the node implementation
  */
-public interface ReaderConfig {
+public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
+    implements MultiTableReadConfig<C> {
+
+    private final TC m_tableReadConfig;
+
+    private TableSpecConfig m_tableSpecConfig = null;
+
+    private SpecMergeMode m_specMergeMode = SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
 
     /**
-     * Loads the configuration in the dialog.
+     * Constructor.
      *
-     * @param settings to load from
-     * @param specs TODO
-     * @throws NotConfigurableException TODO
+     * @param tableReadConfig holding settings for reading a single table
      */
-    void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException;
+    public AbstractMultiTableReadConfig(final TC tableReadConfig) {
+        m_tableReadConfig = tableReadConfig;
+    }
+
+    @Override
+    public TC getTableReadConfig() {
+        return m_tableReadConfig;
+    }
+
+    @Override
+    public SpecMergeMode getSpecMergeMode() {
+        return m_specMergeMode;
+    }
+
+    @Override
+    public void setSpecMergeMode(final SpecMergeMode mode) {
+        m_specMergeMode = mode;
+    }
+
+    @Override
+    public TableSpecConfig getTableSpecConfig() {
+        return m_tableSpecConfig;
+    }
+
+    @Override
+    public boolean hasTableSpecConfig() {
+        return m_tableSpecConfig != null;
+    }
+
+    @Override
+    public void setTableSpecConfig(final TableSpecConfig config) {
+        m_tableSpecConfig = config;
+    }
 
     /**
-     * Loads the configuration in the node model.
+     * Convenience getter for the {@link ReaderSpecificConfig}.
      *
-     * @param settings to load from
-     * @throws InvalidSettingsException if the settings are invalid or can't be loaded
+     * @return the {@link ReaderSpecificConfig}
      */
-    void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Checks that this configuration can be loaded from the provided settings.
-     *
-     * @param settings to validate
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(final NodeSettingsWO settings);
+    public C getReaderSpecificConfig() {
+        return m_tableReadConfig.getReaderSpecificConfig();
+    }
 
 }

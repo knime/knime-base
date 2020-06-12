@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 12, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
@@ -55,42 +55,49 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Base interface for configuration classes used in the table reader framework.
+ * Loads, saves and validates configs in the node dialog and model.</br>
+ * Different serializers can save the settings in different structures which allows to adjust the settings structure to
+ * match the node dialog.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> the type of config this serializer operates on
  */
-public interface ReaderConfig {
+public interface ConfigSerializer<C> {
 
     /**
-     * Loads the configuration in the dialog.
+     * Loads the config in the node dialog.
      *
+     * @param config to load the {@link NodeSettingsRO} into
      * @param settings to load from
-     * @param specs TODO
-     * @throws NotConfigurableException TODO
+     * @param specs input specs of the node
+     * @throws NotConfigurableException if the specs don't allow a configuration of the node
      */
-    void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException;
+    void loadInDialog(final C config, final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException;
 
     /**
-     * Loads the configuration in the node model.
+     * Loads the config in the node model.
      *
+     * @param config to laod the {@link NodeSettingsRO} into
      * @param settings to load from
-     * @throws InvalidSettingsException if the settings are invalid or can't be loaded
+     * @throws InvalidSettingsException shouldn't be thrown since the framework ensures that {@link #validate(NodeSettingsRO)} is called first
      */
-    void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException;
+    void loadInModel(final C config, final NodeSettingsRO settings) throws InvalidSettingsException;
 
     /**
-     * Checks that this configuration can be loaded from the provided settings.
+     * Saves the config.
+     *
+     * @param config to save
+     * @param settings {@link NodeSettingsWO} to save to
+     */
+    void save(final C config, final NodeSettingsWO settings);
+
+    /**
+     * Validates the provided {@link NodeSettingsRO}.
      *
      * @param settings to validate
      * @throws InvalidSettingsException if the settings are invalid
      */
     void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(final NodeSettingsWO settings);
 
 }

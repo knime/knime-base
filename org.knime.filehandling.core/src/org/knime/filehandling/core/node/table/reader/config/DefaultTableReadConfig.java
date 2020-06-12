@@ -51,6 +51,8 @@ package org.knime.filehandling.core.node.table.reader.config;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Default implementation of {@link TableReadConfig}.
@@ -213,10 +215,10 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
     }
 
     @Override
-    public void loadInDialog(final NodeSettingsRO settings) {
+    public void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
         m_rowIDIdx = settings.getInt(CFG_ROW_ID_IDX, -1);
         m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX, -1);
-        m_readerSpecificConfig.loadInDialog(ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG));
+        m_readerSpecificConfig.loadInDialog(ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG), null);
         m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX, false);
         m_useColumnHeaderIdx = settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX, true);
         m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false);

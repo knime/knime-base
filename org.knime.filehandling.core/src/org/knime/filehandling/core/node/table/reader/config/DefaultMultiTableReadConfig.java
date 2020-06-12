@@ -48,131 +48,79 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import static org.knime.filehandling.core.node.table.reader.config.ReaderConfigUtils.getOrEmpty;
-
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Default implementation of {@link MultiTableReadConfig}.
+ * Default implementation of {@link MultiTableReadConfig}.</br>
+ * Uses a {@link ConfigSerializer} for serialization which is provided by the user.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <C> The type of {@link ReaderSpecificConfig} used
+ * @param <C> the type of {@link ReaderSpecificConfig} used by the node implementation
+ * @param <TC> the type of {@link TableReadConfig} used by the node implementation
  */
-public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>> implements MultiTableReadConfig<C> {
+public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
+    extends AbstractMultiTableReadConfig<C, TC> {
 
-    private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
-
-    private static final String CFG_TABLE_READ_CONFIG = "table_read_config";
-
-    private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
-
-    private final ProducerRegistry<?, ?> m_producerRegistry;
-
-    private final TableReadConfig<C> m_tableReadConfig;
-
-    private TableSpecConfig m_tableSpecConfig = null;
-
-    private SpecMergeMode m_specMergeMode = SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
+    private final ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> m_serializer;
 
     /**
      * Constructor.
      *
      * @param tableReadConfig holding settings for reading a single table
-     * @param producerRegistry needed for serialization of type mapping
+     * @param serializer for loading/saving/validating the config
      */
-    public DefaultMultiTableReadConfig(final TableReadConfig<C> tableReadConfig,
+    public DefaultMultiTableReadConfig(final TC tableReadConfig,
+        final ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> serializer) {
+        super(tableReadConfig);
+        m_serializer = serializer;
+    }
+
+    /**
+     * Creates a {@link DefaultMultiTableReadConfig} with default serialization.</br>
+     * Can be used for quick prototyping but it is highly recommended to implement a custom serializer that ensures the
+     * structure of the saved settings matches the structure of the node dialog.
+     *
+     * @param <C> the type of {@link ReaderSpecificConfig} used by the node implementation
+     * @param readerSpecificConfig {@link ReaderSpecificConfig} used by the node implementation
+     * @param specificConfigSerializer {@link ConfigSerializer} for the {@link ReaderSpecificConfig}
+     * @param producerRegistry for loading type mapping production paths
+     * @return a {@link DefaultMultiTableReadConfig} with default serialization
+     */
+    public static <C extends ReaderSpecificConfig<C>> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>> create(
+        final C readerSpecificConfig, final ConfigSerializer<C> specificConfigSerializer,
         final ProducerRegistry<?, ?> producerRegistry) {
-        m_tableReadConfig = tableReadConfig;
-        m_producerRegistry = producerRegistry;
-    }
-
-    @Override
-    public TableReadConfig<C> getTableReadConfig() {
-        return m_tableReadConfig;
-    }
-
-    @Override
-    public SpecMergeMode getSpecMergeMode() {
-        return m_specMergeMode;
+        final DefaultTableReadConfig<C> tc = new DefaultTableReadConfig<>(readerSpecificConfig);
+        final DefaultTableReadConfigSerializer<C> tcSerializer =
+            new DefaultTableReadConfigSerializer<>(specificConfigSerializer);
+        final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>> serializer =
+            new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry);
+        return new DefaultMultiTableReadConfig<>(tc, serializer);
     }
 
     @Override
     public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_tableReadConfig.loadInModel(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
-        m_specMergeMode = SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE));
-        if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            m_tableSpecConfig =
-                TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
-        } else {
-            m_tableSpecConfig = null;
-        }
+        m_serializer.loadInModel(this, settings);
     }
 
     @Override
-    public void loadInDialog(final NodeSettingsRO settings) {
-        m_tableReadConfig.loadInDialog(getOrEmpty(settings, CFG_TABLE_READ_CONFIG));
-        m_specMergeMode = SpecMergeMode
-            .valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS.name()));
-
-        if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            try {
-                m_tableSpecConfig =
-                    TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
-            } catch (InvalidSettingsException ex) {
-                /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
-                 * before. The framework takes care that #validate is called before load so we can assume that this
-                 * exception does not occur.
-                 */
-            }
-        } else {
-            m_tableSpecConfig = null;
-        }
+    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_serializer.loadInDialog(this, settings, specs);
     }
 
     @Override
     public void save(final NodeSettingsWO settings) {
-        m_tableReadConfig.save(settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
-        settings.addString(CFG_SPEC_MERGE_MODE, m_specMergeMode.name());
-
-        if (hasTableSpecConfig()) {
-            m_tableSpecConfig.save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
-        }
+        m_serializer.save(this, settings);
     }
 
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_tableReadConfig.validate(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
-        settings.getString(CFG_SPEC_MERGE_MODE);
-
-        if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            TableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
-        }
-    }
-
-    @Override
-    public void setSpecMergeMode(final SpecMergeMode mode) {
-        m_specMergeMode = mode;
-    }
-
-    @Override
-    public TableSpecConfig getTableSpecConfig() {
-        return m_tableSpecConfig;
-    }
-
-    @Override
-    public boolean hasTableSpecConfig() {
-        return m_tableSpecConfig != null;
-    }
-
-    @Override
-    public void setTableSpecConfig(final TableSpecConfig config) {
-        m_tableSpecConfig = config;
+        m_serializer.validate(settings);
     }
 
 }

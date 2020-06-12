@@ -56,8 +56,8 @@ import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -91,13 +91,6 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @return a new path settings object configured for this reader
      */
     protected abstract PathSettings createPathSettings(final NodeCreationConfiguration nodeCreationConfig);
-
-    /**
-     * Creates the {@link ReaderSpecificConfig} that holds all the configurations specific to this reader node.
-     *
-     * @return the ReaderSpecificConfig
-     */
-    protected abstract C createReaderSpecificConfig();
 
     /**
      * Returns the {@link ReadAdapterFactory} used by this reader node.
@@ -166,14 +159,14 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     }
 
     /**
-     * Creates a {@link MultiTableReadConfig} for use in a reader node model.
+     * Creates a {@link MultiTableReadConfig} for use in a reader node model.</br>
+     * An easy way to create an initial config for prototyping is
+     * {@link DefaultMultiTableReadConfig#create(ReaderSpecificConfig, ConfigSerializer, ProducerRegistry)}
+     * but it is highly recommended to adjust the settings structure to fit the dialog of your reader node.
      *
      * @return {@link MultiTableReadConfig} for a node model
      */
-    protected MultiTableReadConfig<C> createConfig() {
-        return new DefaultMultiTableReadConfig<>(new DefaultTableReadConfig<>(createReaderSpecificConfig()),
-            getReadAdapterFactory().getProducerRegistry());
-    }
+    protected abstract MultiTableReadConfig<C> createConfig();
 
     @Override
     protected final int getNrNodeViews() {
