@@ -56,7 +56,7 @@ import org.knime.core.node.context.DeepCopy;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig}
  */
-public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends DeepCopy<TableReadConfig<C>>, ReaderConfig {
+public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends DeepCopy<TableReadConfig<C>> {
 
     /**
      * Returns the reader specific configuration.

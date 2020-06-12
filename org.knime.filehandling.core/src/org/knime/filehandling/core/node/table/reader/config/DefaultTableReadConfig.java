@@ -48,12 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-
 /**
  * Default implementation of {@link TableReadConfig}.
  *
@@ -61,32 +55,6 @@ import org.knime.core.node.port.PortObjectSpec;
  * @param <C> The type of {@link ReaderSpecificConfig} used
  */
 public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
-
-    private static final String CFG_ALLOW_SHORT_ROWS = "allow_short_rows";
-
-    private static final String CFG_SKIP_EMPTY_ROWS = "skip_empty_rows";
-
-    private static final String CFG_USE_ROW_ID_IDX = "use_row_id_idx";
-
-    private static final String CFG_READER_SPECIFIC_CONFIG = "reader_specific_config";
-
-    private static final String CFG_COLUMN_HEADER_IDX = "column_header_idx";
-
-    private static final String CFG_ROW_ID_IDX = "row_id_idx";
-
-    private static final String CFG_USE_COLUMN_HEADER_IDX = "use_column_header_idx";
-
-    private static final String CFG_SKIP_ROWS = "skip_rows";
-
-    private static final String CFG_NUM_ROWS_TO_SKIP = "num_rows_to_skip";
-
-    private static final String CFG_LIMIT_ROWS = "limit_rows";
-
-    private static final String CFG_MAX_ROWS = "max_rows";
-
-    private static final String CFG_LIMIT_ROWS_FOR_SPEC = "limit_rows_for_spec";
-
-    private static final String CFG_MAX_ROWS_FOR_SPEC = "max_rows_for_spec";
 
     private final C m_readerSpecificConfig;
 
@@ -172,86 +140,6 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
     @Override
     public void setUseRowIDIdx(final boolean useRowIDIdx) {
         m_useRowIDIdx = useRowIDIdx;
-    }
-
-    @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getInt(CFG_ROW_ID_IDX);
-        settings.getLong(CFG_COLUMN_HEADER_IDX);
-        m_readerSpecificConfig.validate(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        settings.getBoolean(CFG_USE_ROW_ID_IDX);
-        settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
-        settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
-        settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
-
-        settings.getBoolean(CFG_SKIP_ROWS);
-        settings.getLong(CFG_NUM_ROWS_TO_SKIP);
-
-        settings.getBoolean(CFG_LIMIT_ROWS);
-        settings.getLong(CFG_MAX_ROWS);
-
-        settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC);
-        settings.getLong(CFG_MAX_ROWS_FOR_SPEC);
-    }
-
-    @Override
-    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_rowIDIdx = settings.getInt(CFG_ROW_ID_IDX);
-        m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX);
-        m_readerSpecificConfig.loadInModel(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX);
-        m_useColumnHeaderIdx = settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
-        m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS);
-        m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS);
-
-        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS);
-        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP);
-
-        m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS);
-        m_maxRows = settings.getLong(CFG_MAX_ROWS);
-
-        m_limitRowsForSpec = settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC);
-        m_maxRowsForSpec = settings.getLong(CFG_MAX_ROWS_FOR_SPEC);
-    }
-
-    @Override
-    public void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
-        m_rowIDIdx = settings.getInt(CFG_ROW_ID_IDX, -1);
-        m_columnHeaderIdx = settings.getLong(CFG_COLUMN_HEADER_IDX, -1);
-        m_readerSpecificConfig.loadInDialog(ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG), null);
-        m_useRowIDIdx = settings.getBoolean(CFG_USE_ROW_ID_IDX, false);
-        m_useColumnHeaderIdx = settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX, true);
-        m_skipEmptyRows = settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false);
-        m_allowShortRows = settings.getBoolean(CFG_ALLOW_SHORT_ROWS, false);
-
-        m_skipRows = settings.getBoolean(CFG_SKIP_ROWS, false);
-        m_numRowsToSkip = settings.getLong(CFG_NUM_ROWS_TO_SKIP, 1);
-
-        m_limitRows = settings.getBoolean(CFG_LIMIT_ROWS, false);
-        m_maxRows = settings.getLong(CFG_MAX_ROWS, 50);
-
-        m_limitRowsForSpec = settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC, false);
-        m_maxRowsForSpec = settings.getLong(CFG_MAX_ROWS_FOR_SPEC, 50);
-    }
-
-    @Override
-    public void save(final NodeSettingsWO settings) {
-        settings.addInt(CFG_ROW_ID_IDX, m_rowIDIdx);
-        settings.addLong(CFG_COLUMN_HEADER_IDX, m_columnHeaderIdx);
-        m_readerSpecificConfig.save(settings.addNodeSettings(CFG_READER_SPECIFIC_CONFIG));
-        settings.addBoolean(CFG_USE_COLUMN_HEADER_IDX, m_useColumnHeaderIdx);
-        settings.addBoolean(CFG_USE_ROW_ID_IDX, m_useRowIDIdx);
-        settings.addBoolean(CFG_ALLOW_SHORT_ROWS, m_allowShortRows);
-        settings.addBoolean(CFG_SKIP_EMPTY_ROWS, m_skipEmptyRows);
-
-        settings.addBoolean(CFG_SKIP_ROWS, m_skipRows);
-        settings.addLong(CFG_NUM_ROWS_TO_SKIP, m_numRowsToSkip);
-
-        settings.addBoolean(CFG_LIMIT_ROWS, m_limitRows);
-        settings.addLong(CFG_MAX_ROWS, m_maxRows);
-
-        settings.addBoolean(CFG_LIMIT_ROWS_FOR_SPEC, m_limitRowsForSpec);
-        settings.addLong(CFG_MAX_ROWS_FOR_SPEC, m_maxRowsForSpec);
     }
 
     @Override

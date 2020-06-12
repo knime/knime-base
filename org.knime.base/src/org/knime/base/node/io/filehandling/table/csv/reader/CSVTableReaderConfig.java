@@ -48,11 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.table.csv.reader;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
@@ -91,48 +86,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      * @see CsvParserSettings#setMaxColumns(int)
      */
     public static final int DEFAULT_MAX_COLUMNS = 8192;
-
-    /** string key used to save the value of column delimiter used to read csv files */
-    private static final String CFG_DELIMITER = "column_delimiter";
-
-    /** string key used to save the value of line separator used to read csv files */
-    private static final String CFG_LINE_SEPARATOR = "line_separator";
-
-    /** string key used to save the value of the character used as qoute */
-    private static final String CFG_QUOTE_CHAR = "quote_char";
-
-    /** string key used to save the value of the character used as qoute escape */
-    private static final String CFG_QUOTE_ESCAPE_CHAR = "quote_escape_char";
-
-    /** string key used to save the value of the character used as comment start */
-    private static final String CFG_COMMENT_CHAR = "comment_char";
-
-    /** string key used to save whether or not lines are skipped at the beginning */
-    private static final String CFG_SKIP_LINES = "skip_lines";
-
-    /** string key used to save the value of number of lines that should be skipped */
-    private static final String CFG_NUM_LINES_TO_SKIP = "num_lines_to_skip";
-
-    /** string key used to save whether or not quoted empty strings are replaced by missing value */
-    private static final String CFG_REPLACE_EMPTY_WITH_MISSING = "replace_empty_with_missing";
-
-    /** string key used to save the character set name (encoding) */
-    private static final String CFG_CHAR_SET_NAME = "character_set_name";
-
-    /** string key used to save the maximum number of columns */
-    private static final String CFG_MAX_COLUMNS = "max_columns";
-
-    /**
-     * string key used to save the flag whether to use limit the memory per column to
-     * {@value #DEFAULT_MAX_CHARS_PER_COLUMN} characters, or not.
-     */
-    private static final String CFG_LIMIT_CHARS_PER_COLUMN = "limit_chars_per_column";
-
-    /** string key used to save the trimming mode */
-    private static final String CFG_QUOTE_OPTION = "quote_option";
-
-    /** string key used to save the input buffer size for the csv format autodetection */
-    private static final String CFG_AUTODETECTION_BUFFER_SIZE = "autodetection_buffer_size";
 
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
@@ -446,102 +399,6 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      */
     public void setAutoDetectionBufferSize(final int bufferSize) {
         m_bufferSize = bufferSize;
-    }
-
-    @Override
-    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
-        setDelimiter(settings.getString(CFG_DELIMITER, ","));
-        setLineSeparator(settings.getString(CFG_LINE_SEPARATOR, "\n"));
-        setQuote(settings.getString(CFG_QUOTE_CHAR, "\""));
-        setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR, "\""));
-        setComment(settings.getString(CFG_COMMENT_CHAR, "\0"));
-
-        setSkipLines(settings.getBoolean(CFG_SKIP_LINES, false));
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP, 1L));
-
-        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, true));
-
-        setCharSetName(settings.getString(CFG_CHAR_SET_NAME, null));
-
-        setMaxColumns(settings.getInt(CFG_MAX_COLUMNS, DEFAULT_MAX_COLUMNS));
-
-        limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN, true));
-
-        setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION, DEFAULT_QUOTE_OPTION.name())));
-
-        setAutoDetectionBufferSize(settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE, 1024 * 1024));
-    }
-
-    @Override
-    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        setDelimiter(settings.getString(CFG_DELIMITER));
-        setLineSeparator(settings.getString(CFG_LINE_SEPARATOR));
-
-        setQuote(settings.getString(CFG_QUOTE_CHAR));
-        setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR));
-        setComment(settings.getString(CFG_COMMENT_CHAR));
-
-        setSkipLines(settings.getBoolean(CFG_SKIP_LINES));
-        setNumLinesToSkip(settings.getLong(CFG_NUM_LINES_TO_SKIP));
-
-        setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING));
-
-        setCharSetName(settings.getString(CFG_CHAR_SET_NAME));
-
-        setMaxColumns(settings.getInt(CFG_MAX_COLUMNS));
-        limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN));
-
-        setQuoteOption(QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION)));
-
-        setAutoDetectionBufferSize(settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE));
-    }
-
-    @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getString(CFG_DELIMITER);
-        settings.getString(CFG_LINE_SEPARATOR);
-
-        settings.getString(CFG_QUOTE_CHAR);
-        settings.getString(CFG_QUOTE_ESCAPE_CHAR);
-        settings.getString(CFG_COMMENT_CHAR);
-
-        settings.getLong(CFG_NUM_LINES_TO_SKIP);
-        settings.getBoolean(CFG_SKIP_LINES);
-
-        settings.getBoolean(CFG_REPLACE_EMPTY_WITH_MISSING);
-
-        settings.getString(CFG_CHAR_SET_NAME);
-
-        settings.getInt(CFG_MAX_COLUMNS);
-        settings.getBoolean(CFG_LIMIT_CHARS_PER_COLUMN);
-
-        settings.getString(CFG_QUOTE_OPTION);
-
-        settings.getInt(CFG_AUTODETECTION_BUFFER_SIZE);
-    }
-
-    @Override
-    public void save(final NodeSettingsWO settings) {
-        settings.addString(CFG_DELIMITER, getDelimiter());
-        settings.addString(CFG_LINE_SEPARATOR, getLineSeparator());
-
-        settings.addString(CFG_QUOTE_CHAR, getQuote());
-        settings.addString(CFG_QUOTE_ESCAPE_CHAR, getQuoteEscape());
-        settings.addString(CFG_COMMENT_CHAR, getComment());
-
-        settings.addLong(CFG_NUM_LINES_TO_SKIP, getNumLinesToSkip());
-        settings.addBoolean(CFG_SKIP_LINES, skipLines());
-
-        settings.addBoolean(CFG_REPLACE_EMPTY_WITH_MISSING, replaceEmptyWithMissing());
-
-        settings.addString(CFG_CHAR_SET_NAME, getCharSetName());
-
-        settings.addInt(CFG_MAX_COLUMNS, getMaxColumns());
-        settings.addBoolean(CFG_LIMIT_CHARS_PER_COLUMN, isCharsPerColumnLimited());
-
-        settings.addString(CFG_QUOTE_OPTION, getQuoteOption().name());
-
-        settings.addInt(CFG_AUTODETECTION_BUFFER_SIZE, getAutoDetectionBufferSize());
     }
 
     @Override
