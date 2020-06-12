@@ -53,6 +53,9 @@ import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig
 import org.knime.base.node.io.filehandling.table.csv.reader.StringReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -73,11 +76,6 @@ public abstract class AbstractCSVTableReaderNodeFactory
     }
 
     @Override
-    protected CSVTableReaderConfig createReaderSpecificConfig() {
-        return new CSVTableReaderConfig();
-    }
-
-    @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
         return StringReadAdapterFactory.INSTANCE;
     }
@@ -95,6 +93,12 @@ public abstract class AbstractCSVTableReaderNodeFactory
     @Override
     protected String extractRowKey(final String value) {
         return value;
+    }
+
+    @Override
+    protected MultiTableReadConfig<CSVTableReaderConfig> createConfig() {
+        final DefaultTableReadConfig<CSVTableReaderConfig> tc = new DefaultTableReadConfig<>(new CSVTableReaderConfig());
+        return new DefaultMultiTableReadConfig<>(tc, CSVMultiTableReadConfigSerializer.INSTANCE);
     }
 
 }

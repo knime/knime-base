@@ -51,6 +51,8 @@ package org.knime.base.node.io.filehandling.table.csv.reader;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
@@ -81,14 +83,14 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /**
      * The default number of characters used for csv format autodetection
      */
-    private static final int DEFAULT_AUTODETECTION_BUFFER_SIZE = 1024 * 1024;
+    public static final int DEFAULT_AUTODETECTION_BUFFER_SIZE = 1024 * 1024;
 
     /**
      * The default maximum number of columns to parse.
      *
      * @see CsvParserSettings#setMaxColumns(int)
      */
-    private static final int DEFAULT_MAX_COLUMNS = 8192;
+    public static final int DEFAULT_MAX_COLUMNS = 8192;
 
     /** string key used to save the value of column delimiter used to read csv files */
     private static final String CFG_DELIMITER = "column_delimiter";
@@ -447,7 +449,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     }
 
     @Override
-    public void loadInDialog(final NodeSettingsRO settings) {
+    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         setDelimiter(settings.getString(CFG_DELIMITER, ","));
         setLineSeparator(settings.getString(CFG_LINE_SEPARATOR, "\n"));
         setQuote(settings.getString(CFG_QUOTE_CHAR, "\""));

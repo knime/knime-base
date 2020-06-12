@@ -763,7 +763,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_tableReaderPreview.setEnabled(false);
-        m_config.loadInDialog(settings);
+        m_config.loadInDialog(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
         showCardInCardLayout(EMPTY_CARD);
