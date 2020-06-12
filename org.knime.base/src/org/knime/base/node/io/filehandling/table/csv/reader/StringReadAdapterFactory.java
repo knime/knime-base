@@ -83,7 +83,11 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
-public final class StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
+public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
+    /**
+     * The singleton instance.
+     */
+    INSTANCE;
 
     private static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
 
@@ -196,7 +200,7 @@ public final class StringReadAdapterFactory implements ReadAdapterFactory<Class<
     }
 
     @Override
-    public StringReadAdapter createReadAdapter() {
+    public ReadAdapter<Class<?>, String> createReadAdapter() {
         return new StringReadAdapter();
     }
 

@@ -79,7 +79,7 @@ public abstract class AbstractCSVTableReaderNodeFactory
 
     @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
-        return new StringReadAdapterFactory();
+        return StringReadAdapterFactory.INSTANCE;
     }
 
     @Override
