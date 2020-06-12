@@ -578,7 +578,7 @@ public class CSVWriter2Config extends SettingsModel {
 
     @Override
     protected String getModelTypeID() {
-        return "MODEL_TYPE_ID_" + CFG_NAME;
+        return "SMID_csvWriter";
     }
 
     @Override
