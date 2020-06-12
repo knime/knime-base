@@ -142,6 +142,11 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         return false;
     }
 
+    @Override
+    public synchronized boolean isClosing() {
+        return super.isClosing();
+    }
+
     /**
      * This method is called in the {@link #close} method before the file system is removed from the list of file
      * systems in the provider. The method should ensure to close all open channels, directory-streams, and other

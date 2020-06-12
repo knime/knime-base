@@ -95,6 +95,8 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
 
     private boolean m_isOpen = true;
 
+    private boolean m_isClosing = false;
+
     /**
      * Creates a new instance.
      *
@@ -141,6 +143,13 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
+     * @return true when the file system is currently closing and closing all the registered closeables.
+     */
+    protected synchronized boolean isClosing() {
+        return m_isClosing;
+    }
+
+    /**
      * Does nothing, since a file system must only be closed by the connection node that instantiated it. Nodes that
      * only *use* a file system should invoke {@link FSConnection#close()} on the respective {@link FSConnection} object
      * to release any blocked resources.
@@ -159,10 +168,12 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     synchronized final void ensureClosed() throws IOException {
         if (m_isOpen) {
             try {
-                m_isOpen = false;
+                m_isClosing = true;
                 closeAllCloseables();
             } finally {
                 ensureClosedInternal();
+                m_isOpen = false;
+                m_isClosing = false;
             }
         }
     }

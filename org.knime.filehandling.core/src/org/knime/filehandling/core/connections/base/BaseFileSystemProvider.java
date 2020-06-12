@@ -149,12 +149,25 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     /**
-     * Checks whether the underlying file system is still open and throws a {@link ClosedFileSystemException} if not.
+     * Checks whether the underlying file system is still open and not in the process of closing. Throws a
+     * {@link ClosedFileSystemException} if not.
+     *
+     * @throws ClosedFileSystemException when the file system has already been closed or is closing right now.
+     */
+    protected void checkFileSystemOpenAndNotClosing() {
+        if (!m_fileSystem.isOpen() || m_fileSystem.isClosing()) {
+            throw new ClosedFileSystemException();
+        }
+    }
+
+    /**
+     * Checks whether the underlying file system is either open or in the process and throws a
+     * {@link ClosedFileSystemException} if not.
      *
      * @throws ClosedFileSystemException when the file system has already been closed.
      */
-    protected void checkFileSystemOpen() {
-        if (!m_fileSystem.isOpen()) {
+    private void checkFileSystemOpenOrClosing() {
+        if (!m_fileSystem.isOpen() && !m_fileSystem.isClosing()) {
             throw new ClosedFileSystemException();
         }
     }
@@ -164,7 +177,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final Set<OpenOption> sanitizedOptions = validateAndSanitizeChannelOpenOptions(options);
 
@@ -266,7 +279,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
         checkOpenOptionsForReading(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
         return new FSInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
@@ -289,7 +302,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final P checkedSource = checkCastAndAbsolutizePath(source);
         final P checkedTarget = checkCastAndAbsolutizePath(target);
@@ -326,7 +339,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final P checkedSource = checkCastAndAbsolutizePath(source);
         final P checkedTarget = checkCastAndAbsolutizePath(target);
@@ -378,7 +391,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
@@ -426,7 +439,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenOrClosing();
 
         final P checkedDir = checkCastAndAbsolutizePath(dir);
 
@@ -454,7 +467,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final P checkedDir = checkCastAndAbsolutizePath(dir);
         checkParentDirectoryExists(checkedDir);
@@ -545,7 +558,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         checkPathProvider(path);
         if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
@@ -564,8 +577,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
-        checkFileSystemOpen();
-
+        checkFileSystemOpenOrClosing();
 
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
@@ -613,7 +625,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         checkPathProvider(path);
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
@@ -624,7 +636,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
@@ -651,7 +663,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void delete(final Path path) throws IOException {
 
-        checkFileSystemOpen();
+        checkFileSystemOpenOrClosing();
 
         final P checkedPath = checkCastAndAbsolutizePath(path);
         if (!existsCached(checkedPath)) {
@@ -688,7 +700,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
 
         if (path.getFileSystem().provider() != this) {
             return false;
@@ -738,7 +750,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public boolean isHidden(final Path path) throws IOException {
-        checkFileSystemOpen();
+        checkFileSystemOpenAndNotClosing();
         final P checkedPath = checkCastAndAbsolutizePath(path);
         return isHiddenInternal(checkedPath);
     }
