@@ -51,8 +51,8 @@ package org.knime.filehandling.core.node.table.reader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.CanceledExecutionException;
@@ -73,8 +73,7 @@ import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -93,7 +92,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     private final PathSettings m_pathSettings;
 
-    final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
+    private final NodeModelStatusConsumer m_statusConsumer =
+        new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
 
     /**
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
@@ -144,7 +144,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_pathSettings.configureInModel(inSpecs, this::processStatusMessage);
+        m_pathSettings.configureInModel(inSpecs, m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         if (m_config.hasTableSpecConfig()) {
             if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPath())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
@@ -191,20 +192,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     private List<Path> getPaths(final ReadPathAccessor accessor) throws IOException, InvalidSettingsException {
         final List<Path> paths = accessor.getPaths(m_statusConsumer);
-        processStatus();
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         return paths;
-    }
-
-    private void processStatus() {
-        final Optional<StatusMessage> statusMessage = m_statusConsumer.get();
-        statusMessage.ifPresent(this::processStatusMessage);
-        m_statusConsumer.clear();
-    }
-
-    private void processStatusMessage(final StatusMessage statusMsg) {
-        if (statusMsg.getType() != MessageType.INFO) {
-            setWarningMessage(statusMsg.getMessage());
-        }
     }
 
     @Override

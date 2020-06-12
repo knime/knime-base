@@ -198,7 +198,6 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         return new FileChooserPathAccessor(this, m_fsConfig.getConnection());
     }
 
-
     SettingsModelFilterMode getFilterModeModel() {
         return m_filterModeModel;
     }

@@ -47,6 +47,7 @@ package org.knime.filehandling.core.node.portobject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -58,7 +59,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectFromPathReaderNodeModel;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectToPathWriterNodeModel;
@@ -78,6 +81,8 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig<?>>
     /** The config. */
     private final C m_config;
 
+    private final NodeModelStatusConsumer m_statusConsumer;
+
     /**
      * Constructor.
      *
@@ -88,19 +93,15 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig<?>>
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_portsConfig = portsConfig;
         m_config = config;
+        m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
     }
 
     @Override
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_config.getFileChooserModel().configureInModel(inSpecs, this::processStatusMessage);
+        m_config.getFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         configureInternal(inSpecs);
         return null;
-    }
-
-    private void processStatusMessage(final StatusMessage statusMsg) {
-        if (statusMsg.getType() != MessageType.INFO) {
-            setWarningMessage(statusMsg.getMessage());
-        }
     }
 
     /**
@@ -115,6 +116,16 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig<?>>
      */
     protected void configureInternal(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // nothing to do here
+    }
+
+    /**
+     * Returns the {@link NodeModelStatusConsumer} to be used with {@link ReadPathAccessor} or
+     * {@link WritePathAccessor}.
+     *
+     * @return the {@link NodeModelStatusConsumer}
+     */
+    protected final NodeModelStatusConsumer getNodeModelStatusConsumer() {
+        return m_statusConsumer;
     }
 
     /**

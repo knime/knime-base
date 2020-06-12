@@ -49,14 +49,11 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -81,12 +78,8 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
     @Override
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         try (final WritePathAccessor accessor = getConfig().getFileChooserModel().createWritePathAccessor()) {
-            final PriorityStatusConsumer statusConsumer = new PriorityStatusConsumer();
-            final Path path = accessor.getOutputPath(statusConsumer);
-            final Optional<StatusMessage> statusMessage = statusConsumer.get();
-            if (statusMessage.isPresent()) {
-                setWarningMessage(statusMessage.get().getMessage());
-            }
+            final Path path = accessor.getOutputPath(getNodeModelStatusConsumer());
+            getNodeModelStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
             // create parent directories
             final Path parentPath = path.getParent();
             final boolean createParentDir = getConfig().getFileChooserModel().isCreateParentDirectories();

@@ -59,8 +59,6 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
 /**
@@ -93,13 +91,9 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
     @Override
     protected final PortObject[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         try (final ReadPathAccessor accessor = getConfig().getFileChooserModel().createReadPathAccessor()) {
-            final PriorityStatusConsumer statusConsumer = new PriorityStatusConsumer();
-            final List<FSPath> paths = accessor.getFSPaths(statusConsumer);
+            final List<FSPath> paths = accessor.getFSPaths(getNodeModelStatusConsumer());
             assert paths.size() == 1;
-            final Optional<StatusMessage> statusMessage = statusConsumer.get();
-            if (statusMessage.isPresent()) {
-                setWarningMessage(statusMessage.get().getMessage());
-            }
+            getNodeModelStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
             return readFromPath(paths.get(0), exec);
         } catch (NoSuchFileException e) {
             throw new IOException(String.format("The file '%s' does not exist.", e.getFile()));
