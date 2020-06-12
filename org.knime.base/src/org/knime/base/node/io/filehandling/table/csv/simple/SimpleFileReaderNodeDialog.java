@@ -65,7 +65,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
@@ -80,7 +81,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     private static final String HISTORY_ID = "simple_file_reader";
 
     SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings,
-        final MultiTableReadConfig<CSVTableReaderConfig> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
         super(pathSettings, config, multiReader);
         m_disableComponentsRemoteContext = false;

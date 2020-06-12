@@ -96,20 +96,6 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean useColumnHeaderIdx();
 
     /**
-     * Sets whether the column header index returned by {@link #getColumnHeaderIdx()} should be used.
-     *
-     * @param useColumnHeaderIdx whether the column header index should be used
-     */
-    void setUseColumnHeaderIdx(final boolean useColumnHeaderIdx);
-
-    /**
-     * Sets the index of the row containing the column headers. Provide a negative value if there is no such row.
-     *
-     * @param idx row index of the column header row
-     */
-    void setColumnHeaderIdx(long idx);
-
-    /**
      * Returns the index of the column containing the row ids.
      *
      * @return the index of the column containing the row ids
@@ -122,7 +108,6 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      *
      * @param idx the column index of the row id column
      */
-    void setRowIDIdx(final int idx);
 
     /**
      * Indicates whether the user set an index for the row id column.
@@ -132,25 +117,11 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean useRowIDIdx();
 
     /**
-     * Sets whether the index returned by {@link #getRowIDIdx()} should be used.
-     *
-     * @param useRowIDIdx whether the row id index should be used
-     */
-    void setUseRowIDIdx(final boolean useRowIDIdx);
-
-    /**
      * Returns whether empty rows should be skipped.
      *
      * @return {@code true} if empty rows should be skipped
      */
     boolean skipEmptyRows();
-
-    /**
-     * Sets whether empty rows should be skipped.
-     *
-     * @param skipEmptyRows whether empty rows should be skipped
-     */
-    void setSkipEmptyRows(boolean skipEmptyRows);
 
     /**
      * Returns whether all rows are allowed to have fewer columns than the other rows in the table.</br>
@@ -176,27 +147,12 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean skipRows();
 
     /**
-     * Sets whether rows should be skipped/omitted in the beginning.
-     *
-     * @param skipRows whether rows should be skipped/omitted in the beginning.
-     */
-    void setSkipRows(final boolean skipRows);
-
-    /**
      * Returns the number of rows that should be skipped/omitted in the beginning. Used only if {@link #skipRows()} is
      * set <code>true</code>.
      *
      * @return the number of rows that should be skipped/omitted in the beginning.
      */
     long getNumRowsToSkip();
-
-    /**
-     * Sets the number of rows that should be skipped/omitted in the beginning. Used only if {@link #skipRows()} is set
-     * <code>true</code>.
-     *
-     * @param numRowsToSkip the number of rows that should be
-     */
-    void setNumRowsToSkip(final long numRowsToSkip);
 
     /**
      * Returns whether to limit the number of rows to a certain maximum. If <code>true</code> the actual number is
@@ -207,26 +163,12 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean limitRows();
 
     /**
-     * Sets whether to limit the number of rows to a certain maximum.
-     *
-     * @param limitRows whether to limit the number of rows to a certain maximum.
-     */
-    void setLimitRows(final boolean limitRows);
-
-    /**
      * Returns the maximum number of rows that should be read. Used only if {@link #limitRows()} is set
      * <code>true</code>.
      *
      * @return the number of rows that should be skipped/omitted in the beginning.
      */
     long getMaxRows();
-
-    /**
-     * Sets the maximum number of rows that should be read. Used only if {@link #limitRows()} is set <code>true</code>.
-     *
-     * @param maxRows the number of rows that should be
-     */
-    void setMaxRows(final long maxRows);
 
     /**
      * Returns whether to limit the number of rows for the purpose of defining the table specifications. If
@@ -237,26 +179,11 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean limitRowsForSpec();
 
     /**
-     * Sets whether to limit the number of rows for the purpose of defining the table specifications.
-     *
-     * @param limitRowsForSpec whether to limit the number of rows for the purpose of defining the table specifications.
-     */
-    void setLimitRowsForSpec(final boolean limitRowsForSpec);
-
-    /**
      * Returns the maximum number of rows that should be read for the purpose of defining the table specifications. Used
      * only if {@link #limitRowsForSpec()} is set <code>true</code>.
      *
      * @return the number of rows that should be skipped/omitted in the beginning.
      */
     long getMaxRowsForSpec();
-
-    /**
-     * Sets the maximum number of rows that should be read for the purpose of defining the table specifications. Used
-     * only if {@link #limitRowsForSpec()} is set <code>true</code>.
-     *
-     * @param maxRowsForSpec the number of rows that should be
-     */
-    void setMaxRowsForSpec(final long maxRowsForSpec);
 
 }

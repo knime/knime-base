@@ -87,7 +87,11 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
         return m_specMergeMode;
     }
 
-    @Override
+    /**
+     * Sets the {@link SpecMergeMode}.
+     *
+     * @param mode {@link SpecMergeMode} to use
+     */
     public void setSpecMergeMode(final SpecMergeMode mode) {
         m_specMergeMode = mode;
     }

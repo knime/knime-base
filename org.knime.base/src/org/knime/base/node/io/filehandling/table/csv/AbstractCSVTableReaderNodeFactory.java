@@ -55,7 +55,6 @@ import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFact
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -96,7 +95,7 @@ public abstract class AbstractCSVTableReaderNodeFactory
     }
 
     @Override
-    protected MultiTableReadConfig<CSVTableReaderConfig> createConfig() {
+    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> createConfig() {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = new DefaultTableReadConfig<>(new CSVTableReaderConfig());
         return new DefaultMultiTableReadConfig<>(tc, CSVMultiTableReadConfigSerializer.INSTANCE);
     }

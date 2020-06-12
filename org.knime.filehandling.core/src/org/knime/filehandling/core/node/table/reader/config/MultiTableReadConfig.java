@@ -74,13 +74,6 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends
     SpecMergeMode getSpecMergeMode();
 
     /**
-     * Sets the mode for merging specs of multiple sources.
-     *
-     * @param mode the mode to set
-     */
-    void setSpecMergeMode(SpecMergeMode mode);
-
-    /**
      * Indicates whether a table spec is already provided, or has to be computed.
      *
      * @return <code>true</code> if the {@link TableSpecConfig} is available, {@code false} otherwise

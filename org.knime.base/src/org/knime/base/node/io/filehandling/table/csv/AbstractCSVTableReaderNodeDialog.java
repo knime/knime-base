@@ -94,6 +94,8 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -183,7 +185,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     private final PathSettings m_pathSettings;
 
     /** The multi table reader config. */
-    protected final MultiTableReadConfig<CSVTableReaderConfig> m_config;
+    protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> m_config;
 
     /** The table preview. */
     protected final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
@@ -202,7 +204,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * @param multiReader the multi reader
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
-        final MultiTableReadConfig<CSVTableReaderConfig> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
         init(pathSettings);
         m_pathSettings = pathSettings;
@@ -692,7 +694,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * Fill in the setting values in {@link TableReadConfig} using values from dialog.
      */
     private void saveTableReadSettings() {
-        final TableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
+        final DefaultTableReadConfig<CSVTableReaderConfig> tableReadConfig = m_config.getTableReadConfig();
 
         tableReadConfig.setUseRowIDIdx(m_hasRowIDChecker.isSelected());
         tableReadConfig.setRowIDIdx(0);

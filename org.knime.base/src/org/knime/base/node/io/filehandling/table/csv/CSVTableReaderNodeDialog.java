@@ -80,7 +80,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
@@ -99,7 +100,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     private JRadioButton m_intersection;
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
-        final MultiTableReadConfig<CSVTableReaderConfig> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
         super(fileChooserModel, config, multiReader);
     }

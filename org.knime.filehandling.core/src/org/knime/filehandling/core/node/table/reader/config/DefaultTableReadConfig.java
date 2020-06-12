@@ -137,17 +137,30 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_useRowIDIdx;
     }
 
-    @Override
+    /**
+     * Sets whether the index returned by {@link #getRowIDIdx()} should be used.
+     *
+     * @param useRowIDIdx whether the row id index should be used
+     */
     public void setUseRowIDIdx(final boolean useRowIDIdx) {
         m_useRowIDIdx = useRowIDIdx;
     }
 
-    @Override
+    /**
+     * Sets the index of the column containing the row ids. Set a negative value to indicate that there is no such
+     * column.
+     *
+     * @param idx the column index of the row id column
+     */
     public void setRowIDIdx(final int idx) {
         m_rowIDIdx = idx > -1 ? idx : -1;
     }
 
-    @Override
+    /**
+     * Sets the index of the row containing the column headers. Provide a negative value if there is no such row.
+     *
+     * @param idx row index of the column header row
+     */
     public void setColumnHeaderIdx(final long idx) {
         m_columnHeaderIdx = idx < -1 ? -1 : idx;
     }
@@ -157,7 +170,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_useColumnHeaderIdx;
     }
 
-    @Override
+    /**
+     * Sets whether the column header index returned by {@link #getColumnHeaderIdx()} should be used.
+     *
+     * @param useColumnHeaderIdx whether the column header index should be used
+     */
     public void setUseColumnHeaderIdx(final boolean useColumnHeaderIdx) {
         m_useColumnHeaderIdx = useColumnHeaderIdx;
     }
@@ -177,7 +194,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_skipRows;
     }
 
-    @Override
+    /**
+     * Sets whether rows should be skipped/omitted in the beginning.
+     *
+     * @param skipRows whether rows should be skipped/omitted in the beginning.
+     */
     public void setSkipRows(final boolean skipRows) {
         m_skipRows = skipRows;
     }
@@ -187,7 +208,12 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_numRowsToSkip;
     }
 
-    @Override
+    /**
+     * Sets the number of rows that should be skipped/omitted in the beginning. Used only if {@link #skipRows()} is set
+     * <code>true</code>.
+     *
+     * @param numRowsToSkip the number of rows that should be
+     */
     public void setNumRowsToSkip(final long numRowsToSkip) {
         m_numRowsToSkip = numRowsToSkip;
     }
@@ -197,7 +223,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_limitRows;
     }
 
-    @Override
+    /**
+     * Sets whether to limit the number of rows to a certain maximum.
+     *
+     * @param limitRows whether to limit the number of rows to a certain maximum.
+     */
     public void setLimitRows(final boolean limitRows) {
         m_limitRows = limitRows;
     }
@@ -207,7 +237,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_maxRows;
     }
 
-    @Override
+    /**
+     * Sets the maximum number of rows that should be read. Used only if {@link #limitRows()} is set <code>true</code>.
+     *
+     * @param maxRows the number of rows that should be
+     */
     public void setMaxRows(final long maxRows) {
         m_maxRows = maxRows;
     }
@@ -217,7 +251,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_limitRowsForSpec;
     }
 
-    @Override
+    /**
+     * Sets whether to limit the number of rows for the purpose of defining the table specifications.
+     *
+     * @param limitRowsForSpec whether to limit the number of rows for the purpose of defining the table specifications.
+     */
     public void setLimitRowsForSpec(final boolean limitRowsForSpec) {
         m_limitRowsForSpec = limitRowsForSpec;
     }
@@ -227,12 +265,21 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return m_maxRowsForSpec;
     }
 
-    @Override
+    /**
+     * Sets the maximum number of rows that should be read for the purpose of defining the table specifications. Used
+     * only if {@link #limitRowsForSpec()} is set <code>true</code>.
+     *
+     * @param maxRowsForSpec the number of rows that should be
+     */
     public void setMaxRowsForSpec(final long maxRowsForSpec) {
         m_maxRowsForSpec = maxRowsForSpec;
     }
 
-    @Override
+    /**
+     * Sets whether empty rows should be skipped.
+     *
+     * @param skipEmptyRows whether empty rows should be skipped
+     */
     public void setSkipEmptyRows(final boolean skipEmptyRows) {
         m_skipEmptyRows = skipEmptyRows;
     }
