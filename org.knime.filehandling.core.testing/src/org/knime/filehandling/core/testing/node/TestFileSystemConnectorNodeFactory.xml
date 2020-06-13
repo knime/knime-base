@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="./icon.png" type="Source" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Test File System Connection</name>
+    <name>Test File System Connector</name>
     
     <shortDescription>
         Opens a file system connection to a file system for testing purposes.
