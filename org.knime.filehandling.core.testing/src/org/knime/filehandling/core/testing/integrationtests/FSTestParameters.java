@@ -50,11 +50,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
+import java.util.Optional;
 
+import org.knime.filehandling.core.testing.FSTestConfig;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerManager;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.filehandling.core.testing.FSTestPropertiesResolver;
 import org.knime.filehandling.core.util.IOESupplier;
 
 /**
@@ -72,11 +74,14 @@ public class FSTestParameters {
      * Returns a collection with a single two dimensional array, where each row in the array contains a file system name
      * (which is helpful for naming the parameterized tests) and the corresponding test initializer.
      *
-     * @return all registered test initializers in a format suitable for the Parameterized runner
+     * @return all registered test initializers in a format suitable for the Parameterized runner, i.e. index 0 holds a
+     *         String with the file system type and index 1 holds a {@link IOESupplier} that supplies a
+     *         {@link FSTestInitializer} instance.
      */
-    public static Collection<Object[]> get() {
-        final Properties fsTestProperties = FSTestPropertiesResolver.forIntegrationTests();
-        final List<String> testInitializerKeys = getFileSystemTypesToTest(fsTestProperties);
+    public static Collection<Object[]> getTestInitializers() {
+        final FSTestConfig testConfig = new FSTestConfig(FSTestPropertiesResolver.forIntegrationTests());
+
+        final List<String> testInitializerKeys = getFileSystemTypesToTest(testConfig);
         final FSTestInitializerManager manager = FSTestInitializerManager.instance();
 
         final int numberOfFS = testInitializerKeys.size();
@@ -84,8 +89,8 @@ public class FSTestParameters {
 
         for (int i = 0; i < numberOfFS; i++) {
             final String fsType = testInitializerKeys.get(i);
-            final IOESupplier<FSTestInitializer> initializerSupplier =
-                () -> manager.createInitializer(fsType, FSTestConfigurationReader.read(fsType, fsTestProperties));
+            final IOESupplier<FSTestInitializer<?,?>> initializerSupplier =
+                () -> manager.createInitializer(fsType, testConfig.getSettingsForFSType(fsType));
 
             fsTestInitializers[i][0] = fsType;
             fsTestInitializers[i][1] = new CachingSupplier(initializerSupplier);
@@ -94,34 +99,35 @@ public class FSTestParameters {
         return Arrays.asList(fsTestInitializers);
     }
 
-    private static List<String> getFileSystemTypesToTest(final Properties fsTestProperties) {
+    private static List<String> getFileSystemTypesToTest(final FSTestConfig testConfig) {
         final List<String> testInitializerKeys = new ArrayList<>();
-        if (fsTestProperties.containsKey("test-fs")) {
-            testInitializerKeys.add(fsTestProperties.getProperty("test-fs"));
+
+        final Optional<String> fsToTest = testConfig.getFSTypeToTest();
+        if (fsToTest.isPresent()) {
+            testInitializerKeys.add(fsToTest.get());
         } else {
             testInitializerKeys.addAll(FSTestInitializerManager.instance().getAllTestInitializerKeys());
         }
         return testInitializerKeys;
     }
 
-    private static class CachingSupplier implements IOESupplier<FSTestInitializer> {
+    private static class CachingSupplier implements IOESupplier<FSTestInitializer<?,?>> {
 
-        private FSTestInitializer m_toSupply;
+        private FSTestInitializer<?,?> m_toSupply;
 
-        private final IOESupplier<FSTestInitializer> m_newInstanceSupplier;
+        private final IOESupplier<FSTestInitializer<?,?>> m_newInstanceSupplier;
 
-        CachingSupplier(final IOESupplier<FSTestInitializer> newInstanceSupplier) {
+        CachingSupplier(final IOESupplier<FSTestInitializer<?,?>> newInstanceSupplier) {
             m_newInstanceSupplier = newInstanceSupplier;
         }
 
         @Override
-        public synchronized FSTestInitializer get() throws IOException {
+        public synchronized FSTestInitializer<?,?> get() throws IOException {
             if (m_toSupply == null) {
                 m_toSupply = m_newInstanceSupplier.get();
             }
 
             return m_toSupply;
         }
-
     }
 }

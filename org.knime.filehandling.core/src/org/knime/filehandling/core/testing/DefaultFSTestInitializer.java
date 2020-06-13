@@ -138,4 +138,9 @@ public abstract class DefaultFSTestInitializer<P extends FSPath, F extends FSFil
     public P createFile(final String... pathComponents) throws IOException {
         return createFileWithContent("", pathComponents);
     }
+
+    @Override
+    public P makePath(final String... pathComponents) {
+        return getFileSystem().getPath(getTestCaseScratchDir().toString(), pathComponents);
+    }
 }

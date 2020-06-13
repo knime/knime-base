@@ -84,7 +84,7 @@ public abstract class AbstractParameterizedFSTest {
     @Parameters(name = "File System: {0}")
     public synchronized static Collection<Object[]> allFileSystemTestInitializerProviders() {
         if (allFileSystemTestInitializerProviders == null) {
-            allFileSystemTestInitializerProviders = FSTestParameters.get();
+            allFileSystemTestInitializerProviders = FSTestParameters.getTestInitializers();
         }
 
         return allFileSystemTestInitializerProviders;

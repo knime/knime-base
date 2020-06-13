@@ -145,9 +145,6 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      * @param pathComponents The path components of the path to create.
      * @return a {@link Path} object for the given name components.
      */
-    @SuppressWarnings("resource")
-    public default P makePath(final String... pathComponents) {
-        return getFileSystem().getPath(getTestCaseScratchDir().toString(), pathComponents);
-    }
+    public P makePath(final String... pathComponents);
 
 }

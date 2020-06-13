@@ -13,11 +13,14 @@
    height="16"
    viewBox="0 0 4.2333332 4.2333335"
    version="1.1"
-   id="svg826"
-   inkscape:version="0.92.4 (unknown)"
-   sodipodi:docname="icon.svg">
+   id="svg8"
+   sodipodi:docname="icon.svg"
+   inkscape:export-filename="/home/bjoern/git/knime-base/org.knime.filehandling.core.testing/src/org/knime/filehandling/core/testing/node/icon.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   inkscape:version="0.92.4 (unknown)">
   <defs
-     id="defs820" />
+     id="defs2" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -25,20 +28,20 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.2"
-     inkscape:cx="-18.392786"
-     inkscape:cy="16.26809"
+     inkscape:zoom="32"
+     inkscape:cx="-1.3742175"
+     inkscape:cy="7.9054229"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
-     inkscape:window-width="2494"
-     inkscape:window-height="1343"
-     inkscape:window-x="2560"
-     inkscape:window-y="27"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="2120"
+     inkscape:window-height="1167"
+     inkscape:window-x="3377"
+     inkscape:window-y="268"
+     inkscape:window-maximized="0" />
   <metadata
-     id="metadata823">
+     id="metadata5">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -54,36 +57,41 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-292.76665)">
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 1.180655,294.25171 1.0481727,-1.04817 0.8318874,0.83189 -1.0481727,1.04817"
-       id="path1371"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 2.6699775,294.96701 -1.0481727,1.04817 -0.83188741,-0.83189 1.04817271,-1.04817"
-       id="path1371-7"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 1.6579608,294.12921 0.3391647,0.33916"
-       id="path1403"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 1.8620397,294.74563 0.3391647,0.33916"
-       id="path1403-7"
-       inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="2.3446336"
-       y="296.74014"
-       id="text1426"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.25003862px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.30208495"
+       x="2.9460456"
+       y="285.39227"
+       id="text967"
+       transform="scale(0.96088056,1.0407121)"><tspan
          sodipodi:role="line"
-         id="tspan1424"
-         x="2.3446336"
-         y="296.74014"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.41111112px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">T</tspan></text>
+         id="tspan965"
+         x="2.9460456"
+         y="285.39227"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.20073366px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.30208495">T</tspan></text>
+    <g
+       id="g1041"
+       transform="rotate(41.417746,1.6334433,296.75332)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1016"
+         d="m 0.47548718,294.22886 v 1.69998"
+         style="fill:none;stroke:#000000;stroke-width:0.41358322;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <g
+         id="g1035">
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.34395832;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 0.20246258,294.84085 -0.537233,7.8e-4 -3.223e-4,-1.42677 1.62116002,6.9e-4 -0.00835,1.4086 -0.51465892,0.004"
+           id="path937"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccccc" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.34395832;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 0.20246258,295.31685 -0.5372331,-7.8e-4 -3.223e-4,1.42677 1.62116012,-6.9e-4 -0.00835,-1.4086 -0.51465902,-0.004"
+           id="path937-2"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="cccccc" />
+      </g>
+    </g>
   </g>
 </svg>

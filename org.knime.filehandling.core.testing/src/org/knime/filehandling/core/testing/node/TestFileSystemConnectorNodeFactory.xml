@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./icon.png" type="Source" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Test File System Connection</name>
+    
+    <shortDescription>
+        Opens a file system connection to a file system for testing purposes.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        This node does two things:
+        
+        <ul>
+        <li>It initiates a connection to a file system.</li>
+        <li>it (optionally) copies some local files ("fixture files") to the file system.</li>
+        </ul>
+
+        <p>
+        The file system is configured by the fs-test.properties file, which can be supplied in two ways:
+        <ul>
+	        <li>By putting it into the root of your KNIME workspace.</li>
+	        <li>By setting an environment variable called "KNIME_FS_TEST_PROPERTIES", which specifies the path to the file.</li>
+        </ul>
+        The file system will have a working directory that is created ad-hoc with a unique, randomized name.
+        The working directory and its contents will be recursively deleted when this node is reset or the containing KNIME workflow is closed.
+        </p>
+        
+        <p>
+        The fixtures files are copied from a local directory, which is also specified in the fs-test.properties file.
+        The contents of the local fixture directory will be recursively copied to a folder called "fixtures" directly below
+        the working directory of the file system.
+        </p>
+         
+        The purpose of this node is to allow execution of the same testflow for a variety of different file systems.
+        </intro>
+        <option name="Fixture upload filter">A filter (either glob or regex) to prune the tree of fixture files to upload.
+            The filter must match a relative path to the fixture file (relative with respect to the local fixture directory).
+            Example filter: "glob:my_csv/*.csv", will upload all *.csv files in the "my_csv" subdirectory of the fixture directory.
+            
+            <p>
+            The filter syntax is described in the
+            <a href='https://docs.oracle.com/javase/8/docs/api/java/nio/file/FileSystem.html#getPathMatcher-java.lang.String-'>
+            Javadoc of java.nio.file.FileSystem.getPathMatcher()</a>.
+            </p>
+        </option>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="File System Connection">A file system connection which is supposed to be tested.</outPort>
+    </ports>    
+</knimeNode>

@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.testing.integrationtests;
+package org.knime.filehandling.core.testing;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,13 +59,16 @@ import org.eclipse.core.runtime.Platform;
 
 /**
  * Resolves the test properties file for our file system tests.
- * 
+ *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  *
  */
 public class FSTestPropertiesResolver {
 
-    protected static final String TEST_PROPERTIES_FILE_NAME = "fs-test.properties";
+    /**
+     * Expected file name for the file system test configuration.
+     */
+    public static final String TEST_PROPERTIES_FILE_NAME = "fs-test.properties";
 
     private static final String TEST_PROPERTIES_ENV_VARIABLE_NAME = "KNIME_FS_TEST_PROPERTIES";
 
@@ -73,9 +76,8 @@ public class FSTestPropertiesResolver {
         Platform.getLocation().append("/" + TEST_PROPERTIES_FILE_NAME).toString();
 
     /**
-     * Resolves the properties for integration tests from the environment variable
-     * {@link TEST_PROPERTIES_ENV_VARIABLE_NAME}
-     * 
+     * Resolves the properties for integration tests from the environment variable KNIME_FS_TEST_PROPERTIES.
+     *
      * @return the test properties
      */
     public static Properties forIntegrationTests() {
@@ -86,10 +88,17 @@ public class FSTestPropertiesResolver {
     }
 
     /**
-     * Resolves the properties for workflow tests from one of the following locations, in the given order: <br>
-     * <br>
-     * - The workspace root. - The environment variable {@link TEST_PROPERTIES_ENV_VARIABLE_NAME}.
-     * 
+     * Resolves and reads the properties files for workflow tests.
+     *
+     * <p>
+     * The steps to locate the properties file are as follows:
+     *
+     * <ul>
+     * <li>First check for a file called fs-test.properties in the KNIME workspace root.</li>
+     * <li>If none was found, it checks whether the environment variable KNIME_FS_TEST_PROPERTIES points to a properties
+     * file.</li>
+     * </ul>
+     *
      * @return the test properties
      */
     public static Properties forWorkflowTests() {
@@ -102,7 +111,7 @@ public class FSTestPropertiesResolver {
         return readProperties(propertiesPath);
     }
 
-    private static Path findFirst(Stream<Optional<Path>> locations) {
+    private static Path findFirst(final Stream<Optional<Path>> locations) {
         Optional<Path> path = locations //
             .filter(Optional::isPresent) //
             .map(Optional::get) //

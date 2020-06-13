@@ -42,45 +42,43 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Dec 18, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.testing.local;
+package org.knime.filehandling.core.testing.node;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
-
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.local.LocalFSConnection;
-import org.knime.filehandling.core.connections.local.LocalFileSystem;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Test initializer provider for the local file system.
+ * Node factory for the "Test File System Connector" node.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
+public class TestFileSystemConnectorNodeFactory extends NodeFactory<TestFileSystemConnectorNodeModel> {
 
-    @SuppressWarnings("resource")
     @Override
-    public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
-        final Path workingDir = Files.createTempDirectory("knime-localfs-test");
-        final LocalFSConnection fsConn =
-            new LocalFSConnection(workingDir.toString(), LocalFileSystem.CONNECTED_FS_LOCATION_SPEC);
-        return new LocalFSTestInitializer(fsConn);
+    public TestFileSystemConnectorNodeModel createNodeModel() {
+        return new TestFileSystemConnectorNodeModel();
     }
 
     @Override
-    public String getFSType() {
-        return LocalFileSystem.FS_TYPE;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     @Override
-    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        return LocalFileSystem.CONNECTED_FS_LOCATION_SPEC;
+    public NodeView<TestFileSystemConnectorNodeModel> createNodeView(final int viewIndex,
+        final TestFileSystemConnectorNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new TestFileSystemConnectorNodeDialog();
     }
 }

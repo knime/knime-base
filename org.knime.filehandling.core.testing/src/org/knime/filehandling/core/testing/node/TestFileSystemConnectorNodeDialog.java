@@ -42,38 +42,29 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jun 12, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.testing.node;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 
-public class FSTestEnvironmentNodeFactory extends NodeFactory<FSTestEnvironmentNodeModel> {
+/**
+ * Node dialog for the "Test File System Connector" node.
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
+ */
+public class TestFileSystemConnectorNodeDialog extends DefaultNodeSettingsPane {
 
-    @Override
-    public FSTestEnvironmentNodeModel createNodeModel() {
-        return new FSTestEnvironmentNodeModel();
-    }
+    private final TestFileSystemConnectorSettings m_settings = new TestFileSystemConnectorSettings();
 
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<FSTestEnvironmentNodeModel> createNodeView(int viewIndex, FSTestEnvironmentNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return null;
+    public TestFileSystemConnectorNodeDialog() {
+        addDialogComponent(new DialogComponentString(m_settings.getFixtureFilterModel(), "Fixture upload filter: ", true, 40));
+        addDialogComponent(new DialogComponentLabel(
+            "See node description for more information on the filter syntax."));
     }
 
 }

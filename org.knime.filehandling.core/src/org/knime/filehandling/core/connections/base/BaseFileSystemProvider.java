@@ -439,6 +439,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
 
+        // allowed during closing (part of recursive temp dir deletion)
         checkFileSystemOpenOrClosing();
 
         final P checkedDir = checkCastAndAbsolutizePath(dir);
@@ -558,7 +559,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
-        checkFileSystemOpenAndNotClosing();
+        // allowed during closing (part of recursive temp dir deletion)
+        checkFileSystemOpenOrClosing();
 
         checkPathProvider(path);
         if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
@@ -577,6 +579,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
 
+        // allowed during closing (part of recursive temp dir deletion)
         checkFileSystemOpenOrClosing();
 
         final P checkedPath = checkCastAndAbsolutizePath(path);
@@ -625,7 +628,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
 
-        checkFileSystemOpenAndNotClosing();
+        // allowed during closing (part of recursive temp dir deletion)
+        checkFileSystemOpenOrClosing();
 
         checkPathProvider(path);
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
@@ -663,6 +667,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public void delete(final Path path) throws IOException {
 
+        // allowed during closing (part of recursive temp dir deletion)
         checkFileSystemOpenOrClosing();
 
         final P checkedPath = checkCastAndAbsolutizePath(path);

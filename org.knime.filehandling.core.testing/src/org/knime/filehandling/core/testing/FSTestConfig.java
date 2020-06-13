@@ -42,46 +42,93 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jun 12, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.integrationtests;
+package org.knime.filehandling.core.testing;
 
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
- * This class is responsible for reading the test configuration for a specific file system and put all the properties in
- * a map.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- *
+ * @author Bjoern Lohrmann
  */
-public class FSTestConfigurationReader {
+public class FSTestConfig {
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Key in fs-test.properties file to specify the file system to test.
+     */
+    public static final String KEY_TEST_FS = "test-fs";
+
+    /**
+     * Key in fs-test.properties file to specify the local directory with test fixtures.
+     */
+    public static final String KEY_FIXTURE_DIR = "fixture-dir";
+
+    private final Properties m_properties;
+
+    /**
+     * @param fsTestProperties
+     */
+    public FSTestConfig(final Properties fsTestProperties) {
+        m_properties = fsTestProperties;
+    }
+
     /**
      * Reads all the properties with prefix fsType into a map. The suffix of each property will be removed from the keys
      * in the map.
      *
-     * @param fsType         the file system type for which the configuration is read
-     * @param testProperties the test properties
+     * @param fsType the file system type for which the configuration is read
      * @return a map containing all the fsType specific properties
      */
-    public static Map<String, String> read(final String fsType, final Properties testProperties) {
+    @SuppressWarnings("unchecked")
+    public Map<String, String> getSettingsForFSType(final String fsType) {
         final Map<String, String> configuration = new HashMap<>();
         final String fsTypePrefix = fsType + ".";
 
-        for (String key : Collections.list((Enumeration<String>)testProperties.propertyNames())) {
+        for (String key : Collections.list((Enumeration<String>)m_properties.propertyNames())) {
             if (key.startsWith(fsTypePrefix)) {
-                final String value = testProperties.getProperty(key);
+                final String value = m_properties.getProperty(key);
                 final String keyWithoutFSType = key.substring(fsTypePrefix.length());
                 configuration.put(keyWithoutFSType, value);
             }
         }
-
         return configuration;
     }
 
+    /**
+     * Returns the file system type to test, if one is configured in the given properties.
+     *
+     * @return an {@link Optional} that holds the file system type as a String, or is empty if the given properties did
+     *         not specify a file system type to test.
+     */
+    public Optional<String> getFSTypeToTest() {
+        return getOptionalProperty(KEY_TEST_FS);
+    }
+
+    /**
+     * Returns the configured fixture directory if present.
+     *
+     * @return an {@link Optional} that holds the fixture directory as a String, or is empty if the given properties did
+     *         not specify a fixture directory.
+     */
+    public Optional<String> getFixtureDir() {
+        return getOptionalProperty(KEY_FIXTURE_DIR);
+    }
+
+    private Optional<String> getOptionalProperty(final String property) {
+        if (m_properties.containsKey(property)) {
+            final String fixtureDir = m_properties.getProperty(property);
+            if (fixtureDir != null && !fixtureDir.isEmpty()) {
+                return Optional.of(fixtureDir);
+            }
+        }
+        return Optional.empty();
+    }
 }
