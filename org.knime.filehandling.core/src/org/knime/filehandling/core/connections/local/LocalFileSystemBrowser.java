@@ -70,6 +70,16 @@ import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
  */
 public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
+    private final FileSystemView m_fileSystemView;
+
+    public LocalFileSystemBrowser() {
+        this(null);
+    }
+
+    public LocalFileSystemBrowser(final FileSystemView fileSystemView) {
+        m_fileSystemView = fileSystemView;
+    }
+
     @Override
     public boolean isCompatible() {
         return NodeContext.getContext().getNodeContainer() != null;
@@ -77,7 +87,7 @@ public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
     @Override
     protected FileSystemView getFileSystemView() {
-        return null;
+        return m_fileSystemView;
     }
 
     @Override

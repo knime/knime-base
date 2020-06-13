@@ -52,9 +52,12 @@ import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * Creates a local file system.
+ * Wraps the platform default file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
@@ -65,12 +68,12 @@ public class LocalFSConnection implements FSConnection {
     private final LocalFileSystem m_fileSystem;
 
     public LocalFSConnection() {
-        this(WORKSPACE_PATH);
+        this(WORKSPACE_PATH, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
     }
 
-    public LocalFSConnection(final String workingDir) {
+    public LocalFSConnection(final String workingDir, final FSLocationSpec fsLocationSpec) {
         final LocalFileSystemProvider provider = new LocalFileSystemProvider();
-        m_fileSystem = provider.getOrCreateFileSystem(workingDir);
+        m_fileSystem = provider.getOrCreateFileSystem(workingDir, fsLocationSpec);
     }
 
     @Override
@@ -80,6 +83,10 @@ public class LocalFSConnection implements FSConnection {
 
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
-        return new LocalFileSystemBrowser();
+        if (getFileSystem().getFileSystemChoice() == Choice.CONNECTED_FS) {
+            return new LocalFileSystemBrowser(new NioFileSystemView(this));
+        } else {
+            return new LocalFileSystemBrowser();
+        }
     }
 }

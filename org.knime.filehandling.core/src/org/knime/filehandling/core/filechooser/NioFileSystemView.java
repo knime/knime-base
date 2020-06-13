@@ -52,7 +52,6 @@ import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -65,6 +64,8 @@ import javax.swing.filechooser.FileSystemView;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
@@ -76,16 +77,16 @@ public class NioFileSystemView extends FileSystemView {
     private static final String UNABLE_TO_LIST_FILES_MSG = "Unable to list files";
 
     /**
-     * The base root directory. e.g. "/" for Unix. Might also be set to the first directory in the
-     * {@link #m_rootDirectories} set. *
+     * The "home directory" on this particular file system connection. This will typically be the
+     * working directory of the file system.
      */
-    private final Path m_base;
+    private final Path m_homeDirectory;
 
     /** Set of all root directories of the given file system */
     final Set<Path> m_rootDirectories;
 
     /** File system */
-    private final FileSystem m_fileSystem;
+    private final FSFileSystem<FSPath> m_fileSystem;
 
     /**
      * Parent component, might be {@code null}. Useful in dialogs.
@@ -97,9 +98,10 @@ public class NioFileSystemView extends FileSystemView {
      *
      * @param conn The connection used to provide the file system to be shown in the {@code JFileChooser} instance.
      */
+    @SuppressWarnings("unchecked")
     public NioFileSystemView(final FSConnection conn) {
-        this.m_fileSystem = conn.getFileSystem();
-        this.m_base = m_fileSystem.getRootDirectories().iterator().next();
+        this.m_fileSystem = (FSFileSystem<FSPath>)conn.getFileSystem();
+        this.m_homeDirectory = m_fileSystem.getWorkingDirectory();
         this.m_rootDirectories = new LinkedHashSet<>();
         this.m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
     }
@@ -110,9 +112,10 @@ public class NioFileSystemView extends FileSystemView {
      * @param fileSystem
      * @param base
      */
-    public NioFileSystemView(final FileSystem fileSystem, final Path base) {
-        m_fileSystem = fileSystem;
-        m_base = base;
+    @SuppressWarnings("unchecked")
+    public NioFileSystemView(final FSFileSystem<?> fileSystem, final Path base) {
+        m_fileSystem = (FSFileSystem<FSPath>)fileSystem;
+        m_homeDirectory = base;
         m_rootDirectories = new LinkedHashSet<>();
         m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
     }
@@ -198,12 +201,12 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public File getDefaultDirectory() {
-        return new NioFile(m_base.toString(), m_fileSystem);
+        return new NioFile(m_homeDirectory.toString(), m_fileSystem);
     }
 
     @Override
     public File getHomeDirectory() {
-        return new NioFile(m_base.toString(), m_fileSystem);
+        return new NioFile(m_homeDirectory.toString(), m_fileSystem);
     }
 
     @Override

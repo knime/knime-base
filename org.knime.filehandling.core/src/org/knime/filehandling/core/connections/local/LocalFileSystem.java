@@ -75,14 +75,24 @@ public class LocalFileSystem extends FSFileSystem<LocalPath> {
     private static final FileSystem PLATFORM_DEFAULT_FS = FileSystems.getDefault();
 
     /**
-     * The {@link FSLocationSpec} for local file systems.
+     * The file system type of the local file system.
      */
-    public static final FSLocationSpec FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.LOCAL_FS);
+    public final static String FS_TYPE = "local";
+
+    /**
+     * The {@link FSLocationSpec} for the local convenience file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.LOCAL_FS);
+
+    /**
+     * The {@link FSLocationSpec} for the local convenience file system.
+     */
+    public static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.CONNECTED_FS, FS_TYPE);
 
     private final LocalFileSystemProvider m_provider;
 
-    LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir) {
-        super(FS_LOCATION_SPEC, workingDir);
+    LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir, final FSLocationSpec fsLocationSpec) {
+        super(fsLocationSpec, workingDir);
         m_provider = provider;
     }
 
@@ -97,8 +107,8 @@ public class LocalFileSystem extends FSFileSystem<LocalPath> {
     }
 
     @Override
-    public boolean isOpen() {
-        return PLATFORM_DEFAULT_FS.isOpen();
+    public synchronized boolean isClosing() {
+        return super.isClosing();
     }
 
     @Override

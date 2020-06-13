@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
@@ -71,6 +72,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSSeekableByteChannel;
 
 /**
@@ -83,6 +85,8 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     static final String KEY_WORKING_DIR = "workingDir";
 
+    static final String KEY_IS_CONNECTED_FS = "isConnectedFs";
+
     private static final FileSystemProvider PLATFORM_DEFAULT_PROVIDER = FileSystems.getDefault().provider();
 
     private LocalFileSystem m_fileSystem;
@@ -94,18 +98,25 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
         }
 
         final String workingDir = (String)env.get(KEY_WORKING_DIR);
-        return getOrCreateFileSystem(workingDir);
+        final boolean isConnectedFs = (Boolean)env.get(KEY_WORKING_DIR);
+
+        if (isConnectedFs) {
+            return getOrCreateFileSystem(workingDir, LocalFileSystem.CONNECTED_FS_LOCATION_SPEC);
+        } else {
+            return getOrCreateFileSystem(workingDir, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
+        }
     }
 
     /**
      * Gets or creates a new local {@link FileSystem}.
      *
      * @param workingDir
+     * @param fsLocationSpec
      * @return a file system
      */
-    public synchronized LocalFileSystem getOrCreateFileSystem(final String workingDir) {
+    public synchronized LocalFileSystem getOrCreateFileSystem(final String workingDir, final FSLocationSpec fsLocationSpec) {
         if (m_fileSystem == null) {
-            m_fileSystem = new LocalFileSystem(this, workingDir);
+            m_fileSystem = new LocalFileSystem(this, workingDir, fsLocationSpec);
         }
 
         return m_fileSystem;
@@ -126,10 +137,36 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
         return "file";
     }
 
+    /**
+     * Checks whether the underlying file system is still open and not in the process of closing. Throws a
+     * {@link ClosedFileSystemException} if not.
+     *
+     * @throws ClosedFileSystemException when the file system has already been closed or is closing right now.
+     */
+    protected void checkFileSystemOpenAndNotClosing() {
+        if (!m_fileSystem.isOpen() || m_fileSystem.isClosing()) {
+            throw new ClosedFileSystemException();
+        }
+    }
+
+    /**
+     * Checks whether the underlying file system is either open or in the process and throws a
+     * {@link ClosedFileSystemException} if not.
+     *
+     * @throws ClosedFileSystemException when the file system has already been closed.
+     */
+    private void checkFileSystemOpenOrClosing() {
+        if (!m_fileSystem.isOpen() && !m_fileSystem.isClosing()) {
+            throw new ClosedFileSystemException();
+        }
+    }
+
     @SuppressWarnings("resource")
     @Override
     public SeekableByteChannel newByteChannel(final Path path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
+
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
 
         return new FSSeekableByteChannel(
@@ -140,6 +177,8 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path path, final Filter<? super Path> filter)
         throws IOException {
+
+        checkFileSystemOpenOrClosing();
 
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         final DirectoryStream<Path> wrappedStream =
@@ -183,19 +222,22 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     @Override
     public void createDirectory(final Path path, final FileAttribute<?>... attrs) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         PLATFORM_DEFAULT_PROVIDER.createDirectory(localPath.getWrappedPath(), attrs);
-
     }
 
     @Override
     public void delete(final Path path) throws IOException {
+        // deletes are allowed during closing (temp dir deletion)
+        checkFileSystemOpenOrClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         PLATFORM_DEFAULT_PROVIDER.delete(localPath.getWrappedPath());
     }
 
     @Override
     public void copy(final Path source, final Path target, final CopyOption... options) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localSourcePath = checkCastAndAbsolutizePath(source);
         final LocalPath localTargetPath = checkCastAndAbsolutizePath(target);
         PLATFORM_DEFAULT_PROVIDER.copy(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
@@ -203,6 +245,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localSourcePath = checkCastAndAbsolutizePath(source);
         final LocalPath localTargetPath = checkCastAndAbsolutizePath(target);
         PLATFORM_DEFAULT_PROVIDER.move(localSourcePath.getWrappedPath(), localTargetPath.getWrappedPath(), options);
@@ -210,6 +253,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         final LocalPath localPath2 = checkCastAndAbsolutizePath(path2);
         return PLATFORM_DEFAULT_PROVIDER.isSameFile(localPath.getWrappedPath(), localPath2.getWrappedPath());
@@ -218,18 +262,21 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     @Override
     public boolean isHidden(final Path path) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         return PLATFORM_DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
     }
 
     @Override
     public FileStore getFileStore(final Path path) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         return PLATFORM_DEFAULT_PROVIDER.getFileStore(localPath.getWrappedPath());
     }
 
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         PLATFORM_DEFAULT_PROVIDER.checkAccess(localPath.getWrappedPath(), modes);
     }
@@ -237,6 +284,8 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
+        // allowed during closing (part of recursive temp dir deletion)
+        checkFileSystemOpenOrClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         return PLATFORM_DEFAULT_PROVIDER.getFileAttributeView(localPath.getWrappedPath(), type, options);
     }
@@ -244,6 +293,8 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
         final LinkOption... options) throws IOException {
+        // allowed during closing (part of recursive temp dir deletion)
+        checkFileSystemOpenOrClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         return PLATFORM_DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), type, options);
     }
@@ -251,6 +302,8 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     @Override
     public Map<String, Object> readAttributes(final Path path, final String attributes, final LinkOption... options)
         throws IOException {
+        // allowed during closing (part of recursive temp dir deletion)
+        checkFileSystemOpenOrClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         return PLATFORM_DEFAULT_PROVIDER.readAttributes(localPath.getWrappedPath(), attributes, options);
     }
@@ -258,6 +311,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     @Override
     public void setAttribute(final Path path, final String attribute, final Object value, final LinkOption... options)
         throws IOException {
+        checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
         PLATFORM_DEFAULT_PROVIDER.setAttribute(localPath.getWrappedPath(), attribute, value, options);
     }
