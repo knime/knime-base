@@ -215,17 +215,14 @@ final class PathAwareFileHistoryPanel implements PathSettings {
                 } catch (Exception e) {
                     throw new IOException(e);
                 }
-                final FileSystemChoice.Choice fsChoice;
-                final String fsSpecifier;
                 if (path == null) {
-                    fsChoice = FileSystemChoice.Choice.CUSTOM_URL_FS;
-                    fsSpecifier = "5000";
+                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "5000", m_path);
                 } else {
-                    fsChoice = FileSystemChoice.Choice.LOCAL_FS;
-                    fsSpecifier = null;
+                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.LOCAL_FS.toString(), path.toString());
+
                 }
-                m_fsLocation = new FSLocation(fsChoice.toString(), fsSpecifier, m_path);
-                m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation).get();
+                m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation)
+                    .orElseThrow(IllegalStateException::new);
             }
             return m_connection.getFileSystem().getPath(m_fsLocation);
         }
