@@ -294,22 +294,10 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testNormalizeToEmpty() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("de/..");
 
-        assertEquals("", path.normalize().toString());
-    }
-
-    @Test
-    public void testNormalizeToEmptyObjectStore() {
-        ignoreAllExcept(S3, GS);
-
-        final FileSystem fileSystem = getFileSystem();
-        final Path path = fileSystem.getPath("de/..");
-
-        assertEquals("./", path.normalize().toString());
+        assertEquals(fileSystem.getPath(""), path.normalize());
     }
 
     @Test
@@ -346,8 +334,6 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testEquals() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
         final FileSystem fileSystem = getFileSystem();
         final String that = "as/de/";
         final String other = "as/de";
@@ -418,14 +404,12 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testGetName() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("/abc/de/fg");
 
-        assertEquals("abc", path.getName(0).toString());
-        assertEquals("de", path.getName(1).toString());
-        assertEquals("fg", path.getName(2).toString());
+        assertEquals(fileSystem.getPath("abc"), path.getName(0));
+        assertEquals(fileSystem.getPath("de"), path.getName(1));
+        assertEquals(fileSystem.getPath("fg"), path.getName(2));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -434,17 +418,6 @@ public class PathTest extends AbstractParameterizedFSTest {
         final Path path = fileSystem.getPath("/abc");
 
         path.getName(1).toString();
-    }
-
-    @Test
-    public void testGetNameBlobStore() {
-        ignoreAllExcept(S3, GS);
-        final FileSystem fileSystem = getFileSystem();
-        final Path path = fileSystem.getPath("/abc/de/fg");
-
-        assertEquals("abc/", path.getName(0).toString());
-        assertEquals("de/", path.getName(1).toString());
-        assertEquals("fg", path.getName(2).toString());
     }
 
     @Test
@@ -461,5 +434,4 @@ public class PathTest extends AbstractParameterizedFSTest {
         final Path path = getFileSystem().getPath("a", "b");
         assertNull(path.getRoot());
     }
-
 }

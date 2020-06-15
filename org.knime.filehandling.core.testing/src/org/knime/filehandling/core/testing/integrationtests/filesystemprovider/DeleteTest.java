@@ -80,6 +80,8 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_empty_directory() throws IOException {
+        Files.createDirectories(m_testInitializer.makePath("folder", "with"));
+
         final Path file = m_testInitializer.createFile("folder", "with", "file");
         Files.delete(file);
 
@@ -95,6 +97,7 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_parent_of_deleted_file_is_not_deleted() throws IOException {
+        Files.createDirectories(m_testInitializer.makePath("path", "to"));
         final Path file = m_testInitializer.createFile("path", "to", "file");
 
         Files.delete(file);
