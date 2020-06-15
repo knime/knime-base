@@ -272,7 +272,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelWriterFileChooser createClone() {
+    public SettingsModelWriterFileChooser createClone() {
         return new SettingsModelWriterFileChooser(this);
     }
 

@@ -85,7 +85,7 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelReaderFileChooser createClone() {
+    public SettingsModelReaderFileChooser createClone() {
         return new SettingsModelReaderFileChooser(this);
     }
 
