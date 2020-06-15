@@ -50,7 +50,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -79,10 +78,17 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
     }
 
     @Test
+    public void test_empty_path_exists() throws IOException {
+        Files.createDirectories(getFileSystem().getWorkingDirectory());
+        final Path emptyPath = getFileSystem().getPath("");
+
+        emptyPath.getFileSystem().provider().checkAccess(emptyPath);
+        assertTrue(Files.exists(emptyPath));
+    }
+
+    @Test
     public void test_file_does_not_exist() throws IOException {
-        FileSystem fileSystem = m_connection.getFileSystem();
-        String rootFolder = m_testInitializer.getTestCaseScratchDir().toString();
-        Path pathToNonExistingFile = fileSystem.getPath(rootFolder, "non-existing-file");
+        Path pathToNonExistingFile = m_testInitializer.makePath("non-existing-file");
 
         try {
             pathToNonExistingFile.getFileSystem().provider().checkAccess(pathToNonExistingFile);
@@ -94,5 +100,4 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
 
         assertFalse(Files.exists(pathToNonExistingFile));
     }
-
 }

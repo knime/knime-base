@@ -52,7 +52,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Base implementation for blob store paths.
+ * Base implementation for blob store paths. This class adds a flag that hints whether this
+ * path is supposed to be a directory or not (see {@link #isDirectory()}.
  *
  * @author Mareike Hoeger, KNIME GmbH
  * @since 4.2
@@ -145,12 +146,23 @@ public abstract class BlobStorePath extends UnixStylePath {
         if (m_pathParts.size() <= 1) {
             return null;
         } else {
-            return subpath(1, getNameCount()).toString();
+            return subpath(1, getNameCount()).toString().toString();
         }
     }
 
     /**
-     * @return whether the path is a directory
+     * Returns a hint whether this path is supposed to be a directory or not. If this method returns true, then most
+     * definitely this path should be treated a path to a directory. Otherwise, it may or may not be treated as a
+     * directory, depending on the context. This makes subtle difference for some of the methods in the file system
+     * provider.
+     *
+     * Example: Assume there is a blob named "bla/" (should be treated as a directory), and at the same time a blob
+     * named "bla" (which should be treated as a file). Trying to open an input stream on "bla" should properly read the
+     * blob "bla", whereas trying to create a new directory "bla" should return an error indicating that the directory
+     * already exists.
+     *
+     * @return true is this path must be treated a path to a directory, false if it may or may not be treated as a
+     *         directory.
      */
     public boolean isDirectory() {
         return m_isDirectory;
@@ -212,7 +224,7 @@ public abstract class BlobStorePath extends UnixStylePath {
 
     @Override
     public Path normalize() {
-        if (m_pathParts.isEmpty()) {
+        if (isRoot() || isEmptyPath()) {
             return this;
         }
 
@@ -222,7 +234,7 @@ public abstract class BlobStorePath extends UnixStylePath {
             normalized.add(m_pathSeparator);
         }
         if (normalized.isEmpty() && !m_isAbsolute) {
-            return getFileSystem().getPath(".");
+            return getFileSystem().getPath("");
         }
 
         //Ensure absolute paths stay absolute
