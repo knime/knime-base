@@ -48,14 +48,12 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
-import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -65,7 +63,6 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -141,24 +138,12 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
         }
         m_fileSystemName = FileSystemPortObjectSpec.getFileSystemType(specs, m_portIdx).orElse(null);
         m_connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
-        final String specifier = retrieveSpecifier(specs);
-        m_locationSpec = new DefaultFSLocationSpec(Choice.CONNECTED_FS, specifier);
+        m_locationSpec = extractFSLocationSpec(specs);
         notifyListeners();
     }
 
-    private String retrieveSpecifier(final PortObjectSpec[] specs) {
-        final Optional<FSConnection> connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
-        if (connection.isPresent()) {
-            try (final FSFileSystem<?> fileSystem = connection.get().getFileSystem()) {
-                return fileSystem.getFileSystemSpecifier().orElse(null);
-            } catch (IOException ioe) {
-                NodeLogger.getLogger(ConnectedFileSystemSpecificConfig.class).error("Closing the file system failed.",
-                    ioe);
-                return null;
-            }
-        } else {
-            return null;
-        }
+    private FSLocationSpec extractFSLocationSpec(final PortObjectSpec[] specs) {
+        return ((FileSystemPortObjectSpec)specs[m_portIdx]).getFSLocationSpec();
     }
 
     @Override
@@ -209,8 +194,9 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
-        final String specifier = retrieveSpecifier(specs);
-        m_locationSpec = new DefaultFSLocationSpec(Choice.CONNECTED_FS, specifier);
+        CheckUtils.checkSetting(specs.length > m_portIdx && specs[m_portIdx] != null,
+            "No file system connected at port %s.", m_portIdx);
+        m_locationSpec = extractFSLocationSpec(specs);
         m_connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
         if (!m_connection.isPresent()) {
             issueNotConnectedWarning(statusMessageConsumer);
