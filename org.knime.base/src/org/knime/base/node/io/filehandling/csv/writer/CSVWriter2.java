@@ -93,7 +93,8 @@ class CSVWriter2 implements Closeable {
     private final Pattern m_columnOrRowDelimiter;
 
     /**
-     * Creates new writer which writes {@link DataTable} to a CSV files based on the provided {@link SettingsModelCSVWriter}
+     * Creates new writer which writes {@link DataTable} to a CSV files based on the provided
+     * {@link SettingsModelCSVWriter}
      *
      * @param writer the {@link Writer}
      * @param config the {@link SettingsModelCSVWriter} object determining how the {@link DataTable} is written to file.

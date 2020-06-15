@@ -69,13 +69,13 @@ import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialog;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -282,7 +282,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
     }
 
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_writerConfig.loadSettingsForDialog(settings, specs);
 
