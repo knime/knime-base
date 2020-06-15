@@ -687,7 +687,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         saveConfig();
-        m_config.save(settings);
+        m_config.saveInModel(settings);
     }
 
     /**

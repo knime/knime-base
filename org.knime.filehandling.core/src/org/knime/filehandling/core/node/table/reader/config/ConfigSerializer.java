@@ -85,12 +85,21 @@ public interface ConfigSerializer<C> {
     void loadInModel(final C config, final NodeSettingsRO settings) throws InvalidSettingsException;
 
     /**
-     * Saves the config.
+     * Saves the config in the node model.
      *
      * @param config to save
      * @param settings {@link NodeSettingsWO} to save to
      */
-    void save(final C config, final NodeSettingsWO settings);
+    void saveInModel(final C config, final NodeSettingsWO settings);
+
+    /**
+     * Saves the config in the node dialog.
+     *
+     * @param config to save
+     * @param settings {@link NodeSettingsWO} to save to
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    void saveInDialog(final C config, final NodeSettingsWO settings) throws InvalidSettingsException;
 
     /**
      * Validates the provided {@link NodeSettingsRO}.

@@ -114,13 +114,19 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
     }
 
     @Override
-    public void save(final NodeSettingsWO settings) {
-        m_serializer.save(this, settings);
+    public void saveInModel(final NodeSettingsWO settings) {
+        m_serializer.saveInModel(this, settings);
+    }
+
+    @Override
+    public void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_serializer.saveInDialog(this, settings);
     }
 
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_serializer.validate(settings);
     }
+
 
 }

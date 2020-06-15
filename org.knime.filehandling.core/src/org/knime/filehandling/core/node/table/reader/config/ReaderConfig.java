@@ -65,8 +65,8 @@ public interface ReaderConfig {
      * Loads the configuration in the dialog.
      *
      * @param settings to load from
-     * @param specs TODO
-     * @throws NotConfigurableException TODO
+     * @param specs input {@link PortObjectSpec specs} of the node
+     * @throws NotConfigurableException if the node can't be configured
      */
     void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException;
 
@@ -87,10 +87,18 @@ public interface ReaderConfig {
     void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
 
     /**
-     * Saves the configuration to settings.
+     * Saves the configuration to settings in the node model.
      *
      * @param settings to save to
      */
-    void save(final NodeSettingsWO settings);
+    void saveInModel(final NodeSettingsWO settings);
+
+    /**
+     * Saves the configuration to settings in the node dialog.
+     *
+     * @param settings to save to
+     * @throws InvalidSettingsException if the config is invalid
+     */
+    void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException;
 
 }

@@ -206,7 +206,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_config.save(settings);
+        m_config.saveInModel(settings);
         m_pathSettings.saveSettingsTo(settings);
     }
 

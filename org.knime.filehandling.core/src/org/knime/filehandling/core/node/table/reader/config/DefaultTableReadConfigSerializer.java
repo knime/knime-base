@@ -148,10 +148,10 @@ public final class DefaultTableReadConfigSerializer<C extends ReaderSpecificConf
     }
 
     @Override
-    public void save(final DefaultTableReadConfig<C> config, final NodeSettingsWO settings) {
+    public void saveInModel(final DefaultTableReadConfig<C> config, final NodeSettingsWO settings) {
         settings.addInt(CFG_ROW_ID_IDX, config.getRowIDIdx());
         settings.addLong(CFG_COLUMN_HEADER_IDX, config.getColumnHeaderIdx());
-        m_readerSpecificConfigSerializer.save(config.getReaderSpecificConfig(),
+        m_readerSpecificConfigSerializer.saveInModel(config.getReaderSpecificConfig(),
             settings.addNodeSettings(CFG_READER_SPECIFIC_CONFIG));
         settings.addBoolean(CFG_USE_COLUMN_HEADER_IDX, config.useColumnHeaderIdx());
         settings.addBoolean(CFG_USE_ROW_ID_IDX, config.useRowIDIdx());
@@ -188,6 +188,12 @@ public final class DefaultTableReadConfigSerializer<C extends ReaderSpecificConf
         settings.getBoolean(CFG_LIMIT_ROWS_FOR_SPEC);
         settings.getLong(CFG_MAX_ROWS_FOR_SPEC);
 
+    }
+
+    @Override
+    public void saveInDialog(final DefaultTableReadConfig<C> config, final NodeSettingsWO settings)
+        throws InvalidSettingsException {
+        saveInModel(config, settings);
     }
 
 }

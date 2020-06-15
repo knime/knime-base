@@ -129,8 +129,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     }
 
     @Override
-    public void save(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
-        m_tableReadConfigSerializer.save(config.getTableReadConfig(), settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
+    public void saveInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
+        m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(), settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
         settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
 
         if (config.hasTableSpecConfig()) {
@@ -148,6 +148,12 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
             TableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
         }
 
+    }
+
+    @Override
+    public void saveInDialog(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings)
+        throws InvalidSettingsException {
+        saveInModel(config, settings);
     }
 
 }

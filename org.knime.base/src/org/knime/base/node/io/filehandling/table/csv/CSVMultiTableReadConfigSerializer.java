@@ -332,7 +332,7 @@ enum CSVMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void save(
+    public void saveInModel(
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsWO settings) {
         if (config.hasTableSpecConfig()) {
@@ -462,6 +462,13 @@ enum CSVMultiTableReadConfigSerializer implements
 
     public static void validateEncodingTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getString(CFG_CHARSET);
+    }
+
+    @Override
+    public void saveInDialog(
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
+        final NodeSettingsWO settings) throws InvalidSettingsException {
+        saveInModel(config, settings);
     }
 
 }
