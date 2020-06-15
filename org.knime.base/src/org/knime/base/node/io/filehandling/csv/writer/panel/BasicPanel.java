@@ -53,20 +53,19 @@ import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import org.knime.base.node.io.filehandling.csv.writer.FileOverwritePolicy;
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
+import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 
 /**
  * A dialog panel for advanced settings of CSV writer node.
@@ -84,12 +83,6 @@ public final class BasicPanel extends JPanel {
 
     private final JCheckBox m_writeRowHeaderChecker;
 
-    private final JRadioButton m_overwritePolicyAbortButton;
-
-    private final JRadioButton m_overwritePolicyAppendButton;
-
-    private final JRadioButton m_overwritePolicyOverwriteButton;
-
     private final JTextField m_colDelimiterField;
 
     private final JComboBox<LineBreakTypes> m_lineBreakSelection;
@@ -98,29 +91,18 @@ public final class BasicPanel extends JPanel {
 
     private final JTextField m_quoteEscapeField;
 
-    private final JCheckBox m_createParentDirChecker;
-
     /**
      * Default constructor - creates a populated JPanel
+     *
+     * @param writeFileChooserModel the {@link SettingsModelWriterFileChooser}
      */
-    public BasicPanel() {
+    public BasicPanel(final SettingsModelWriterFileChooser writeFileChooserModel) {
         super(new GridBagLayout());
         m_writeColumnHeaderChecker = new JCheckBox("Write column header");
-        m_writeColumnHeaderChecker.addItemListener(e -> checkCheckerState());
+        m_writeColumnHeaderChecker
+            .addItemListener(e -> checkCheckerState(writeFileChooserModel.getFileOverwritePolicy()));
         m_skipColumnHeaderOnAppendChecker = new JCheckBox("Don't write column headers if file exists");
         m_writeRowHeaderChecker = new JCheckBox("Write row ID");
-
-        ButtonGroup bg = new ButtonGroup();
-        m_overwritePolicyOverwriteButton = new JRadioButton("Overwrite");
-        bg.add(m_overwritePolicyOverwriteButton);
-        m_overwritePolicyAppendButton = new JRadioButton("Append");
-        bg.add(m_overwritePolicyAppendButton);
-        m_overwritePolicyAppendButton.addChangeListener(e -> checkCheckerState());
-        m_overwritePolicyAbortButton = new JRadioButton("Abort");
-        bg.add(m_overwritePolicyAbortButton);
-        m_overwritePolicyAbortButton.doClick();
-
-        m_createParentDirChecker = new JCheckBox("Create parent directories if required");
 
         final int textWidth = 3;
         m_colDelimiterField = new JTextField(",", textWidth);
@@ -132,7 +114,7 @@ public final class BasicPanel extends JPanel {
         m_lineBreakSelection.setEnabled(true);
 
         initLayout();
-        checkCheckerState();
+        checkCheckerState(writeFileChooserModel.getFileOverwritePolicy());
     }
 
     /**
@@ -155,43 +137,10 @@ public final class BasicPanel extends JPanel {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.insets = new Insets(5, 0, 5, 0);
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1;
-        add(createFileOptionsPanel(), gbc);
-        gbc.gridy++;
         add(createWriterOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         add(Box.createVerticalBox(), gbc);
-    }
-
-    private JPanel createFileOptionsPanel() {
-        final GridBagConstraints gbc = createAndInitGBC();
-        final JPanel fileOptionsPanel = new JPanel(new GridBagLayout());
-        fileOptionsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File options:"));
-
-        gbc.insets = new Insets(5, 0, 3, 0);
-        gbc.gridwidth = 3;
-        fileOptionsPanel.add(m_createParentDirChecker, gbc);
-
-        gbc.insets = new Insets(5, 0, 3, 0);
-        gbc.gridy++;
-        fileOptionsPanel.add(new JLabel("If file exists"), gbc);
-
-        gbc.insets = new Insets(0, 5, 0, 0);
-        gbc.gridwidth = 1;
-        gbc.gridy++;
-        fileOptionsPanel.add(m_overwritePolicyOverwriteButton, gbc);
-        gbc.gridx++;
-        fileOptionsPanel.add(m_overwritePolicyAppendButton, gbc);
-        gbc.gridx++;
-        fileOptionsPanel.add(m_overwritePolicyAbortButton, gbc);
-
-        gbc.gridx++;
-        gbc.weightx = 1;
-        fileOptionsPanel.add(Box.createHorizontalBox(), gbc);
-
-        return fileOptionsPanel;
     }
 
     private JPanel createWriterOptionsPanel() {
@@ -268,41 +217,14 @@ public final class BasicPanel extends JPanel {
         return miscOptionsPanel;
     }
 
-    private FileOverwritePolicy getSelectedFileOverwritePolicy() throws InvalidSettingsException {
-        if (m_overwritePolicyOverwriteButton.isSelected()) {
-            return FileOverwritePolicy.OVERWRITE;
-        } else if (m_overwritePolicyAppendButton.isSelected()) {
-            return FileOverwritePolicy.APPEND;
-        } else if (m_overwritePolicyAbortButton.isSelected()) {
-            return FileOverwritePolicy.ABORT;
-        } else {
-            throw new InvalidSettingsException("There is no valid FileOverwritePolicy selected!");
-        }
-    }
-
-    private void selectFileOverwritePolicy(final FileOverwritePolicy overwritePolicy) throws NotConfigurableException {
-        switch (overwritePolicy) {
-            case APPEND:
-                m_overwritePolicyAppendButton.doClick();
-                break;
-            case OVERWRITE:
-                m_overwritePolicyOverwriteButton.doClick();
-                break;
-            case ABORT: // Abort
-                m_overwritePolicyAbortButton.doClick();
-                break;
-            default:
-                throw new NotConfigurableException(
-                    "Unexpected FileOverwritePolicy " + overwritePolicy.name() + " is provided!");
-        }
-    }
-
     /**
      * Checks whether or not the "on file exists" check should be enabled.
+     *
+     * @param writeFileChooserModel
      */
-    private void checkCheckerState() {
+    private void checkCheckerState(final FileOverwritePolicy overwritePolicy) {
         m_skipColumnHeaderOnAppendChecker
-            .setEnabled(m_writeColumnHeaderChecker.isSelected() && m_overwritePolicyAppendButton.isSelected());
+            .setEnabled(m_writeColumnHeaderChecker.isSelected() && overwritePolicy == FileOverwritePolicy.APPEND);
     }
 
     /**
@@ -311,7 +233,7 @@ public final class BasicPanel extends JPanel {
      * @param config the configuration to read values from
      * @throws NotConfigurableException if unexpected FileOverwritePolicy is provided
      */
-    public void loadDialogSettings(final CSVWriter2Config config) throws NotConfigurableException {
+    public void loadDialogSettings(final SettingsModelCSVWriter config) throws NotConfigurableException {
         m_writeColumnHeaderChecker.setSelected(config.writeColumnHeader());
         m_skipColumnHeaderOnAppendChecker.setSelected(config.skipColumnHeaderOnAppend());
         m_writeRowHeaderChecker.setSelected(config.writeRowHeader());
@@ -323,9 +245,7 @@ public final class BasicPanel extends JPanel {
         m_quoteField.setText(EscapeUtils.escape(String.valueOf(config.getQuoteChar())));
         m_quoteEscapeField.setText(EscapeUtils.escape(String.valueOf(config.getQuoteEscapeChar())));
 
-        selectFileOverwritePolicy(config.getFileOverwritePolicy());
-        m_createParentDirChecker.setSelected(config.createParentDirectoryIfRequired());
-        checkCheckerState();
+        checkCheckerState(config.getFileChooserModel().getFileOverwritePolicy());
     }
 
     /**
@@ -334,7 +254,7 @@ public final class BasicPanel extends JPanel {
      * @param config the configuration to read values from
      * @throws InvalidSettingsException if there is no valid FileOverwritePolicy selected
      */
-    public void saveDialogSettings(final CSVWriter2Config config) throws InvalidSettingsException {
+    public void saveDialogSettings(final SettingsModelCSVWriter config) throws InvalidSettingsException {
         config.setWriteColumnHeader(m_writeColumnHeaderChecker.isSelected());
         config.setSkipColumnHeaderOnAppend(m_skipColumnHeaderOnAppendChecker.isSelected());
         config.setWriteRowHeader(m_writeRowHeaderChecker.isSelected());
@@ -345,7 +265,5 @@ public final class BasicPanel extends JPanel {
         config.setQuoteChar(EscapeUtils.unescape(m_quoteField.getText()));
         config.setQuoteEscapeChar(EscapeUtils.unescape(m_quoteEscapeField.getText()));
 
-        config.setFileOverwritePolicy(getSelectedFileOverwritePolicy());
-        config.setCreateParentDirectory(m_createParentDirChecker.isSelected());
     }
 }

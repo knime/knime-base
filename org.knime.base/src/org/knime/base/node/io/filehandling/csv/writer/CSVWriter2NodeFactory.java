@@ -49,12 +49,13 @@ package org.knime.base.node.io.filehandling.csv.writer;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
+import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
@@ -64,7 +65,7 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  */
 public final class CSVWriter2NodeFactory extends ConfigurableNodeFactory<CSVWriter2NodeModel> {
     /** The name of the optional connection input port group. */
-    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
+    public static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
     /** The name of the data table input port group. */
     static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Data Table";
@@ -79,12 +80,12 @@ public final class CSVWriter2NodeFactory extends ConfigurableNodeFactory<CSVWrit
 
     @Override
     protected CSVWriter2NodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new CSVWriter2NodeModel(creationConfig.getPortConfig().get());
+        return new CSVWriter2NodeModel(getPortsConfig(creationConfig));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVWriter2NodeDialog(new CSVWriter2Config());
+        return new CSVWriter2NodeDialog(new SettingsModelCSVWriter(getPortsConfig(creationConfig)));
     }
 
     @Override
@@ -100,5 +101,9 @@ public final class CSVWriter2NodeFactory extends ConfigurableNodeFactory<CSVWrit
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static PortsConfiguration getPortsConfig(final NodeCreationConfiguration creationConfig) {
+        return creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
     }
 }

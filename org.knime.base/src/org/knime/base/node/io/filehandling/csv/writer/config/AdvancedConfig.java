@@ -249,7 +249,7 @@ public final class AdvancedConfig implements SimpleConfig {
      * @param str a String containing the decimalSeparator to set
      */
     public void setDecimalSeparator(final String str) {
-        setDecimalSeparator(CSVWriter2Config.getFirstChar(str, "Decimal Separator"));
+        setDecimalSeparator(SettingsModelCSVWriter.getFirstChar(str, "Decimal Separator"));
     }
 
     /**

@@ -55,10 +55,9 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
+import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.BasicPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
@@ -66,16 +65,15 @@ import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialog;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.workflow.VariableType;
-import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * {@link NodeDialog} for the "CSVWriter" Node.
@@ -87,7 +85,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
     private static final String FILE_HISTORY_ID = "csv_file_writer_history";
 
     /** textfield to enter file name. */
-    private final DialogComponentFileChooser2 m_filePanel;
+    private final DialogComponentWriterFileChooser m_filePanel;
 
     private final BasicPanel m_basicPanel;
 
@@ -97,7 +95,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
     private final CommentPanel m_commentPanel;
 
-    private final CSVWriter2Config m_writerConfig;
+    private final SettingsModelCSVWriter m_writerConfig;
 
     /**
      * Creates a new CSV writer dialog.
@@ -105,17 +103,15 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
      * @param writerConfig a {@code CSVWriter2Config}
      *
      */
-    public CSVWriter2NodeDialog(final CSVWriter2Config writerConfig) {
-        final FlowVariableModel fvm = createFlowVariableModel(
-            new String[]{CSVWriter2Config.CFG_FILE_CHOOSER, SettingsModelFileChooser2.PATH_OR_URL_KEY},
-            VariableType.StringType.INSTANCE);
-
+    public CSVWriter2NodeDialog(final SettingsModelCSVWriter writerConfig) {
         m_writerConfig = writerConfig;
 
-        m_filePanel = new DialogComponentFileChooser2(0, writerConfig.getFileChooserModel(), FILE_HISTORY_ID,
-            JFileChooser.SAVE_DIALOG, JFileChooser.FILES_ONLY, fvm);
+        m_filePanel = new DialogComponentWriterFileChooser(m_writerConfig.getFileChooserModel(), FILE_HISTORY_ID,
+            createFlowVariableModel(m_writerConfig.getFileChooserModel().getKeysForFSLocation(),
+                FSLocationVariableType.INSTANCE),
+            FilterMode.FILE);
 
-        m_basicPanel = new BasicPanel();
+        m_basicPanel = new BasicPanel(m_writerConfig.getFileChooserModel());
         m_advancedPanel = new AdvancedPanel();
         m_commentPanel = new CommentPanel();
 

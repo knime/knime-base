@@ -50,26 +50,30 @@ package org.knime.base.node.io.filehandling.csv.writer.config;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.EnumSet;
 
 import org.apache.commons.lang.StringUtils;
-import org.knime.base.node.io.filehandling.csv.writer.FileOverwritePolicy;
+import org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Settings configuration for the CSV writer node
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
-public class CSVWriter2Config extends SettingsModel {
+public class SettingsModelCSVWriter extends SettingsModel {
 
     /** The allowed/recommended suffixes for writing a CSV file */
     protected final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
@@ -82,10 +86,6 @@ public class CSVWriter2Config extends SettingsModel {
 
     /** The settings key for the file chooser dialog */
     public static final String CFG_FILE_CHOOSER = "file_chooser_settings";
-
-    private static final String CFG_OVERWRITE_POLICY = "overwrite_policy";
-
-    private static final String CFG_CREATE_PARENT_DIRECTORY = "create_parent_directory";
 
     private static final String CFG_COLUMN_DELIMITER = "column_delimiter";
 
@@ -101,11 +101,7 @@ public class CSVWriter2Config extends SettingsModel {
 
     private static final String CFG_CHAR_ENCODING = "character_set";
 
-    private final SettingsModelFileChooser2 m_fileChooserModel;
-
-    private FileOverwritePolicy m_fileOverwritePolicy;
-
-    private boolean m_createParentDirectoryIfRequired;
+    private final SettingsModelWriterFileChooser m_fileChooserModel;
 
     private boolean m_writeColumnHeader;
 
@@ -128,12 +124,17 @@ public class CSVWriter2Config extends SettingsModel {
     private String m_charsetName;
 
     /**
-     * Default constructor
+     * Constructor.
+     *
+     * @param portsConfig the ports configuration
+     *
      */
-    public CSVWriter2Config() {
-        m_fileChooserModel = new SettingsModelFileChooser2(CFG_FILE_CHOOSER, FILE_SUFFIXES);
-        m_fileOverwritePolicy = FileOverwritePolicy.ABORT;
-        m_createParentDirectoryIfRequired = false;
+    public SettingsModelCSVWriter(final PortsConfiguration portsConfig) {
+        m_fileChooserModel = new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER, portsConfig,
+            CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FILE,
+            org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy.FAIL,
+            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.APPEND),
+            FILE_SUFFIXES);
 
         m_columnDelimiter = ",";
         m_lineBreak = LineBreakTypes.SYS_DEFAULT;
@@ -152,14 +153,12 @@ public class CSVWriter2Config extends SettingsModel {
     }
 
     /**
-     * Copy constructor
+     * Copy constructor.
      *
      * @param source the object to copy
      */
-    private CSVWriter2Config(final CSVWriter2Config source) {
-        m_fileChooserModel = source.getFileChooserModel();
-        m_fileOverwritePolicy = source.getFileOverwritePolicy();
-        m_createParentDirectoryIfRequired = source.createParentDirectoryIfRequired();
+    private SettingsModelCSVWriter(final SettingsModelCSVWriter source) {
+        m_fileChooserModel = source.getFileChooserModel().createClone();
 
         m_columnDelimiter = source.getColumnDelimiter();
         m_lineBreak = source.getLineBreak();
@@ -179,15 +178,13 @@ public class CSVWriter2Config extends SettingsModel {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected CSVWriter2Config createClone() {
-        return new CSVWriter2Config(this);
+    protected SettingsModelCSVWriter createClone() {
+        return new SettingsModelCSVWriter(this);
     }
 
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.validateSettings(settings);
-        settings.getString(CFG_OVERWRITE_POLICY);
-        settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY);
 
         settings.getString(CFG_COLUMN_DELIMITER);
         LineBreakTypes.loadSettings(settings);
@@ -241,8 +238,6 @@ public class CSVWriter2Config extends SettingsModel {
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.loadSettingsFrom(settings);
-        m_fileOverwritePolicy = FileOverwritePolicy.valueOf(settings.getString(CFG_OVERWRITE_POLICY));
-        m_createParentDirectoryIfRequired = settings.getBoolean(CFG_CREATE_PARENT_DIRECTORY);
 
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER);
         m_lineBreak = LineBreakTypes.loadSettings(settings);
@@ -266,8 +261,6 @@ public class CSVWriter2Config extends SettingsModel {
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
         m_fileChooserModel.saveSettingsTo(settings);
-        settings.addString(CFG_OVERWRITE_POLICY, m_fileOverwritePolicy.name());
-        settings.addBoolean(CFG_CREATE_PARENT_DIRECTORY, m_createParentDirectoryIfRequired);
 
         settings.addString(CFG_COLUMN_DELIMITER, m_columnDelimiter);
 
@@ -310,8 +303,8 @@ public class CSVWriter2Config extends SettingsModel {
     }
 
     private void checkGzipSettings() throws InvalidSettingsException {
-        boolean isAppend = FileOverwritePolicy.APPEND.equals(getFileOverwritePolicy());
-        if (m_advancedConfig.compressWithGzip() && isAppend) {
+        if (m_advancedConfig.compressWithGzip()
+            && FileOverwritePolicy.APPEND == getFileChooserModel().getFileOverwritePolicy()) {
             throw new InvalidSettingsException("Can't append to existing file if output is gzip compressed");
         }
     }
@@ -330,20 +323,6 @@ public class CSVWriter2Config extends SettingsModel {
      */
     public boolean colSeparatorContainsDecSeparator() {
         return (m_columnDelimiter.indexOf(m_advancedConfig.getDecimalSeparator()) >= 0);
-    }
-
-    /**
-     * @return {@code true} if the parent directory(ies) will be created if required.
-     */
-    public boolean createParentDirectoryIfRequired() {
-        return m_createParentDirectoryIfRequired;
-    }
-
-    /**
-     * @param createDir flag indicating if the parent directory(ies) will be created if required
-     */
-    public void setCreateParentDirectory(final boolean createDir) {
-        m_createParentDirectoryIfRequired = createDir;
     }
 
     /**
@@ -403,21 +382,6 @@ public class CSVWriter2Config extends SettingsModel {
      */
     public void setWriteRowHeader(final boolean writeRowHeader) {
         m_writeRowHeader = writeRowHeader;
-    }
-
-    /**
-     * @return a {@link FileOverwritePolicy} deciding what to do in case the file to be written already exists
-     */
-    public FileOverwritePolicy getFileOverwritePolicy() {
-        return m_fileOverwritePolicy;
-    }
-
-    /**
-     * @param fileOverwritePolicy a {@link FileOverwritePolicy} deciding what to do in case the file to be written
-     *            already exists
-     */
-    public void setFileOverwritePolicy(final FileOverwritePolicy fileOverwritePolicy) {
-        m_fileOverwritePolicy = fileOverwritePolicy;
     }
 
     /**
@@ -503,7 +467,7 @@ public class CSVWriter2Config extends SettingsModel {
     /**
      * @return the file chooser settings model of this configuration
      */
-    public SettingsModelFileChooser2 getFileChooserModel() {
+    public SettingsModelWriterFileChooser getFileChooserModel() {
         return m_fileChooserModel;
     }
 
@@ -539,21 +503,21 @@ public class CSVWriter2Config extends SettingsModel {
      * @return {@code true} if existing file should be overwritten
      */
     public final boolean isFileOverwritten() {
-        return m_fileOverwritePolicy == FileOverwritePolicy.OVERWRITE;
+        return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.OVERWRITE;
     }
 
     /**
      * @return {@code true} if existing file should be appended to
      */
     public final boolean isFileAppended() {
-        return m_fileOverwritePolicy == FileOverwritePolicy.APPEND;
+        return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.APPEND;
     }
 
     /**
      * @return {@code true} if existing file should neither be overwritten nor appended to
      */
     public final boolean isFileNeverOverwritten() {
-        return m_fileOverwritePolicy == FileOverwritePolicy.ABORT;
+        return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.FAIL;
     }
 
     /**

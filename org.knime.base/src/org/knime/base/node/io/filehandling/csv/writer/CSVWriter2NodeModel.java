@@ -56,10 +56,11 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
+import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -84,9 +85,10 @@ import org.knime.core.node.streamable.PortInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * NodeModel to write a DataTable to a CSV file.
@@ -97,24 +99,27 @@ final class CSVWriter2NodeModel extends NodeModel {
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVWriter2NodeModel.class);
 
-    private final CSVWriter2Config m_writerConfig;
+    private final SettingsModelCSVWriter m_writerConfig;
 
-    private final PortsConfiguration m_portsConfig;
+    private final int m_dataInputPortIdx;;
+
+    private final NodeModelStatusConsumer m_statusConsumer;
 
     CSVWriter2NodeModel(final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
-        m_writerConfig = new CSVWriter2Config();
-        m_portsConfig = portsConfig;
+        m_writerConfig = new SettingsModelCSVWriter(portsConfig);
+        // save since this port is fixed, see the Factory class
+        m_dataInputPortIdx =
+            portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
+        m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
     }
 
     @Override
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_writerConfig.getFileChooserModel().getPathOrURL() == null
-            && m_writerConfig.getFileChooserModel().getPathOrURL().trim().isEmpty()) {
-            throw new InvalidSettingsException("Please enter a valid location.");
-        }
+        m_writerConfig.getFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        final DataTableSpec inSpec = (DataTableSpec)inSpecs[getDataTablePortIndex()];
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataInputPortIdx];
 
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
             final DataType c = inSpec.getColumnSpec(i).getType();
@@ -132,12 +137,14 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected BufferedDataTable[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
-        final Path outputPath = getFilePath(data);
-        createParentDirIfRequired(outputPath);
-        // create BufferedDataTable implementing RowInput
-        final BufferedDataTable tbl = (BufferedDataTable)data[getDataTablePortIndex()];
-        final DataTableRowInput rowInput = new DataTableRowInput(tbl);
-        return writeToFile(rowInput, exec, outputPath);
+        try (final WritePathAccessor accessor = m_writerConfig.getFileChooserModel().createWritePathAccessor()) {
+            final FSPath outputPath = accessor.getOutputPath(m_statusConsumer);
+            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+            createParentDirIfRequired(outputPath);
+            final BufferedDataTable tbl = (BufferedDataTable)data[m_dataInputPortIdx];
+            final DataTableRowInput rowInput = new DataTableRowInput(tbl);
+            return writeToFile(rowInput, exec, outputPath);
+        }
     }
 
     /**
@@ -201,7 +208,8 @@ final class CSVWriter2NodeModel extends NodeModel {
     private OutputStream createOutputStream(final Path outputPath) throws IOException {
         OutputStream outStream;
         try {
-            outStream = Files.newOutputStream(outputPath, m_writerConfig.getFileOverwritePolicy().getOpenOptions());
+            outStream = Files.newOutputStream(outputPath,
+                m_writerConfig.getFileChooserModel().getFileOverwritePolicy().getOpenOptions());
         } catch (final FileAlreadyExistsException e) {
             throw new IOException(
                 "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
@@ -217,7 +225,7 @@ final class CSVWriter2NodeModel extends NodeModel {
         // create parent directories according to the state of m_createDirectoryConfig.
         final Path parentPath = outputPath.getParent();
         if (parentPath != null && !Files.exists(parentPath)) {
-            if (m_writerConfig.createParentDirectoryIfRequired()) {
+            if (m_writerConfig.getFileChooserModel().isCreateParentDirectories()) {
                 Files.createDirectories(parentPath);
             } else {
                 throw new IOException(String.format(
@@ -226,60 +234,30 @@ final class CSVWriter2NodeModel extends NodeModel {
         }
     }
 
-    private Path getFilePath(final PortObjectSpec[] inSpecs) throws IOException, InvalidSettingsException {
-        final FileChooserHelper fch =
-            new FileChooserHelper(FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, getFSConnectionPortIndex()),
-                m_writerConfig.getFileChooserModel());
-
-        return fch.getPathFromSettings();
-    }
-
-    private Path getFilePath(final PortObject[] inObjects) throws IOException, InvalidSettingsException {
-        final FileChooserHelper fch =
-            new FileChooserHelper(FileSystemPortObject.getFileSystemConnection(inObjects, getFSConnectionPortIndex()),
-                m_writerConfig.getFileChooserModel());
-        return fch.getPathFromSettings();
-    }
-
-    private int getDataTablePortIndex() {
-        // This is safe because, there should always be a DataTable port
-        return m_portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
-    }
-
-    private int getFSConnectionPortIndex() {
-        if (m_portsConfig.getInputPortLocation().containsKey(CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
-            return m_portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)[0];
-        } else {
-            // This port is a DataTable port and will fail the check at FileSystemPortObject.getFileSystemConnection(..)
-            return getDataTablePortIndex();
-        }
-    }
-
     @Override
     public InputPortRole[] getInputPortRoles() {
         final InputPortRole[] inputPortRoles = new InputPortRole[getNrInPorts()];
         // Set all ports except the data table input port to NONSTREAMABLE.
         Arrays.fill(inputPortRoles, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE);
-        inputPortRoles[getDataTablePortIndex()] = InputPortRole.NONDISTRIBUTED_STREAMABLE;
+        inputPortRoles[m_dataInputPortIdx] = InputPortRole.NONDISTRIBUTED_STREAMABLE;
         return inputPortRoles;
     }
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final Path outputPath;
-        try {
-            outputPath = getFilePath(inSpecs);
-            createParentDirIfRequired(outputPath);
-        } catch (final IOException ex) {
-            throw new InvalidSettingsException(ex);
-        }
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                final RowInput input = (RowInput)inputs[getDataTablePortIndex()];
-                writeToFile(input, exec, outputPath);
+                try (final WritePathAccessor accessor =
+                    m_writerConfig.getFileChooserModel().createWritePathAccessor()) {
+                    final FSPath outputPath = accessor.getOutputPath(m_statusConsumer);
+                    m_statusConsumer.setWarningsIfRequired(s -> setWarningMessage(s));
+                    createParentDirIfRequired(outputPath);
+                    final RowInput input = (RowInput)inputs[m_dataInputPortIdx];
+                    writeToFile(input, exec, outputPath);
+                }
             }
         };
     }
