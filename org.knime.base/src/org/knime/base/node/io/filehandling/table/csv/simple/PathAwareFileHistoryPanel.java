@@ -49,8 +49,9 @@
 package org.knime.base.node.io.filehandling.table.csv.simple;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.ClosedFileSystemException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +67,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
-import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -78,7 +78,6 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
- *
  * Wrapper class for {@link FilesHistoryPanel} that implements {@link PathSettings}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
@@ -203,28 +202,30 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
         @SuppressWarnings("resource")
         @Override
-        public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
-            throws IOException, InvalidSettingsException {
+        public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer) {
             if (m_wasClosed) {
                 throw new ClosedFileSystemException();
             }
             if (m_connection == null) {
-                final Path path;
-                try {
-                    path = FileUtil.resolveToPath(FileUtil.toURL(m_path));
-                } catch (Exception e) {
-                    throw new IOException(e);
-                }
-                if (path == null) {
+                if (isURL()) {
                     m_fsLocation = new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "5000", m_path);
                 } else {
-                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.LOCAL_FS.toString(), path.toString());
-
+                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.LOCAL_FS.toString(), m_path);
                 }
-                m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation)
-                    .orElseThrow(IllegalStateException::new);
             }
+            m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation)
+                .orElseThrow(IllegalStateException::new);
             return m_connection.getFileSystem().getPath(m_fsLocation);
+        }
+
+        @SuppressWarnings("unused")
+        private boolean isURL() {
+            try {
+                new URL(m_path.replace(" ", "%20"));
+                return true;
+            } catch (final MalformedURLException e) {
+                return false;
+            }
         }
 
         @Override

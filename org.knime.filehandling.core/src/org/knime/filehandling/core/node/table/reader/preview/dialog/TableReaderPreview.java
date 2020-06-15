@@ -218,7 +218,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         // start the spec guessing in a separated thread, exceptions are swallowed and put into the error label.
         // afterwards, (in the same thread) the preview table view is filled with the created data table
-        m_analyzeThread = new AnalyzeSwingWorker(m_accessor);
+        m_analyzeThread = new AnalyzeSwingWorker(m_pathSettings.getPath(), m_accessor);
         m_analyzeThread.execute();
     }
 
@@ -294,7 +294,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
      * Inform the preview panel that the config has changed. It will display a hint that the preview needs to be
      * refreshed.
      *
-     * @param accessor the {@link ReadPathAccessor} providing the files to shown by the preview
      */
     public synchronized void configChanged() {
         if (isEnabled()) {
@@ -306,6 +305,8 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
 
+        private final String m_rootPath;
+
         private final ReadPathAccessor m_readPathAccessor;
 
         PreviewDataTable<C, V> m_table = null;
@@ -316,7 +317,8 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
         private long m_maxRowsForSpec;
 
-        AnalyzeSwingWorker(final ReadPathAccessor accessor) {
+        AnalyzeSwingWorker(final String rootPath, final ReadPathAccessor accessor) {
+            m_rootPath = rootPath;
             m_readPathAccessor = accessor;
         }
 
@@ -332,8 +334,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
             final MultiTableReadConfig<C> config = m_configSupplier.get();
             m_limitRowsForSpec = config.getTableReadConfig().limitRowsForSpec();
             m_maxRowsForSpec = config.getTableReadConfig().getMaxRowsForSpec();
-            m_table = m_multiTableReader.createPreviewDataTable(
-                m_readPathAccessor.getRootPath(NO_OP_CONSUMER).toString(), paths, config, m_execMonitor);
+            m_table = m_multiTableReader.createPreviewDataTable(m_rootPath, paths, config, m_execMonitor);
             return null;
         }
 
