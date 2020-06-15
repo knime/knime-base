@@ -82,7 +82,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class CSVWriter2NodeDialog extends NodeDialogPane {
 
-    private static final String FILE_HISTORY_ID = "csv_file_writer_history";
+    private static final String FILE_HISTORY_ID = "csv_reader_writer";
 
     /** textfield to enter file name. */
     private final DialogComponentWriterFileChooser m_filePanel;
