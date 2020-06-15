@@ -62,7 +62,6 @@ import javax.swing.JRadioButton;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
@@ -191,7 +190,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     }
 
     private void updateCreateParentDirectoriesComponent() {
-        m_createParentDirectories.setSelected(getSettingsModel().isCreateParentDirectories());
+        m_createParentDirectories.setSelected(getSettingsModel().isCreateParentDirectoriesUI());
     }
 
     @Override
@@ -218,7 +217,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     }
 
     private final boolean isCustomURL() {
-        return getSettingsModel().getLocation().getFileSystemChoice() == Choice.CUSTOM_URL_FS;
+        return getSettingsModel().isCustomURL();
     }
 
     private void forEachButton(final Consumer<AbstractButton> consumer) {

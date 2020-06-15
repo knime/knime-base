@@ -60,6 +60,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -170,6 +171,14 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
      * @return {@code true} if parent directories should be created
      */
     public boolean isCreateParentDirectories() {
+        return m_createParentDirectories && !isCustomURL();
+    }
+
+    boolean isCustomURL() {
+        return getLocation().getFileSystemChoice() == Choice.CUSTOM_URL_FS;
+    }
+
+    boolean isCreateParentDirectoriesUI() {
         return m_createParentDirectories;
     }
 
