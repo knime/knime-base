@@ -94,4 +94,9 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
         return getLocation().getPath();
     }
 
+    @Override
+    protected String getModelTypeID() {
+        return "SMID_ReaderFileChooser";
+    }
+
 }

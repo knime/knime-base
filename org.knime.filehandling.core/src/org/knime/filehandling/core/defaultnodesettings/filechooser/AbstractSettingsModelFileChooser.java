@@ -229,11 +229,6 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     }
 
     @Override
-    protected String getModelTypeID() {
-        return "SMID_FileChooserGen3";
-    }
-
-    @Override
     protected String getConfigName() {
         return m_configName;
     }

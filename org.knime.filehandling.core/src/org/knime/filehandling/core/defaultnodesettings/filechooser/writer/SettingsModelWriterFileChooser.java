@@ -267,4 +267,9 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
         return new SettingsModelWriterFileChooser(this);
     }
 
+    @Override
+    protected String getModelTypeID() {
+        return "SMID_WriterFileChooser";
+    }
+
 }
