@@ -92,7 +92,7 @@ public class NodeModelStatusConsumer implements Consumer<StatusMessage> {
      * @param consumer the {@link Consumer}
      */
     public void setWarningsIfRequired(final Consumer<String> consumer) {
-        m_priorityConsumer.get().map(StatusMessage::toString).ifPresent(consumer::accept);
+        m_priorityConsumer.get().map(StatusMessage::getMessage).ifPresent(consumer::accept);
         m_priorityConsumer.clear();
     }
 
