@@ -52,6 +52,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -207,11 +208,24 @@ public final class NioFile extends File {
             return files.toArray(new NioFile[0]);
 
         } catch (final Exception ex) {
-            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-            setThreadLocalException(ex);
-            return null;
+            if (wasInterrupted(ex)) {
+                // ignore
+                return new File[0];
+            } else {
+
+                LOGGER.warn(
+                    "Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                setThreadLocalException(ex);
+                return null;
+            }
         }
 
+    }
+
+    private boolean wasInterrupted(final Exception ex) {
+        return Thread.interrupted() //
+                || ex instanceof InterruptedIOException //
+                || ExceptionUtil.getDeepestError(ex) instanceof InterruptedException;
     }
 
     @Override
@@ -227,9 +241,16 @@ public final class NioFile extends File {
             return files.toArray(new NioFile[0]);
 
         } catch (final Exception ex) {
-            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-            setThreadLocalException(ex);
-            return null;
+            if (wasInterrupted(ex)) {
+                // ignore
+                return new File[0];
+            } else {
+
+                LOGGER.warn(
+                    "Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                setThreadLocalException(ex);
+                return null;
+            }
         }
     }
 
@@ -249,12 +270,15 @@ public final class NioFile extends File {
             final List<String> files = new ArrayList<>();
             directoryStream.iterator().forEachRemaining(p -> files.add(p.getFileName().toString()));
             return files.stream().toArray(String[]::new);
-
         } catch (final Exception ex) {
-            ex.printStackTrace();
-            LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
-            setThreadLocalException(ex);
-            return null;
+            if (wasInterrupted(ex)) {
+                // ignore
+                return new String[0];
+            } else {
+                LOGGER.warn("Could not list files in '" + m_path + "': " + ExceptionUtil.getDeepestErrorMessage(ex, false));
+                setThreadLocalException(ex);
+                return null;
+            }
         }
     }
 

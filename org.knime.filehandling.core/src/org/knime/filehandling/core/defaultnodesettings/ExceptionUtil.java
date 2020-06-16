@@ -84,6 +84,20 @@ public class ExceptionUtil {
    }
 
    /**
+    * Returns deepest exeption cause from the cause stack o fthe given exception.
+    *
+    * @param t A throwable, possibly with cause chain.
+    * @return deepest The deepest exception cause.
+    */
+   public static Throwable getDeepestError(final Throwable t) {
+       if (t.getCause() != null && t.getCause() != t) {
+           return getDeepestError(t.getCause());
+       } else {
+           return t;
+       }
+   }
+
+   /**
     *
     * @param msg The message to limit in length.
     * @param maxLen Maximum requested length of the message.
