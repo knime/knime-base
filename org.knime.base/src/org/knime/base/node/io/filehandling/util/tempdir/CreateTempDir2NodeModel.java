@@ -104,7 +104,9 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     private final NodeModelStatusConsumer m_statusConumser;
 
-    private final Map<FSLocationSpec, List<FSLocation>> m_tempDirs;
+    private final Map<FSLocationSpec, List<FSLocation>> m_onResetTempDirs;
+
+    private final Map<FSLocationSpec, List<FSLocation>> m_onDisposeTempDirs;
 
     private FSConnection m_fsConnection;
 
@@ -122,7 +124,8 @@ final class CreateTempDir2NodeModel extends NodeModel {
             .map(idx -> idx[0])//
             .orElse(MISSING_FS_PORT_IDX);
         m_statusConumser = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
-        m_tempDirs = new HashMap<>();
+        m_onResetTempDirs = new HashMap<>();
+        m_onDisposeTempDirs = new HashMap<>();
     }
 
     @Override
@@ -152,7 +155,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 if (m_config.deleteDirOnReset()) {
                     m_fsConnection = ((FileSystemPortObject)inObjects[m_fsConnectionPortIdx]).getFileSystemConnection()
                         .orElseThrow(IllegalStateException::new);
-                    markForDeletion(tempDirFSPath);
+                    markForDeletion(tempDirFSPath, m_onResetTempDirs);
                 }
             } else {
                 tempDirFSPath = FSFiles.createRandomizedDirectory(parentPath, m_config.getTempDirPrefix(), "");
@@ -164,8 +167,16 @@ final class CreateTempDir2NodeModel extends NodeModel {
     }
 
     private void markForDeletion(final FSPath tempDirFSPath) {
+        if (m_config.deleteDirOnReset()) {
+            markForDeletion(tempDirFSPath, m_onResetTempDirs);
+        }
+        markForDeletion(tempDirFSPath, m_onDisposeTempDirs);
+    }
+
+    private static void markForDeletion(final FSPath tempDirFSPath,
+        final Map<FSLocationSpec, List<FSLocation>> tempDirs) {
         FSLocation fsLocation = tempDirFSPath.toFSLocation();
-        m_tempDirs
+        tempDirs
             .computeIfAbsent(new DefaultFSLocationSpec(fsLocation.getFileSystemType(),
                 fsLocation.getFileSystemSpecifier().orElse(null)), k -> new ArrayList<>())//
             .add(fsLocation);
@@ -186,14 +197,24 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     @Override
     protected void onDispose() {
-        deleteTempDirs();
+        deleteTempDirs(m_onDisposeTempDirs);
         super.onDispose();
     }
 
     @Override
     protected void reset() {
-        if (m_config.deleteDirOnReset()) {
-            deleteTempDirs();
+        if (!m_onResetTempDirs.isEmpty()) {
+            for (final Entry<FSLocationSpec, List<FSLocation>> entry : m_onResetTempDirs.entrySet()) {
+                if (m_onDisposeTempDirs.containsKey(entry.getKey())) {
+                    final List<FSLocation> onDisposePaths = m_onDisposeTempDirs.get(entry.getKey());
+                    onDisposePaths.removeAll(entry.getValue());
+                    if (onDisposePaths.isEmpty()) {
+                        m_onDisposeTempDirs.remove(entry.getKey());
+                    }
+                }
+            }
+            deleteTempDirs(m_onResetTempDirs);
+            m_onResetTempDirs.clear();
         }
     }
 
@@ -224,10 +245,9 @@ final class CreateTempDir2NodeModel extends NodeModel {
         // Nothing to do here
     }
 
-    private void deleteTempDirs() {
-        if (!m_tempDirs.isEmpty()) {
-            new DeleteTempDirs(m_fsConnection, m_tempDirs).start();
-            m_tempDirs.clear();
+    private void deleteTempDirs(final Map<FSLocationSpec, List<FSLocation>> tempDirs) {
+        if (!tempDirs.isEmpty()) {
+            new DeleteTempDirs(m_fsConnection, tempDirs).start();
             m_fsConnection = null;
         }
     }
