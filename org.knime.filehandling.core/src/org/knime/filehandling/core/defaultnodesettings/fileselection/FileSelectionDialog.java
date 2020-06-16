@@ -52,9 +52,12 @@ import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -65,11 +68,16 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
+import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.util.CheckedExceptionSupplier;
 import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * A dialog for selecting files from a file system.</br>
@@ -80,6 +88,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class FileSelectionDialog {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FileSelectionDialog.class);
 
     private final List<ChangeListener> m_listeners = new LinkedList<>();
 
@@ -99,7 +109,9 @@ public final class FileSelectionDialog {
 
     private boolean m_browsingEnabled = true;
 
-    private FileSystemBrowser m_fsBrowser;
+    private CheckedExceptionSupplier<FSConnection, IOException> m_fsConnectionSupplier;
+
+    private OpenBrowserSwingWorker m_browserSwingWorker;
 
     private String[] m_fileExtensions;
 
@@ -108,19 +120,20 @@ public final class FileSelectionDialog {
      *
      * @param historyID ID for storing a file history
      * @param historyLength the number of entries to store in the file history
-     * @param fileSystemBrowser the initial {@link FileSystemBrowser}
+     * @param fileSystemBrowserSupplier the initial supplier for the {@link FSConnection}
      * @param dialogType the type of dialog (Open or Save)
      * @param fileSelectionMode the initial FileSelectionMode
      * @param fileExtensions the initially supported file extensions
      * @throws IllegalArgumentException if any argument is {@code null}
      */
     public FileSelectionDialog(final String historyID, final int historyLength,
-        final FileSystemBrowser fileSystemBrowser, final DialogType dialogType,
-        final FileSelectionMode fileSelectionMode, final String[] fileExtensions) {
+        final CheckedExceptionSupplier<FSConnection, IOException> fileSystemBrowserSupplier,
+        final DialogType dialogType, final FileSelectionMode fileSelectionMode, final String[] fileExtensions) {
         m_historyModel = new HistoryComboBoxModel(historyID, historyLength);
         CheckUtils.checkArgument(historyLength > 0, "The historyLength must be positive.");
         m_fileSelectionComboBox = new FileSelectionComboBox(m_historyModel);
-        m_fsBrowser = CheckUtils.checkArgumentNotNull(fileSystemBrowser, "The fileSystemBrowser must not be null.");
+        m_fsConnectionSupplier =
+            CheckUtils.checkArgumentNotNull(fileSystemBrowserSupplier, "The fileSystemBrowser must not be null.");
         m_dialogType = CheckUtils.checkArgumentNotNull(dialogType, "The dialogType must not be null.");
         m_fileExtensions = CheckUtils.checkArgumentNotNull(fileExtensions, "The suffixes must not be null.");
         m_fileSelectionMode =
@@ -197,15 +210,23 @@ public final class FileSelectionDialog {
     }
 
     private void clickBrowse() {
-        final String currentlySelected = m_fileSelectionComboBox.getSelectedItem();
-        final String selectedInBrowser = m_fsBrowser.openDialogAndGetSelectedFileName(m_fileSelectionMode, m_dialogType,
-            m_panel, getDefaultFileExtension(), currentlySelected, m_fileExtensions);
-        // selectedInBrowser is null if browsing was canceled via the cancel button or closing the browser
-        if (selectedInBrowser != null && !Objects.equals(currentlySelected, selectedInBrowser)) {
-            m_fileSelectionComboBox.setSelectedItem(selectedInBrowser);
-            m_historyModel.addCurrentSelectionToHistory();
+        cancelRunningWorker();
+        m_browserSwingWorker = new OpenBrowserSwingWorker();
+        m_browserSwingWorker.execute();
+    }
+
+    /**
+     * To be called when the dialog is closed (by pressing OK or Cancel).
+     */
+    public void onClose() {
+        cancelRunningWorker();
+    }
+
+    private void cancelRunningWorker() {
+        if (m_browserSwingWorker != null) {
+            m_browserSwingWorker.cancel(true);
+            m_browserSwingWorker = null;
         }
-        notifyListeners();
     }
 
     private String getDefaultFileExtension() {
@@ -213,12 +234,14 @@ public final class FileSelectionDialog {
     }
 
     /**
-     * Sets a new {@link FileSystemBrowser} e.g. if the used file system changes.
+     * Sets a new {@link FSConnection} e.g. if the used file system changes.
      *
-     * @param fileSystemBrowser the {@link FileSystemBrowser} this instance should use from now on
+     * @param fsConnectionSupplier the {@link FSConnection} this instance should use from now on
      */
-    public void setFileSystemBrowser(final FileSystemBrowser fileSystemBrowser) {
-        m_fsBrowser = CheckUtils.checkArgumentNotNull(fileSystemBrowser, "The fileSystemBrowser must not be null.");
+    public void
+        setFSConnectionSupplier(final IOESupplier<FSConnection> fsConnectionSupplier) {
+        m_fsConnectionSupplier =
+            CheckUtils.checkArgumentNotNull(fsConnectionSupplier, "The fsConnectionSupplier must not be null.");
     }
 
     /**
@@ -262,8 +285,8 @@ public final class FileSelectionDialog {
      */
     public void setSelected(final String selected) {
         if (!Objects.equals(selected, getSelected())) {
-        m_fileSelectionComboBox
-            .setSelectedItem(CheckUtils.checkArgumentNotNull(selected, "Selected must not be null."));
+            m_fileSelectionComboBox
+                .setSelectedItem(CheckUtils.checkArgumentNotNull(selected, "Selected must not be null."));
         }
     }
 
@@ -303,6 +326,42 @@ public final class FileSelectionDialog {
     public void setEnabled(final boolean enabled) {
         m_browseButton.setEnabled(m_browsingEnabled && enabled);
         m_fileSelectionComboBox.setEnabled(enabled);
+    }
+
+    private class OpenBrowserSwingWorker extends SwingWorkerWithContext<FSConnection, Void> {
+
+        @Override
+        protected FSConnection doInBackgroundWithContext() throws IOException {
+            return m_fsConnectionSupplier.get();
+        }
+
+        @SuppressWarnings("resource") // the fsConnection is closed in the finally block
+        @Override
+        protected void doneWithContext() {
+            FSConnection fsConnection = null;
+            try {
+                fsConnection = get();
+            final String currentlySelected = m_fileSelectionComboBox.getSelectedItem();
+                final FileSystemBrowser fsBrowser = fsConnection.getFileSystemBrowser();
+                final String selectedInBrowser = fsBrowser.openDialogAndGetSelectedFileName(m_fileSelectionMode,
+                    m_dialogType, m_panel, getDefaultFileExtension(), currentlySelected, m_fileExtensions);
+                // selectedInBrowser is null if browsing was canceled via the cancel button or closing the browser
+                if (selectedInBrowser != null && !Objects.equals(currentlySelected, selectedInBrowser)) {
+                    m_fileSelectionComboBox.setSelectedItem(selectedInBrowser);
+                    m_historyModel.addCurrentSelectionToHistory();
+                }
+                notifyListeners();
+            } catch (ExecutionException ee) {
+                LOGGER.error("ExecutionException while creating browser.", ee);
+            } catch (InterruptedException | CancellationException ex) {
+                LOGGER.debug("Browser creation was interrupted.", ex);
+            } finally {
+                if (fsConnection != null) {
+                    fsConnection.closeInBackground();
+                }
+            }
+        }
+
     }
 
 }

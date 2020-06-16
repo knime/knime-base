@@ -58,6 +58,7 @@ import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFS
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -130,6 +131,27 @@ public final class FileSystemHelper {
             default:
                 throw new IllegalArgumentException("Unknown file system choice: " + choice);
 
+        }
+    }
+
+    /**
+     * Checks if a connection can be retrieved for the provided parameters.
+     *
+     * @param portObjectConnection connection provided by the optional input port of fs nodes (use
+     *            {@link Optional#empty()} in case the node has no fs port)
+     * @param location {@link FSLocation} for which a connection should be created
+     * @return {@code true} if a connection can be retrieved for the provided parameters
+     */
+    public static boolean canRetrieveFSConnection(final Optional<FSConnection> portObjectConnection,
+        final FSLocation location) {
+        final FileSystemChoice.Choice choice = location.getFileSystemChoice();
+        if (choice == Choice.CONNECTED_FS) {
+            return portObjectConnection.isPresent();
+        } else if (choice == Choice.KNIME_MOUNTPOINT) {
+            return extractMountpoint(location).isConnected();
+        } else {
+            // for the other fs types, it is always possible to create a connection
+            return true;
         }
     }
 

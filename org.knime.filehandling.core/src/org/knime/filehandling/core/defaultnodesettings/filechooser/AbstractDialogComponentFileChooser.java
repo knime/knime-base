@@ -71,9 +71,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.local.LocalFileSystemBrowser;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
@@ -135,8 +133,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private boolean m_replacedByFlowVar = false;
 
-    private FSConnection m_connection = null;
-
     private StatusSwingWorker m_statusMessageWorker = null;
 
     /**
@@ -168,7 +164,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
             selectableFilterModes.toArray(new FilterMode[0]));
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =
             model.getFileSystemConfiguration().getSupportedFileSelectionModes();
-        m_fileSelection = new FileSelectionDialog(historyID, 10, new LocalFileSystemBrowser(), dialogType,
+        m_fileSelection = new FileSelectionDialog(historyID, 10, model::getConnection, dialogType,
             supportedModes.iterator().next(), model.getFileExtensions());
         hookUpListeners();
         layout(selectableFilterModes.size() > 1);
@@ -334,41 +330,21 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     private void updateBrowser() {
         final AbstractSettingsModelFileChooser sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
-        if (m_connection != null) {
-            // FIXME we should create or close FSConnections in code that's run in the UI thread
-            m_connection.closeInBackground();
-        }
         if (location.getFileSystemChoice() != Choice.CUSTOM_URL_FS) {
-            final Optional<FSConnection> connection = getConnection();
-            final Optional<FileSystemBrowser> browser = connection.map(FSConnection::getFileSystemBrowser);
             // we can only browse if the file system connection is available
-            if (!isRemoteJobView() && browser.isPresent()) {
+            if (!isRemoteJobView() && sm.canCreateConnection()) {
                 // the connection is present, otherwise browser couldn't be
-                m_connection = connection.get();
                 m_fileSelection.setEnableBrowsing(true);
                 m_fileSelection.setFileExtensions(sm.getFileExtensions());
-                m_fileSelection.setFileSystemBrowser(browser.get());
+                m_fileSelection.setFSConnectionSupplier(sm::getConnection);
                 m_fileSelection.setFileSelectionMode(getFileSelectionMode());
             } else {
                 // if we are in the remote job view, we need to close the connection since we can't browse anyway
-                // FIXME we should create or close FSConnections in code that's run in the UI thread
-                connection.ifPresent(FSConnection::closeInBackground);
                 m_fileSelection.setEnableBrowsing(false);
             }
         } else {
             m_fileSelection.setEnableBrowsing(false);
         }
-    }
-
-    private Optional<FSConnection> getConnection() {
-        Optional<FSConnection> connection;
-        try {
-            // FIXME throws exception for EXAMPLES server -> Ask Bj�rn what's up there
-            connection = getSettingsModel().getConnection();
-        } catch (Exception ex) {
-            connection = Optional.empty();
-        }
-        return connection;
     }
 
     private FileSystemBrowser.FileSelectionMode getFileSelectionMode() {
@@ -407,11 +383,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         if (m_statusMessageWorker != null) {
             m_statusMessageWorker.cancel(true);
             m_statusMessageWorker = null;
-        }
-        if (m_connection != null) {
-            // FIXME we should create or close FSConnections in code that's run in the UI thread
-            m_connection.closeInBackground();
-            m_connection = null;
         }
         getSettingsModel().getFileSystemConfiguration().validate();
         // checkStatus() only fails if the swing worker found an error,
