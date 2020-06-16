@@ -302,7 +302,7 @@ public final class DialogComponentFilterMode extends DialogComponent {
     }
 
     @Override
-    protected void setEnabledComponents(final boolean enabled) {
+    public void setEnabledComponents(final boolean enabled) {
         m_filterModeButtonGroup.getModel().setEnabled(enabled);
         m_filterOptionsButton.setEnabled(enabled);
         m_includeSubfoldersCheckBox.setEnabled(enabled);

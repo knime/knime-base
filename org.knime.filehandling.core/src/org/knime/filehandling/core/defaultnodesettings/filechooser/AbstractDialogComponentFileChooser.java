@@ -246,7 +246,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
             }
             m_fileSelection.setSelected(location.getPath());
         }
-        setEnabledComponents(!m_replacedByFlowVar);
+        setEnabledFlowVarSensitive(!m_replacedByFlowVar);
     }
 
     private void handleFileSelectionChange() {
@@ -436,6 +436,11 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     @Override
     protected void setEnabledComponents(final boolean enabled) {
+        setEnabledFlowVarSensitive(enabled);
+        m_filterMode.setEnabledComponents(enabled);
+    }
+
+    private void setEnabledFlowVarSensitive(final boolean enabled) {
         final boolean actual = enabled && !m_replacedByFlowVar;
         m_fsChooser.setEnabled(actual);
         m_fileSelection.setEnabled(actual);
@@ -445,6 +450,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     public void setToolTipText(final String text) {
         m_fsChooser.setTooltip(text);
         m_fileSelection.setTooltip(text);
+        m_filterMode.setToolTipText(text);
     }
 
 }
