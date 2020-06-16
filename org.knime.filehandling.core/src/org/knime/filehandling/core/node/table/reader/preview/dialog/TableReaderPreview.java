@@ -109,10 +109,14 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
 
     private static final int DELAY_ANALYSIS = 1000;
 
+    private static final int PREVIEW_WIDTH = 750;
+
+    private static final int PREVIEW_HEIGHT = 250;
+
     private static final Consumer<StatusMessage> NO_OP_CONSUMER = w -> {
     };
 
-    private final JButton m_quickScanButton = new JButton("Quick Scan");
+    private final JButton m_quickScanButton = new JButton("Stop file scanning");
 
     private final TableView m_previewTableView = new TableView(new TableContentView());
 
@@ -194,6 +198,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.weighty = 1;
+        m_previewTableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
         add(m_previewTableView, gbc);
     }
 
