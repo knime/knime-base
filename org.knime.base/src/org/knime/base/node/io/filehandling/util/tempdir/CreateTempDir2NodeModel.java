@@ -72,6 +72,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.util.ThreadUtils.ThreadWithContext;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -231,7 +232,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
         }
     }
 
-    private static class DeleteTempDirs extends Thread {
+    private static final class DeleteTempDirs extends ThreadWithContext {
 
         private final Map<FSLocationSpec, List<FSLocation>> m_dirsToDelete;
 
@@ -243,7 +244,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
         }
 
         @Override
-        public void run() {
+        protected void runWithContext() {
             for (final Entry<FSLocationSpec, List<FSLocation>> entry : m_dirsToDelete.entrySet()) {
                 try (FSPathProviderFactory factory = FSPathProviderFactory.newFactory(m_connection, entry.getKey())) {
                     for (FSLocation loc : entry.getValue()) {
@@ -271,6 +272,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 LOGGER.debug("Problem deleting temp directory " + delE.getMessage());
             }
         }
+
     }
 
 }
