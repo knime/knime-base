@@ -89,7 +89,7 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
 
     @Override
     public KNIMERemoteFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new KNIMERemoteFileSystem(this, uri, true);
+        return new KNIMERemoteFileSystem(this, uri, false);
     }
 
     @Override
