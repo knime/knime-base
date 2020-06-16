@@ -101,6 +101,20 @@ public class SettingsModelCSVWriter extends SettingsModel {
 
     private static final String CFG_CHAR_ENCODING = "character_set";
 
+    private static final String DEFAULT_COLUMN_DELIMITER = ",";
+
+    private static final char DEFAULT_QUOTE_CHAR = '"';
+
+    private static final char DEFAULT_QUOTE_ESCAPE_CHAR = '"';
+
+    private static final boolean DEFAULT_WRITE_COLUMN_HEADER = true;
+
+    private static final boolean DEFAULT_SKIP_COLUMN_HEADER_ON_APPEND = false;
+
+    private static final boolean DEFAULT_WRITE_ROW_HEADER = false;
+
+    private static final String DEFAULT_CHAR_ENCODING = null;
+
     private final SettingsModelWriterFileChooser m_fileChooserModel;
 
     private boolean m_writeColumnHeader;
@@ -136,20 +150,20 @@ public class SettingsModelCSVWriter extends SettingsModel {
             EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.APPEND),
             FILE_SUFFIXES);
 
-        m_columnDelimiter = ",";
+        m_columnDelimiter = DEFAULT_COLUMN_DELIMITER;
         m_lineBreak = LineBreakTypes.SYS_DEFAULT;
 
-        m_quoteChar = '"';
-        m_quoteEscapeChar = '"';
+        m_quoteChar = DEFAULT_QUOTE_CHAR;
+        m_quoteEscapeChar = DEFAULT_QUOTE_ESCAPE_CHAR;
 
-        m_writeColumnHeader = true;
-        m_skipColumnHeaderOnAppend = false;
-        m_writeRowHeader = false;
+        m_writeColumnHeader = DEFAULT_WRITE_COLUMN_HEADER;
+        m_skipColumnHeaderOnAppend = DEFAULT_SKIP_COLUMN_HEADER_ON_APPEND;
+        m_writeRowHeader = DEFAULT_WRITE_ROW_HEADER;
 
         m_advancedConfig = new AdvancedConfig();
         m_commentConfig = new CommentConfig();
 
-        m_charsetName = null;
+        m_charsetName = DEFAULT_CHAR_ENCODING;
     }
 
     /**
@@ -203,23 +217,27 @@ public class SettingsModelCSVWriter extends SettingsModel {
     }
 
     @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        loadInDialog(settings);
-    }
-
-    /**
-     * Loads the configuration in the dialog.
-     *
-     * @param settings to load from
-     * @throws NotConfigurableException if m_fileChooserModel can not be loaded from settings
-     */
-    public void loadInDialog(final NodeSettingsRO settings) throws NotConfigurableException {
         try {
-            loadSettingsForModel(settings);
+            m_lineBreak = LineBreakTypes.loadSettings(settings);
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
+
+        m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER, DEFAULT_COLUMN_DELIMITER);
+
+        m_quoteChar = settings.getChar(CFG_QUOTE_CHAR, DEFAULT_QUOTE_CHAR);
+        m_quoteEscapeChar = settings.getChar(CFG_QUOTE_ESCAPE_CHAR, DEFAULT_QUOTE_ESCAPE_CHAR);
+
+        m_writeColumnHeader = settings.getBoolean(CFG_WRITE_COLUMN_HEADER, DEFAULT_WRITE_COLUMN_HEADER);
+        m_skipColumnHeaderOnAppend =
+            settings.getBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND, DEFAULT_SKIP_COLUMN_HEADER_ON_APPEND);
+        m_writeRowHeader = settings.getBoolean(CFG_WRITE_ROW_HEADER, DEFAULT_WRITE_ROW_HEADER);
+
+        m_advancedConfig.loadInDialog(getConfigForDialog(settings, CFG_ADVANCED));
+        m_commentConfig.loadInDialog(getConfigForDialog(settings, CFG_COMMENT));
+        m_charsetName = settings.getString(CFG_CHAR_ENCODING, DEFAULT_CHAR_ENCODING);
     }
 
     static NodeSettingsRO getConfigForDialog(final NodeSettingsRO settings, final String configKey) {

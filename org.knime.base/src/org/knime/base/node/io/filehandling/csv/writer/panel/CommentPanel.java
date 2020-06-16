@@ -153,7 +153,7 @@ public final class CommentPanel extends JPanel {
         final JPanel commentSettingsPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         commentSettingsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Comment pattern:"));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Comment pattern"));
 
         final Insets labelPad = new Insets(5, 5, 5, 5);
 
@@ -181,7 +181,7 @@ public final class CommentPanel extends JPanel {
         final JPanel commentContentPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         commentContentPanel.setBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Included comment content:"));
+            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Included comment content"));
 
         gbc.insets = new Insets(5, 5, 5, 5);
         commentContentPanel.add(m_addUserNameChecker, gbc);

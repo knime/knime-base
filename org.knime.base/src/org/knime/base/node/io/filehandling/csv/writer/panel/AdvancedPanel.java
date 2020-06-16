@@ -166,7 +166,7 @@ public final class AdvancedPanel extends JPanel {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel advancedQuotePanel = new JPanel(new GridBagLayout());
         advancedQuotePanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote values:"));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote values"));
 
         gbc.insets = new Insets(5, 3, 3, 5);
         advancedQuotePanel.add(m_quoteIfNeededButton, gbc);
@@ -198,7 +198,7 @@ public final class AdvancedPanel extends JPanel {
         final JPanel advancedNumOptionsPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         advancedNumOptionsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options:"));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Numeric options"));
 
         gbc.insets = new Insets(5, 5, 5, 5);
         advancedNumOptionsPanel.add(new JLabel("Decimal separator"), gbc);

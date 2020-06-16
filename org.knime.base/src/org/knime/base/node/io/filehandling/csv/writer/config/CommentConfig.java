@@ -180,6 +180,7 @@ public final class CommentConfig implements SimpleConfig {
                 if (m_addUsername) {
                     creationLine += " by user '" + System.getProperty("user.name") + "'";
                 }
+                creationLine += ".";
                 commentLines.add(creationLine);
             }
             // add the table name

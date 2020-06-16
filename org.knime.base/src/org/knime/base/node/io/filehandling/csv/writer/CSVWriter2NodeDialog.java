@@ -55,12 +55,17 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
+import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
 import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
-import org.knime.base.node.io.filehandling.csv.writer.panel.BasicPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
+import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
@@ -73,6 +78,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
@@ -87,7 +93,19 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
     /** textfield to enter file name. */
     private final DialogComponentWriterFileChooser m_filePanel;
 
-    private final BasicPanel m_basicPanel;
+    private final JCheckBox m_writeColumnHeaderChecker;
+
+    private final JCheckBox m_skipColumnHeaderOnAppendChecker;
+
+    private final JCheckBox m_writeRowHeaderChecker;
+
+    private final JTextField m_colDelimiterField;
+
+    private final JComboBox<LineBreakTypes> m_lineBreakSelection;
+
+    private final JTextField m_quoteField;
+
+    private final JTextField m_quoteEscapeField;
 
     private final AdvancedPanel m_advancedPanel;
 
@@ -106,22 +124,41 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
     public CSVWriter2NodeDialog(final SettingsModelCSVWriter writerConfig) {
         m_writerConfig = writerConfig;
 
+        m_writerConfig.getFileChooserModel().addChangeListener(e -> checkCheckerState());
+
         m_filePanel = new DialogComponentWriterFileChooser(m_writerConfig.getFileChooserModel(), FILE_HISTORY_ID,
             createFlowVariableModel(m_writerConfig.getFileChooserModel().getKeysForFSLocation(),
                 FSLocationVariableType.INSTANCE),
             FilterMode.FILE);
 
-        m_basicPanel = new BasicPanel(m_writerConfig.getFileChooserModel());
+        m_writeColumnHeaderChecker = new JCheckBox("Write column header");
+        m_writeColumnHeaderChecker.addItemListener(e -> checkCheckerState());
+        m_skipColumnHeaderOnAppendChecker = new JCheckBox("Don't write column headers if file exists");
+        m_writeRowHeaderChecker = new JCheckBox("Write row ID");
+
+        final int textWidth = 3;
+        m_colDelimiterField = new JTextField(",", textWidth);
+
+        m_quoteField = new JTextField("\"", textWidth);
+        m_quoteEscapeField = new JTextField("\"", textWidth);
+
+        m_lineBreakSelection = new JComboBox<>(LineBreakTypes.values());
+        m_lineBreakSelection.setEnabled(true);
+
         m_advancedPanel = new AdvancedPanel();
         m_commentPanel = new CommentPanel();
+        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
 
-        addTab("Options", initLayout());
+        initLayout();
+        checkCheckerState();
+
+    }
+
+    private void initLayout() {
+        addTab("Options", createMainOptionsPanel());
         addTab("Advanced Options", m_advancedPanel);
         addTab("Comment Header", m_commentPanel);
-
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
         addTab("Encoding", m_encodingPanel);
-
     }
 
     /**
@@ -140,25 +177,33 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         return gbc;
     }
 
-    private JPanel initLayout() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = createAndInitGBC();
+    private JPanel createMainOptionsPanel() {
+        GridBagConstraints gbc = createAndInitGBC();
+
+        final JPanel mainOptionsPanel = new JPanel(new GridBagLayout());
+
         gbc.insets = new Insets(5, 0, 5, 0);
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
-        panel.add(createFilePanel(), gbc);
+
+        mainOptionsPanel.add(createFilePanel(), gbc);
         gbc.gridy++;
-        panel.add(m_basicPanel, gbc);
+        mainOptionsPanel.add(createFormatOptionsPanel(), gbc);
+
+        gbc.gridy++;
+        mainOptionsPanel.add(createHeaderOptionsPanel(), gbc);
+
         gbc.gridy++;
         gbc.weighty = 1;
-        panel.add(Box.createVerticalBox(), gbc);
-        return panel;
+        mainOptionsPanel.add(Box.createVerticalBox(), gbc);
+
+        return mainOptionsPanel;
     }
 
     private JPanel createFilePanel() {
         final JPanel filePanel = new JPanel();
         filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location:"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location"));
         filePanel.setMaximumSize(
             new Dimension(Integer.MAX_VALUE, m_filePanel.getComponentPanel().getPreferredSize().height));
         filePanel.add(m_filePanel.getComponentPanel());
@@ -166,34 +211,124 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         return filePanel;
     }
 
+    private JPanel createFormatOptionsPanel() {
+        GridBagConstraints gbc = createAndInitGBC();
+        final JPanel formatOptionsPanel = new JPanel(new GridBagLayout());
+        formatOptionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Format"));
+
+        final Insets labelPad = new Insets(5, 5, 5, 5);
+        final Insets columnPad = new Insets(5, 60, 5, 5);
+
+        gbc.insets = labelPad;
+        formatOptionsPanel.add(m_colDelimiterField, gbc);
+        gbc.gridx++;
+        formatOptionsPanel.add(new JLabel("Column Delimiter"), gbc);
+        gbc.gridx++;
+        gbc.insets = columnPad;
+        formatOptionsPanel.add(m_lineBreakSelection, gbc);
+        gbc.gridx++;
+        gbc.insets = labelPad;
+        formatOptionsPanel.add(new JLabel("Row Delimiter"), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.insets = labelPad;
+        formatOptionsPanel.add(m_quoteField, gbc);
+        gbc.gridx++;
+        formatOptionsPanel.add(new JLabel("Quote Char"), gbc);
+        gbc.gridx++;
+        gbc.insets = columnPad;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        formatOptionsPanel.add(m_quoteEscapeField, gbc);
+        gbc.gridx++;
+        gbc.insets = labelPad;
+        formatOptionsPanel.add(new JLabel("Quote Escape Char"), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        formatOptionsPanel.add(Box.createHorizontalBox(), gbc);
+
+        return formatOptionsPanel;
+    }
+
+    private JPanel createHeaderOptionsPanel() {
+        final JPanel miscOptionsPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = createAndInitGBC();
+        miscOptionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Header"));
+
+        gbc.insets = new Insets(5, 5, 5, 5);
+        miscOptionsPanel.add(m_writeColumnHeaderChecker, gbc);
+
+        gbc.gridy++;
+        miscOptionsPanel.add(m_skipColumnHeaderOnAppendChecker, gbc);
+
+        gbc.gridy++;
+        miscOptionsPanel.add(m_writeRowHeaderChecker, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        miscOptionsPanel.add(Box.createHorizontalBox(), gbc);
+        return miscOptionsPanel;
+    }
+
+    /**
+     * Checks whether or not the "on file exists" check should be enabled.
+     *
+     * @param writeFileChooserModel
+     */
+    private void checkCheckerState() {
+        m_skipColumnHeaderOnAppendChecker.setEnabled(m_writeColumnHeaderChecker.isSelected()
+            && m_writerConfig.getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.APPEND);
+    }
+
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
-        m_writerConfig.loadInDialog(settings);
+        m_writerConfig.loadSettingsForDialog(settings, specs);
 
         m_filePanel.loadSettingsFrom(settings, specs);
-        m_basicPanel.loadDialogSettings(m_writerConfig);
 
-        m_advancedPanel.loadDialogSettings(m_writerConfig.getAdvancedConfig());
-        m_commentPanel.loadDialogSettings(m_writerConfig.getCommentConfig());
+        m_writeColumnHeaderChecker.setSelected(m_writerConfig.writeColumnHeader());
+        m_skipColumnHeaderOnAppendChecker.setSelected(m_writerConfig.skipColumnHeaderOnAppend());
+        m_writeRowHeaderChecker.setSelected(m_writerConfig.writeRowHeader());
+
+        m_colDelimiterField.setText(EscapeUtils.escape(m_writerConfig.getColumnDelimiter()));
+
+        m_lineBreakSelection.setSelectedItem(m_writerConfig.getLineBreak());
+
+        m_quoteField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteChar())));
+        m_quoteEscapeField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteEscapeChar())));
 
         FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(m_writerConfig.getCharsetName());
         m_encodingPanel.loadSettings(fReadSettings);
+
+        m_advancedPanel.loadDialogSettings(m_writerConfig.getAdvancedConfig());
+        m_commentPanel.loadDialogSettings(m_writerConfig.getCommentConfig());
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filePanel.saveSettingsTo(settings);
-        m_basicPanel.saveDialogSettings(m_writerConfig);
 
-        m_advancedPanel.saveDialogSettings(m_writerConfig.getAdvancedConfig());
-        m_commentPanel.saveDialogSettings(m_writerConfig.getCommentConfig());
+        m_writerConfig.setWriteColumnHeader(m_writeColumnHeaderChecker.isSelected());
+        m_writerConfig.setSkipColumnHeaderOnAppend(m_skipColumnHeaderOnAppendChecker.isSelected());
+        m_writerConfig.setWriteRowHeader(m_writeRowHeaderChecker.isSelected());
+
+        m_writerConfig.setColumnDelimiter(EscapeUtils.unescape(m_colDelimiterField.getText()));
+        m_writerConfig.setLineBreak((LineBreakTypes)m_lineBreakSelection.getSelectedItem());
+
+        m_writerConfig.setQuoteChar(EscapeUtils.unescape(m_quoteField.getText()));
+        m_writerConfig.setQuoteEscapeChar(EscapeUtils.unescape(m_quoteEscapeField.getText()));
 
         final FileReaderNodeSettings s = new FileReaderNodeSettings();
         m_encodingPanel.overrideSettings(s);
         m_writerConfig.setCharSetName(s.getCharsetName());
 
+        m_advancedPanel.saveDialogSettings(m_writerConfig.getAdvancedConfig());
+        m_commentPanel.saveDialogSettings(m_writerConfig.getCommentConfig());
+
         m_writerConfig.saveSettingsTo(settings);
+
     }
 }
