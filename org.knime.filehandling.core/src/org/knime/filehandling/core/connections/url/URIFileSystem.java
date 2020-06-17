@@ -55,10 +55,10 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  *
@@ -86,9 +86,9 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
     }
 
     private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final int timeoutInMillis) {
-        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.CUSTOM_URL_FS;
+        final FSCategory category = isConnectedFs ? FSCategory.CONNECTED : FSCategory.CUSTOM_URL;
         final String specifier = Integer.toString(timeoutInMillis);
-        return new DefaultFSLocationSpec(choice, specifier);
+        return new DefaultFSLocationSpec(category, specifier);
     }
 
     /**

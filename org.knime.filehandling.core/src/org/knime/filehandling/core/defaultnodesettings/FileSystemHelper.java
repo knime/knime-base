@@ -52,13 +52,13 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.util.Optional;
 
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -115,21 +115,21 @@ public final class FileSystemHelper {
      */
     public static Optional<FSConnection> retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final FSLocation location) {
-        final FileSystemChoice.Choice choice = location.getFileSystemChoice();
-        switch (choice) {
-            case CONNECTED_FS:
+        final FSCategory category = location.getFSCategory();
+        switch (category) {
+            case CONNECTED:
                 return portObjectConnection;
-            case CUSTOM_URL_FS:
+            case CUSTOM_URL:
                 final URI uri = URI.create(location.getPath().replace(" ", "%20"));
                 return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
-            case KNIME_FS:
+            case RELATIVE:
                 return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location)));
-            case KNIME_MOUNTPOINT:
+            case MOUNTPOINT:
                 return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location)));
-            case LOCAL_FS:
+            case LOCAL:
                 return Optional.of(new LocalFSConnection());
             default:
-                throw new IllegalArgumentException("Unknown file system choice: " + choice);
+                throw new IllegalArgumentException("Unknown file system choice: " + category);
 
         }
     }
@@ -144,10 +144,10 @@ public final class FileSystemHelper {
      */
     public static boolean canRetrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final FSLocation location) {
-        final FileSystemChoice.Choice choice = location.getFileSystemChoice();
-        if (choice == Choice.CONNECTED_FS) {
+        final FSCategory category = location.getFSCategory();
+        if (category == FSCategory.CONNECTED) {
             return portObjectConnection.isPresent();
-        } else if (choice == Choice.KNIME_MOUNTPOINT) {
+        } else if (category == FSCategory.MOUNTPOINT) {
             return extractMountpoint(location).isConnected();
         } else {
             // for the other fs types, it is always possible to create a connection

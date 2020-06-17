@@ -44,64 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 22, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 17, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
-
-import java.awt.Color;
-import java.awt.Component;
-
-import org.knime.filehandling.core.connections.FSCategory;
+package org.knime.filehandling.core.connections;
 
 /**
- * Interface for dialogs specific to individual file systems, e.g. the combo box in case of the mountpoint file system
- * or the timeout spinner for the custom URL file system.
+ * Enum to model file system categories.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public interface FileSystemSpecificDialog {
+public enum FSCategory {
 
-    /**
-     * Returns the {@link Component} for the file system specifier.</br>
-     * NOTE: Only call this method if {@link FileSystemSpecificDialog#hasSpecifierComponent()} returned {@code true}.
-     *
-     * @return the dialog component for the file system specifier
-     */
-    Component getSpecifierComponent();
+        /** Category for local "convenience" file system(s) */
+        LOCAL("Local File System"),
 
-    /**
-     * Returns {@code true} if this dialog provides a specifier component via {@link FileSystemSpecificDialog#getSpecifierComponent()}.
-     *
-     * @return {@code true} if this dialog has a specifier component
-     */
-    boolean hasSpecifierComponent();
+        /** Category for relative "convenience" file systems */
+        RELATIVE("Relative to"),
 
-    /**
-     * Enables/disables all components in this dialog.
-     *
-     * @param enabled {@code true} if the dialog should be enabled, {@code false} otherwise
-     */
-    void setEnabled(boolean enabled);
+        /** Category for "convenience" file systems that access mountpoints */
+        MOUNTPOINT("Mountpoint"),
 
-    /**
-     * Sets the provided tooltip on the components of this dialog.
-     *
-     * @param tooltip to set
-     */
-    void setTooltip(final String tooltip);
+        /** Category for  "convenience" file system(s) that acces only URLs */
+        CUSTOM_URL("Custom/KNIME URL"),
 
-    /**
-     * Returns the file system category represented by this dialog.
-     *
-     * @return the {@link FSCategory}
-     */
-    FSCategory getFileSystemCategory();
+        /** Category for file systems that need to be connected via input port. */
+        CONNECTED("");
 
-    /**
-     * Returns the {@link Color} to display the file system name in.
-     *
-     * @return the color to display the file system name in
-     */
-    Color getTextColor();
+        private final String m_label;
 
-}
+        private FSCategory(final String label) {
+            m_label = label;
+        }
+
+        /**
+         * @return a human-readable label for the file system category, to be used for display purposes.
+         */
+        public String getLabel() {
+            return m_label;
+        }
+    }

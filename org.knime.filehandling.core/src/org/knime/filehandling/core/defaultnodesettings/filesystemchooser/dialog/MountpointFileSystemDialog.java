@@ -58,8 +58,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -70,8 +69,6 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class MountpointFileSystemDialog implements FileSystemSpecificDialog {
-
-    private static final String ID = FileSystemChoice.getKnimeMountpointChoice().getId();
 
     private final JComboBox<KNIMEConnection> m_mountpointsCombo;
 
@@ -109,7 +106,7 @@ public final class MountpointFileSystemDialog implements FileSystemSpecificDialo
 
     @Override
     public String toString() {
-        return ID;
+        return FSCategory.MOUNTPOINT.getLabel();
     }
 
     @Override
@@ -118,8 +115,8 @@ public final class MountpointFileSystemDialog implements FileSystemSpecificDialo
     }
 
     @Override
-    public Choice getChoice() {
-        return Choice.KNIME_MOUNTPOINT;
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.MOUNTPOINT;
     }
 
     @Override

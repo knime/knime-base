@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecConfig;
@@ -109,40 +109,40 @@ public final class FileSystemChooserUtils {
 
     /**
      * Creates a {@link FileSystemChooser} given the provided {@link FileSystemConfiguration} and the specified
-     * {@link Choice file system choices}.
+     * {@link FSCategory file system category}.
      *
      * @param config the configuration of the chooser
-     * @param choices the choices that should be available in the chooser (only considered for the convenience file
+     * @param categories the file system categories that should be available in the chooser (only considered for the convenience file
      *            systems)
      * @return a new {@link FileSystemChooser}
      */
     public static FileSystemChooser createFileSystemChooser(final FileSystemConfiguration<?> config,
-        final Set<Choice> choices) {
+        final Set<FSCategory> categories) {
         if (config.hasFSPort()) {
             return new FileSystemChooser(config, new ConnectedFileSystemDialog(
-                (ConnectedFileSystemSpecificConfig)config.getFileSystemSpecifcConfig(Choice.CONNECTED_FS)));
+                (ConnectedFileSystemSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.CONNECTED)));
         } else {
-            return createConvenienceFileSystemChooser(config, choices);
+            return createConvenienceFileSystemChooser(config, categories);
         }
     }
 
     private static FileSystemChooser createConvenienceFileSystemChooser(final FileSystemConfiguration<?> config,
-        final Set<Choice> choices) {
+        final Set<FSCategory> categories) {
         final List<FileSystemSpecificDialog> dialogs = new ArrayList<>();
-        if (choices.contains(Choice.LOCAL_FS)) {
+        if (categories.contains(FSCategory.LOCAL)) {
             dialogs.add(LocalFileSystemDialog.INSTANCE);
         }
-        if (choices.contains(Choice.KNIME_MOUNTPOINT)) {
+        if (categories.contains(FSCategory.MOUNTPOINT)) {
             dialogs.add(new MountpointFileSystemDialog(
-                (MountpointSpecificConfig)config.getFileSystemSpecifcConfig(Choice.KNIME_MOUNTPOINT)));
+                (MountpointSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.MOUNTPOINT)));
         }
-        if (choices.contains(Choice.KNIME_FS)) {
+        if (categories.contains(FSCategory.RELATIVE)) {
             dialogs.add(new RelativeToFileSystemDialog(
-                (RelativeToSpecificConfig)config.getFileSystemSpecifcConfig(Choice.KNIME_FS)));
+                (RelativeToSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.RELATIVE)));
         }
-        if (choices.contains(Choice.CUSTOM_URL_FS)) {
+        if (categories.contains(FSCategory.CUSTOM_URL)) {
             dialogs.add(new CustomURLFileSystemDialog(
-                (CustomURLSpecificConfig)config.getFileSystemSpecifcConfig(Choice.CUSTOM_URL_FS)));
+                (CustomURLSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.CUSTOM_URL)));
         }
         return new FileSystemChooser(config, dialogs.toArray(new FileSystemSpecificDialog[0]));
     }

@@ -71,9 +71,9 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
@@ -155,11 +155,11 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         Set<FilterMode> selectableFilterModes =
             Stream.concat(Stream.of(model.getFilterModeModel().getFilterMode()), Arrays.stream(filterModes)).distinct()
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
-        final Set<Choice> choices = EnumSet.allOf(Choice.class);
+        final Set<FSCategory> categories = EnumSet.allOf(FSCategory.class);
         if (!selectableFilterModes.contains(FilterMode.FILE)) {
-            choices.remove(Choice.CUSTOM_URL_FS);
+            categories.remove(FSCategory.CUSTOM_URL);
         }
-        m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration(), choices);
+        m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration(), categories);
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
             selectableFilterModes.toArray(new FilterMode[0]));
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =
@@ -280,7 +280,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     private void updateFilterMode() {
         final AbstractSettingsModelFileChooser sm = getSettingsModel();
         SettingsModelFilterMode filterModeModel = sm.getFilterModeModel();
-        if (sm.getLocation().getFileSystemChoice() == Choice.CUSTOM_URL_FS) {
+        if (sm.getLocation().getFSCategory() == FSCategory.CUSTOM_URL) {
             filterModeModel.setFilterMode(FilterMode.FILE);
             filterModeModel.setEnabled(false);
         } else {
@@ -330,7 +330,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     private void updateBrowser() {
         final AbstractSettingsModelFileChooser sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
-        if (location.getFileSystemChoice() != Choice.CUSTOM_URL_FS) {
+        if (location.getFSCategory() != FSCategory.CUSTOM_URL) {
             // we can only browse if the file system connection is available
             if (!isRemoteJobView() && sm.canCreateConnection()) {
                 // the connection is present, otherwise browser couldn't be
@@ -353,7 +353,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     private String getFileSelectionLabel(final FSLocation location) {
-        if (location.getFileSystemChoice() == Choice.CUSTOM_URL_FS) {
+        if (location.getFSCategory() == FSCategory.CUSTOM_URL) {
             return "URL:";
         }
 

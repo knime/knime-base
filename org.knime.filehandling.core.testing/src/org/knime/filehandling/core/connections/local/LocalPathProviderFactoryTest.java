@@ -6,9 +6,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import org.junit.Test;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactoryTestBase;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Unit tests that test FSLocation support for the (local) platform default file system.
@@ -29,7 +29,7 @@ public class LocalPathProviderFactoryTest extends FSPathProviderFactoryTestBase 
         final Path tmpFile = m_tempFolder.newFile("tempfile").toPath();
         Files.write(tmpFile, bytesToWrite);
 
-        final FSLocation loc = new FSLocation(Choice.LOCAL_FS.toString(), tmpFile.toString());
+        final FSLocation loc = new FSLocation(FSCategory.LOCAL, tmpFile.toString());
 
         testReadFSLocation(Optional.empty(), loc, bytesToWrite);
     }

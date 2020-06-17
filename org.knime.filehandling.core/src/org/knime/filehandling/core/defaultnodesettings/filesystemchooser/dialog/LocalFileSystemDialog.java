@@ -52,8 +52,7 @@ import java.awt.Color;
 import java.awt.Component;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 
 /**
  * FileSystemDialog for the local file system.
@@ -66,8 +65,6 @@ public enum LocalFileSystemDialog implements FileSystemSpecificDialog {
      * The singleton instance.
      */
     INSTANCE;
-
-    private static final String ID = FileSystemChoice.getLocalFsChoice().getId();
 
     @Override
     public Component getSpecifierComponent() {
@@ -83,7 +80,7 @@ public enum LocalFileSystemDialog implements FileSystemSpecificDialog {
 
     @Override
     public String toString() {
-        return ID;
+        return FSCategory.LOCAL.getLabel();
     }
 
     @Override
@@ -92,8 +89,8 @@ public enum LocalFileSystemDialog implements FileSystemSpecificDialog {
     }
 
     @Override
-    public Choice getChoice() {
-        return Choice.LOCAL_FS;
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.LOCAL;
     }
 
     @Override

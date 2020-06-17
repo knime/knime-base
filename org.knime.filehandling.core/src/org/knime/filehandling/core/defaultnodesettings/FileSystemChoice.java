@@ -55,12 +55,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSType;
 
 /**
  * Class encapsulating the five different types of file system choices.
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+ * @deprecated This class has been replaced by {@link FSCategory} and {@link FSType}.
  */
+@Deprecated
 public class FileSystemChoice {
 
     /**
@@ -87,17 +91,17 @@ public class FileSystemChoice {
     }
 
     /** Instance of local file system choice */
-    private static final FileSystemChoice LOCAL_FS_CHOICE = new FileSystemChoice(Choice.LOCAL_FS, "Local File System");
+    private static final FileSystemChoice LOCAL_FS_CHOICE = new FileSystemChoice(Choice.LOCAL_FS, "Local File System", FSCategory.LOCAL);
 
     /** Instance of KNIME file system choice */
-    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "Relative to");
+    private static final FileSystemChoice KNIME_FS_CHOICE = new FileSystemChoice(Choice.KNIME_FS, "Relative to", FSCategory.RELATIVE);
 
     /** Instance of KNIME file system choice */
     private static final FileSystemChoice KNIME_MOUNTPOINT_CHOICE =
-        new FileSystemChoice(Choice.KNIME_MOUNTPOINT, "Mountpoint");
+        new FileSystemChoice(Choice.KNIME_MOUNTPOINT, "Mountpoint", FSCategory.MOUNTPOINT);
 
     /** Instance of Custom URL file system choice */
-    private static final FileSystemChoice CUSTOM_URL_CHOICE = new FileSystemChoice(Choice.CUSTOM_URL_FS, "Custom URL");
+    private static final FileSystemChoice CUSTOM_URL_CHOICE = new FileSystemChoice(Choice.CUSTOM_URL_FS, "Custom URL", FSCategory.CUSTOM_URL);
 
     /** List of default file system choices */
     private static final List<FileSystemChoice> DEFAULT_CHOICES =
@@ -109,15 +113,18 @@ public class FileSystemChoice {
     /** Choice identifying the type of the file system */
     private final Choice m_type;
 
+    private final FSCategory m_fsCategory;
+
     /**
      * Creates a new instance of {@code FileSystemChoice}.
      *
      * @param type the choice
      * @param id the string identifier to be shown in dialog
      */
-    private FileSystemChoice(final Choice type, final String id) {
+    private FileSystemChoice(final Choice type, final String id, final FSCategory category) {
         m_type = type;
         m_id = id;
+        m_fsCategory = category;
     }
 
     /**
@@ -196,7 +203,7 @@ public class FileSystemChoice {
      * @return new flow variable FileSystemChoice with a given id
      */
     public static final FileSystemChoice createConnectedFileSystemChoice(final String id) {
-        return new FileSystemChoice(Choice.CONNECTED_FS, id);
+        return new FileSystemChoice(Choice.CONNECTED_FS, id, FSCategory.CONNECTED);
     }
 
     /**
@@ -215,6 +222,13 @@ public class FileSystemChoice {
         return createConnectedFileSystemChoice(fileSystem);
     }
 
+    /**
+     * @return the file system category (which is equivalent to the {@link Choice} return by {@link #getType()}.
+     */
+    public FSCategory getFileSystemCategory() {
+        return m_fsCategory;
+    }
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof FileSystemChoice)) {
@@ -231,4 +245,5 @@ public class FileSystemChoice {
         hashBuiler.append(m_type);
         return hashBuiler.build();
     }
+
 }

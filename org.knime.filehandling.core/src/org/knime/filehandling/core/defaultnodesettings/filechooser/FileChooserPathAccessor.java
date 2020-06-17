@@ -170,23 +170,23 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     }
 
     private FSPath getPathFromConvenienceFs() throws InvalidSettingsException {
-        switch (m_rootLocation.getFileSystemChoice()) {
-            case CONNECTED_FS:
+        switch (m_rootLocation.getFSCategory()) {
+            case CONNECTED:
                 throw new IllegalStateException("The file system is not connected.");
-            case CUSTOM_URL_FS:
+            case CUSTOM_URL:
                 return m_fileSystem.getPath(ValidationUtils.createAndValidateCustomURLLocation(m_rootLocation));
-            case KNIME_FS:
+            case RELATIVE:
                 final FSPath path = m_fileSystem.getPath(m_rootLocation);
                 ValidationUtils.validateKnimeFSPath(path);
                 return path;
-            case KNIME_MOUNTPOINT:
+            case MOUNTPOINT:
                 return m_fileSystem.getPath(m_rootLocation);
-            case LOCAL_FS:
+            case LOCAL:
                 ValidationUtils.validateLocalFsAccess();
                 return m_fileSystem.getPath(m_rootLocation);
             default:
                 throw new IllegalStateException(
-                    "Unsupported file system choice: " + m_rootLocation.getFileSystemChoice());
+                    "Unsupported file system category: " + m_rootLocation.getFSCategory());
         }
     }
 

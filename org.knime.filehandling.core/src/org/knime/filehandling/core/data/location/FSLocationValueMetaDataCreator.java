@@ -83,7 +83,7 @@ public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataC
             return;
         }
         final FSLocationValue value = (FSLocationValue)cell;
-        checkCompatibilityAndSet(value.getFSLocation().getFileSystemType(),
+        checkCompatibilityAndSet(value.getFSLocation().getFileSystemCategory(),
             value.getFSLocation().getFileSystemSpecifier().orElse(null));
     }
 
@@ -123,7 +123,7 @@ public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataC
 
     @Override
     public FSLocationValueMetaDataCreator merge(final FSLocationValueMetaData other) {
-        checkCompatibilityAndSet(other.getFileSystemType(), other.getFileSystemSpecifier().orElse(null));
+        checkCompatibilityAndSet(other.getFileSystemCategory(), other.getFileSystemSpecifier().orElse(null));
         return this;
     }
 

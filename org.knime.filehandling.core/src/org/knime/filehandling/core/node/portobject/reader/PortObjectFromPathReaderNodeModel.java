@@ -55,9 +55,9 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortObject;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
@@ -84,7 +84,7 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
         if (urlConfig.isPresent()) {
             // we get an URL so the file system needs to be custom url
             getConfig().getFileChooserModel().setLocation(new FSLocation(
-                FileSystemChoice.getCustomFsUrlChoice().toString(), "1000", urlConfig.get().getUrl().toString()));
+                FSCategory.CUSTOM_URL, "1000", urlConfig.get().getUrl().toString()));
         }
     }
 

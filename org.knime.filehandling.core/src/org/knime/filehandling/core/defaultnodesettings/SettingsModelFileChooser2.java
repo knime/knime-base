@@ -58,6 +58,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.filefilter.FileFilterSettings;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -288,6 +289,10 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      */
     public FileSystemChoice getFileSystemChoice() {
         return m_fileSystem.isEmpty() ? DEFAULT_FS_CHOICE : FileSystemChoice.getChoiceFromId(m_fileSystem);
+    }
+
+    public FSCategory getFileSystemCategory() {
+        return m_fileSystem.isEmpty() ? DEFAULT_FS_CHOICE.getFileSystemCategory() : FileSystemChoice.getChoiceFromId(m_fileSystem).getFileSystemCategory();
     }
 
     /**

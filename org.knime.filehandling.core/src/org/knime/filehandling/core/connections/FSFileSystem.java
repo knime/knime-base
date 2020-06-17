@@ -58,7 +58,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Abstract super class implemented by all NIO file systems provided in KNIME. This class adds the following features on
@@ -118,13 +117,13 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
-     * Returns the {@link Choice file system choice} of the {@link FSLocationSpec} for this file system instance.
+     * Returns the {@link FSCategory file system category} of the {@link FSLocationSpec} for this file system instance.
      *
-     * @return the file system choice.
+     * @return the file system category.
      * @see #getFSLocationSpec()
      */
-    public final Choice getFileSystemChoice() {
-        return m_fsLocationSpec.getFileSystemChoice();
+    public final FSCategory getFileSystemCategory() {
+        return m_fsLocationSpec.getFSCategory();
     }
 
     /**
@@ -252,8 +251,8 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      */
     public void checkCompatibility(final FSLocationSpec fsLocationSpec) {
         CheckUtils.checkArgument(
-            fsLocationSpec.getFileSystemType() != null && fsLocationSpec.getFileSystemChoice() == getFileSystemChoice(),
-            String.format("Only FSLocations of type %s are allowed with this file system.", getFileSystemChoice()));
+            fsLocationSpec.getFileSystemCategory() != null && fsLocationSpec.getFSCategory() == getFileSystemCategory(),
+            String.format("Only FSLocations of type %s are allowed with this file system.", getFileSystemCategory()));
 
         CheckUtils.checkArgument(
             getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier()),
@@ -268,8 +267,8 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      * @return true, if compatible, false otherwise.
      */
     public boolean isCompatible(final FSLocationSpec fsLocationSpec) {
-        return fsLocationSpec.getFileSystemType() != null
-            && fsLocationSpec.getFileSystemChoice() == getFileSystemChoice()
+        return fsLocationSpec.getFileSystemCategory() != null
+            && fsLocationSpec.getFSCategory() == getFileSystemCategory()
             && getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier());
     }
 

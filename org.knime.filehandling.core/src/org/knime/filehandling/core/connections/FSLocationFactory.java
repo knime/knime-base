@@ -56,7 +56,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * A factory for creating {@link FSLocation} objects.
@@ -82,7 +81,7 @@ public final class FSLocationFactory implements AutoCloseable {
      */
     public FSLocationFactory(final FSLocationSpec spec, final Optional<FSConnection> connection) {
         m_spec = CheckUtils.checkArgumentNotNull(spec, "The spec must not be null.");
-        m_isRelativeTo = spec.getFileSystemChoice() == Choice.KNIME_FS;
+        m_isRelativeTo = spec.getFSCategory() == FSCategory.RELATIVE;
         m_pathProviderFactory = FSPathProviderFactory.newFactory(connection, spec);
     }
 
@@ -95,7 +94,7 @@ public final class FSLocationFactory implements AutoCloseable {
      */
     public FSLocation createLocation(final String path) {
         final FSLocation unvalidatedLocation =
-            new FSLocation(m_spec.getFileSystemType(), m_spec.getFileSystemSpecifier()
+            new FSLocation(m_spec.getFileSystemCategory(), m_spec.getFileSystemSpecifier()
                 .orElseThrow(() -> new IllegalStateException("FSLocationSpec is missing specifier.")), path);
         FSLocation validatedLocation = null;
         try (FSPathProvider pathProvider = m_pathProviderFactory.create(unvalidatedLocation)) {

@@ -62,9 +62,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSType;
 
 /**
  *
@@ -77,17 +78,17 @@ public class LocalFileSystem extends FSFileSystem<LocalPath> {
     /**
      * The file system type of the local file system.
      */
-    public final static String FS_TYPE = "local";
+    public final static FSType FS_TYPE = FSType.LOCAL_FS;
 
     /**
      * The {@link FSLocationSpec} for the local convenience file system.
      */
-    public static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.LOCAL_FS);
+    public static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
 
     /**
      * The {@link FSLocationSpec} for the local convenience file system.
      */
-    public static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(Choice.CONNECTED_FS, FS_TYPE);
+    public static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.CONNECTED, FS_TYPE.getTypeId());
 
     private final LocalFileSystemProvider m_provider;
 

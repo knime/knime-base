@@ -76,7 +76,7 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
 
     @Override
     public String getFSType() {
-        return LocalFileSystem.FS_TYPE;
+        return LocalFileSystem.FS_TYPE.getTypeId();
     }
 
     @Override

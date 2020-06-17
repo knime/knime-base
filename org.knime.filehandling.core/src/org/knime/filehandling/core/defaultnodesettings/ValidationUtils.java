@@ -55,9 +55,9 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.FSPluginConfig;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Utility class that contains methods for validating {@link FSPath} objects.</br>
@@ -82,12 +82,12 @@ public final class ValidationUtils {
      */
     public static FSLocation createAndValidateCustomURLLocation(final FSLocation customUrlLocation)
         throws InvalidSettingsException {
-        CheckUtils.checkArgument(customUrlLocation.getFileSystemChoice() == Choice.CUSTOM_URL_FS,
+        CheckUtils.checkArgument(customUrlLocation.getFSCategory() == FSCategory.CUSTOM_URL,
             "Expected custom url location instead received '%s'.", customUrlLocation);
         final URI uri = URI.create(customUrlLocation.getPath().replace(" ", "%20"));
         validateCustomURL(uri);
         final String uriPath = getURIPathQueryAndFragment(uri);
-        return new FSLocation(customUrlLocation.getFileSystemType(), customUrlLocation.getFileSystemSpecifier()
+        return new FSLocation(customUrlLocation.getFileSystemCategory(), customUrlLocation.getFileSystemSpecifier()
             .orElseThrow(() -> new InvalidSettingsException("No timeout specified for custom URL file system.")),
             uriPath);
     }

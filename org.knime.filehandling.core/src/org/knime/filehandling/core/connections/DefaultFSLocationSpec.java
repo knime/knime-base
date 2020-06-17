@@ -52,7 +52,6 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.config.ConfigRO;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Default implementation of {@link FSLocationSpec}, to be used when there is no other object available. This class is
@@ -64,7 +63,7 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 public class DefaultFSLocationSpec implements FSLocationSpec {
 
     /** The file system type. */
-    private final String m_fileSystemType;
+    private final String m_fsCategory;
 
     /** The optional file system specifier. */
     private final Optional<String> m_fileSystemSpecifier;
@@ -72,45 +71,45 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
     /**
      * Creates a new instance.
      *
-     * @param fileSystemType The file system type.
+     * @param fsCategory The file system type.
      * @param fileSystemSpecifier The optional file system specifier (may be null).
      */
-    public DefaultFSLocationSpec(final String fileSystemType, final String fileSystemSpecifier) {
-        m_fileSystemType = fileSystemType;
+    public DefaultFSLocationSpec(final String fsCategory, final String fileSystemSpecifier) {
+        m_fsCategory = fsCategory;
         m_fileSystemSpecifier = Optional.ofNullable(fileSystemSpecifier);
     }
 
     /**
      * Creates a new instance with an empty file system specifier.
      *
-     * @param fileSystemType The file system type.
+     * @param fsCategory The file system category.
      */
-    public DefaultFSLocationSpec(final String fileSystemType) {
-        this(fileSystemType, null);
+    public DefaultFSLocationSpec(final String fsCategory) {
+        this(fsCategory, null);
     }
 
     /**
      * Creates a new instance.
      *
-     * @param fileSystemChoice The file system type as a {@link Choice}.
+     * @param fsCategory The file system type as a {@link FSCategory}.
      * @param fileSystemSpecifier The optional file system specifier (may be null).
      */
-    public DefaultFSLocationSpec(final Choice fileSystemChoice, final String fileSystemSpecifier) {
-        this(fileSystemChoice.toString(), fileSystemSpecifier);
+    public DefaultFSLocationSpec(final FSCategory fsCategory, final String fileSystemSpecifier) {
+        this(fsCategory.toString(), fileSystemSpecifier);
     }
 
     /**
      * Creates a new instance with an empty file system specifier.
      *
-     * @param fileSystemChoice The file system type as a {@link Choice}.
+     * @param fsCategory The file system type as a {@link FSCategory}.
      */
-    public DefaultFSLocationSpec(final Choice fileSystemChoice) {
-        this(fileSystemChoice, null);
+    public DefaultFSLocationSpec(final FSCategory fsCategory) {
+        this(fsCategory, null);
     }
 
     @Override
-    public String getFileSystemType() {
-        return m_fileSystemType;
+    public String getFileSystemCategory() {
+        return m_fsCategory;
     }
 
     @Override
@@ -135,14 +134,14 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
     @Override
     public int hashCode() {
         return new HashCodeBuilder()//
-                .append(m_fileSystemType)//
+                .append(m_fsCategory)//
                 .append(m_fileSystemSpecifier)//
                 .toHashCode();
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("(").append(m_fileSystemType);
+        final StringBuilder sb = new StringBuilder("(").append(m_fsCategory);
         if (m_fileSystemSpecifier.isPresent()) {
             sb.append(", ").append(m_fileSystemSpecifier.get());
         }

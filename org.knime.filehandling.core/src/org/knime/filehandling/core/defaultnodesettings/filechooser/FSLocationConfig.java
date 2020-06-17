@@ -113,7 +113,7 @@ final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLo
         final FSLocation locationSpec = getLocationSpec();
         if (!Objects.equals(locationSpec.getPath(), path)) {
             // sets the new location and notifies the listeners
-            setLocationSpec(new FSLocation(locationSpec.getFileSystemType(),
+            setLocationSpec(new FSLocation(locationSpec.getFileSystemCategory(),
                 locationSpec.getFileSystemSpecifier().orElse(null), path));
         }
     }
@@ -125,7 +125,7 @@ final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLo
         } else {
             final FSLocation current = getLocationSpec();
             final String path = current == null ? "" : current.getPath();
-            return new FSLocation(locationSpec.getFileSystemType(), locationSpec.getFileSystemSpecifier().orElse(null),
+            return new FSLocation(locationSpec.getFileSystemCategory(), locationSpec.getFileSystemSpecifier().orElse(null),
                 path);
         }
     }

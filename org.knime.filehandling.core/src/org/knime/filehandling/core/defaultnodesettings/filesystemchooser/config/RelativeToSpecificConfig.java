@@ -61,8 +61,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
@@ -118,7 +118,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     @Override
     public FSLocationSpec getLocationSpec() {
-        return new DefaultFSLocationSpec(Choice.KNIME_FS, m_relativeTo.toString());
+        return new DefaultFSLocationSpec(FSCategory.RELATIVE, m_relativeTo.toString());
     }
 
     @Override

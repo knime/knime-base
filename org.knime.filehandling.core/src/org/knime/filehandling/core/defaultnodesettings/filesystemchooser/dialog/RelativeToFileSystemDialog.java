@@ -55,8 +55,7 @@ import java.awt.GridBagLayout;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -67,8 +66,6 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class RelativeToFileSystemDialog implements FileSystemSpecificDialog {
-
-    private static final String ID = FileSystemChoice.getKnimeFsChoice().getId();
 
     private final JComboBox<RelativeTo> m_relativeToCombo = new JComboBox<>(RelativeTo.values());
 
@@ -111,8 +108,8 @@ public final class RelativeToFileSystemDialog implements FileSystemSpecificDialo
     }
 
     @Override
-    public Choice getChoice() {
-        return Choice.KNIME_FS;
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.RELATIVE;
     }
 
     private RelativeTo getSelected() {
@@ -121,7 +118,7 @@ public final class RelativeToFileSystemDialog implements FileSystemSpecificDialo
 
     @Override
     public String toString() {
-        return ID;
+        return FSCategory.RELATIVE.getLabel();
     }
 
     @Override

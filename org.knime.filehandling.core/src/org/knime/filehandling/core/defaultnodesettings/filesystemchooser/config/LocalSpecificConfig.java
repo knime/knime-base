@@ -59,8 +59,8 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
@@ -71,7 +71,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  */
 public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpecificConfig {
 
-    private static final FSLocationSpec LOCATION_SPEC = new DefaultFSLocationSpec(Choice.LOCAL_FS);
+    private static final FSLocationSpec LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
 
     @Override
     public FSLocationSpec getLocationSpec() {

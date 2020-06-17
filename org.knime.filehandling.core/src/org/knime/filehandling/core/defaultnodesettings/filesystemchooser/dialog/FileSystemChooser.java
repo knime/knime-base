@@ -63,7 +63,7 @@ import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 
 /**
@@ -82,7 +82,7 @@ public final class FileSystemChooser {
 
     private final JComboBox<FileSystemSpecificDialog> m_fileSystemComboBox;
 
-    private final EnumMap<Choice, FileSystemSpecificDialog> m_fileSystemDialogs = new EnumMap<>(Choice.class);
+    private final EnumMap<FSCategory, FileSystemSpecificDialog> m_fileSystemDialogs = new EnumMap<>(FSCategory.class);
 
     private final FileSystemConfiguration<?> m_config;
 
@@ -96,7 +96,7 @@ public final class FileSystemChooser {
         final FileSystemSpecificDialog... fileSystemDialogs) {
         CheckUtils.checkArgumentNotNull(fileSystemDialogs, "The fileSystemDialogs must not be null.");
         CheckUtils.checkArgument(fileSystemDialogs.length > 0, "At least one FileSystemDialog must be provided.");
-        Arrays.stream(fileSystemDialogs).forEach(d -> m_fileSystemDialogs.put(d.getChoice(), d));
+        Arrays.stream(fileSystemDialogs).forEach(d -> m_fileSystemDialogs.put(d.getFileSystemCategory(), d));
         m_fileSystemComboBox = new JComboBox<>(fileSystemDialogs);
         m_fileSystemComboBox.setRenderer(new FileSystemDialogRenderer());
         setupTopLevelPanel();
@@ -117,8 +117,8 @@ public final class FileSystemChooser {
     }
 
     private void handleConfigChange() {
-        Choice choice = m_config.getChoice();
-        final FileSystemSpecificDialog fsd = m_fileSystemDialogs.get(choice);
+        FSCategory category = m_config.getFSCategory();
+        final FileSystemSpecificDialog fsd = m_fileSystemDialogs.get(category);
             if (fsd != null) {
                 setSpecificDialog(fsd);
             }
@@ -131,10 +131,10 @@ public final class FileSystemChooser {
 
     private void handleFileSystemSelection() {
         final FileSystemSpecificDialog fsd = getSelectedFileSystem();
-        m_config.setChoice(fsd.getChoice());
+        m_config.setFSCategory(fsd.getFileSystemCategory());
         final CardLayout cardLayout = (CardLayout)m_specifierPanel.getLayout();
         cardLayout.show(m_specifierPanel,
-            fsd.hasSpecifierComponent() ? fsd.getChoice().name() : NO_SPECIFIER);
+            fsd.hasSpecifierComponent() ? fsd.getFileSystemCategory().name() : NO_SPECIFIER);
     }
 
     private void setupFileSystemSpecifierPanel() {
@@ -147,7 +147,7 @@ public final class FileSystemChooser {
 
     private void addSpecifierCard(final FileSystemSpecificDialog fsd) {
         final Component specifierComponent = fsd.getSpecifierComponent();
-        m_specifierPanel.add(specifierComponent, fsd.getChoice().name());
+        m_specifierPanel.add(specifierComponent, fsd.getFileSystemCategory().name());
     }
 
     private void setupTopLevelPanel() {

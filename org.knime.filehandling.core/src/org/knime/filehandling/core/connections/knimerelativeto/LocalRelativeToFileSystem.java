@@ -57,10 +57,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -95,8 +95,8 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
      * @param fileSystemProvider Creator of this FS, holding a reference.
      * @param uri URI without a path
      * @param pathConfig Provides underlying configuration, e.g. where this fs is rooted in the local file system.
-     * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
-     *            ({@link Choice#KNIME_FS})
+     * @param isConnectedFs Whether this file system is a {@link FSCategory#CONNECTED} or a convenience file system
+     *            ({@link FSCategory#RELATIVE)
      * @throws IOException
      */
     protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider, final URI uri,
@@ -123,15 +123,15 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
 
     /**
      *
-     * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
-     *            ({@link Choice#KNIME_FS})
+     * @param isConnectedFs Whether this file system is a {@link FSCategory#CONNECTED} or a convenience file system
+     *            ({@link FSCategory#RELATIVE})
      * @param type The type of the file system (mountpoint- or workflow relative).
      * @return the {@link FSLocationSpec}
      */
     public static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final Type type) {
-        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_FS;
+        final FSCategory fsCategory = isConnectedFs ? FSCategory.CONNECTED : FSCategory.RELATIVE;
         final String specifier = type == Type.MOUNTPOINT_RELATIVE ? "knime.mountpoint" : "knime.workflow";
-        return new DefaultFSLocationSpec(choice, specifier);
+        return new DefaultFSLocationSpec(fsCategory, specifier);
     }
 
     @Override

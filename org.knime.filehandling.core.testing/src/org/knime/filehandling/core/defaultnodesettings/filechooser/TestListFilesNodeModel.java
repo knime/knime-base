@@ -103,7 +103,7 @@ final class TestListFilesNodeModel extends NodeModel {
         final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Location", FSLocationCellFactory.TYPE);
         final FSLocation location = m_settings.getLocation();
         final FSLocationValueMetaData metaData =
-            new FSLocationValueMetaData(location.getFileSystemType(), location.getFileSystemSpecifier().orElse(null));
+            new FSLocationValueMetaData(location.getFileSystemCategory(), location.getFileSystemSpecifier().orElse(null));
         colCreator.addMetaData(metaData, true);
         return new DataTableSpec(colCreator.createSpec());
     }

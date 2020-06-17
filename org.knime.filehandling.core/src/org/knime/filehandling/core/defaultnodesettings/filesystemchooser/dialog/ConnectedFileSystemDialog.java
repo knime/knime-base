@@ -51,7 +51,7 @@ package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog
 import java.awt.Color;
 import java.awt.Component;
 
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 
 /**
@@ -94,8 +94,8 @@ public final class ConnectedFileSystemDialog implements FileSystemSpecificDialog
     }
 
     @Override
-    public Choice getChoice() {
-        return Choice.CONNECTED_FS;
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.CONNECTED;
     }
 
     @Override

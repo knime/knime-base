@@ -11,10 +11,10 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToTestUtil;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactoryTestBase;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Unit tests that test FSLocation support for the Custom URL file system.
@@ -34,7 +34,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
         final byte[] expectedBytes = readUrl(url);
 
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, "/rfc/rfc1.txt");
     }
@@ -58,7 +58,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
         final byte[] expectedBytes = readUrl(url);
 
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, "/html/rfc7230?bla=blub#section-1.1");
     }
@@ -76,7 +76,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         Files.write(localTestFile, expectedBytes);
 
         final String url = localTestFile.toUri().toURL().toString();
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
     }
@@ -94,7 +94,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
         // try unencoded url with spaces
         final String url = localTestFile.getParent().toUri().toURL().toString() + "/testfile with spaces";
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
     }
@@ -112,7 +112,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
         // try encoded url with spaces
         final String url = localTestFile.toUri().toURL().toString();
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
     }
@@ -130,7 +130,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
         // this provides a url like file:/path/to/file, but we want file:///path/to/file which should also work
         final String url = localTestFile.toUri().toURL().toString();
-        final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000", url.replace("file:", "file://"));
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url.replace("file:", "file://"));
         testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
     }
 
@@ -150,7 +150,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
                 workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile with spaces");
             Files.write(tmpFile, expectedBytes);
 
-            final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000",
+            final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.workflow/../tempfile with spaces");
 
             testReadFSLocation(Optional.empty(), loc, expectedBytes, "../tempfile with spaces");
@@ -175,7 +175,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
                 workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile with spaces");
             Files.write(tmpFile, expectedBytes);
 
-            final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000",
+            final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.workflow/../tempfile%20with%20spaces");
 
             testReadFSLocation(Optional.empty(), loc, expectedBytes, "../tempfile with spaces");
@@ -200,7 +200,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
                 workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile with spaces");
             Files.write(tmpFile, expectedBytes);
 
-            final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000",
+            final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.mountpoint/tempfile with spaces");
 
             testReadFSLocation(Optional.empty(), loc, expectedBytes, "tempfile with spaces");
@@ -225,7 +225,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
                 workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile with spaces");
             Files.write(tmpFile, expectedBytes);
 
-            final FSLocation loc = new FSLocation(Choice.CUSTOM_URL_FS.toString(), "1000",
+            final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.mountpoint/tempfile%20with%20spaces");
 
             testReadFSLocation(Optional.empty(), loc, expectedBytes, "tempfile with spaces");

@@ -50,10 +50,10 @@ package org.knime.filehandling.core.connections.local;
 
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
@@ -83,7 +83,7 @@ public class LocalFSConnection implements FSConnection {
 
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
-        if (getFileSystem().getFileSystemChoice() == Choice.CONNECTED_FS) {
+        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
             return new LocalFileSystemBrowser(new NioFileSystemView(this));
         } else {
             return new LocalFileSystemBrowser();

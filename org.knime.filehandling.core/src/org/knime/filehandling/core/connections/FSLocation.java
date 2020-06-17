@@ -63,8 +63,8 @@ import org.knime.filehandling.core.data.location.cell.FSLocationCell;
  */
 public final class FSLocation implements FSLocationSpec {
 
-    /** The file system type. */
-    private final String m_fileSystemType;
+    /** The file system category. */
+    private final String m_fileSystemCategory;
 
     /** The optional file system specifier. */
     private final Optional<String> m_fileSystemSpecifier;
@@ -80,31 +80,54 @@ public final class FSLocation implements FSLocationSpec {
     public static final FSLocation NULL = new FSLocation();
 
     private FSLocation() {
-        m_fileSystemType = null;
+        m_fileSystemCategory = null;
         m_fileSystemSpecifier = Optional.empty();
         m_path = null;
     }
 
     /**
-     * Constructor.
+     * Creates a new instance with an empty specifier.
      *
-     * @param fsType the file system type
+     * @param fsCategory the file system category
      * @param path the path to the file/folder
      */
-    public FSLocation(final String fsType, final String path) {
-        this(fsType, null, path);
+    public FSLocation(final FSCategory fsCategory, final String path) {
+        this(fsCategory.toString(), null, path);
+    }
+
+
+    /**
+     * Creates a new instance with an empty specifier.
+     *
+     * @param fsCategory the file system category
+     * @param path the path to the file/folder
+     */
+    public FSLocation(final String fsCategory, final String path) {
+        this(fsCategory, null, path);
     }
 
     /**
      * Constructor.
      *
-     * @param fsType the file system type
+     * @param fsCategory the file system category
      * @param fsSpecifier the file system specifier, can be {@code null}.
      * @param path the path to the file/folder
-     * @throws IllegalArgumentException if {@code fsType} or {@code path} is {@code null}
+     * @throws IllegalArgumentException if {@code fsCategory} or {@code path} is {@code null}
      */
-    public FSLocation(final String fsType, final String fsSpecifier, final String path) {
-        m_fileSystemType = CheckUtils.checkArgumentNotNull(fsType, "The file system type must not be null.");
+    public FSLocation(final FSCategory fsCategory, final String fsSpecifier, final String path) {
+        this(fsCategory.toString(), fsSpecifier, path);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param fsCategory the file system category
+     * @param fsSpecifier the file system specifier, can be {@code null}.
+     * @param path the path to the file/folder
+     * @throws IllegalArgumentException if {@code fsCategory} or {@code path} is {@code null}
+     */
+    public FSLocation(final String fsCategory, final String fsSpecifier, final String path) {
+        m_fileSystemCategory = CheckUtils.checkArgumentNotNull(fsCategory, "The file system category must not be null.");
         m_fileSystemSpecifier = Optional.ofNullable(fsSpecifier);
         m_path = CheckUtils.checkArgumentNotNull(path, "The path must not be null.");
     }
@@ -124,8 +147,8 @@ public final class FSLocation implements FSLocationSpec {
     }
 
     @Override
-    public String getFileSystemType() {
-        return m_fileSystemType;
+    public String getFileSystemCategory() {
+        return m_fileSystemCategory;
     }
 
     @Override
@@ -134,7 +157,7 @@ public final class FSLocation implements FSLocationSpec {
             return "NULL";
         }
         final StringBuilder sb = new StringBuilder("(");
-        sb.append(m_fileSystemType).append(", ");
+        sb.append(m_fileSystemCategory).append(", ");
         if (m_fileSystemSpecifier.isPresent()) {
             sb.append(m_fileSystemSpecifier.get()).append(", ");
         }
@@ -145,7 +168,7 @@ public final class FSLocation implements FSLocationSpec {
     @Override
     public int hashCode() {
         if (m_hashCode == null) {
-            m_hashCode = new HashCodeBuilder().append(m_fileSystemType).append(m_fileSystemSpecifier).append(m_path)
+            m_hashCode = new HashCodeBuilder().append(m_fileSystemCategory).append(m_fileSystemSpecifier).append(m_path)
                 .toHashCode();
         }
         return m_hashCode;
@@ -163,7 +186,7 @@ public final class FSLocation implements FSLocationSpec {
             return false;
         }
         final FSLocation fsLocation = (FSLocation)obj;
-        return Objects.equals(m_fileSystemType, fsLocation.m_fileSystemType)
+        return Objects.equals(m_fileSystemCategory, fsLocation.m_fileSystemCategory)
             && Objects.equals(m_fileSystemSpecifier, fsLocation.m_fileSystemSpecifier)
             && Objects.equals(m_path, fsLocation.m_path);
     }

@@ -53,10 +53,10 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -90,9 +90,9 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
     }
 
     private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final URI baseLocation) {
-        final Choice choice = isConnectedFs ? Choice.CONNECTED_FS : Choice.KNIME_MOUNTPOINT;
+        final FSCategory category = isConnectedFs ? FSCategory.CONNECTED : FSCategory.MOUNTPOINT;
         final String specifier = baseLocation.getHost();
-        return new DefaultFSLocationSpec(choice, specifier);
+        return new DefaultFSLocationSpec(category, specifier);
     }
 
     @Override

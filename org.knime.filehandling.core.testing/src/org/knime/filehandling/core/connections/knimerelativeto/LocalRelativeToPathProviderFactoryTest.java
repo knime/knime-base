@@ -7,9 +7,9 @@ import java.util.Optional;
 
 import org.junit.Test;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactoryTestBase;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Unit tests that test FSLocation support for the local relative-to file system.
@@ -33,7 +33,7 @@ public class LocalRelativeToPathProviderFactoryTest extends FSPathProviderFactor
             final Path tmpFile = workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile");
             Files.write(tmpFile, bytesToWrite);
 
-            final FSLocation loc = new FSLocation(Choice.KNIME_FS.toString(), "knime.mountpoint",
+            final FSLocation loc = new FSLocation(FSCategory.RELATIVE, "knime.mountpoint",
                     tmpFile.getFileName().toString());
 
             testReadFSLocation(Optional.empty(), loc, bytesToWrite);
@@ -57,7 +57,7 @@ public class LocalRelativeToPathProviderFactoryTest extends FSPathProviderFactor
             final Path localTmpFile = workflowManager.getContext().getMountpointRoot().toPath().resolve("tempfile");
             Files.write(localTmpFile, bytesToWrite);
 
-            final FSLocation loc = new FSLocation(Choice.KNIME_FS.toString(), "knime.workflow", "../tempfile");
+            final FSLocation loc = new FSLocation(FSCategory.RELATIVE, "knime.workflow", "../tempfile");
 
             testReadFSLocation(Optional.empty(), loc, bytesToWrite);
         } finally {

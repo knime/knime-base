@@ -54,8 +54,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  * Interface that provides information about the kind of file system that a {@link FSLocation} requires.
@@ -72,7 +70,7 @@ public interface FSLocationSpec {
     public static FSLocationSpec NULL = new FSLocationSpec() {
 
         @Override
-        public String getFileSystemType() {
+        public String getFileSystemCategory() {
             return null;
         }
 
@@ -84,19 +82,20 @@ public interface FSLocationSpec {
     };
 
     /**
-     * Returns the file system type.
+     * Returns the file system category. The returned value is only the string representation of the enum return by
+     * {@link #getFSCategory()}
      *
-     * @return the file system type
+     * @return the file system category as a string.
      */
-    String getFileSystemType();
+    String getFileSystemCategory();
 
     /**
-     * Returns the {@link Choice file system choice}.
+     * Returns the {@link FSCategory file system category}.
      *
-     * @return the file system choice
+     * @return the file system category as an enum.
      */
-    default Choice getFileSystemChoice() {
-        return FileSystemChoice.Choice.valueOf(getFileSystemType());
+    default FSCategory getFSCategory() {
+        return FSCategory.valueOf(getFileSystemCategory());
     }
 
     /**
@@ -111,11 +110,12 @@ public interface FSLocationSpec {
 
 
     /**
-     * Checks if the provided {@link FSLocationSpec} objects are equal regarding there type and specifier.
+     * Checks if the provided {@link FSLocationSpec} objects are equal regarding their file
+     * system category and specifier.
      *
      * @param first {@link FSLocationSpec}
      * @param second {@link FSLocationSpec}
-     * @return {@code true} if either both are {@code null} or have the same type and specifier
+     * @return {@code true} if either both are {@code null} or have the same category and specifier
      */
     static boolean areEqual(final FSLocationSpec first, final FSLocationSpec second) {
         if (first == second) {
@@ -126,7 +126,7 @@ public interface FSLocationSpec {
             // both can't be null because then the previous if-switch would have returned already
             return false;
         }
-        return first.getFileSystemType().equals(second.getFileSystemType())
+        return first.getFileSystemCategory().equals(second.getFileSystemCategory())
             && first.getFileSystemSpecifier().equals(second.getFileSystemSpecifier());
     }
 
@@ -139,7 +139,7 @@ public interface FSLocationSpec {
      */
     public abstract static class FSLocationSpecSerializer<T extends FSLocationSpec> {
 
-        private static final String CFG_FS_TYPE = "fs_type";
+        private static final String CFG_FS_CATEGORY = "fs_category";
 
         private static final String CFG_FS_SPECIFIER = "fs_specifier";
 
@@ -151,7 +151,7 @@ public interface FSLocationSpec {
          */
         public void save(final T fsLocationSpec, final ConfigWO config) {
             CheckUtils.checkNotNull(fsLocationSpec, "The FSLocationSpec provided to the serializer must not be null.");
-            config.addString(CFG_FS_TYPE, fsLocationSpec.getFileSystemType());
+            config.addString(CFG_FS_CATEGORY, fsLocationSpec.getFileSystemCategory());
             config.addString(CFG_FS_SPECIFIER, fsLocationSpec.getFileSystemSpecifier().orElse(null));
         }
 
@@ -164,19 +164,19 @@ public interface FSLocationSpec {
          *             {@link ConfigRO}).
          */
         public T load(final ConfigRO config) throws InvalidSettingsException {
-            final String fileSystemType = config.getString(CFG_FS_TYPE);
+            final String fileSystemCategory = config.getString(CFG_FS_CATEGORY);
             final String fileSystemSpecifier = config.getString(CFG_FS_SPECIFIER);
-            return createFSLocationSpec(fileSystemType, fileSystemSpecifier, config);
+            return createFSLocationSpec(fileSystemCategory, fileSystemSpecifier, config);
         }
 
         /**
          * Abstract method to to create the concrete instance of a {@link FSLocationSpec} subclass.
          *
-         * @param fileSystemType The file system type.
+         * @param fileSystemCategory The file system category.
          * @param fileSystemSpecifier The file system specifier.
          * @param config The {@link ConfigRO} to (optionally) deserialize further fields from.
          * @return an instance of {@link FSLocationSpec} subclass.
          */
-        protected abstract T createFSLocationSpec(String fileSystemType, String fileSystemSpecifier, ConfigRO config);
+        protected abstract T createFSLocationSpec(String fileSystemCategory, String fileSystemSpecifier, ConfigRO config);
     }
 }

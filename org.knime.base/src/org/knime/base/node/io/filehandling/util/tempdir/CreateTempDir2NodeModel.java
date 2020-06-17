@@ -177,7 +177,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
         final Map<FSLocationSpec, List<FSLocation>> tempDirs) {
         FSLocation fsLocation = tempDirFSPath.toFSLocation();
         tempDirs
-            .computeIfAbsent(new DefaultFSLocationSpec(fsLocation.getFileSystemType(),
+            .computeIfAbsent(new DefaultFSLocationSpec(fsLocation.getFileSystemCategory(),
                 fsLocation.getFileSystemSpecifier().orElse(null)), k -> new ArrayList<>())//
             .add(fsLocation);
     }

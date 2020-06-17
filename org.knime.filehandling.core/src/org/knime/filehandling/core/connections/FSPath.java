@@ -71,7 +71,7 @@ public abstract class FSPath implements Path {
     @SuppressWarnings("resource")
     public FSLocation toFSLocation() {
         final FSFileSystem<?> fs = getFileSystem();
-        return new FSLocation(fs.getFileSystemChoice().toString(), fs.getFileSystemSpecifier().orElseGet(() -> null),
+        return new FSLocation(fs.getFileSystemCategory().toString(), fs.getFileSystemSpecifier().orElseGet(() -> null),
             toString());
     }
 }

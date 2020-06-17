@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections.location;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -58,7 +59,6 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -106,17 +106,17 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
     public static FSPathProviderFactory newFactory(final Optional<FSConnection> portObjectConnection,
         final FSLocationSpec fsLocationSpec) {
 
-        final Choice choice = Choice.valueOf(fsLocationSpec.getFileSystemType());
-        switch (choice) {
-            case LOCAL_FS:
+        final FSCategory category = FSCategory.valueOf(fsLocationSpec.getFileSystemCategory());
+        switch (category) {
+            case LOCAL:
                 return new DefaultFSPathProviderFactory(new LocalFSConnection());
-            case KNIME_FS:
+            case RELATIVE:
                 return new DefaultFSPathProviderFactory(createRelativeToFSConnection(fsLocationSpec));
-            case KNIME_MOUNTPOINT:
+            case MOUNTPOINT:
                 return new DefaultFSPathProviderFactory(createMountpointConnection(fsLocationSpec));
-            case CUSTOM_URL_FS:
+            case CUSTOM_URL:
                 return new URLFSPathProviderFactory();
-            case CONNECTED_FS:
+            case CONNECTED:
                 return createConnectedFSPathProviderFactory(portObjectConnection);
             default:
                 throw new IllegalArgumentException(

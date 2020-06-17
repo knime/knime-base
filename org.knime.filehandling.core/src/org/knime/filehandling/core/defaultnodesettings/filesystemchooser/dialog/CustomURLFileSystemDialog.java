@@ -56,7 +56,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
 
 /**
@@ -108,7 +108,7 @@ public final class CustomURLFileSystemDialog implements FileSystemSpecificDialog
 
     @Override
     public String toString() {
-        return "Custom/KNIME URL";
+        return FSCategory.CUSTOM_URL.getLabel();
     }
 
     @Override
@@ -118,8 +118,8 @@ public final class CustomURLFileSystemDialog implements FileSystemSpecificDialog
     }
 
     @Override
-    public Choice getChoice() {
-        return Choice.CUSTOM_URL_FS;
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.CUSTOM_URL;
     }
 
     @Override

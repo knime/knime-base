@@ -71,16 +71,16 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 
 /**
  * The configuration of {@link FileSystemChooser}.</br>
@@ -101,7 +101,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     private static final String CFG_FILE_SYSTEM_CHOOSER_INTERNALS =
         "file_system_chooser_" + SettingsModel.CFGKEY_INTERNAL;
 
-    private final EnumMap<Choice, FileSystemSpecificConfig> m_fsSpecificConfigs = new EnumMap<>(Choice.class);
+    private final EnumMap<FSCategory, FileSystemSpecificConfig> m_fsSpecificConfigs = new EnumMap<>(FSCategory.class);
 
     private final List<ChangeListener> m_listeners = new LinkedList<>();
 
@@ -145,10 +145,10 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         m_portIdx = portIdx;
         m_locationConfig.setLocationSpec(configs[0].getLocationSpec());
         for (FileSystemSpecificConfig config : configs) {
-            final Choice choice = config.getLocationSpec().getFileSystemChoice();
-            CheckUtils.checkArgument(!m_fsSpecificConfigs.containsKey(choice),
-                "Duplicate config for choice '%s' detected.", choice);
-            m_fsSpecificConfigs.put(choice, config);
+            final FSCategory category = config.getLocationSpec().getFSCategory();
+            CheckUtils.checkArgument(!m_fsSpecificConfigs.containsKey(category),
+                "Duplicate config for file system category '%s' detected.", category);
+            m_fsSpecificConfigs.put(category, config);
             config.addChangeListener(e -> handleSpecificConfigChange());
         }
     }
@@ -196,7 +196,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
             // in the connected case we always have to take the connection from the connected FS config
             // because the input file system always takes precedence but the location might be overwritten
             // with a flow variable pointing to a different fs
-            return m_fsSpecificConfigs.get(Choice.CONNECTED_FS).getConnection();
+            return m_fsSpecificConfigs.get(FSCategory.CONNECTED).getConnection();
         } else {
             return getCurrentSpecificConfig().flatMap(FileSystemSpecificConfig::getConnection);
         }
@@ -282,15 +282,15 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
         if (hasFSPort()) {
-            final Choice fsFromSettings = getLocationSpec().getFileSystemChoice();
-            if (fsFromSettings != Choice.CONNECTED_FS) {
+            final FSCategory fsFromSettings = getLocationSpec().getFSCategory();
+            if (fsFromSettings != FSCategory.CONNECTED) {
                 statusMessageConsumer.accept(new DefaultStatusMessage(MessageType.WARNING,
                     "The file system specified via flow variable ('%s') is not compatible with the "
                         + "file system provided via the input port.",
                     fsFromSettings));
             }
             // must be there in the connected case
-            FileSystemSpecificConfig connectedConfig = m_fsSpecificConfigs.get(Choice.CONNECTED_FS);
+            FileSystemSpecificConfig connectedConfig = m_fsSpecificConfigs.get(FSCategory.CONNECTED);
             connectedConfig.configureInModel(specs, statusMessageConsumer);
             m_locationConfig.setLocationSpec(connectedConfig.getLocationSpec());
         } else {
@@ -303,35 +303,35 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     }
 
     private Optional<FileSystemSpecificConfig> getCurrentSpecificConfig() {
-        return getSpecificConfig(getChoice());
+        return getSpecificConfig(getFSCategory());
     }
 
-    private Optional<FileSystemSpecificConfig> getSpecificConfig(final Choice choice) {
-        return Optional.ofNullable(m_fsSpecificConfigs.get(choice));
+    private Optional<FileSystemSpecificConfig> getSpecificConfig(final FSCategory category) {
+        return Optional.ofNullable(m_fsSpecificConfigs.get(category));
     }
 
     /**
-     * Retrieves the current {@link Choice} of file system.
+     * Retrieves the current {@link FSCategory} of file system.
      *
-     * @return the current {@link Choice} of file system
+     * @return the current {@link FSCategory} of file system
      */
-    public Choice getChoice() {
-        return m_locationConfig.getLocationSpec().getFileSystemChoice();
+    public FSCategory getFSCategory() {
+        return m_locationConfig.getLocationSpec().getFSCategory();
     }
 
     /**
-     * Sets the provided {@link Choice} and notifies the listeners if the value changed.</br>
+     * Sets the provided {@link FSCategory} and notifies the listeners if the value changed.</br>
      *
-     * NOTE: This method is intended for the use in the dialog and will fail if the provided {@link Choice choice} is
+     * NOTE: This method is intended for the use in the dialog and will fail if the provided {@link FSCategory category} is
      * not supported by this instance.
      *
-     * @param choice the {@link Choice} to set
-     * @throws IllegalArgumentException if the provided {@link Choice} is not supported by this instance
+     * @param category the {@link FSCategory} to set
+     * @throws IllegalArgumentException if the provided {@link FSCategory} is not supported by this instance
      */
-    public void setChoice(final Choice choice) {
-        if (choice != getLocationSpec().getFileSystemChoice()) {
-            setLocationSpec(getSpecificConfig(choice)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported file system choice: " + choice))
+    public void setFSCategory(final FSCategory category) {
+        if (category != getLocationSpec().getFSCategory()) {
+            setLocationSpec(getSpecificConfig(category)
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported file system category: " + category))
                 .getLocationSpec());
         }
     }
@@ -373,26 +373,27 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     }
 
     /**
-     * Retrieves the {@link FileSystemSpecificConfig} for the provided {@link Choice choice}.
+     * Retrieves the {@link FileSystemSpecificConfig} for the provided {@link FSCategory category}.
      *
-     * @param choice to retrieve the {@link FileSystemSpecificConfig} for
-     * @return the {@link FileSystemSpecificConfig} corresponding to the given {@link Choice choice}
+     * @param category to retrieve the {@link FileSystemSpecificConfig} for
+     * @return the {@link FileSystemSpecificConfig} corresponding to the given {@link FSCategory category}
      * @throws IllegalArgumentException if there is no {@link FileSystemSpecificConfig} associated with the provided
-     *             {@link Choice choice}
+     *             {@link FSCategory category}
      */
-    public FileSystemSpecificConfig getFileSystemSpecifcConfig(final Choice choice) {
-        return CheckUtils.checkArgumentNotNull(m_fsSpecificConfigs.get(choice), "No config for choice '%s' available.",
-            choice);
+    public FileSystemSpecificConfig getFileSystemSpecifcConfig(final FSCategory category) {
+        return CheckUtils.checkArgumentNotNull(m_fsSpecificConfigs.get(category), "No config for category '%s' available.",
+            category);
     }
 
     /**
-     * Indicates whether there is a {@link FileSystemSpecificConfig} associated with the provided {@link Choice choice}.
+     * Indicates whether there is a {@link FileSystemSpecificConfig} associated with the provided {@link FSCategory
+     * category}.
      *
-     * @param choice to check if an associated FileSystemSpecificConfig is available for
+     * @param category to check if an associated FileSystemSpecificConfig is available for
      * @return {@code true} if there is a {@link FileSystemSpecificConfig} is available, {@code false} if not
      */
-    public boolean hasFileSystemSpecificConfig(final Choice choice) {
-        return m_fsSpecificConfigs.containsKey(choice);
+    public boolean hasFileSystemSpecificConfig(final FSCategory category) {
+        return m_fsSpecificConfigs.containsKey(category);
     }
 
     @Override
@@ -402,7 +403,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
             config.get().report(statusConsumer);
         } else {
             statusConsumer.accept(
-                new DefaultStatusMessage(MessageType.ERROR, "The choice specified via flow variable is invalid."));
+                new DefaultStatusMessage(MessageType.ERROR, "The category specified via flow variable is invalid."));
         }
     }
 
@@ -475,7 +476,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         locationConfig.loadSettingsForModel(settings);
         final FSLocationSpec locationSpec = locationConfig.getLocationSpec();
         // will be null if we have a fs port and overwrite with a flow variable that specifies a different fs
-        final FileSystemSpecificConfig selected = m_fsSpecificConfigs.get(locationSpec.getFileSystemChoice());
+        final FileSystemSpecificConfig selected = m_fsSpecificConfigs.get(locationSpec.getFSCategory());
         if (selected != null) {
             selected.validate(locationSpec);
         } else {

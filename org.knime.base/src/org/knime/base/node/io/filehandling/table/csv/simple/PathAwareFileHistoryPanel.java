@@ -67,10 +67,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -208,9 +208,9 @@ final class PathAwareFileHistoryPanel implements PathSettings {
             }
             if (m_connection == null) {
                 if (isURL()) {
-                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.CUSTOM_URL_FS.toString(), "5000", m_path);
+                    m_fsLocation = new FSLocation(FSCategory.CUSTOM_URL, "5000", m_path);
                 } else {
-                    m_fsLocation = new FSLocation(FileSystemChoice.Choice.LOCAL_FS.toString(), m_path);
+                    m_fsLocation = new FSLocation(FSCategory.LOCAL, m_path);
                 }
             }
             m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation)

@@ -104,7 +104,7 @@ public final class FSLocationCellFactory {
      * @param fsLocation the file system location object holding the type and specifier of the file system
      */
     public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocation fsLocation) {
-        this(fileStoreFactory, fsLocation.getFileSystemType(), fsLocation.getFileSystemSpecifier().orElse(null));
+        this(fileStoreFactory, fsLocation.getFileSystemCategory(), fsLocation.getFileSystemSpecifier().orElse(null));
     }
 
     /**
@@ -121,7 +121,7 @@ public final class FSLocationCellFactory {
         CheckUtils.checkNotNull(fsLocation, "The file system location must not be null.");
         CheckUtils.checkArgumentNotNull(fsLocation.getPath(), "The path must not be null.");
         // Check that fs type and specifier are compatible with meta data
-        final String fileSystemType = fsLocation.getFileSystemType();
+        final String fileSystemType = fsLocation.getFileSystemCategory();
         CheckUtils.checkArgument(fileSystemType.equals(m_metaData.getFileSystemType()),
             "The file system type (%s) must match the file system type in the meta data (%s).", fileSystemType,
             m_metaData.getFileSystemType());

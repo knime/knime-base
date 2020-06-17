@@ -137,7 +137,7 @@ public final class FSLocationUtils {
     public static void saveFSLocation(final FSLocation location, final ConfigWO config) {
         config.addBoolean(CFG_LOCATION_PRESENT, location != FSLocation.NULL);
         if (location != FSLocation.NULL) {
-            config.addString(CFG_FS_TYPE, location.getFileSystemType());
+            config.addString(CFG_FS_TYPE, location.getFileSystemCategory());
             Optional<String> fileSystemSpecifier = location.getFileSystemSpecifier();
             if (fileSystemSpecifier.isPresent()) {
                 config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());
@@ -150,7 +150,7 @@ public final class FSLocationUtils {
         // TODO reference check doesn't solve the issue since FSLocation.NULL is also valid NULL FSLocationSpec
         config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
         if (locationSpec != FSLocationSpec.NULL) {
-            config.addString(CFG_FS_TYPE, locationSpec.getFileSystemType());
+            config.addString(CFG_FS_TYPE, locationSpec.getFileSystemCategory());
             Optional<String> fileSystemSpecifier = locationSpec.getFileSystemSpecifier();
             if (fileSystemSpecifier.isPresent()) {
                 config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());

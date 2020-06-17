@@ -60,7 +60,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -175,7 +175,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     }
 
     boolean isCustomURL() {
-        return getLocation().getFileSystemChoice() == Choice.CUSTOM_URL_FS;
+        return getLocation().getFSCategory() == FSCategory.CUSTOM_URL;
     }
 
     boolean isCreateParentDirectoriesUI() {
