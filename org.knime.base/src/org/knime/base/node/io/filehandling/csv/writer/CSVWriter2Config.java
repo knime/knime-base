@@ -61,7 +61,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
@@ -79,9 +78,13 @@ final class CSVWriter2Config {
     /** The allowed/recommended suffixes for writing a CSV file */
     protected final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
 
+    static final String CFG_SETTINGS_TAB = "settings";
+
     private static final String CFG_ADVANCED = "advanced_settings";
 
     private static final String CFG_COMMENT = "comment_header_settings";
+
+    private static final String CFG_ENCODING = "encoding";
 
     /** The settings key for the file chooser dialog */
     public static final String CFG_FILE_CHOOSER = "file_chooser_settings";
@@ -168,6 +171,15 @@ final class CSVWriter2Config {
     public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.validateSettings(settings);
 
+        validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
+
+        m_advancedConfig.validate(settings.getNodeSettings(CFG_ADVANCED));
+        m_commentConfig.validate(settings.getNodeSettings(CFG_COMMENT));
+
+        settings.getNodeSettings(CFG_ENCODING).getString(CFG_CHAR_ENCODING);
+    }
+
+    private static void validateSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getString(CFG_COLUMN_DELIMITER);
         LineBreakTypes.loadSettings(settings);
 
@@ -177,21 +189,26 @@ final class CSVWriter2Config {
         settings.getBoolean(CFG_WRITE_COLUMN_HEADER);
         settings.getBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND);
         settings.getBoolean(CFG_WRITE_ROW_HEADER);
-
-        m_advancedConfig.validate(settings.getNodeSettings(CFG_ADVANCED));
-        m_commentConfig.validate(settings.getNodeSettings(CFG_COMMENT));
-
-        settings.getString(CFG_CHAR_ENCODING);
     }
 
-    void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
+    void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
+
         try {
-            m_lineBreak = LineBreakTypes.loadSettings(settings);
-        } catch (final InvalidSettingsException ex) {
-            throw new NotConfigurableException(ex.getMessage());
+            loadSettingsTabForDialog(settings.getNodeSettings(CFG_SETTINGS_TAB));
+        } catch (InvalidSettingsException e) {
         }
 
+        m_advancedConfig.loadInDialog(getConfigForDialog(settings, CFG_ADVANCED));
+        m_commentConfig.loadInDialog(getConfigForDialog(settings, CFG_COMMENT));
+        m_charsetName = getConfigForDialog(settings, CFG_ENCODING).getString(CFG_CHAR_ENCODING, DEFAULT_CHAR_ENCODING);
+    }
+
+    private void loadSettingsTabForDialog(final NodeSettingsRO settings) {
+        try {
+            m_lineBreak = LineBreakTypes.loadSettings(settings);
+        } catch (InvalidSettingsException e) {
+            // nothing to do
+        }
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER, DEFAULT_COLUMN_DELIMITER);
 
         m_quoteChar = settings.getChar(CFG_QUOTE_CHAR, DEFAULT_QUOTE_CHAR);
@@ -201,10 +218,6 @@ final class CSVWriter2Config {
         m_skipColumnHeaderOnAppend =
             settings.getBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND, DEFAULT_SKIP_COLUMN_HEADER_ON_APPEND);
         m_writeRowHeader = settings.getBoolean(CFG_WRITE_ROW_HEADER, DEFAULT_WRITE_ROW_HEADER);
-
-        m_advancedConfig.loadInDialog(getConfigForDialog(settings, CFG_ADVANCED));
-        m_commentConfig.loadInDialog(getConfigForDialog(settings, CFG_COMMENT));
-        m_charsetName = settings.getString(CFG_CHAR_ENCODING, DEFAULT_CHAR_ENCODING);
     }
 
     static NodeSettingsRO getConfigForDialog(final NodeSettingsRO settings, final String configKey) {
@@ -221,6 +234,18 @@ final class CSVWriter2Config {
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.loadSettingsFrom(settings);
+        loadSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
+
+        m_advancedConfig.loadInModel(settings.getNodeSettings(CFG_ADVANCED));
+        m_commentConfig.loadInModel(settings.getNodeSettings(CFG_COMMENT));
+
+        m_charsetName = settings.getNodeSettings(CFG_ENCODING).getString(CFG_CHAR_ENCODING);
+
+        checkColSeparator();
+        checkGzipSettings();
+    }
+
+    private void loadSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
 
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER);
         m_lineBreak = LineBreakTypes.loadSettings(settings);
@@ -231,14 +256,6 @@ final class CSVWriter2Config {
         m_writeColumnHeader = settings.getBoolean(CFG_WRITE_COLUMN_HEADER);
         m_skipColumnHeaderOnAppend = settings.getBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND);
         m_writeRowHeader = settings.getBoolean(CFG_WRITE_ROW_HEADER);
-
-        m_advancedConfig.loadInModel(settings.getNodeSettings(CFG_ADVANCED));
-        m_commentConfig.loadInModel(settings.getNodeSettings(CFG_COMMENT));
-
-        m_charsetName = settings.getString(CFG_CHAR_ENCODING);
-
-        checkColSeparator();
-        checkGzipSettings();
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -248,6 +265,15 @@ final class CSVWriter2Config {
     }
 
     private void save(final NodeSettingsWO settings) {
+        saveSettingsTab(settings.addNodeSettings(CFG_SETTINGS_TAB));
+
+        m_advancedConfig.save(settings.addNodeSettings(CFG_ADVANCED));
+        m_commentConfig.save(settings.addNodeSettings(CFG_COMMENT));
+
+        settings.addNodeSettings(CFG_ENCODING).addString(CFG_CHAR_ENCODING, m_charsetName);
+    }
+
+    private void saveSettingsTab(final NodeSettingsWO settings) {
         settings.addString(CFG_COLUMN_DELIMITER, m_columnDelimiter);
 
         m_lineBreak.saveSettings(settings);
@@ -258,11 +284,6 @@ final class CSVWriter2Config {
         settings.addBoolean(CFG_WRITE_COLUMN_HEADER, m_writeColumnHeader);
         settings.addBoolean(CFG_SKIP_COLUMN_HEADER_ON_APPEND, m_skipColumnHeaderOnAppend);
         settings.addBoolean(CFG_WRITE_ROW_HEADER, m_writeRowHeader);
-
-        m_advancedConfig.save(settings.addNodeSettings(CFG_ADVANCED));
-        m_commentConfig.save(settings.addNodeSettings(CFG_COMMENT));
-
-        settings.addString(CFG_CHAR_ENCODING, m_charsetName);
     }
 
     private void checkColSeparator() throws InvalidSettingsException {

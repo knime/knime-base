@@ -154,8 +154,8 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
     }
 
     private void initLayout() {
-        addTab("Options", createMainOptionsPanel());
-        addTab("Advanced Options", m_advancedPanel);
+        addTab("Settings", createMainOptionsPanel());
+        addTab("Advanced Settings", m_advancedPanel);
         addTab("Comment Header", m_commentPanel);
         addTab("Encoding", m_encodingPanel);
     }
