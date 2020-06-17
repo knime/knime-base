@@ -139,7 +139,7 @@ public enum SpecMergeMode {
             @Override
             <T> TypedReaderTableSpec<T> mergeSpecs(final Collection<TypedReaderTableSpec<T>> individualSpecs,
                 final TypeHierarchy<T, T> typeHierarchy) {
-                assert !individualSpecs.isEmpty() : "No specs provided.";
+                CheckUtils.checkArgument(!individualSpecs.isEmpty(), "No columns in input file(s).");
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
                 for (TypedReaderTableSpec<T> individualSpec : individualSpecs) {
                     addAllColumnsInSpec(resolversByName, individualSpec, typeHierarchy);

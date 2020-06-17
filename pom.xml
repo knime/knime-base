@@ -13,27 +13,27 @@
 
 	<groupId>org.knime</groupId>
 	<artifactId>knime-base</artifactId>
-  <version>${revision}${changelist}</version>
+	<version>${revision}${changelist}</version>
 	<packaging>pom</packaging>
 
-  <properties>
-    <revision>4.2.0</revision>
-    <changelist>-SNAPSHOT</changelist>
-    <feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
-    <feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
-  </properties>
+	<properties>
+		<revision>4.2.0</revision>
+		<changelist>-SNAPSHOT</changelist>
+		<feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
+		<feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
+	</properties>
 
 	<modules>
 		<module>org.knime.base</module>
-		<module>org.knime.base.testing</module>
+		<module>org.knime.base.tests</module>
 		<module>org.knime.deprecated</module>
 		<module>org.knime.features.base</module>
 		<module>org.knime.features.base.testing</module>
 		<module>org.knime.features.filehandling.core.testing</module>
 		<module>org.knime.filehandling.core</module>
-		<module>org.knime.filehandling.core.testing</module>
+		<module>org.knime.filehandling.core.tests</module>
 		<module>org.knime.time</module>
-		<module>org.knime.time.testing</module>
+		<module>org.knime.time.tests</module>
 		<module>org.knime.update.base</module>
 	</modules>
 
@@ -57,6 +57,31 @@
 			<id>p2-knime-tp</id>
 			<layout>p2</layout>
 			<url>${knime.tp.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-workbench</id>
+			<layout>p2</layout>
+			<url>${knime.workbench.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-js-core</id>
+			<layout>p2</layout>
+			<url>${knime.js.core.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-svg</id>
+			<layout>p2</layout>
+			<url>${knime.svg.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-database</id>
+			<layout>p2</layout>
+			<url>${knime.database.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-kerberos</id>
+			<layout>p2</layout>
+			<url>${knime.kerberos.p2}</url>
 		</repository>
 	</repositories>
 

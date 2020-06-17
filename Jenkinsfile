@@ -12,25 +12,35 @@ properties([
 	disableConcurrentBuilds()
 ])
 
+SSHD_IMAGE = "${dockerTools.ECR}/knime/sshd:alpine3.10"
+
 try {
 	// provide the name of the update site project
 	knimetools.defaultTychoBuild('org.knime.update.base')
+	
 
-/* 	workflowTests.runTests( */
-/* 		"org.knime.features.base.testing.feature.group", */
-/* 		false, */
-/* 		["knime-core", "knime-shared", "knime-expressions", "knime-tp"], */
-/* 	) */
+    workflowTests.runTests(
+        dependencies: [
+            repositories:  ["knime-base", "knime-expressions", "knime-core","knime-pmml", "knime-pmml-compilation",
+            "knime-pmml-translation", "knime-r", "knime-jep","knime-kerberos", "knime-database", "knime-datageneration",
+            "knime-filehandling", "knime-js-base", "knime-ensembles", "knime-distance", "knime-xml", "knime-jfreechart",
+            "knime-js", "knime-timeseries", "knime-python", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
+            "knime-js-labs", "knime-optimization", "knime-streaming", "knime-textprocessing", "knime-chemistry", "knime-testing-internal",
+            "knime-dl4j", "knime-exttool", "knime-parquet", "knime-bigdata", "knime-bigdata-externals", "knime-cloud", "knime-js-core"]
+        ],
+         sidecarContainers: [
+            [ image: SSHD_IMAGE, namePrefix: "SSHD", port: 22 ]
+         ]
+    )
 
-/* 	stage('Sonarqube analysis') { */
-/* 		env.lastStage = env.STAGE_NAME */
-/* 		workflowTests.runSonar() */
-/* 	} */
- } catch (ex) {
-	 currentBuild.result = 'FAILED'
-	 throw ex
- } finally {
-	 notifications.notifyBuild(currentBuild.result);
- }
-
-/* vim: set ts=4: */
+    stage('Sonarqube analysis') {
+        env.lastStage = env.STAGE_NAME
+        workflowTests.runSonar()
+    }
+} catch (ex) {
+    currentBuild.result = 'FAILURE'
+    throw ex
+} finally {
+    notifications.notifyBuild(currentBuild.result);
+}
+/* vim: set shiftwidth=4 expandtab smarttab: */

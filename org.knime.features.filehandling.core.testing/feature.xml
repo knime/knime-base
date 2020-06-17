@@ -735,7 +735,7 @@
          unpack="false"/>
 
    <plugin
-         id="org.knime.filehandling.core.testing"
+         id="org.knime.filehandling.core.tests"
          download-size="0"
          install-size="0"
          version="0.0.0"
