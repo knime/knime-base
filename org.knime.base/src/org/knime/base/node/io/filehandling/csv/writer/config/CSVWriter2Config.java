@@ -73,7 +73,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
-public class SettingsModelCSVWriter extends SettingsModel {
+public class CSVWriter2Config extends SettingsModel {
 
     /** The allowed/recommended suffixes for writing a CSV file */
     protected final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
@@ -143,7 +143,7 @@ public class SettingsModelCSVWriter extends SettingsModel {
      * @param portsConfig the ports configuration
      *
      */
-    public SettingsModelCSVWriter(final PortsConfiguration portsConfig) {
+    public CSVWriter2Config(final PortsConfiguration portsConfig) {
         m_fileChooserModel = new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER, portsConfig,
             CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FILE,
             org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy.FAIL,
@@ -171,7 +171,7 @@ public class SettingsModelCSVWriter extends SettingsModel {
      *
      * @param source the object to copy
      */
-    private SettingsModelCSVWriter(final SettingsModelCSVWriter source) {
+    private CSVWriter2Config(final CSVWriter2Config source) {
         m_fileChooserModel = source.getFileChooserModel().createClone();
 
         m_columnDelimiter = source.getColumnDelimiter();
@@ -192,8 +192,8 @@ public class SettingsModelCSVWriter extends SettingsModel {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelCSVWriter createClone() {
-        return new SettingsModelCSVWriter(this);
+    protected CSVWriter2Config createClone() {
+        return new CSVWriter2Config(this);
     }
 
     @Override

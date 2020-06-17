@@ -63,7 +63,7 @@ import javax.swing.JTextField;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
-import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
+import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
@@ -113,7 +113,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
     private final CommentPanel m_commentPanel;
 
-    private final SettingsModelCSVWriter m_writerConfig;
+    private final CSVWriter2Config m_writerConfig;
 
     /**
      * Creates a new CSV writer dialog.
@@ -121,7 +121,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
      * @param writerConfig a {@code CSVWriter2Config}
      *
      */
-    public CSVWriter2NodeDialog(final SettingsModelCSVWriter writerConfig) {
+    public CSVWriter2NodeDialog(final CSVWriter2Config writerConfig) {
         m_writerConfig = writerConfig;
 
         m_writerConfig.getFileChooserModel().addChangeListener(e -> checkCheckerState());

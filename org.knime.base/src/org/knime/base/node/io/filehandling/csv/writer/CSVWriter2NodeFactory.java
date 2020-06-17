@@ -49,7 +49,7 @@ package org.knime.base.node.io.filehandling.csv.writer;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
+import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
@@ -85,7 +85,7 @@ public final class CSVWriter2NodeFactory extends ConfigurableNodeFactory<CSVWrit
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVWriter2NodeDialog(new SettingsModelCSVWriter(getPortsConfig(creationConfig)));
+        return new CSVWriter2NodeDialog(new CSVWriter2Config(getPortsConfig(creationConfig)));
     }
 
     @Override

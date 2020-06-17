@@ -94,10 +94,10 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
 
     private final DialogComponentWriterFileChooser m_parentDirChooserPanel;
 
-    private final SettingsModelTempDir m_config;
+    private final CreateTempDir2NodeConfig m_config;
 
     public CreateTempDir2NodeDialog(final PortsConfiguration portsConfig) {
-        m_config = new SettingsModelTempDir(portsConfig);
+        m_config = new CreateTempDir2NodeConfig(portsConfig);
 
         final FlowVariableModel writeFvm = createFlowVariableModel(
             m_config.getParentDirChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);

@@ -68,7 +68,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
-final class SettingsModelTempDir extends SettingsModel {
+final class CreateTempDir2NodeConfig extends SettingsModel {
 
     private static final boolean DEFAULT_ON_RESET = true;
 
@@ -107,7 +107,7 @@ final class SettingsModelTempDir extends SettingsModel {
      *
      * @param portsConfig {@link PortsConfiguration} of the node
      */
-    SettingsModelTempDir(final PortsConfiguration portsConfig) {
+    CreateTempDir2NodeConfig(final PortsConfiguration portsConfig) {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_TEMP_DIR_PARENT, portsConfig,
             CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.FAIL,
             EnumSet.of(FileOverwritePolicy.FAIL));
@@ -123,7 +123,7 @@ final class SettingsModelTempDir extends SettingsModel {
         m_additionalVarValues = new String[0];
     }
 
-    private SettingsModelTempDir(final SettingsModelTempDir source) {
+    private CreateTempDir2NodeConfig(final CreateTempDir2NodeConfig source) {
         m_parentDirChooserModel = source.getParentDirChooserModel().createClone();
 
         m_deleteDirOnReset = source.deleteDirOnReset();
@@ -137,8 +137,8 @@ final class SettingsModelTempDir extends SettingsModel {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected SettingsModelTempDir createClone() {
-        return new SettingsModelTempDir(this);
+    protected CreateTempDir2NodeConfig createClone() {
+        return new CreateTempDir2NodeConfig(this);
     }
 
     @Override

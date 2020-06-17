@@ -98,7 +98,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     private static final int MISSING_FS_PORT_IDX = -1;
 
-    private final SettingsModelTempDir m_config;
+    private final CreateTempDir2NodeConfig m_config;
 
     private final int m_fsConnectionPortIdx;
 
@@ -117,7 +117,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
      */
     CreateTempDir2NodeModel(final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
-        m_config = new SettingsModelTempDir(portsConfig);
+        m_config = new CreateTempDir2NodeConfig(portsConfig);
         m_fsConnectionPortIdx = Optional
             .ofNullable(
                 portsConfig.getInputPortLocation().get(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME))

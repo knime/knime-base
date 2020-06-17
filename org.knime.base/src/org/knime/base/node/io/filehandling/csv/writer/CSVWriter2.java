@@ -58,7 +58,7 @@ import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
-import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
+import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
@@ -80,7 +80,7 @@ class CSVWriter2 implements Closeable {
 
     private final Writer m_writer;
 
-    private final SettingsModelCSVWriter m_config;
+    private final CSVWriter2Config m_config;
 
     private final DecimalFormat m_decimalFormatter;
 
@@ -94,12 +94,12 @@ class CSVWriter2 implements Closeable {
 
     /**
      * Creates new writer which writes {@link DataTable} to a CSV files based on the provided
-     * {@link SettingsModelCSVWriter}
+     * {@link CSVWriter2Config}
      *
      * @param writer the {@link Writer}
-     * @param config the {@link SettingsModelCSVWriter} object determining how the {@link DataTable} is written to file.
+     * @param config the {@link CSVWriter2Config} object determining how the {@link DataTable} is written to file.
      */
-    public CSVWriter2(final Writer writer, final SettingsModelCSVWriter config) {
+    public CSVWriter2(final Writer writer, final CSVWriter2Config config) {
         if (config == null) {
             throw new NullPointerException("The CSVWriter doesn't accept null settings.");
         }

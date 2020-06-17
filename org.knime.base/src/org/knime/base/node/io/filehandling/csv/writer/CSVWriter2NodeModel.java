@@ -60,7 +60,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
+import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -99,7 +99,7 @@ final class CSVWriter2NodeModel extends NodeModel {
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVWriter2NodeModel.class);
 
-    private final SettingsModelCSVWriter m_writerConfig;
+    private final CSVWriter2Config m_writerConfig;
 
     private final int m_dataInputPortIdx;;
 
@@ -107,7 +107,7 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     CSVWriter2NodeModel(final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
-        m_writerConfig = new SettingsModelCSVWriter(portsConfig);
+        m_writerConfig = new CSVWriter2Config(portsConfig);
         // save since this port is fixed, see the Factory class
         m_dataInputPortIdx =
             portsConfig.getInputPortLocation().get(CSVWriter2NodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
