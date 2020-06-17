@@ -29,7 +29,6 @@
 		<module>org.knime.deprecated</module>
 		<module>org.knime.features.base</module>
 		<module>org.knime.features.base.testing</module>
-		<module>org.knime.features.filehandling.core</module>
 		<module>org.knime.features.filehandling.core.testing</module>
 		<module>org.knime.filehandling.core</module>
 		<module>org.knime.filehandling.core.testing</module>

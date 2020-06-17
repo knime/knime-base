@@ -727,9 +727,12 @@
  propagated with or for interoperation with KNIME.
    </license>
 
-   <requires>
-      <import feature="org.knime.features.filehandling.core" version="0.0.0.qualifier"/>
-   </requires>
+   <plugin
+         id="org.knime.filehandling.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.knime.filehandling.core.testing"

@@ -12,9 +12,6 @@
    <feature id="org.knime.features.base.testing.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
-   <feature id="org.knime.features.filehandling.core" version="0.0.0">
-      <category name="knime-base"/>
-   </feature>
    <feature id="org.knime.features.filehandling.core.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
