@@ -348,6 +348,10 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         throws NotConfigurableException {
         loadInternalSettingsInDialog(getChildSettingsOrEmpty(settings, CFG_FILE_SYSTEM_CHOOSER_INTERNALS), specs);
         m_locationConfig.loadSettingsForDialog(settings);
+        if (hasFSPort()) {
+            // the location spec has no way of knowing if the connection changed, so we need to tell it
+            setLocationSpec(m_fsSpecificConfigs.get(Choice.CONNECTED_FS).getLocationSpec());
+        }
         getCurrentSpecificConfig().ifPresent(c -> c.overwriteWith(getLocationSpec()));
     }
 
@@ -466,8 +470,9 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      * @throws InvalidSettingsException if the configuration in {@link NodeSettingsRO settings} is invalid
      */
     public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final NodeSettingsRO internalSettings = settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS);
         for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
-            config.validateInModel(settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS));
+            config.validateInModel(internalSettings);
         }
         // validates the config e.g. ensures that a path is present if we are in a file chooser
         m_locationConfig.validateForModel(settings);
@@ -481,6 +486,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
             selected.validate(locationSpec);
         } else {
             // the settings have been overwritten by a flow variable of an incompatible fs type
+            // or we added/removed the file system port and load old settings
             // ideally we would warn the user here but the settings model API doesn't allow it
             // therefore the warning will be issued in #configureInModel
         }

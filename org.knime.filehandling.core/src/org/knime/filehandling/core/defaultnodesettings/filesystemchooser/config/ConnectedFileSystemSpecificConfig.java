@@ -78,6 +78,8 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  */
 public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemSpecificConfig {
 
+    private static final String CFG_CONNECTED_FS = "connected_fs";
+
     private final int m_portIdx;
 
     private Optional<FSConnection> m_connection = Optional.empty();
@@ -148,7 +150,8 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
 
     @Override
     public void validateInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // we can't validate the file system because we would need access to the port object or its spec
+        // check if the settings were written by a compatible config (i.e. one that contains this class)
+        settings.getBoolean(CFG_CONNECTED_FS);
     }
 
     @Override
@@ -173,7 +176,8 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
 
     @Override
     public void save(final NodeSettingsWO settings) {
-        // no settings to save
+        // save placeholder that indicates if the settings were saved with a config that contains this class
+        settings.addBoolean(CFG_CONNECTED_FS, true);
     }
 
     @Override
