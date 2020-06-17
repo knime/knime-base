@@ -350,7 +350,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         m_locationConfig.loadSettingsForDialog(settings);
         if (hasFSPort()) {
             // the location spec has no way of knowing if the connection changed, so we need to tell it
-            setLocationSpec(m_fsSpecificConfigs.get(Choice.CONNECTED_FS).getLocationSpec());
+            setLocationSpec(m_fsSpecificConfigs.get(FSCategory.CONNECTED).getLocationSpec());
         }
         getCurrentSpecificConfig().ifPresent(c -> c.overwriteWith(getLocationSpec()));
     }
