@@ -46,7 +46,7 @@
  * History
  *   22 May 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;

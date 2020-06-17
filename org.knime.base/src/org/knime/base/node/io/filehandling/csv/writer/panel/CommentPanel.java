@@ -60,8 +60,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.apache.commons.lang.StringUtils;
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.CommentConfig;
-import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
 
 /**

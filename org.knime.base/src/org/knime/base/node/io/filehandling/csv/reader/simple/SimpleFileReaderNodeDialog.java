@@ -46,7 +46,7 @@
  * History
  *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv.simple;
+package org.knime.base.node.io.filehandling.csv.reader.simple;
 
 import java.awt.Dimension;
 
@@ -55,8 +55,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import org.knime.base.node.io.filehandling.table.csv.AbstractCSVTableReaderNodeDialog;
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeDialog;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;

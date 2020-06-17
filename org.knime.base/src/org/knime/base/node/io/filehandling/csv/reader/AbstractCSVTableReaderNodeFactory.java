@@ -46,11 +46,11 @@
  * History
  *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReader;
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.table.csv.reader.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;

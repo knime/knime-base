@@ -44,47 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.csv.reader.simple;
 
 import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * Node factory for the prototype CSV reader based on the new table reader framework.
+ * Node factory for the simple file reader node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
-
-    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
+        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
             createMultiTableReader());
     }
 
     @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            FilterMode.FILE, FILE_SUFFIXES);
+    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        return Optional.empty();
+    }
+
+    @Override
+    protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel("file_location");
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
-            settingsModel.setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000",
-                urlConfig.get().getUrl().toString()));
+            settings.setPath(urlConfig.get().getUrl().toString());
         }
-        return settingsModel;
+        return settings;
     }
 
 }

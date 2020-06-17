@@ -46,7 +46,7 @@
  * History
  *   6 Apr 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv.reader;
+package org.knime.base.node.io.filehandling.csv.reader.api;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;

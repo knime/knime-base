@@ -46,7 +46,7 @@
  * History
  *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv.simple;
+package org.knime.base.node.io.filehandling.csv.reader.simple;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

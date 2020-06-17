@@ -61,11 +61,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
 import org.knime.base.node.io.filehandling.csv.writer.config.SettingsModelCSVWriter;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
-import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;

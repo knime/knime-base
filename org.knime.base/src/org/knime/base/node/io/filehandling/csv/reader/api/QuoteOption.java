@@ -44,18 +44,74 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 12, 2020 (lars.schweikardt): created
  */
-package org.knime.base.node.io.filehandling.table.csv.reader;
+package org.knime.base.node.io.filehandling.csv.reader.api;
 
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * {@link ReadAdapter} implementation that uses {@link Class} objects as data type identifiers and Strings as value
- * type.
+ * Trimming options within quotes for the CSV reader.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @since 4.2
  */
-final class StringReadAdapter extends ReadAdapter<Class<?>, String> {
-    // yes this class needs to be empty
+public enum QuoteOption {
+        /**
+         * This mode is the standard mode and trims trailing and leading whitespaces and removes the quotes.
+         */
+        REMOVE_QUOTES_AND_TRIM("Remove quotes and trim whitespaces", false, true),
+
+        /**
+         * This mode keeps the quotes and does no trimming.
+         */
+        KEEP_QUOTES("Keep quotes", true, false);
+
+    /** The {@link #toString()} representation of the {@link QuoteOption}. */
+    private final String m_text;
+
+    /** Flag indicating whether to keep quotes, or not. */
+    private final boolean m_keepQuotes;
+
+    /** Flag indicating whether quoted values have to be trimmed, or not. */
+    private final boolean m_trimQuotedValues;
+
+    /**
+     * Constructor.
+     *
+     * @param text the {@code String} returned by {@link #toString()}
+     * @param keepQuotes flag whether to keep quotes, or not
+     * @param trimInsideQuotes flag whether to trim quoted values, or not
+     */
+    private QuoteOption(final String text, final boolean keepQuotes, final boolean trimQuotedValues) {
+        CheckUtils.checkArgument(!(keepQuotes && trimQuotedValues),
+            "Univocity does not support trimming inside quotes when the quotes have to be kept");
+        m_text = text;
+        m_keepQuotes = keepQuotes;
+        m_trimQuotedValues = trimQuotedValues;
+    }
+
+    /**
+     * Returns the keep quotes flag.
+     *
+     * @return the keep quotes flag
+     */
+    public boolean keepQuotes() {
+        return m_keepQuotes;
+    }
+
+    /**
+     * Returns the trim quoted values flag.
+     *
+     * @return the trim quoted values flag
+     */
+    public boolean trimQuotedValues() {
+        return m_trimQuotedValues;
+    }
+
+    @Override
+    public String toString() {
+        return m_text;
+    }
+
 }

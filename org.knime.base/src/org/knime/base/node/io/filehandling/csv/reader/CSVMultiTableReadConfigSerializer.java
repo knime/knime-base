@@ -46,11 +46,11 @@
  * History
  *   Jun 12, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.table.csv.reader.QuoteOption;
-import org.knime.base.node.io.filehandling.table.csv.reader.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;

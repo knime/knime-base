@@ -44,43 +44,18 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv.simple;
+package org.knime.base.node.io.filehandling.csv.reader.api;
 
-import java.util.Optional;
-
-import org.knime.base.node.io.filehandling.table.csv.AbstractCSVTableReaderNodeFactory;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 
 /**
- * Node factory for the simple file reader node.
+ * {@link ReadAdapter} implementation that uses {@link Class} objects as data type identifiers and Strings as value
+ * type.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader());
-    }
-
-    @Override
-    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        return Optional.empty();
-    }
-
-    @Override
-    protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel("file_location");
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settings.setPath(urlConfig.get().getUrl().toString());
-        }
-        return settings;
-    }
-
+final class StringReadAdapter extends ReadAdapter<Class<?>, String> {
+    // yes this class needs to be empty
 }

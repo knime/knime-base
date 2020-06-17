@@ -46,7 +46,7 @@
  * History
  *   Feb 10, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.awt.CardLayout;
 import java.awt.Container;
@@ -80,9 +80,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.knime.base.node.io.filehandling.table.csv.reader.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.table.csv.reader.EscapeUtils;
-import org.knime.base.node.io.filehandling.table.csv.reader.QuoteOption;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
+import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;

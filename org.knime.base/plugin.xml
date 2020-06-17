@@ -659,7 +659,7 @@
       <node
             category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.csv.CSVTableReaderNodeFactory"/>
+            factory-class="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
       <node
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
@@ -2271,7 +2271,7 @@
       <node
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.csv.simple.SimpleFileReaderNodeFactory"
+            factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
             hidden="false">
       </node>
    </extension>

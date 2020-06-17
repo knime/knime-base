@@ -44,63 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   6 Apr 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
+ *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.csv.reader;
+package org.knime.base.node.io.filehandling.csv.reader;
+
+import java.util.Optional;
+
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * A utility class to escape or unescape a fixed set of escape sequences i.e., {\t \n \r \n\r}
+ * Node factory for the prototype CSV reader based on the new table reader framework.
  *
- * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
- * @since 4.2
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class EscapeUtils {
+public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
 
-    private EscapeUtils() {
-        throw new IllegalStateException("Utility class, can not be instantiated!");
+    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
+            createMultiTableReader());
     }
 
-    /**
-     * Returns an actual an escape sequence by unescaping the backslash. Useful when getting the value of special
-     * characters from UI component. on Works only in a limited number of cases, i.e., {\\t \\n \\r \\n\\r}. In other
-     * cases it returns the original string
-     *
-     * @param s the input string where backslash char is escaped
-     * @return escape sequence string.
-     */
-    public static String unescape(final String s) {
-        if ("\\t".equals(s)) {
-            return "\t";
-        } else if ("\\n".equals(s)) {
-            return "\n";
-        } else if ("\\r".equals(s)) {
-            return "\r";
-        } else if ("\\r\\n".equals(s)) {
-            return "\r\n";
-        } else {
-            return s;
+    @Override
+    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
+            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
+            FilterMode.FILE, FILE_SUFFIXES);
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            settingsModel.setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000",
+                urlConfig.get().getUrl().toString()));
         }
+        return settingsModel;
     }
 
-    /**
-     * Returns a string where the escaping the backslash is skipped. Useful when displaying a special character on UI
-     * component. Works only for a limited number of cases, i.e., {\t \n \r \n\r}. In other cases it returns the
-     * original string
-     *
-     * @param s the input string where backslash char is escaped
-     * @return escape sequence string.
-     */
-    public static String escape(final String s) {
-        if ("\t".equals(s)) {
-            return "\\t";
-        } else if ("\n".equals(s)) {
-            return "\\n";
-        } else if ("\r".equals(s)) {
-            return "\\r";
-        } else if ("\r\n".equals(s)) {
-            return "\\r\\n";
-        } else {
-            return s;
-        }
-    }
 }
