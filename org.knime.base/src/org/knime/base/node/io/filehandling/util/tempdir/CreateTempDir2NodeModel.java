@@ -220,7 +220,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.validateSettings(settings);
+        m_config.validateSettingsForModel(settings);
     }
 
     @Override
@@ -230,7 +230,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_config.saveSettingsTo(settings);
+        m_config.saveSettingsForModel(settings);
     }
 
     @Override

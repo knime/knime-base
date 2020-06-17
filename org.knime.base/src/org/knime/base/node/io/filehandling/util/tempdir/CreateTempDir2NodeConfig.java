@@ -53,10 +53,7 @@ import java.util.EnumSet;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -68,7 +65,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
-final class CreateTempDir2NodeConfig extends SettingsModel {
+final class CreateTempDir2NodeConfig {
 
     private static final boolean DEFAULT_ON_RESET = true;
 
@@ -76,9 +73,7 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
 
     private static final String DEFAULT_TMP_DIR_PREFIX = "knimetmp-";
 
-    private static final String CFG_NAME = "create_temp_dir_config";
-
-    private static final String CFG_TEMP_DIR_PARENT = "temp_dir_parent";
+    private static final String CFG_TEMP_DIR_PARENT = "temp_dir_location";
 
     private static final String CFG_TEMP_DIR_PREFIX = "temp_dir_prefix";
 
@@ -123,26 +118,7 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
         m_additionalVarValues = new String[0];
     }
 
-    private CreateTempDir2NodeConfig(final CreateTempDir2NodeConfig source) {
-        m_parentDirChooserModel = source.getParentDirChooserModel().createClone();
-
-        m_deleteDirOnReset = source.deleteDirOnReset();
-
-        m_tempDirPrefix = source.getTempDirPrefix();
-        m_tempDirPathVariableName = source.getTempDirVariableName();
-
-        m_additionalVarNames = source.getAdditionalVarNames();
-        m_additionalVarValues = source.getAdditionalVarValues();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected CreateTempDir2NodeConfig createClone() {
-        return new CreateTempDir2NodeConfig(this);
-    }
-
-    @Override
-    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.validateSettings(settings);
 
         settings.getBoolean(CFG_DELETE_ON_RESET);
@@ -156,9 +132,7 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
         validateSettings();
     }
 
-    @Override
-    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
+    void loadSettingsForDialog(final NodeSettingsRO settings) {
         m_deleteDirOnReset = settings.getBoolean(CFG_DELETE_ON_RESET, DEFAULT_ON_RESET);
 
         m_tempDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX, DEFAULT_TMP_DIR_PREFIX);
@@ -169,13 +143,11 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
 
     }
 
-    @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         save(settings);
     }
 
-    @Override
-    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.loadSettingsFrom(settings);
 
         m_deleteDirOnReset = settings.getBoolean(CFG_DELETE_ON_RESET);
@@ -187,8 +159,7 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
         m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
     }
 
-    @Override
-    protected void saveSettingsForModel(final NodeSettingsWO settings) {
+    void saveSettingsForModel(final NodeSettingsWO settings) {
         m_parentDirChooserModel.saveSettingsTo(settings);
         save(settings);
     }
@@ -323,21 +294,6 @@ final class CreateTempDir2NodeConfig extends SettingsModel {
      */
     void setAdditionalVarValues(final String[] varNames) {
         m_additionalVarValues = varNames;
-    }
-
-    @Override
-    protected String getModelTypeID() {
-        return "SMID_tempDir";
-    }
-
-    @Override
-    protected String getConfigName() {
-        return CFG_NAME;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " ('" + CFG_NAME + "')";
     }
 
 }

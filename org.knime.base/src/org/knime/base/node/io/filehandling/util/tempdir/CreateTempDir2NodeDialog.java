@@ -207,7 +207,7 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_parentDirChooserPanel.loadSettingsFrom(settings, specs);
-        m_config.loadSettingsForDialog(settings, specs);
+        m_config.loadSettingsForDialog(settings);
 
         m_deleteDirOnResetChecker.setSelected(m_config.deleteDirOnReset());
 
