@@ -304,7 +304,7 @@ public final class AdvancedPanel extends JPanel {
      * @param config the configuration to read values from
      * @throws NotConfigurableException if unable to load the QuoteMode
      */
-    public void loadDialogSettings(final AdvancedConfig config) throws NotConfigurableException {
+    public void readFromConfig(final AdvancedConfig config) throws NotConfigurableException {
         m_missingValuePatternField.setText(config.getMissingValuePattern());
         m_compressWithGzipChecker.setSelected(config.compressWithGzip());
 
@@ -322,7 +322,7 @@ public final class AdvancedPanel extends JPanel {
      * @param config the configuration to read values from
      * @throws InvalidSettingsException
      */
-    public void saveDialogSettings(final AdvancedConfig config) throws InvalidSettingsException {
+    public void writeToConfig(final AdvancedConfig config) throws InvalidSettingsException {
         config.setMissingValuePattern(m_missingValuePatternField.getText());
         config.setCompressWithGzip(m_compressWithGzipChecker.isSelected());
 

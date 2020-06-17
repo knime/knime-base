@@ -58,7 +58,6 @@ import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig.QuoteMode;
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;

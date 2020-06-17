@@ -49,7 +49,6 @@ package org.knime.base.node.io.filehandling.csv.writer;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;

@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.writer.config;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Advanced setting configurations for CSV writer node
@@ -249,7 +250,7 @@ public final class AdvancedConfig implements SimpleConfig {
      * @param str a String containing the decimalSeparator to set
      */
     public void setDecimalSeparator(final String str) {
-        setDecimalSeparator(CSVWriter2Config.getFirstChar(str, "Decimal Separator"));
+        setDecimalSeparator(getFirstChar(str, "Decimal Separator"));
     }
 
     /**
@@ -280,4 +281,25 @@ public final class AdvancedConfig implements SimpleConfig {
     public void setKeepTrailingZero(final boolean keepTrailingZero) {
         m_keepTrailingZero = keepTrailingZero;
     }
+
+    /**
+     * After removing non-visible white space characters line '\0', it returns the first character from a string. If the
+     * provided string is empty it returns '\0'. If the provided string has more than 2 chars, an error will be
+     * displayed.
+     *
+     * @param str the string input
+     * @param fieldName the name of the field the string is coming from. Used to customize error message
+     * @return the first character in input string if it is not empty, '\0' otherwise
+     */
+    private static char getFirstChar(final String str, final String fieldName) {
+        if (str == null || str.isEmpty() || str.equals("\0")) {
+            return '\0';
+        } else {
+            final String cleanStr = str.replace("\0", "");
+            CheckUtils.checkArgument(cleanStr.length() <= 2,
+                "Only a single character is allowed for %s. Escape sequences, such as \\n can be used.", fieldName);
+            return cleanStr.charAt(0);
+        }
+    }
+
 }

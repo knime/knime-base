@@ -247,7 +247,7 @@ public final class CommentPanel extends JPanel {
      *
      * @param config the configuration to read values from
      */
-    public void loadDialogSettings(final CommentConfig config) {
+    public void readFromConfig(final CommentConfig config) {
         m_commentLineMarkerField.setText(config.getCommentLineMarker());
         m_commentIndentField.setText(EscapeUtils.escape(config.getCommentIndent()));
         m_addExecutionTimeChecker.setSelected(config.addExecutionTime());
@@ -263,7 +263,7 @@ public final class CommentPanel extends JPanel {
      * @param config the configuration to read values from
      * @throws InvalidSettingsException if configured settings are not valid
      */
-    public void saveDialogSettings(final CommentConfig config) throws InvalidSettingsException {
+    public void writeToConfig(final CommentConfig config) throws InvalidSettingsException {
         checkCommentSettings();
         config.setCommentLineMarker(m_commentLineMarkerField.getText());
         config.setCommentIndent(EscapeUtils.unescape(m_commentIndentField.getText()));

@@ -60,7 +60,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -264,17 +263,17 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_writerConfig.validateSettings(settings);
+        m_writerConfig.validateSettingsForModel(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_writerConfig.loadSettingsFrom(settings);
+        m_writerConfig.loadSettingsForModel(settings);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_writerConfig.saveSettingsTo(settings);
+        m_writerConfig.saveSettingsForModel(settings);
     }
 
     @Override

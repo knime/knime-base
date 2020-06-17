@@ -46,14 +46,16 @@
  * History
  *   Apr 29, 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.writer.config;
+package org.knime.base.node.io.filehandling.csv.writer;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.EnumSet;
 
 import org.apache.commons.lang.StringUtils;
-import org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory;
+import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig;
+import org.knime.base.node.io.filehandling.csv.writer.config.CommentConfig;
+import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -61,7 +63,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -69,16 +70,14 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * Settings configuration for the CSV writer node
+ * Configuration for the CSV writer node
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (re-factored)
  */
-public class CSVWriter2Config extends SettingsModel {
+final class CSVWriter2Config {
 
     /** The allowed/recommended suffixes for writing a CSV file */
     protected final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".csv.gz", ".tsv.gz", ".txt.gz"};
-
-    private static final String CFG_NAME = "csv_writer_config";
 
     private static final String CFG_ADVANCED = "advanced_settings";
 
@@ -166,38 +165,7 @@ public class CSVWriter2Config extends SettingsModel {
         m_charsetName = DEFAULT_CHAR_ENCODING;
     }
 
-    /**
-     * Copy constructor.
-     *
-     * @param source the object to copy
-     */
-    private CSVWriter2Config(final CSVWriter2Config source) {
-        m_fileChooserModel = source.getFileChooserModel().createClone();
-
-        m_columnDelimiter = source.getColumnDelimiter();
-        m_lineBreak = source.getLineBreak();
-
-        m_quoteChar = source.getQuoteChar();
-        m_quoteEscapeChar = source.getQuoteEscapeChar();
-
-        m_writeColumnHeader = source.writeColumnHeader();
-        m_skipColumnHeaderOnAppend = source.skipColumnHeaderOnAppend();
-        m_writeRowHeader = source.writeRowHeader();
-
-        m_advancedConfig = source.getAdvancedConfig();
-        m_commentConfig = source.getCommentConfig();
-
-        m_charsetName = source.getCharsetName();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected CSVWriter2Config createClone() {
-        return new CSVWriter2Config(this);
-    }
-
-    @Override
-    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.validateSettings(settings);
 
         settings.getString(CFG_COLUMN_DELIMITER);
@@ -216,8 +184,7 @@ public class CSVWriter2Config extends SettingsModel {
         settings.getString(CFG_CHAR_ENCODING);
     }
 
-    @Override
-    public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
             m_lineBreak = LineBreakTypes.loadSettings(settings);
@@ -248,13 +215,11 @@ public class CSVWriter2Config extends SettingsModel {
         }
     }
 
-    @Override
-    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveSettingsForModel(settings);
+    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        save(settings);
     }
 
-    @Override
-    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.loadSettingsFrom(settings);
 
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER);
@@ -276,10 +241,13 @@ public class CSVWriter2Config extends SettingsModel {
         checkGzipSettings();
     }
 
-    @Override
-    protected void saveSettingsForModel(final NodeSettingsWO settings) {
+    void saveSettingsForModel(final NodeSettingsWO settings) {
         m_fileChooserModel.saveSettingsTo(settings);
 
+        save(settings);
+    }
+
+    private void save(final NodeSettingsWO settings) {
         settings.addString(CFG_COLUMN_DELIMITER, m_columnDelimiter);
 
         m_lineBreak.saveSettings(settings);
@@ -330,7 +298,7 @@ public class CSVWriter2Config extends SettingsModel {
     /**
      * @return a newly created {@link FileReaderSettings} with the a charSet similar to the current object
      */
-    public FileReaderSettings getEncodingSettings() {
+    FileReaderSettings getEncodingSettings() {
         FileReaderSettings s = new FileReaderSettings();
         s.setCharsetName(getCharsetName());
         return s;
@@ -339,35 +307,35 @@ public class CSVWriter2Config extends SettingsModel {
     /**
      * @return {@code true} if the column separator is similar to or contains the decimal separator.
      */
-    public boolean colSeparatorContainsDecSeparator() {
+    boolean colSeparatorContainsDecSeparator() {
         return (m_columnDelimiter.indexOf(m_advancedConfig.getDecimalSeparator()) >= 0);
     }
 
     /**
      * @return {@code true} if the column header should be written
      */
-    public boolean writeColumnHeader() {
+    boolean writeColumnHeader() {
         return m_writeColumnHeader;
     }
 
     /**
      * @param writeColumnHeader flag indicating if the column header should be written
      */
-    public void setWriteColumnHeader(final boolean writeColumnHeader) {
+    void setWriteColumnHeader(final boolean writeColumnHeader) {
         m_writeColumnHeader = writeColumnHeader;
     }
 
     /**
      * @return the column delimiter value
      */
-    public String getColumnDelimiter() {
+    String getColumnDelimiter() {
         return m_columnDelimiter;
     }
 
     /**
      * @param columnDelimiter the column delimiter value to set
      */
-    public void setColumnDelimiter(final String columnDelimiter) {
+    void setColumnDelimiter(final String columnDelimiter) {
         CheckUtils.checkArgument(columnDelimiter.length() > 0, "The column delimiter can not be Empty");
         m_columnDelimiter = columnDelimiter;
     }
@@ -376,7 +344,7 @@ public class CSVWriter2Config extends SettingsModel {
      * @return the skipColumnHeaderOnAppend {@code true} if the column header writing should be skipped if we are
      *         appending to an existing file
      */
-    public boolean skipColumnHeaderOnAppend() {
+    boolean skipColumnHeaderOnAppend() {
         return m_skipColumnHeaderOnAppend;
     }
 
@@ -384,42 +352,42 @@ public class CSVWriter2Config extends SettingsModel {
      * @param skipColumnHeaderOnAppend flag deciding if the column header writing should be skipped if we are appending
      *            to an existing file
      */
-    public void setSkipColumnHeaderOnAppend(final boolean skipColumnHeaderOnAppend) {
+    void setSkipColumnHeaderOnAppend(final boolean skipColumnHeaderOnAppend) {
         m_skipColumnHeaderOnAppend = skipColumnHeaderOnAppend;
     }
 
     /**
      * @return {@code true} if the row header should be written
      */
-    public boolean writeRowHeader() {
+    boolean writeRowHeader() {
         return m_writeRowHeader;
     }
 
     /**
      * @param writeRowHeader flag indicating if the row header should be written
      */
-    public void setWriteRowHeader(final boolean writeRowHeader) {
+    void setWriteRowHeader(final boolean writeRowHeader) {
         m_writeRowHeader = writeRowHeader;
     }
 
     /**
      * @return the character used for quoting values
      */
-    public char getQuoteChar() {
+    char getQuoteChar() {
         return m_quoteChar;
     }
 
     /**
      * @param quoteChar the character to be used for quoting values
      */
-    public void setQuoteChar(final char quoteChar) {
+    void setQuoteChar(final char quoteChar) {
         m_quoteChar = quoteChar;
     }
 
     /**
      * @param str a String containing the character to be used for quoting values
      */
-    public void setQuoteChar(final String str) {
+    void setQuoteChar(final String str) {
         setQuoteChar(getFirstChar(str, "Quote Character"));
 
     }
@@ -427,21 +395,21 @@ public class CSVWriter2Config extends SettingsModel {
     /**
      * @return the character used for escaping quotes inside an already quoted value
      */
-    public char getQuoteEscapeChar() {
+    char getQuoteEscapeChar() {
         return m_quoteEscapeChar;
     }
 
     /**
      * @param str a String containing the character used for escaping quotes inside an already quoted value
      */
-    public void setQuoteEscapeChar(final String str) {
+    void setQuoteEscapeChar(final String str) {
         setQuoteEscapeChar(getFirstChar(str, "Quote Escape Character"));
     }
 
     /**
      * @param quoteEscapeChar the character used for escaping quotes inside an already quoted value
      */
-    public void setQuoteEscapeChar(final char quoteEscapeChar) {
+    void setQuoteEscapeChar(final char quoteEscapeChar) {
         m_quoteEscapeChar = quoteEscapeChar;
     }
 
@@ -450,7 +418,7 @@ public class CSVWriter2Config extends SettingsModel {
      *
      * @return character set - or null if default encoding should be used.
      */
-    public String getCharsetName() {
+    String getCharsetName() {
         return m_charsetName;
     }
 
@@ -459,7 +427,7 @@ public class CSVWriter2Config extends SettingsModel {
      *
      * @return character set - or null if default encoding should be used.
      */
-    public Charset getCharSet() {
+    Charset getCharSet() {
         if (m_charsetName == null) {
             return Charset.defaultCharset();
         } else if (Charset.isSupported(m_charsetName)) {
@@ -474,7 +442,7 @@ public class CSVWriter2Config extends SettingsModel {
      *
      * @param charSet or null.
      */
-    public void setCharSetName(final String charSet) {
+    void setCharSetName(final String charSet) {
         if (charSet == null || Charset.isSupported(charSet)) {
             m_charsetName = charSet;
         } else {
@@ -485,56 +453,56 @@ public class CSVWriter2Config extends SettingsModel {
     /**
      * @return the file chooser settings model of this configuration
      */
-    public SettingsModelWriterFileChooser getFileChooserModel() {
+    SettingsModelWriterFileChooser getFileChooserModel() {
         return m_fileChooserModel;
     }
 
     /**
      * @return a {@link AdvancedConfig} containing advanced configurations
      */
-    public AdvancedConfig getAdvancedConfig() {
+    AdvancedConfig getAdvancedConfig() {
         return m_advancedConfig;
     }
 
     /**
      * @return a {@link CommentConfig} containing the comment header writing related configurations
      */
-    public CommentConfig getCommentConfig() {
+    CommentConfig getCommentConfig() {
         return m_commentConfig;
     }
 
     /**
      * @return the line break variant used
      */
-    public LineBreakTypes getLineBreak() {
+    LineBreakTypes getLineBreak() {
         return m_lineBreak;
     }
 
     /**
      * @param lineBreak the line break variant to set
      */
-    public void setLineBreak(final LineBreakTypes lineBreak) {
+    void setLineBreak(final LineBreakTypes lineBreak) {
         m_lineBreak = lineBreak;
     }
 
     /**
      * @return {@code true} if existing file should be overwritten
      */
-    public final boolean isFileOverwritten() {
+    final boolean isFileOverwritten() {
         return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.OVERWRITE;
     }
 
     /**
      * @return {@code true} if existing file should be appended to
      */
-    public final boolean isFileAppended() {
+    final boolean isFileAppended() {
         return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.APPEND;
     }
 
     /**
      * @return {@code true} if existing file should neither be overwritten nor appended to
      */
-    public final boolean isFileNeverOverwritten() {
+    final boolean isFileNeverOverwritten() {
         return getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.FAIL;
     }
 
@@ -547,7 +515,7 @@ public class CSVWriter2Config extends SettingsModel {
      * @param fieldName the name of the field the string is coming from. Used to customize error message
      * @return the first character in input string if it is not empty, '\0' otherwise
      */
-    static char getFirstChar(final String str, final String fieldName) {
+    private static char getFirstChar(final String str, final String fieldName) {
         if (str == null || str.isEmpty() || str.equals("\0")) {
             return '\0';
         } else {
@@ -558,18 +526,4 @@ public class CSVWriter2Config extends SettingsModel {
         }
     }
 
-    @Override
-    protected String getModelTypeID() {
-        return "SMID_csvWriter";
-    }
-
-    @Override
-    protected String getConfigName() {
-        return CFG_NAME;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " ('" + CFG_NAME + "')";
-    }
 }

@@ -98,7 +98,7 @@ public enum LineBreakTypes {
      *
      * @param settings the settings
      */
-    void saveSettings(final NodeSettingsWO settings) {
+    public void saveSettings(final NodeSettingsWO settings) {
         final String value;
         if (this == SYS_DEFAULT) {
             value = null;
@@ -115,7 +115,7 @@ public enum LineBreakTypes {
      * @return the loaded {@link LineBreakTypes}
      * @throws InvalidSettingsException - If the settings are not valid
      */
-    static LineBreakTypes loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public static LineBreakTypes loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final String val = settings.getString(CFG_LINE_ENDING_MODE);
         if (val == null) {
             return SYS_DEFAULT;

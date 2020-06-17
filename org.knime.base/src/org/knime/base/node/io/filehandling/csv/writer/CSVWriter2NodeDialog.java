@@ -63,7 +63,6 @@ import javax.swing.JTextField;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
-import org.knime.base.node.io.filehandling.csv.writer.config.CSVWriter2Config;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
@@ -303,8 +302,8 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         fReadSettings.setCharsetName(m_writerConfig.getCharsetName());
         m_encodingPanel.loadSettings(fReadSettings);
 
-        m_advancedPanel.loadDialogSettings(m_writerConfig.getAdvancedConfig());
-        m_commentPanel.loadDialogSettings(m_writerConfig.getCommentConfig());
+        m_advancedPanel.readFromConfig(m_writerConfig.getAdvancedConfig());
+        m_commentPanel.readFromConfig(m_writerConfig.getCommentConfig());
     }
 
     @Override
@@ -325,10 +324,10 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_encodingPanel.overrideSettings(s);
         m_writerConfig.setCharSetName(s.getCharsetName());
 
-        m_advancedPanel.saveDialogSettings(m_writerConfig.getAdvancedConfig());
-        m_commentPanel.saveDialogSettings(m_writerConfig.getCommentConfig());
+        m_advancedPanel.writeToConfig(m_writerConfig.getAdvancedConfig());
+        m_commentPanel.writeToConfig(m_writerConfig.getCommentConfig());
 
-        m_writerConfig.saveSettingsTo(settings);
+        m_writerConfig.saveSettingsForDialog(settings);
 
     }
 }
