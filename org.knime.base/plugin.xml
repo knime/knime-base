@@ -2274,6 +2274,12 @@
             factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"

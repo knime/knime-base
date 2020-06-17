@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./listfiles.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>List Files/Folders (Labs) </name>
+	<shortDescription>
+		TBD
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			TBD
+		</intro>
+		<option name="Include selected directory">
+			If selected the output contains the selected directory.
+		</option>
+		<option name="Add directory identifier column">If selected the output contains an additional column indicating
+			if the path points to a directory (<tt>true</tt>) or a file (<tt>false</tt>)
+		</option>
+	</fullDescription>
+	<ports>
+		<dynInPort group-identifier="File System Connection"
+			insert-before="0" name="File system connection">The file system connection.
+		</dynInPort>
+		<outPort index="0" name="File/Folder List">List of files/folders.
+		</outPort>
+	</ports>
+</knimeNode>

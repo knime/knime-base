@@ -44,11 +44,5 @@
             factory-class="org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserTestNodeFactory"
             hidden="false">
       </node>
-      <node
-            category-path="/testing"
-            deprecated="false"
-            factory-class="org.knime.filehandling.core.defaultnodesettings.filechooser.TestListFilesNodeFactory"
-            hidden="false">
-      </node>
    </extension>
 </fragment>

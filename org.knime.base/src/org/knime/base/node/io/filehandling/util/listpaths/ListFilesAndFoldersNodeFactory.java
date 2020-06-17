@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 16, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 17, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.base.node.io.filehandling.util.listpaths;
 
 import java.util.Optional;
 
@@ -61,13 +61,13 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
- * Node factory for the Test List Files node.
+ * Factory of the ListFilesAndFoldersNodeModel.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class TestListFilesNodeFactory extends ConfigurableNodeFactory<TestListFilesNodeModel> {
+public final class ListFilesAndFoldersNodeFactory extends ConfigurableNodeFactory<ListFilesAndFoldersNodeModel> {
 
-    private static final String FS_PORT_ID = "file_system";
+    private static final String FS_PORT_ID = "File System Connection";
 
     @Override
     protected int getNrNodeViews() {
@@ -75,8 +75,8 @@ public final class TestListFilesNodeFactory extends ConfigurableNodeFactory<Test
     }
 
     @Override
-    public NodeView<TestListFilesNodeModel> createNodeView(final int viewIndex,
-        final TestListFilesNodeModel nodeModel) {
+    public NodeView<ListFilesAndFoldersNodeModel> createNodeView(final int viewIndex,
+        final ListFilesAndFoldersNodeModel nodeModel) {
         return null;
     }
 
@@ -94,18 +94,21 @@ public final class TestListFilesNodeFactory extends ConfigurableNodeFactory<Test
     }
 
     @Override
-    protected TestListFilesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        PortsConfiguration portsConfiguration = creationConfig.getPortConfig().get();
-        return new TestListFilesNodeModel(portsConfiguration, createSettings(portsConfiguration));
+    protected ListFilesAndFoldersNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new ListFilesAndFoldersNodeModel(portsConfiguration, createSettings(portsConfiguration));
     }
 
-    private static SettingsModelReaderFileChooser createSettings(final PortsConfiguration portsConfiguration) {
-        return new SettingsModelReaderFileChooser("file_chooser", portsConfiguration, FS_PORT_ID, FilterMode.FILE);
+    private static ListFilesAndFoldersNodeConfiguration createSettings(final PortsConfiguration portsConfiguration) {
+        return new ListFilesAndFoldersNodeConfiguration(new SettingsModelReaderFileChooser("file_chooser",
+            portsConfiguration, ListFilesAndFoldersNodeFactory.FS_PORT_ID, FilterMode.FILES_IN_FOLDERS));
+
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new TestListFilesNodeDialog(createSettings(creationConfig.getPortConfig().get()));
+        return new ListFilesAndFoldersNodeDialog(
+            createSettings(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
     }
 
 }

@@ -210,7 +210,9 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.FOLDER) {
             return handleSinglePath(rootPath);
         } else {
-            return walkFileTree(rootPath);
+            List<FSPath> fsPaths = walkFileTree(rootPath);
+            fsPaths.sort(Path::compareTo);
+            return fsPaths;
         }
     }
 
