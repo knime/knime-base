@@ -53,6 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Default implementation of a {@link ConfigSerializer} for {@link DefaultTableReadConfig}.</br>
@@ -107,7 +108,7 @@ public final class DefaultTableReadConfigSerializer<C extends ReaderSpecificConf
         config.setRowIDIdx(settings.getInt(CFG_ROW_ID_IDX, -1));
         config.setColumnHeaderIdx(settings.getLong(CFG_COLUMN_HEADER_IDX, -1));
         m_readerSpecificConfigSerializer.loadInDialog(config.getReaderSpecificConfig(),
-            ReaderConfigUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG), specs);
+            SettingsUtils.getOrEmpty(settings, CFG_READER_SPECIFIC_CONFIG), specs);
         config.setUseRowIDIdx(settings.getBoolean(CFG_USE_ROW_ID_IDX, false));
         config.setUseColumnHeaderIdx(settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX, true));
         config.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_ROWS, false));

@@ -44,30 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 18, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.util;
 
-import java.util.OptionalInt;
-import java.util.OptionalLong;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Contains utility methods for configuration classes.
+ * Contains utility methods for dealing with {@link NodeSettings}, as well as {@link NodeSettingsRO} and
+ * {@link NodeSettingsWO} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ReaderConfigUtils {
+public final class SettingsUtils {
 
-    private ReaderConfigUtils() {
-        // utility class
+    /**
+     * Config key for the settings tab.
+     * @noreference not intended to be used by clients
+     */
+    public static final String CFG_SETTINGS_TAB = "settings";
+
+    private SettingsUtils() {
+        // static utility class
     }
 
-    static OptionalLong emptyIfNegative(final long value) {
-        return value < 0 ? OptionalLong.empty() : OptionalLong.of(value);
+    /**
+     * Retrieves the {@link NodeSettingsRO} with the provided <b>key</b> or creates an empty {@link NodeSettings} object
+     * with the <b>key</b>.
+     *
+     * @param settings the {@link NodeSettingsRO} from which to retrieve the child settings
+     * @param key the key of the child settings
+     * @return a {@link NodeSettingsRO} with the provided <b>key</b>
+     */
+    public static NodeSettingsRO getOrEmpty(final NodeSettingsRO settings, final String key) {
+        try {
+            return settings.getNodeSettings(key);
+        } catch (InvalidSettingsException ex) {
+            return new NodeSettings(key);
+        }
     }
 
-    static OptionalInt emptyIfNegative(final int value) {
-        return value < 0 ? OptionalInt.empty() : OptionalInt.of(value);
+    /**
+     * If {@link NodeSettingsWO settingsWO} is an instance of {@link NodeSettings}, the child with the provided
+     * <b>key</b> are returned if present or a new child is added. If {@link NodeSettingsWO settingsWO} is not an
+     * instance of {@link NodeSettings}, a new child settings object is added and any existing child settings object is
+     * overwritten.
+     *
+     * @param settingsWO to retrieve the child from
+     * @param key of the child
+     * @return the child {@link NodeSettingsWO}
+     * @noreference not intended to be used by clients
+     */
+    public static NodeSettingsWO getOrAdd(final NodeSettingsWO settingsWO, final String key) {
+        if (settingsWO instanceof NodeSettings) {
+            final NodeSettings settings = (NodeSettings)settingsWO;
+            try {
+                return settings.getNodeSettings(key);
+            } catch (InvalidSettingsException ex) {
+                return settings.addNodeSettings(key);
+            }
+        } else {
+            return settingsWO.addNodeSettings(key);
+        }
     }
-
 }

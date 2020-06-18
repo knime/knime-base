@@ -57,6 +57,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Default implementation of a {@link ConfigSerializer} for {@link DefaultMultiTableReadConfig}.</br>
@@ -95,7 +96,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     public void loadInDialog(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsRO settings,
         final PortObjectSpec[] specs) throws NotConfigurableException {
         m_tableReadConfigSerializer.loadInDialog(config.getTableReadConfig(),
-            ReaderConfigUtils.getOrEmpty(settings, CFG_TABLE_READ_CONFIG), specs);
+            SettingsUtils.getOrEmpty(settings, CFG_TABLE_READ_CONFIG), specs);
         config.setSpecMergeMode(SpecMergeMode
             .valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS.name())));
 
