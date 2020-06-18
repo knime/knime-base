@@ -146,6 +146,12 @@ public final class FSLocationUtils {
         }
     }
 
+    /**
+     * Saves the provided {@link FSLocationSpec} into {@link ConfigWO config}.
+     *
+     * @param locationSpec {@link FSLocationSpec} to save
+     * @param config {@link ConfigWO} to save to
+     */
     public static void saveFSLocationSpec(final FSLocationSpec locationSpec, final ConfigWO config) {
         // TODO reference check doesn't solve the issue since FSLocation.NULL is also valid NULL FSLocationSpec
         config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
@@ -185,6 +191,12 @@ public final class FSLocationUtils {
         return false;
     }
 
+    /**
+     * Tests if config can be overwritten with a {@link FSLocation}.
+     *
+     * @param config to potentially overwrite
+     * @return {@code true} if config can be overwritten with a {@link FSLocation}
+     */
     public static boolean canOverwriteWithFSLocation(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
@@ -210,6 +222,12 @@ public final class FSLocationUtils {
         return false;
     }
 
+    /**
+     * Tests if a {@link FSLocation} can be created from config.
+     *
+     * @param config to create an {@link FSLocation} from
+     * @return {@code true} if it is possible to create an {@link FSLocation} from config
+     */
     public static boolean canCreateFromFSLocation(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
@@ -229,6 +247,12 @@ public final class FSLocationUtils {
         return false;
     }
 
+    /**
+     * Tests if the provided config is a {@link FSLocationSpec}.
+     *
+     * @param config to test
+     * @return {@code true} if config is a {@link FSLocationSpec}
+     */
     public static boolean isFSLocationSpec(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {

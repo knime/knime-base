@@ -48,7 +48,8 @@
  */
 package org.knime.filehandling.core.data.location.variable;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_TYPE;
@@ -61,18 +62,22 @@ import static org.knime.filehandling.core.data.location.internal.FSLocationUtils
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.Set;
+
 import org.junit.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableType.InvalidConfigEntryException;
+import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.connections.FSLocation;
 
 /**
  * Unit tests for {@link FSLocationVariableType}.
- * 
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class FSLocationVariableTypeTest {
@@ -127,9 +132,16 @@ public class FSLocationVariableTypeTest {
     }
 
     @Test
-    public void testCanOverwrite() {
+    public void testCanOverwriteFSLocation() {
         Config config = mockEmptyConfig();
         assertTrue(TEST_INSTANCE.canOverwrite(config, KEY));
+    }
+
+    @Test
+    public void testCanOverwriteString() {
+        Config config = new NodeSettings(KEY);
+        config.addString("foo", "bar");
+        assertTrue(TEST_INSTANCE.canOverwrite(config, "foo"));
     }
 
     @Test
@@ -147,6 +159,14 @@ public class FSLocationVariableTypeTest {
     public void testOverwriteFailure() throws InvalidConfigEntryException {
         Config config = new NodeSettings(KEY);
         TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
+    }
+
+    @Test
+    public void testOverwriteString() throws Exception {
+        Config config = new NodeSettings(KEY);
+        config.addString("foo", "bar");
+        TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, "foo");
+        assertEquals(LOCATION_WITH_SPECIFIER.getPath(), config.getString("foo", "bar"));
     }
 
     @Test
@@ -172,6 +192,24 @@ public class FSLocationVariableTypeTest {
     public void testCreateFromFailure() throws InvalidSettingsException, InvalidConfigEntryException {
         Config config = new NodeSettings(KEY);
         TEST_INSTANCE.createFrom(config, KEY);
+    }
+
+    @Test
+    public void testGetConvertibleTypes() throws Exception {
+        final Set<VariableType<?>> convertibleTypes = TEST_INSTANCE.getConvertibleTypes();
+        assertEquals(3, convertibleTypes.size());
+        assertTrue(convertibleTypes.contains(TEST_INSTANCE));
+        assertTrue(convertibleTypes.contains(FSLocationSpecVariableType.INSTANCE));
+        assertTrue(convertibleTypes.contains(StringType.INSTANCE));
+    }
+
+    @Test
+    public void testGetAs() throws Exception {
+        assertEquals(LOCATION_WITH_SPECIFIER, TEST_INSTANCE.getAs(LOCATION_WITH_SPECIFIER, TEST_INSTANCE));
+        assertEquals(LOCATION_WITH_SPECIFIER,
+            TEST_INSTANCE.getAs(LOCATION_WITH_SPECIFIER, FSLocationSpecVariableType.INSTANCE));
+        assertEquals(LOCATION_WITH_SPECIFIER.getPath(),
+            TEST_INSTANCE.getAs(LOCATION_WITH_SPECIFIER, StringType.INSTANCE));
     }
 
 }
