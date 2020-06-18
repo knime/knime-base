@@ -68,6 +68,7 @@ import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Node dialog for the simple file reader node.
@@ -107,7 +108,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     @Override
     protected void init(final PathSettings pathSettings) {
         m_filePanel = (PathAwareFileHistoryPanel)pathSettings;
-        m_filePanel.createFileHistoryPanel(createFlowVariableModel(m_filePanel.getConfigKey(), StringType.INSTANCE),
+        m_filePanel.createFileHistoryPanel(createFlowVariableModel(new String[] {"settings", m_filePanel.getConfigKey()}, StringType.INSTANCE),
             SimpleFileReaderNodeDialog.HISTORY_ID);
     }
 
@@ -129,7 +130,8 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_filePanel.saveSettingsTo(settings);
+        // FIXME: saving of the file panel should be handled by the config (AP-14460 & AP-14462)
+        m_filePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
         super.saveSettingsTo(settings);
     }
 
@@ -137,7 +139,8 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     protected void loadAdditionalSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
-            m_filePanel.loadSettingsFrom(settings);
+            // FIXME: loading of the file panel should be handled by the config (AP-14460 & AP-14462)
+            m_filePanel.loadSettingsFrom(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException(e.getMessage(), e);
         }

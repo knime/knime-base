@@ -50,7 +50,9 @@ package org.knime.base.node.io.filehandling.csv.writer;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.AdvancedConfig;
@@ -67,6 +69,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Configuration for the CSV writer node
@@ -168,6 +171,11 @@ final class CSVWriter2Config {
         m_charsetName = DEFAULT_CHAR_ENCODING;
     }
 
+    String[] getLocationKeyChain() {
+        return Stream.concat(Stream.of(CFG_SETTINGS_TAB), Arrays.stream(m_fileChooserModel.getKeysForFSLocation()))
+            .toArray(String[]::new);
+    }
+
     public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.validateSettings(settings);
 
@@ -259,13 +267,13 @@ final class CSVWriter2Config {
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_fileChooserModel.saveSettingsTo(settings);
+        m_fileChooserModel.saveSettingsTo(SettingsUtils.getOrAdd(settings, CFG_SETTINGS_TAB));
 
         save(settings);
     }
 
     private void save(final NodeSettingsWO settings) {
-        saveSettingsTab(settings.addNodeSettings(CFG_SETTINGS_TAB));
+        saveSettingsTab(SettingsUtils.getOrAdd(settings, CFG_SETTINGS_TAB));
 
         m_advancedConfig.save(settings.addNodeSettings(CFG_ADVANCED));
         m_commentConfig.save(settings.addNodeSettings(CFG_COMMENT));

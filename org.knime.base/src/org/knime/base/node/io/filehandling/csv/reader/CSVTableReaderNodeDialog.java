@@ -53,7 +53,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -83,6 +85,7 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Node dialog of the CSV reader prototype node.
@@ -134,8 +137,9 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     @Override
     protected void init(final PathSettings fileChooserModel) {
-        final FlowVariableModel readFvm = createFlowVariableModel(
-            ((SettingsModelReaderFileChooser)fileChooserModel).getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        final SettingsModelReaderFileChooser sm = (SettingsModelReaderFileChooser)fileChooserModel;
+        final String[] keyChain = Stream.concat(Stream.of("settings"), Arrays.stream(sm.getKeysForFSLocation())).toArray(String[]::new);
+        final FlowVariableModel readFvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
         m_filePanel = new DialogComponentReaderFileChooser((SettingsModelReaderFileChooser)fileChooserModel,
             "csv_reader_writer", readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
 
@@ -181,14 +185,16 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_filePanel.saveSettingsTo(settings);
+        // FIXME: saving of the file panel should be handled by the config (AP-14460 & AP-14462)
+        m_filePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
         super.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadAdditionalSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_filePanel.loadSettingsFrom(settings, specs);
+        // FIXME: loading should be handled by the config (AP-14460 & AP-14462)
+        m_filePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
         setSpecMergeMode();
     }
 

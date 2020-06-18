@@ -77,6 +77,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Generic implementation of a Reader node that reads tables.
@@ -207,19 +208,22 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_config.saveInModel(settings);
-        m_pathSettings.saveSettingsTo(settings);
+        // FIXME: the path settings should become part of the config (AP-14460)
+        m_pathSettings.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.validate(settings);
-        m_pathSettings.validateSettings(settings);
+        // FIXME: the path settings should become part of the config (AP-14460)
+        m_pathSettings.validateSettings(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.loadInModel(settings);
-        m_pathSettings.loadSettingsFrom(settings);
+        // FIXME: the path settings should become part of the config (AP-14460)
+        m_pathSettings.loadSettingsFrom(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override

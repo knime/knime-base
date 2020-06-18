@@ -68,6 +68,7 @@ import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
+import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialog;
 import org.knime.core.node.NodeDialogPane;
@@ -79,6 +80,7 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * {@link NodeDialog} for the "CSVWriter" Node.
@@ -125,9 +127,10 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
         m_writerConfig.getFileChooserModel().addChangeListener(e -> checkCheckerState());
 
+        FlowVariableModel fvm = createFlowVariableModel(m_writerConfig.getLocationKeyChain(),
+            FSLocationVariableType.INSTANCE);
         m_filePanel = new DialogComponentWriterFileChooser(m_writerConfig.getFileChooserModel(), FILE_HISTORY_ID,
-            createFlowVariableModel(m_writerConfig.getFileChooserModel().getKeysForFSLocation(),
-                FSLocationVariableType.INSTANCE),
+            fvm,
             FilterMode.FILE);
 
         m_writeColumnHeaderChecker = new JCheckBox("Write column header");
@@ -285,7 +288,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_writerConfig.loadSettingsForDialog(settings, specs);
 
-        m_filePanel.loadSettingsFrom(settings, specs);
+        m_filePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
 
         m_writeColumnHeaderChecker.setSelected(m_writerConfig.writeColumnHeader());
         m_skipColumnHeaderOnAppendChecker.setSelected(m_writerConfig.skipColumnHeaderOnAppend());
@@ -308,7 +311,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_filePanel.saveSettingsTo(settings);
+        m_filePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
 
         m_writerConfig.setWriteColumnHeader(m_writeColumnHeaderChecker.isSelected());
         m_writerConfig.setSkipColumnHeaderOnAppend(m_skipColumnHeaderOnAppendChecker.isSelected());

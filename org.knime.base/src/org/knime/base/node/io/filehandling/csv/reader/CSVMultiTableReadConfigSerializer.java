@@ -64,6 +64,7 @@ import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * {@link ConfigSerializer} for CSV reader nodes.
@@ -338,8 +339,8 @@ enum CSVMultiTableReadConfigSerializer implements
         if (config.hasTableSpecConfig()) {
             config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
-
-        saveSettingsTab(config, settings.addNodeSettings(CFG_SETTINGS_TAB));
+        // FIXME this workaround is necessary because the path settings should also be stored in the settings subsettings (AP-14460 & AP-14462)
+        saveSettingsTab(config, SettingsUtils.getOrAdd(settings, CFG_SETTINGS_TAB));
         saveAdvancedSettingsTab(config, settings.addNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
         saveLimitRowsTab(config, settings.addNodeSettings(CFG_LIMIT_ROWS_TAB));
         saveEncodingTab(config, settings.addNodeSettings(CFG_ENCODING_TAB));
