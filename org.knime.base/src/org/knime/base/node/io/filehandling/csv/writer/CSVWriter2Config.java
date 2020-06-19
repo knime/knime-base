@@ -177,7 +177,7 @@ final class CSVWriter2Config {
     }
 
     public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserModel.validateSettings(settings);
+        m_fileChooserModel.validateSettings(settings.getNodeSettings(CFG_SETTINGS_TAB));
 
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
 
@@ -241,7 +241,7 @@ final class CSVWriter2Config {
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserModel.loadSettingsFrom(settings);
+        m_fileChooserModel.loadSettingsFrom(settings.getNodeSettings(CFG_SETTINGS_TAB));
         loadSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
 
         m_advancedConfig.loadInModel(settings.getNodeSettings(CFG_ADVANCED));
