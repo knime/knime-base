@@ -72,7 +72,7 @@ public enum LineBreakTypes {
         /** Old Mac OS style (until Mac OS9), CR only */
         MAC_OS9(new String(new char[]{13}), "Mac OS9 Line break");
 
-    private static final String CFG_LINE_ENDING_MODE = "line_separator";
+    private static final String CFG_LINE_ENDING_MODE = "row_delimiter";
 
     private final String m_lineBreakType;
 
