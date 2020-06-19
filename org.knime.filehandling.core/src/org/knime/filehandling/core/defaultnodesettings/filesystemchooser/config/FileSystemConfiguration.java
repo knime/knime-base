@@ -457,6 +457,10 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     }
 
     private void saveInternalSettings(final NodeSettingsWO internalSettings) {
+        // flag that indicates if the settings were saved from a config with fs port
+        // not used in the moment but crucial for AP-14457 because we then won't be able to distinguish
+        // settings stored with an fs port from settings stored without one
+        internalSettings.addBoolean("has_fs_port", hasFSPort());
         for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
             config.save(internalSettings);
         }
