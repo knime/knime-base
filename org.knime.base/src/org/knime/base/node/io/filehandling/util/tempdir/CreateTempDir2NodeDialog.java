@@ -152,7 +152,7 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
     private JPanel createFilePanel() {
         final JPanel filePanel = new JPanel();
         filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location:"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location"));
         filePanel.setMaximumSize(
             new Dimension(Integer.MAX_VALUE, m_parentDirChooserPanel.getComponentPanel().getPreferredSize().height));
         filePanel.add(m_parentDirChooserPanel.getComponentPanel());
@@ -164,7 +164,7 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel fileOptionsPanel = new JPanel(new GridBagLayout());
         fileOptionsPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File options:"));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File options"));
 
         gbc.insets = new Insets(5, 5, 5, 15);
 
