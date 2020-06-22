@@ -257,13 +257,13 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_limitRowsChecker.addActionListener(e -> controlSpinner(m_limitRowsChecker, m_limitRowsSpinner));
         m_limitRowsChecker.doClick();
 
-        m_limitAnalysisChecker = new JCheckBox("Limit data rows scanned for spec ");
+        m_limitAnalysisChecker = new JCheckBox("Limit data rows scanned");
         m_limitAnalysisSpinner = new JSpinner(new SpinnerNumberModel(initLimit, rowStart, rowEnd, initLimit));
         m_limitAnalysisChecker.addActionListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
 
         m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
-        m_maxCharsColumnChecker = new JCheckBox();
+        m_maxCharsColumnChecker = new JCheckBox("Limit memory per column");
 
         m_quoteOptionsButtonGroup = new ButtonGroup();
 
@@ -280,8 +280,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
         m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
-        addTab("Options", initLayout());
-        addTab("Advanced Options", createAdvancedOptionsPanel());
+        addTab("Settings", initLayout());
+        addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
@@ -309,6 +309,15 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * @return the panels to be add to the dialog at the top
      */
     protected abstract JPanel[] getPanels();
+
+    /**
+     * Returns the {@link JPanel JPanels} to be added at the end of the advanced settings tab.
+     *
+     * @return the panels to be added to the advanced settings tabs
+     */
+    protected JPanel[] getAdvancedPanels() {
+        return new JPanel[]{};
+    }
 
     /**
      * Register listeners that trigger a preview refresh.
@@ -427,33 +436,61 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         outerPanel.add(createMemoryLimitsPanel(), gbc);
         gbc.gridy++;
         outerPanel.add(createQuoteOptionsPanel(), gbc);
-        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
         gbc.gridy++;
-        gbc.weightx = 0;
+        outerPanel.add(createDataRowsSpecLimitPanel(), gbc);
+        gbc.gridy++;
+
+        for (final JPanel p : getAdvancedPanels()) {
+            outerPanel.add(p, gbc);
+            ++gbc.gridy;
+        }
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
         gbc.weighty = 1;
         outerPanel.add(Box.createVerticalBox(), gbc);
         return outerPanel;
+    }
+
+    private JPanel createDataRowsSpecLimitPanel() {
+        final JPanel specLimitPanel = new JPanel(new GridBagLayout());
+        specLimitPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Table specification"));
+        final GridBagConstraints gbc = createAndInitGBC();
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 0, 5, 5);
+        specLimitPanel.add(m_limitAnalysisChecker, gbc);
+        gbc.gridx += 1;
+        specLimitPanel.add(m_limitAnalysisSpinner, gbc);
+        gbc.gridx += 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        specLimitPanel.add(Box.createVerticalBox(), gbc);
+        return specLimitPanel;
     }
 
     /** Creates the panel allowing to adjust the memory limits of the reader. */
     private JPanel createMemoryLimitsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 0, 5, 5);
 
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader memory limits"));
-        panel.add(new JLabel("Limit memory per column"), gbc);
-        gbc.gridx += 1;
         panel.add(m_maxCharsColumnChecker, gbc);
 
-        gbc.gridx = 0;
         gbc.gridy += 1;
+        gbc.insets = new Insets(5, 3, 5, 5);
         panel.add(new JLabel("Maximum number of columns"), gbc);
         gbc.gridx += 1;
         panel.add(m_maxColsSpinner, gbc);
         ++gbc.gridy;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0,0,0,0);
         panel.add(Box.createHorizontalBox(), gbc);
         return panel;
     }
@@ -479,7 +516,9 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridwidth = QuoteOption.values().length;
         ++gbc.gridy;
         panel.add(m_replaceQuotedEmptyStringChecker, gbc);
+        gbc.insets = new Insets(5, 0, 0, 0);
         ++gbc.gridy;
+        gbc.insets = new Insets(0, 0, 0, 0);
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(Box.createHorizontalBox(), gbc);
@@ -489,7 +528,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel createOptionsPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel optionsPanel = new JPanel(new GridBagLayout());
-        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options:"));
+        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options"));
         gbc.weightx = 1;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -650,15 +689,10 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridx += 1;
         gbc.weightx = 1;
         optionsPanel.add(m_limitRowsSpinner, gbc);
-
-        gbc.gridy += 1;
         gbc.weighty = 1;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        optionsPanel.add(m_limitAnalysisChecker, gbc);
-        gbc.gridx += 1;
-        gbc.weightx = 1;
-        optionsPanel.add(m_limitAnalysisSpinner, gbc);
+        gbc.fill = GridBagConstraints.BOTH;
+        optionsPanel.add(new JPanel(), gbc);
+
 
         return optionsPanel;
     }

@@ -26,7 +26,7 @@
 			for spec if necessary.<br />
 	        </p>
 		</intro>
-		<tab name="Options">
+		<tab name="Settings">
 			<option name="Input location">
 				Enter a valid file name or URL. You can also choose a previously read file from the drop-down list, 
 				or select a file from the "Browse..." dialog.
@@ -71,7 +71,7 @@
 	          Select this box if rows without any content should not be in the output.
 			</option>
 		</tab>
-		<tab name="Advanced Options">
+		<tab name="Advanced Settings">
 			<option name="Limit memory per column">
 				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
 				this option to disable these memory restrictions.
@@ -91,7 +91,14 @@
 			<option name="Replace empty quoted strings with missing values">
 				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
 			</option>
-			
+			<option name="Table specification">
+			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
+	          representative for the whole file. The "Skip first data rows"
+	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are 
+	          independent from each other, i.e., if the value in "Limit data rows" is smaller than the value specified
+	          here, we will still read as many rows as specified here.
+			</option>
 		</tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
@@ -105,13 +112,6 @@
 			<option name="Limit data rows">
 	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
 	          not taken into account.
-			</option>
-			<option name="Limit data rows scanned for spec">
-	          If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
-	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
-	          representative for the whole file. The "Skip first data rows"
-	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are independent from each other
-	          i.e. if the value in "Limit data rows" is smaller than the value specified here, we will still read as many rows as specified here.
 			</option>
         </tab>
         <tab name="Simple File Reader Encoding">

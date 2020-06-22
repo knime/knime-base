@@ -124,21 +124,28 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         specMergePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
             "Spec merge options (multiple files)"));
         final GridBagConstraints gbc = createAndInitGBC();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 5, 0, 5);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 5, 5, 5);
         specMergePanel.add(m_failOnDifferingSpecs, gbc);
-        gbc.gridx = 1;
+        ++gbc.gridx;
         specMergePanel.add(m_intersection, gbc);
-        gbc.gridx = 2;
-        gbc.weightx = 1.0;
+        ++gbc.gridx;
         specMergePanel.add(m_union, gbc);
+        ++gbc.gridx;
+        gbc.weightx = 1;
+        gbc.fill= GridBagConstraints.HORIZONTAL;
+        specMergePanel.add(Box.createVerticalBox(),gbc);
         return specMergePanel;
     }
 
     @Override
     protected void init(final PathSettings fileChooserModel) {
         final SettingsModelReaderFileChooser sm = (SettingsModelReaderFileChooser)fileChooserModel;
-        final String[] keyChain = Stream.concat(Stream.of("settings"), Arrays.stream(sm.getKeysForFSLocation())).toArray(String[]::new);
+        final String[] keyChain =
+            Stream.concat(Stream.of("settings"), Arrays.stream(sm.getKeysForFSLocation())).toArray(String[]::new);
         final FlowVariableModel readFvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
         m_filePanel = new DialogComponentReaderFileChooser((SettingsModelReaderFileChooser)fileChooserModel,
             "csv_reader_writer", readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
@@ -150,11 +157,24 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         specMergeGroup.add(m_failOnDifferingSpecs);
         specMergeGroup.add(m_intersection);
         specMergeGroup.add(m_union);
+        m_filePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> toggleSpecMergeButtonGrp());
+    }
+
+    private void toggleSpecMergeButtonGrp() {
+        final boolean enable = m_filePanel.getSettingsModel().getFilterModeModel().getFilterMode() != FilterMode.FILE;
+        m_failOnDifferingSpecs.setEnabled(enable);
+        m_union.setEnabled(enable);
+        m_intersection.setEnabled(enable);
     }
 
     @Override
     protected JPanel[] getPanels() {
-        return new JPanel[]{createFilePanel(), createSpecMergePanel()};
+        return new JPanel[]{createFilePanel()};
+    }
+
+    @Override
+    protected JPanel[] getAdvancedPanels() {
+        return new JPanel[]{createSpecMergePanel()};
     }
 
     @Override
@@ -246,8 +266,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
                 break;
             default:
                 throw new NotConfigurableException("Unknown spec merge mode " + m_config.getSpecMergeMode());
-
         }
+        toggleSpecMergeButtonGrp();
     }
 
     SettingsModelFileChooser2 getFileChooserSettingsModel() {

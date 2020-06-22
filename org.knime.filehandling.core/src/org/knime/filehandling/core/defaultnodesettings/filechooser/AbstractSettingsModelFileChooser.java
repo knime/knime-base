@@ -198,7 +198,12 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         return new FileChooserPathAccessor(this, m_fsConfig.getConnection());
     }
 
-    SettingsModelFilterMode getFilterModeModel() {
+    /**
+     * Returns the {@link SettingsModelFilterMode}.
+     *
+     * @return the {@link SettingsModelFilterMode}
+     */
+    public SettingsModelFilterMode getFilterModeModel() {
         return m_filterModeModel;
     }
 
@@ -207,7 +212,8 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      */
     FSConnection getConnection() {
         final Optional<FSConnection> connection = m_fsConfig.getConnection();
-        return FileSystemHelper.retrieveFSConnection(connection, getLocation()).orElseThrow(() -> new IllegalStateException("Can't retrieve connection."));
+        return FileSystemHelper.retrieveFSConnection(connection, getLocation())
+            .orElseThrow(() -> new IllegalStateException("Can't retrieve connection."));
     }
 
     boolean canCreateConnection() {

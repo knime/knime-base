@@ -25,7 +25,7 @@
           scans the input file during node configuration (in the dialog).
         </p>
 		</intro>
-		<tab name="Options">
+		<tab name="Settings">
 			<option name="File or Files in folder">
 				Select whether you want to read a file or multiple files in a folder.
 				When reading files in a folder, you can set filters to specify which
@@ -62,23 +62,6 @@
 				You can also choose a previously selected file/folder from the drop-down list, or select a destination 
 				from	the &quot;Browse...&quot; dialog (browsing is not available for the Custom URL file system).
 			</option>	
-			
-			<option name="Spec merge options">
-			This option is used when reading multiple CSV files via the Files in folder option. It allows you to control
-			how differing table structures are handled.
-				<ul>
-	                <li><i>Fail if specs differ:</i> The execution of the nodes will fail, if all tables do not have 
-	                the same column count and each datatype. 
-	                </li>
-	                <li><i>Intersection:</i> The intersection of the columns among the files will be used. Columns that 
-	                do not exist in all files will be left out
-	                </li>
-	                <li><i>Union:</i> The union of the columns in the files will be used. 
-	                </li>
-	        	</ul>
-			</option>	
-			
-			
 			<option name="Column delimiter">
 			  The character string delimiting columns. Use '\t' for tab character. Can get detected automatically.
 			</option>
@@ -120,7 +103,7 @@
 	          Select this box if rows without any content should not be in the output.
 			</option>
 		</tab>
-		<tab name="Advanced Options">
+		<tab name="Advanced Settings">
 			<option name="Limit memory per column">
 				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
 				this option to disable these memory restrictions.
@@ -140,7 +123,28 @@
 			<option name="Replace empty quoted strings with missing values">
 				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
 			</option>
-			
+			<option name="Table specification">
+			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
+	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
+	          representative for the whole file. The "Skip first data rows"
+	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are 
+	          independent from each other, i.e., if the value in "Limit data rows" is smaller than the value specified
+	          here, we will still read as many rows as specified here.
+			</option>
+			<option name="Spec merge options">
+			This option is used when reading multiple CSV files via the Files in folder option. It allows you to control
+			how differing table structures are handled.
+				<ul>
+	                <li><i>Fail if specs differ:</i> The execution of the nodes will fail, if all tables do not have 
+	                the same column count and each datatype. 
+	                </li>
+	                <li><i>Intersection:</i> The intersection of the columns among the files will be used. Columns that 
+	                do not exist in all files will be left out
+	                </li>
+	                <li><i>Union:</i> The union of the columns in the files will be used. 
+	                </li>
+	        	</ul>
+			</option>	
 		</tab>
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
@@ -154,13 +158,6 @@
 			<option name="Limit data rows">
 	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
 	          not taken into account.    
-			</option>
-			<option name="Limit data rows scanned for spec">
-	          If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
-	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
-	          representative for the whole file. The "Skip first data rows"
-	          option has no effect on the scanning. Note also, that this option and the "Limit data rows" option are independent from each other
-	          i.e. if the value in "Limit data rows" is smaller than the value specified here, we will still read as many rows as specified here.
 			</option>
         </tab>
         <tab name="CSV Reader Encoding">
