@@ -95,7 +95,7 @@ public class ImagePortWriterNodeModel extends PortObjectToFileWriterNodeModel<Im
     @Override
     protected void configureInternal(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // Check for the compatibility of the DataType at the input ports.
-        final ImagePortObjectSpec imgObject = (ImagePortObjectSpec)inSpecs[0];
+        final ImagePortObjectSpec imgObject = (ImagePortObjectSpec)inSpecs[getInputTableIndex()];
         final DataType dataType = imgObject.getDataType();
         CheckUtils.checkSetting(dataType.isCompatible(ImageValue.class),
             "The image provided by the connected port is not supported.");
