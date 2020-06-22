@@ -494,9 +494,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateFileHistoryPanel() {
         final FileSystemChoice fsChoice = ((FileSystemChoice)m_connections.getSelectedItem());
 
-        if (excutedOnServer() && fsChoice.getType() != Choice.CONNECTED_FS) {
+        if (executedOnServer()) {
             m_fileHistoryPanel.setBrowseable(false);
-            m_fileHistoryPanel.setEnabled(false);
             m_statusMessage.setForeground(Color.RED);
             m_statusMessage.setText("Browsing is not supported in job view.");
             getComponentPanel().repaint();
@@ -582,8 +581,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     private void updateEnabledness() {
         final SettingsModelString fileOrFolderModel = (SettingsModelString)m_fileOrFolderButtonGroup.getModel();
         final boolean fileSelected = isFileSelected(fileOrFolderModel);
-        if (excutedOnServer()
-            && !((FileSystemChoice)m_connections.getSelectedItem()).getType().equals(Choice.CONNECTED_FS)) {
+        if (executedOnServer()) {
             //We are on the server, and do not have a connected connection
             //so we disable everything but the connection combobox
 
@@ -594,8 +592,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
             m_includeSubfolders.setEnabled(false);
             m_configureFilter.setEnabled(false);
-            m_fileHistoryPanel.setEnabled(false);
-
+            m_fileHistoryPanel.setBrowseable(false);
         } else if (m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeFsChoice())
             || m_connections.getSelectedItem().equals(FileSystemChoice.getKnimeMountpointChoice())) {
             // KNIME connections are selected
@@ -643,7 +640,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         }
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         final FileSystemChoice fsChoice = model.getFileSystemChoice();
-        if (excutedOnServer() && !fsChoice.getType().equals(Choice.CONNECTED_FS)) {
+        if (executedOnServer()) {
             return;
         }
 
@@ -855,7 +852,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /**
      * @return whether the dialog is opened on the server
      */
-    protected boolean excutedOnServer() {
+    protected boolean executedOnServer() {
 
         return Optional.ofNullable(NodeContext.getContext())
             .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
