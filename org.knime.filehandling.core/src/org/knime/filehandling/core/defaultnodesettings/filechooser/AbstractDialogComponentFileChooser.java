@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -190,25 +191,36 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         panel.setLayout(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1);
         panel.add(new JLabel(getFSLabel()), gbc.setWeightX(0).setWidth(1).build());
-        panel.add(m_fsChooser.getPanel(), gbc.incX().fillNone().build());
+        panel.add(m_fsChooser.getPanel(), gbc.incX().insetLeft(5).fillNone().build());
+        gbc.insetLeft(0);
         if (displayFilterModes) {
-            panel.add(new JLabel("Mode:"), gbc.resetX().incY().insetLeft(-4).setWidth(1).build());
-            panel.add(m_filterMode.getComponentPanel(), gbc.incX().widthRemainder().build());
-            panel.add(m_filterMode.getFilterConfigPanel(), gbc.insetLeft(4).incY().build());
+            panel.add(new JLabel("Mode"), gbc.incY().resetX().insetLeft(0).build());
+            panel.add(createModePanel(), gbc.incX().setWidth(2).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
-        panel.add(m_fileSelection.getPanel(), gbc.incX().fillHorizontal().setWeightX(1).setWidth(2).build());
+        panel.add(m_fileSelection.getPanel(),
+            gbc.incX().fillHorizontal().insetLeft(5).setWeightX(1).setWidth(2).build());
         panel.add(new FlowVariableModelButton(m_locationFvm), gbc.incX(2).setWeightX(0).setWidth(1).build());
-        addAdditionalComponents(panel, gbc.resetX().incY());
-        panel.add(m_statusView.getLabel(), gbc.anchorLineStart().insetLeft(4).setX(1).widthRemainder().incY().build());
+        addAdditionalComponents(panel, gbc.resetX().insetLeft(0).incY());
+        panel.add(m_statusView.getLabel(),
+            gbc.anchorLineStart().insetLeft(9).insetTop(4).insetBottom(4).setX(1).widthRemainder().incY().build());
+    }
+
+    private JPanel createModePanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(0);
+        panel.add(m_filterMode.getComponentPanel(), gbc.incX().build());
+        panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
+        panel.add(Box.createHorizontalBox(), gbc.fillHorizontal().insetLeft(0).setWeightX(1).build());
+        return panel;
     }
 
     private String getFSLabel() {
         switch (m_dialogType) {
             case OPEN_DIALOG:
-                return "Read from:";
+                return "Read from";
             case SAVE_DIALOG:
-                return "Write to:";
+                return "Write to";
             default:
                 throw new IllegalStateException("Unsupported DialogType: " + m_dialogType);
 
@@ -354,14 +366,14 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private String getFileSelectionLabel(final FSLocation location) {
         if (location.getFSCategory() == FSCategory.CUSTOM_URL) {
-            return "URL:";
+            return "URL";
         }
 
         final FilterMode filterMode = getSettingsModel().getFilterModeModel().getFilterMode();
         if (filterMode == FilterMode.FILE) {
-            return "File:";
+            return "File";
         } else {
-            return "Folder:";
+            return "Folder";
         }
     }
 

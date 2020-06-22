@@ -47,7 +47,6 @@ package org.knime.filehandling.core.node.portobject;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -145,7 +144,6 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), borderTitle));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 5, 0, 5);
         gbc.weighty = 1;
         panel.add(m_filePanel.getComponentPanel(), gbc);
         return panel;

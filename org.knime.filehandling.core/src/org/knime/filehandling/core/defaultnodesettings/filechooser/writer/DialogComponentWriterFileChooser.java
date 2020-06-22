@@ -148,8 +148,8 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
 
     @Override
     protected void addAdditionalComponents(final JPanel panel, final GBCBuilder gbc) {
-        panel.add(new JLabel("Write options:"), gbc.build());
-        panel.add(createWriteOptionsPanel(), gbc.incX().insetLeft(2).build());
+        panel.add(new JLabel("Write options"), gbc.build());
+        panel.add(createWriteOptionsPanel(), gbc.incX().insetLeft(6).build());
         panel.add(new JPanel(), gbc.fillHorizontal().incX().build());
     }
 

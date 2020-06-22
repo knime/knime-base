@@ -329,4 +329,28 @@ public final class GBCBuilder {
         return this;
     }
 
+    /**
+     * Sets the top external padding of the {@link GridBagConstraints#insets} property to the provided value.
+     *
+     * @param insetTop the external padding on the top
+     * @return this builder
+     */
+    public GBCBuilder insetTop(final int insetTop) {
+        final Insets oldInsets = m_gbc.insets;
+        m_gbc.insets = new Insets(insetTop, oldInsets.left, oldInsets.bottom, oldInsets.right);
+        return this;
+    }
+
+    /**
+     * Sets the bottom external padding of the {@link GridBagConstraints#insets} property to the provided value.
+     *
+     * @param insetBottom the external padding on the bottom
+     * @return this builder
+     */
+    public GBCBuilder insetBottom(final int insetBottom) {
+        final Insets oldInsets = m_gbc.insets;
+        m_gbc.insets = new Insets(oldInsets.top, oldInsets.left, insetBottom, oldInsets.right);
+        return this;
+    }
+
 }
