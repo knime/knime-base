@@ -74,6 +74,7 @@ import java.util.Set;
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSSeekableByteChannel;
+import org.knime.filehandling.core.connections.base.RelativizingPathIterator;
 
 /**
  *
@@ -180,10 +181,9 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
         checkFileSystemOpenOrClosing();
 
-        final LocalPath localPath = checkCastAndAbsolutizePath(path);
+        final LocalPath checkedPath = checkCastAndAbsolutizePath(path);
         final DirectoryStream<Path> wrappedStream =
-            PLATFORM_DEFAULT_PROVIDER.newDirectoryStream(localPath.getWrappedPath(), filter);
-        final boolean relativizeResults = !path.isAbsolute();
+            PLATFORM_DEFAULT_PROVIDER.newDirectoryStream(checkedPath.getWrappedPath(), filter);
 
         final DirectoryStream<Path> toReturn = new DirectoryStream<Path>() {
             @Override
@@ -197,21 +197,26 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
             @Override
             public Iterator<Path> iterator() {
-                final Iterator<Path> wrappedIter = wrappedStream.iterator();
+                Iterator<Path> wrappedIterator = getWrappingIterator();
+                if (!path.isAbsolute()) {
+                    wrappedIterator = new RelativizingPathIterator(wrappedIterator, //
+                        checkedPath.getNameCount() - path.getNameCount());
+                }
+                return wrappedIterator;
+            }
+
+            private Iterator<Path> getWrappingIterator() {
+                final Iterator<Path> toWrap = wrappedStream.iterator();
                 return new Iterator<Path>() {
 
                     @Override
                     public boolean hasNext() {
-                        return wrappedIter.hasNext();
+                        return toWrap.hasNext();
                     }
 
                     @Override
                     public Path next() {
-                        Path defaultFSPath = wrappedIter.next();
-                        if (relativizeResults) {
-                            defaultFSPath = localPath.getWrappedPath().relativize(defaultFSPath);
-                        }
-                        return new LocalPath(m_fileSystem, defaultFSPath);
+                        return new LocalPath(m_fileSystem, toWrap.next());
                     }
                 };
             }
@@ -321,12 +326,6 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException(PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
-
-        LocalPath toReturn = (LocalPath)path;
-        if (!toReturn.isAbsolute()) {
-            toReturn = (LocalPath)m_fileSystem.getWorkingDirectory().resolve(toReturn);
-        }
-
-        return toReturn;
+        return (LocalPath)path.toAbsolutePath();
     }
 }

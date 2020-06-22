@@ -44,58 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   19.12.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Jun 22, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.base;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.Iterator;
 
-import org.apache.commons.lang3.Validate;
-
 /**
- * Base implementation of {@link DirectoryStream}.
+ * Path iterator that relativizes all paths of the wrapped path iterator by cutting a way a prefix using
+ * {@link Path#subpath(int, int)}.
  *
- * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class BaseDirectoryStream implements DirectoryStream<Path> {
+public class RelativizingPathIterator implements Iterator<Path> {
 
-    private final Iterator<Path> m_iterator;
+    private final Iterator<Path> m_wrappedIterator;
 
-    private volatile boolean m_isClosed = false;
-
-    private final BaseFileSystem<?> m_fileSystem;
+    private final int m_prefixLen;
 
     /**
-     * Constructs a DirectoryStream with the given iterator.
+     * Create new instance.
      *
-     * @param originalPath The original path given to the provider method.
-     * @param iterator the iterator to use in the directory stream
-     * @param fileSystem the file system this stream belongs to
+     * @param wrappedIterator The path iterator whose paths to relativize.
+     * @param prefixLen Length of the prefix to cut from the paths produced by the wrapped path iterator.
      */
-    public BaseDirectoryStream(final Iterator<Path> iterator,
-        final BaseFileSystem<?> fileSystem) {
-        Validate.notNull(iterator, "Iterator must not be null.");
-        m_iterator = iterator;
-        m_fileSystem = fileSystem;
-        m_fileSystem.registerCloseable(this);
+    public RelativizingPathIterator(final Iterator<Path> wrappedIterator, final int prefixLen) {
+        m_wrappedIterator = wrappedIterator;
+        m_prefixLen = prefixLen;
     }
 
     @Override
-    public void close() throws IOException {
-        m_isClosed = true;
-        m_fileSystem.unregisterCloseable(this);
+    public boolean hasNext() {
+        return m_wrappedIterator.hasNext();
     }
 
     @Override
-    public Iterator<Path> iterator() {
-        if (m_isClosed) {
-            throw new IllegalStateException("Directory stream is already closed.");
-        }
-
-        return m_iterator;
+    public Path next() {
+        final Path origNext = m_wrappedIterator.next();
+        return origNext.subpath(m_prefixLen, origNext.getNameCount());
     }
 }

@@ -203,7 +203,11 @@ public class LocalPath extends FSPath {
     @SuppressWarnings("resource")
     @Override
     public Path toAbsolutePath() {
-        return getFileSystem().getWorkingDirectory().resolve(this);
+        if (isAbsolute()) {
+            return this;
+        } else {
+            return getFileSystem().getWorkingDirectory().resolve(this);
+        }
     }
 
     @Override

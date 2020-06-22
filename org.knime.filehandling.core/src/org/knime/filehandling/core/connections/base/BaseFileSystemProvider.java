@@ -414,14 +414,23 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         // allowed during closing (part of recursive temp dir deletion)
         checkFileSystemOpenOrClosing();
 
-        final P checkedDir = checkCastAndAbsolutizePath(dir);
+        checkPathProvider(dir);
+        final P checkedDir = (P)dir.toAbsolutePath();
 
         // readAttributes() will also throw NoSuchFileException when file does not exist.
         if (!readAttributes(checkedDir, BasicFileAttributes.class).isDirectory()) {
             throw new NotDirectoryException(checkedDir.toString());
         }
 
-        return new BaseDirectoryStream((Iterator<Path>)createPathIterator(checkedDir, filter), getFileSystemInternal());
+        Iterator<Path> pathIterator = (Iterator<Path>)createPathIterator(checkedDir, filter);
+        if (!dir.isAbsolute()) {
+            // when the original path provided to this method was relative, the paths provided by the
+            // DirectoryStream must also be relative
+            pathIterator = new RelativizingPathIterator(pathIterator, //
+                checkedDir.getNameCount() - dir.getNameCount());
+        }
+
+        return new BaseDirectoryStream(pathIterator, getFileSystemInternal());
     }
 
     /**

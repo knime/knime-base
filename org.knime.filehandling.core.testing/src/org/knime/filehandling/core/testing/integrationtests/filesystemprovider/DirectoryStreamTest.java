@@ -45,6 +45,7 @@
  */
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -115,5 +116,31 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         }
 
         assertTrue(paths.isEmpty());
+    }
+
+    @Test
+    public void test_list_relative_directory() throws Exception {
+        final Path relDir = getFileSystem().getWorkingDirectory().relativize(m_testInitializer.makePath("dir"));
+        Files.createDirectory(relDir);
+
+        final Path relFile =
+            getFileSystem().getWorkingDirectory().relativize(m_testInitializer.createFile("dir", "file"));
+
+        final Path[] dirList = Files.list(relDir).toArray(Path[]::new);
+        assertEquals(1, dirList.length);
+        assertEquals(relFile, dirList[0]);
+    }
+
+    @Test
+    public void test_list_dot_directory() throws Exception {
+        // force creation of scratch dir
+        m_testInitializer.createFile("file");
+
+        final Path[] dirList = Files.list(getFileSystem().getPath(".")).toArray(Path[]::new);
+        assertEquals(1, dirList.length);
+
+        final Path expectedPath =
+            getFileSystem().getPath(".").resolve(m_testInitializer.getTestCaseScratchDir().getFileName());
+        assertEquals(expectedPath, dirList[0]);
     }
 }
