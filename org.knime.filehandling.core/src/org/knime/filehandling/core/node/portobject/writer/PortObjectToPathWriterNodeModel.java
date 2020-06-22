@@ -93,14 +93,23 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
             }
             // write path
             try {
-                writeToPath(data[getPortsConfig().getInputPortLocation()
-                    .get(PortObjectWriterNodeFactory.PORT_OBJECT_INPUT_GRP_NAME)[0]], path, exec);
+                writeToPath(data[getInputTableIndex()], path, exec);
             } catch (FileAlreadyExistsException e) {
                 throw new IOException(
                     "Output file '" + e.getFile() + "' exists and must not be overwritten due to user settings.", e);
             }
             return new PortObject[0];
         }
+    }
+
+    /**
+     * Returns the index of port object input port.
+     *
+     * @return index of port object input port
+     */
+    protected final int getInputTableIndex() {
+        // save to access 0 since this port is fixed
+        return getPortsConfig().getInputPortLocation().get(PortObjectWriterNodeFactory.PORT_OBJECT_INPUT_GRP_NAME)[0];
     }
 
     /**
