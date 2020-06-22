@@ -93,11 +93,11 @@ public final class FileSystemHelper {
                 final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
                 final KNIMEConnection connection =
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-                return new KNIMERemoteFSConnection(connection);
+                return new KNIMERemoteFSConnection(connection, false);
             case KNIME_FS:
                 final String knimeFileSystemHost = settings.getKNIMEFileSystem();
                 final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
-                return new LocalRelativeToFSConnection(connectionTypeForHost);
+                return new LocalRelativeToFSConnection(connectionTypeForHost, false);
             case CONNECTED_FS:
                 return portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
                     "No file system connection available for \"" + choice.getId() + "\""));
@@ -123,9 +123,9 @@ public final class FileSystemHelper {
                 final URI uri = URI.create(location.getPath().replace(" ", "%20"));
                 return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
             case RELATIVE:
-                return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location)));
+                return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location), false));
             case MOUNTPOINT:
-                return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location)));
+                return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location), false));
             case LOCAL:
                 return Optional.of(new LocalFSConnection());
             default:

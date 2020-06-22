@@ -72,12 +72,19 @@ public class LocalRelativeToFSConnection implements FSConnection {
      *
      * @param type The type of the file system (mountpoint- or workflow relative).
      */
-    public LocalRelativeToFSConnection(final Type type) {
+    public LocalRelativeToFSConnection(final Type type, final boolean isConnected) {
         final URI fsKey = URI.create(type.getSchemeAndHost());
+
+        if (type != Type.MOUNTPOINT_RELATIVE && type != Type.WORKFLOW_RELATIVE) {
+            throw new IllegalArgumentException("Unsupported file system type: '" + type + "'.");
+        }
+
+        final LocalRelativeToPathConfig pathConfig = new LocalRelativeToPathConfig(type);
         try {
-            m_fileSystem = LocalRelativeToFileSystemProvider.getOrCreateFileSystem(fsKey);
+            m_fileSystem = new LocalRelativeToFileSystem(fsKey, pathConfig, isConnected);
             m_browser = new LocalRelativeToFileSystemBrowser(m_fileSystem);
         } catch (IOException ex) {
+            // should never happen
             throw new UncheckedIOException(ex);
         }
     }

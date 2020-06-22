@@ -79,7 +79,7 @@ import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCac
  */
 public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
-    private final BaseFileSystemProvider<T, BaseFileSystem<T>> m_fileSystemProvider;
+    private final BaseFileSystemProvider<?,?> m_fileSystemProvider;
 
     private final URI m_uri;
 
@@ -94,7 +94,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      */
-    public BaseFileSystem(final  BaseFileSystemProvider<T, ?> fileSystemProvider,
+    public BaseFileSystem(final BaseFileSystemProvider<?,?> fileSystemProvider,
         final URI uri,
         final long cacheTTL,
         final String workingDirectory,
@@ -102,10 +102,12 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
         super(fsLocationSpec, workingDirectory);
 
+        fileSystemProvider.setFileSystem(this);
+
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
         Validate.notNull(uri, "URI must not be null.");
 
-        m_fileSystemProvider = (BaseFileSystemProvider<T, BaseFileSystem<T>>)fileSystemProvider;
+        m_fileSystemProvider = fileSystemProvider;
         m_uri = uri;
         if (cacheTTL > 0) {
             m_cache = new BaseAttributesCache(cacheTTL);
@@ -114,9 +116,10 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public FSFileSystemProvider<T, ?> provider() {
-        return m_fileSystemProvider;
+        return (FSFileSystemProvider<T, ?>)m_fileSystemProvider;
     }
 
     @Override

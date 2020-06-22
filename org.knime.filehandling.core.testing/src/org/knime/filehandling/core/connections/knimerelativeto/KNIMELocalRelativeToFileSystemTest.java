@@ -64,6 +64,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
  * Test local relative to file system specific things.
@@ -378,10 +379,12 @@ public class KNIMELocalRelativeToFileSystemTest {
     }
 
     private static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
-        return LocalRelativeToFileSystemProvider.getOrCreateFileSystem(URI.create("knime://knime.mountpoint"));
+        return new LocalRelativeToFileSystem(URI.create("knime://knime.mountpoint"),
+            new LocalRelativeToPathConfig(Type.MOUNTPOINT_RELATIVE), false);
     }
 
     private static LocalRelativeToFileSystem getWorkflowRelativeFS() throws IOException {
-        return LocalRelativeToFileSystemProvider.getOrCreateFileSystem(URI.create("knime://knime.workflow"));
+        return new LocalRelativeToFileSystem(URI.create("knime://knime.workflow"),
+            new LocalRelativeToPathConfig(Type.WORKFLOW_RELATIVE), false);
     }
 }

@@ -72,10 +72,10 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
     private final URIPath m_workingDirectory;
 
-    URIFileSystem(final URIFileSystemProvider provider, final URI uri, final boolean isConnectedFs,
+    URIFileSystem(final URI uri, final boolean isConnectedFs,
         final int timeoutInMillis) {
 
-        super(provider, //
+        super(new URIFileSystemProvider(timeoutInMillis), //
             toBaseURI(uri), //
             0L, //
             PATH_SEPARATOR, //

@@ -146,7 +146,7 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
         }
 
         final KNIMEConnection con = KNIMEConnection.getOrCreateMountpointAbsoluteConnection(specifier.get());
-        return new KNIMERemoteFSConnection(con);
+        return new KNIMERemoteFSConnection(con, false);
     }
 
     private static FSConnection createRelativeToFSConnection(final FSLocationSpec fsLocationSpec) {
@@ -155,6 +155,6 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
                 "Invalid FSLocation for 'Relative to'. It must specify either workflow or mountpoint");
         }
         final Type type = KNIMEConnection.connectionTypeForHost(fsLocationSpec.getFileSystemSpecifier().get());
-        return new LocalRelativeToFSConnection(type);
+        return new LocalRelativeToFSConnection(type, false);
     }
 }

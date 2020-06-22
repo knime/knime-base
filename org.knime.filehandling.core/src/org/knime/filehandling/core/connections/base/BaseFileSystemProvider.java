@@ -62,7 +62,6 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileSystemNotFoundException;
@@ -110,42 +109,15 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     private F m_fileSystem;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public synchronized F newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-
-        if (m_fileSystem != null) {
-            throw new FileSystemAlreadyExistsException();
-        }
-        m_fileSystem = createFileSystem(uri, env);
-        return m_fileSystem;
+    @SuppressWarnings("unchecked")
+    void setFileSystem(final BaseFileSystem<?> fileSystem) {
+        m_fileSystem = (F)fileSystem;
     }
 
-    /**
-     * Constructs a new FileSystem object identified by an URI. This method is called from the
-     * {@link #newFileSystem(URI, Map)} method, that takes care of adding the file system to the map of file systems.
-     *
-     * @param uri URI reference
-     * @param env a map of provider specific properties to configure the file system; may be empty
-     * @return the new file system
-     * @throws IOException if I/O error occurs
-     */
-    protected abstract F createFileSystem(URI uri, Map<String, ?> env) throws IOException;
-
-    /**
-     *
-     *
-     * Gets or creates a new {@link FileSystem} based on the input uri.
-     *
-     * @param uri the URI that either retrieves or creates a new file system.
-     * @param env A map of provider specific properties to configure the file system; may be empty
-     * @return a file system for the URI
-     * @throws IOException if I/O error occurs
-     */
-    public synchronized F getOrCreateFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
+    @Override
+    public final F newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+        // file system always exists, so we throw FileSystemAlreadyExistsException
+        throw new FileSystemAlreadyExistsException();
     }
 
     /**
@@ -496,8 +468,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * Returns the internal file system instance (does not look at the URI).
      */
     @Override
-    public synchronized F getFileSystem(final URI uri) {
-        return getFileSystemInternal();
+    public final F getFileSystem(final URI uri) {
+        return m_fileSystem;
     }
 
     /**
@@ -506,10 +478,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      *
      * @return the {@code FileSystem} created by this provider if it exists.
      */
-    protected final synchronized F getFileSystemInternal() {
-        if (m_fileSystem == null) {
-            throw new FileSystemNotFoundException();
-        }
+    protected final F getFileSystemInternal() {
         return m_fileSystem;
     }
 

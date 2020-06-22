@@ -98,7 +98,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
         }
 
         final String workingDir = (String)env.get(KEY_WORKING_DIR);
-        final boolean isConnectedFs = (Boolean)env.get(KEY_WORKING_DIR);
+        final boolean isConnectedFs = (Boolean)env.get(KEY_IS_CONNECTED_FS);
 
         if (isConnectedFs) {
             return getOrCreateFileSystem(workingDir, LocalFileSystem.CONNECTED_FS_LOCATION_SPEC);

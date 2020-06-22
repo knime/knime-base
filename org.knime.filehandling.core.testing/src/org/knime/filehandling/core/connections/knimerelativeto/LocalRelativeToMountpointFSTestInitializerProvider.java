@@ -76,7 +76,7 @@ public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTes
         final Path localMountPointRoot = Files.createTempDirectory("knime-relative-mountpoint-test");
 
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
-        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE);
+        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true);
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 

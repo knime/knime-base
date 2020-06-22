@@ -92,17 +92,16 @@ public class LocalRelativeToFileSystem extends BaseFileSystem<LocalRelativeToPat
     /**
      * Default constructor.
      *
-     * @param fileSystemProvider Creator of this FS, holding a reference.
      * @param uri URI without a path
      * @param pathConfig Provides underlying configuration, e.g. where this fs is rooted in the local file system.
      * @param isConnectedFs Whether this file system is a {@link FSCategory#CONNECTED} or a convenience file system
      *            ({@link FSCategory#RELATIVE)
      * @throws IOException
      */
-    protected LocalRelativeToFileSystem(final LocalRelativeToFileSystemProvider fileSystemProvider, final URI uri,
+    protected LocalRelativeToFileSystem(final URI uri,
         final LocalRelativeToPathConfig pathConfig, final boolean isConnectedFs) throws IOException {
 
-        super(fileSystemProvider, //
+        super(new LocalRelativeToFileSystemProvider(), //
             uri, //
             CACHE_TTL, //
             pathConfig.getWorkingDirectory(), //

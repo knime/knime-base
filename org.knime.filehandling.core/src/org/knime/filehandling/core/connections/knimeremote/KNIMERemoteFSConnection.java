@@ -68,12 +68,12 @@ public class KNIMERemoteFSConnection implements FSConnection {
 
     private final KNIMERemoteFileSystemBrowser m_browser;
 
-    public KNIMERemoteFSConnection(final KNIMEConnection connection) {
+    public KNIMERemoteFSConnection(final KNIMEConnection connection, final boolean isConnected) {
         final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
-        try {
-            m_fileSystem = new KNIMERemoteFileSystemProvider().getOrCreateFileSystem(remoteFsKey, null);
+        m_fileSystem = new KNIMERemoteFileSystem(remoteFsKey, isConnected);
 
-            final boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(remoteFsKey);
+        try {
+            boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(remoteFsKey);
             if (isReadable) {
                 final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(m_fileSystem);
                 m_browser = new KNIMERemoteFileSystemBrowser(fsView);

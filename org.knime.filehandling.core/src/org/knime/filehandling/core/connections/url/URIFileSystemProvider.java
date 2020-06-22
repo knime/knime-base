@@ -71,7 +71,6 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -108,11 +107,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     public String getScheme() {
         return "*";
-    }
-
-    @Override
-    public URIFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new URIFileSystem(this, uri, false, m_timeoutInMillis);
     }
 
     @SuppressWarnings("resource")

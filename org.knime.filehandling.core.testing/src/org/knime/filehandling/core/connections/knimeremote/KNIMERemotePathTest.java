@@ -63,7 +63,7 @@ public class KNIMERemotePathTest {
     @Before
     public void setup() {
         m_fsProvider = new KNIMERemoteFileSystemProvider();
-        m_fs = new KNIMERemoteFileSystem(m_fsProvider, URI.create("knime://LOCAL"), false);
+        m_fs = new KNIMERemoteFileSystem(URI.create("knime://LOCAL"), false);
     }
 
     @Test
@@ -76,7 +76,7 @@ public class KNIMERemotePathTest {
         get_url_from_path("/some#path#with#hash#signs");
     }
 
-    private void get_url_from_path(String path) throws URISyntaxException {
+    private void get_url_from_path(final String path) throws URISyntaxException {
         final KNIMERemotePath knimePath = new KNIMERemotePath(m_fs, path);
         final URL url = knimePath.toURL();
         final URI uri = url.toURI();

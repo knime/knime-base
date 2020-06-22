@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.connections.url;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 
 import org.knime.core.node.util.FileSystemBrowser;
@@ -66,11 +64,7 @@ public class URIFSConnection implements FSConnection {
     final URIFileSystem m_uriFileSystem;
 
     public URIFSConnection(final URI uri, final int timeoutInMillis) {
-        try {
-            m_uriFileSystem = new URIFileSystemProvider(timeoutInMillis).newFileSystem(uri, null);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        m_uriFileSystem = new URIFileSystem(uri, false, timeoutInMillis);
     }
 
     @Override

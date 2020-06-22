@@ -53,7 +53,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.net.URL;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
@@ -66,7 +65,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -86,11 +84,6 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     implements WorkflowAware {
 
     private static final String SCHEME = "knime";
-
-    @Override
-    public KNIMERemoteFileSystem createFileSystem(final URI uri, final Map<String, ?> env) {
-        return new KNIMERemoteFileSystem(this, uri, false);
-    }
 
     @Override
     public String getScheme() {

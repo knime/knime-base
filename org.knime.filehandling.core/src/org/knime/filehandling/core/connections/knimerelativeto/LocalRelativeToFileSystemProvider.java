@@ -52,13 +52,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -67,15 +65,12 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -88,36 +83,9 @@ public class LocalRelativeToFileSystemProvider
 
     private static final String SCHEME = "knime";
 
-    @Override
-    protected LocalRelativeToFileSystem createFileSystem(final URI uri, final Map<String, ?> env)
-        throws IOException {
-
-        final Type connectionType = KNIMEConnection.connectionTypeForHost(uri.getHost());
-        if (connectionType != Type.MOUNTPOINT_RELATIVE && connectionType != Type.WORKFLOW_RELATIVE) {
-            throw new IllegalArgumentException("Unsupported file system type: '" + uri.getHost() + "'.");
-        }
-
-        final LocalRelativeToPathConfig pathConfig = new LocalRelativeToPathConfig(connectionType);
-
-        return new LocalRelativeToFileSystem(this, uri, pathConfig, false);
-
-    }
-
     @SuppressWarnings("resource")
     private LocalRelativeToPathConfig getPathConfig() {
         return getFileSystemInternal().getPathConfig();
-    }
-
-    /**
-     * Gets or creates a new {@link FileSystem} based on the input URI.
-     *
-     * @param uri the URI that either retrieves or creates a new file system.
-     * @return a file system for the URI
-     * @throws IOException if I/O error occurs
-     */
-    public static LocalRelativeToFileSystem getOrCreateFileSystem(final URI uri) throws IOException {
-        final LocalRelativeToFileSystemProvider provider = new LocalRelativeToFileSystemProvider();
-        return provider.getOrCreateFileSystem(uri, null);
     }
 
     private Path toLocalPathWithAccessibilityCheck(final LocalRelativeToPath path) throws NoSuchFileException {

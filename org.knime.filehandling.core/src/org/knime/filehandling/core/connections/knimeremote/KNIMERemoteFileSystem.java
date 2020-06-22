@@ -72,14 +72,12 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
     private final KNIMERemotePath m_workingDirectory;
 
     /**
-     *
-     *
-     * @param provider
      * @param baseLocation
+     * @param isConnectedFs
      */
-    public KNIMERemoteFileSystem(final KNIMERemoteFileSystemProvider provider, final URI baseLocation,
+    public KNIMERemoteFileSystem(final URI baseLocation,
         final boolean isConnectedFs) {
-        super(provider, //
+        super(new KNIMERemoteFileSystemProvider(), //
             baseLocation, //
             0, //
             PATH_SEPARATOR, //

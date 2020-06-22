@@ -76,7 +76,7 @@ public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestI
         final Path localMountPointRoot = Files.createTempDirectory("knime-relative-workflow-test");
 
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
-        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.WORKFLOW_RELATIVE);
+        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.WORKFLOW_RELATIVE, true);
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 
