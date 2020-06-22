@@ -75,7 +75,7 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
 
     @Override
     protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel("file_location");
+        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel();
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
             settings.setPath(urlConfig.get().getUrl().toString());

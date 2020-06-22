@@ -48,11 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
-import java.awt.Dimension;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeDialog;
@@ -62,7 +57,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
@@ -90,25 +84,15 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
 
     @Override
     protected JPanel[] getPanels() {
-        return new JPanel[]{createFilePanel()};
-    }
-
-    private JPanel createFilePanel() {
-        final JPanel filePanel = new JPanel();
-        filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input location"));
-        final FilesHistoryPanel fileHistoryPanel = m_filePanel.getFileHistoryPanel();
-        fileHistoryPanel.setPreferredSize(new Dimension(700, fileHistoryPanel.getPreferredSize().height));
-        fileHistoryPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, fileHistoryPanel.getPreferredSize().height));
-        filePanel.add(fileHistoryPanel);
-        filePanel.add(Box.createHorizontalGlue());
-        return filePanel;
+        return new JPanel[]{m_filePanel.createFilePanel()};
     }
 
     @Override
     protected void init(final PathSettings pathSettings) {
         m_filePanel = (PathAwareFileHistoryPanel)pathSettings;
-        m_filePanel.createFileHistoryPanel(createFlowVariableModel(new String[] {"settings", m_filePanel.getConfigKey()}, StringType.INSTANCE),
+        m_filePanel.createFileHistoryPanel(
+            createFlowVariableModel(new String[]{"settings", PathAwareFileHistoryPanel.CFG_KEY_LOCATION},
+                StringType.INSTANCE),
             SimpleFileReaderNodeDialog.HISTORY_ID);
     }
 

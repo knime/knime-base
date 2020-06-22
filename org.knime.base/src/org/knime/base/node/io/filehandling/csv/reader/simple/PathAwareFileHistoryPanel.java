@@ -48,6 +48,10 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -57,7 +61,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -86,14 +95,39 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     private FilesHistoryPanel m_filePanel;
 
+    private final JSpinner m_timeoutSpinner =
+        new JSpinner(new SpinnerNumberModel(DEFAULT_URL_TIMEOUT_SECONDS, 1, Integer.MAX_VALUE, 1));
+
+    static final String CFG_KEY_LOCATION = "file_location";
+
+    private static final String CFG_KEY_TIMEOUT = "connection_timeout";
+
+    private static final int DEFAULT_URL_TIMEOUT_SECONDS = 1;
+
     private static final String DEFAULT_FILE = "";
 
     private String m_selectedFile = DEFAULT_FILE;
 
-    private final String m_configKey;
-
-    PathAwareFileHistoryPanel(final String configKey) {
-        m_configKey = configKey;
+    JPanel createFilePanel() {
+        final JPanel filePanel = new JPanel(new GridBagLayout());
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input location"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        final FilesHistoryPanel fileHistoryPanel = getFileHistoryPanel();
+        filePanel.add(fileHistoryPanel, gbc);
+        gbc.gridy++;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(0, 5, 5, 5);
+        filePanel.add(new JLabel("Connection timeout [s]"), gbc);
+        gbc.gridx++;
+        m_timeoutSpinner.setPreferredSize(new Dimension(70, m_timeoutSpinner.getPreferredSize().height));
+        filePanel.add(m_timeoutSpinner, gbc);
+        return filePanel;
     }
 
     void createFileHistoryPanel(final FlowVariableModel fvm, final String historyID) {
@@ -127,7 +161,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addString(m_configKey, getPath().trim());
+        settings.addString(CFG_KEY_LOCATION, getPath().trim());
+        settings.addInt(CFG_KEY_TIMEOUT, (int)m_timeoutSpinner.getValue());
         if (m_filePanel != null) {
             m_filePanel.addToHistory();
         }
@@ -135,7 +170,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_selectedFile = settings.getString(m_configKey, DEFAULT_FILE);
+        m_selectedFile = settings.getString(CFG_KEY_LOCATION, DEFAULT_FILE);
+        m_timeoutSpinner.setValue(settings.getInt(CFG_KEY_TIMEOUT, DEFAULT_URL_TIMEOUT_SECONDS));
         if (m_filePanel != null) {
             m_filePanel.setSelectedFile(m_selectedFile);
         }
@@ -143,14 +179,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getString(m_configKey);
-    }
-
-    /**
-     * @return the configKey
-     */
-    public String getConfigKey() {
-        return m_configKey;
+        settings.getString(CFG_KEY_LOCATION);
+        settings.getInt(CFG_KEY_TIMEOUT);
     }
 
     @Override
@@ -163,7 +193,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public ReadPathAccessor createReadPathAccessor() {
-        return new PathAwareReadAccessor(getPath());
+        return new PathAwareReadAccessor(getPath(), (int)m_timeoutSpinner.getValue() * 1000L);
     }
 
     private boolean hasPath() {
@@ -175,14 +205,17 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
         private final String m_path;
 
+        private final long m_timeout;
+
         private FSConnection m_connection;
 
         private FSLocation m_fsLocation;
 
         private boolean m_wasClosed = false;
 
-        PathAwareReadAccessor(final String path) {
+        PathAwareReadAccessor(final String path, final long timeout) {
             m_path = path;
+            m_timeout = timeout;
         }
 
         @Override
@@ -208,7 +241,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
             }
             if (m_connection == null) {
                 if (isURL()) {
-                    m_fsLocation = new FSLocation(FSCategory.CUSTOM_URL, "5000", m_path);
+                    m_fsLocation = new FSLocation(FSCategory.CUSTOM_URL, String.valueOf(m_timeout), m_path);
                 } else {
                     m_fsLocation = new FSLocation(FSCategory.LOCAL, m_path);
                 }

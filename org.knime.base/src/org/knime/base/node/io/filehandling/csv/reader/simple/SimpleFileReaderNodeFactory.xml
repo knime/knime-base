@@ -31,7 +31,8 @@
 				Enter a valid file name or URL. You can also choose a previously read file from the drop-down list, 
 				or select a file from the "Browse..." dialog.
 			</option>	
-			
+			<option name="Connection timeout [s]">Timeout in seconds for connections when reading remote files.
+			</option>
 			<option name="Column delimiter">
 			  The character string delimiting columns. Use '\t' for tab character. Can get detected automatically.
 			</option>
