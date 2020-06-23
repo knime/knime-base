@@ -44,7 +44,7 @@
 	            down menu.
 			</option>
 			<option name="File, Folder or URL">
-				Enter a URL when reading from <i>Custom URL</i>, otherwise enter a path to a file or folder. The
+				Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file or folder. The
 				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
 				File System on Windows) or  &quot;/path/to/file&quot; (Local
 	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
