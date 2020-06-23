@@ -74,7 +74,15 @@ public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestI
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 
-        return new LocalRelativeToFSTestInitializer(fsConnection);
+        return new LocalRelativeToFSTestInitializer(fsConnection, localMountPointRoot) {
+            @Override
+            public RelativeToPath getTestCaseScratchDir() {
+                // we need to move the scratch dir to outside of the workflow because the workflow
+                // directory cannot be access anymore.
+                return (RelativeToPath)getFileSystem().getWorkingDirectory().resolve("..")
+                    .resolve(Integer.toString(getTestCaseId()));
+            }
+        };
     }
 
     @Override

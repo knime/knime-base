@@ -60,23 +60,28 @@ public enum RelativeTo {
         /**
          * Relative to mountpoint.
          */
-        MOUNTPOINT("knime.mountpoint"),
+        MOUNTPOINT("knime.mountpoint", "Current mountpoint"),
         /**
          * Relative to workflow.
          */
-        WORKFLOW("knime.workflow");
+        WORKFLOW("knime.workflow", "Current workflow"),
+        /**
+         * Relative to workflow data area..
+         */
+        WORKFLOW_DATA("knime.workflow.data", "Current workflow data area");
 
-    // TODO add knime.workflow.data once it's implemented
+    private final String m_settingsValue;
 
-    private final String m_description;
+    private final String m_label;
 
-    private RelativeTo(final String description) {
-        m_description = description;
+    private RelativeTo(final String settingsValue, final String label) {
+        m_settingsValue = settingsValue;
+        m_label = label;
     }
 
     @Override
     public String toString() {
-        return m_description;
+        return m_settingsValue;
     }
 
     /**
@@ -87,9 +92,18 @@ public enum RelativeTo {
      */
     public static RelativeTo fromString(final String string) {
         return Arrays.stream(RelativeTo.values())//
-            .filter(r -> r.m_description.equals(string))//
+            .filter(r -> r.m_settingsValue.equals(string))//
             .findFirst()//
             .orElseThrow(() -> new IllegalArgumentException(
                 String.format("Unknown relative to option '%s' encountered.", string)));
+    }
+
+    /**
+     * Provides a user-friendly label for display purposes.
+     *
+     * @return a user-friendly label for display purposes.
+     */
+    public String getLabel() {
+        return m_label;
     }
 }

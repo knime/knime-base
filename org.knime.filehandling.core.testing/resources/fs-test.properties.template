@@ -22,6 +22,7 @@
 #   local
 #   knime-local-relative-workflow
 #   knime-local-relative-mountpoint
+#   knime-relative-workflow-data
 #   knime-rest-relative-workflow
 #   knime-rest-relative-mountpoint
 #   knime-rest

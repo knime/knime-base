@@ -57,6 +57,7 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
+import org.knime.filehandling.core.connections.knimerelativeto.WorkflowDataRelativeFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
@@ -154,7 +155,12 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
             throw new IllegalArgumentException(
                 "Invalid FSLocation for 'Relative to'. It must specify either workflow or mountpoint");
         }
+
         final Type type = KNIMEConnection.connectionTypeForHost(fsLocationSpec.getFileSystemSpecifier().get());
-        return new LocalRelativeToFSConnection(type, false);
+        if (type == Type.WORKFLOW_DATA_RELATIVE) {
+            return new WorkflowDataRelativeFSConnection(false);
+        } else {
+            return new LocalRelativeToFSConnection(type, false);
+        }
     }
 }

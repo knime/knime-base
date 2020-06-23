@@ -42,67 +42,81 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jun 24, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
- * Local mountpoint or workflow relative to file system initializer.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+public class WorkflowDataRelativeFSConnection implements FSConnection {
 
-    private final Path m_localMountpointRoot;
+    private final LocalRelativeToFileSystem m_fileSystem;
 
-    private WorkflowManager m_workflowManager;
+    private final RelativeToFileSystemBrowser m_browser;
 
     /**
-     * Default constructor.
-     * @param localMountPointRoot
-     *
-     * @throws IOException
-     */
-    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localMountPointRoot) throws IOException {
-        super(fsConnection, getLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
-        m_localMountpointRoot = localMountPointRoot;
-    }
+    * Constructor.
+    *
+    */
+   public WorkflowDataRelativeFSConnection(final boolean isConnected) {
 
-    private static Path getLocalWorkingDirectory(final LocalRelativeToFileSystem fs) throws IOException {
-        return fs.toRealPathWithAccessibilityCheck(fs.getWorkingDirectory());
-    }
+       final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
+       final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
-    @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        // repopulate mountpoint with test fixture and load workflow
-        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localMountpointRoot);
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
+       try {
+           m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected);
+       } catch (IOException ex) {
+           // should never happen
+           throw new UncheckedIOException(ex);
+       }
 
-    @Override
-    protected void afterTestCaseInternal() throws IOException {
-        try {
-            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
-        } finally {
-            NodeContext.removeLastContext();
-        }
+       m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
+   }
 
-        LocalRelativeToTestUtil.clearDirectoryContents(m_localMountpointRoot);
-    }
+   private LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
+       final boolean isConnected) throws IOException {
 
+       final Path workflowDataDir = workflowLocation.resolve("data");
+       Files.createDirectories(workflowDataDir);
 
-    @Override
-    public RelativeToPath createFileWithContent(final String content, final String... pathComponents)
-        throws IOException {
-        createLocalFileWithContent(content, pathComponents);
-        return makePath(pathComponents);
-    }
+       final FSLocationSpec fsLocationSpec;
+       if (isConnected) {
+           fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+       } else {
+           fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+       }
+
+       final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
+       return new LocalRelativeToFileSystem(uri, //
+           workflowDataDir, //
+           Type.WORKFLOW_DATA_RELATIVE, //
+           BaseRelativeToFileSystem.PATH_SEPARATOR, //
+           fsLocationSpec);
+   }
+
+   @Override
+   public LocalRelativeToFileSystem getFileSystem() {
+       return m_fileSystem;
+   }
+
+   @Override
+   public FileSystemBrowser getFileSystemBrowser() {
+       return m_browser;
+   }
 }

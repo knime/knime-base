@@ -26,6 +26,13 @@
       </FSTestInitializerProvider>
    </extension>
    <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowDataFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
+
+   <extension
          point="org.knime.workbench.repository.nodes">
       <node
             deprecated="false"

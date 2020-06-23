@@ -74,7 +74,7 @@ public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTes
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 
-        return new LocalRelativeToFSTestInitializer(fsConnection);
+        return new LocalRelativeToFSTestInitializer(fsConnection, localMountPointRoot);
     }
 
     @Override

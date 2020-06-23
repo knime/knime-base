@@ -61,6 +61,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.knimerelativeto.FileSystemExtensionHelper;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
+import org.knime.filehandling.core.connections.knimerelativeto.WorkflowDataRelativeFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
@@ -128,7 +129,12 @@ public final class FileSystemHelper {
                 final URI uri = URI.create(location.getPath().replace(" ", "%20"));
                 return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
             case RELATIVE:
-                return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location), false));
+                final Type type = extractRelativeToHost(location);
+                if (type == Type.WORKFLOW_DATA_RELATIVE) {
+                    return Optional.of(new WorkflowDataRelativeFSConnection(false));
+                } else {
+                    return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location), false));
+                }
             case MOUNTPOINT:
                 return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location), false));
             case LOCAL:
@@ -187,15 +193,16 @@ public final class FileSystemHelper {
     private static FSConnection getRelativeToConnection(final String knimeFileSystemHost, final long timeoutInMillis)
         throws IOException {
 
-        final Type connectionTypeForHost = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
-        final URI fsKey = URI.create(connectionTypeForHost.getSchemeAndHost());
+        final Type type = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
 
-        if (isServerContext()) {
+        if (type == Type.WORKFLOW_DATA_RELATIVE) {
+            return new WorkflowDataRelativeFSConnection(false);
+        } else if (isServerContext()) {
             return FileSystemExtensionHelper //
                 .getFSConnectionProvider("knime-server-relative-to") //
-                .getConnection(connectionTypeForHost);
+                .getConnection(type);
         } else {
-            return new LocalRelativeToFSConnection(connectionTypeForHost, false);
+            return new LocalRelativeToFSConnection(type, false);
         }
     }
 

@@ -79,6 +79,9 @@ public class KNIMEConnection {
              */
             MOUNTPOINT_RELATIVE("knime://knime.mountpoint"),
 
+
+            WORKFLOW_DATA_RELATIVE("knime://knime.workflow.data"),
+
             /**
              * knime://<mount-ID>>/
              */
@@ -104,6 +107,10 @@ public class KNIMEConnection {
     public static final KNIMEConnection WORKFLOW_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.WORKFLOW_RELATIVE, "Current workflow", "knime.workflow");
 
+    /** KNIME workflow data area relative connection */
+    public static final KNIMEConnection WORKFLOW_DATA_RELATIVE_CONNECTION =
+            new KNIMEConnection(Type.WORKFLOW_DATA_RELATIVE, "Current workflow data area", "knime.workflow.data");
+
     /** KNIME mount point relative connection */
     public static final KNIMEConnection MOUNTPOINT_RELATIVE_CONNECTION =
         new KNIMEConnection(Type.MOUNTPOINT_RELATIVE, "Current mountpoint", "knime.mountpoint");
@@ -113,6 +120,7 @@ public class KNIMEConnection {
     static {
         CONNECTIONS.put(WORKFLOW_RELATIVE_CONNECTION.getId(), WORKFLOW_RELATIVE_CONNECTION);
         CONNECTIONS.put(MOUNTPOINT_RELATIVE_CONNECTION.getId(), MOUNTPOINT_RELATIVE_CONNECTION);
+        CONNECTIONS.put(WORKFLOW_DATA_RELATIVE_CONNECTION.getId(), WORKFLOW_DATA_RELATIVE_CONNECTION);
     }
 
     /** Type of connection */
@@ -214,6 +222,8 @@ public class KNIMEConnection {
         switch (host) {
             case "knime.workflow":
                 return KNIMEConnection.Type.WORKFLOW_RELATIVE;
+            case "knime.workflow.data":
+                return KNIMEConnection.Type.WORKFLOW_DATA_RELATIVE;
             case "knime.mountpoint":
                 return KNIMEConnection.Type.MOUNTPOINT_RELATIVE;
             default:

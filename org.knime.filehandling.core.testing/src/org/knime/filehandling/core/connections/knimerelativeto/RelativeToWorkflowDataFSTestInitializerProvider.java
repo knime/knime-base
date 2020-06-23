@@ -48,61 +48,42 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Local mountpoint or workflow relative to file system initializer.
+ * Test initializer provider for the local workflow relative file system.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+public class RelativeToWorkflowDataFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    private final Path m_localMountpointRoot;
+    private static final String FS_NAME = "knime-relative-workflow-data";
 
-    private WorkflowManager m_workflowManager;
+    @SuppressWarnings("resource")
+    @Override
+    public LocalRelativeToFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+        final Path localMountPointRoot = Files.createTempDirectory("knime-relative-workflow-test");
 
-    /**
-     * Default constructor.
-     * @param localMountPointRoot
-     *
-     * @throws IOException
-     */
-    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localMountPointRoot) throws IOException {
-        super(fsConnection, getLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
-        m_localMountpointRoot = localMountPointRoot;
-    }
+        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
 
-    private static Path getLocalWorkingDirectory(final LocalRelativeToFileSystem fs) throws IOException {
-        return fs.toRealPathWithAccessibilityCheck(fs.getWorkingDirectory());
+        final WorkflowDataRelativeFSConnection fsConnection = new WorkflowDataRelativeFSConnection(true);
+        LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
+        LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
+
+        return new LocalRelativeToFSTestInitializer(fsConnection, localMountPointRoot);
     }
 
     @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        // repopulate mountpoint with test fixture and load workflow
-        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localMountpointRoot);
-        Files.createDirectories(getLocalTestCaseScratchDir());
+    public String getFSType() {
+        return FS_NAME;
     }
 
     @Override
-    protected void afterTestCaseInternal() throws IOException {
-        try {
-            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
-        } finally {
-            NodeContext.removeLastContext();
-        }
-
-        LocalRelativeToTestUtil.clearDirectoryContents(m_localMountpointRoot);
-    }
-
-
-    @Override
-    public RelativeToPath createFileWithContent(final String content, final String... pathComponents)
-        throws IOException {
-        createLocalFileWithContent(content, pathComponents);
-        return makePath(pathComponents);
+    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
+        return BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
     }
 }

@@ -80,6 +80,8 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
         new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.workflow");
 
+    public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.workflow.data");
 
     public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
         new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.mountpoint");
@@ -90,6 +92,8 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
         new DefaultFSLocationSpec(FSCategory.CONNECTED, "knime-relative-mountpoint");
 
+    public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, "knime-relative-workflow-data");
 
     /**
      * Separator used between names in paths.

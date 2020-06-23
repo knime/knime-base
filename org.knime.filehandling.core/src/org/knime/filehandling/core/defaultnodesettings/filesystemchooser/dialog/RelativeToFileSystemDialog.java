@@ -53,7 +53,9 @@ import java.awt.Component;
 import java.awt.GridBagLayout;
 
 import javax.swing.JComboBox;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.RelativeTo;
@@ -78,8 +80,10 @@ public final class RelativeToFileSystemDialog implements FileSystemSpecificDialo
      *
      * @param config the {@link RelativeToSpecificConfig} this dialog displays
      */
+    @SuppressWarnings("unchecked")
     public RelativeToFileSystemDialog(final RelativeToSpecificConfig config) {
         m_config = config;
+        m_relativeToCombo.setRenderer(new ComboCellRenderer());
         m_relativeToCombo.setSelectedItem(config.getRelativeTo());
         m_config.addChangeListener(e -> handleConfigChange());
         m_relativeToCombo.addActionListener(e -> handleComboBoxChange());
@@ -134,6 +138,21 @@ public final class RelativeToFileSystemDialog implements FileSystemSpecificDialo
     @Override
     public void setTooltip(final String tooltip) {
         m_relativeToCombo.setToolTipText(tooltip);
+    }
+
+    private static class ComboCellRenderer extends BasicComboBoxRenderer {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") final JList list, final Object value, final int index,
+            final boolean isSelected, final boolean cellHasFocus) {
+
+            String toDisplay = null;
+            if (value != null) {
+                toDisplay = ((RelativeTo)value).getLabel();
+            }
+            return super.getListCellRendererComponent(list, toDisplay, index, isSelected, cellHasFocus);
+        }
     }
 
 }

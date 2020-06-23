@@ -792,6 +792,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             setKnimeConnectionColors();
         } else if (fsChoice.equals(FileSystemChoice.getKnimeFsChoice())) {
             knimeConnectionsModel.addElement(KNIMEConnection.MOUNTPOINT_RELATIVE_CONNECTION);
+            knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_DATA_RELATIVE_CONNECTION);
             knimeConnectionsModel.addElement(KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION);
             knimeConnectionsModel.setSelectedItem(KNIMEConnection.getConnection(model.getKNIMEFileSystem()));
         }
