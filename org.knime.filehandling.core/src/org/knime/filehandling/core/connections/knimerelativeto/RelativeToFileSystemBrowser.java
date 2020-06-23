@@ -50,10 +50,12 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import javax.swing.filechooser.FileView;
 
-import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
  * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
@@ -61,15 +63,20 @@ import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
  * @author Sascha Wolke, KNIME GmbH
  */
 public class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
-    private final BaseFileSystem<?> m_fileSystem;
+
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
      * Creates a new local KNIME relative-to file system browser with a view and base location.
      *
      * @param fileSystem the file system to use
      */
-    public RelativeToFileSystemBrowser(final BaseFileSystem<?> fileSystem) {
-        super(new RelativeToFileSystemView(fileSystem));
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem) {
+        this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
+    }
+
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir, final FSPath defaultDir) {
+        super(new NioFileSystemView(fileSystem, homeDir, defaultDir));
         m_fileSystem = fileSystem;
     }
 

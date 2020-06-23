@@ -106,17 +106,10 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     private final String m_hostString;
 
     /**
-     * A path (from the relative-to FS provider) that specifies the current workflow
-     * directory.
-     */
-    protected final RelativeToPath m_workflowDirectory;
-
-    /**
      * Default constructor.
      *
      * @param fileSystemProvider Creator of this FS, holding a reference.
      * @param uri URI without a path
-     * @param workflowDirectory current workflow directory in the relative-to file system
      * @param connectionType {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
      * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
      *            ({@link Choice#KNIME_FS})
@@ -124,20 +117,19 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      */
     protected BaseRelativeToFileSystem(final BaseRelativeToFileSystemProvider<? extends BaseRelativeToFileSystem> fileSystemProvider,
         final URI uri,
-        final String workflowDirectory,
         final Type connectionType,
+        final String workingDir,
         final FSLocationSpec fsLocationSpec) {
 
         super(fileSystemProvider, //
             uri, //
             CACHE_TTL, //
-            connectionType == Type.MOUNTPOINT_RELATIVE ? PATH_SEPARATOR : workflowDirectory,
+            workingDir,
             fsLocationSpec);
 
         m_type = connectionType;
         m_scheme = uri.getScheme();
         m_hostString = uri.getHost();
-        m_workflowDirectory = getPath(workflowDirectory);
     }
 
     @Override
@@ -201,13 +193,8 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             return true;
         }
 
-        // when not workflow-relative, we must not see files inside the current workflow
-        if (!isWorkflowRelativeFileSystem() && !isCurrentWorkflowDirectory(path) && isOrInCurrentWorkflowDirectory(path)) {
-            return false;
-        }
-
-        // we must never be able to see files inside workflows other than the current one
-        if (!isOrInCurrentWorkflowDirectory(path) && isPartOfWorkflow(path)) {
+        // we must never be able to see files inside workflows
+        if (isPartOfWorkflow(path)) {
             return false;
         }
 
@@ -259,28 +246,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
         }
 
         return false;
-    }
-
-    /**
-     * Test if given path is the or a child of or the current workflow directory.
-     *
-     * @param path file system path to test (from the relative-to FS)
-     * @return {@code true} if given path is the or a child of the current workflow directory
-     */
-    protected boolean isOrInCurrentWorkflowDirectory(final RelativeToPath path) {
-        final Path toCheck = path.toAbsolutePath().normalize();
-        return toCheck.startsWith(m_workflowDirectory);
-    }
-
-    /**
-     * Test if given path is the current workflow directory.
-     *
-     * @param path file system path to test (from the relative-to FS)
-     * @return {@code true} if given path equals the current workflow directory
-     */
-    protected boolean isCurrentWorkflowDirectory(final RelativeToPath path) {
-        final Path toCheck = path.toAbsolutePath().normalize();
-        return toCheck.equals(m_workflowDirectory);
     }
 
     /**

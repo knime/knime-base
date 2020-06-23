@@ -57,7 +57,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
@@ -93,15 +92,15 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      */
     protected LocalRelativeToFileSystem(final URI uri, //
         final Path localMountpointRoot, //
-        final String virtualWorkflowDirectory, //
         final Type type, //
-        final boolean isConnectedFs) throws IOException {
+        final String workingDir, //
+        final FSLocationSpec fsLocationSpec) throws IOException {
 
         super(new LocalRelativeToFileSystemProvider(), //
             uri, //
-            virtualWorkflowDirectory, //
             type, //
-            createFSLocationSpec(isConnectedFs, type));
+            workingDir, //
+            fsLocationSpec);
 
         m_localMountpointDirectory = localMountpointRoot;
         m_localFileStore = getFileStore(localMountpointRoot, getFileStoreType(), "default_file_store");
@@ -111,19 +110,6 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
         m_fileStores =
                 Collections.unmodifiableList(Collections.singletonList(new BaseFileStore(fsType, "default_file_store",
                     m_localFileStore.isReadOnly(), m_localFileStore.getTotalSpace(), m_localFileStore.getUsableSpace())));
-    }
-
-    /**
-     *
-     * @param isConnectedFs Whether this file system is a {@link FSCategory#CONNECTED} or a convenience file system
-     *            ({@link FSCategory#RELATIVE})
-     * @param type The type of the file system (mountpoint- or workflow relative).
-     * @return the {@link FSLocationSpec}
-     */
-    public static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final Type type) {
-        final FSCategory fsCategory = isConnectedFs ? FSCategory.CONNECTED : FSCategory.RELATIVE;
-        final String specifier = type == Type.MOUNTPOINT_RELATIVE ? "knime.mountpoint" : "knime.workflow";
-        return new DefaultFSLocationSpec(fsCategory, specifier);
     }
 
     @Override
@@ -174,11 +160,7 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
     protected boolean isRegularFile(final RelativeToPath path) throws IOException {
         if (!isPathAccessible(path)) {
             throw new NoSuchFileException(path.toString()); // not allowed
-        } else if (isMountpointRelativeFileSystem() && isCurrentWorkflowDirectory(path)) {
-            return true;
-        } else if (isMountpointRelativeFileSystem() && isOrInCurrentWorkflowDirectory(path)) {
-            throw new NoSuchFileException(path.toString()); // not allowed
-        } else if (!isOrInCurrentWorkflowDirectory(path) && isWorkflowDirectory(path)) {
+        } else if (isWorkflowDirectory(path)) {
             return true;
         } else {
             return !Files.isDirectory(toAbsoluteLocalPath(path));

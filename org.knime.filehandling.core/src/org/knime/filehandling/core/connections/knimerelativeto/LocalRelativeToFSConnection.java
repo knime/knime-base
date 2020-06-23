@@ -52,10 +52,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.EnumSet;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -69,15 +72,15 @@ public class LocalRelativeToFSConnection implements FSConnection {
 
     private final RelativeToFileSystemBrowser m_browser;
 
+    private static final EnumSet<Type> SUPPORTED_TYPES = EnumSet.of(Type.MOUNTPOINT_RELATIVE, Type.WORKFLOW_RELATIVE);
+
     /**
      * Constructor.
      *
      * @param type The type of the file system (mountpoint- or workflow relative).
      */
     public LocalRelativeToFSConnection(final Type type, final boolean isConnected) {
-        final URI uri = URI.create(type.getSchemeAndHost());
-
-        if (type != Type.MOUNTPOINT_RELATIVE && type != Type.WORKFLOW_RELATIVE) {
+        if (!SUPPORTED_TYPES.contains(type)) {
             throw new IllegalArgumentException("Unsupported file system type: '" + type + "'.");
         }
 
@@ -89,19 +92,66 @@ public class LocalRelativeToFSConnection implements FSConnection {
 
         final Path mountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
         final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-        final Path relativePath = mountpointRoot.relativize(workflowLocation);
 
         try {
-            m_fileSystem = new LocalRelativeToFileSystem(uri, //
-                mountpointRoot, //
-                LocalRelativeToFileSystemProvider.localToRelativeToPathSeperator(relativePath), //
-                type, //
-                isConnected);
-            m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
+            if (type == Type.MOUNTPOINT_RELATIVE) {
+                m_fileSystem = createMountpointRelativeFs(mountpointRoot, isConnected);
+            } else {
+                m_fileSystem = createWorkflowRelativeFs(mountpointRoot, workflowLocation, isConnected);
+            }
         } catch (IOException ex) {
             // should never happen
             throw new UncheckedIOException(ex);
         }
+
+        final FSPath browsingHomeAndDefault;
+        if (type == Type.WORKFLOW_RELATIVE) {
+            // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
+            // so we need to take the parent
+            browsingHomeAndDefault = (FSPath)m_fileSystem.getWorkingDirectory().getParent();
+        } else {
+            browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
+        }
+        m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
+    }
+
+    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final Path mountpointRoot,
+        final Path workflowLocation, final boolean isConnected) throws IOException {
+
+        final String workingDir = LocalRelativeToFileSystemProvider
+            .localToRelativeToPathSeperator(mountpointRoot.relativize(workflowLocation));
+
+        final FSLocationSpec fsLocationSpec;
+        if (isConnected) {
+            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
+        } else {
+            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
+        }
+
+        final URI uri = URI.create(Type.WORKFLOW_RELATIVE.getSchemeAndHost());
+        return new LocalRelativeToFileSystem(uri, //
+            mountpointRoot, //
+            Type.WORKFLOW_RELATIVE, //
+            workingDir, //
+            fsLocationSpec);
+    }
+
+    private static LocalRelativeToFileSystem createMountpointRelativeFs(final Path mountpointRoot,
+        final boolean isConnected) throws IOException {
+
+        final FSLocationSpec fsLocationSpec;
+        if (isConnected) {
+            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+        } else {
+            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+        }
+
+        final URI uri = URI.create(Type.MOUNTPOINT_RELATIVE.getSchemeAndHost());
+        return new LocalRelativeToFileSystem(uri, //
+            mountpointRoot, //
+            Type.MOUNTPOINT_RELATIVE, //
+            BaseRelativeToFileSystem.PATH_SEPARATOR, //
+            fsLocationSpec);
     }
 
     @Override

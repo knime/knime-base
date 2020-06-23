@@ -63,7 +63,7 @@ public class KNIMERemoteFileSystemView extends NioFileSystemView {
      * @param fileSystem the {@link KNIMERemoteFileSystem}
      */
     public KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
-        super(fileSystem, fileSystem.getDefaultDirectory());
+        super(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getDefaultDirectory());
     }
 
 }

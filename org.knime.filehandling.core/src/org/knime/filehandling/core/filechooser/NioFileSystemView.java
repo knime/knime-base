@@ -77,6 +77,12 @@ public class NioFileSystemView extends FileSystemView {
     private static final String UNABLE_TO_LIST_FILES_MSG = "Unable to list files";
 
     /**
+     * The "default directory" on this particular file system connection. This is the directory
+     * where the browsing starts by default.
+     */
+    private final Path m_defaultDirectory;
+
+    /**
      * The "home directory" on this particular file system connection. This will typically be the
      * working directory of the file system.
      */
@@ -100,10 +106,7 @@ public class NioFileSystemView extends FileSystemView {
      */
     @SuppressWarnings("unchecked")
     public NioFileSystemView(final FSConnection conn) {
-        this.m_fileSystem = (FSFileSystem<FSPath>)conn.getFileSystem();
-        this.m_homeDirectory = m_fileSystem.getWorkingDirectory();
-        this.m_rootDirectories = new LinkedHashSet<>();
-        this.m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
+        this(conn.getFileSystem(), conn.getFileSystem().getWorkingDirectory(), conn.getFileSystem().getWorkingDirectory());
     }
 
     /**
@@ -112,10 +115,19 @@ public class NioFileSystemView extends FileSystemView {
      * @param fileSystem
      * @param base
      */
-    @SuppressWarnings("unchecked")
-    public NioFileSystemView(final FSFileSystem<?> fileSystem, final Path base) {
+    public NioFileSystemView(final FSFileSystem<?> fileSystem) {
+        this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
+    }
+
+    /**
+     * @param fileSystem
+     * @param defaultDirectory
+     * @param homeDirectory
+     */
+    public NioFileSystemView(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory, final FSPath homeDirectory) {
         m_fileSystem = (FSFileSystem<FSPath>)fileSystem;
-        m_homeDirectory = base;
+        m_homeDirectory = homeDirectory;
+        m_defaultDirectory = defaultDirectory;
         m_rootDirectories = new LinkedHashSet<>();
         m_fileSystem.getRootDirectories().forEach(m_rootDirectories::add);
     }
@@ -201,7 +213,7 @@ public class NioFileSystemView extends FileSystemView {
 
     @Override
     public File getDefaultDirectory() {
-        return new NioFile(m_homeDirectory.toString(), m_fileSystem);
+        return new NioFile(m_defaultDirectory.toString(), m_fileSystem);
     }
 
     @Override
