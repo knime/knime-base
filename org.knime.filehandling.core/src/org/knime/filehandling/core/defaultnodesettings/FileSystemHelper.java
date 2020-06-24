@@ -88,7 +88,7 @@ public final class FileSystemHelper {
      * @throws IOException
      */
     public static final FSConnection retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
-        final SettingsModelFileChooser2 settings, final int timeoutInMillis) throws IOException {
+        final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
 
         final FileSystemChoice choice = settings.getFileSystemChoice();
         switch (choice.getType()) {
@@ -103,7 +103,8 @@ public final class FileSystemHelper {
                     KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
                 return new KNIMERemoteFSConnection(connection, false);
             case KNIME_FS:
-                return getRelativeToConnection(settings.getKNIMEFileSystem(), timeoutInMillis);
+                final Type type = KNIMEConnection.connectionTypeForHost(settings.getKNIMEFileSystem());
+                return getRelativeToConnection(type);
             case CONNECTED_FS:
                 return portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
                     "No file system connection available for \"" + choice.getId() + "\""));
@@ -119,6 +120,7 @@ public final class FileSystemHelper {
      * @param location {@link FSLocation} instance.
      * @return {@link FileSystem} to use.
      */
+    @SuppressWarnings("resource")
     public static Optional<FSConnection> retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final FSLocation location) {
         final FSCategory category = location.getFSCategory();
@@ -130,11 +132,7 @@ public final class FileSystemHelper {
                 return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
             case RELATIVE:
                 final Type type = extractRelativeToHost(location);
-                if (type == Type.WORKFLOW_DATA_RELATIVE) {
-                    return Optional.of(new WorkflowDataRelativeFSConnection(false));
-                } else {
-                    return Optional.of(new LocalRelativeToFSConnection(extractRelativeToHost(location), false));
-                }
+                return Optional.of(getRelativeToConnection(type));
             case MOUNTPOINT:
                 return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location), false));
             case LOCAL:
@@ -190,10 +188,7 @@ public final class FileSystemHelper {
         }
     }
 
-    private static FSConnection getRelativeToConnection(final String knimeFileSystemHost, final long timeoutInMillis)
-        throws IOException {
-
-        final Type type = KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
+    private static FSConnection getRelativeToConnection(final Type type) {
 
         if (type == Type.WORKFLOW_DATA_RELATIVE) {
             return new WorkflowDataRelativeFSConnection(false);

@@ -67,5 +67,5 @@ public interface FSConnectionProvider {
      * @return a file system connection
      * @throws IOException
      */
-    public FSConnection getConnection(Type type) throws IOException;
+    public FSConnection getConnection(Type type);
 }

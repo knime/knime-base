@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -209,8 +210,10 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
 
     /**
      * @return the selected FSConnection or {@link Optional#empty()} if the file system isn't connected
+     * @throws IOException
+     * @throws IllegalStateException
      */
-    FSConnection getConnection() {
+    FSConnection getConnection() throws IllegalStateException, IOException {
         final Optional<FSConnection> connection = m_fsConfig.getConnection();
         return FileSystemHelper.retrieveFSConnection(connection, getLocation())
             .orElseThrow(() -> new IllegalStateException("Can't retrieve connection."));
