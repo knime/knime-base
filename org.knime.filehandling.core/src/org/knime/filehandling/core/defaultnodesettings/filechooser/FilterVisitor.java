@@ -125,7 +125,8 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
         super.preVisitDirectory(dir, attrs);
         m_visitedFolders++;
-        final boolean searchSubtree = m_filter.test(dir, attrs);
+        // the root directory is not tested
+        final boolean searchSubtree = m_visitedFolders > 0 ? m_filter.test(dir, attrs) : true;
         // the root directory is ignored
         if (m_visitedFolders > 0 && m_includeSubfolders && m_includeFolders && searchSubtree) {
             m_paths.add(dir);
