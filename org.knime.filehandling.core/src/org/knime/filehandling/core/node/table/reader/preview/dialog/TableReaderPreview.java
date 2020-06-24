@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -102,8 +101,6 @@ import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMon
 public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> extends JPanel {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Color COLOR_ERROR = Color.RED;
 
     private static final String EMPTY_SPACE_RESERVING_LABEL_TEXT = " ";
 
@@ -190,7 +187,6 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
         gbc.gridy++;
         gbc.gridwidth = 4;
         gbc.insets = new Insets(5, 5, 5, 5);
-        m_errorLabel.setForeground(COLOR_ERROR);
         add(m_errorLabel, gbc);
         add(m_analysisProgressPathLabel, gbc);
         gbc.insets = new Insets(1, 1, 1, 1);
@@ -378,7 +374,7 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
                 if (m_limitRowsForSpec) {
                     m_analysisProgressLabel.setIcon(SharedIcons.INFO.get());
                     m_analysisProgressLabel.setText("The suggested column types are based on the first "
-                        + m_maxRowsForSpec + " rows only. See 'Limit Rows' tab.");
+                        + m_maxRowsForSpec + " rows only. See 'Advanced Settings' tab.");
                 } else {
                     m_analysisProgressLabel.setIcon(SharedIcons.SUCCESS.get());
                     m_analysisProgressLabel.setText("File analysis successfully completed.");
