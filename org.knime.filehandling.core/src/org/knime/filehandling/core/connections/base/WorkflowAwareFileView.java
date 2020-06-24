@@ -51,17 +51,20 @@ package org.knime.filehandling.core.connections.base;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.file.Path;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IPath;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
 import org.knime.filehandling.core.connections.knimerelativeto.RelativeToPath;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemotePath;
 import org.knime.filehandling.core.filechooser.NioFileView;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 /**
@@ -112,9 +115,10 @@ public class WorkflowAwareFileView extends NioFileView {
      */
     private synchronized Icon getWorkflowIcon() throws IOException {
         if (m_workflowIcon == null) {
-            final File bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(WorkflowAwareFileView.class));
-            final File workflowImage = new File(bundle, "icons/knime_default.png");
-            m_workflowIcon = new ImageIcon(workflowImage.getPath());
+            final Bundle currBundle = FrameworkUtil.getBundle(WorkflowAwareFileView.class);
+            final IPath iconPath = new org.eclipse.core.runtime.Path("icons").append("knime_default.png");
+            final URL iconUrl = FileLocator.findEntries(currBundle, iconPath)[0];
+            m_workflowIcon = new ImageIcon(iconUrl);
         }
 
         return m_workflowIcon;
