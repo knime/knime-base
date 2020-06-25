@@ -51,7 +51,7 @@ package org.knime.base.node.io.filehandling.util.listpaths;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -221,7 +221,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
 
     private static DataCell createDirCell(final FSPath p) throws IOException {
         return BooleanCellFactory
-            .create(Files.getFileAttributeView(p, BasicFileAttributeView.class).readAttributes().isDirectory());
+            .create(Files.readAttributes(p, BasicFileAttributes.class).isDirectory());
     }
 
     @Override
