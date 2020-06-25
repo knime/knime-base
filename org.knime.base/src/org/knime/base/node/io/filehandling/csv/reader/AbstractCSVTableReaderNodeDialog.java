@@ -548,6 +548,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         JPanel buttonPanel = new JPanel(new GridBagLayout());
         final GridBagConstraints buttonConstraints = createAndInitGBC();
         buttonConstraints.weightx = 0;
+        final Insets margin = m_startAutodetection.getMargin();
+        m_startAutodetection.setMargin(new Insets(margin.top + 1, margin.left, margin.bottom, margin.right));
         buttonPanel.add(m_startAutodetection, buttonConstraints);
         buttonConstraints.gridx += 1;
         buttonPanel.add(m_autoDetectionSettings, buttonConstraints);
