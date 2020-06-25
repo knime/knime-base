@@ -52,52 +52,78 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.renderer.AbstractDataValueRendererFactory;
 import org.knime.core.data.renderer.DataValueRenderer;
 import org.knime.core.data.renderer.DefaultDataValueRenderer;
+import org.knime.filehandling.core.connections.FSLocation;
 
 /**
  * Generic renderer for {@link FSLocationValue} which prints the path.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  */
 public final class FSLocationValueRenderer extends DefaultDataValueRenderer {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DESCRIPTION_PATH = "Location";
-
-    private FSLocationValueRenderer(final DataColumnSpec colSpec) {
-        super(colSpec);
-    }
-
     /**
-     * @return "Path" {@inheritDoc}
+     * Factory initializing a {@link FSLocationValueRenderer} that only shows the paths.
+     *
+     * @author Timmo Waller-Ehrat, KNIME GmbH, Berlin, Germany
      */
-    @Override
-    public String getDescription() {
-        return DESCRIPTION_PATH;
-    }
+    public static final class PathFactory extends AbstractDataValueRendererFactory {
 
-    @Override
-    protected void setValue(final Object value) {
-        if (value instanceof FSLocationValue) {
-            final FSLocationValue pathValue = (FSLocationValue)value;
-            super.setValue(pathValue.getFSLocation());
-        } else {
-            super.setValue(value);
-        }
-    }
-
-    /** Renderer factory registered through extension point. */
-    public static final class DefaultRendererFactory extends AbstractDataValueRendererFactory {
+        private static final String DESCRIPTION = "Path";
 
         @Override
         public String getDescription() {
-            return DESCRIPTION_PATH;
+            return DESCRIPTION;
         }
 
         @Override
         public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
-            return new FSLocationValueRenderer(colSpec);
+            return new FSLocationValueRenderer(true, DESCRIPTION);
         }
+    }
+
+    /**
+     * Factory initializing a {@link FSLocationValueRenderer} that shows the complete {@link FSLocationValue} information.
+     *
+     * @author Timmo Waller-Ehrat, KNIME GmbH, Berlin, Germany
+     */
+    public static final class CompleteLocationFactory extends AbstractDataValueRendererFactory {
+
+        private static final String DESCRIPTION = "Extended path";
+
+        @Override
+        public String getDescription() {
+            return DESCRIPTION;
+        }
+
+        @Override
+        public DataValueRenderer createRenderer(final DataColumnSpec colSpec) {
+            return new FSLocationValueRenderer(false, DESCRIPTION);
+        }
+    }
+
+    private final boolean m_showPathOnly;
+
+    private FSLocationValueRenderer(final boolean showPathOnly, final String description) {
+        super(description);
+        m_showPathOnly = showPathOnly;
+    }
+
+    @Override
+    protected void setValue(final Object value) {
+        final Object val;
+        if (value instanceof FSLocationValue) {
+            final FSLocation loc = ((FSLocationValue)value).getFSLocation();
+            if (m_showPathOnly) {
+                val = loc.getPath();
+            } else {
+                val = loc.toString();
+            }
+        } else {
+            val = value;
+        }
+        super.setValue(val);
     }
 }

@@ -75,8 +75,12 @@
       <dataValue
             valueClass="org.knime.filehandling.core.data.location.FSLocationValue">
          <renderer
-               rendererFactoryClass="org.knime.filehandling.core.data.location.FSLocationValueRenderer$DefaultRendererFactory"
+               rendererFactoryClass="org.knime.filehandling.core.data.location.FSLocationValueRenderer$PathFactory"
                suggestAsDefault="true">
+         </renderer>
+         <renderer
+               rendererFactoryClass="org.knime.filehandling.core.data.location.FSLocationValueRenderer$CompleteLocationFactory"
+               suggestAsDefault="false">
          </renderer>
       </dataValue>
    </extension>
@@ -89,5 +93,4 @@
             extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
       </VariableType>
    </extension>
-
 </plugin>
