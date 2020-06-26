@@ -159,13 +159,12 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     }
 
     /**
-     * Defines the column delimiter character. User input should be either empty or a single character, or else an error
-     * will be caused. In the case of empty string, the delimiter will be set to '\\0'.
+     * Defines the column delimiter string.
      *
      * @param delimiter the column delimiter string from the node dialog.
      */
     public void setDelimiter(final String delimiter) {
-        getFormat().setDelimiter(getFirstChar(delimiter, "Delimiter character"));
+        getFormat().setDelimiter(delimiter);
     }
 
     /**
