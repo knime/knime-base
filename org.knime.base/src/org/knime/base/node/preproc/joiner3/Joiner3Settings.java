@@ -47,8 +47,11 @@
  */
 package org.knime.base.node.preproc.joiner3;
 
+import java.util.Arrays;
+
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.join.JoinSpecification.OutputRowOrder;
+import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -94,37 +97,31 @@ class Joiner3Settings {
 
     private static final String HILITING_ENABLED = "enableHiliting";
 
-
-
     /**
-     * This enum holds all ways of handling duplicate column names in the two
-     * input tables.
+     * This enum holds all ways of handling duplicate column names in the two input tables.
      */
     enum ColumnNameDisambiguation {
-        /** Append a suffix to the columns from the second table. */
-        AppendSuffixAutomatic,
-        /** Append a custom suffix to the columns from the second table. */
-        AppendSuffix,
-        /** Don't execute the node. */
-        DontExecute;
+            /** Append a custom suffix to the columns from the second table. */
+            APPEND_SUFFIX,
+            /** Don't execute the node. */
+            DO_NOT_EXECUTE, APPEND_SUFFIX_AUTOMATIC;
     }
 
     /**
      * This enum holds all ways of joining the two tables.
      */
     enum JoinMode {
-        InnerJoin("Inner join", true, false, false),
-        LeftOuterJoin("Left outer join", true, true, false),
-        RightOuterJoin("Right outer join", true, false, true),
-        FullOuterJoin("Full outer join", true, true, true),
-        LeftAntiJoin("Left antijoin", false, true, false),
-        RightAntiJoin("Right antijoin", false, false, true),
-        FullAntiJoin("Full antijoin", false, true, true),
-        EmptyJoin("No output rows", false, false, false);
+            InnerJoin("Inner join", true, false, false), LeftOuterJoin("Left outer join", true, true, false),
+            RightOuterJoin("Right outer join", true, false, true), FullOuterJoin("Full outer join", true, true, true),
+            LeftAntiJoin("Left antijoin", false, true, false), RightAntiJoin("Right antijoin", false, false, true),
+            FullAntiJoin("Full antijoin", false, true, true), EmptyJoin("No output rows", false, false, false);
 
         private final String m_uiDisplayText;
+
         private final boolean m_includeMatchingRows;
+
         private final boolean m_includeLeftUnmatchedRows;
+
         private final boolean m_includeRightUnmatchedRows;
 
         private JoinMode(final String uiDisplayText, final boolean includeMatchingRows,
@@ -134,7 +131,6 @@ class Joiner3Settings {
             m_includeLeftUnmatchedRows = includeLeftUnmatchedRows;
             m_includeRightUnmatchedRows = includeRightUnmatchedRows;
         }
-
 
         boolean isIncludeMatchingRows() {
             return m_includeMatchingRows;
@@ -162,40 +158,49 @@ class Joiner3Settings {
      * This enum holds all ways how join attributes can be combined.
      */
     enum CompositionMode {
-        /** Join when all join attributes match (logical and). */
-        MatchAll,
-        /** Join when at least one join attribute matches (logical or). */
-        MatchAny;
+            /** Join when all join attributes match (logical and). */
+            MatchAll,
+            /** Join when at least one join attribute matches (logical or). */
+            MatchAny;
     }
 
     // join mode
-    private JoinMode m_joinMode;
+    private JoinMode m_joinMode = JoinMode.InnerJoin;
 
     // join columns
-    private String[] m_leftJoinColumns;
-    private String[] m_rightJoinColumns;
-    private CompositionMode m_compositionMode;
+    private JoinColumn[] m_leftJoinColumns;
+
+    private JoinColumn[] m_rightJoinColumns;
+
+    private CompositionMode m_compositionMode = CompositionMode.MatchAll;
 
     // output
     private boolean m_mergeJoinColumns;
+
     private boolean m_outputUnmatchedRowsToSeparatePorts;
 
     // row keys
     private boolean m_assignNewRowKeys = false;
+
     private String m_rowKeySeparator = "_";
 
     // column selection
     private DataColumnSpecFilterConfiguration m_leftColSelectConfig =
         new DataColumnSpecFilterConfiguration(LEFT_COL_SELECT_CONFIG);
+
     private DataColumnSpecFilterConfiguration m_rightColSelectConfig =
         new DataColumnSpecFilterConfiguration(RIGHT_COL_SELECT_CONFIG);
+
     private ColumnNameDisambiguation m_duplicateHandling;
+
     private String m_duplicateColSuffix;
 
     // performance
-    private OutputRowOrder m_outputRowOrder;
-    private int m_maxOpenFiles;
-    private boolean m_hilitingEnabled;
+    private OutputRowOrder m_outputRowOrder = OutputRowOrder.LEFT_RIGHT;
+
+    private int m_maxOpenFiles = 200;
+
+    private boolean m_hilitingEnabled = true;
 
     void loadDefaults(final DataTableSpec[] spec) {
         loadSettingsForDialog(new NodeSettings(""), spec);
@@ -210,7 +215,6 @@ class Joiner3Settings {
         return m_joinMode;
     }
 
-
     /**
      * Sets the mode how the two tables should be joined.
      *
@@ -218,49 +222,43 @@ class Joiner3Settings {
      */
     void setJoinMode(final JoinMode joinMode) {
         m_joinMode = joinMode;
-        System.out.println(m_joinMode);
     }
-
 
     /**
      * Returns the columns of the left table used in the join predicate.
      *
      * @return the leftJoinColumns
      */
-    String[] getLeftJoinColumns() {
+    JoinColumn[] getLeftJoinColumns() {
         return m_leftJoinColumns;
     }
-
 
     /**
      * Sets the columns of the left table used in the join predicate.
      *
      * @param leftJoinColumns the leftJoinColumns to set
      */
-    void setLeftJoinColumns(final String[] leftJoinColumns) {
+    void setLeftJoinColumns(final JoinColumn[] leftJoinColumns) {
         m_leftJoinColumns = leftJoinColumns;
     }
-
 
     /**
      * Returns the columns of the right table used in the join predicate.
      *
      * @return the rightJoinColumns
      */
-    String[] getRightJoinColumns() {
+    JoinColumn[] getRightJoinColumns() {
         return m_rightJoinColumns;
     }
-
 
     /**
      * Sets the columns of the right table used in the join predicate.
      *
      * @param rightJoinColumns the rightJoinColumns to set
      */
-    void setRightJoinColumns(final String[] rightJoinColumns) {
+    void setRightJoinColumns(final JoinColumn[] rightJoinColumns) {
         m_rightJoinColumns = rightJoinColumns;
     }
-
 
     /**
      * @return the compositionMode
@@ -268,7 +266,6 @@ class Joiner3Settings {
     CompositionMode getCompositionMode() {
         return m_compositionMode;
     }
-
 
     /**
      * @param compositionMode the compositionMode to set
@@ -341,14 +338,12 @@ class Joiner3Settings {
      *
      * @param duplicateHandling the duplicate handling method
      */
-    void setDuplicateHandling(
-            final ColumnNameDisambiguation duplicateHandling) {
+    void setDuplicateHandling(final ColumnNameDisambiguation duplicateHandling) {
         m_duplicateHandling = duplicateHandling;
     }
 
     /**
-     * Returns the suffix that is appended to duplicate columns from the right
-     * table if the duplicate handling method is
+     * Returns the suffix that is appended to duplicate columns from the right table if the duplicate handling method is
      * <code>JoinMode.AppendSuffix</code>.
      *
      * @return the suffix
@@ -358,8 +353,7 @@ class Joiner3Settings {
     }
 
     /**
-     * Sets the suffix that is appended to duplicate columns from the right
-     * table if the duplicate handling method is
+     * Sets the suffix that is appended to duplicate columns from the right table if the duplicate handling method is
      * <code>JoinMode.AppendSuffix</code>.
      *
      * @param suffix the suffix
@@ -408,17 +402,20 @@ class Joiner3Settings {
      * @param settings a node settings object
      * @throws InvalidSettingsException if some settings are missing
      */
-    public void loadSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_joinMode = JoinMode.valueOf(settings.getString(JOIN_MODE));
 
+        String[] leftJoinColumnsString = settings.getStringArray(LEFT_JOINING_COLUMNS);
         m_leftJoinColumns =
-                settings.getStringArray(LEFT_JOINING_COLUMNS);
-        m_rightJoinColumns =
-                settings.getStringArray(RIGHT_JOINING_COLUMNS);
-        m_compositionMode =
-                CompositionMode.valueOf(settings.getString(COMPOSITION_MODE));
+            Arrays.stream(leftJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
 
+        String[] rightJoinColumnsString = settings.getStringArray(RIGHT_JOINING_COLUMNS);
+        m_rightJoinColumns =
+            Arrays.stream(rightJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
+
+        m_compositionMode = CompositionMode.valueOf(settings.getString(COMPOSITION_MODE));
+
+        m_mergeJoinColumns = settings.getBoolean(MERGE_JOIN_COLUMNS, false);
         m_outputUnmatchedRowsToSeparatePorts = settings.getBoolean(OUTPUT_UNMATCHED_ROWS_TO_SEPARATE_PORTS);
 
         m_assignNewRowKeys = settings.getBoolean(ASSIGN_NEW_ROW_KEYS);
@@ -435,17 +432,43 @@ class Joiner3Settings {
     }
 
     /**
-     * Loads the settings from the node settings object using default values if
-     * some settings are missing.
+     * Loads the settings from the node settings object using default values if some settings are missing.
      *
      * @param settings a node settings object
      * @param spec the input spec
      */
     void loadSettingsForDialog(final NodeSettingsRO settings, final DataTableSpec[] spec) {
-        m_joinMode = JoinMode.valueOf(settings.getString(JOIN_MODE, JoinMode.InnerJoin.name()));
 
-        m_leftJoinColumns = settings.getStringArray(LEFT_JOINING_COLUMNS, new String[0]);
-        m_rightJoinColumns = settings.getStringArray(RIGHT_JOINING_COLUMNS, new String[0]);
+        loadSettingsInModel(settings);
+
+        try {
+            m_leftColSelectConfig.loadConfigurationInModel(settings);
+        } catch (InvalidSettingsException e) {
+            m_leftColSelectConfig.loadDefaults(spec[0], true);
+        }
+
+        try {
+            m_rightColSelectConfig.loadConfigurationInModel(settings);
+        } catch (InvalidSettingsException e) {
+            m_rightColSelectConfig.loadDefaults(spec[1], true);
+        }
+    }
+
+    /**
+     * @param settings
+     */
+    public void loadSettingsInModel(final NodeSettingsRO settings) {
+        m_joinMode = JoinMode.valueOf(settings.getString(JOIN_MODE, JoinMode.InnerJoin.name()));
+        System.out.println(String.format("m_joinMode=%s", m_joinMode));
+
+        String[] leftJoinColumnsString = settings.getStringArray(LEFT_JOINING_COLUMNS, new String[0]);
+        m_leftJoinColumns =
+            Arrays.stream(leftJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
+
+        String[] rightJoinColumnsString = settings.getStringArray(RIGHT_JOINING_COLUMNS, new String[0]);
+        m_rightJoinColumns =
+            Arrays.stream(rightJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
+
         m_compositionMode =
             CompositionMode.valueOf(settings.getString(COMPOSITION_MODE, CompositionMode.MatchAll.name()));
 
@@ -456,25 +479,17 @@ class Joiner3Settings {
         m_rowKeySeparator = settings.getString(ROW_KEY_SEPARATOR, "_");
 
         m_leftColSelectConfig = new DataColumnSpecFilterConfiguration(LEFT_COL_SELECT_CONFIG);
-        try {
-            m_leftColSelectConfig.loadConfigurationInModel(settings);
-        } catch (InvalidSettingsException e) {
-            m_leftColSelectConfig.loadDefaults(spec[0], true);
-        }
+
         m_rightColSelectConfig = new DataColumnSpecFilterConfiguration(RIGHT_COL_SELECT_CONFIG);
-        try {
-            m_rightColSelectConfig.loadConfigurationInModel(settings);
-        } catch (InvalidSettingsException e) {
-            m_rightColSelectConfig.loadDefaults(spec[1], true);
-        }
+
         m_duplicateHandling = ColumnNameDisambiguation.valueOf(
-            settings.getString(DUPLICATE_COLUMN_HANDLING, ColumnNameDisambiguation.AppendSuffixAutomatic.name()));
-        m_duplicateColSuffix = settings.getString(DUPLICATE_COLUMN_SUFFIX, "(*)");
+            settings.getString(DUPLICATE_COLUMN_HANDLING, ColumnNameDisambiguation.APPEND_SUFFIX.name()));
+        m_duplicateColSuffix = settings.getString(DUPLICATE_COLUMN_SUFFIX, " (right)");
 
         m_outputRowOrder =
-            OutputRowOrder.valueOf(settings.getString(OUTPUT_ROW_ORDER, OutputRowOrder.ARBITRARY.name()));
+            OutputRowOrder.valueOf(settings.getString(OUTPUT_ROW_ORDER, OutputRowOrder.LEFT_RIGHT.name()));
         m_maxOpenFiles = settings.getInt(MAX_OPEN_FILES, 200);
-        m_hilitingEnabled = settings.getBoolean(HILITING_ENABLED, false);
+        m_hilitingEnabled = settings.getBoolean(HILITING_ENABLED, true);
     }
 
     public void validateSettings() throws InvalidSettingsException {
@@ -494,7 +509,7 @@ class Joiner3Settings {
                 "Number of columns selected from the top table and from " + "the bottom table do not match");
         }
 
-        if (getDuplicateHandling().equals(ColumnNameDisambiguation.AppendSuffix)
+        if (getDuplicateHandling().equals(ColumnNameDisambiguation.APPEND_SUFFIX)
             && (getDuplicateColumnSuffix() == null || getDuplicateColumnSuffix().isEmpty())) {
             throw new InvalidSettingsException("No suffix for duplicate columns provided");
         }
@@ -503,7 +518,6 @@ class Joiner3Settings {
         }
 
     }
-
 
     /**
      * Saves the settings into the node settings object.
@@ -516,8 +530,10 @@ class Joiner3Settings {
 
         // join columns
         settings.addString(COMPOSITION_MODE, m_compositionMode.toString());
-        settings.addStringArray(LEFT_JOINING_COLUMNS, m_leftJoinColumns);
-        settings.addStringArray(RIGHT_JOINING_COLUMNS, m_rightJoinColumns);
+        settings.addStringArray(LEFT_JOINING_COLUMNS,
+            Arrays.stream(m_leftJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
+        settings.addStringArray(RIGHT_JOINING_COLUMNS,
+            Arrays.stream(m_rightJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
 
         // output
         settings.addBoolean(MERGE_JOIN_COLUMNS, m_mergeJoinColumns);
@@ -539,4 +555,5 @@ class Joiner3Settings {
         settings.addBoolean(HILITING_ENABLED, m_hilitingEnabled);
 
     }
+
 }

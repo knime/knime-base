@@ -48,12 +48,14 @@
 package org.knime.base.node.preproc.joiner3;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguation;
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionMode;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
@@ -62,7 +64,8 @@ import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.InputTable;
 import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinerFactory.JoinAlgorithm;
-import org.knime.core.data.join.results.JoinResults;
+import org.knime.core.data.join.results.JoinResults.OutputCombined;
+import org.knime.core.data.join.results.JoinResults.OutputSplit;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -70,24 +73,20 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
-import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
-import org.knime.core.node.streamable.InputPortRole;
-import org.knime.core.node.streamable.OutputPortRole;
 
 /**
  * This is the model of the joiner node. It delegates the dirty work to the Joiner class.
  *
- * @author Heiko Hofer
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 class Joiner3NodeModel extends NodeModel {
 
@@ -99,25 +98,34 @@ class Joiner3NodeModel extends NodeModel {
 
     private Hiliter m_hiliter = new Hiliter();
 
-    Joiner3NodeModel() {
+    Joiner3NodeModel(final Joiner3Settings settings) {
         super(2, 3);
+        m_settings = settings;
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-//        assureSettingsAreInitialized(inSpecs);
 
-        JoinSpecification joinSpecification = joinSpecification(inSpecs);
+        JoinSpecification joinSpecification = joinSpecificationForSpecs(inSpecs);
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
-        LOGGER.info(matchSpec);
+
+        if (m_settings.getDuplicateHandling() == ColumnNameDisambiguation.DO_NOT_EXECUTE) {
+            Optional<String> duplicateColumn = checkForDuplicateColumn(joinSpecification);
+            if (duplicateColumn.isPresent()) {
+                throw new InvalidSettingsException(String.format("Do not execute on ambiguous column names selected. "
+                    + "Column %s appears both in left and right table.", duplicateColumn.get()));
+            }
+        }
 
         PortObjectSpec[] portObjectSpecs = new PortObjectSpec[3];
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+            // split output
             portObjectSpecs[MATCHES] = matchSpec;
             portObjectSpecs[LEFT_OUTER] = joinSpecification.specForUnmatched(InputTable.LEFT);
             portObjectSpecs[RIGHT_OUTER] = joinSpecification.specForUnmatched(InputTable.RIGHT);
             return portObjectSpecs;
         } else {
+            // single table output
             portObjectSpecs[MATCHES] = matchSpec;
             portObjectSpecs[LEFT_OUTER] = InactiveBranchPortObjectSpec.INSTANCE;
             portObjectSpecs[RIGHT_OUTER] = InactiveBranchPortObjectSpec.INSTANCE;
@@ -128,95 +136,99 @@ class Joiner3NodeModel extends NodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec) throws Exception {
-//        assureSettingsAreInitialized(new DataTableSpec[]{inData[0].getDataTableSpec(), inData[1].getDataTableSpec()});
 
-        BufferedDataTable inData[] = new BufferedDataTable[] {
-          (BufferedDataTable) inPortObjects[0],
-          (BufferedDataTable) inPortObjects[1]
-        };
-        long before = System.currentTimeMillis();
+        BufferedDataTable left = (BufferedDataTable) inPortObjects[0];
+        BufferedDataTable right = (BufferedDataTable) inPortObjects[1];
 
-        // if present, provides an upper bound on the number of distinct values
-        // if not present, there could be too many values (more than 60 by default) or the column is continuous (e.g., double cell)
-        //        inData[0].getSpec().getColumnSpec(0).getDomain().getValues().size();
-
-        // warning and progress messages are directly fed to the execution context
-        JoinSpecification joinSpecification = joinSpecification(inData);
+        JoinSpecification joinSpecification = joinSpecificationForTables(left, right);
 
         JoinImplementation implementation = JoinAlgorithm.HYBRID_HASH.getFactory().create(joinSpecification, exec);
         implementation.setMaxOpenFiles(m_settings.getMaxOpenFiles());
         implementation.setEnableHiliting(m_settings.isHilitingEnabled());
 
-        JoinResults joinedTable = implementation.join();
-
-        long after = System.currentTimeMillis();
-
-        // FIXME route to output ports
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
-            BufferedDataTable[] bufferedDataTables = new BufferedDataTable[3];
-            bufferedDataTables[MATCHES] = joinedTable.getMatches();
-            bufferedDataTables[LEFT_OUTER] = joinedTable.getLeftOuter();
-            bufferedDataTables[RIGHT_OUTER] = joinedTable.getRightOuter();
-            LOGGER.info(String.format("%s rows ⨝ %s rows = %s rows (%sms)", inData[0].size(), inData[1].size(),
-                bufferedDataTables[MATCHES].size(), after - before));
-            LOGGER.info(String.format("%10s left unmatched\n%10s right unmatched",
-                bufferedDataTables[LEFT_OUTER].size(), bufferedDataTables[RIGHT_OUTER].size()));
-            return bufferedDataTables;
-        } else {
-            // report
-            BufferedDataTable singleTable = joinedTable.getSingleTable();
-            LOGGER.info(String.format("%s rows ⨝ %s rows = %s rows (%sms)", inData[0].size(), inData[1].size(),
-                singleTable.size(), after - before));
+            // split output
+            OutputSplit joinedTable = implementation.joinOutputSplit();
             PortObject[] outPortObjects = new PortObject[3];
-            outPortObjects[MATCHES] = singleTable;
+            outPortObjects[MATCHES] = joinedTable.getMatches();
+            outPortObjects[LEFT_OUTER] = joinedTable.getLeftOuter();
+            outPortObjects[RIGHT_OUTER] = joinedTable.getRightOuter();
+            return outPortObjects;
+        } else {
+            // single table output
+            OutputCombined joinedTable = implementation.joinOutputCombined();
+            PortObject[] outPortObjects = new PortObject[3];
+            outPortObjects[MATCHES] = joinedTable.getTable();
             outPortObjects[LEFT_OUTER] = InactiveBranchPortObject.INSTANCE;
             outPortObjects[RIGHT_OUTER] = InactiveBranchPortObject.INSTANCE;
 
+            LOGGER.info(String.format("%s rows ⨝ %s rows = %s rows", left.size(), right.size(), joinedTable.getTable().size()));
             return outPortObjects;
         }
     }
 
     /**
-     * Create the join specification from the settings for the given table specs.
+     * Create the join specification from the {@link #m_settings} for the given table specs.
+     * @throws InvalidSettingsException
      */
-    private JoinSpecification joinSpecification(final PortObjectSpec[] portSpecs) throws InvalidSettingsException {
+    private JoinSpecification joinSpecificationForSpecs(final PortObjectSpec... portSpecs) throws InvalidSettingsException {
 
-        DataTableSpec[] inSpecs = new DataTableSpec[2];
-        inSpecs[0] = (DataTableSpec) portSpecs[0];
-        inSpecs[1] = (DataTableSpec) portSpecs[1];
+        DataTableSpec left = (DataTableSpec) portSpecs[0];
+        DataTableSpec right = (DataTableSpec) portSpecs[1];
 
         // left (top port) input table
-        JoinTableSettings leftSettings = JoinTableSettings.left(
+        JoinTableSettings leftSettings = new JoinTableSettings(
             m_settings.getJoinMode().isIncludeLeftUnmatchedRows(),
             m_settings.getLeftJoinColumns(),
-            m_settings.getLeftColumnSelectionConfig().applyTo(inSpecs[0]).getIncludes(),
-            inSpecs[0]);
+            m_settings.getLeftColumnSelectionConfig().applyTo(left).getIncludes(),
+            InputTable.LEFT,
+            left);
 
         // right (bottom port) input table
-        JoinTableSettings rightSettings = JoinTableSettings.right(
+        JoinTableSettings rightSettings = new JoinTableSettings(
             m_settings.getJoinMode().isIncludeRightUnmatchedRows(),
             m_settings.getRightJoinColumns(),
-            m_settings.getRightColumnSelectionConfig().applyTo(inSpecs[1]).getIncludes(),
-            inSpecs[1]);
+            m_settings.getRightColumnSelectionConfig().applyTo(right).getIncludes(),
+            InputTable.RIGHT,
+            right);
 
         BiFunction<DataRow, DataRow, RowKey> rowKeysFactory;
         if (m_settings.isAssignNewRowKeys()) {
             rowKeysFactory = JoinSpecification.createSequenceRowKeysFactory();
-            LOGGER.info("Create new row keys");
         } else {
             rowKeysFactory = JoinSpecification.createConcatRowKeysFactory(m_settings.getRowKeySeparator());
-            LOGGER.info("Concat original row keys");
         }
 
-        LOGGER.info(String.format("m_settings.isMergeJoinColumns()=%s", m_settings.isMergeJoinColumns()));
+        UnaryOperator<String> columnNameDisambiguator;
+        // replace with custom
+        if (m_settings.getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX) {
+            columnNameDisambiguator = s -> s.concat(m_settings.getDuplicateColumnSuffix());
+        } else {
+            columnNameDisambiguator = s -> s.concat(" (#1)");
+        }
+
         return new JoinSpecification.Builder(leftSettings, rightSettings)
             .conjunctive(m_settings.getCompositionMode() == CompositionMode.MatchAll)
             .outputRowOrder(m_settings.getOutputRowOrder())
             .retainMatched(m_settings.getJoinMode().isIncludeMatchingRows())
             .mergeJoinColumns(m_settings.isMergeJoinColumns())
-            .columnNameDisambiguator(s -> s.concat(m_settings.getDuplicateColumnSuffix()))
+            .columnNameDisambiguator(columnNameDisambiguator)
             .rowKeyFactory(rowKeysFactory)
             .build();
+    }
+
+    /**
+     * Throw an {@link InvalidSettingsException} if column names are ambiguous. Used for the
+     * @param joinSpecification
+     */
+    private static Optional<String> checkForDuplicateColumn(final JoinSpecification joinSpecification) {
+        DataTableSpec matchTableSpec = joinSpecification.specForMatchTable();
+        final String suffix = joinSpecification.getColumnNameDisambiguator().apply("");
+        return matchTableSpec.stream()
+                // find columns that end with the disambiguator suffix
+                .map(DataColumnSpec::getName).filter(s -> s.endsWith(suffix))
+                .findAny()
+                .map(s -> s.substring(0, s.length() - suffix.length()));
     }
 
     /**
@@ -224,144 +236,42 @@ class Joiner3NodeModel extends NodeModel {
      * setting the data afterwards.
      * @param portObjects {@link BufferedDataTable}s in disguise
      */
-    private JoinSpecification joinSpecification(final PortObject[] portObjects) throws InvalidSettingsException {
-        DataTableSpec[] inSpecs = new DataTableSpec[2];
-        inSpecs[0] = (DataTableSpec) portObjects[0].getSpec();
-        inSpecs[1] = (DataTableSpec) portObjects[1].getSpec();
+    private JoinSpecification joinSpecificationForTables(final BufferedDataTable left, final BufferedDataTable right) throws InvalidSettingsException {
 
-        JoinSpecification joinSpecification = joinSpecification(inSpecs);
-        joinSpecification.getSettings(InputTable.LEFT).setTable((BufferedDataTable)portObjects[0]);
-        joinSpecification.getSettings(InputTable.RIGHT).setTable((BufferedDataTable)portObjects[1]);
+        JoinSpecification joinSpecification = joinSpecificationForSpecs(left.getSpec(), right.getSpec());
+        joinSpecification.getSettings(InputTable.LEFT).setTable(left);
+        joinSpecification.getSettings(InputTable.RIGHT).setTable(right);
+
         return joinSpecification;
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Streaming
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public InputPortRole[] getInputPortRoles() {
-        // mark first input port as streamable, all others nonstreamable
-        // disable distribution for now (however, the joiner is generally amenable to distribution)
-        final InputPortRole[] roles = new InputPortRole[getNrInPorts()];
-        Arrays.fill(roles, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE);
-        roles[0] = InputPortRole.NONDISTRIBUTED_STREAMABLE;
-        return roles;
-    }
-
-    @Override
-    public OutputPortRole[] getOutputPortRoles() {
-        // no distribution, no merging
-        final OutputPortRole[] roles = new OutputPortRole[getNrOutPorts()];
-        Arrays.fill(roles, OutputPortRole.NONDISTRIBUTED);
-        return roles;
-    }
-
-    //    @Override
-    //    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo, final PortObjectSpec[] inSpecs)
-    //        throws InvalidSettingsException {
-    //        return new StreamableOperator() {
-    //
-    //            private SimpleStreamableOperatorInternals m_internals;
-    //
-    //            @Override
-    //            public void loadInternals(final StreamableOperatorInternals internals) {
-    //                m_internals = (SimpleStreamableOperatorInternals) internals;
-    //            }
-    //
-    //            /**
-    //             * The joiner  delegates the streaming to a join implementation.
-    //             * <br/>
-    //             * {@inheritDoc}
-    //             */
-    //            @Override
-    //            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec) throws Exception {
-    //                DataTableSpec[] inputSpecs = Arrays.stream(inputs).map(i -> ((RowInput)i).getDataTableSpec()).toArray(DataTableSpec[]::new);
-    //                StreamableFunction func = m_joiner.getStreamableFunction(getJoinSpecification(), inputSpecs);
-    //                func.runFinal(inputs, outputs, exec);
-    //            }
-    //
-    //            @Override
-    //            public StreamableOperatorInternals saveInternals() {
-    //                return m_internals;
-    //            }
-    //        };
-    //    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // HiLiting
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
-        return m_hiliter.m_outHandler;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
-        if (0 == inIndex) {
-            m_hiliter.m_leftTranslator.removeAllToHiliteHandlers();
-            m_hiliter.m_leftTranslator = new HiLiteTranslator(hiLiteHdl, m_hiliter.m_leftMapper);
-            m_hiliter.m_leftTranslator.addToHiLiteHandler(m_hiliter.m_outHandler);
-        } else {
-            m_hiliter.m_rightTranslator.removeAllToHiliteHandlers();
-            m_hiliter.m_rightTranslator = new HiLiteTranslator(hiLiteHdl, m_hiliter.m_rightMapper);
-            m_hiliter.m_rightTranslator.addToHiLiteHandler(m_hiliter.m_outHandler);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (m_settings == null) {
-            m_settings = new Joiner3Settings();
-        }
-        m_settings.loadSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
-        m_hiliter.m_leftTranslator.setMapper(null);
-        m_hiliter.m_rightTranslator.setMapper(null);
+        // called for instance after changing something and confirming in the node dialog
+        // or if something goes wrong in the node execution
+//        m_hiliter.m_leftTranslator.setMapper(null);
+//        m_hiliter.m_rightTranslator.setMapper(null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        File settingsFile = new File(nodeInternDir, "joinerInternalSettings");
-
-        try (FileInputStream in = new FileInputStream(settingsFile)) {
-            NodeSettingsRO settings = NodeSettings.loadFromXML(in);
-            NodeSettingsRO leftMapSet = settings.getNodeSettings("leftHiliteMapping");
-            m_hiliter.m_leftTranslator.setMapper(DefaultHiLiteMapper.load(leftMapSet));
-            m_hiliter.m_leftMapper = m_hiliter.m_leftTranslator.getMapper();
-
-            NodeSettingsRO rightMapSet = settings.getNodeSettings("rightHiliteMapping");
-            m_hiliter.m_rightTranslator.setMapper(DefaultHiLiteMapper.load(rightMapSet));
-            m_hiliter.m_rightMapper = m_hiliter.m_rightTranslator.getMapper();
-        } catch (InvalidSettingsException e) {
-            throw new IOException(e);
-        }
+//        File settingsFile = new File(nodeInternDir, "joinerInternalSettings");
+//
+//        try (FileInputStream in = new FileInputStream(settingsFile)) {
+//            NodeSettingsRO settings = NodeSettings.loadFromXML(in);
+//            NodeSettingsRO leftMapSet = settings.getNodeSettings("leftHiliteMapping");
+//            m_hiliter.m_leftTranslator.setMapper(DefaultHiLiteMapper.load(leftMapSet));
+//            m_hiliter.m_leftMapper = m_hiliter.m_leftTranslator.getMapper();
+//
+//            NodeSettingsRO rightMapSet = settings.getNodeSettings("rightHiliteMapping");
+//            m_hiliter.m_rightTranslator.setMapper(DefaultHiLiteMapper.load(rightMapSet));
+//            m_hiliter.m_rightMapper = m_hiliter.m_rightTranslator.getMapper();
+//        } catch (InvalidSettingsException e) {
+//            throw new IOException(e);
+//        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
@@ -392,10 +302,18 @@ class Joiner3NodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        Joiner3Settings s = new Joiner3Settings();
-        s.loadSettings(settings);
+        Joiner3Settings validationSettings = new Joiner3Settings();
+        validationSettings.loadSettings(settings);
         // TODO validation without specs
         //        JoinImplementation.validateSettings(s.getJoinSpecification());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_settings.loadSettingsInModel(settings);
     }
 
     private class Hiliter {
@@ -432,5 +350,30 @@ class Joiner3NodeModel extends NodeModel {
             m_leftTranslator = new HiLiteTranslator();
             m_rightTranslator = new HiLiteTranslator();
         }
+
+        /**
+         * {@inheritDoc}
+         */
+//        @Override
+        protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
+            return m_hiliter.m_outHandler;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+//        @Override
+        protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
+            if (0 == inIndex) {
+                m_hiliter.m_leftTranslator.removeAllToHiliteHandlers();
+                m_hiliter.m_leftTranslator = new HiLiteTranslator(hiLiteHdl, m_hiliter.m_leftMapper);
+                m_hiliter.m_leftTranslator.addToHiLiteHandler(m_hiliter.m_outHandler);
+            } else {
+                m_hiliter.m_rightTranslator.removeAllToHiliteHandlers();
+                m_hiliter.m_rightTranslator = new HiLiteTranslator(hiLiteHdl, m_hiliter.m_rightMapper);
+                m_hiliter.m_rightTranslator.addToHiLiteHandler(m_hiliter.m_outHandler);
+            }
+        }
+
     }
 }

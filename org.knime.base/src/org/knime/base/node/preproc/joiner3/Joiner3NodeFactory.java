@@ -58,6 +58,8 @@ import org.knime.core.node.NodeView;
  */
 public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
 
+    private Joiner3Settings m_settings = new Joiner3Settings();
+
     @Override
     public int getNrNodeViews() {
         return 0;
@@ -78,7 +80,7 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
      */
     @Override
     public Joiner3NodeModel createNodeModel() {
-       return new Joiner3NodeModel();
+       return new Joiner3NodeModel(m_settings);
     }
 
     /**

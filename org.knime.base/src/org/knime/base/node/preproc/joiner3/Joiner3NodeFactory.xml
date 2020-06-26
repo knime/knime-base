@@ -1,92 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="./joiner.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Joiner (Labs)</name>
-    <shortDescription>Joins two or more tables</shortDescription>
+    <shortDescription>Combine matching rows from two tables</shortDescription>
     <fullDescription>
         <intro>
-            This node joins two tables in a database-like way. The join is based 
-            on the joining columns of both tables.
+            This node combines two tables similar to a join in a database. It combines each row from the top input port
+            with each row from the bottom input port that has identical values in selected columns. 
+            Rows that remain unmatched can also be output.
         </intro>
         <tab name="Joiner settings">
-            <option name="Join mode">
-                If a row from the top table cannot be joined with a row from the bottom table (and vice versa) there are
-                several options of handling this situation. After an
-                <b>Inner Join</b>
-                only matching rows will show up in the output table. A
-                <b>Left Outer Join</b>
-                will fill up the columns that come from the bottom table with missing values if no matching row exists in
-                the bottom table. Likewise, a
-                <b>Right Outer Join</b>
-                will fill up the columns from the top table with missing values if no matching row in the top table
-                exists. A
-                <b>Full Outer Join</b>
-                will fill up columns from both the top and bottom table with missing values if a row cannot be joined.
+            <option name="Join Mode">
+                This controls which rows are included in the join results. The join mode corresponding to the selected
+                settings, e.g., inner join, outer join, or antijoin, is displayed for convenience. <br/>
+                <b>Include matching rows:</b> If selected, the combined rows will be included in the output.
+                Deactivating this can be used to find only the rows that do not have a join partner in the other table. 
+                <br/>
+                <b>Include left unmatched rows:</b> Whether to include the rows from the left table for which no row
+                in the right table has the same values in the selected join columns. For example, including only matches
+                 and left unmatched rows corresponds to a left outer join in database terms.
+                 <br/>
+                 <b>Include right unmatched rows:</b> Whether to include unmatched rows from the right input table.
+                 For example, including only right unmatched rows corresponds to a right antijoin in database terms.
             </option>        
-            <option name="Joining columns">
+            <option name="Join Columns">
                 Select the columns from the top input ('left' table) and the bottom input 
-                ('right' table) that should be used for joining. You may selected a real
-                column or the table's row ID here. You must make sure, that the type 
-                of selected columns matches. The row IDs are interpreted as 
-                StringCells.
+                ('right' table) that should be used for joining. Each pair of columns defines an equality constraint
+                of the form leftColumn = rightColumn. For two rows to be combined, the row from the left input table
+                must have the same value in leftColumn as the row from the right input table in rightColumn.
+				A row's key can be matched to another row's key or a regular column, in which case the row key will be interpreted 
+				as a string value. 
                 <br/>
-                <b>Match all of the following:</b> 
-                A row of the top input table and a row of the bottom input table 
-                match if they match in all specified column pairs.
+            </option>
+            <option name="Output">
+                Controls the format of the join results.  
                 <br/>
-                <b>Match any of the following:</b>
-                A row of the top input table and a row of the bottom input table 
-                match if they match in at least one specified column pairs.            
+                <b>Merge join columns:</b> 
+                If active, the join columns of the right input table are merged into their join partners of the left 
+                input table. If joining two columns with the same name, the merged join column will have that name.
+                If merging two columns with names A and B, the merged join column is named A=B. <br/>
+                For instance, when joining a table with columns A, B, and C as left input table with a table
+                that has columns X, A, and Z using the join predicates A=X, A=A, and C=Z, the resulting output table 
+                would have columns A=X, A, C=Z. <br/>
+                The value of a merged join column for an unmatched row is taken from whichever row has values.
+                For instance, when outputting an unmatched row from the right table in the above example with values x, a, and z, 
+                the resulting row in format A=X, A, C=Z has values x, a, z. When merge join columns is off, the row is
+                instead output as ?, ?, ?, x, a, z.
+                <br/>
+                <b>Output unmatched rows to separate ports:</b>
+                If selected, the node will produce three output tables instead of one. The top output port contains
+                the combined rows, the middle output port contains the unmatched rows from the left input table (if 
+                they are included in the results in the Join Mode settings), and the bottom port contains the unmatched
+                rows from the right input table.            
             </option>
-            <option name="Performance Tuning">
-                <b>Maximum number of open files:</b> The maximum number of opened
-                temporary files. Increase it for better performance.
-                <b>Enable hiliting:</b> Select, if hiliting is enabled between 
-                input and output data. Disable, for reducing memory consumption.
-            </option>
-            <option name="Row ID separator in joined table">
-                The row IDs of the joined table are a concatenation of the row ID
-                of the top input table, this separator and the row ID of the bottom
-                input table.
+            <option name="Row Keys">
+                How to generate the keys of the combined output rows.
+                <b>Concatenate original row keys with separator:</b> The generated row key indicates which rows contributed
+                to the combined row, e.g., a row combining rows with key Row3 and Row17 is assigned the key Row3_Row17. 
+                <br/>
+                <b>Assign new row keys sequentially: </b> Combined rows are assigned row keys in the order they are 
+                produced, e.g., the first combined row gets the row key Row0, the second gets the row key Row1, etc.
+                <br/>
             </option>        
         </tab>
         <tab name="Column selection">
             <option name="Column Selection (Top Input ('left' table) and Bottom Input ('right' table))">
                 <br/>
-                <b>Include:</b> This list contains the names of those columns in the input table
-				to be included in the output table.
+                <b>Include:</b> Select columns that are included in the combined rows.
                 <br/>
-                <b>Exclude:</b> This list contains the names of those columns in the input table
-				to be excluded from the output table.
+                <b>Exclude:</b> Select columns that are discarded in the combined rows.
                 <br/>
-                <b>Filter:</b> Use one of these fields to filter either the Include or Exclude
-                list for certain column names or name substrings.
-                <br/>
-                <b>Buttons:</b> Use these buttons to move columns between the Include and Exclude 
-                list. Single-arrow buttons will move all selected columns.
-                Double-arrow buttons will move all columns (filtering is taken into
-                account).
-                <br/>
-                <b>Always include all columns:</b> If set, all columns are moved to
-                the include list and if input changes all new columns will be in the 
-                include list, too.
             </option>        
-            <option name="Duplicate column handling">
-                The option allows you to change the behaviour if the include
-                lists of both input tables contain columns with the same name. 
+            <option name="Duplicate column names">
+                The option configures how column names clashes are handled, in case
+				a column name appears both in the left input table and the right input table. 
                 <br/>
-                <b>Filter duplicates:</b> Only the columns from the top input table
-                will show up in the output table.
+                <b>Don't execute:</b> The node will display a warning and won't execute if there are
+                duplicate column names in the left and right input tables.  
                 <br/>
-                <b>Don't execute:</b> Don't allow to execute this node if there are
-                duplicate column names in the include lists. 
+                <b>Append suffix (automatic):</b> Append a default suffix " (#1)" to the duplicate column names
+                of the right input table.
                 <br/>
-                <b>Append suffix:</b> Append a suffix to the duplicate column names
-                from the bottom input table so that they also show up in the output
-                table.
+                <b>Append suffix:</b> Append the specified suffix to the duplicate column names
+                in the right input table.
+                table. <br/>
             </option>
-            <option name="Joining columns handling">
-                The option allows filtering the top ('left' table) or bottom ('right' table) joining columns, i.e. the
-                joining columns defined in the Joiner Settings tab will not show up in the output table.
+        </tab>
+        <tab name="Performance">
+            <option name="Output order">
+                <b>Left-right output order: </b>The combined rows in the output are sorted according to the order of the
+                contributing rows. Consider a row R=(L1, R1) in the output that combines rows L1 and R1 from the left and right 
+                input tables, respectively. R comes before another row S=(L2, R2) in the output if L1 comes
+                before L2 in the left table. If two rows in the output both involve the same row from the left table,
+                they are ordered according to the order of the right contributing row. <br/>
+                If the results are output in a single port, the matching rows are first output, then the unmatched rows 
+                from the left table, and finally the unmatched rows from the right table. 
+                <br/>
+                 <b>Arbitrary output order: </b>The execution time of the join can be improved if the output does not have
+                 to be sorted. The produced order can vary between any two executions of the joiner and depends on how
+                 much main memory is available during the join operation.
+                <br/>
+            </option>        
+            <option name="Miscellaneous">
+                 <b>Maximum number of open files:</b> Controls the number of temporary files that can be created during
+                 the join operation and possibly subsequent sorting operations. More temporary files may increase 
+                 performance, but the operating system might impose a limit on the maximum number of open files. <br/>
+                <b>Hiliting enabled:</b> Disabling the possibility to hilite combined rows in the output to see
+                which rows in the input contributed to them reduces memory consumption and leads to faster execution
+                in some circumstances. 
             </option>
         </tab>
 
@@ -95,10 +115,10 @@
 		</link>
     </fullDescription>
     <ports>
-        <inPort index="0" name="Left table">The left table's columns will be the leftmost columns in the joined table.</inPort>
-        <inPort index="1" name="Right table">The right table's columns will become the rightmost columns in the joined table.</inPort>
-        <outPort index="0" name="Join result">Either all result rows, or the result of the inner join (if the unmatched rows are output in separate ports).</outPort>
-        <outPort index="1" name="Left unmatched rows">Unmatched rows from left table (top input port)</outPort>
-        <outPort index="2" name="Right unmatched rows">Unmatched rows from right table (bottom input port)</outPort>
+        <inPort index="0" name="Left table">Left input table</inPort>
+        <inPort index="1" name="Right table">Right input table</inPort>
+        <outPort index="0" name="Join result">Either all results or the result of the inner join (if the unmatched rows are output in separate ports)</outPort>
+        <outPort index="1" name="Left unmatched rows">Unmatched rows from the left input table (top input port). Inactive if "Output unmatched rows to separate ports" is deactivated.</outPort>
+        <outPort index="2" name="Right unmatched rows">Unmatched rows from the right input table (bottom input port). Inactive if "Output unmatched rows to separate ports" is deactivated.</outPort>
     </ports>
 </knimeNode>
