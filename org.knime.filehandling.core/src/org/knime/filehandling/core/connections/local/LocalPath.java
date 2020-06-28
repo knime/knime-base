@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections.local;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
@@ -197,7 +198,11 @@ public class LocalPath extends FSPath {
 
     @Override
     public URI toUri() {
-        return m_wrappedPath.toUri();
+        try {
+            return new URI(LocalFileSystem.FS_TYPE.getTypeId(), null, toAbsolutePath().toString(), null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     @SuppressWarnings("resource")

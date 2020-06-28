@@ -53,9 +53,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
  * KNIME relative-to file system path.
@@ -76,26 +75,45 @@ public class RelativeToPath extends UnixStylePath {
         super(fileSystem, first, more);
     }
 
-    @Override
-    public URI toUri() {
+
+    public URI toKNIMEProtocolURI() {
         try {
-            final boolean workflowRelativeFS =
-                ((BaseRelativeToFileSystem)getFileSystem()).isWorkflowRelativeFileSystem();
-            final String path;
 
-            if (workflowRelativeFS && isAbsolute()) {
-                path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
-            } else if (workflowRelativeFS) {
-                path = getFileSystem().getSeparator() + this;
-            } else {
-                path = toAbsolutePath().toString();
+            final Type type = ((BaseRelativeToFileSystem)getFileSystem()).getType();
+
+            switch (type) {
+                case MOUNTPOINT_RELATIVE:
+                    return toMountpointRelativeURI();
+                case WORKFLOW_RELATIVE:
+                    return toWorkflowRelativeURI();
+                case WORKFLOW_DATA_RELATIVE:
+                    return toWorkflowDataRelativeURI();
+                default:
+                    throw new IllegalArgumentException("Illegal type " + type);
             }
-
-            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), //
-                URIUtil.encodePath(path), null);
-        } catch (URIException | URISyntaxException ex) {
+        } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }
+    }
+
+    private URI toWorkflowDataRelativeURI() throws URISyntaxException {
+        final String path = getFileSystem().getSeparator() + "data" + toAbsolutePath().toString();
+        return new URI("knime", "knime.workflow", path, null);
+    }
+
+    private URI toWorkflowRelativeURI() throws URISyntaxException {
+        String path;
+        if (isAbsolute()) {
+            path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
+        } else {
+            path = getFileSystem().getSeparator() + this;
+        }
+        return new URI("knime", "knime.workflow", path, null);
+    }
+
+    private URI toMountpointRelativeURI() throws URISyntaxException {
+        final String path = toAbsolutePath().toString();
+        return new URI("knime", "knime.mountpoint", path, null);
     }
 
     /**

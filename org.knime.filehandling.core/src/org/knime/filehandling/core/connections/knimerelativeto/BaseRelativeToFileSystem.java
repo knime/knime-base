@@ -73,9 +73,11 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  */
 public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeToPath> {
 
-    static final String MOUNTPOINT_REL_FILE_STORE_TYPE = "knime-relative-mountpoint";
+    static final String MOUNTPOINT_REL_SCHEME = "knime-relative-mountpoint";
 
-    static final String WORKFLOW_REL_FILE_STORE_TYPE = "knime-relative-workflow";
+    static final String WORKFLOW_REL_SCHEME = "knime-relative-workflow";
+
+    static final String WORKFLOW_DATA_REL_SCHEME = "knime-relative-workflow-data";
 
     public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
         new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.workflow");
@@ -87,13 +89,13 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
         new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.mountpoint");
 
     public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, "knime-relative-workflow");
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, WORKFLOW_REL_SCHEME);
 
     public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, "knime-relative-mountpoint");
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, MOUNTPOINT_REL_SCHEME);
 
     public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, "knime-relative-workflow-data");
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, WORKFLOW_DATA_REL_SCHEME);
 
     /**
      * Separator used between names in paths.
@@ -132,7 +134,15 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             fsLocationSpec);
 
         m_type = connectionType;
-        m_scheme = uri.getScheme();
+        if (m_type == Type.MOUNTPOINT_RELATIVE) {
+            m_scheme = MOUNTPOINT_REL_SCHEME;
+        } else if (m_type == Type.WORKFLOW_RELATIVE) {
+            m_scheme = WORKFLOW_REL_SCHEME;
+        } else if (m_type == Type.WORKFLOW_DATA_RELATIVE) {
+            m_scheme = WORKFLOW_DATA_REL_SCHEME;
+        } else {
+            throw new IllegalArgumentException("Illegal type " + m_type);
+        }
         m_hostString = uri.getHost();
     }
 
@@ -294,6 +304,15 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      */
     protected abstract boolean existsWithAccessibilityCheck(final RelativeToPath path) throws IOException;
 
+
+    /**
+     *
+     * @return the {@link Type} of this file system.
+     */
+    public Type getType() {
+        return m_type;
+    }
+
     /**
      * @return {@code true} if this is a workflow relative and {@code false} if this is a mount point relative file
      *         system
@@ -314,7 +333,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      * @return {@link BaseFileStore} file system type
      */
     protected String getFileStoreType() {
-        return isWorkflowRelativeFileSystem() ? WORKFLOW_REL_FILE_STORE_TYPE : MOUNTPOINT_REL_FILE_STORE_TYPE;
+        return isWorkflowRelativeFileSystem() ? WORKFLOW_REL_SCHEME : MOUNTPOINT_REL_SCHEME;
     }
 
     @Override
@@ -324,6 +343,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
 
     @Override
     public String getHostString() {
-        return m_hostString;
+        return "";
     }
 }

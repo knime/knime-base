@@ -66,7 +66,8 @@ public class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemP
     @Override
     public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
-        MountPointFileSystemAccessService.instance().deployWorkflow(source, dest.toUri(), overwrite, attemptOpen);
+        final RelativeToPath checkedPath = checkCastAndAbsolutizePath(dest);
+        MountPointFileSystemAccessService.instance().deployWorkflow(source, checkedPath.toKNIMEProtocolURI(), overwrite, attemptOpen);
     }
 
     /**

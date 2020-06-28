@@ -49,8 +49,8 @@
 package org.knime.filehandling.core.connections.knimeremote;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -92,17 +92,10 @@ public class KNIMERemotePath extends UnixStylePath {
         return (KNIMERemoteFileSystem) super.getFileSystem();
     }
 
-    /**
-     * Creates a KNIME URL of the path of the form:
-     *
-     * knime://[mount-point-id]/path/to/resource
-     *
-     * @return the KNIME URL of this remote path
-     */
-    public URL toURL() {
+    public URI toKNIMEProtocolURI() {
         try {
-            return toUri().toURL();
-        } catch (final MalformedURLException ex) {
+            return new URI("knime", getFileSystem().getMountpoint(), toAbsolutePath().toString(), null);
+        } catch (final URISyntaxException ex) {
             throw new IllegalStateException("Failed to create valid URL: " + ex.getMessage(), ex);
         }
     }
@@ -125,7 +118,7 @@ public class KNIMERemotePath extends UnixStylePath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = toUri().toURL();
+        final URL url = toKNIMEProtocolURI().toURL();
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
@@ -134,6 +127,6 @@ public class KNIMERemotePath extends UnixStylePath {
     }
 
     public boolean isWorkflow() {
-        return MountPointFileSystemAccessService.instance().isWorkflow(toUri());
+        return MountPointFileSystemAccessService.instance().isWorkflow(toKNIMEProtocolURI());
     }
 }

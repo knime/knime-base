@@ -65,6 +65,8 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  */
 public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
 
+    public static final String FS_TYPE = "knime-mountpoint";
+
     private static final String PATH_SEPARATOR = "/";
 
     private final URI m_mountpoint;
@@ -152,7 +154,7 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      */
     @Override
     public String getSchemeString() {
-        return m_mountpoint.getScheme();
+        return FS_TYPE;
     }
 
     /**

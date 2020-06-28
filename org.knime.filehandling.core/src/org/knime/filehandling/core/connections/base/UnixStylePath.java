@@ -64,8 +64,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.filechooser.NioFile;
@@ -485,11 +483,9 @@ public abstract class UnixStylePath extends FSPath {
      */
     @Override
     public URI toUri() {
-        String encodedPath;
         try {
-            encodedPath = URIUtil.encodePath(toAbsolutePath().toString());
-            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), encodedPath, null);
-        } catch (URIException | URISyntaxException ex) {
+            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), toAbsolutePath().toString(), null);
+        } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }
     }

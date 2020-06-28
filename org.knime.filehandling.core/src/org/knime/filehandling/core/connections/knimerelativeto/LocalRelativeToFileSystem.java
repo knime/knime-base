@@ -105,8 +105,8 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
         m_localMountpointDirectory = localMountpointRoot;
         m_localFileStore = getFileStore(localMountpointRoot, getFileStoreType(), "default_file_store");
 
-        final String fsType = type == Type.MOUNTPOINT_RELATIVE ? MOUNTPOINT_REL_FILE_STORE_TYPE
-            : WORKFLOW_REL_FILE_STORE_TYPE;
+        final String fsType = type == Type.MOUNTPOINT_RELATIVE ? MOUNTPOINT_REL_SCHEME
+            : WORKFLOW_REL_SCHEME;
         m_fileStores =
                 Collections.unmodifiableList(Collections.singletonList(new BaseFileStore(fsType, "default_file_store",
                     m_localFileStore.isReadOnly(), m_localFileStore.getTotalSpace(), m_localFileStore.getUsableSpace())));

@@ -44,69 +44,85 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Jun 28, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimeremote;
+package org.knime.filehandling.core.testing.integrationtests.path;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
+import java.util.StringTokenizer;
 
-import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.junit.Test;
+import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
- * Iterates over all the files and folders of the path on a remote KNIME mount point.
+ * Tests the Path.toUri() method.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
+public class ToUriTest extends AbstractParameterizedFSTest {
 
-    private final KNIMERemoteFileSystem m_fileSystem;
-
-    private Iterator<KNIMERemotePath> m_iterator;
-
-    /**
-     * Creates an iterator over all the files and folder in the given paths location.
-     *
-     * @param path destination to iterate over
-     * @param filter
-     * @throws IOException
-     * @throws UncheckedIOException on I/O errors
-     */
-    public KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
-        final KNIMERemotePath knimePath = path;
-        m_fileSystem = knimePath.getFileSystem();
-
-        final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toKNIMEProtocolURI());
-        m_iterator = uriList.stream()
-            .map(p -> new KNIMERemotePath(m_fileSystem, p))
-            .filter(p -> {
-                try {
-                    return filter.accept(p);
-                } catch (final IOException ex) {
-                    throw new UncheckedIOException(ex);
-                }})
-            .iterator();
+    public ToUriTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
+        super(fsType, testInitializer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
+    private static void assertEqualNameComponents(final String uriPath, final Path p) {
+        assertEquals("/", Character.toString(uriPath.charAt(0)));
+        StringTokenizer tok = new StringTokenizer(uriPath.substring(1), "/");
+        int currNameComponent = 0;
+        while (tok.hasMoreTokens()) {
+            final String currToken = tok.nextToken();
+            String currNc = p.getName(currNameComponent).toString();
+            if (currNc.endsWith("/")) {
+                currNc = currNc.substring(0, currNc.length() - 1);
+            }
+            assertEquals(currNc, currToken);
+            currNameComponent++;
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public KNIMERemotePath next() {
-        return m_iterator.next();
+    @Test
+    public void test_toUri_simple() {
+        final Path p = m_testInitializer.makePath("bla").normalize();
+        final URI uri = p.toUri();
+
+        assertEqualNameComponents(uri.getPath(), p);
     }
 
+    @Test
+    public void test_toUri_with_spaces() {
+        final Path p = m_testInitializer.makePath("with some spaces", "bla");
+        final URI uri = p.toUri();
+
+        assertEqualNameComponents(uri.getPath(), p);
+    }
+
+    @Test
+    public void test_toUri_with_hash_signs() {
+        final Path p = m_testInitializer.makePath("with#some#hashsigns", "bla");
+        final URI uri = p.toUri();
+
+        assertEqualNameComponents(uri.getPath(), p);
+    }
+
+    @Test
+    public void test_toUri_with_question_marks() {
+        final Path p = m_testInitializer.makePath("with?some?questionmarks", "bla");
+        final URI uri = p.toUri();
+
+        assertEqualNameComponents(uri.getPath(), p);
+    }
+
+    @Test
+    public void test_toUri_with_relative_path() {
+        final Path p = getFileSystem().getPath("bla");
+        final URI uri = p.toUri();
+
+        assertEqualNameComponents(uri.getPath(), p.toAbsolutePath());
+    }
 }

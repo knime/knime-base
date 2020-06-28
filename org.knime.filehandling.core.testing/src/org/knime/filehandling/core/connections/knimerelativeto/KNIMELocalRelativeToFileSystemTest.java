@@ -74,7 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 public class KNIMELocalRelativeToFileSystemTest {
 
     @Rule
-    private final TemporaryFolder m_tempFolder = new TemporaryFolder();
+    public final TemporaryFolder m_tempFolder = new TemporaryFolder();
 
     private File m_mountpointRoot;
 
@@ -325,44 +325,44 @@ public class KNIMELocalRelativeToFileSystemTest {
     public void toUriWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
 
-        assertEquals("knime://knime.workflow/some-file", fs.getPath("some-file").toUri().toString());
-        assertEquals("knime://knime.workflow/some-file", fs.getPath("/current-workflow/some-file").toUri().toString());
+        assertEquals("knime://knime.workflow/some-file", fs.getPath("some-file").toKNIMEProtocolURI().toString());
+        assertEquals("knime://knime.workflow/some-file", fs.getPath("/current-workflow/some-file").toKNIMEProtocolURI().toString());
 
         assertEquals("knime://knime.workflow/some-path/some-file",
-            fs.getPath("some-path/some-file").toUri().toString());
+            fs.getPath("some-path/some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.workflow/some-path/some-file",
-            fs.getPath("/current-workflow/some-path/some-file").toUri().toString());
+            fs.getPath("/current-workflow/some-path/some-file").toKNIMEProtocolURI().toString());
 
-        assertEquals("knime://knime.workflow/../some-file", fs.getPath("../some-file").toUri().toString());
+        assertEquals("knime://knime.workflow/../some-file", fs.getPath("../some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.workflow/../some-path/some-file",
-            fs.getPath("/some-path/some-file").toUri().toString());
+            fs.getPath("/some-path/some-file").toKNIMEProtocolURI().toString());
 
         assertEquals("knime://knime.workflow/../current-path/../some-file",
-            fs.getPath("/current-path/../some-file").toUri().toString());
+            fs.getPath("/current-path/../some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.workflow/../current-path/../some-file",
-            fs.getPath("../current-path/../some-file").toUri().toString());
+            fs.getPath("../current-path/../some-file").toKNIMEProtocolURI().toString());
 
         assertEquals("knime://knime.workflow/../some-path/../some-file",
-            fs.getPath("/some-path/../some-file").toUri().toString());
+            fs.getPath("/some-path/../some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.workflow/../some-path/../some-file",
-            fs.getPath("../some-path/../some-file").toUri().toString());
+            fs.getPath("../some-path/../some-file").toKNIMEProtocolURI().toString());
     }
 
     @Test
     public void toUriMountpointRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        assertEquals("knime://knime.mountpoint/some-file", fs.getPath("some-file").toUri().toString());
-        assertEquals("knime://knime.mountpoint/some-file", fs.getPath("/some-file").toUri().toString());
+        assertEquals("knime://knime.mountpoint/some-file", fs.getPath("some-file").toKNIMEProtocolURI().toString());
+        assertEquals("knime://knime.mountpoint/some-file", fs.getPath("/some-file").toKNIMEProtocolURI().toString());
 
         assertEquals("knime://knime.mountpoint/some-path/some-file",
-            fs.getPath("some-path/some-file").toUri().toString());
+            fs.getPath("some-path/some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.mountpoint/some-path/some-file",
-            fs.getPath("/some-path/some-file").toUri().toString());
+            fs.getPath("/some-path/some-file").toKNIMEProtocolURI().toString());
 
         assertEquals("knime://knime.mountpoint/some-path/../some-file",
-            fs.getPath("some-path/../some-file").toUri().toString());
+            fs.getPath("some-path/../some-file").toKNIMEProtocolURI().toString());
         assertEquals("knime://knime.mountpoint/some-path/../some-file",
-            fs.getPath("/some-path/../some-file").toUri().toString());
+            fs.getPath("/some-path/../some-file").toKNIMEProtocolURI().toString());
     }
 
     @Test(expected = IOException.class)
