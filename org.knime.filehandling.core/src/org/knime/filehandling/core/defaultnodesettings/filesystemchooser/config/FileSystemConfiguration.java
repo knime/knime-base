@@ -445,9 +445,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      */
     public void validate() throws InvalidSettingsException {
         final ValidationConsumer validationConsumer = new ValidationConsumer();
-        for (FileSystemSpecificConfig config : m_fsSpecificConfigs.values()) {
-            config.report(validationConsumer);
-        }
+        getCurrentSpecificConfig().ifPresent(c -> c.report(validationConsumer));
         validationConsumer.failIfNecessary();
     }
 
