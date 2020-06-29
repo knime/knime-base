@@ -157,7 +157,8 @@ public final class FileSystemHelper {
         if (category == FSCategory.CONNECTED) {
             return portObjectConnection.isPresent();
         } else if (category == FSCategory.MOUNTPOINT) {
-            return extractMountpoint(location).isConnected();
+            final KNIMEConnection connection = extractMountpoint(location);
+            return connection.isValid() && connection.isConnected();
         } else {
             // for the other fs types, it is always possible to create a connection
             return true;
