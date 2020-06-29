@@ -110,7 +110,7 @@ public final class AdvancedConfig implements SimpleConfig {
     public AdvancedConfig() {
         m_missingValuePattern = "";
         m_compressWithGzip = false;
-        m_quoteModeName = QuoteMode.IF_NEEDED.name();
+        m_quoteModeName = QuoteMode.STRINGS_ONLY.name();
         m_separatorReplacement = "";
         m_decimalSeparator = '.';
         m_useScientificFormat = false;

@@ -100,7 +100,7 @@ final class CSVWriter2NodeModel extends NodeModel {
 
     private final CSVWriter2Config m_writerConfig;
 
-    private final int m_dataInputPortIdx;;
+    private final int m_dataInputPortIdx;
 
     private final NodeModelStatusConsumer m_statusConsumer;
 
