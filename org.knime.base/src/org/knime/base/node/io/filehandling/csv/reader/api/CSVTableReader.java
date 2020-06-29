@@ -269,7 +269,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 }
                 throw new IOException(
                     "Something went wrong during the parsing process. For further details please have a look into "
-                        + "the log.");
+                        + "the log.", e);
 
             }
             return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
