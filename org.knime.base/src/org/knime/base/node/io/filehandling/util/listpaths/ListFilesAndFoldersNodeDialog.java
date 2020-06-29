@@ -92,8 +92,8 @@ class ListFilesAndFoldersNodeDialog extends NodeDialogPane {
             FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDERS, FilterMode.FILES_AND_FOLDERS);
         m_dialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
-        m_includeRootDir = new JCheckBox("Include selected directory");
-        m_addDirIndicator = new JCheckBox("Add directory identfier column");
+        m_includeRootDir = new JCheckBox("Include parent folder");
+        m_addDirIndicator = new JCheckBox("Add folder identifier column");
 
         addTab("Settings", layout());
     }

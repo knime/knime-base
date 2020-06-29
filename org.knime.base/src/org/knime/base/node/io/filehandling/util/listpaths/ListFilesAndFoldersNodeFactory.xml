@@ -76,11 +76,11 @@
 			</option>
 		
 		
-		<option name="Include selected directory">
-			If selected the output contains the selected directory.
+		<option name="Include parent folder">
+			If selected the output contains the (selected) folder for which the files/folders are being listed.
 		</option>
-		<option name="Add directory identifier column">If selected the output contains an additional column indicating
-			if the path points to a directory (<tt>true</tt>) or a file (<tt>false</tt>)
+		<option name="Add folder identifier column">If selected the output contains an additional column indicating
+			if the path points to a folder (<tt>true</tt>) or a file (<tt>false</tt>).
 		</option>
 	</fullDescription>
 	<ports>
