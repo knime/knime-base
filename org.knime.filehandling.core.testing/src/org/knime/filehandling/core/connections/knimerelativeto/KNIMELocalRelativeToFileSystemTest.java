@@ -51,8 +51,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -145,12 +147,12 @@ public class KNIMELocalRelativeToFileSystemTest {
         fs.toRealPathWithAccessibilityCheck(path); // throws exception
     }
 
-    @Test
+    @Test(expected = NoSuchFileException.class)
     public void insideCurrentWorkflowWithWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
         final RelativeToPath path = fs.getPath("../current-workflow/some-file.txt");
-        assertTrue(fs.isPathAccessible(path));
-        fs.toRealPathWithAccessibilityCheck(path); // does not throw an exception
+        assertFalse(fs.isPathAccessible(path));
+        fs.toRealPathWithAccessibilityCheck(path); // does throw an exception
     }
 
     @Test(expected = NoSuchFileException.class)
@@ -195,16 +197,8 @@ public class KNIMELocalRelativeToFileSystemTest {
     public void isRegularFileWorkflowRelative() throws IOException {
         final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
         assertFalse(fs.isRegularFile(fs.getPath("/")));
-        assertFalse(fs.isRegularFile(fs.getPath("/current-workflow")));
+        assertTrue(fs.isRegularFile(fs.getPath("/current-workflow")));
         assertTrue(fs.isRegularFile(fs.getPath("/other-workflow")));
-
-        final RelativeToPath filePath = fs.getPath("/some-file.txt");
-        Files.createFile(filePath);
-        assertTrue(fs.isRegularFile(filePath));
-
-        final RelativeToPath directoryPath = fs.getPath("/some-directory");
-        Files.createDirectory(directoryPath);
-        assertFalse(fs.isRegularFile(directoryPath));
     }
 
     @Test
@@ -279,25 +273,59 @@ public class KNIMELocalRelativeToFileSystemTest {
         assertTrue(Files.exists(mountpointPath));
     }
 
-    @Test
-    public void testExistsWorkflowRelative() throws IOException {
-        final String filename = "some-file.txt";
-        final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
-        final RelativeToPath workflowPath = workflowFS.getPath(filename);
-        assertFalse(Files.exists(workflowPath));
-        Files.createFile(workflowPath);
-        assertTrue(Files.exists(workflowPath));
-    }
-
-    @Test
+    @Test(expected = FileSystemException.class)
     public void testCreateFileOnRelativePath() throws IOException {
         final String filename = "some-file.txt";
         final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
         final RelativeToPath relativePath = workflowFS.getPath(filename);
 
         assertFalse(Files.exists(relativePath));
-        Files.createFile(relativePath);
-        assertTrue(Files.exists(relativePath));
+        Files.createFile(relativePath); // throws exception
+    }
+
+    @Test(expected = FileSystemException.class)
+    public void testCreateDirOnRelativePath() throws IOException {
+        final String dirname = "somedir";
+        final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+        final RelativeToPath relativePath = workflowFS.getPath(dirname);
+
+        assertFalse(Files.exists(relativePath));
+        Files.createDirectory(relativePath); // throws exception
+    }
+
+    @Test(expected = NotDirectoryException.class)
+    public void testListWorkflowDirOnRelativePath() throws IOException {
+        final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
+        final RelativeToPath relativePath = workflowFS.getPath(".");
+        Files.list(relativePath);
+    }
+
+    @Test(expected = FileSystemException.class)
+    public void testCreateFileOnMountpointPath() throws IOException {
+        final String filename = "current-workflow/some-file.txt";
+        final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+        final RelativeToPath relativePath = mountpointFS.getPath(filename);
+
+        assertFalse(Files.exists(relativePath));
+        Files.createFile(relativePath); // throws exception
+    }
+
+    @Test(expected = FileSystemException.class)
+    public void testCreateDirOnMountpointPath() throws IOException {
+        final String dirname = "current-workflow/somedir";
+        final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+        final RelativeToPath relativePath = mountpointFS.getPath(dirname);
+
+        assertFalse(Files.exists(relativePath));
+        Files.createDirectory(relativePath); // throws exception
+    }
+
+    @Test(expected = NotDirectoryException.class)
+    public void testListWorkflowDirOnMountpointPath() throws IOException {
+        final String dirname = "current-workflow";
+        final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+        final RelativeToPath relativePath = mountpointFS.getPath(dirname);
+        Files.list(relativePath);
     }
 
     @Test
