@@ -56,8 +56,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
-import org.knime.core.node.config.base.AbstractConfigEntry;
-import org.knime.core.node.config.base.ConfigEntries;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
@@ -145,20 +143,12 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
 
     @Override
     protected boolean canOverwrite(final Config config, final String configKey) {
-        if (isStringConfig(config, configKey)) {
-            return true;
-        }
         try {
             return FSLocationUtils.canOverwriteWithFSLocation(config.getConfig(configKey));
         } catch (InvalidSettingsException ex) {
             // the key did not correspond to a config -> this can't be an FSLocation
             return false;
         }
-    }
-
-    private static boolean isStringConfig(final Config config, final String key) {
-        final AbstractConfigEntry entry = config.getEntry(key);
-        return entry != null && entry.getType() == ConfigEntries.xstring;
     }
 
     @Override
@@ -169,11 +159,7 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
                 v -> String.format("The variable '%s' can't overwrite the setting '%s' because it is not a FSLocation.",
                     v, config.getEntry(configKey)));
         }
-        if (isStringConfig(config, configKey)) {
-            config.addString(configKey, value.getPath());
-        } else {
-            FSLocationUtils.saveFSLocation(value, config.addConfig(configKey));
-        }
+        FSLocationUtils.saveFSLocation(value, config.addConfig(configKey));
     }
 
     @Override
@@ -199,16 +185,13 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
 
     @Override
     public Set<VariableType<?>> getConvertibleTypes() {
-        return Sets.newHashSet(this, FSLocationSpecVariableType.INSTANCE, StringType.INSTANCE);
+        return Sets.newHashSet(this, FSLocationSpecVariableType.INSTANCE);
     }
 
     @Override
     protected <U> U getAs(final FSLocation value, final VariableType<U> conversionTarget) {
-        final Class<U> simpleType = conversionTarget.getSimpleType();
         if (conversionTarget == this || conversionTarget == FSLocationSpecVariableType.INSTANCE) {
-            return simpleType.cast(value);
-        } else if (conversionTarget == StringType.INSTANCE) {
-            return simpleType.cast(value.getPath());
+            return conversionTarget.getSimpleType().cast(value);
         }
         throw new IllegalArgumentException(
             String.format("Flow variables of the type '%s' can't be converted to flow variables of the type '%s'.",
