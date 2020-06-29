@@ -138,8 +138,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final JCheckBox m_allowShortDataRowsChecker;
 
-    private final JCheckBox m_skipEmptyDataRowsChecker;
-
     private final JCheckBox m_replaceQuotedEmptyStringChecker;
 
     private final JCheckBox m_limitRowsChecker;
@@ -226,7 +224,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_hasRowIDChecker = new JCheckBox("Has row ID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
         m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
-        m_skipEmptyDataRowsChecker = new JCheckBox("Skip empty data rows");
         m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
         m_startAutodetection = new JButton(START_AUTODETECT_LABEL);
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
@@ -366,7 +363,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_hasRowIDChecker.addActionListener(actionListener);
         m_hasColHeaderChecker.addActionListener(actionListener);
         m_allowShortDataRowsChecker.addActionListener(actionListener);
-        m_skipEmptyDataRowsChecker.addActionListener(actionListener);
         m_replaceQuotedEmptyStringChecker.addActionListener(actionListener);
         m_limitRowsChecker.addActionListener(actionListener);
         m_skipFirstRowsChecker.addActionListener(actionListener);
@@ -655,10 +651,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridy += 1;
         gbc.insets = new Insets(5, 0, 5, 5);
         readerOptions.add(m_allowShortDataRowsChecker, gbc);
-        gbc.gridx += 1;
-        gbc.insets = new Insets(5, 26, 0, 0);
-        readerOptions.add(m_skipEmptyDataRowsChecker, gbc);
-
         return readerOptions;
     }
 
@@ -748,7 +740,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         tableReadConfig.setMaxRowsForSpec((Long)m_limitAnalysisSpinner.getValue());
 
         tableReadConfig.setAllowShortRows(m_allowShortDataRowsChecker.isSelected());
-        tableReadConfig.setSkipEmptyRows(m_skipEmptyDataRowsChecker.isSelected());
     }
 
     /**
@@ -839,8 +830,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_hasRowIDChecker.setSelected(tableReadConfig.useRowIDIdx());
 
         m_allowShortDataRowsChecker.setSelected(tableReadConfig.allowShortRows());
-
-        m_skipEmptyDataRowsChecker.setSelected(tableReadConfig.skipEmptyRows());
 
         m_skipFirstRowsChecker.setSelected(tableReadConfig.skipRows());
         m_skipFirstRowsSpinner.setValue(tableReadConfig.getNumRowsToSkip());

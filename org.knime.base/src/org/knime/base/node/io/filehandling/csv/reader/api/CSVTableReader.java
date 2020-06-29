@@ -240,8 +240,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             if (csvReaderConfig.skipLines()) {
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
-            // Univocity returns [null] for empty rows, i.e., we cannot detect empty rows using decorators
-            m_csvParserSettings = csvReaderConfig.getSettings(config.skipEmptyRows());
+            // Get the Univocity Parser settings from the reader specific configuration.
+            m_csvParserSettings = csvReaderConfig.getSettings();
             m_parser = new CsvParser(m_csvParserSettings);
             m_parser.beginParsing(m_reader);
         }

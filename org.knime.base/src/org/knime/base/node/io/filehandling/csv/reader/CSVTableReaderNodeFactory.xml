@@ -131,9 +131,6 @@
 			<option name="Support short data rows">
 	          Select this box if some rows may be shorter than others (filled with missing values).
 			</option>
-			<option name="Skip empty data rows">
-	          Select this box if rows without any content should not be in the output.
-			</option>
 		</tab>
 		<tab name="Advanced Settings">
 			<option name="Limit memory per column">

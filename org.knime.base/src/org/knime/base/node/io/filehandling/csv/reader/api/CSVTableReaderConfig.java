@@ -129,24 +129,11 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     }
 
     /**
-     * Returns a copy of the stored the parser settings used by univocity's {@link CsvParser} and sets the skip empty
-     * option.
-     *
-     * @param skipEmpty {@code true} if empty lines should be ignored, {@code false} otherwise
-     * @return a copy of the stored parser settings
-     */
-    CsvParserSettings getSettings(final boolean skipEmpty) {
-        CsvParserSettings copy = m_settings.clone();
-        copy.setSkipEmptyLines(skipEmpty);
-        return copy;
-    }
-
-    /**
-     * Gets the parser settings used by univocity's {@link CsvParser}.
+     * Returns the stored parser settings used by univocity's {@link CsvParser}.
      *
      * @return the parser settings used
      */
-    private CsvParserSettings getSettings() {
+    CsvParserSettings getSettings() {
         return m_settings;
     }
 
