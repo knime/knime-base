@@ -134,13 +134,24 @@ public final class FileSystemHelper {
                 final Type type = extractRelativeToHost(location);
                 return Optional.of(getRelativeToConnection(type));
             case MOUNTPOINT:
-                return Optional.of(new KNIMERemoteFSConnection(extractMountpoint(location), false));
+                final KNIMEConnection connection = extractMountpoint(location);
+                checkMountpointCanCreateConnection(location, connection);
+                return Optional.of(new KNIMERemoteFSConnection(connection, false));
             case LOCAL:
                 return Optional.of(new LocalFSConnection());
             default:
                 throw new IllegalArgumentException("Unknown file system choice: " + category);
 
         }
+    }
+
+    private static void checkMountpointCanCreateConnection(final FSLocation location,
+        final KNIMEConnection connection) {
+        // we would already have failed if there was no mountpoint in the specifier
+        String mountpoint = location.getFileSystemSpecifier().orElseThrow(IllegalStateException::new);
+        CheckUtils.checkArgument(connection.isValid(), "The selected mountpoint '%s' is unknown.", mountpoint);
+        CheckUtils.checkArgument(connection.isConnected(), "The selected mountpoint '%s' is not connected.",
+            mountpoint);
     }
 
     /**
