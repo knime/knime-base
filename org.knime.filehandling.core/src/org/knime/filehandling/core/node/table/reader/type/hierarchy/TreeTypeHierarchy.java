@@ -101,7 +101,7 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
     public TreeTypeHierarchy<T, T> createTypeFocusedHierarchy() {
         final Map<TreeNode<T, ?>, Set<T>> childTypes = collectChildTypes();
         final TreeNode<T, T> root =
-            new TreeNode<>(null, TypeTester.createTypeTester(m_root.getType(), t -> true, false));
+            new TreeNode<>(null, TypeTester.createTypeTester(m_root.getType(), t -> true));
         final List<TreeNode<T, T>> leaves = createNodesAndCollectLeaves(childTypes, root);
         return new TreeTypeHierarchy<>(root, leaves);
     }
@@ -156,7 +156,7 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
     private static <T> TypeTester<T, T> createTypeFocussedTypeTester(final T type, final Set<T> subTypes) {
         final Set<T> supportedTypes = new HashSet<>(subTypes);
         supportedTypes.add(type);
-        return TypeTester.createTypeTester(type, supportedTypes::contains, false);
+        return TypeTester.createTypeTester(type, supportedTypes::contains);
     }
 
     private final class TreeTypeResolver implements TypeResolver<T, V> {
@@ -175,6 +175,9 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
 
         @Override
         public void accept(final V value) {
+            if (value == null) {
+                return;
+            }
             if (m_walker == null) {
                 m_walker = initializeIterator(value);
             } else {
@@ -188,6 +191,11 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
                 return false;
             }
             return m_walker.reachedTop();
+        }
+
+        @Override
+        public boolean hasType() {
+            return m_walker != null;
         }
 
         private TreeWalker<T, V> initializeIterator(final V value) {

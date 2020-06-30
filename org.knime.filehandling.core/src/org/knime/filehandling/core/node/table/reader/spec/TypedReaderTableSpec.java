@@ -48,10 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -67,6 +64,8 @@ import org.knime.core.node.util.CheckUtils;
 public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderColumnSpec<T>> {
 
     private static final String TYPES = "types";
+
+    private static final String HAS_TYPES = "hasTypes";
 
     /**
      * Array-based constructor.
@@ -96,45 +95,53 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
      * Note that <b>names</b> may contain {@code null} elements while <b>types</b> may not.
      *
      * @param names the column names (may contain {@code null})
-     * @param types the column types (must NOT contain {@code null}
+     * @param types the column types (must NOT contain {@code null})
+     * @param hasTypes whether the columns have types, same order as {@code types} (must NOT contain {@code null})
      * @return a {@link TypedReaderTableSpec} with columns according to the provided arguments
      */
-    public static <T> TypedReaderTableSpec<T> create(final Collection<String> names, final Collection<T> types) {
+    public static <T> TypedReaderTableSpec<T> create(final Collection<String> names, final Collection<T> types,
+        final Collection<Boolean> hasTypes) {
         CheckUtils.checkArgumentNotNull(names, "The names argument must not be null.");
         CheckUtils.checkArgumentNotNull(types, "The types argument must not be null.");
+        CheckUtils.checkArgumentNotNull(hasTypes, "The hasTypes argument must not be null.");
         CheckUtils.checkArgument(names.size() == types.size(), "Names and types must have the same size.");
+        CheckUtils.checkArgument(types.size() == hasTypes.size(), "Types and hasTypes must have the same size.");
         final Iterator<String> nameIterator = names.iterator();
         final Iterator<T> typesIterator = types.iterator();
+        final Iterator<Boolean> hasTypesIterator = hasTypes.iterator();
         final List<TypedReaderColumnSpec<T>> cols = new ArrayList<>(names.size());
         while (nameIterator.hasNext()) {
             final String name = nameIterator.next();
             final T type = CheckUtils.checkArgumentNotNull(typesIterator.next(), "A type must not be null.");
-            cols.add(TypedReaderColumnSpec.createWithName(name, type));
+            final Boolean hasType =
+                CheckUtils.checkArgumentNotNull(hasTypesIterator.next(), "A hasType Boolean must not be null.");
+            cols.add(TypedReaderColumnSpec.createWithName(name, type, hasType));
         }
         return new TypedReaderTableSpec<>(cols, false);
     }
 
     /**
-     * Creates a {@link TypedReaderTableSpec} with nameless columns whose types are given by <b>types</b>.
+     * Creates a {@link TypedReaderTableSpec} with nameless columns whose types are given by <b>types</b> and booleans
+     * that indicate whether the columns actually have types are given by <b>hasTypes</b>.
      *
      * @param types of the columns (must NOT be or contain {@code null})
-     * @return a {@link TypedReaderTableSpec} with nameless columns of the types provided
-     */
-    public static <T> TypedReaderTableSpec<T> create(@SuppressWarnings("unchecked") final T... types) {
-        return create(Arrays.asList(notNull(types, TYPES)));
-    }
-
-    /**
-     * Creates a {@link TypedReaderTableSpec} with nameless columns whose types are given by <b>types</b>.
-     *
-     * @param types of the columns (must NOT be or contain {@code null})
+     * @param hasTypes whether the columns have types, same order as {@code types} (must NOT contain {@code null})
      * @return a {@link TypedReaderTableSpec} with nameless columns of the types provided types
      */
-    public static <T> TypedReaderTableSpec<T> create(final Collection<T> types) {
+    public static <T> TypedReaderTableSpec<T> create(final Collection<T> types, final Collection<Boolean> hasTypes) {
         notNull(types, TYPES);
-        return new TypedReaderTableSpec<>(types.stream()//
-            .map(TypedReaderColumnSpec::create)//
-            .collect(toList()), false);
+        notNull(hasTypes, HAS_TYPES);
+        CheckUtils.checkArgument(types.size() == hasTypes.size(), "Types and hasTypes must have the same size.");
+        final List<TypedReaderColumnSpec<T>> colSpecs = new ArrayList<>();
+        final Iterator<T> typesIterator = types.iterator();
+        final Iterator<Boolean> hasTypesIterator = hasTypes.iterator();
+        while (typesIterator.hasNext()) {
+            final T type = CheckUtils.checkArgumentNotNull(typesIterator.next(), "A type must not be null.");
+            final Boolean hasType =
+                CheckUtils.checkArgumentNotNull(hasTypesIterator.next(), "A hasType Boolean must not be null.");
+            colSpecs.add(TypedReaderColumnSpec.create(type, hasType));
+        }
+        return new TypedReaderTableSpec<>(colSpecs, false);
     }
 
 }

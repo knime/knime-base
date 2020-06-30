@@ -122,8 +122,8 @@ public class DefaultTypeMappingFactoryTest {
     public void testCreate() {
         when(m_producerRegistry.getAvailableProductionPaths("berta")).thenReturn(asList(mockProductionPath("berta")));
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(asList(mockProductionPath("frieda")));
-        TypedReaderTableSpec<String> spec =
-            TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
+        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
+            asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
         TypeMapping<String> typeMapping = m_testInstance.create(spec);
         DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE});
@@ -137,8 +137,8 @@ public class DefaultTypeMappingFactoryTest {
     @Test(expected = IllegalStateException.class)
     public void testCreateFailsIfNoProductionPathForExternalTypeCanBeFound() {
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(Collections.emptyList());
-        TypedReaderTableSpec<String> spec =
-            TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta"));
+        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
+            asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
         m_testInstance.create(spec);
     }
 
@@ -147,8 +147,8 @@ public class DefaultTypeMappingFactoryTest {
      */
     @Test(expected = IllegalStateException.class)
     public void testCreateFailsIfDefaultTypeIsNOTSpecified() {
-        TypedReaderTableSpec<String> spec =
-            TypedReaderTableSpec.create(asList("hans", "franz"), asList("gunter", "berta"));
+        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
+            asList("gunter", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
         m_testInstance.create(spec);
     }
 

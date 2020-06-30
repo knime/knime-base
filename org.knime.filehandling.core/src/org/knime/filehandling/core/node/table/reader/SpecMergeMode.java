@@ -95,7 +95,9 @@ public enum SpecMergeMode {
                             throw new IllegalArgumentException(
                                 String.format("The column %s is not contained in all files.", name));
                         }
-                        resolver.accept(colSpec.getType());
+                        if (colSpec.hasType()) {
+                            resolver.accept(colSpec.getType());
+                        }
                     }
                 }
                 return toReaderTableSpec(resolversByName);
@@ -119,7 +121,7 @@ public enum SpecMergeMode {
                     final Set<String> cols = new HashSet<>(resolversByName.keySet());
                     for (TypedReaderColumnSpec<T> colSpec : individualSpec) {
                         final String name = MultiTableUtils.getNameAfterInit(colSpec);
-                        if (cols.remove(name)) {
+                        if (cols.remove(name) && colSpec.hasType()) {
                             resolversByName.get(name).accept(colSpec.getType());
                         }
                     }
@@ -168,14 +170,19 @@ public enum SpecMergeMode {
     private static <T> TypedReaderColumnSpec<T>
         createReaderColumnSpec(final Entry<String, TypeResolver<T, T>> nameHierarchyEntry) {
         final T mostSpecificType = nameHierarchyEntry.getValue().getMostSpecificType();
-        return TypedReaderColumnSpec.createWithName(nameHierarchyEntry.getKey(), mostSpecificType);
+        final boolean hasType = nameHierarchyEntry.getValue().hasType();
+        return TypedReaderColumnSpec.createWithName(nameHierarchyEntry.getKey(), mostSpecificType, hasType);
     }
 
     private static <T> void addAllColumnsInSpec(final Map<String, TypeResolver<T, T>> resolversByName,
         final TypedReaderTableSpec<T> individualSpec, final TypeHierarchy<T, T> typeHierarchy) {
         for (TypedReaderColumnSpec<T> column : individualSpec) {
             final String name = MultiTableUtils.getNameAfterInit(column);
-            resolversByName.computeIfAbsent(name, n -> typeHierarchy.createResolver()).accept(column.getType());
+            final TypeResolver<T, T> resolver =
+                resolversByName.computeIfAbsent(name, n -> typeHierarchy.createResolver());
+            if (column.hasType()) {
+                resolver.accept(column.getType());
+            }
         }
     }
 

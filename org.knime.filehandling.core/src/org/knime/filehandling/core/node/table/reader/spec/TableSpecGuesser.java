@@ -174,13 +174,14 @@ public final class TableSpecGuesser<T, V> {
             String[] headerArray = uniquify(columnNames);
             // make sure that we have at least as many types as names
             final List<T> types = typeGuesser.getMostSpecificTypes(headerArray.length);
+            final List<Boolean> hasTypes = typeGuesser.getHasTypes(headerArray.length);
             if (types.size() != headerArray.length) {
                 // make sure that we have the same number of names as types
                 headerArray = Arrays.copyOf(headerArray, types.size());
             }
-            return TypedReaderTableSpec.create(Arrays.asList(headerArray), types);
+            return TypedReaderTableSpec.create(Arrays.asList(headerArray), types, hasTypes);
         } else {
-            return TypedReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0));
+            return TypedReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0), typeGuesser.getHasTypes(0));
         }
     }
 

@@ -73,19 +73,6 @@ public interface TypeTester<T, V> extends Predicate<V> {
     T getType();
 
     /**
-     * Creates a {@link TypeTester} that depending on <b>allowNull</b> accepts or rejects <code>null</code> values.
-     *
-     * @param type the type that <b>predicate</b> tests for
-     * @param predicate that tests if a value can be converted to <b>type</b>
-     * @param allowNull set to <code>false</code> if <code>null</code> values should be rejected
-     * @return the created TypeTester
-     */
-    public static <T, V> TypeTester<T, V> createTypeTester(final T type, final Predicate<V> predicate,
-        final boolean allowNull) {
-        return new DefaultTypeTester<>(type, predicate, allowNull);
-    }
-
-    /**
      * Creates a {@link TypeTester} that accepts <code>null</code> as value.
      *
      * @param type the type that <b>predicate</b> tests for

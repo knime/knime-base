@@ -65,20 +65,12 @@ import org.junit.Test;
 public class DefaultTypeTesterTest {
 
     /**
-     * Tests the behavior if {@code null} is an allowed input.
+     * Tests the behavior of type tester.
      */
     @Test
     public void testNullAllowed() {
         testTypeTester(DefaultTypeTester::new, true);
-        testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, true), true);
-    }
-
-    /**
-     * Tests the behavior if {@code null} is not an allowed input.
-     */
-    @Test
-    public void testNullRejected() {
-        testTypeTester((t, p) -> new DefaultTypeTester<>(t, p, false), false);
+        testTypeTester((t, p) -> new DefaultTypeTester<>(t, p), true);
     }
 
     static void testTypeTester(

@@ -131,7 +131,8 @@ public class DefaultMultiTableReadFactoryTest {
     @Test
     public void testCreate() {
         final String colName = "hans";
-        final TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList(colName), asList("berta"));
+        final TypedReaderTableSpec<String> spec =
+            TypedReaderTableSpec.create(asList(colName), asList("berta"), asList(Boolean.TRUE));
         when(m_typeMappingFactory.create(spec)).thenReturn(m_typeMapping);
         DataTableSpec knimeSpec = new DataTableSpec(new String[]{colName}, new DataType[]{StringCell.TYPE});
         when(m_typeMapping.map(spec)).thenReturn(knimeSpec);

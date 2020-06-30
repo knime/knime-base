@@ -119,4 +119,17 @@ final class TypeGuesser<T, V> {
         return m_resolvers.stream().map(TypeResolver::getMostSpecificType).collect(toList());
     }
 
+    /**
+     * Returns the list of Booleans that indicate whether a {@link TypeResolver} has a type or not. The list contains at
+     * least <b>minimumExpected</b> Booleans but may contain more if more columns were observed by this TypeGuesser.
+     *
+     * @param minimumExpected the minimum number of Booleans expected to be returned
+     * @return the Booleans that indicate whether a {@link TypeResolver} has a type or not (filled up to minimum
+     *         expected if necessary)
+     */
+    List<Boolean> getHasTypes(final int minimumExpected) {
+        ensureEnoughResolvers(minimumExpected);
+        return m_resolvers.stream().map(TypeResolver::hasType).collect(toList());
+    }
+
 }

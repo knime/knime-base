@@ -98,7 +98,8 @@ public class DefaultTypeMappingTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testMapFailsOnSpecOfIncompatibleSize() {
-        m_testInstance.map(TypedReaderTableSpec.create("hans", "franz", "gunter"));
+        m_testInstance.map(TypedReaderTableSpec.create(asList("hans", "franz", "gunter"),
+            asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE)));
     }
 
     /**
@@ -108,8 +109,8 @@ public class DefaultTypeMappingTest {
     public void testMap() {
         DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE});
-        DataTableSpec actual =
-            m_testInstance.map(TypedReaderTableSpec.create(asList("hans", "franz"), asList("frieda", "berta")));
+        DataTableSpec actual = m_testInstance.map(TypedReaderTableSpec.create(asList("hans", "franz"),
+            asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE)));
         assertEquals(expected, actual);
     }
 

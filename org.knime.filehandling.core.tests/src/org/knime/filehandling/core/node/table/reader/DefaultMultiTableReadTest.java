@@ -125,8 +125,10 @@ public class DefaultMultiTableReadTest {
     @Before
     public void init() {
         m_individualSpecs = new HashMap<>();
-        m_individualSpecs.put(m_path1, TypedReaderTableSpec.create(asList("hans", "franz"), asList("ilsa", "berta")));
-        m_individualSpecs.put(m_path2, TypedReaderTableSpec.create(asList("gunter", "franz"), asList("ilsa", "berta")));
+        m_individualSpecs.put(m_path1, TypedReaderTableSpec.create(asList("hans", "franz"), asList("ilsa", "berta"),
+            asList(Boolean.TRUE, Boolean.TRUE)));
+        m_individualSpecs.put(m_path2, TypedReaderTableSpec.create(asList("gunter", "franz"), asList("ilsa", "berta"),
+            asList(Boolean.TRUE, Boolean.TRUE)));
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
         m_testInstance =

@@ -54,6 +54,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -77,16 +78,17 @@ public class MultiTableUtilsTest {
             Stream.generate(() -> StringCell.TYPE).limit(names.length).toArray(DataType[]::new));
     }
 
-	private static TypedReaderTableSpec<?> createIndividualSpec(final String... names) {
-		return TypedReaderTableSpec.create(asList(names), asList(names));
-	}
+    private static TypedReaderTableSpec<?> createIndividualSpec(final String... names) {
+        return TypedReaderTableSpec.create(asList(names), asList(names),
+            Collections.nCopies(names.length, Boolean.TRUE));
+    }
 
 	/**
 	 * Tests the {@link MultiTableUtils#getNameAfterInit(TypedReaderColumnSpec)} method.
 	 */
 	@Test
 	public void testGetNameAfterInit() {
-		assertEquals("test", MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.createWithName("test", "foo")));
+		assertEquals("test", MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.createWithName("test", "foo", true)));
 	}
 
 	/**
@@ -95,7 +97,7 @@ public class MultiTableUtilsTest {
 	 */
 	@Test(expected = IllegalStateException.class)
 	public void testGetNameAfterInitFailsIfSpecHasNoName() {
-		MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.create("foo"));
+		MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.create("foo", true));
 	}
 
 	/**
@@ -144,9 +146,9 @@ public class MultiTableUtilsTest {
 	@Test
 	public void testAssignNamesIfMissing() {
 		TypedReaderTableSpec<String> namesMissing = TypedReaderTableSpec.create(asList("hubert", null),
-				asList("berta", "frieda"));
+				asList("berta", "frieda"), asList(Boolean.TRUE, Boolean.TRUE));
 		TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("hubert", "Column1"),
-				asList("berta", "frieda"));
+				asList("berta", "frieda"), asList(Boolean.TRUE, Boolean.TRUE));
 		TypedReaderTableSpec<String> actual = MultiTableUtils.assignNamesIfMissing(namesMissing);
 		assertEquals(expected, actual);
 	}

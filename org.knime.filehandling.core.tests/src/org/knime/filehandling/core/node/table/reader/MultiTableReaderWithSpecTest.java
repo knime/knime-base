@@ -152,7 +152,8 @@ public class MultiTableReaderWithSpecTest {
     @Before
     public void init() {
         m_testInstance = new MultiTableReader<>(m_reader, m_multiTableReadFactory);
-        m_readerSpec = TypedReaderTableSpec.create("foo", "bar");
+        m_readerSpec =
+            TypedReaderTableSpec.create(asList("foo", "bar"), asList(Boolean.TRUE, Boolean.TRUE));
         m_knimeSpec = TableSpecConfigUtils.createDataTableSpec("Column0", "Column1");
         m_path1 = TableSpecConfigUtils.mockPath("fake_path");
         m_path2 = TableSpecConfigUtils.mockPath("another_fake_path");

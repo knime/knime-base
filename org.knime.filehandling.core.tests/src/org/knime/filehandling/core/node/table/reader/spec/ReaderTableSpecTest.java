@@ -55,7 +55,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -109,14 +108,14 @@ public class ReaderTableSpecTest {
     @Test
     public void testCreateWithName() {
         final ReaderTableSpec<ReaderColumnSpec> constructorArray = new ReaderTableSpec<>(
-            TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA), TypedReaderColumnSpec.createWithName(ALFONS, BERTA));
+            TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA, true), TypedReaderColumnSpec.createWithName(ALFONS, BERTA, true));
         final ReaderTableSpec<ReaderColumnSpec> constructorList =
-            new ReaderTableSpec<>(asList(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA),
-                TypedReaderColumnSpec.createWithName(ALFONS, BERTA)));
-        final ReaderTableSpec<TypedReaderColumnSpec<String>> createList =
-            TypedReaderTableSpec.create(asList(HUBERT, ALFONS), Arrays.asList(FRIEDA, BERTA));
-        assertEquals(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA), constructorArray.getColumnSpec(0));
-        assertEquals(TypedReaderColumnSpec.createWithName(ALFONS, BERTA), constructorArray.getColumnSpec(1));
+            new ReaderTableSpec<>(asList(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA, true),
+                TypedReaderColumnSpec.createWithName(ALFONS, BERTA, true)));
+        final ReaderTableSpec<TypedReaderColumnSpec<String>> createList = TypedReaderTableSpec
+            .create(asList(HUBERT, ALFONS), asList(FRIEDA, BERTA), asList(Boolean.TRUE, Boolean.TRUE));
+        assertEquals(TypedReaderColumnSpec.createWithName(HUBERT, FRIEDA, true), constructorArray.getColumnSpec(0));
+        assertEquals(TypedReaderColumnSpec.createWithName(ALFONS, BERTA, true), constructorArray.getColumnSpec(1));
         assertEquals(constructorArray, constructorList);
         assertNotEquals(constructorArray, createList);
         assertNotEquals(constructorList, createList);
@@ -156,7 +155,7 @@ public class ReaderTableSpecTest {
         final ReaderTableSpec<ReaderColumnSpec> spec2 = ReaderTableSpec.createReaderTableSpec(asList(FRIEDA, GERTA));
         assertEquals(spec1.hashCode(), spec2.hashCode());
         final TypedReaderTableSpec<String> spec3 =
-            TypedReaderTableSpec.create(asList(FRIEDA, HANS), asList(ALFONS, FRANZ));
+            TypedReaderTableSpec.create(asList(FRIEDA, HANS), asList(ALFONS, FRANZ), asList(Boolean.TRUE, Boolean.TRUE));
         assertNotEquals(spec1, spec3);
         assertNotEquals(spec1.hashCode(), spec3.hashCode());
     }
@@ -174,7 +173,8 @@ public class ReaderTableSpecTest {
         assertTrue(spec1.equals(spec2));
         assertTrue(spec2.equals(spec1));
 
-        final TypedReaderTableSpec<String> spec3 = TypedReaderTableSpec.create(FRIEDA, GERTA);
+        final TypedReaderTableSpec<String> spec3 =
+            TypedReaderTableSpec.create(asList(FRIEDA, GERTA), asList(Boolean.TRUE, Boolean.TRUE));
         assertFalse(spec1.equals(spec3));
         assertFalse(spec3.equals(spec1));
     }
@@ -201,7 +201,7 @@ public class ReaderTableSpecTest {
     @Test
     public void testStream() {
         List<TypedReaderColumnSpec<String>> cols =
-            asList(TypedReaderColumnSpec.create(FRIEDA), TypedReaderColumnSpec.create(BERTA));
+            asList(TypedReaderColumnSpec.create(FRIEDA, true), TypedReaderColumnSpec.create(BERTA, true));
         TypedReaderTableSpec<String> spec = new TypedReaderTableSpec<>(cols);
         assertEquals(cols, spec.stream().collect(toList()));
 
@@ -213,7 +213,7 @@ public class ReaderTableSpecTest {
     @Test
     public void testToString() {
         List<TypedReaderColumnSpec<String>> cols =
-            asList(TypedReaderColumnSpec.create(FRIEDA), TypedReaderColumnSpec.create(BERTA));
+            asList(TypedReaderColumnSpec.create(FRIEDA, true), TypedReaderColumnSpec.create(BERTA, true));
         TypedReaderTableSpec<String> spec = new TypedReaderTableSpec<>(cols);
         assertEquals(cols.toString(), spec.toString());
     }

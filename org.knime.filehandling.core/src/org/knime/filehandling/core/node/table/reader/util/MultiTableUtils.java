@@ -140,7 +140,8 @@ public final class MultiTableUtils {
         if (name.isPresent()) {
             return spec;
         } else {
-            return TypedReaderColumnSpec.createWithName(nameGen.newName(createDefaultColumnName(idx)), spec.getType());
+            return TypedReaderColumnSpec.createWithName(nameGen.newName(createDefaultColumnName(idx)), spec.getType(),
+                spec.hasType());
         }
     }
 

@@ -71,12 +71,12 @@ public class TypedReaderColumnSpecTest {
      */
     @Test
     public void testCreation() {
-        TypedReaderColumnSpec<String> noName = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> noName = TypedReaderColumnSpec.create("frieda", true);
         assertEquals(Optional.empty(), noName.getName());
         assertEquals("frieda", noName.getType());
-        TypedReaderColumnSpec<String> nameNull = TypedReaderColumnSpec.createWithName(null, "frieda");
+        TypedReaderColumnSpec<String> nameNull = TypedReaderColumnSpec.createWithName(null, "frieda", true);
         assertEquals(noName, nameNull);
-        TypedReaderColumnSpec<String> named = TypedReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> named = TypedReaderColumnSpec.createWithName("hans", "franz", true);
         assertEquals("hans", named.getName().get());
         assertEquals("franz", named.getType());
     }
@@ -87,14 +87,14 @@ public class TypedReaderColumnSpecTest {
     @SuppressWarnings("unlikely-arg-type")
     @Test
     public void testEquals() {
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda", true);
         assertTrue(spec.equals(spec));
         assertFalse(spec.equals(null));
         assertFalse(spec.equals("foo"));
-        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda", true);
         assertTrue(spec.equals(same));
         assertTrue(same.equals(spec));
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz", true);
         assertFalse(spec.equals(different));
         assertFalse(different.equals(spec));
     }
@@ -104,12 +104,12 @@ public class TypedReaderColumnSpecTest {
      */
     @Test
     public void testHashCode() {
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
-        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda", true);
+        TypedReaderColumnSpec<String> same = TypedReaderColumnSpec.create("frieda", true);
         assertEquals(spec.hashCode(), same.hashCode());
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz", true);
         assertNotEquals(spec.hashCode(), different.hashCode());
-        different = TypedReaderColumnSpec.create("berta");
+        different = TypedReaderColumnSpec.create("berta", true);
         assertNotEquals(spec.hashCode(), different.hashCode());
     }
 
@@ -118,9 +118,9 @@ public class TypedReaderColumnSpecTest {
      */
     @Test
     public void testToString() {
-        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz");
+        TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz", true);
         assertEquals("[hans, franz]", different.toString());
-        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda");
+        TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda", true);
         assertEquals("[<no name>, frieda]", spec.toString());
     }
 

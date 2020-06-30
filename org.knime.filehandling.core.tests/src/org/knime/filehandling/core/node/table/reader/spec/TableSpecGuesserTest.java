@@ -56,6 +56,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -123,6 +125,10 @@ public class TableSpecGuesserTest {
 
     private static String[][] m(final String[]... rows) {
         return rows;
+    }
+
+    private static Collection<Boolean> c(final int n) {
+        return Collections.nCopies(n, Boolean.TRUE);
     }
 
     private static RandomAccessible<String> mockRandomAccessible(final String[] values) {
@@ -199,7 +205,7 @@ public class TableSpecGuesserTest {
     public void testAllRowsSameSizeWithoutAnyHeaders() throws IOException {
         TableReadConfig<?> config = setupConfig(-1, -1, false);
         String[][] table = to2D(3, "a", "b", "c", "d", "e", "f", "g", "h", "i");
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create("foo", "bar", "bla");
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("foo", "bar", "bla"), c(3));
         testGuessSpec(table, config, expected);
     }
 
@@ -212,7 +218,7 @@ public class TableSpecGuesserTest {
     public void testSomeShortRowsWithoutAnyHeaders() throws IOException {
         TableReadConfig<?> config = setupConfig(-1, -1, true);
         String[][] table = m(a("a", "b", "c"), a("d", "e"), a("f", "g", "h"));
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create("foo", "bar", "bla");
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("foo", "bar", "bla"), c(3));
         testGuessSpec(table, config, expected);
     }
 
@@ -227,7 +233,7 @@ public class TableSpecGuesserTest {
         for (int i = 0; i < table.length; i++) {
             TableReadConfig<?> config = setupConfig(i, -1, false);
             TypedReaderTableSpec<String> expected =
-                TypedReaderTableSpec.create(asList(table[i]), asList("foo", "bar", "bla"));
+                TypedReaderTableSpec.create(asList(table[i]), asList("foo", "bar", "bla"), c(3));
             testGuessSpec(table, config, expected);
         }
     }
@@ -243,7 +249,7 @@ public class TableSpecGuesserTest {
         for (int i = 0; i < table.length; i++) {
             TableReadConfig<?> config = setupConfig(i, -1, true);
             TypedReaderTableSpec<String> expected =
-                TypedReaderTableSpec.create(padToSize(table[i], 3), asList("foo", "bar", "bla"));
+                TypedReaderTableSpec.create(padToSize(table[i], 3), asList("foo", "bar", "bla"), c(3));
             testGuessSpec(table, config, expected);
         }
     }
@@ -257,9 +263,11 @@ public class TableSpecGuesserTest {
     public void testAllRowsSameSizeWithRowID() throws IOException {
         String[][] table = to2D(3, "a", "b", "c", "d", "e", "f", "g", "h", "i");
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length - 1);
         for (int i = 0; i < 3; i++) {
             TableReadConfig<?> config = setupConfig(-1, i, false);
-            TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(ArrayUtils.remove(expectedTypes, i));
+            TypedReaderTableSpec<String> expected =
+                TypedReaderTableSpec.create(asList(ArrayUtils.remove(expectedTypes, i)), hasTypes);
             testGuessSpec(table, config, expected);
         }
     }
@@ -273,9 +281,11 @@ public class TableSpecGuesserTest {
     public void testSomeShortRowsWithRowID() throws IOException {
         String[][] table = m(a("a", "b", "c"), a("d", "e"), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length - 1);
         for (int i = 0; i < 3; i++) {
             TableReadConfig<?> config = setupConfig(-1, i, true);
-            TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(ArrayUtils.remove(expectedTypes, i));
+            TypedReaderTableSpec<String> expected =
+                TypedReaderTableSpec.create(asList(ArrayUtils.remove(expectedTypes, i)), hasTypes);
             testGuessSpec(table, config, expected);
         }
     }
@@ -289,10 +299,11 @@ public class TableSpecGuesserTest {
     public void testAllRowsSameSizeWithColumnHeaderAndRowID() throws IOException {
         String[][] table = to2D(3, "a", "b", "c", "d", "e", "f", "g", "h", "i");
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length - 1);
         for (int i = 0; i < 3; i++) {
             TableReadConfig<?> config = setupConfig(i, i, false);
             TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(ArrayUtils.remove(table[i], i)),
-                asList(ArrayUtils.remove(expectedTypes, i)));
+                asList(ArrayUtils.remove(expectedTypes, i)), hasTypes);
             testGuessSpec(table, config, expected);
         }
     }
@@ -306,11 +317,12 @@ public class TableSpecGuesserTest {
     public void testSomeShortRowsWithColumnHeaderAndRowID() throws IOException {
         String[][] table = m(a("a", "b", "c"), a("d", "e"), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length - 1);
         for (int i = 0; i < 3; i++) {
             TableReadConfig<?> config = setupConfig(i, i, true);
             TypedReaderTableSpec<String> expected =
                 TypedReaderTableSpec.create(asList(ArrayUtils.remove(padToSize(table[i], 3).toArray(new String[0]), i)),
-                    asList(ArrayUtils.remove(expectedTypes, i)));
+                    asList(ArrayUtils.remove(expectedTypes, i)), hasTypes);
             testGuessSpec(table, config, expected);
         }
     }
@@ -324,7 +336,7 @@ public class TableSpecGuesserTest {
     public void testColumnHeaderRowNotInTable() throws IOException {
         TableReadConfig<?> config = setupConfig(10, -1, false);
         String[][] table = to2D(3, "a", "b", "c", "d", "e", "f", "g", "h", "i");
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create("foo", "bar", "bla");
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("foo", "bar", "bla"), c(3));
         testGuessSpec(table, config, expected);
     }
 
@@ -337,10 +349,11 @@ public class TableSpecGuesserTest {
     public void testSkipEmptyRowsWithColumnHeaderAndRowID() throws IOException {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length - 1);
         TableReadConfig<?> config = setupConfig(1, 1, true);
         when(config.skipEmptyRows()).thenReturn(true);
         TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(ArrayUtils.remove(table[2], 1)),
-            asList(ArrayUtils.remove(expectedTypes, 1)));
+            asList(ArrayUtils.remove(expectedTypes, 1)), hasTypes);
         testGuessSpec(table, config, expected);
     }
 
@@ -353,8 +366,9 @@ public class TableSpecGuesserTest {
     public void testColumnHeaderRowIsEmpty() throws IOException {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length);
         TableReadConfig<?> config = setupConfig(1, -1, true);
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(expectedTypes);
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(expectedTypes), hasTypes);
         testGuessSpec(table, config, expected);
     }
 
@@ -367,9 +381,10 @@ public class TableSpecGuesserTest {
     public void testColumnHeaderContainsNull() throws IOException {
         String[][] table = m(a("a", null, "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length);
         TableReadConfig<?> config = setupConfig(0, -1, true);
         TypedReaderTableSpec<String> expected =
-            TypedReaderTableSpec.create(padToSize(table[0], 3), asList(expectedTypes));
+            TypedReaderTableSpec.create(padToSize(table[0], 3), asList(expectedTypes), hasTypes);
         testGuessSpec(table, config, expected);
     }
 
@@ -382,8 +397,9 @@ public class TableSpecGuesserTest {
     public void testColumnHeaderRowIndexGreatThanSizeOfTheTableToRead() throws IOException {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length);
         TableReadConfig<?> config = setupConfig(4, -1, true);
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(expectedTypes);
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(expectedTypes), hasTypes);
         testGuessSpec(table, config, expected);
     }
 
@@ -396,8 +412,9 @@ public class TableSpecGuesserTest {
     public void testRowIdxIndexGreaterThanNumberColumnsOfTheTableToRead() throws IOException {
         String[][] table = m(a("a", "b", "c"), a(), a("f", "g", "h"));
         String[] expectedTypes = a("foo", "bar", "bla");
+        Collection<Boolean> hasTypes = c(expectedTypes.length);
         TableReadConfig<?> config = setupConfig(-1, 6, true);
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(expectedTypes);
+        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(expectedTypes), hasTypes);
         testGuessSpec(table, config, expected);
     }
 
@@ -411,8 +428,8 @@ public class TableSpecGuesserTest {
         String[][] table = to2D(3, "a", "b", "c", "d", "e", "f", "g", "h", "i");
         for (int i = 0; i < table.length; i++) {
             TableReadConfig<?> config = setupConfig(i, -1, false);
-            TypedReaderTableSpec<String> expected =
-                TypedReaderTableSpec.create(asList(table[i]), asList("foo", "bar", "bla"));
+            TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList(table[i]),
+                asList("foo", "bar", "bla"), asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
             testGuessSpec(table, config, expected, true);
         }
     }
@@ -428,8 +445,8 @@ public class TableSpecGuesserTest {
         String[][] table = m(a("a", "b", "c"), a("d", "e"), a("f", "g", "h"));
         for (int i = 0; i < table.length; i++) {
             TableReadConfig<?> config = setupConfig(i, -1, true);
-            TypedReaderTableSpec<String> expected =
-                TypedReaderTableSpec.create(padToSize(table[i], 3), asList("foo", "bar", "bla"));
+            TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(padToSize(table[i], 3),
+                asList("foo", "bar", "bla"), asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
             testGuessSpec(table, config, expected, true);
         }
     }

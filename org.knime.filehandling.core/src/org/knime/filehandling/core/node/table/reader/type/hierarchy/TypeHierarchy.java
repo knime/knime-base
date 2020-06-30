@@ -98,6 +98,13 @@ public interface TypeHierarchy<T, V> {
          * @return true if the top of the hierarchy is reached
          */
         boolean reachedTop();
+
+        /**
+         * Indicates whether a type is available, i.e., if at least one value has ever been observed.
+         *
+         * @return {@code true} if a type is available
+         */
+        boolean hasType();
     }
 
 }

@@ -96,7 +96,8 @@ public class DefaultReaderColumnSpecTest {
         assertNotEquals(spec, null);
         assertNotEquals(spec, FOO);
 
-        assertNotEquals(spec, TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO)));
+        assertNotEquals(spec,
+            TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO), Arrays.asList(Boolean.TRUE)));
         final DefaultReaderColumnSpec same = new DefaultReaderColumnSpec(FRIEDA);
         assertEquals(spec, same);
         assertEquals(same, spec);
@@ -114,7 +115,8 @@ public class DefaultReaderColumnSpecTest {
     public void testHashCode() {
         final DefaultReaderColumnSpec spec = new DefaultReaderColumnSpec(FRIEDA);
         assertEquals(spec.hashCode(), spec.hashCode());
-        assertNotEquals(spec, TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO)));
+        assertNotEquals(spec,
+            TypedReaderTableSpec.create(Arrays.asList(FRIEDA), Arrays.asList(FOO), Arrays.asList(Boolean.TRUE)));
         final DefaultReaderColumnSpec same = new DefaultReaderColumnSpec(FRIEDA);
         assertEquals(spec.hashCode(), same.hashCode());
 

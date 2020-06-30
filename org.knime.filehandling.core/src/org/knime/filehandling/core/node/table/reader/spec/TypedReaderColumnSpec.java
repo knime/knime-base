@@ -65,37 +65,45 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
 
     private final int m_hashCode;
 
+    private final boolean m_hasType;
+
     /**
      * Constructor to be used if the column has a name read from the data.
      *
      * @param name the name of the column read from the data
      * @param type the most specific type all observed values in the column share
+     * @param hasType if the column has a type
      */
-    private TypedReaderColumnSpec(final String name, final T type) {
+    private TypedReaderColumnSpec(final String name, final T type, final boolean hasType) {
         super(name);
         m_type = type;
         m_hashCode = super.hashCode() * Objects.hash(m_type);
+        m_hasType = hasType;
     }
 
     /**
      * Creates a new {@link TypedReaderColumnSpec} with the provided <b>name</b> and <b>type</b>.
      *
      * @param name of the column
+     * @param hasType if the column has a type
      * @param type of the column
      * @return the new {@link TypedReaderColumnSpec}
      */
-    public static <T> TypedReaderColumnSpec<T> createWithName(final String name, final T type) {
-        return new TypedReaderColumnSpec<>(name, checkArgumentNotNull(type, "The 'type' argument must not be null"));
+    public static <T> TypedReaderColumnSpec<T> createWithName(final String name, final T type, final boolean hasType) {
+        return new TypedReaderColumnSpec<>(name, checkArgumentNotNull(type, "The 'type' argument must not be null"),
+            hasType);
     }
 
     /**
-     * Creates a new {@link TypedReaderColumnSpec} with the provided <b>type</b>.
+     * Creates a new {@link TypedReaderColumnSpec} with the provided <b>type</b> and <b>hasType</b>.
      *
      * @param type of the column
+     * @param hasType if the column has a type
      * @return the new {@link TypedReaderColumnSpec}
      */
-    public static <T> TypedReaderColumnSpec<T> create(final T type) {
-        return new TypedReaderColumnSpec<>(null, checkArgumentNotNull(type, "The 'type' argument must not be null."));
+    public static <T> TypedReaderColumnSpec<T> create(final T type, final boolean hasType) {
+        return new TypedReaderColumnSpec<>(null, checkArgumentNotNull(type, "The 'type' argument must not be null."),
+            hasType);
     }
 
     /**
@@ -131,6 +139,16 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
     @Override
     public int hashCode() {
         return m_hashCode;
+    }
+
+    /**
+     * Returns {@code true} if the column spec has a type. For example, a column that was empty or filled with only
+     * missing values may not have a type.
+     *
+     * @return {@code true} if the column spec has a type
+     */
+    public boolean hasType() {
+        return m_hasType;
     }
 
 }
