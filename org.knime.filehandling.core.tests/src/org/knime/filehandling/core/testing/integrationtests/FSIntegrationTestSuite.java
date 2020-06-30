@@ -67,6 +67,7 @@ import org.knime.filehandling.core.testing.integrationtests.path.GetFileNameTest
 import org.knime.filehandling.core.testing.integrationtests.path.PathTest;
 import org.knime.filehandling.core.testing.integrationtests.path.SubPathTest;
 import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
+import org.knime.filehandling.core.testing.integrationtests.path.ToUriTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({//
@@ -89,7 +90,8 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToStringTest;
     OutputStreamTest.class,//
     TempFilesTest.class,//
     TempDirectoriesTest.class,//
-    FSLocationTest.class//
+    FSLocationTest.class,//
+    ToUriTest.class//
 })
 public class FSIntegrationTestSuite {
 

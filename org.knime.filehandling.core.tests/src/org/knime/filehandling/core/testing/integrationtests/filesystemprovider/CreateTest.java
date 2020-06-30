@@ -96,7 +96,6 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directory() throws Exception {
-        ignoreWithReason("S3 has no directory concept", S3);
         Path pathToDriectory = m_testInitializer.getTestCaseScratchDir().resolve("directory");
 
         Path directory = Files.createDirectory(pathToDriectory);
@@ -107,7 +106,6 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directories() throws Exception {
-        ignoreWithReason("S3 has no directory concept", S3);
         Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("path").resolve("to").resolve("directory");
 
         Path directory = Files.createDirectories(pathToDirectory);
