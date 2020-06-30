@@ -35,7 +35,7 @@
 	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
 	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
 	                	A mountpoint is displayed in red if it was previously selected but no longer available.
-	                	You won't be able to close save the dialog as long as you don't select a valid i.e. known mountpoint.
+	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
 	                </li>
 	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
 						relative to the workflow or mountpoint.
@@ -227,7 +227,7 @@
 		</tab>
 		<tab name="Encoding">
 			<option name="File Encoding">
-				To write a csv file with a different encoding,
+				To write a CSV file with a different encoding,
 				you can select a character set in this tab (UTF-8,
 				UTF-16, etc.), or
 				specify any other encoding supported by your Java VM. The default
