@@ -322,8 +322,8 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
     /**
      * Sets the provided {@link FSCategory} and notifies the listeners if the value changed.</br>
      *
-     * NOTE: This method is intended for the use in the dialog and will fail if the provided {@link FSCategory category} is
-     * not supported by this instance.
+     * NOTE: This method is intended for the use in the dialog and will fail if the provided {@link FSCategory category}
+     * is not supported by this instance.
      *
      * @param category the {@link FSCategory} to set
      * @throws IllegalArgumentException if the provided {@link FSCategory} is not supported by this instance
@@ -385,8 +385,8 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
      *             {@link FSCategory category}
      */
     public FileSystemSpecificConfig getFileSystemSpecifcConfig(final FSCategory category) {
-        return CheckUtils.checkArgumentNotNull(m_fsSpecificConfigs.get(category), "No config for category '%s' available.",
-            category);
+        return CheckUtils.checkArgumentNotNull(m_fsSpecificConfigs.get(category),
+            "No config for category '%s' available.", category);
     }
 
     /**
@@ -406,8 +406,9 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
         if (config.isPresent()) {
             config.get().report(statusConsumer);
         } else {
-            statusConsumer.accept(
-                new DefaultStatusMessage(MessageType.ERROR, "The category specified via flow variable is invalid."));
+            statusConsumer.accept(new DefaultStatusMessage(MessageType.ERROR,
+                "The selected flow variable references a connected file system. Please add the missing file system "
+                    + "connection port."));
         }
     }
 
