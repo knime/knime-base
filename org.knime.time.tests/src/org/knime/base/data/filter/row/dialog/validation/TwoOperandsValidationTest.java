@@ -45,7 +45,14 @@
 
 package org.knime.base.data.filter.row.dialog.validation;
 
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Test;
+import org.knime.base.data.filter.row.dialog.OperatorParameters;
+import org.knime.base.data.filter.row.dialog.ValidationResult;
+import org.knime.base.data.filter.row.dialog.model.ColumnSpec;
 import org.knime.base.data.filter.row.dialog.model.Operator;
+import org.knime.core.data.def.StringCell;
 import org.mockito.Mock;
 
 @SuppressWarnings("javadoc")
