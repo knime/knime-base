@@ -183,7 +183,7 @@ final class CreateTempDirectoryNodeModel extends NodeModel {
          * folder. The server requires the temp dir to stay when the flow is swapped out (which disposes of this node).
          * Trust that the workflow manager or server delete all temporary directories and files.
         */
-        if (m_configuration.isRelativeTmpFolder()) {
+        if (m_configuration != null && m_configuration.isRelativeTmpFolder()) {
             deleteTmpFolder();
         }
         super.onDispose();
