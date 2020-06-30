@@ -53,9 +53,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -73,10 +76,13 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SaveBackgroundWorker.class);
 
-    private final AbstractSettingsModelFileChooser m_settings;
+    private final SettingsModelWriterFileChooser m_settings;
 
-    SaveBackgroundWorker(final AbstractSettingsModelFileChooser settings) {
+    private final ExistsHandler m_existsHandler;
+
+    SaveBackgroundWorker(final SettingsModelWriterFileChooser settings) {
         m_settings = settings;
+        m_existsHandler = createExistsHandler(settings);
     }
 
     @Override
@@ -86,7 +92,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
             final FSPath path = accessor.getOutputPath(consumer);
             if (Files.exists(path)) {
                 try {
-                    return createAlreadyExistsMsg(path, Files.readAttributes(path, BasicFileAttributes.class));
+                    return m_existsHandler.create(path, Files.readAttributes(path, BasicFileAttributes.class));
                 } catch (IOException ex) {
                     LOGGER.error("Can't access attributes of existing path", ex);
                     return new DefaultStatusMessage(MessageType.ERROR, "Can't access attributes of %s.", path);
@@ -97,28 +103,78 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         }
     }
 
-    private StatusMessage createAlreadyExistsMsg(final Path path, final BasicFileAttributes attrs) {
-        switch (m_settings.getFilterModeModel().getFilterMode().getFileSelectionMode()) {
-            case DIRECTORIES_ONLY:
-                return attrs.isDirectory()
-                    ? mkFolderOverwriteWarning(path)
-                    : mkError("Output location '%s' is not a folder.", path);
-            case FILES_AND_DIRECTORIES:
-                return attrs.isDirectory() ? mkFolderOverwriteWarning(path) : mkFileOverwriteWarning(path);
-            case FILES_ONLY:
-                return !attrs.isRegularFile() ? mkError("Output location '%s' is not a file.", path)
-                    : mkFileOverwriteWarning(path);
+    private ExistsHandler createExistsHandler(final SettingsModelWriterFileChooser settings) {
+        switch (settings.getFileOverwritePolicy()) {
+            case APPEND:
+                return createAppendHandler(settings);
+            case FAIL:
+                return SaveBackgroundWorker::createFailStatusMsg;
+            case IGNORE:
+                return (p, a) -> SUCCESS_MSG;
+            case OVERWRITE:
+                return SaveBackgroundWorker::createOverwriteStatusMsg;
             default:
-                throw new IllegalStateException("Unreachable case.");
+                throw new IllegalStateException("Unknown overwrite policy: " + m_settings.getFileOverwritePolicy());
         }
     }
 
-    private static StatusMessage mkFileOverwriteWarning(final Path path) {
-        return mkWarning("Output file '%s' already exists and might be overwritten", path);
+    private static AppendHandler createAppendHandler(final SettingsModelWriterFileChooser settings) {
+        final FileSelectionMode fileSelectionMode = settings.getFilterModeModel().getFilterMode().getFileSelectionMode();
+        switch (fileSelectionMode) {
+            case DIRECTORIES_ONLY:
+                return new AppendHandler("folder", BasicFileAttributes::isDirectory);
+            case FILES_AND_DIRECTORIES:
+                // yes, it's expected that we accept everything
+                return new AppendHandler("file or folder", a -> true);
+            case FILES_ONLY:
+                return new AppendHandler("file", BasicFileAttributes::isRegularFile);
+            default:
+                throw new IllegalStateException("Unknown file selection mode: " + fileSelectionMode);
+        }
     }
 
-    private static StatusMessage mkFolderOverwriteWarning(final Path path) {
-        return mkWarning("Output folder '%s' already exists and might be overwritten", path);
+    private interface ExistsHandler {
+        StatusMessage create(final Path path, final BasicFileAttributes attrs);
+    }
+
+    private static class AppendHandler implements ExistsHandler {
+
+        private final String m_expectedEntity;
+
+        private final Predicate<BasicFileAttributes> m_successPredicate;
+
+        AppendHandler(final String expectedEntity, final Predicate<BasicFileAttributes> predicate) {
+            m_expectedEntity = expectedEntity;
+            m_successPredicate = predicate;
+        }
+
+        @Override
+        public StatusMessage create(final Path path, final BasicFileAttributes attrs) {
+            if (m_successPredicate.test(attrs)) {
+                return SUCCESS_MSG;
+            } else {
+                return mkError("The specified location '%s' is not a %s", path, m_expectedEntity);
+            }
+        }
+
+    }
+
+    private static StatusMessage createParentFolderStatusMsg(final Path path, final BasicFileAttributes attrs) {
+        if (!attrs.isDirectory()) {
+            return mkError("The specified location '%s' is not a folder.", path);
+        } else {
+            return SUCCESS_MSG;
+        }
+    }
+
+    private static StatusMessage createFailStatusMsg(final Path path, final BasicFileAttributes attrs) {
+        return mkError("There already exists a %s at the specified location '%s'.",
+            attrs.isDirectory() ? "folder" : "file", path);
+    }
+
+    private static StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
+        return mkWarning("There exists a %s at the specified location '%s' that will be overwritten.",
+            attrs.isDirectory() ? "folder" : "file", path);
     }
 
     private static StatusMessage mkError(final String format, final Object... args) {
