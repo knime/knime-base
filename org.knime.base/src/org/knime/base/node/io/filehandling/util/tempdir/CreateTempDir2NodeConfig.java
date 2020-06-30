@@ -107,9 +107,9 @@ final class CreateTempDir2NodeConfig {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_TEMP_DIR_PARENT, portsConfig,
             CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.FAIL,
             EnumSet.of(FileOverwritePolicy.FAIL));
-        // set the default directory to be the workflow directory (relative -> knime.workflow -> .)
+        // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
-            m_parentDirChooserModel.setLocation(new FSLocation(FSCategory.RELATIVE, "knime.workflow", "."));
+            m_parentDirChooserModel.setLocation(new FSLocation(FSCategory.RELATIVE, "knime.workflow.data", "."));
         }
 
         m_deleteDirOnReset = DEFAULT_ON_RESET;
