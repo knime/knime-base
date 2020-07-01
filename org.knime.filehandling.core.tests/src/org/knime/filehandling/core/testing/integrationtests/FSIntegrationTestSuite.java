@@ -51,6 +51,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.knime.filehandling.core.testing.integrationtests.files.TempDirectoriesTest;
 import org.knime.filehandling.core.testing.integrationtests.files.TempFilesTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystem.GetPathTest;
+import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.AttributesTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.ByteChannelTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.CheckAccessTest;
 import org.knime.filehandling.core.testing.integrationtests.filesystemprovider.CopyTest;
@@ -71,6 +72,7 @@ import org.knime.filehandling.core.testing.integrationtests.path.ToUriTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({//
+    AttributesTest.class,//
     GetPathTest.class, //
     ByteChannelTest.class, //
     CheckAccessTest.class, //

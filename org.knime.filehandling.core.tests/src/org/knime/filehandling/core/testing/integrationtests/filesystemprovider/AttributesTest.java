@@ -1,7 +1,7 @@
 /*
  * ------------------------------------------------------------------------
  *
- *  Copyright by KNIME AG, Zurich, Switzerland
+  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -98,5 +101,18 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         assertFalse(Files.isReadable(testFile));
         assertFalse(Files.isWritable(testFile));
         assertFalse(Files.isHidden(testFile));
+    }
+
+    @Test
+    public void test_get_file_attribute_view() throws Exception {
+        final Path file = m_testInitializer.createFile("file");
+
+        final BasicFileAttributeView view = Files.getFileAttributeView(file, BasicFileAttributeView.class);
+        final BasicFileAttributes attribs = view.readAttributes();
+
+        assertTrue(attribs.isRegularFile());
+        assertFalse(attribs.isDirectory());
+        assertFalse(attribs.isOther());
+        assertTrue(attribs.lastModifiedTime().toInstant().isBefore(Instant.now()));
     }
 }
