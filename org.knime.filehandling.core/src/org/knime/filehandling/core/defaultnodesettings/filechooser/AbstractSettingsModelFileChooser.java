@@ -94,6 +94,9 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     private static final DefaultStatusMessage NO_LOCATION_ERROR =
         new DefaultStatusMessage(MessageType.ERROR, "Please specify a location");
 
+    private static final DefaultStatusMessage TRAILING_OR_LEADING_WHITESPACE_ERROR = new DefaultStatusMessage(
+        MessageType.ERROR, "The location contains leading and/or trailing whitespaces, please remove them");
+
     private final FileSystemConfiguration<FSLocationConfig> m_fsConfig;
 
     private final String m_configName;
@@ -144,7 +147,6 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
         checkLocation();
-        CheckUtils.checkSetting(getLocation().getPath().length() > 0, "Please specify a location");
         m_fsConfig.configureInModel(specs, statusMessageConsumer);
     }
 
@@ -361,8 +363,12 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     }
 
     private void reportOnLocation(final Consumer<StatusMessage> messageConsumer) {
-        if (getLocation().getPath().length() == 0) {
+        final String path = getLocation().getPath();
+        if (path.length() == 0) {
             messageConsumer.accept(NO_LOCATION_ERROR);
+        }
+        if (!path.equals(path.trim())) {
+            messageConsumer.accept(TRAILING_OR_LEADING_WHITESPACE_ERROR);
         }
     }
 
