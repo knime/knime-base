@@ -14,22 +14,6 @@
 <entry key="state" type="xstring" value="CONFIGURED"/>
 <config key="workflow_credentials"/>
 <config key="nodes">
-<config key="node_1">
-<entry key="id" type="xint" value="1"/>
-<entry key="node_settings_file" type="xstring" value="Table Creator (#1)/settings.xml"/>
-<entry key="node_is_meta" type="xboolean" value="false"/>
-<entry key="node_type" type="xstring" value="NativeNode"/>
-<entry key="ui_classname" type="xstring" value="org.knime.core.node.workflow.NodeUIInformation"/>
-<config key="ui_settings">
-<config key="extrainfo.node.bounds">
-<entry key="array-size" type="xint" value="4"/>
-<entry key="0" type="xint" value="504"/>
-<entry key="1" type="xint" value="337"/>
-<entry key="2" type="xint" value="128"/>
-<entry key="3" type="xint" value="84"/>
-</config>
-</config>
-</config>
 </config>
 <config key="connections"/>
 <config key="workflow_editor_settings">
