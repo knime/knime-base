@@ -117,4 +117,24 @@ public class LocalRelativeToTestUtil {
     public static Path getDummyWorkflowPath() throws IOException {
         return findInPlugin(DUMMY_WORKFLOW).toPath();
     }
+
+    /**
+     * @param fs
+     * @return the local path that corresponds to the working directory of the given file system.
+     * @throws IOException
+     */
+    public static Path determineLocalWorkingDirectory(final LocalRelativeToFileSystem fs) throws IOException {
+        return determineLocalPath(fs, fs.getWorkingDirectory());
+    }
+
+    /**
+     * @param fs
+     * @param path
+     * @return the local path that corresponds to the given path in the given file system.
+     * @throws IOException
+     */
+    public static Path determineLocalPath(final LocalRelativeToFileSystem fs, final RelativeToPath path) throws IOException {
+        return fs.toRealPathWithAccessibilityCheck(path);
+    }
+
 }

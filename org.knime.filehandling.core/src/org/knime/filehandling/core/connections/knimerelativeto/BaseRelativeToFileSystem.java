@@ -151,9 +151,16 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
         return PATH_SEPARATOR;
     }
 
+    /**
+     * @return the path to the one and only root directory in this file system.
+     */
+    public RelativeToPath getRoot() {
+        return getPath(BaseRelativeToFileSystem.PATH_SEPARATOR);
+    }
+
     @Override
     public Iterable<Path> getRootDirectories() {
-        return Collections.singletonList(getPath(getSeparator()));
+        return Collections.singletonList(getRoot());
     }
 
     /**

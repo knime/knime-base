@@ -61,31 +61,37 @@ import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
  */
 public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
 
-    private final Path m_localMountpointRoot;
+    private final Path m_localRoot;
 
     private WorkflowManager m_workflowManager;
 
     /**
      * Default constructor.
-     * @param localMountPointRoot
+     * @param localRoot
      *
      * @throws IOException
      */
-    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localMountPointRoot) throws IOException {
-        super(fsConnection, getLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
-        m_localMountpointRoot = localMountPointRoot;
-    }
-
-    private static Path getLocalWorkingDirectory(final LocalRelativeToFileSystem fs) throws IOException {
-        return fs.toRealPathWithAccessibilityCheck(fs.getWorkingDirectory());
+    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localRoot) throws IOException {
+        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
+        m_localRoot = localRoot;
     }
 
     @Override
     protected void beforeTestCaseInternal() throws IOException {
         // repopulate mountpoint with test fixture and load workflow
-        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localMountpointRoot);
+        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localRoot);
         Files.createDirectories(getLocalTestCaseScratchDir());
     }
+
+    @Override
+    protected Path getLocalTestCaseScratchDir() {
+        if (getFileSystem().isWorkflowRelativeFileSystem()) {
+            return getLocalWorkingDirectory().getParent().resolve(Integer.toString(getTestCaseId()));
+        } else {
+            return getLocalWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
+        }
+    }
+
 
     @Override
     protected void afterTestCaseInternal() throws IOException {
@@ -95,14 +101,18 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
             NodeContext.removeLastContext();
         }
 
-        LocalRelativeToTestUtil.clearDirectoryContents(m_localMountpointRoot);
+        LocalRelativeToTestUtil.clearDirectoryContents(m_localRoot);
     }
 
-
     @Override
-    public RelativeToPath createFileWithContent(final String content, final String... pathComponents)
-        throws IOException {
-        createLocalFileWithContent(content, pathComponents);
-        return makePath(pathComponents);
+    protected RelativeToPath toFSPath(final Path localPath) {
+        final Path relLocalPath = m_localRoot.relativize(localPath);
+
+        RelativeToPath toReturn = getFileSystem().getRoot();
+        for (Path localPathComp : relLocalPath) {
+            toReturn = (RelativeToPath) toReturn.resolve(localPathComp.toString());
+        }
+
+        return toReturn;
     }
 }

@@ -163,6 +163,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_dot_directory() throws Exception {
+        ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
+            KNIME_LOCAL_RELATIVE_WORKFLOW);
+
         // force creation of scratch dir
         m_testInitializer.createFile("file");
 

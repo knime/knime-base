@@ -65,16 +65,17 @@ public class RelativeToWorkflowDataFSTestInitializerProvider implements FSTestIn
 
     @SuppressWarnings("resource")
     @Override
-    public LocalRelativeToFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
-        final Path localMountPointRoot = Files.createTempDirectory("knime-relative-workflow-test");
+    public RelativeToWorkflowDataFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
 
-        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
+        final Path tmpDir = Files.createTempDirectory("knime-relative-workflow-test");
+
+        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(tmpDir);
 
         final WorkflowDataRelativeFSConnection fsConnection = new WorkflowDataRelativeFSConnection(true);
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
-        LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
+        LocalRelativeToTestUtil.clearDirectoryContents(tmpDir);
 
-        return new LocalRelativeToFSTestInitializer(fsConnection, localMountPointRoot);
+        return new RelativeToWorkflowDataFSTestInitializer(fsConnection);
     }
 
     @Override

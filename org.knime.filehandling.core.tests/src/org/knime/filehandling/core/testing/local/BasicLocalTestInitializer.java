@@ -96,7 +96,7 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
     @SuppressWarnings({"unchecked", "resource"})
     @Override
     public P getTestCaseScratchDir() {
-        return (P)getFileSystem().getWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
+        return toFSPath(getLocalTestCaseScratchDir());
     }
 
     /**
@@ -104,6 +104,19 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
      */
     protected Path getLocalTestCaseScratchDir() {
         return m_localWorkingDir.resolve(Integer.toString(getTestCaseId()));
+    }
+
+    protected Path getLocalWorkingDirectory() {
+        return m_localWorkingDir;
+    }
+
+    protected abstract P toFSPath(final Path localPath);
+
+    // protected abstract Path toLocalPath(final FSPath path);
+
+    @Override
+    public P createFileWithContent(final String content, final String... pathComponents) {
+        return toFSPath(createLocalFileWithContent(content, pathComponents));
     }
 
     /**

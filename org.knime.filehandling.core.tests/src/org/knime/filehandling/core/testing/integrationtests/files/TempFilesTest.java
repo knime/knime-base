@@ -62,6 +62,9 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
     @SuppressWarnings("resource")
     @Test
     public void test_create_temp_file_in_working_dir() throws IOException {
+        ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
+            KNIME_LOCAL_RELATIVE_WORKFLOW);
+
         final FSPath tempFile = FSFiles.createTempFile(m_connection.getFileSystem());
         assertTrue(Files.isRegularFile(tempFile));
         assertEquals(m_connection.getFileSystem().getWorkingDirectory(), tempFile.getParent());
@@ -69,6 +72,9 @@ public class TempFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_file_using_relative_parent() throws IOException {
+        ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
+            KNIME_LOCAL_RELATIVE_WORKFLOW);
+
         final FSPath tempFile = FSFiles.createTempFile(getFileSystem().getPath("."));
         assertTrue(Files.isRegularFile(tempFile));
         assertEquals(m_connection.getFileSystem().getWorkingDirectory(),

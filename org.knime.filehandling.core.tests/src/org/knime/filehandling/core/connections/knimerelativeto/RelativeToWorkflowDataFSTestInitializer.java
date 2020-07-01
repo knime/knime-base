@@ -44,32 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Jul 1, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.local;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.knime.filehandling.core.connections.local.LocalFSConnection;
-import org.knime.filehandling.core.connections.local.LocalFileSystem;
-import org.knime.filehandling.core.connections.local.LocalPath;
+import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
 
 /**
- * Implementation of a local file system test initializer.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-public class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalFileSystem> {
+public class RelativeToWorkflowDataFSTestInitializer
+    extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+
+    final Path m_localRoot;
 
     /**
-     * Creates a new instance with a test root folder in the systems temporary directory.
+     * Creates a new instance.
      *
+     * @param fsConnection
      * @throws IOException
      */
-    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
-        super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
+    public RelativeToWorkflowDataFSTestInitializer(final WorkflowDataRelativeFSConnection fsConnection) throws IOException {
+        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory(fsConnection.getFileSystem()));
+        m_localRoot = LocalRelativeToTestUtil.determineLocalPath(getFileSystem(), getFileSystem().getRoot());
+    }
+
+    @Override
+    protected RelativeToPath toFSPath(final Path localPath) {
+        final Path relLocalPath = m_localRoot.relativize(localPath);
+
+        RelativeToPath toReturn = getFileSystem().getRoot();
+        for (Path localPathComp : relLocalPath) {
+            toReturn = (RelativeToPath) toReturn.resolve(localPathComp.toString());
+        }
+        return toReturn;
     }
 
     @Override
@@ -77,9 +90,4 @@ public class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath,
         Files.createDirectories(getLocalTestCaseScratchDir());
     }
 
-    @SuppressWarnings("resource")
-    @Override
-    protected LocalPath toFSPath(final Path localPath) {
-        return getFileSystem().getPath(localPath.toString());
-    }
 }

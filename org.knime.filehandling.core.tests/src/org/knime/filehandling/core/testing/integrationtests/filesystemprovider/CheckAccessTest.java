@@ -79,7 +79,6 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_empty_path_exists() throws IOException {
-        Files.createDirectories(getFileSystem().getWorkingDirectory());
         final Path emptyPath = getFileSystem().getPath("");
 
         emptyPath.getFileSystem().provider().checkAccess(emptyPath);

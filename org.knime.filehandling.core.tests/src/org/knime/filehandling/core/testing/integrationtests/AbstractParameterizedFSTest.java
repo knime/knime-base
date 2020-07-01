@@ -80,6 +80,11 @@ public abstract class AbstractParameterizedFSTest {
     protected static final String S3 = "amazon-s3";
     protected static final String GS = "google-cs";
 
+    protected static final String KNIME_LOCAL_RELATIVE_WORKFLOW = "knime-local-relative-workflow";
+    protected static final String KNIME_REST_RELATIVE_WORKFLOW = "knime-rest-relative-workflow";
+    protected static final String KNIME_REST_RELATIVE_MOUNTPOINT = "knime-rest-relative-mountpoint";
+    protected static final String KNIME_REST = "knime-rest";
+
     private static FSTestInitializer currentTestInitializer;
 
     @Rule
