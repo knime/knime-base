@@ -122,7 +122,7 @@ public class BaseFileAttributeView implements PosixFileAttributeView {
     @Override
     public PosixFileAttributes readAttributes() throws IOException {
         final Class<? extends BasicFileAttributes> type =
-            m_type == PosixFileAttributeView.class ? PosixFileAttributes.class : BaseFileAttributes.class;
+            m_type == PosixFileAttributeView.class ? PosixFileAttributes.class : BasicFileAttributes.class;
         return (PosixFileAttributes)m_path.getFileSystem().provider().readAttributes(m_path, type);
     }
 

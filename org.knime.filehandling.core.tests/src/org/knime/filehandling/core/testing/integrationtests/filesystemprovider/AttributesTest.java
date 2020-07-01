@@ -46,6 +46,7 @@
 package org.knime.filehandling.core.testing.integrationtests.filesystemprovider;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -54,6 +55,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -94,7 +96,7 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void test_get_attributes_of_non_existsing_path() throws Exception {
+    public void test_get_attributes_of_non_existing_path() throws Exception {
         final Path testFile = m_testInitializer.makePath("non-existing-file");
         assertFalse(Files.isRegularFile(testFile));
         assertFalse(Files.isDirectory(testFile));
@@ -104,7 +106,7 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void test_get_file_attribute_view() throws Exception {
+    public void test_get_file_attribute_view_file_type() throws Exception {
         final Path file = m_testInitializer.createFile("file");
 
         final BasicFileAttributeView view = Files.getFileAttributeView(file, BasicFileAttributeView.class);
@@ -113,6 +115,24 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         assertTrue(attribs.isRegularFile());
         assertFalse(attribs.isDirectory());
         assertFalse(attribs.isOther());
-        assertTrue(attribs.lastModifiedTime().toInstant().isBefore(Instant.now()));
+
+    }
+
+    @Test
+    public void test_get_file_attribute_view_mtime() throws Exception {
+        ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST_RELATIVE_MOUNTPOINT);
+        ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST_RELATIVE_WORKFLOW);
+        ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST);
+
+        final Path file = m_testInitializer.createFile("file");
+
+        final BasicFileAttributeView view = Files.getFileAttributeView(file, BasicFileAttributeView.class);
+        final BasicFileAttributes attribs = view.readAttributes();
+
+        final long fileMtime = attribs.lastModifiedTime().to(TimeUnit.SECONDS);
+        final long now = Instant.now().getEpochSecond();
+        assertNotEquals(0, fileMtime);
+        // assert that the mtime is in the "vicinity" of now
+        assertTrue(Math.abs(fileMtime - now) < 60);
     }
 }
