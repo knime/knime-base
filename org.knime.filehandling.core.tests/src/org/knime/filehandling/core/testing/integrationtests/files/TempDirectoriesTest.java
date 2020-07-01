@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -31,7 +33,12 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
     public void test_create_empty_temp_dir() throws IOException {
         final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir());
         assertTrue(Files.isDirectory(tempDir));
-        assertEquals(0, Files.list(tempDir).toArray().length);
+
+        final Path[] paths;
+        try (final Stream<Path> dirStream = Files.list(tempDir)) {
+            paths = dirStream.toArray(Path[]::new);
+        }
+        assertEquals(0, paths.length);
     }
 
     @Test

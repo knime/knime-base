@@ -58,6 +58,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -152,7 +153,10 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         final Path relFile =
             getFileSystem().getWorkingDirectory().relativize(m_testInitializer.createFile("dir", "file"));
 
-        final Path[] dirList = Files.list(relDir).toArray(Path[]::new);
+        final Path[] dirList;
+        try (Stream<Path> dirStream = Files.list(relDir)) {
+            dirList = dirStream.toArray(Path[]::new);
+        }
         assertEquals(1, dirList.length);
         assertEquals(relFile, dirList[0]);
     }

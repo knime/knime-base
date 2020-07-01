@@ -54,6 +54,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 /**
  * This class is the FS*-specific companion class of {@link Files}, i.e. it consists exclusively of static methods that
@@ -189,7 +190,15 @@ public final class FSFiles {
      */
     public static void deleteRecursively(final Path toDelete) throws IOException {
         AtomicReference<IOException> ioeRef = new AtomicReference<>();
-        Files.walk(toDelete).sorted(Comparator.reverseOrder()).forEach((p) -> deleteSafely(p, ioeRef));
+
+        final Path[] pathsToDelete;
+        try (Stream<Path> stream = Files.walk(toDelete)) {
+            pathsToDelete = stream.sorted(Comparator.reverseOrder()).toArray(Path[]::new);
+        }
+
+        for (Path currToDelete : pathsToDelete) {
+           deleteSafely(currToDelete, ioeRef);
+        }
 
         if (ioeRef.get() != null) {
             throw ioeRef.get();
