@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -119,6 +120,26 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
             // we only care for files and folders
         }
         return result;
+    }
+
+    @Override
+    public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+        final IOException e;
+        if (exc instanceof AccessDeniedException) {
+            e = new AccessDeniedException(((AccessDeniedException)exc).getFile(), null, "Unable to access") {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getMessage() {
+                    return getReason() + " " + getFile();
+                }
+            };
+        } else {
+            e = exc;
+        }
+
+        return super.visitFileFailed(file, e);
     }
 
     @Override
