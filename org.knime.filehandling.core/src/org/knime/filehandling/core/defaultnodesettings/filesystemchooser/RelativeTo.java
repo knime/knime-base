@@ -81,18 +81,21 @@ public enum RelativeTo {
 
     @Override
     public String toString() {
-        return m_settingsValue;
+        return m_label;
     }
 
     /**
-     * Retrieves the {@link RelativeTo} corresponding to the provided string (as obtained from {@link RelativeTo#toString()}).
+     * Retrieves the {@link RelativeTo} corresponding to the provided string (as obtained from
+     * {@link RelativeTo#getSettingsValue()}).
      *
-     * @param string representation of the {@link RelativeTo} constant (as obtained from {@link RelativeTo#toString()}).
+     * @param string representation of the {@link RelativeTo} constant (as obtained from
+     *            {@link RelativeTo#getSettingsValue()}).
      * @return the {@link RelativeTo} constant corresponding to <b>string</b>
      */
-    public static RelativeTo fromString(final String string) {
+    public static RelativeTo fromSettingsValue(final String string) {
         return Arrays.stream(RelativeTo.values())//
-            .filter(r -> r.m_settingsValue.equals(string))//
+            .filter(r -> r.m_settingsValue.equals(
+                string))//
             .findFirst()//
             .orElseThrow(() -> new IllegalArgumentException(
                 String.format("Unknown relative to option '%s' encountered.", string)));
@@ -106,4 +109,14 @@ public enum RelativeTo {
     public String getLabel() {
         return m_label;
     }
+
+    /**
+     * Provides the settings value.
+     *
+     * @return the settings value
+     */
+    public String getSettingsValue() {
+        return m_settingsValue;
+    }
+
 }

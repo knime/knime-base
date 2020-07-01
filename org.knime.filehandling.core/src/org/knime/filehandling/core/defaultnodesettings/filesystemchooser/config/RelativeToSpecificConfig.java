@@ -118,13 +118,13 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     @Override
     public FSLocationSpec getLocationSpec() {
-        return new DefaultFSLocationSpec(FSCategory.RELATIVE, m_relativeTo.toString());
+        return new DefaultFSLocationSpec(FSCategory.RELATIVE, m_relativeTo.getSettingsValue());
     }
 
     @Override
     public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        setRelativeTo(RelativeTo.fromString(settings.getString(CFG_RELATIVE_TO, DEFAULT.toString())));
+        setRelativeTo(RelativeTo.fromSettingsValue(settings.getString(CFG_RELATIVE_TO, DEFAULT.getSettingsValue())));
     }
 
     @Override
@@ -134,7 +134,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     private static RelativeTo readRelativeTo(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            return RelativeTo.fromString(settings.getString(CFG_RELATIVE_TO));
+            return RelativeTo.fromSettingsValue(settings.getString(CFG_RELATIVE_TO));
         } catch (IllegalArgumentException iae) {
             throw new InvalidSettingsException("Can't load relative to: " + iae.getMessage(), iae);
         }
@@ -152,13 +152,13 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     @Override
     public void save(final NodeSettingsWO settings) {
-        settings.addString(CFG_RELATIVE_TO, m_relativeTo.toString());
+        settings.addString(CFG_RELATIVE_TO, m_relativeTo.getSettingsValue());
     }
 
     @Override
     public void overwriteWith(final FSLocationSpec locationSpec) {
         setRelativeTo(
-            RelativeTo.fromString(locationSpec.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
+            RelativeTo.fromSettingsValue(locationSpec.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
                 String.format("The provided FSLocation '%s' does not provide a relative-to option.", locationSpec)))));
     }
 
@@ -173,7 +173,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
         CheckUtils.checkSetting(specifier.isPresent(),
             "No relative to option specified for the relative to file system.");
         try {
-            RelativeTo.fromString(specifier.get());
+            RelativeTo.fromSettingsValue(specifier.get());
         } catch (IllegalArgumentException iae) {
             throw new InvalidSettingsException(
                 String.format("Unsupported relative to option '%s' encountered.", specifier.get()), iae);
