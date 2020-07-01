@@ -48,13 +48,13 @@
  */
 package org.knime.filehandling.core.testing.local;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -122,12 +122,9 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
 
         try {
             Files.createDirectories(file.getParent());
-            final Path createdPath = Files.createFile(file);
-            try (BufferedWriter writer = Files.newBufferedWriter(createdPath)) {
-                writer.write(content);
-            }
+            Files.write(file, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            return createdPath;
+            return file;
         } catch (final IOException e) {
             throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
         }

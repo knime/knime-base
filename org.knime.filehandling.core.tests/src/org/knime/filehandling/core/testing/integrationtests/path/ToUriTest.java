@@ -49,12 +49,14 @@
 package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.StringTokenizer;
 
+import org.eclipse.core.runtime.Platform;
 import org.junit.Test;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.integrationtests.AbstractParameterizedFSTest;
@@ -72,8 +74,12 @@ public class ToUriTest extends AbstractParameterizedFSTest {
     }
 
     private static void assertEqualNameComponents(final String uriPath, final Path p) {
+        final String rootUriPath = p.getRoot().toUri().getPath();
+        assertTrue(uriPath.startsWith(rootUriPath));
+
+
         assertEquals("/", Character.toString(uriPath.charAt(0)));
-        StringTokenizer tok = new StringTokenizer(uriPath.substring(1), "/");
+        StringTokenizer tok = new StringTokenizer(uriPath.substring(rootUriPath.length()), "/");
         int currNameComponent = 0;
         while (tok.hasMoreTokens()) {
             final String currToken = tok.nextToken();
@@ -112,6 +118,9 @@ public class ToUriTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_toUri_with_question_marks() {
+        if (Platform.getOS().equals(Platform.OS_WIN32)) {
+            ignoreWithReason("Local file system on Windows does not permit question marks in filenames", LOCAL);
+        }
         final Path p = m_testInitializer.makePath("with?some?questionmarks", "bla");
         final URI uri = p.toUri();
 

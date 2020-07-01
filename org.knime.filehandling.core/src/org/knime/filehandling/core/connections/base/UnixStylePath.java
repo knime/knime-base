@@ -618,6 +618,6 @@ public abstract class UnixStylePath extends FSPath {
      * @return whether this path is the empty path
      */
     public boolean isEmptyPath() {
-        return !isAbsolute() && m_pathParts.size() == 1 && m_pathParts.get(0).equals("");
+        return !isAbsolute() && m_pathParts.size() == 1 && m_pathParts.get(0).isEmpty();
     }
 }

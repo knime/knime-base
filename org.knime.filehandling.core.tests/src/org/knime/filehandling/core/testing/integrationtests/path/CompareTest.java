@@ -46,6 +46,7 @@
 package org.knime.filehandling.core.testing.integrationtests.path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -102,16 +103,14 @@ public class CompareTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void testCompareAbsolutRealtive() {
+    public void testCompareAbsoluteRelative() {
         final FileSystem fileSystem = m_connection.getFileSystem();
-        final String sep = fileSystem.getSeparator();
-        final String that = sep + "abc" + sep + "def" + sep;
-        final String other = "abc" + sep + "def";
-        final Path path = fileSystem.getPath(that);
-        final Path otherPath = fileSystem.getPath(other);
+        final Path path = fileSystem.getPath("abc", "def");
+        final Path otherPath = fileSystem.getRootDirectories().iterator().next() //
+                .resolve("abc") //
+                .resolve("def");
 
-        System.err.println("Testing" + path);
-        assertEquals(that.toString().compareTo(other.toString()), path.compareTo(otherPath));
+        assertNotEquals(0, path.compareTo(otherPath));
     }
 
     @Test

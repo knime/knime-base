@@ -54,6 +54,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
@@ -187,19 +188,42 @@ public class LocalPath extends FSPath {
         return new LocalPath(m_fileSystem, m_wrappedPath.resolveSibling(other));
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public Path relativize(final Path other) {
-        if (!(other instanceof LocalPath)) {
+    public Path relativize(final Path obj) {
+        if (!(obj instanceof LocalPath)) {
             throw new IllegalArgumentException(LocalFileSystemProvider.PATH_FROM_DIFFERENT_PROVIDER_MESSAGE);
         }
 
-        return new LocalPath(m_fileSystem, m_wrappedPath.relativize(((LocalPath)other).m_wrappedPath));
+        // the following we are doing to monkey patch a bug in WindowsPath (default file system path on Windows),
+        // where emptyPath.relativize("a") will return a wrong result (..\a).
+        final LocalPath other = (LocalPath)obj;
+        if (other.equals(this)) {
+            return new LocalPath(getFileSystem(), Paths.get(""));
+        }
+        if (isAbsolute() != other.isAbsolute()) {
+            throw new IllegalArgumentException("Cannot relativize an absolute path with a relative path.");
+        }
+        if (isEmptyPath()) {
+            return other;
+        }
+
+        return new LocalPath(m_fileSystem, m_wrappedPath.relativize(other.m_wrappedPath));
     }
+
+    /**
+     * @return whether this path is the empty path
+     */
+    public boolean isEmptyPath() {
+        return !isAbsolute() && m_wrappedPath.getNameCount() == 1 && m_wrappedPath.getName(0).toString().isEmpty();
+    }
+
 
     @Override
     public URI toUri() {
         try {
-            return new URI(LocalFileSystem.FS_TYPE.getTypeId(), null, toAbsolutePath().toString(), null);
+            final URI wrappedPathUri = ((LocalPath)toAbsolutePath()).m_wrappedPath.toUri();
+            return new URI(LocalFileSystem.FS_TYPE.getTypeId(), null, wrappedPathUri.getPath(), null);
         } catch (URISyntaxException ex) {
             throw new IllegalStateException(ex);
         }
