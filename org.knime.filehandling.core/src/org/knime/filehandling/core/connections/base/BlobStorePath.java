@@ -49,7 +49,10 @@
 package org.knime.filehandling.core.connections.base;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Base implementation for blob store paths. This class adds a flag that hints whether this
@@ -102,6 +105,27 @@ public abstract class BlobStorePath extends UnixStylePath {
     protected boolean lastComponentUsesRelativeNotation() {
         final String lastComponent = m_pathParts.get(m_pathParts.size() - 1);
         return lastComponent.equals(".") || lastComponent.equals("..") || lastComponent.isEmpty();
+    }
+
+    @Override
+    public Stream<String> stringStream() {
+        if (getNameCount() == 0) {
+            return Collections.<String>emptySet().stream();
+        }
+
+        if (isEmptyPath()) {
+            return Collections.singleton("").stream();
+        }
+
+        @SuppressWarnings("resource")
+        final String sep = getFileSystem().getSeparator();
+        final String[] nameComponents = new String[getNameCount()];
+        for (int i = 0; i < nameComponents.length -1; i++) {
+            nameComponents[i] = m_pathParts.get(i) + sep;
+        }
+
+        nameComponents[nameComponents.length -1] = toString();
+        return Arrays.stream(nameComponents);
     }
 
     /**

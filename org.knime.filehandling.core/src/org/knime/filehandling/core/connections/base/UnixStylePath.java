@@ -63,6 +63,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSPath;
@@ -156,6 +157,13 @@ public abstract class UnixStylePath extends FSPath {
                 .forEach(splitList::add);
         }
         return splitList;
+    }
+
+    @Override
+    public Stream<String> stringStream() {
+        // slightly more efficient than going from string to path and back to string,
+        // as the super implementation would do
+        return m_pathParts.stream();
     }
 
     @Override

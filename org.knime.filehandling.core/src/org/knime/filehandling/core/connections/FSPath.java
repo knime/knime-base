@@ -49,6 +49,8 @@
 package org.knime.filehandling.core.connections;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * Abstract super class for implemented by all NIO file systems in KNIME to represent paths. This class adds conversion
@@ -61,6 +63,29 @@ public abstract class FSPath implements Path {
 
     @Override
     public abstract FSFileSystem<? extends FSPath> getFileSystem();
+
+    /**
+     * Creates a {@link Stream} over the name components of this path, that result from invoking {@link #toString()} on
+     * each of them.
+     *
+     * @return a {@link Stream} over the stringified name components of this path.
+     */
+    public Stream<String> stringStream() {
+        return pathStream().map((p) -> p.toString());
+    }
+
+    /**
+     * Creates a {@link Stream} over the name components of this path.
+     *
+     * @return a {@link Stream} over the name components of this path.
+     */
+    public Stream<Path> pathStream() {
+        final Path[] paths = new Path[getNameCount()];
+        for (int i = 0; i < getNameCount(); i++) {
+            paths[i] = getName(i);
+        }
+        return Arrays.stream(paths);
+    }
 
     /**
      * Converts this path into an {@link FSLocation} object.
