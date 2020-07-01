@@ -155,12 +155,12 @@ public class PathTest extends AbstractParameterizedFSTest {
     @Test
     public void testRelativizeAgainstRootPath() {
         final FileSystem fileSystem = getFileSystem();
-        final Path root = fileSystem.getPath("/");
-        final Path somePath = fileSystem.getPath("/some/path");
+        final Path root = fileSystem.getRootDirectories().iterator().next();
+        final Path somePath = root.resolve("/some/path");
         final Path relativePath = root.relativize(somePath);
         assertTrue(somePath.isAbsolute());
         assertFalse(relativePath.isAbsolute());
-        assertEquals("some/path", relativePath.toString());
+        assertEquals(fileSystem.getPath("some/path"), relativePath);
     }
 
     @Test
@@ -256,40 +256,46 @@ public class PathTest extends AbstractParameterizedFSTest {
     public void testNormalize() {
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("/a/b/../../abc/././de");
+        final Path normalizedPath = fileSystem.getPath("/abc/de");
 
-        assertEquals("/abc/de", path.normalize().toString());
+        assertEquals(normalizedPath, path.normalize());
     }
 
     @Test
     public void testNormalizeAbsolute() {
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("/../b");
+        final Path normalizedPath = fileSystem.getPath("/b");
 
-        assertEquals("/b", path.normalize().toString());
+        assertEquals(normalizedPath, path.normalize());
     }
 
     @Test
     public void testNormalizeAbsolute2() {
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("/../../b");
+        final Path normalizedPath = fileSystem.getPath("/b");
 
-        assertEquals("/b", path.normalize().toString());
+        assertEquals(normalizedPath, path.normalize());
     }
 
     @Test
     public void testNormalizeRelative() {
         final FileSystem fileSystem = getFileSystem();
+        final String separator = fileSystem.getSeparator();
         final Path path = fileSystem.getPath("../b");
+        final Path oriPath = fileSystem.getPath("../b");
 
-        assertEquals("../b", path.normalize().toString());
+        assertEquals(oriPath, path.normalize());
     }
 
     @Test
     public void testNormalizeRelative2() {
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath("../../b");
+        final Path oriPath = fileSystem.getPath("../../b");
 
-        assertEquals("../../b", path.normalize().toString());
+        assertEquals(oriPath, path.normalize());
     }
 
     @Test

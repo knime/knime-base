@@ -66,9 +66,10 @@ public class CompareTest extends AbstractParameterizedFSTest {
     public void testCompareRoot() {
         ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
         ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
-        final String that = "/";
-        final String other = "";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String sep = fileSystem.getSeparator();
+        final String that = sep;
+        final String other = "";
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
 
@@ -77,9 +78,10 @@ public class CompareTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testCompareDifferent() {
-        final String that = "/abc/def/";
-        final String other = "/aaa/be/erk";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String sep = fileSystem.getSeparator();
+        final String that = sep + "abc" + sep + "def" + sep;
+        final String other = sep + "aaa" + sep + "be" + sep + "erk";
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
 
@@ -88,30 +90,35 @@ public class CompareTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testCompareChild() {
-        final String that = "abc/def";
-        final String other = "abc/def/hij";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String sep = fileSystem.getSeparator();
+        final String that = "abc" + sep + "def";
+        final String other = "abc" + sep + "def" + sep + "hij";
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
 
+        // note:
         assertEquals(that.compareTo(other), path.compareTo(otherPath));
     }
 
     @Test
     public void testCompareAbsolutRealtive() {
-        final String that = "/abc/def/";
-        final String other = "abc/def";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String sep = fileSystem.getSeparator();
+        final String that = sep + "abc" + sep + "def" + sep;
+        final String other = "abc" + sep + "def";
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
 
-        assertEquals(that.compareTo(other), path.compareTo(otherPath));
+        System.err.println("Testing" + path);
+        assertEquals(that.toString().compareTo(other.toString()), path.compareTo(otherPath));
     }
 
     @Test
     public void testCompareEqual() {
-        final String that = "/abc/def/";
         final FileSystem fileSystem = m_connection.getFileSystem();
+        final String sep = fileSystem.getSeparator();
+        final String that = sep + "abc" + sep + "def" + sep;
         final Path path = fileSystem.getPath(that);
 
         assertEquals(that.compareTo(that), path.compareTo(path));

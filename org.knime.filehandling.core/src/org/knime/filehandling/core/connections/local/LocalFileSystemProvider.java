@@ -61,6 +61,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -269,7 +270,14 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
     public boolean isHidden(final Path path) throws IOException {
         checkFileSystemOpenAndNotClosing();
         final LocalPath localPath = checkCastAndAbsolutizePath(path);
-        return PLATFORM_DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
+
+        try {
+            return PLATFORM_DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
+        } catch (final NoSuchFileException e) {
+            // Windows throws an exception on missing files instead of returning false.
+            // To be in sync with the UNIX and KNIME file system implementations, return false here.
+            return false;
+        }
     }
 
     @Override
