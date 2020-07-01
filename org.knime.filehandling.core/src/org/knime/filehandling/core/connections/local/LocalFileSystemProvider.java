@@ -201,7 +201,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
                 Iterator<Path> wrappedIterator = getWrappingIterator();
                 if (!path.isAbsolute()) {
                     wrappedIterator = new RelativizingPathIterator(wrappedIterator, //
-                        checkedPath.getNameCount() - path.getNameCount());
+                        path);
                 }
                 return wrappedIterator;
             }

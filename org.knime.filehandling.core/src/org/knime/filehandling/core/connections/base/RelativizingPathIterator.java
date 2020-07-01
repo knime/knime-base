@@ -61,17 +61,17 @@ public class RelativizingPathIterator implements Iterator<Path> {
 
     private final Iterator<Path> m_wrappedIterator;
 
-    private final int m_prefixLen;
+    private final Path m_origDir;
 
     /**
      * Create new instance.
      *
      * @param wrappedIterator The path iterator whose paths to relativize.
-     * @param prefixLen Length of the prefix to cut from the paths produced by the wrapped path iterator.
+     * @param origDir The original directory to list.
      */
-    public RelativizingPathIterator(final Iterator<Path> wrappedIterator, final int prefixLen) {
+    public RelativizingPathIterator(final Iterator<Path> wrappedIterator, final Path origDir) {
         m_wrappedIterator = wrappedIterator;
-        m_prefixLen = prefixLen;
+        m_origDir = origDir;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class RelativizingPathIterator implements Iterator<Path> {
 
     @Override
     public Path next() {
-        final Path origNext = m_wrappedIterator.next();
-        return origNext.subpath(m_prefixLen, origNext.getNameCount());
+        final Path next = m_wrappedIterator.next();
+        return m_origDir.resolve(next.getFileName());
     }
 }
