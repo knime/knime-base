@@ -459,7 +459,6 @@ class Joiner3Settings {
      */
     public void loadSettingsInModel(final NodeSettingsRO settings) {
         m_joinMode = JoinMode.valueOf(settings.getString(JOIN_MODE, JoinMode.InnerJoin.name()));
-        System.out.println(String.format("m_joinMode=%s", m_joinMode));
 
         String[] leftJoinColumnsString = settings.getStringArray(LEFT_JOINING_COLUMNS, new String[0]);
         m_leftJoinColumns =
