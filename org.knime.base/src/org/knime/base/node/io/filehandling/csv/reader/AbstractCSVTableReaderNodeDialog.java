@@ -62,7 +62,6 @@ import java.util.Enumeration;
 import java.util.Optional;
 
 import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -122,15 +121,15 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private static final String EMPTY_CARD = "empty";
 
-    private final JTextField m_colDelimiterField;
+    private final JTextField m_colDelimiterField = CSVReaderDialogUtils.mkTextField();
 
-    private final JTextField m_rowDelimiterField;
+    private final JTextField m_rowDelimiterField = CSVReaderDialogUtils.mkTextField();
 
-    private final JTextField m_quoteField;
+    private final JTextField m_quoteField = CSVReaderDialogUtils.mkTextField();
 
-    private final JTextField m_quoteEscapeField;
+    private final JTextField m_quoteEscapeField = CSVReaderDialogUtils.mkTextField();
 
-    private final JTextField m_commentStartField;
+    private final JTextField m_commentStartField = CSVReaderDialogUtils.mkTextField();
 
     private final JCheckBox m_hasRowIDChecker;
 
@@ -178,6 +177,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private final JPanel m_statusProgressCardLayout;
 
+    private final NumberFormatDialog m_numberFormatDialog = new NumberFormatDialog();
+
     private int m_autoDetectionBufferSize;
 
     private final PathSettings m_pathSettings;
@@ -209,18 +210,12 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_tableReaderPreview = new TableReaderPreview<>(multiReader, m_pathSettings, this::saveAndGetConfig);
         m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
-        int textWidth = 3;
         Long stepSize = Long.valueOf(1);
         Long rowStart = Long.valueOf(0);
         Long rowEnd = Long.valueOf(Long.MAX_VALUE);
         Long skipOne = Long.valueOf(1);
         Long initLimit = Long.valueOf(50);
 
-        m_colDelimiterField = new JTextField("###", textWidth);
-        m_rowDelimiterField = new JTextField("###", textWidth);
-        m_quoteField = new JTextField("###", textWidth);
-        m_quoteEscapeField = new JTextField("###", textWidth);
-        m_commentStartField = new JTextField("###", textWidth);
         m_hasRowIDChecker = new JCheckBox("Has row ID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
         m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
@@ -380,6 +375,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_maxColsSpinner.getModel().addChangeListener(changeListener);
 
         m_encodingPanel.addChangeListener(changeListener);
+
+        m_numberFormatDialog.registerDocumentListener(documentListener);
     }
 
     private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() {
@@ -437,6 +434,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.gridy++;
         outerPanel.add(createDataRowsSpecLimitPanel(), gbc);
         gbc.gridy++;
+        outerPanel.add(m_numberFormatDialog.getPanel(), gbc);
+        gbc.gridy++;
 
         for (final JPanel p : getAdvancedPanels()) {
             outerPanel.add(p, gbc);
@@ -452,7 +451,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel createDataRowsSpecLimitPanel() {
         final JPanel specLimitPanel = new JPanel(new GridBagLayout());
         specLimitPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Table specification"));
+            .setBorder(CSVReaderDialogUtils.createBorder("Table specification"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
@@ -475,7 +474,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.insets = new Insets(5, 0, 5, 5);
 
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader memory limits"));
+        panel.setBorder(CSVReaderDialogUtils.createBorder("Reader memory limits"));
         panel.add(m_maxCharsColumnChecker, gbc);
 
         gbc.gridy += 1;
@@ -497,7 +496,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.insets = new Insets(5, 5, 0, 0);
 
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Quote options"));
+        panel.setBorder(CSVReaderDialogUtils.createBorder("Quote options"));
 
         for (final QuoteOption mode : QuoteOption.values()) {
             final JRadioButton b = new JRadioButton(mode.toString());
@@ -524,7 +523,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     private JPanel createOptionsPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel optionsPanel = new JPanel(new GridBagLayout());
-        optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Reader options"));
+        optionsPanel.setBorder(CSVReaderDialogUtils.createBorder("Reader options"));
         gbc.weightx = 1;
         gbc.anchor = GridBagConstraints.FIRST_LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -538,7 +537,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private JPanel createAutoDetectOptionsPanel() {
         final JPanel autoDetectPanel = new JPanel(new GridBagLayout());
-        autoDetectPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Format"));
+        autoDetectPanel.setBorder(CSVReaderDialogUtils.createBorder("Format"));
         final GridBagConstraints gbc = createAndInitGBC();
 
         JPanel buttonPanel = new JPanel(new GridBagLayout());
@@ -706,11 +705,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * @return initialized {@link GridBagConstraints}
      */
     protected static final GridBagConstraints createAndInitGBC() {
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.FIRST_LINE_START;
-        return gbc;
+        return CSVReaderDialogUtils.createAndInitGBC();
     }
 
     @Override
@@ -772,6 +767,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         csvReaderConfig.setCharSetName(s.getCharsetName());
 
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
+
+        m_numberFormatDialog.save(csvReaderConfig);
     }
 
     /**
@@ -869,6 +866,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         fReadSettings.setCharsetName(csvReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
         m_autoDetectionBufferSize = csvReaderConfig.getAutoDetectionBufferSize();
+
+        m_numberFormatDialog.load(csvReaderConfig);
     }
 
     /**

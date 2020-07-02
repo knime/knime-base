@@ -74,10 +74,14 @@ import org.knime.filehandling.core.util.SettingsUtils;
 enum CSVMultiTableReadConfigSerializer implements
     ConfigSerializer<DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>> {
 
-        /**
-         * Singleton instance.
-         */
-        INSTANCE;
+    /**
+     * Singleton instance.
+     */
+    INSTANCE;
+
+    private static final String CFG_DECIMAL_SEPARATOR = "decimal_separator";
+
+    private static final String CFG_THOUSANDS_SEPARATOR = "thousands_separator";
 
     private static final String CFG_NUMBER_OF_LINES_TO_SKIP = "number_of_lines_to_skip";
 
@@ -223,6 +227,9 @@ enum CSVMultiTableReadConfigSerializer implements
 
         cc.limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_MEMORY_PER_COLUMN, true));
         cc.setMaxColumns(settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS, CSVTableReaderConfig.DEFAULT_MAX_COLUMNS));
+
+        cc.setThousandsSeparator(settings.getString(CFG_THOUSANDS_SEPARATOR, "\0"));
+        cc.setDecimalSeparator(settings.getString(CFG_DECIMAL_SEPARATOR, "."));
     }
 
     private static void loadLimitRowsTabInDialog(
@@ -310,6 +317,9 @@ enum CSVMultiTableReadConfigSerializer implements
 
         cc.limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_MEMORY_PER_COLUMN));
         cc.setMaxColumns(settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS));
+
+        cc.setThousandsSeparator(settings.getString(CFG_THOUSANDS_SEPARATOR, Character.toString('\0')));
+        cc.setDecimalSeparator(settings.getString(CFG_DECIMAL_SEPARATOR, "."));
     }
 
     private static void loadLimitRowsTabInModel(
@@ -380,6 +390,8 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.addString(CFG_QUOTE_OPTION, cc.getQuoteOption().name());
         settings.addBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, cc.replaceEmptyWithMissing());
 
+        settings.addString(CFG_THOUSANDS_SEPARATOR, cc.getThousandsSeparator());
+        settings.addString(CFG_DECIMAL_SEPARATOR, cc.getDecimalSeparator());
     }
 
     private static void saveLimitRowsTab(

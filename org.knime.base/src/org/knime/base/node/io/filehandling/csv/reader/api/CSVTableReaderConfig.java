@@ -104,6 +104,10 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
     private QuoteOption m_quoteOption;
 
+    private char m_thousandsSeparator = '\0';
+
+    private char m_decimalSeparator = '.';
+
     /**
      * Constructor.
      */
@@ -410,6 +414,48 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
                 "Only a single character is allowed for %s. Escape sequences, such as \\n can be used.", fieldName);
             return cleanStr.charAt(0);
         }
+    }
+
+    /**
+     * @return the thousandsSeparator
+     */
+    public char getThousandsSeparatorChar() {
+        return m_thousandsSeparator;
+    }
+
+    /**
+     * @return the thousandsSeparator
+     */
+    public String getThousandsSeparator() {
+        return Character.toString(m_thousandsSeparator);
+    }
+
+    /**
+     * @param thousandsSeparator the thousandsSeparator to set
+     */
+    public void setThousandsSeparator(final String thousandsSeparator) {
+        m_thousandsSeparator = getFirstChar(thousandsSeparator, "thousands separator");
+    }
+
+    /**
+     * @return the decimalSeparator
+     */
+    public char getDecimalSeparatorChar() {
+        return m_decimalSeparator;
+    }
+
+    /**
+     * @return the decimalSeparator
+     */
+    public String getDecimalSeparator() {
+        return Character.toString(m_decimalSeparator);
+    }
+
+    /**
+     * @param decimalSeparator the decimalSeparator to set
+     */
+    public void setDecimalSeparator(final String decimalSeparator) {
+        m_decimalSeparator = getFirstChar(decimalSeparator, "decimal separator");
     }
 
 }

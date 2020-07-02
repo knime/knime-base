@@ -58,8 +58,6 @@ import java.util.Map;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.blob.BinaryObjectDataCell;
-import org.knime.core.data.convert.map.CellValueProducer;
-import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.convert.map.DoubleCellValueProducer;
 import org.knime.core.data.convert.map.IntCellValueProducer;
 import org.knime.core.data.convert.map.LongCellValueProducer;
@@ -84,10 +82,10 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
  * @since 4.2
  */
 public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
-    /**
-     * The singleton instance.
-     */
-    INSTANCE;
+        /**
+         * The singleton instance.
+         */
+        INSTANCE;
 
     private static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
 
@@ -110,9 +108,12 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     private static ProducerRegistry<Class<?>, StringReadAdapter> initializeProducerRegistry() {
         final ProducerRegistry<Class<?>, StringReadAdapter> registry =
             MappingFramework.forSourceType(StringReadAdapter.class);
-        registry.register(createProducerFactory(Integer.class, new StringToIntCellValueProducer()));
-        registry.register(createProducerFactory(Double.class, new StringToDoubleCellValueProducer()));
-        registry.register(createProducerFactory(Long.class, new StringToLongCellValueProducer()));
+        registry.register(
+            new SupplierCellValueProducerFactory<>(Integer.class, Integer.class, StringToIntCellValueProducer::new));
+        registry.register(
+            new SupplierCellValueProducerFactory<>(Double.class, Double.class, StringToDoubleCellValueProducer::new));
+        registry.register(
+            new SupplierCellValueProducerFactory<>(Long.class, Long.class, StringToLongCellValueProducer::new));
         registry.register(new SimpleCellValueProducerFactory<>(String.class, String.class,
             StringReadAdapterFactory::readStringFromSource));
         registry.register(new SimpleCellValueProducerFactory<>(LocalDate.class, LocalDate.class,
@@ -120,81 +121,102 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
         registry.register(new SimpleCellValueProducerFactory<>(LocalTime.class, LocalTime.class,
             StringReadAdapterFactory::readLocalTimeFromSource));
         registry.register(new SimpleCellValueProducerFactory<>(InputStream.class, InputStream.class,
-                StringReadAdapterFactory::readByteFieldsFromSource));
-
+            StringReadAdapterFactory::readByteFieldsFromSource));
         return registry;
     }
 
-    private static <T> CellValueProducerFactory<StringReadAdapter, Class<?>, ?, ?>
-        createProducerFactory(final Class<T> javaType, final CellValueProducer<StringReadAdapter, ?, ?> producer) {
-        return new SimpleCellValueProducerFactory<>(javaType, javaType, producer);
-    }
-
     private static String readStringFromSource(final StringReadAdapter source,
-        final ReadAdapterParams<StringReadAdapter> params) {
+        final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         return source.get(params);
     }
 
     private static LocalDate readLocalDateFromSource(final StringReadAdapter source,
-        final ReadAdapterParams<StringReadAdapter> params) {
+        final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String localDate = source.get(params);
         return LocalDate.parse(localDate);
     }
 
     private static LocalTime readLocalTimeFromSource(final StringReadAdapter source,
-        final ReadAdapterParams<StringReadAdapter> params) {
+        final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String localTime = source.get(params);
         return LocalTime.parse(localTime);
     }
 
     private static InputStream readByteFieldsFromSource(final StringReadAdapter source,
-        final ReadAdapterParams<StringReadAdapter> params) {
+        final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String bytes = source.get(params);
         return new ByteArrayInputStream(bytes.getBytes());
     }
 
     private abstract static class AbstractReadAdapterToPrimitiveCellValueProducer<S extends ReadAdapter<?, ?>, T>
-        implements PrimitiveCellValueProducer<S, T, ReadAdapterParams<S>> {
+        implements PrimitiveCellValueProducer<S, T, ReadAdapterParams<S, CSVTableReaderConfig>> {
 
         @Override
-        public final boolean producesMissingCellValue(final S source, final ReadAdapterParams<S> params)
-            throws MappingException {
+        public final boolean producesMissingCellValue(final S source,
+            final ReadAdapterParams<S, CSVTableReaderConfig> params) throws MappingException {
             return source.get(params) == null;
         }
     }
 
     private static class StringToIntCellValueProducer
         extends AbstractReadAdapterToPrimitiveCellValueProducer<StringReadAdapter, Integer>
-        implements IntCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter>> {
+        implements IntCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig>> {
+
+        private IntegerParser m_parser;
 
         @Override
         public int produceIntCellValue(final StringReadAdapter source,
-            final ReadAdapterParams<StringReadAdapter> params) throws MappingException {
-            return Integer.parseInt(source.get(params));
+            final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) throws MappingException {
+            init(params);
+            return m_parser.parseInt(source.get(params));
+        }
+
+        private void init(final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
+            if (m_parser == null) {
+                m_parser = new IntegerParser(params.getConfig());
+            }
         }
 
     }
 
     private static class StringToDoubleCellValueProducer
-        extends AbstractReadAdapterToPrimitiveCellValueProducer<StringReadAdapter, Double>
-        implements DoubleCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter>> {
+        extends AbstractReadAdapterToPrimitiveCellValueProducer<StringReadAdapter, Double> implements
+        DoubleCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig>> {
+
+        private DoubleParser m_parser;
 
         @Override
         public double produceDoubleCellValue(final StringReadAdapter source,
-            final ReadAdapterParams<StringReadAdapter> params) throws MappingException {
-            return Double.parseDouble(source.get(params));
+            final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) throws MappingException {
+            init(params);
+            return m_parser.parse(source.get(params));
+        }
+
+        private void init(final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
+            if (m_parser == null) {
+                m_parser = new DoubleParser(params.getConfig());
+            }
         }
 
     }
 
     private static class StringToLongCellValueProducer
-        extends AbstractReadAdapterToPrimitiveCellValueProducer<StringReadAdapter, Long>
-        implements LongCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter>> {
+        extends AbstractReadAdapterToPrimitiveCellValueProducer<StringReadAdapter, Long> implements
+        LongCellValueProducer<StringReadAdapter, ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig>> {
+
+        private IntegerParser m_parser;
 
         @Override
         public long produceLongCellValue(final StringReadAdapter source,
-            final ReadAdapterParams<StringReadAdapter> params) throws MappingException {
-            return Long.parseLong(source.get(params));
+            final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) throws MappingException {
+            init(params);
+            return m_parser.parseLong(source.get(params));
+        }
+
+        private void init(final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
+            if (m_parser == null) {
+                m_parser = new IntegerParser(params.getConfig());
+            }
         }
 
     }

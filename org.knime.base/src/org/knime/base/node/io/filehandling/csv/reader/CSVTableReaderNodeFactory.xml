@@ -160,6 +160,12 @@
 	          independent from each other, i.e., if the value in "Limit data rows" is smaller than the value specified
 	          here, we will still read as many rows as specified here.
 			</option>
+			<option name="Number format">
+			  Allows to specify the thousands and decimal separator character for parsing numbers.
+			  The thousands separator is used for integer, long and double parsing, while the decimal separator is only used for the parsing of double values.
+			  Note that the two must differ.
+			  While it is possible to leave the thousands separator unspecified, you must always provide a decimal separator.
+			</option>
 			<option name="Spec merge options">
 			This option is used when reading multiple CSV files via the Files in folder option. It allows you to control
 			how differing table structures are handled.

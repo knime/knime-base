@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusableTypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -97,12 +98,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         })).addType(String.class, createTypeTester(Double.class, Double::parseDouble))
             .addType(Double.class, createTypeTester(Long.class, Long::parseLong))
             .addType(Long.class, createTypeTester(Integer.class, Integer::parseInt)).build();
-
-    /**
-     * {@link TableSpecGuesser} a spec guesser based on the hierarchy of data types defined by {@link TreeTypeHierarchy}
-     */
-    private static final TableSpecGuesser<Class<?>, String> SPEC_GUESSER =
-        new TableSpecGuesser<>(TYPE_HIERARCHY, Function.identity());
 
     private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
         return TypeTester.createTypeTester(type, consumerToPredicate(tester));
@@ -144,10 +139,26 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @Override
     public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
         final ExecutionMonitor exec) throws IOException {
+        final TableSpecGuesser<Class<?>, String> guesser = createGuesser(config);
         try (final CsvRead read = new CsvRead(path, config)) {
-            return SPEC_GUESSER.guessSpec(read, config, exec);
+            return guesser.guessSpec(read, config, exec);
         }
     }
+
+    private static TableSpecGuesser<Class<?>, String> createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
+        final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
+        return new TableSpecGuesser<>(createHierarchy(csvConfig), Function.identity());
+    }
+
+    private static TypeHierarchy<Class<?>, String> createHierarchy(final CSVTableReaderConfig config) {
+        final DoubleParser doubleParser = new DoubleParser(config);
+        final IntegerParser integerParser = new IntegerParser(config);
+        return TreeTypeHierarchy.builder(createTypeTester(String.class, t -> {
+        })).addType(String.class, createTypeTester(Double.class, doubleParser::parse))
+            .addType(Double.class, createTypeTester(Long.class, integerParser::parseLong))
+            .addType(Long.class, createTypeTester(Integer.class, integerParser::parseInt)).build();
+    }
+
 
     /**
      * Creates a decorated {@link Read} from {@link CSVRead}, taking into account how many rows should be skipped or
