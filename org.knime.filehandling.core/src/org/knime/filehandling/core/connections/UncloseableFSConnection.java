@@ -70,6 +70,13 @@ class UncloseableFSConnection implements FSConnection {
     }
 
     /**
+     * @return the wrapped {@link FSConnection}.
+     */
+    FSConnection getWrappedConnection() {
+        return m_wrapped;
+    }
+
+    /**
      * Creates new instance.
      *
      * @param wrapped The actual {@link FSConnection} to wrap.

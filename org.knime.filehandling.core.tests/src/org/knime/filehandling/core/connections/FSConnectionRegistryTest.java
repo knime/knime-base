@@ -52,7 +52,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.file.FileSystem;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -118,7 +117,9 @@ public class FSConnectionRegistryTest {
 
         connections.register(key, testConnection);
 
-        assertEquals(testConnection, connections.retrieve(key).get());
+        final FSConnection retrieved = connections.retrieve(key).get();
+        assertTrue(retrieved instanceof UncloseableFSConnection);
+        assertEquals(testConnection, ((UncloseableFSConnection)retrieved).getWrappedConnection());
     }
 
     /**
@@ -136,8 +137,13 @@ public class FSConnectionRegistryTest {
         connections.register(key1, testConnection1);
         connections.register(key2, testConnection2);
 
-        assertEquals(testConnection1, connections.retrieve(key1).get());
-        assertEquals(testConnection2, connections.retrieve(key2).get());
+        final FSConnection retrieved1 = connections.retrieve(key1).get();
+        assertTrue(retrieved1 instanceof UncloseableFSConnection);
+        assertEquals(testConnection1, ((UncloseableFSConnection)retrieved1).getWrappedConnection());
+
+        final FSConnection retrieved2 = connections.retrieve(key2).get();
+        assertTrue(retrieved2 instanceof UncloseableFSConnection);
+        assertEquals(testConnection2, ((UncloseableFSConnection)retrieved2).getWrappedConnection());
     }
 
     /**
