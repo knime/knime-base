@@ -14,6 +14,9 @@
 			of, e.g. a web link. The directory is deleted upon closing the
 			workflow. The node can be also configured in a way that the created
 			temporary directory is deleted upon reset.
+			<br/>
+			<i>Note:</i> By default the temporary directory is created directly in the workflow data area,
+			as defined by “.“ in the Folder field
 		</intro>
 		<option name="Write to">
 				Select a file system in which you want to create the temporary directory.
