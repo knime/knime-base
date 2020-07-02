@@ -70,10 +70,10 @@ import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.InputTable;
 import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinerFactory.JoinAlgorithm;
-import org.knime.core.data.join.results.JoinContainer;
-import org.knime.core.data.join.results.JoinResults.OutputCombined;
-import org.knime.core.data.join.results.JoinResults.OutputSplit;
-import org.knime.core.data.join.results.JoinResults.ResultType;
+import org.knime.core.data.join.results.JoinResult;
+import org.knime.core.data.join.results.JoinResult.OutputCombined;
+import org.knime.core.data.join.results.JoinResult.OutputSplit;
+import org.knime.core.data.join.results.JoinResult.ResultType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -98,8 +98,6 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 class Joiner3NodeModel extends NodeModel {
-
-    private static final int MATCHES = 0, LEFT_OUTER = 1, RIGHT_OUTER = 2;
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Joiner3NodeModel.class);
 
@@ -129,15 +127,14 @@ class Joiner3NodeModel extends NodeModel {
         PortObjectSpec[] portObjectSpecs = new PortObjectSpec[3];
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
-            portObjectSpecs[MATCHES] = matchSpec;
-            portObjectSpecs[LEFT_OUTER] = joinSpecification.specForUnmatched(InputTable.LEFT);
-            portObjectSpecs[RIGHT_OUTER] = joinSpecification.specForUnmatched(InputTable.RIGHT);
+            portObjectSpecs[portIndex(ResultType.MATCHES)] = matchSpec;
+            portObjectSpecs[portIndex(ResultType.LEFT_OUTER)] = joinSpecification.specForUnmatched(InputTable.LEFT);
+            portObjectSpecs[portIndex(ResultType.RIGHT_OUTER)] = joinSpecification.specForUnmatched(InputTable.RIGHT);
             return portObjectSpecs;
         } else {
             // single table output
-            portObjectSpecs[MATCHES] = matchSpec;
-            portObjectSpecs[LEFT_OUTER] = InactiveBranchPortObjectSpec.INSTANCE;
-            portObjectSpecs[RIGHT_OUTER] = InactiveBranchPortObjectSpec.INSTANCE;
+            Arrays.fill(portObjectSpecs, InactiveBranchPortObjectSpec.INSTANCE);
+            portObjectSpecs[portIndex(ResultType.ALL)] = matchSpec;
             return portObjectSpecs;
         }
 
@@ -146,33 +143,33 @@ class Joiner3NodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec) throws Exception {
 
-        BufferedDataTable left = (BufferedDataTable) inPortObjects[0];
-        BufferedDataTable right = (BufferedDataTable) inPortObjects[1];
+        BufferedDataTable left = (BufferedDataTable)inPortObjects[0];
+        BufferedDataTable right = (BufferedDataTable)inPortObjects[1];
 
         JoinSpecification joinSpecification = joinSpecificationForTables(left, right);
 
-        JoinImplementation implementation = JoinAlgorithm.HYBRID_HASH.getFactory().create(joinSpecification, exec);
+        JoinImplementation implementation = JoinAlgorithm.AUTO.getFactory().create(joinSpecification, exec);
         implementation.setMaxOpenFiles(m_settings.getMaxOpenFiles());
         implementation.setEnableHiliting(m_settings.isHilitingEnabled());
 
         final PortObject[] outPortObjects = new PortObject[3];
-        JoinContainer results;
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
-            OutputSplit joinedTable = implementation.joinOutputSplit();
-            results = (JoinContainer)joinedTable;
-            outPortObjects[MATCHES] = joinedTable.getMatches();
-            outPortObjects[LEFT_OUTER] = joinedTable.getLeftOuter();
-            outPortObjects[RIGHT_OUTER] = joinedTable.getRightOuter();
+            // do the join
+            JoinResult<OutputSplit> joinedTable = implementation.joinOutputSplit();
+            outPortObjects[portIndex(ResultType.MATCHES)] = joinedTable.getResults().getMatches();
+            outPortObjects[portIndex(ResultType.LEFT_OUTER)] = joinedTable.getResults().getLeftOuter();
+            outPortObjects[portIndex(ResultType.RIGHT_OUTER)] = joinedTable.getResults().getRightOuter();
+            m_hiliter.setResults(joinedTable);
         } else {
             // single table output
-            OutputCombined joinedTable = implementation.joinOutputCombined();
-            results = (JoinContainer)joinedTable;
+            // do the join
+            JoinResult<OutputCombined> joinedTable = implementation.joinOutputCombined();
 
             Arrays.fill(outPortObjects, InactiveBranchPortObject.INSTANCE);
-            outPortObjects[MATCHES] = joinedTable.getTable();
+            outPortObjects[portIndex(ResultType.ALL)] = joinedTable.getResults().getTable();
+            m_hiliter.setResults(joinedTable);
         }
-        m_hiliter.setResults(results);
         return outPortObjects;
     }
 
@@ -188,14 +185,14 @@ class Joiner3NodeModel extends NodeModel {
         DataTableSpec right = (DataTableSpec)portSpecs[1];
 
         // left (top port) input table
+        String[] leftIncludes = m_settings.getLeftColumnSelectionConfig().applyTo(left).getIncludes();
         JoinTableSettings leftSettings = new JoinTableSettings(m_settings.getJoinMode().isIncludeLeftUnmatchedRows(),
-            m_settings.getLeftJoinColumns(), m_settings.getLeftColumnSelectionConfig().applyTo(left).getIncludes(),
-            InputTable.LEFT, left);
+            m_settings.getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
 
         // right (bottom port) input table
+        String[] rightIncludes = m_settings.getRightColumnSelectionConfig().applyTo(right).getIncludes();
         JoinTableSettings rightSettings = new JoinTableSettings(m_settings.getJoinMode().isIncludeRightUnmatchedRows(),
-            m_settings.getRightJoinColumns(), m_settings.getRightColumnSelectionConfig().applyTo(right).getIncludes(),
-            InputTable.RIGHT, right);
+            m_settings.getRightJoinColumns(), rightIncludes, InputTable.RIGHT, right);
 
         BiFunction<DataRow, DataRow, RowKey> rowKeysFactory;
         if (m_settings.isAssignNewRowKeys()) {
@@ -213,7 +210,7 @@ class Joiner3NodeModel extends NodeModel {
         }
 
         return new JoinSpecification.Builder(leftSettings, rightSettings)
-            .conjunctive(m_settings.getCompositionMode() == CompositionMode.MatchAll)
+            .conjunctive(m_settings.getCompositionMode() == CompositionMode.MATCH_ALL)
             .outputRowOrder(m_settings.getOutputRowOrder())
             .retainMatched(m_settings.getJoinMode().isIncludeMatchingRows())
             .mergeJoinColumns(m_settings.isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
@@ -283,9 +280,7 @@ class Joiner3NodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         Joiner3Settings validationSettings = new Joiner3Settings();
-        validationSettings.loadSettings(settings);
-        // TODO validation without specs
-        //        JoinImplementation.validateSettings(s.getJoinSpecification());
+        validationSettings.loadSettingsInModel(settings);
     }
 
     /**
@@ -315,7 +310,7 @@ class Joiner3NodeModel extends NodeModel {
      * @param outIndex the port offset
      * @return joiner result type delivered at the given port
      */
-    private Optional<ResultType> outportIndexToResultType(final int outIndex) {
+    private Optional<ResultType> resultType(final int outIndex) {
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             switch (outIndex) {
                 case 0:
@@ -332,6 +327,15 @@ class Joiner3NodeModel extends NodeModel {
         }
     }
 
+    private int portIndex(final ResultType resultType) {
+        for (int i = 0; i < 3; i++) {
+            if (resultType(i).orElse(null) == resultType) {
+                return i;
+            }
+        }
+        throw new IllegalStateException("Can't translate to port index: " + resultType);
+    }
+
     /**
      * Contains all utility methods for enabling hiliting (mapping from row keys in input tables to row keys in result).
      * The output handlers and the translators that use them as input are long living. When connecting a new new input
@@ -340,14 +344,14 @@ class Joiner3NodeModel extends NodeModel {
      */
     private class Hiliter {
 
-        /** Store the hilite mapping in this file. It contains a node config w*/
+        /** Store the hilite mapping in this file. It contains a node config w */
         private static final String INTERNALS_FILE_NAME = "hilite_mapping.xml.gz";
 
         /**
          * For each output port, a handler is instantiated. The map contains handlers for each result type, irrespective
          * of whether split output or single table output is selected. If the output ports are changed,
          * {@link #getOutputHandler(int)} will simply return different handlers for port 0 (see
-         * {@link Joiner3NodeModel#outportIndexToResultType(int)}).
+         * {@link Joiner3NodeModel#resultType(int)}).
          */
         private final EnumMap<ResultType, HiLiteHandler> m_outputHandlers = new EnumMap<>(ResultType.class);
 
@@ -370,12 +374,14 @@ class Joiner3NodeModel extends NodeModel {
             EnumMap<ResultType, HiLiteTranslator> leftTranslators = new EnumMap<>(ResultType.class);
             leftTranslators.put(ResultType.ALL, new HiLiteTranslator(m_outputHandlers.get(ResultType.ALL)));
             leftTranslators.put(ResultType.MATCHES, new HiLiteTranslator(m_outputHandlers.get(ResultType.MATCHES)));
-            leftTranslators.put(ResultType.LEFT_OUTER, new HiLiteTranslator(m_outputHandlers.get(ResultType.LEFT_OUTER)));
+            leftTranslators.put(ResultType.LEFT_OUTER,
+                new HiLiteTranslator(m_outputHandlers.get(ResultType.LEFT_OUTER)));
 
             EnumMap<ResultType, HiLiteTranslator> rightTranslators = new EnumMap<>(ResultType.class);
             rightTranslators.put(ResultType.ALL, new HiLiteTranslator(m_outputHandlers.get(ResultType.ALL)));
             rightTranslators.put(ResultType.MATCHES, new HiLiteTranslator(m_outputHandlers.get(ResultType.MATCHES)));
-            rightTranslators.put(ResultType.RIGHT_OUTER, new HiLiteTranslator(m_outputHandlers.get(ResultType.RIGHT_OUTER)));
+            rightTranslators.put(ResultType.RIGHT_OUTER,
+                new HiLiteTranslator(m_outputHandlers.get(ResultType.RIGHT_OUTER)));
 
             m_translators.put(InputTable.LEFT, leftTranslators);
             m_translators.put(InputTable.RIGHT, rightTranslators);
@@ -387,7 +393,7 @@ class Joiner3NodeModel extends NodeModel {
          *
          * @param results provides {@link JoinContainer#getHiliteMapping(InputTable, ResultType)} to obtain mappings.
          */
-        public void setResults(final JoinContainer results) {
+        public <T> void setResults(final JoinResult<T> results) {
 
             if (!m_settings.isHilitingEnabled()) {
                 return;
@@ -417,7 +423,8 @@ class Joiner3NodeModel extends NodeModel {
          * @param side left or right input table
          * @param resultType the output port for matches, left unmatched rows, right unmatched rows, or combined results
          */
-        private void setTranslatorMapping(final JoinContainer results, final InputTable side, final ResultType resultType) {
+        private <T> void setTranslatorMapping(final JoinResult<T> results, final InputTable side,
+            final ResultType resultType) {
             // this translator connects the handler for the left/right input table...
             HiLiteTranslator translator = m_translators.get(side).get(resultType);
             // ... by mapping row keys from the input table to row keys from the output table
@@ -428,7 +435,8 @@ class Joiner3NodeModel extends NodeModel {
 
         /**
          * Invert {@link #saveInternals(File)}.
-         * @param nodeInternDir passed through from  {@link Joiner3NodeModel#loadInternals(File, ExecutionMonitor)}
+         *
+         * @param nodeInternDir passed through from {@link Joiner3NodeModel#loadInternals(File, ExecutionMonitor)}
          */
         public void loadInternals(final File nodeInternDir) {
 
@@ -460,8 +468,8 @@ class Joiner3NodeModel extends NodeModel {
          *
          * @param mapper
          */
-        private void setTranslatorMapping(final NodeSettingsRO settings, final InputTable inPort, final ResultType outPort)
-            throws InvalidSettingsException {
+        private void setTranslatorMapping(final NodeSettingsRO settings, final InputTable inPort,
+            final ResultType outPort) throws InvalidSettingsException {
 
             String settingsName = hiliteConfigurationName(inPort, outPort);
             DefaultHiLiteMapper mapper = DefaultHiLiteMapper.load(settings.getNodeSettings(settingsName));
@@ -490,7 +498,7 @@ class Joiner3NodeModel extends NodeModel {
 
                     DefaultHiLiteMapper mapper =
                         (DefaultHiLiteMapper)m_translators.get(inPort).get(outPort).getMapper();
-                    if(mapper != null) {
+                    if (mapper != null) {
                         mapper.save(mappingSettings);
                     }
                 }
@@ -532,7 +540,7 @@ class Joiner3NodeModel extends NodeModel {
          * @return the output handler for the given port. Empty optional if handler for a deactivated port is requested.
          */
         public Optional<HiLiteHandler> getOutputHandler(final int outIndex) {
-            return outportIndexToResultType(outIndex).map(m_outputHandlers::get);
+            return resultType(outIndex).map(m_outputHandlers::get);
         }
 
         /**
