@@ -74,7 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 public final class SettingsModelWriterFileChooser extends AbstractSettingsModelFileChooser {
 
-    private static final String CFG_CREATE_MISSING_FOLDERS = "create_parent_folders";
+    private static final String CFG_CREATE_MISSING_FOLDERS = "create_missing_folders";
 
     private static final String CFG_FILE_OVERWRITE_POLICY = "if_path_exists";
 
