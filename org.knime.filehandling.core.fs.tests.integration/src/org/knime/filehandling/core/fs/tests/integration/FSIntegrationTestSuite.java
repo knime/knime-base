@@ -48,6 +48,8 @@ package org.knime.filehandling.core.fs.tests.integration;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.knime.filehandling.core.fs.tests.integration.files.FSFilesTest;
+import org.knime.filehandling.core.fs.tests.integration.files.RandomizedDirectoriesTest;
 import org.knime.filehandling.core.fs.tests.integration.files.TempDirectoriesTest;
 import org.knime.filehandling.core.fs.tests.integration.files.TempFilesTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystem.GetPathTest;
@@ -58,6 +60,7 @@ import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.CopyT
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.CreateTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.DeleteTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.DirectoryStreamTest;
+import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.FileStoreTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.InputStreamTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.MoveTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.OutputStreamTest;
@@ -73,26 +76,28 @@ import org.knime.filehandling.core.fs.tests.integration.path.ToUriTest;
 @RunWith(Suite.class)
 @SuiteClasses({//
     AttributesTest.class,//
-    GetPathTest.class, //
     ByteChannelTest.class, //
     CheckAccessTest.class, //
+    CompareTest.class, //
     CopyTest.class, //
     CreateTest.class, //
     DeleteTest.class, //
     DirectoryStreamTest.class, //
+    EndsStartsWithTest.class, //
+    FileStoreTest.class, //
+    FSFilesTest.class, //
+    FSLocationTest.class,//
+    GetFileNameTest.class, //
+    GetPathTest.class, //
     InputStreamTest.class, //
     MoveTest.class, //
-    PathTest.class, //
-    SubPathTest.class, //
-    PathTest.class, //
-    ToStringTest.class, //
-    EndsStartsWithTest.class, //
-    GetFileNameTest.class, //
-    CompareTest.class, //
     OutputStreamTest.class,//
-    TempFilesTest.class,//
+    PathTest.class, //
+    RandomizedDirectoriesTest.class, //
+    SubPathTest.class, //
     TempDirectoriesTest.class,//
-    FSLocationTest.class,//
+    TempFilesTest.class,//
+    ToStringTest.class, //
     ToUriTest.class//
 })
 public class FSIntegrationTestSuite {
