@@ -46,7 +46,7 @@
  * History
  *   Dec 18, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.testing.local;
+package org.knime.filehandling.core.connections.local;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,8 +54,6 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.local.LocalFSConnection;
-import org.knime.filehandling.core.connections.local.LocalFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**

@@ -42,9 +42,6 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jul 1, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
@@ -52,26 +49,59 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.knime.filehandling.core.testing.local.BasicLocalTestInitializer;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
 
 /**
+ * Local mountpoint or workflow relative to file system initializer.
  *
- * @author bjoern
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class RelativeToWorkflowDataFSTestInitializer
-    extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
 
-    final Path m_localRoot;
+    private final Path m_localRoot;
+
+    private WorkflowManager m_workflowManager;
 
     /**
-     * Creates a new instance.
+     * Default constructor.
+     * @param localRoot
      *
-     * @param fsConnection
      * @throws IOException
      */
-    public RelativeToWorkflowDataFSTestInitializer(final WorkflowDataRelativeFSConnection fsConnection) throws IOException {
-        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory(fsConnection.getFileSystem()));
-        m_localRoot = LocalRelativeToTestUtil.determineLocalPath(getFileSystem(), getFileSystem().getRoot());
+    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localRoot) throws IOException {
+        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
+        m_localRoot = localRoot;
+    }
+
+    @Override
+    protected void beforeTestCaseInternal() throws IOException {
+        // repopulate mountpoint with test fixture and load workflow
+        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localRoot);
+        Files.createDirectories(getLocalTestCaseScratchDir());
+    }
+
+    @Override
+    protected Path getLocalTestCaseScratchDir() {
+        if (getFileSystem().isWorkflowRelativeFileSystem()) {
+            return getLocalWorkingDirectory().getParent().resolve(Integer.toString(getTestCaseId()));
+        } else {
+            return getLocalWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
+        }
+    }
+
+
+    @Override
+    protected void afterTestCaseInternal() throws IOException {
+        try {
+            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
+        } finally {
+            NodeContext.removeLastContext();
+        }
+
+        LocalRelativeToTestUtil.clearDirectoryContents(m_localRoot);
     }
 
     @Override
@@ -82,12 +112,7 @@ public class RelativeToWorkflowDataFSTestInitializer
         for (Path localPathComp : relLocalPath) {
             toReturn = (RelativeToPath) toReturn.resolve(localPathComp.toString());
         }
+
         return toReturn;
     }
-
-    @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
-
 }

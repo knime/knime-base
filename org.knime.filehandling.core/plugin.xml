@@ -93,4 +93,28 @@
             extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
       </VariableType>
    </extension>
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.local.LocalFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
+   <extension
+         point="org.knime.filehandling.FSTestInitializerProvider">
+      <FSTestInitializerProvider
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowDataFSTestInitializerProvider">
+      </FSTestInitializerProvider>
+   </extension>
 </plugin>

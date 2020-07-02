@@ -73,7 +73,7 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class KNIMELocalRelativeToFileSystemTest {
+public class LocalRelativeToFileSystemTest {
 
     @Rule
     public final TemporaryFolder m_tempFolder = new TemporaryFolder();
