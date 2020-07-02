@@ -169,7 +169,10 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         // force creation of scratch dir
         m_testInitializer.createFile("file");
 
-        final Path[] dirList = Files.list(getFileSystem().getPath(".")).toArray(Path[]::new);
+        final Path[] dirList;
+        try (final Stream<Path> stream = Files.list(getFileSystem().getPath("."))) {
+            dirList = stream.toArray(Path[]::new);
+        }
         assertEquals(1, dirList.length);
 
         final Path expectedPath =

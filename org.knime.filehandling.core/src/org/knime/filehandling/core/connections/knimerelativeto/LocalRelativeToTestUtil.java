@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.knime.core.node.CanceledExecutionException;
@@ -101,13 +102,16 @@ public class LocalRelativeToTestUtil {
     static final String DUMMY_WORKFLOW = "resources/dummy-workflow";
 
     static void clearDirectoryContents(final Path dir) throws IOException {
-        Files.list(dir).forEach((p) -> {
-            try {
-                FSFiles.deleteRecursively(p);
-            } catch (IOException e) {
-                // ignore
-            }
-        });
+        try (final Stream<Path> stream = Files.list(dir)) {
+            stream.forEach((p) -> {
+                try {
+                    FSFiles.deleteRecursively(p);
+                } catch (IOException e) {
+                    // ignore
+                }
+            });
+
+        }
     }
 
     /**

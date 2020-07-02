@@ -51,6 +51,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 /**
  * Iterates over all the files and folders of the path on a relative-to file system.
@@ -59,7 +60,9 @@ import java.util.Iterator;
  */
 public class RelativeToPathIterator implements Iterator<RelativeToPath> {
 
-    private final Iterator<RelativeToPath> m_iterator;
+    private final RelativeToPath[] m_paths;
+
+    private int m_currIdx = 0;
 
     /**
      * Creates an iterator over all the files and folder in the given paths location.
@@ -72,8 +75,8 @@ public class RelativeToPathIterator implements Iterator<RelativeToPath> {
     public RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
         final Filter<? super Path> filter) throws IOException {
 
-        try {
-            m_iterator = Files.list(realPath) //
+        try (final Stream<Path> stream = Files.list(realPath)) {
+            m_paths =  stream//
                 .map(p -> (RelativeToPath)knimePath.resolve(p.getFileName().toString())) //
                 .filter(p -> {
                     try {
@@ -81,7 +84,7 @@ public class RelativeToPathIterator implements Iterator<RelativeToPath> {
                     } catch (final IOException ex) { // wrap exception
                         throw new UncheckedIOException(ex);
                     }
-                }).iterator();
+                }).toArray(RelativeToPath[]::new);
         } catch (final UncheckedIOException ex) { // unwrap exception
             if (ex.getCause() != null) {
                 throw ex.getCause();
@@ -93,11 +96,13 @@ public class RelativeToPathIterator implements Iterator<RelativeToPath> {
 
     @Override
     public boolean hasNext() {
-        return m_iterator.hasNext();
+        return m_currIdx < m_paths.length;
     }
 
     @Override
     public RelativeToPath next() {
-        return m_iterator.next();
+        final RelativeToPath next = m_paths[m_currIdx];
+        m_currIdx++;
+        return next;
     }
 }

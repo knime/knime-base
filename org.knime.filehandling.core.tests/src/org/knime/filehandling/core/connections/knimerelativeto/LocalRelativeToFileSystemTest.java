@@ -58,6 +58,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -297,7 +298,8 @@ public class LocalRelativeToFileSystemTest {
     public void testListWorkflowDirOnRelativePath() throws IOException {
         final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
         final RelativeToPath relativePath = workflowFS.getPath(".");
-        Files.list(relativePath);
+        try (final Stream<Path> stream = Files.list(relativePath)) {
+        }
     }
 
     @Test(expected = FileSystemException.class)
@@ -325,7 +327,8 @@ public class LocalRelativeToFileSystemTest {
         final String dirname = "current-workflow";
         final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
         final RelativeToPath relativePath = mountpointFS.getPath(dirname);
-        Files.list(relativePath);
+        try (final Stream<Path> stream = Files.list(relativePath)) {
+        }
     }
 
     @Test
