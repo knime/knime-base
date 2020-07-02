@@ -82,11 +82,11 @@
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
 		</option>
-			<option name="Create parent directories">Select if the directories of the selected
+			<option name="Create missing folders">Select if the folders of the selected
 				output
 				location should be created if they do not already exist. If
 				this
-				option is unchecked, the node will fail if a directory does not
+				option is unchecked, the node will fail if a folder does not
 				exist.
 			</option>
 			<option name="If exists">

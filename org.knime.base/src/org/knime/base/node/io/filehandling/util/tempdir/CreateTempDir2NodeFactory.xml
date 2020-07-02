@@ -67,9 +67,9 @@
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
 		</option>
-		<option name="Create parent directories">Select if the directories of the selected output
+		<option name="Create parent folders">Select if the folders of the selected output
 			location should be created if they do not already exist. If this
-			option is unchecked, the node will fail if a directory does not
+			option is unchecked, the node will fail if a folder does not
 			exist.
 		</option>
 		<option name="Delete temp directory on reset">Check this box to delete the directory and all its
