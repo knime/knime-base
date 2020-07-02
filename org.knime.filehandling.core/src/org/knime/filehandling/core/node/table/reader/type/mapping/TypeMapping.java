@@ -78,6 +78,11 @@ public interface TypeMapping<V> {
      */
     DataTableSpec map(ReaderTableSpec<?> spec);
 
+    /**
+     * Returns the {@link ProductionPath ProductionPaths} used for the type mapping.
+     *
+     * @return the type mapping {@link ProductionPath ProductionPaths}
+     */
     ProductionPath[] getProductionPaths();
 
 }

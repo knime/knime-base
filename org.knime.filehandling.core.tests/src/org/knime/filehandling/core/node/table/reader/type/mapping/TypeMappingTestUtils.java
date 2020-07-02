@@ -58,6 +58,7 @@ import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.DummyReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 
@@ -89,7 +90,7 @@ final class TypeMappingTestUtils {
     }
 
     static class TestCellValueProducerFactory
-        implements CellValueProducerFactory<TestReadAdapter, String, String, ReadAdapterParams<TestReadAdapter>> {
+        implements CellValueProducerFactory<TestReadAdapter, String, String, ReadAdapterParams<TestReadAdapter, DummyReaderSpecificConfig>> {
 
         private final String m_sourceType;
 
@@ -113,7 +114,7 @@ final class TypeMappingTestUtils {
         }
 
         @Override
-        public CellValueProducer<TestReadAdapter, String, ReadAdapterParams<TestReadAdapter>> create() {
+        public CellValueProducer<TestReadAdapter, String, ReadAdapterParams<TestReadAdapter, DummyReaderSpecificConfig>> create() {
             return (s, p) -> s.get(p);
         }
 

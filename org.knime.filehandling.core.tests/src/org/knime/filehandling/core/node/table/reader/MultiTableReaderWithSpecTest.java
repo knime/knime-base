@@ -100,7 +100,7 @@ public class MultiTableReaderWithSpecTest {
     }
 
     @Mock
-    private MultiTableReadFactory<String, String> m_multiTableReadFactory = null;
+    private MultiTableReadFactory<DummyReaderSpecificConfig, String, String> m_multiTableReadFactory = null;
 
     @Mock
     private MultiTableRead<String> m_multiTableRead = null;

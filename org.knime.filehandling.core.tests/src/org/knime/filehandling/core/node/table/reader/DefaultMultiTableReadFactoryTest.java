@@ -69,6 +69,7 @@ import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -94,7 +95,7 @@ public class DefaultMultiTableReadFactoryTest {
     private static final String ROOT_PATH = "path";
 
     @Mock
-    private TypeMappingFactory<String, String> m_typeMappingFactory;
+    private TypeMappingFactory<DummyReaderSpecificConfig, String, String> m_typeMappingFactory;
 
     @Mock
     private TypeMapping<String> m_typeMapping;
@@ -112,9 +113,15 @@ public class DefaultMultiTableReadFactoryTest {
     private RowKeyGenerator<String> m_rowKeyGen;
 
     @Mock
-    private MultiTableReadConfig<?> m_config;
+    private MultiTableReadConfig<DummyReaderSpecificConfig> m_config;
 
-    private DefaultMultiTableReadFactory<String, String> m_testInstance;
+    @Mock
+    private DummyReaderSpecificConfig m_readerSpecificConfig;
+
+    @Mock
+    private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
+
+    private DefaultMultiTableReadFactory<DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -122,6 +129,8 @@ public class DefaultMultiTableReadFactoryTest {
     @Before
     public void init() {
         m_testInstance = new DefaultMultiTableReadFactory<>(m_typeMappingFactory, m_typeHierarchy, m_rowKeyGenFactory);
+        when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
+        when (m_tableReadConfig.getReaderSpecificConfig()).thenReturn(m_readerSpecificConfig);
     }
 
     /**
@@ -133,7 +142,7 @@ public class DefaultMultiTableReadFactoryTest {
         final String colName = "hans";
         final TypedReaderTableSpec<String> spec =
             TypedReaderTableSpec.create(asList(colName), asList("berta"), asList(Boolean.TRUE));
-        when(m_typeMappingFactory.create(spec)).thenReturn(m_typeMapping);
+        when(m_typeMappingFactory.create(spec, m_readerSpecificConfig)).thenReturn(m_typeMapping);
         DataTableSpec knimeSpec = new DataTableSpec(new String[]{colName}, new DataType[]{StringCell.TYPE});
         when(m_typeMapping.map(spec)).thenReturn(knimeSpec);
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
@@ -146,7 +155,7 @@ public class DefaultMultiTableReadFactoryTest {
         MultiTableRead<String> multiTableRead =
             m_testInstance.create(ROOT_PATH, Collections.singletonMap(p, spec), m_config);
         assertEquals(knimeSpec, multiTableRead.getOutputSpec());
-        verify(m_typeMappingFactory).create(spec);
+        verify(m_typeMappingFactory).create(spec, m_readerSpecificConfig);
         verify(m_typeMapping).map(spec);
 
         // check that the proper TableSpecConfig is created
@@ -182,7 +191,7 @@ public class DefaultMultiTableReadFactoryTest {
 
         final TableSpecConfig cfg = new TableSpecConfig(ROOT_PATH, knimeSpec, individualSpecs, prodPaths);
         when(m_config.getTableSpecConfig()).thenReturn(cfg);
-        when(m_typeMappingFactory.create(cfg)).thenReturn(m_typeMapping);
+        when(m_typeMappingFactory.create(cfg, m_readerSpecificConfig)).thenReturn(m_typeMapping);
 
         MultiTableRead<String> multiTableRead = m_testInstance.create(ROOT_PATH, Arrays.asList(p1, p2), m_config);
         assertEquals(knimeSpec, multiTableRead.getOutputSpec());
@@ -191,5 +200,6 @@ public class DefaultMultiTableReadFactoryTest {
         assertEquals(cfg, tableSpecCfg);
 
     }
+
 
 }

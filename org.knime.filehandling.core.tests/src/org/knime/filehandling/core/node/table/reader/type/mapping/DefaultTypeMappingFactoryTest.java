@@ -64,6 +64,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.def.StringCell;
+import org.knime.filehandling.core.node.table.reader.DummyReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -82,7 +83,10 @@ public class DefaultTypeMappingFactoryTest {
     @Mock
     private ProducerRegistry<String, TestReadAdapter> m_producerRegistry = null;
 
-    private DefaultTypeMappingFactory<String, String> m_testInstance;
+    @Mock
+    private DummyReaderSpecificConfig m_config;
+
+    private DefaultTypeMappingFactory<DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -124,7 +128,7 @@ public class DefaultTypeMappingFactoryTest {
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(asList(mockProductionPath("frieda")));
         TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
             asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        TypeMapping<String> typeMapping = m_testInstance.create(spec);
+        TypeMapping<String> typeMapping = m_testInstance.create(spec, m_config);
         DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE});
         DataTableSpec actual = typeMapping.map(spec);
@@ -139,7 +143,7 @@ public class DefaultTypeMappingFactoryTest {
         when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(Collections.emptyList());
         TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
             asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        m_testInstance.create(spec);
+        m_testInstance.create(spec, m_config);
     }
 
     /**
@@ -149,7 +153,7 @@ public class DefaultTypeMappingFactoryTest {
     public void testCreateFailsIfDefaultTypeIsNOTSpecified() {
         TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
             asList("gunter", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        m_testInstance.create(spec);
+        m_testInstance.create(spec, m_config);
     }
 
 }

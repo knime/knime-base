@@ -44,53 +44,16 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
-
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
- * tables that should be read together, or based on a stored {@link TableSpecConfig}.
+ * Empty config for testing purposes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <C> the type of {@link ReaderSpecificConfig}
- * @param <T> the type representing external data types
- * @param <V> the type representing values
  */
-public interface MultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V> {
-
-    /**
-     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
-     * {@link MultiTableReadConfig config}.
-     *
-     * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
-     * @param individualSpecs a {@link Map} from {@link Path} to {@link TypedReaderTableSpec} where each
-     *            {@link TypedReaderTableSpec} corresponds to the table stored in its corresponding {@link Path}
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables stored in the keys of <b>individualSpecs</b>
-     */
-    MultiTableRead<V> create(final String rootPath, Map<Path, TypedReaderTableSpec<T>> individualSpecs,
-        MultiTableReadConfig<C> config);
-
-    /**
-     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
-     * {@link MultiTableReadConfig config}.<br>
-     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpecConfig()} is {@code true}.
-     *
-     * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
-     * @param paths the list of paths/files to be read
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables from the given paths
-     */
-    MultiTableRead<V> create(final String rootPath, final List<Path> paths, MultiTableReadConfig<C> config);
-
+public interface DummyReaderSpecificConfig extends ReaderSpecificConfig<DummyReaderSpecificConfig> {
 }

@@ -61,6 +61,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -68,10 +69,11 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * Default implementation of a {@link TypeMappingFactory} based on KNIME's type mapping framework.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type identifying external data types
  * @param <V> the type of values
  */
-public final class DefaultTypeMappingFactory<T, V> implements TypeMappingFactory<T, V> {
+public final class DefaultTypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V> implements TypeMappingFactory<C, T, V> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTypeMappingFactory.class);
 
@@ -93,21 +95,21 @@ public final class DefaultTypeMappingFactory<T, V> implements TypeMappingFactory
     }
 
     @Override
-    public TypeMapping<V> create(final TypedReaderTableSpec<T> mergedSpec) {
+    public TypeMapping<V> create(final TypedReaderTableSpec<T> mergedSpec, final C config) {
         final ProductionPath[] paths = mergedSpec.stream()//
             .map(TypedReaderColumnSpec::getType)//
             .map(this::getDefaultPath)//
             .toArray(ProductionPath[]::new);
-        return create(paths);
+        return create(paths, config);
     }
 
     @Override
-    public TypeMapping<V> create(final TableSpecConfig config) {
-        return create(config.getProductionPaths());
+    public TypeMapping<V> create(final TableSpecConfig config, final C multiTableReadConfig) {
+        return create(config.getProductionPaths(), multiTableReadConfig);
     }
 
-    private TypeMapping<V> create(final ProductionPath[] paths) {
-        return new DefaultTypeMapping<>(m_readAdapterFactory::createReadAdapter, paths);
+    private TypeMapping<V> create(final ProductionPath[] paths, final C config) {
+        return new DefaultTypeMapping<>(m_readAdapterFactory::createReadAdapter, paths, config);
     }
 
     private ProductionPath getDefaultPath(final T externalType) {

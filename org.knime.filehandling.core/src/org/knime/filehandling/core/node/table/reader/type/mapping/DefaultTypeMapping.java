@@ -57,6 +57,7 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
@@ -66,20 +67,23 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultTypeMapping<V> implements TypeMapping<V> {
+final class DefaultTypeMapping<C extends ReaderSpecificConfig<C>, V> implements TypeMapping<V> {
 
     private final Supplier<ReadAdapter<?, V>> m_readAdapterSupplier;
 
     private final ProductionPath[] m_productionPaths;
 
-    DefaultTypeMapping(final Supplier<ReadAdapter<?, V>> readAdapterSupplier, final ProductionPath[] productionPaths) {
+    private final C m_readerSpecificConfig;
+
+    DefaultTypeMapping(final Supplier<ReadAdapter<?, V>> readAdapterSupplier, final ProductionPath[] productionPaths, final C config) {
         m_productionPaths = productionPaths;
         m_readAdapterSupplier = readAdapterSupplier;
+        m_readerSpecificConfig = config;
     }
 
     @Override
     public TypeMapper<V> createTypeMapper(final FileStoreFactory fsFactory) {
-        return new DefaultTypeMapper<>(m_readAdapterSupplier.get(), m_productionPaths, fsFactory);
+        return new DefaultTypeMapper<>(m_readAdapterSupplier.get(), m_productionPaths, fsFactory, m_readerSpecificConfig);
     }
 
     @Override

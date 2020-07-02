@@ -59,6 +59,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.DummyReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.TestReadAdapter;
@@ -79,9 +80,13 @@ public class DefaultTypeMapperTest {
     @Mock
     private RandomAccessible<String> m_randomAccessible;
 
+    @Mock
+    private DummyReaderSpecificConfig m_config;
+
     private RowKey m_key = new RowKey("test");
 
-    private DefaultTypeMapper<String> m_testInstance;
+    private DefaultTypeMapper<String, DummyReaderSpecificConfig> m_testInstance;
+
 
     /**
      * Initializes the test instance before each unit test.
@@ -90,7 +95,7 @@ public class DefaultTypeMapperTest {
     public void init() {
         ReadAdapter<String, String> readAdapter = new TestReadAdapter();
         m_testInstance = new DefaultTypeMapper<>(readAdapter,
-            TypeMappingTestUtils.mockProductionPaths("berta", "frieda"), m_fsFactory);
+            TypeMappingTestUtils.mockProductionPaths("berta", "frieda"), m_fsFactory, m_config);
     }
 
     /**

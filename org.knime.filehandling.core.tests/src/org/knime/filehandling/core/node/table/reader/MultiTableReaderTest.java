@@ -70,7 +70,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -92,11 +91,8 @@ public class MultiTableReaderTest {
 
     private static final String ROOT_PATH = "path";
 
-    private interface DummyReaderSpecificConfig extends ReaderSpecificConfig<DummyReaderSpecificConfig> {
-    }
-
     @Mock
-    private MultiTableReadFactory<String, String> m_multiTableReadFactory = null;
+    private MultiTableReadFactory<DummyReaderSpecificConfig, String, String> m_multiTableReadFactory = null;
 
     @Mock
     private MultiTableRead<String> m_multiTableRead = null;

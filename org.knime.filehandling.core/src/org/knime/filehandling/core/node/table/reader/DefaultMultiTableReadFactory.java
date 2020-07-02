@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -74,9 +75,10 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableReadFactory;
  * @param <T> the type representing external data types
  * @param <V> the type representing values
  */
-final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<T, V> {
+final class DefaultMultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V>
+    implements MultiTableReadFactory<C, T, V> {
 
-    private final TypeMappingFactory<T, V> m_typeMappingFactory;
+    private final TypeMappingFactory<C, T, V> m_typeMappingFactory;
 
     private final TypeHierarchy<T, T> m_typeHierarchy;
 
@@ -89,7 +91,7 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
      * @param typeHierarchy the {@link TypeHierarchy}
      * @param rowKeyGeneratorFactory the {@link RowKeyGeneratorContextFactory}
      */
-    DefaultMultiTableReadFactory(final TypeMappingFactory<T, V> typeMappingFactory,
+    DefaultMultiTableReadFactory(final TypeMappingFactory<C, T, V> typeMappingFactory,
         final TypeHierarchy<T, T> typeHierarchy, final RowKeyGeneratorContextFactory<V> rowKeyGeneratorFactory) {
         m_typeMappingFactory = typeMappingFactory;
         m_typeHierarchy = typeHierarchy;
@@ -98,10 +100,11 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
 
     @Override
     public MultiTableRead<V> create(final String rootPath, final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
-        final MultiTableReadConfig<?> config) {
+        final MultiTableReadConfig<C> config) {
         final TypedReaderTableSpec<T> mergedSpec =
             config.getSpecMergeMode().mergeSpecs(individualSpecs.values(), m_typeHierarchy);
-        final TypeMapping<V> typeMapping = m_typeMappingFactory.create(mergedSpec);
+        final TypeMapping<V> typeMapping =
+            m_typeMappingFactory.create(mergedSpec, config.getTableReadConfig().getReaderSpecificConfig());
         final DataTableSpec outputSpec = typeMapping.map(mergedSpec);
         final RowKeyGeneratorContext<V> keyGenFn = m_rowKeyGeneratorFactory.createContext(config.getTableReadConfig());
         return new DefaultMultiTableRead<>(rootPath, individualSpecs, outputSpec, typeMapping, keyGenFn);
@@ -109,10 +112,11 @@ final class DefaultMultiTableReadFactory<T, V> implements MultiTableReadFactory<
 
     @Override
     public MultiTableRead<V> create(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<?> config) {
+        final MultiTableReadConfig<C> config) {
         final TableSpecConfig tableSpecConfig = config.getTableSpecConfig();
         final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecs(paths, tableSpecConfig);
-        final TypeMapping<V> typeMapping = m_typeMappingFactory.create(config.getTableSpecConfig());
+        final TypeMapping<V> typeMapping = m_typeMappingFactory.create(config.getTableSpecConfig(),
+            config.getTableReadConfig().getReaderSpecificConfig());
         final RowKeyGeneratorContext<V> keyGenFn = m_rowKeyGeneratorFactory.createContext(config.getTableReadConfig());
         return new DefaultMultiTableRead<>(rootPath, individualSpecs, tableSpecConfig.getDataTableSpec(), typeMapping,
             keyGenFn);

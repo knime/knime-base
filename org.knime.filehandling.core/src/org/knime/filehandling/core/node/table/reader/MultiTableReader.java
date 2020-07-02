@@ -92,7 +92,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 
     private final TableReader<C, T, V> m_reader;
 
-    private final MultiTableReadFactory<T, V> m_multiTableReadFactory;
+    private final MultiTableReadFactory<C, T, V> m_multiTableReadFactory;
 
     private MultiTableRead<V> m_currentMultiRead;
 
@@ -102,7 +102,7 @@ public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @param reader the {@link TableReader} implementation to use for reading
      * @param multiTableReadFactory for creating MultiTableRead objects
      */
-    MultiTableReader(final TableReader<C, T, V> reader, final MultiTableReadFactory<T, V> multiTableReadFactory) {
+    MultiTableReader(final TableReader<C, T, V> reader, final MultiTableReadFactory<C, T, V> multiTableReadFactory) {
         m_reader = reader;
         m_multiTableReadFactory = multiTableReadFactory;
     }

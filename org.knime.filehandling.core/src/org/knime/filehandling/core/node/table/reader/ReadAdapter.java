@@ -52,6 +52,7 @@ import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.Source;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
@@ -100,7 +101,7 @@ public abstract class ReadAdapter<T, V> implements Source<T> {
      * @param params read parameters
      * @return the value identified by params
      */
-    public final V get(final ReadAdapterParams<?> params) {
+    public final V get(final ReadAdapterParams<?, ?> params) {
         CheckUtils.checkState(m_current != null, "Coding error: No row set.");
         return m_current.get(params.getIdx());
     }
@@ -110,23 +111,37 @@ public abstract class ReadAdapter<T, V> implements Source<T> {
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      * @param <A> the concrete ReadAdapter implementation (only necessary to satisfy the compiler)
+     * @param <C> the type of {@link ReaderSpecificConfig}
      * @noreference not meant to be referenced by clients
      */
-    public static final class ReadAdapterParams<A extends ReadAdapter<?, ?>> implements ProducerParameters<A> {
+    public static final class ReadAdapterParams<A extends ReadAdapter<?, ?>, C extends ReaderSpecificConfig<C>> implements ProducerParameters<A> {
 
         private final int m_idx;
+
+        private final C m_readerSpecificConfig;
 
         /**
          * Constructor.
          *
          * @param idx of the corresponding column
+         * @param readerSpecificConfig the {@link ReaderSpecificConfig}
          */
-        public ReadAdapterParams(final int idx) {
+        public ReadAdapterParams(final int idx, final C readerSpecificConfig) {
             m_idx = idx;
+            m_readerSpecificConfig = readerSpecificConfig;
         }
 
         private int getIdx() {
             return m_idx;
+        }
+
+        /**
+         * Returns the reader configuration.
+         *
+         * @return the reader configuration
+         */
+        public C getConfig() {
+            return m_readerSpecificConfig;
         }
 
         @Override

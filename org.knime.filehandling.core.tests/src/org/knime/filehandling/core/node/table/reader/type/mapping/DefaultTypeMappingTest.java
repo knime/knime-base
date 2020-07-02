@@ -62,6 +62,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.DummyReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.TestReadAdapter;
@@ -76,7 +77,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultTypeMappingTest {
 
-    private DefaultTypeMapping<String> m_testInstance = null;
+    private DefaultTypeMapping<DummyReaderSpecificConfig, String> m_testInstance = null;
 
     @Mock
     private FileStoreFactory m_fsFactory = null;
@@ -84,13 +85,16 @@ public class DefaultTypeMappingTest {
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
 
+    @Mock
+    private DummyReaderSpecificConfig m_config;
+
     /**
      * Initializes the test instance.
      */
     @Before
     public void init() {
         m_testInstance =
-            new DefaultTypeMapping<>(TestReadAdapter::new, TypeMappingTestUtils.mockProductionPaths("frieda", "berta"));
+            new DefaultTypeMapping<>(TestReadAdapter::new, TypeMappingTestUtils.mockProductionPaths("frieda", "berta"), m_config);
     }
 
     /**

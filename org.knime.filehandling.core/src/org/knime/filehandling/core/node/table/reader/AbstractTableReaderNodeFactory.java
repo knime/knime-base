@@ -141,10 +141,10 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      */
     protected MultiTableReader<C, T, V> createMultiTableReader() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        final TypeMappingFactory<T, V> typeMappingFactory = new DefaultTypeMappingFactory<>(readAdapterFactory);
+        final TypeMappingFactory<C, T, V> typeMappingFactory = new DefaultTypeMappingFactory<>(readAdapterFactory);
         final RowKeyGeneratorContextFactory<V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
-        final MultiTableReadFactory<T, V> multiTableReadFactory =
+        final MultiTableReadFactory<C, T, V> multiTableReadFactory =
             new DefaultMultiTableReadFactory<>(typeMappingFactory, getTypeHierarchy(), rowKeyGenFactory);
         return new MultiTableReader<>(createReader(), multiTableReadFactory);
     }

@@ -78,6 +78,9 @@ public class ReadAdapterTest {
     @Mock
     private RowKeyGenerator<String> m_rowKeyGenerator = null;
 
+    @Mock
+    private DummyReaderSpecificConfig m_config;
+
     /**
      * Initializes the mocks before every unit test.
      *
@@ -98,8 +101,8 @@ public class ReadAdapterTest {
     public void testGet() throws IOException {
         when(m_randomAccessible.get(0)).thenReturn("foo");
         m_readAdapter.setSource(m_randomAccessible);
-        assertEquals("foo", m_readAdapter.get(new ReadAdapterParams<>(0)));
-        assertEquals(null, m_readAdapter.get(new ReadAdapterParams<>(1)));
+        assertEquals("foo", m_readAdapter.get(new ReadAdapterParams<>(0, m_config)));
+        assertEquals(null, m_readAdapter.get(new ReadAdapterParams<>(1, m_config)));
     }
 
     /**
@@ -107,7 +110,7 @@ public class ReadAdapterTest {
      */
     @Test(expected = IllegalStateException.class)
     public void testGetFailsIfSetIsNotCalledFirst() {
-        m_readAdapter.get(new ReadAdapterParams<>(0));
+        m_readAdapter.get(new ReadAdapterParams<>(0, m_config));
     }
 
     /**
@@ -115,7 +118,7 @@ public class ReadAdapterTest {
      */
     @Test
     public void testReadAdapterParamsToString() {
-        assertEquals("1", new ReadAdapterParams<>(1).toString());
+        assertEquals("1", new ReadAdapterParams<>(1, m_config).toString());
     }
 
 }

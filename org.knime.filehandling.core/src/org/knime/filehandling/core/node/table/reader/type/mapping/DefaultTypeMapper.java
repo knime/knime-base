@@ -59,6 +59,7 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
@@ -67,23 +68,23 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values mapped to cells
  */
-final class DefaultTypeMapper<V> implements TypeMapper<V> {
+final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements TypeMapper<V> {
 
     private final ReadAdapter<?, V> m_readAdapter;
 
-    private final ReadAdapterParams<ReadAdapter<?, V>>[] m_params;
+    private final ReadAdapterParams<ReadAdapter<?, V>, C>[] m_params;
 
-    private final DataRowProducer<ReadAdapterParams<ReadAdapter<?, V>>> m_rowProducer;
+    private final DataRowProducer<ReadAdapterParams<ReadAdapter<?, V>, C>> m_rowProducer;
 
     DefaultTypeMapper(final ReadAdapter<?, V> readAdapter, final ProductionPath[] productionPaths,
-        final FileStoreFactory fsFactory) {
+        final FileStoreFactory fsFactory, final C readerSpecificConfig) {
         m_readAdapter = readAdapter;
         m_rowProducer = MappingFramework.createDataRowProducer(fsFactory, m_readAdapter, productionPaths);
         // ReadAdapterParams are compatible with any ReadAdapter, the generics
         // are only necessary to shut up the compiler
         @SuppressWarnings("unchecked")
-        final ReadAdapterParams<ReadAdapter<?, V>>[] params = IntStream.range(0, productionPaths.length)
-            .mapToObj(ReadAdapterParams::new).toArray(ReadAdapterParams[]::new);
+        final ReadAdapterParams<ReadAdapter<?, V>, C>[] params = IntStream.range(0, productionPaths.length)
+            .mapToObj(i -> new ReadAdapterParams<>(i, readerSpecificConfig)).toArray(ReadAdapterParams[]::new);
         m_params = params;
     }
 
