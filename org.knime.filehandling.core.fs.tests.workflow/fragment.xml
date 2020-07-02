@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<fragment>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            deprecated="false"
+            category-path="/testing"
+            factory-class="org.knime.filehandling.core.testing.node.TestFileSystemConnectorNodeFactory">
+      </node>
+   </extension>
+</fragment>
