@@ -66,7 +66,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 
 /**
  * File chooser settings model for writer nodes. </br>
- * Adds the setting for creating parent directories and the {@link FileOverwritePolicy}.</br>
+ * Adds the setting for creating missing folders and the {@link FileOverwritePolicy}.</br>
  * The policy is not stored in the settings if fewer than two policies are supported by the settings model.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -74,7 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 public final class SettingsModelWriterFileChooser extends AbstractSettingsModelFileChooser {
 
-    private static final String CFG_CREATE_PARENT_DIRECTORIES = "create_parent_directories";
+    private static final String CFG_CREATE_MISSING_FOLDERS = "create_parent_folders";
 
     private static final String CFG_FILE_OVERWRITE_POLICY = "if_path_exists";
 
@@ -84,7 +84,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
 
     private FileOverwritePolicy m_selectedPolicy;
 
-    private boolean m_createParentDirectories = false;
+    private boolean m_createMissingFolders = false;
 
     /**
      * Constructor.
@@ -119,7 +119,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     private SettingsModelWriterFileChooser(final SettingsModelWriterFileChooser toCopy) {
         super(toCopy);
         m_selectedPolicy = toCopy.m_selectedPolicy;
-        m_createParentDirectories = toCopy.m_createParentDirectories;
+        m_createMissingFolders = toCopy.m_createMissingFolders;
         m_supportedPolicies = toCopy.m_supportedPolicies;
         m_defaultPolicy = toCopy.m_defaultPolicy;
     }
@@ -166,31 +166,31 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     }
 
     /**
-     * Indicates whether parent directories should be created if the don't exist yet.
+     * Indicates whether missing folders should be created if they don't exist yet.
      *
-     * @return {@code true} if parent directories should be created
+     * @return {@code true} if missing folders should be created
      */
-    public boolean isCreateParentDirectories() {
-        return m_createParentDirectories && !isCustomURL();
+    public boolean isCreateMissingFolders() {
+        return m_createMissingFolders && !isCustomURL();
     }
 
     boolean isCustomURL() {
         return getLocation().getFSCategory() == FSCategory.CUSTOM_URL;
     }
 
-    boolean isCreateParentDirectoriesUI() {
-        return m_createParentDirectories;
+    boolean isCreateMissingFoldersUI() {
+        return m_createMissingFolders;
     }
 
     /**
-     * Sets whether parent directories should be created if they don't exist yet and notifies the change listeners if
-     * the value changed.
+     * Sets whether missing folders should be created if they don't exist yet and notifies the change listeners if the
+     * value changed.
      *
-     * @param createParentDirectories {@code true} if parent directories should be created
+     * @param createMissingFolders {@code true} if missing folders should be created
      */
-    public void setCreateParentDirectories(final boolean createParentDirectories) {
-        if (m_createParentDirectories != createParentDirectories) {
-            m_createParentDirectories = createParentDirectories;
+    public void setCreateMissingFolders(final boolean createMissingFolders) {
+        if (m_createMissingFolders != createMissingFolders) {
+            m_createMissingFolders = createMissingFolders;
             notifyChangeListeners();
         }
     }
@@ -198,7 +198,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     @Override
     protected void loadAdditionalSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        setCreateParentDirectories(settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES, false));
+        setCreateMissingFolders(settings.getBoolean(CFG_CREATE_MISSING_FOLDERS, false));
         if (hasPolicyChoice()) {
             setFileOverwritePolicy(loadPolicyInDialog(settings));
         }
@@ -207,7 +207,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     @Override
     protected void saveAdditionalSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         super.saveAdditionalSettingsForDialog(settings);
-        settings.addBoolean(CFG_CREATE_PARENT_DIRECTORIES, m_createParentDirectories);
+        settings.addBoolean(CFG_CREATE_MISSING_FOLDERS, m_createMissingFolders);
         if (hasPolicyChoice()) {
             savePolicy(settings);
         }
@@ -216,7 +216,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     @Override
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.validateAdditionalSettingsForModel(settings);
-        settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES);
+        settings.getBoolean(CFG_CREATE_MISSING_FOLDERS);
         if (hasPolicyChoice()) {
             loadPolicyInModel(settings);
         }
@@ -225,7 +225,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     @Override
     protected void loadAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.loadAdditionalSettingsForModel(settings);
-        setCreateParentDirectories(settings.getBoolean(CFG_CREATE_PARENT_DIRECTORIES));
+        setCreateMissingFolders(settings.getBoolean(CFG_CREATE_MISSING_FOLDERS));
         if (hasPolicyChoice()) {
             setFileOverwritePolicy(loadPolicyInModel(settings));
         }
@@ -243,7 +243,7 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
     @Override
     protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
         super.saveAdditionalSettingsForModel(settings);
-        settings.addBoolean(CFG_CREATE_PARENT_DIRECTORIES, m_createParentDirectories);
+        settings.addBoolean(CFG_CREATE_MISSING_FOLDERS, m_createMissingFolders);
         if (hasPolicyChoice()) {
             savePolicy(settings);
         }

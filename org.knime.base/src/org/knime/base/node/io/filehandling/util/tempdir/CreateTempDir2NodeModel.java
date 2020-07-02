@@ -142,7 +142,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
             final FSPath parentPath = writePathAccessor.getOutputPath(m_statusConumser);
             m_statusConumser.setWarningsIfRequired(this::setWarningMessage);
             if (!Files.exists(parentPath)) {
-                if (m_config.getParentDirChooserModel().isCreateParentDirectories()) {
+                if (m_config.getParentDirChooserModel().isCreateMissingFolders()) {
                     Files.createDirectories(parentPath);
                 } else {
                     throw new IOException(String.format(

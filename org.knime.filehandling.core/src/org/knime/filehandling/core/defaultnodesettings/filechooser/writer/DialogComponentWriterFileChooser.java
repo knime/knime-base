@@ -70,9 +70,9 @@ import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
  * File chooser dialog component for writer nodes.</br>
- * In addition to the components offered by {@link AbstractDialogComponentFileChooser}, this dialog component adds a check box
- * for specifying whether parent directories should be created, as well as radio buttons to select the desired policy
- * for existing files. </br>
+ * In addition to the components offered by {@link AbstractDialogComponentFileChooser}, this dialog component adds a
+ * check box for specifying whether missing folders should be created, as well as radio buttons to select the desired
+ * policy for existing files. </br>
  * If the settings model provided in the constructor supports fewer than two {@link FileOverwritePolicy
  * FileOverwritePolicies}, no radio buttons are provided because the user has no choice.
  *
@@ -81,7 +81,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 public final class DialogComponentWriterFileChooser extends AbstractDialogComponentFileChooser {
 
-    private JCheckBox m_createParentDirectories;
+    private JCheckBox m_createMissingFolders;
 
     private ButtonGroup m_policyButtons;
 
@@ -100,12 +100,12 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
         final FlowVariableModel locationFvm, final FilterMode... filterModes) {
         super(model, historyID, DialogType.SAVE_DIALOG, locationFvm, filterModes);
         initComponents();
-        m_createParentDirectories
-            .addActionListener(e -> model.setCreateParentDirectories(m_createParentDirectories.isSelected()));
+        m_createMissingFolders
+            .addActionListener(e -> model.setCreateMissingFolders(m_createMissingFolders.isSelected()));
     }
 
     private void initComponents() {
-        initCreateParentDirectories();
+        initCreateMissingFolders();
         initPolicyButtons();
     }
 
@@ -119,11 +119,11 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
         }
     }
 
-    private void initCreateParentDirectories() {
-        if (m_createParentDirectories == null) {
-            m_createParentDirectories = new JCheckBox("Create parent directories");
-            m_createParentDirectories.addActionListener(
-                e -> getSettingsModel().setCreateParentDirectories(m_createParentDirectories.isSelected()));
+    private void initCreateMissingFolders() {
+        if (m_createMissingFolders == null) {
+            m_createMissingFolders = new JCheckBox("Create missing folders");
+            m_createMissingFolders.addActionListener(
+                e -> getSettingsModel().setCreateMissingFolders(m_createMissingFolders.isSelected()));
         }
     }
 
@@ -157,7 +157,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
         initComponents();
         final JPanel additional = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart();
-        additional.add(m_createParentDirectories, gbc.build());
+        additional.add(m_createMissingFolders, gbc.build());
         if (getSettingsModel().hasPolicyChoice()) {
             additional.add(createOverwritePolicyPanel(), gbc.incX().insetLeft(40).build());
         }
@@ -175,7 +175,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
 
     @Override
     protected void updateAdditionalComponents() {
-        updateCreateParentDirectoriesComponent();
+        updateCreateMissingFoldersComponent();
         if (getSettingsModel().hasPolicyChoice()) {
             updatePolicyComponent();
         }
@@ -189,8 +189,8 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
         });
     }
 
-    private void updateCreateParentDirectoriesComponent() {
-        m_createParentDirectories.setSelected(getSettingsModel().isCreateParentDirectoriesUI());
+    private void updateCreateMissingFoldersComponent() {
+        m_createMissingFolders.setSelected(getSettingsModel().isCreateMissingFoldersUI());
     }
 
     @Override
@@ -203,12 +203,12 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     @Override
     public void setToolTipText(final String text) {
         super.setToolTipText(text);
-        m_createParentDirectories.setToolTipText(text);
+        m_createMissingFolders.setToolTipText(text);
         forEachButton(b -> b.setToolTipText(text));
     }
 
     private void updateEnabledStatus() {
-        m_createParentDirectories.setEnabled(enableComponents());
+        m_createMissingFolders.setEnabled(enableComponents());
         forEachButton(b -> b.setEnabled(enableComponents()));
     }
 
