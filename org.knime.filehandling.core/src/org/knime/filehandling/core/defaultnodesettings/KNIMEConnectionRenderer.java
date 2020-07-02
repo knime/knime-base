@@ -75,7 +75,7 @@ public class KNIMEConnectionRenderer extends DefaultListCellRenderer {
 
             setForeground(getForegroundColor(conn, list.getParent().getForeground()));
 
-            setText(conn.getId());
+            setText(conn.toString());
         }
 
         if (!isSelected) {
