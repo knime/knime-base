@@ -77,12 +77,12 @@ import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.fs.testinitializer.FSTestConfig;
+import org.knime.filehandling.core.fs.testinitializer.FSTestInitializerManager;
+import org.knime.filehandling.core.fs.testinitializer.FSTestPropertiesResolver;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
-import org.knime.filehandling.core.testing.FSTestConfig;
 import org.knime.filehandling.core.testing.FSTestInitializer;
-import org.knime.filehandling.core.testing.FSTestInitializerManager;
-import org.knime.filehandling.core.testing.FSTestPropertiesResolver;
 
 /**
  * Node model for the FS Testing node.

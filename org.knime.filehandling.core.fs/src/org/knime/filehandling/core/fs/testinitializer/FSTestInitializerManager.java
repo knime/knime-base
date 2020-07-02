@@ -46,7 +46,7 @@
  * History
  *   Dec 18, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.testing;
+package org.knime.filehandling.core.fs.testinitializer;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -60,6 +60,8 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  * Manager which knows all registered {@link FSTestInitializerProvider} instances and can instantiate a configured

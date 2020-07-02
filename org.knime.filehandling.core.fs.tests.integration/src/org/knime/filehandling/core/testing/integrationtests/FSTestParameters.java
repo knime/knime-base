@@ -52,11 +52,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.filehandling.core.testing.FSTestConfig;
+import org.knime.filehandling.core.fs.testinitializer.FSTestConfig;
+import org.knime.filehandling.core.fs.testinitializer.FSTestInitializerManager;
+import org.knime.filehandling.core.fs.testinitializer.FSTestPropertiesResolver;
 import org.knime.filehandling.core.testing.FSTestInitializer;
-import org.knime.filehandling.core.testing.FSTestInitializerManager;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
-import org.knime.filehandling.core.testing.FSTestPropertiesResolver;
 import org.knime.filehandling.core.util.IOESupplier;
 
 /**

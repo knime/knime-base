@@ -46,7 +46,7 @@
  * History
  *   Jun 12, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing;
+package org.knime.filehandling.core.fs.testinitializer;
 
 import java.util.Collections;
 import java.util.Enumeration;
