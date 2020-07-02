@@ -6,7 +6,7 @@
       <node
             deprecated="false"
             category-path="/testing"
-            factory-class="org.knime.filehandling.core.testing.node.TestFileSystemConnectorNodeFactory">
+            factory-class="org.knime.filehandling.core.fs.tests.workflow.connector.TestFileSystemConnectorNodeFactory">
       </node>
    </extension>
 </fragment>

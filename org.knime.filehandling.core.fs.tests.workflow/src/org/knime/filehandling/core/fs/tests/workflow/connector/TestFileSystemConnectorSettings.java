@@ -46,7 +46,7 @@
  * History
  *   Jun 11, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.node;
+package org.knime.filehandling.core.fs.tests.workflow.connector;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;

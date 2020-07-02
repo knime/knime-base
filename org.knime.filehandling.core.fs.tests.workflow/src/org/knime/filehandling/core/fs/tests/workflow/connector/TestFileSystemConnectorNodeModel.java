@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.testing.node;
+package org.knime.filehandling.core.fs.tests.workflow.connector;
 
 import java.io.File;
 import java.io.IOException;

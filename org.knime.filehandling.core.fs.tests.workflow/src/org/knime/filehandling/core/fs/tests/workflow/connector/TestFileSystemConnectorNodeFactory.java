@@ -42,29 +42,43 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 12, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.testing.node;
+package org.knime.filehandling.core.fs.tests.workflow.connector;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Node dialog for the "Test File System Connector" node.
+ * Node factory for the "Test File System Connector" node.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class TestFileSystemConnectorNodeDialog extends DefaultNodeSettingsPane {
+public class TestFileSystemConnectorNodeFactory extends NodeFactory<TestFileSystemConnectorNodeModel> {
 
-    private final TestFileSystemConnectorSettings m_settings = new TestFileSystemConnectorSettings();
-
-    public TestFileSystemConnectorNodeDialog() {
-        addDialogComponent(new DialogComponentString(m_settings.getFixtureFilterModel(), "Fixture upload filter: ", true, 40));
-        addDialogComponent(new DialogComponentLabel(
-            "See node description for more information on the filter syntax."));
+    @Override
+    public TestFileSystemConnectorNodeModel createNodeModel() {
+        return new TestFileSystemConnectorNodeModel();
     }
 
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    public NodeView<TestFileSystemConnectorNodeModel> createNodeView(final int viewIndex,
+        final TestFileSystemConnectorNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new TestFileSystemConnectorNodeDialog();
+    }
 }
