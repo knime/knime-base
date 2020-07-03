@@ -47,15 +47,26 @@
  */
 package org.knime.base.node.preproc.joiner3;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.join.JoinSpecification.OutputRowOrder;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
 /**
@@ -66,46 +77,6 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  * @since 4.2
  */
 class Joiner3Settings {
-
-    private static final String JOIN_MODE = "joinMode";
-
-    private static final String LEFT_JOINING_COLUMNS = "leftTableJoinPredicate";
-
-    private static final String RIGHT_JOINING_COLUMNS = "rightTableJoinPredicate";
-
-    private static final String COMPOSITION_MODE = "compositionMode";
-
-    private static final String MERGE_JOIN_COLUMNS = "mergeJoinColumns";
-
-    private static final String OUTPUT_UNMATCHED_ROWS_TO_SEPARATE_PORTS = "outputUnmatchedRowsToSeparatePorts";
-
-    private static final String ASSIGN_NEW_ROW_KEYS = "assignNewRowKeys";
-
-    private static final String ROW_KEY_SEPARATOR = "rowKeySeparator";
-
-    private static final String DUPLICATE_COLUMN_HANDLING = "duplicateHandling";
-
-    private static final String DUPLICATE_COLUMN_SUFFIX = "suffix";
-
-    private static final String LEFT_COL_SELECT_CONFIG = "leftColumnSelectionConfig";
-
-    private static final String RIGHT_COL_SELECT_CONFIG = "rightColumnSelectionConfig";
-
-    private static final String OUTPUT_ROW_ORDER = "outputRowOrder";
-
-    private static final String MAX_OPEN_FILES = "maxOpenFiles";
-
-    private static final String HILITING_ENABLED = "enableHiliting";
-
-    /**
-     * This enum holds all ways of handling duplicate column names in the two input tables.
-     */
-    enum ColumnNameDisambiguation {
-            /** Append a custom suffix to the columns from the second table. */
-            APPEND_SUFFIX,
-            /** Don't execute the node. */
-            DO_NOT_EXECUTE, APPEND_SUFFIX_AUTOMATIC;
-    }
 
     /**
      * This enum holds all ways of joining the two tables.
@@ -132,78 +103,219 @@ class Joiner3Settings {
             m_includeRightUnmatchedRows = includeRightUnmatchedRows;
         }
 
-        boolean isIncludeMatchingRows() {
-            return m_includeMatchingRows;
-        }
+        boolean isIncludeMatchingRows() { return m_includeMatchingRows; }
+        boolean isIncludeLeftUnmatchedRows() { return m_includeLeftUnmatchedRows; }
+        boolean isIncludeRightUnmatchedRows() { return m_includeRightUnmatchedRows; }
 
-        boolean isIncludeLeftUnmatchedRows() {
-            return m_includeLeftUnmatchedRows;
-        }
-
-        boolean isIncludeRightUnmatchedRows() {
-            return m_includeRightUnmatchedRows;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            return m_uiDisplayText;
-        }
+        @Override public String toString() { return m_uiDisplayText; }
 
     }
 
     /**
-     * This enum holds all ways how join attributes can be combined.
+     * Conjunctive or disjunctive join mode.
      */
-    enum CompositionMode {
-            /** Join when all join attributes match (logical and). */
-            MATCH_ALL,
-            /** Join when at least one join attribute matches (logical or). */
-            MATCH_ANY;
+    enum CompositionMode implements ButtonGroupEnumInterface {
+        MATCH_ALL("Match all", "Join rows when all join attributes match (logical and)."),
+        MATCH_ANY("Match any", "Join rows when at least one join attribute matches (logical or).");
+
+        private String m_label;
+        private String m_tooltip;
+
+        CompositionMode(final String label, final String tooltip) {
+            m_label = label;
+            m_tooltip = tooltip;
+        }
+
+        @Override public String getText() { return m_label; }
+        @Override public String getActionCommand() { return name(); }
+        @Override public String getToolTip() { return m_tooltip; }
+        @Override public boolean isDefault() { return MATCH_ALL == this; }
     }
 
-    // join mode
-    private JoinMode m_joinMode = JoinMode.INNER;
+    enum RowKeyFactory implements ButtonGroupEnumInterface {
+            /** Output rows may be provided in any order. */
+            CONCATENATE("Concatenate original row keys with separator",
+                "For instance, when selecting separator \"_\", a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.",
+                JoinSpecification::createConcatRowKeysFactory),
+            SEQUENTIAL("Assign new row keys sequentially",
+                "Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. ",
+                s -> JoinSpecification.createSequenceRowKeysFactory());
 
-    // join columns
-    private JoinColumn[] m_leftJoinColumns;
+        private final String m_label;
 
-    private JoinColumn[] m_rightJoinColumns;
+        private final String m_tooltip;
 
-    private CompositionMode m_compositionMode = CompositionMode.MATCH_ALL;
+        private final Function<String, BiFunction<DataRow, DataRow, RowKey>> m_factoryCreator;
 
-    // output
-    private boolean m_mergeJoinColumns;
+        RowKeyFactory(final String label, final String tooltip, final Function<String, BiFunction<DataRow, DataRow, RowKey>> factoryCreator) {
+            m_label = label;
+            m_tooltip = tooltip;
+            m_factoryCreator = factoryCreator;
+        }
 
-    private boolean m_outputUnmatchedRowsToSeparatePorts;
+        @Override public String getText() { return m_label; }
+        @Override public String getActionCommand() { return name(); }
+        @Override public String getToolTip() { return m_tooltip; }
+        @Override public boolean isDefault() { return this == CONCATENATE; }
 
-    // row keys
-    private boolean m_assignNewRowKeys = false;
+        public BiFunction<DataRow, DataRow, RowKey> getFactory(final String separator){
+            return m_factoryCreator.apply(separator);
+        }
+    }
 
-    private String m_rowKeySeparator = "_";
+    /**
+     * Duplicate column names handling options.
+     */
+    enum ColumnNameDisambiguation implements ButtonGroupEnumInterface {
+            DO_NOT_EXECUTE("Do not execute", "Prevents the node from being executed if column names clash."),
+//            APPEND_SUFFIX_AUTOMATIC("Append default suffix", "Appends the suffix \" (#1)\"."),
+            APPEND_SUFFIX("Append custom suffix", "Appends the given suffix.");
 
-    // column selection
+        private String m_label;
+
+        private String m_tooltip;
+
+        ColumnNameDisambiguation(final String label, final String tooltip) {
+            m_label = label;
+            m_tooltip = tooltip;
+        }
+
+        @Override public String getText() { return m_label; }
+        @Override public String getActionCommand() { return name(); }
+        @Override public String getToolTip() { return m_tooltip; }
+        @Override public boolean isDefault() { return APPEND_SUFFIX == this; }
+    }
+
+    enum OutputRowOrder implements ButtonGroupEnumInterface {
+            /** Output rows may be provided in any order. */
+            ARBITRARY("Arbitrary output order (may vary randomly)", "The output can vary depending on the currently "
+                    + "available amount of main memory. This means that identical input can produce different output"
+                    + " orders on consecutive executions.", org.knime.core.data.join.JoinSpecification.OutputRowOrder.ARBITRARY),
+            LEFT_RIGHT("Sort by row offset in left table, then right table",
+                "<html>Rows are output in three blocks:        "
+                    + "<ol>                                    "
+                    + "<li>matched rows</li>                   "
+                    + "<li>unmatched rows from left table</li> "
+                    + "<li>unmatched rows from right table</li>"
+                    + "</ol>                                   "
+                    + "Each block is sorted by row offset in the left table, breaking ties using the "
+                    + "row offset in the right table.", org.knime.core.data.join.JoinSpecification.OutputRowOrder.LEFT_RIGHT);
+
+        private final String m_label;
+        private final String m_tooltip;
+        private final org.knime.core.data.join.JoinSpecification.OutputRowOrder m_outputRowOrder;
+        OutputRowOrder(final String label, final String tooltip, final org.knime.core.data.join.JoinSpecification.OutputRowOrder outputRowOrder) {
+            m_label = label;
+            m_tooltip = tooltip;
+            m_outputRowOrder = outputRowOrder;
+        }
+
+        @Override public String getText() { return m_label; }
+        @Override public String getActionCommand() { return name(); }
+        @Override public String getToolTip() { return m_tooltip; }
+        @Override public boolean isDefault() { return this == ARBITRARY; }
+
+        org.knime.core.data.join.JoinSpecification.OutputRowOrder getOutputOrder() {
+            return m_outputRowOrder;
+        }
+    }
+
+    final SettingsModelString m_joinModeModel = new SettingsModelString("joinMode", JoinMode.INNER.name());
+    final SettingsModelStringArray m_leftJoiningColumnsModel = new SettingsModelStringArray("leftTableJoinPredicate", new String[0]);
+    final SettingsModelStringArray m_rightJoiningColumnsModel = new SettingsModelStringArray("rightTableJoinPredicate", new String[0]);
+    final SettingsModelString m_compositionModeModel = new SettingsModelString("compositionMode", CompositionMode.MATCH_ALL.name());
+    final SettingsModelBoolean m_mergeJoinColumnsModel = new SettingsModelBoolean("mergeJoinColumns", false);
+    final SettingsModelBoolean m_outputUnmatchedRowsToSeparatePortsModel = new SettingsModelBoolean("outputUnmatchedRowsToSeparatePorts", false);
+    final SettingsModelString m_rowKeyFactoryModel = new SettingsModelString("rowKeyFactory", RowKeyFactory.CONCATENATE.name());
+    final SettingsModelString m_rowKeySeparatorModel = new SettingsModelString("rowKeySeparator", "_");
+    final SettingsModelString m_columnDisambiguationModel = new SettingsModelString("duplicateHandling", ColumnNameDisambiguation.APPEND_SUFFIX.name());
+    final SettingsModelString m_columnNameSuffixModel = new SettingsModelString("suffix", " (right)");
+    final SettingsModelString m_outputRowOrderModel = new SettingsModelString("outputRowOrder", OutputRowOrder.ARBITRARY.name());
+    final SettingsModelIntegerBounded m_maxOpenFilesModel = new SettingsModelIntegerBounded("maxOpenFiles", 200, 3, Integer.MAX_VALUE);
+    final SettingsModelBoolean m_enableHilitingModel = new SettingsModelBoolean("enableHiliting", false);
+
+    final List<SettingsModel> m_settings = new ArrayList<>();
+
+    // column selection settings models
     private DataColumnSpecFilterConfiguration m_leftColSelectConfig =
-        new DataColumnSpecFilterConfiguration(LEFT_COL_SELECT_CONFIG);
+        new DataColumnSpecFilterConfiguration("leftColumnSelectionConfig");
 
     private DataColumnSpecFilterConfiguration m_rightColSelectConfig =
-        new DataColumnSpecFilterConfiguration(RIGHT_COL_SELECT_CONFIG);
+        new DataColumnSpecFilterConfiguration("rightColumnSelectionConfig");
 
-    private ColumnNameDisambiguation m_duplicateHandling;
+    public Joiner3Settings() {
+        m_settings.add(m_joinModeModel);
+        m_settings.add(m_leftJoiningColumnsModel);
+        m_settings.add(m_rightJoiningColumnsModel);
+        m_settings.add(m_compositionModeModel);
+        m_settings.add(m_mergeJoinColumnsModel);
+        m_settings.add(m_outputUnmatchedRowsToSeparatePortsModel);
+        m_settings.add(m_rowKeyFactoryModel);
+        m_settings.add(m_rowKeySeparatorModel);
+        m_settings.add(m_columnDisambiguationModel);
+        m_settings.add(m_columnNameSuffixModel);
+        m_settings.add(m_outputRowOrderModel);
+        m_settings.add(m_maxOpenFilesModel);
+        m_settings.add(m_enableHilitingModel);
+    }
 
-    private String m_duplicateColSuffix;
+    /**
+     * Loads the settings from the node settings object.
+     *
+     * @param settings a node settings object
+     * @throws InvalidSettingsException if some settings are missing
+     */
+    public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        for (SettingsModel model : m_settings) {
+            model.loadSettingsFrom(settings);
+        }
+    }
 
-    // performance
-    private OutputRowOrder m_outputRowOrder = OutputRowOrder.LEFT_RIGHT;
+    /**
+     * Loads the settings from the node settings object using default values if some settings are missing.
+     *
+     * @param settings a node settings object
+     * @param spec the input spec
+     * @throws InvalidSettingsException
+     */
+    void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec[] spec) throws InvalidSettingsException {
+        loadSettings(settings);
+        m_leftColSelectConfig.loadConfigurationInDialog(settings, spec[0]);
+        m_rightColSelectConfig.loadConfigurationInDialog(settings, spec[1]);
+    }
 
-    private int m_maxOpenFiles = 200;
+    /**
+     * @param settings
+     * @throws InvalidSettingsException
+     */
+    public void loadSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        loadSettings(settings);
+        m_leftColSelectConfig.loadConfigurationInModel(settings);
+        m_rightColSelectConfig.loadConfigurationInModel(settings);
+    }
 
-    private boolean m_hilitingEnabled = true;
+    public void validateSettings() throws InvalidSettingsException {
+        if (getLeftJoinColumns().length == 0) {
+            throw new InvalidSettingsException("Please define at least one joining column pair.");
+        }
 
-    void loadDefaults(final DataTableSpec[] spec) throws InvalidSettingsException {
-        loadSettingsForDialog(new NodeSettings(""), spec);
+        if (getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX
+            && getDuplicateColumnSuffix().isEmpty()) {
+            throw new InvalidSettingsException("No suffix for duplicate columns provided");
+        }
+    }
+
+    /**
+     * Saves the settings into the node settings object.
+     *
+     * @param settings a node settings object
+     */
+    public void saveSettingsTo(final NodeSettingsWO settings) {
+        m_settings.forEach(m -> m.saveSettingsTo(settings));
+        // column selection
+        m_leftColSelectConfig.saveConfiguration(settings);
+        m_rightColSelectConfig.saveConfiguration(settings);
+
     }
 
     /**
@@ -212,7 +324,7 @@ class Joiner3Settings {
      * @return the join mode
      */
     JoinMode getJoinMode() {
-        return m_joinMode;
+        return JoinMode.valueOf(m_joinModeModel.getStringValue());
     }
 
     /**
@@ -221,7 +333,7 @@ class Joiner3Settings {
      * @param joinMode the join mode
      */
     void setJoinMode(final JoinMode joinMode) {
-        m_joinMode = joinMode;
+        m_joinModeModel.setStringValue(joinMode.name());
     }
 
     /**
@@ -230,7 +342,8 @@ class Joiner3Settings {
      * @return the leftJoinColumns
      */
     JoinColumn[] getLeftJoinColumns() {
-        return m_leftJoinColumns;
+        String[] leftJoinColumnsString = m_leftJoiningColumnsModel.getStringArrayValue();
+        return Arrays.stream(leftJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
     }
 
     /**
@@ -239,7 +352,8 @@ class Joiner3Settings {
      * @param leftJoinColumns the leftJoinColumns to set
      */
     void setLeftJoinColumns(final JoinColumn[] leftJoinColumns) {
-        m_leftJoinColumns = leftJoinColumns;
+        m_leftJoiningColumnsModel
+            .setStringArrayValue(Arrays.stream(leftJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
     }
 
     /**
@@ -248,7 +362,8 @@ class Joiner3Settings {
      * @return the rightJoinColumns
      */
     JoinColumn[] getRightJoinColumns() {
-        return m_rightJoinColumns;
+        String[] rightJoinColumnsString = m_rightJoiningColumnsModel.getStringArrayValue();
+        return Arrays.stream(rightJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
     }
 
     /**
@@ -257,45 +372,23 @@ class Joiner3Settings {
      * @param rightJoinColumns the rightJoinColumns to set
      */
     void setRightJoinColumns(final JoinColumn[] rightJoinColumns) {
-        m_rightJoinColumns = rightJoinColumns;
+        m_rightJoiningColumnsModel
+            .setStringArrayValue(Arrays.stream(rightJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
     }
 
     /**
      * @return the compositionMode
      */
     CompositionMode getCompositionMode() {
-        return m_compositionMode;
-    }
-
-    /**
-     * @param compositionMode the compositionMode to set
-     */
-    void setCompositionMode(final CompositionMode compositionMode) {
-        m_compositionMode = compositionMode;
+        return CompositionMode.valueOf(m_compositionModeModel.getStringValue());
     }
 
     boolean isMergeJoinColumns() {
-        return m_mergeJoinColumns;
-    }
-
-    void setMergeJoinColumns(final boolean value) {
-        m_mergeJoinColumns = value;
+        return m_mergeJoinColumnsModel.getBooleanValue();
     }
 
     boolean isOutputUnmatchedRowsToSeparateOutputPort() {
-        return m_outputUnmatchedRowsToSeparatePorts;
-    }
-
-    void setOutputUnmatchedRowsToSeparateOutputPort(final boolean value) {
-        m_outputUnmatchedRowsToSeparatePorts = value;
-    }
-
-    boolean isAssignNewRowKeys() {
-        return m_assignNewRowKeys;
-    }
-
-    void setAssignNewRowKeys(final boolean value) {
-        m_assignNewRowKeys = value;
+        return m_outputUnmatchedRowsToSeparatePortsModel.getBooleanValue();
     }
 
     /**
@@ -304,16 +397,7 @@ class Joiner3Settings {
      * @return the rowKeySeparator
      */
     String getRowKeySeparator() {
-        return m_rowKeySeparator;
-    }
-
-    /**
-     * Set Separator of the RowKeys in the joined table.
-     *
-     * @param rowKeySeparator the rowKeySeparator to set
-     */
-    void setRowKeySeparator(final String rowKeySeparator) {
-        m_rowKeySeparator = rowKeySeparator;
+        return m_rowKeySeparatorModel.getStringValue();
     }
 
     DataColumnSpecFilterConfiguration getLeftColumnSelectionConfig() {
@@ -329,17 +413,8 @@ class Joiner3Settings {
      *
      * @return the duplicate handling method
      */
-    ColumnNameDisambiguation getDuplicateHandling() {
-        return m_duplicateHandling;
-    }
-
-    /**
-     * Sets how duplicate column names should be handled.
-     *
-     * @param duplicateHandling the duplicate handling method
-     */
-    void setDuplicateHandling(final ColumnNameDisambiguation duplicateHandling) {
-        m_duplicateHandling = duplicateHandling;
+    ColumnNameDisambiguation getColumnNameDisambiguation() {
+        return ColumnNameDisambiguation.valueOf(m_columnDisambiguationModel.getStringValue());
     }
 
     /**
@@ -349,25 +424,11 @@ class Joiner3Settings {
      * @return the suffix
      */
     String getDuplicateColumnSuffix() {
-        return m_duplicateColSuffix;
+        return m_columnNameSuffixModel.getStringValue();
     }
 
-    /**
-     * Sets the suffix that is appended to duplicate columns from the right table if the duplicate handling method is
-     * <code>JoinMode.AppendSuffix</code>.
-     *
-     * @param suffix the suffix
-     */
-    void setDuplicateColumnSuffix(final String suffix) {
-        m_duplicateColSuffix = suffix;
-    }
-
-    OutputRowOrder getOutputRowOrder() {
-        return m_outputRowOrder;
-    }
-
-    void setOutputRowOrder(final OutputRowOrder outputRowOrder) {
-        m_outputRowOrder = outputRowOrder;
+    JoinSpecification.OutputRowOrder getOutputRowOrder() {
+        return OutputRowOrder.valueOf(m_outputRowOrderModel.getStringValue()).getOutputOrder();
     }
 
     /**
@@ -376,149 +437,15 @@ class Joiner3Settings {
      * @return the maxOpenFiles
      */
     int getMaxOpenFiles() {
-        return m_maxOpenFiles;
-    }
-
-    /**
-     * Set number of files that are allowed to be openend by the Joiner.
-     *
-     * @param maxOpenFiles the maxOpenFiles to set
-     */
-    void setMaxOpenFiles(final int maxOpenFiles) {
-        m_maxOpenFiles = maxOpenFiles;
+        return m_maxOpenFilesModel.getIntValue();
     }
 
     boolean isHilitingEnabled() {
-        return m_hilitingEnabled;
+        return m_enableHilitingModel.getBooleanValue();
     }
 
-    void enabledHiliting(final boolean enabled) {
-        m_hilitingEnabled = enabled;
-    }
-
-    /**
-     * Loads the settings from the node settings object.
-     *
-     * @param settings a node settings object
-     * @throws InvalidSettingsException if some settings are missing
-     */
-    public void loadSettingsCommon(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_joinMode = JoinMode.valueOf(settings.getString(JOIN_MODE, JoinMode.INNER.name()));
-
-        String[] leftJoinColumnsString = settings.getStringArray(LEFT_JOINING_COLUMNS, new String[0]);
-        m_leftJoinColumns = Arrays.stream(leftJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
-
-        String[] rightJoinColumnsString = settings.getStringArray(RIGHT_JOINING_COLUMNS, new String[0]);
-        m_rightJoinColumns =
-            Arrays.stream(rightJoinColumnsString).map(JoinColumn::fromString).toArray(JoinColumn[]::new);
-
-        m_compositionMode =
-            CompositionMode.valueOf(settings.getString(COMPOSITION_MODE, CompositionMode.MATCH_ALL.name()));
-
-        m_mergeJoinColumns = settings.getBoolean(MERGE_JOIN_COLUMNS, true);
-        m_outputUnmatchedRowsToSeparatePorts = settings.getBoolean(OUTPUT_UNMATCHED_ROWS_TO_SEPARATE_PORTS, false);
-
-        m_assignNewRowKeys = settings.getBoolean(ASSIGN_NEW_ROW_KEYS, false);
-        m_rowKeySeparator = settings.getString(ROW_KEY_SEPARATOR, "_");
-
-        m_duplicateHandling = ColumnNameDisambiguation.valueOf(
-            settings.getString(DUPLICATE_COLUMN_HANDLING, ColumnNameDisambiguation.APPEND_SUFFIX_AUTOMATIC.name()));
-        m_duplicateColSuffix = settings.getString(DUPLICATE_COLUMN_SUFFIX, " (right)");
-
-        m_outputRowOrder =
-            OutputRowOrder.valueOf(settings.getString(OUTPUT_ROW_ORDER, OutputRowOrder.ARBITRARY.name()));
-        m_maxOpenFiles = settings.getInt(MAX_OPEN_FILES, 200);
-        m_hilitingEnabled = settings.getBoolean(HILITING_ENABLED, false);
-    }
-
-    /**
-     * Loads the settings from the node settings object using default values if some settings are missing.
-     *
-     * @param settings a node settings object
-     * @param spec the input spec
-     * @throws InvalidSettingsException
-     */
-    void loadSettingsForDialog(final NodeSettingsRO settings, final DataTableSpec[] spec)
-        throws InvalidSettingsException {
-
-        loadSettingsCommon(settings);
-
-        m_leftColSelectConfig.loadConfigurationInDialog(settings, spec[0]);
-        m_rightColSelectConfig.loadConfigurationInDialog(settings, spec[1]);
-    }
-
-    /**
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    public void loadSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-        loadSettingsCommon(settings);
-
-        m_leftColSelectConfig.loadConfigurationInModel(settings);
-        m_rightColSelectConfig.loadConfigurationInModel(settings);
-    }
-
-    public void validateSettings() throws InvalidSettingsException {
-        if (getDuplicateHandling() == null) {
-            throw new InvalidSettingsException("No duplicate handling method selected");
-        }
-        if (getJoinMode() == null) {
-            throw new InvalidSettingsException("No join mode selected");
-        }
-        if ((getLeftJoinColumns() == null) || getLeftJoinColumns().length < 1 || getRightJoinColumns() == null
-            || getRightJoinColumns().length < 1) {
-            throw new InvalidSettingsException("Please define at least one joining column pair.");
-        }
-        if (getLeftJoinColumns() != null && getRightJoinColumns() != null
-            && getLeftJoinColumns().length != getRightJoinColumns().length) {
-            throw new InvalidSettingsException(
-                "Number of columns selected from the top table and from " + "the bottom table do not match");
-        }
-        if (getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX
-            && (getDuplicateColumnSuffix() == null || getDuplicateColumnSuffix().isEmpty())) {
-            throw new InvalidSettingsException("No suffix for duplicate columns provided");
-        }
-        if (getMaxOpenFiles() < 3) {
-            throw new InvalidSettingsException("Maximum number of open files must be at least 3.");
-        }
-    }
-
-    /**
-     * Saves the settings into the node settings object.
-     *
-     * @param settings a node settings object
-     */
-    public void saveSettings(final NodeSettingsWO settings) {
-        // join mode
-        settings.addString(JOIN_MODE, m_joinMode.name());
-
-        // join columns
-        settings.addString(COMPOSITION_MODE, m_compositionMode.toString());
-        settings.addStringArray(LEFT_JOINING_COLUMNS,
-            Arrays.stream(m_leftJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
-        settings.addStringArray(RIGHT_JOINING_COLUMNS,
-            Arrays.stream(m_rightJoinColumns).map(JoinColumn::toColumnName).toArray(String[]::new));
-
-        // output
-        settings.addBoolean(MERGE_JOIN_COLUMNS, m_mergeJoinColumns);
-        settings.addBoolean(OUTPUT_UNMATCHED_ROWS_TO_SEPARATE_PORTS, m_outputUnmatchedRowsToSeparatePorts);
-
-        // row keys
-        settings.addBoolean(ASSIGN_NEW_ROW_KEYS, m_assignNewRowKeys);
-        settings.addString(ROW_KEY_SEPARATOR, m_rowKeySeparator);
-
-        // column selection
-        m_leftColSelectConfig.saveConfiguration(settings);
-        m_rightColSelectConfig.saveConfiguration(settings);
-        settings.addString(DUPLICATE_COLUMN_HANDLING, m_duplicateHandling.toString());
-        settings.addString(DUPLICATE_COLUMN_SUFFIX, m_duplicateColSuffix);
-
-        // performance
-        settings.addString(OUTPUT_ROW_ORDER, m_outputRowOrder.name());
-        settings.addInt(MAX_OPEN_FILES, m_maxOpenFiles);
-        settings.addBoolean(HILITING_ENABLED, m_hilitingEnabled);
-
+    RowKeyFactory getRowKeyFactory() {
+        return RowKeyFactory.valueOf(m_rowKeyFactoryModel.getStringValue());
     }
 
 }

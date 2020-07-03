@@ -9,62 +9,69 @@
             Rows that remain unmatched can also be output.
         </intro>
         <tab name="Joiner settings">
-            <option name="Join Mode">
-                This controls which rows are included in the join results. The join mode corresponding to the selected
+            <option name="Include in output">
+                Controls which rows are included in the join result. The join mode corresponding to the selected
                 settings, e.g., inner join, outer join, or antijoin, is displayed for convenience. <br/>
-                <b>Include matching rows:</b> If selected, the combined rows will be included in the output.
+                <b>Matching rows:</b> If selected, the joined rows are included in the output.
                 Deactivating this can be used to find only the rows that do not have a join partner in the other table. 
                 <br/>
-                <b>Include left unmatched rows:</b> Whether to include the rows from the left table for which no row
+                <b>Left unmatched rows:</b> Whether to include the rows from the left table for which no row
                 in the right table has the same values in the selected join columns. For example, including only matches
                  and left unmatched rows corresponds to a left outer join in database terms.
                  <br/>
-                 <b>Include right unmatched rows:</b> Whether to include unmatched rows from the right input table.
+                 <b>Right unmatched rows:</b> Whether to include unmatched rows from the right input table.
                  For example, including only right unmatched rows corresponds to a right antijoin in database terms.
             </option>        
             <option name="Join Columns">
                 Select the columns from the top input ('left' table) and the bottom input 
                 ('right' table) that should be used for joining. Each pair of columns defines an equality constraint
-                of the form leftColumn = rightColumn. For two rows to be combined, the row from the left input table
-                must have the same value in leftColumn as the row from the right input table in rightColumn.
-				A row's key can be matched to another row's key or a regular column, in which case the row key will be interpreted 
+                of the form A = B. For two rows to be joined, the row from the left input table
+                must have the same value in column A as the row from the right input table in column B.
+				Row keys can be compared to row keys or regular columns, in which case the row key will be interpreted 
 				as a string value. 
                 <br/>
             </option>
-            <option name="Output">
-                Controls the format of the join results.  
-                <br/>
-                <b>Merge join columns:</b> 
-                If active, the join columns of the right input table are merged into their join partners of the left 
-                input table. If joining two columns with the same name, the merged join column will have that name.
-                If merging two columns with names A and B, the merged join column is named A=B. <br/>
-                For instance, when joining a table with columns A, B, and C as left input table with a table
-                that has columns X, A, and Z using the join predicates A=X, A=A, and C=Z, the resulting output table 
-                would have columns A=X, A, C=Z. <br/>
-                The value of a merged join column for an unmatched row is taken from whichever row has values.
-                For instance, when outputting an unmatched row from the right table in the above example with values x, a, and z, 
-                the resulting row in format A=X, A, C=Z has values x, a, z. When merge join columns is off, the row is
-                instead output as ?, ?, ?, x, a, z.
+            <option name="Output options">
+                Controls the format in which the join result is output and whether hiliting is enabled.  
                 <br/>
                 <b>Output unmatched rows to separate ports:</b>
                 If selected, the node will produce three output tables instead of one. The top output port contains
                 the combined rows, the middle output port contains the unmatched rows from the left input table (if 
-                they are included in the results in the Join Mode settings), and the bottom port contains the unmatched
+                they are included in the "Include in output" settings), and the bottom port contains the unmatched
                 rows from the right input table.            
+                <br/>
+                <b>Merge join columns:</b> 
+                If active, the join columns of the right input table are merged into their join partners of the left 
+                input table. The merged column is named like the left join column if one of its join partners in the 
+                right table has the same name. If the join partners have different names, the merged column is named
+                in the form <i>left column=right column</i>.<br/>
+                For instance, when joining a table with columns A, B, and C as left input table with a table
+                that has columns X, A, and Z using the join predicates A=A, A=X, and C=Z, the resulting output table 
+                would have columns A, B, C=Z. Note how the column A in the output table contains the value of the column
+                A in the left table, which is also the value of the column X in the right table, as required by the join conditions  A=X.<br/>
+                The value of a merged join column for an unmatched row is taken from whichever row has values.
+                For instance, when outputting an unmatched row from the right table in the above example with values x, a, and z, 
+                the resulting row in format A, B, C=Z has values x, ?, z. <br/> When merge join columns is off, the row is
+                instead output as ?, ?, ?, x, a, z. <br/>
+                <b>Hiliting enabled:</b> If selected, hiliting rows in the output will hilite the rows in the left and 
+                right input tables that contributed to that row. Equally, when hiliting a row in one of the input tables,
+                all rows that the input row contributed to are hilited.<br/> Disabling this option reduces the memory 
+                footprint of the joiner, the disk footprint of the workflow, and may speed up the execution in cases 
+                where main memory is scarce.
             </option>
             <option name="Row Keys">
-                How to generate the keys of the combined output rows.
-                <b>Concatenate original row keys with separator:</b> The generated row key indicates which rows contributed
-                to the combined row, e.g., a row combining rows with key Row3 and Row17 is assigned the key Row3_Row17. 
+                How to generate the keys of the combined output rows.<br/>
+                <b>Concatenate original row keys with separator:</b> The generated row key concatenates the row
+				keys of the input rows, e.g., a row joining rows with key Row3 and Row17 is assigned the key Row3_Row17. 
                 <br/>
                 <b>Assign new row keys sequentially: </b> Combined rows are assigned row keys in the order they are 
-                produced, e.g., the first combined row gets the row key Row0, the second gets the row key Row1, etc.
+                produced, e.g., the first row in the join result is assigned row key Row0, the second row is assigned
+                key Row1, etc.
                 <br/>
             </option>        
         </tab>
         <tab name="Column selection">
-            <option name="Column Selection (Top Input ('left' table) and Bottom Input ('right' table))">
-                <br/>
+            <option name="Column Selection (Top Input (left table) and Bottom Input (right table))">
                 <b>Include:</b> Select columns that are included in the combined rows.
                 <br/>
                 <b>Exclude:</b> Select columns that are discarded in the combined rows.
@@ -74,39 +81,32 @@
                 The option configures how column names clashes are handled, in case
 				a column name appears both in the left input table and the right input table. 
                 <br/>
-                <b>Don't execute:</b> The node will display a warning and won't execute if there are
+                <b>Do not execute:</b> The node will display a warning and won't execute if there are
                 duplicate column names in the left and right input tables.  
-                <br/>
-                <b>Append suffix (automatic):</b> Append a default suffix " (#1)" to the duplicate column names
-                of the right input table.
                 <br/>
                 <b>Append suffix:</b> Append the specified suffix to the duplicate column names
                 in the right input table.
-                table. <br/>
             </option>
         </tab>
         <tab name="Performance">
             <option name="Output order">
-                <b>Left-right output order: </b>The combined rows in the output are sorted according to the order of the
-                contributing rows. Consider a row R=(L1, R1) in the output that combines rows L1 and R1 from the left and right 
+                 <b>Arbitrary output order:</b> The execution time of the join can be improved if the output does not have
+                 to be sorted. The produced order can vary between any two executions of the joiner and depends on how
+                 much main memory is available during the join operation.
+                <br/>
+                <b>Sort by row offset in left table, then right table:</b> The combined rows in the output are sorted 
+                according to the offsets of the contributing rows. Consider a row R=(L1, R1) in the output that combines rows L1 and R1 from the left and right 
                 input tables, respectively. R comes before another row S=(L2, R2) in the output if L1 comes
                 before L2 in the left table. If two rows in the output both involve the same row from the left table,
                 they are ordered according to the order of the right contributing row. <br/>
                 If the results are output in a single port, the matching rows are first output, then the unmatched rows 
-                from the left table, and finally the unmatched rows from the right table. 
-                <br/>
-                 <b>Arbitrary output order: </b>The execution time of the join can be improved if the output does not have
-                 to be sorted. The produced order can vary between any two executions of the joiner and depends on how
-                 much main memory is available during the join operation.
-                <br/>
+                from the left table, and finally the unmatched rows from the right table. <br/>
+                This output order is the same as in the previous joiner implementation. 
             </option>        
             <option name="Miscellaneous">
                  <b>Maximum number of open files:</b> Controls the number of temporary files that can be created during
                  the join operation and possibly subsequent sorting operations. More temporary files may increase 
-                 performance, but the operating system might impose a limit on the maximum number of open files. <br/>
-                <b>Hiliting enabled:</b> Disabling the possibility to hilite combined rows in the output to see
-                which rows in the input contributed to them reduces memory consumption and leads to faster execution
-                in some circumstances. 
+                 performance, but the operating system might impose a limit on the maximum number of open files.
             </option>
         </tab>
 

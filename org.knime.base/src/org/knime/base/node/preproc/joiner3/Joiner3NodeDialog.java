@@ -56,26 +56,27 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguation;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionMode;
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.JoinMode;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactory;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.join.JoinSpecification.OutputRowOrder;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.data.join.JoinTableSettings.SpecialJoinColumn;
 import org.knime.core.node.InvalidSettingsException;
@@ -83,6 +84,10 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumberEdit;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.util.ColumnPairsSelectionPanel;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 
@@ -93,67 +98,96 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  */
 class Joiner3NodeDialog extends NodeDialogPane {
 
+    private static final String ICON_PATH = "org/knime/base/node/preproc/joiner3/vennDiagrams";
+
     private final Joiner3Settings m_settings = new Joiner3Settings();
 
     // join mode
-    private final JCheckBox m_includeMatchingRows = new JCheckBox("Include matching rows");
+    private final JCheckBox m_includeMatchingRows = new JCheckBox("Matching rows");
 
-    private final JCheckBox m_includeLeftUnmatchedRows = new JCheckBox("Include left unmatched rows");
+    private final JCheckBox m_includeLeftUnmatchedRows = new JCheckBox("Left unmatched rows");
 
-    private final JCheckBox m_includeRightUnmatchedRows = new JCheckBox("Include right unmatched rows");
+    private final JCheckBox m_includeRightUnmatchedRows = new JCheckBox("Right unmatched rows");
 
-    // join columns
-    //    private final JRadioButton m_matchAllButton = new JRadioButton("Match all of the following");
-    //    private final JRadioButton m_matchAnyButton = new JRadioButton("Match any of the following");
     private ColumnPairsSelectionPanel m_columnPairs;
 
     // output
-    private final JCheckBox m_mergeJoinColumns = new JCheckBox("Merge join columns");
 
-    private final JCheckBox m_outputUnmatchedRowsToSeparatePorts =
-        new JCheckBox("Output unmatched rows to separate ports");
+    private final DialogComponentBoolean m_mergeJoinColumns;
+
+    private final DialogComponentBoolean m_outputUnmatchedRowsToSeparatePorts;
+
+    private final DialogComponentBoolean m_hilitingEnabled;
 
     // row keys
-    private final JRadioButton m_concatOrgRowKeysWithSeparator =
-        new JRadioButton("Concatenate original row keys with separator:");
+    private final DialogComponentButtonGroup m_rowKeyFactory;
 
-    private final JTextField m_rowKeySeparator = new JTextField();
-
-    private final JRadioButton m_assignNewRowKeys = new JRadioButton("Assign new row keys sequentially");
+    private final DialogComponentString m_rowKeySeparator;
 
     // column selection
     private final DataColumnSpecFilterPanel m_leftFilterPanel = new DataColumnSpecFilterPanel();
 
     private final DataColumnSpecFilterPanel m_rightFilterPanel = new DataColumnSpecFilterPanel();
 
-    private final JRadioButton m_dontExecute = new JRadioButton("Don't execute");
+    private final DialogComponentString m_columnDisambiguationSuffix;
 
-    private final JRadioButton m_appendSuffixAutomatic = new JRadioButton("Append suffix (automatic)");
-
-    private final JRadioButton m_appendSuffix = new JRadioButton("Append custom suffix:");
-
-    private final JTextField m_suffix = new JTextField();
+    private final DialogComponentButtonGroup m_columnDisambiguation;
 
     // performance
-    private final JRadioButton m_outputOrderArbitrary = new JRadioButton(OutputRowOrder.ARBITRARY.toString());
+    private final DialogComponentButtonGroup m_outputRowOrder;
 
-    private final JRadioButton m_outputOrderDeterministic = new JRadioButton(OutputRowOrder.DETERMINISTIC.toString());
+    private final DialogComponentNumberEdit m_maxOpenFiles;
 
-    private final JRadioButton m_outputOrderLeftRight = new JRadioButton(OutputRowOrder.LEFT_RIGHT.toString());
-
-    private final JTextField m_maxOpenFiles = new JTextField(10);
-
-    private final JCheckBox m_hilitingEnabled = new JCheckBox("Hiliting enabled");
 
     /**
      * Creates a new dialog for the joiner node.
+     * @param settings
      *
      * @param settings
      */
     Joiner3NodeDialog() {
+
+        // output
+        m_outputUnmatchedRowsToSeparatePorts = new DialogComponentBoolean(
+            m_settings.m_outputUnmatchedRowsToSeparatePortsModel, "Output unmatched rows to separate ports");
+
+        m_mergeJoinColumns = new DialogComponentBoolean(m_settings.m_mergeJoinColumnsModel, "Merge join columns");
+
+        m_hilitingEnabled = new DialogComponentBoolean(m_settings.m_enableHilitingModel, "Hiliting enabled");
+
+        // row keys
+        m_rowKeyFactory = new DialogComponentButtonGroup(m_settings.m_rowKeyFactoryModel, "Row keys of the output rows",
+            true, Joiner3Settings.RowKeyFactory.values());
+        m_rowKeySeparator = new DialogComponentString(m_settings.m_rowKeySeparatorModel, "Separator");
+        // enable row key separator input field only when concat is selected
+        m_settings.m_rowKeySeparatorModel.addChangeListener(l -> m_settings.m_rowKeySeparatorModel
+            .setEnabled(m_settings.getRowKeyFactory() == RowKeyFactory.CONCATENATE));
+
+        // column selection
+        m_columnDisambiguation = new DialogComponentButtonGroup(m_settings.m_columnDisambiguationModel,
+            "Duplicate column handling", true, Joiner3Settings.ColumnNameDisambiguation.values());
+        m_columnDisambiguationSuffix = new DialogComponentString(m_settings.m_columnNameSuffixModel, "Suffix");
+        m_settings.m_columnDisambiguationModel.addChangeListener(l -> m_settings.m_columnNameSuffixModel
+            .setEnabled(m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX));
+
+        // performance
+        m_outputRowOrder= new DialogComponentButtonGroup(m_settings.m_outputRowOrderModel,
+            "Output row order", true, Joiner3Settings.OutputRowOrder.values());
+
+        m_maxOpenFiles =
+                new DialogComponentNumberEdit(m_settings.m_maxOpenFilesModel, "Maximum number of temporary files");
+
         addTab("Joiner Settings", createJoinerSettingsTab());
         addTab("Column Selection", createColumnSelectionTab());
         addTab("Performance", createPerformanceTab());
+    }
+
+    private JoinMode getJoinMode() {
+        return Arrays.stream(JoinMode.values())
+            .filter(mode -> mode.isIncludeMatchingRows() == m_includeMatchingRows.isSelected()
+                && mode.isIncludeLeftUnmatchedRows() == m_includeLeftUnmatchedRows.isSelected()
+                && mode.isIncludeRightUnmatchedRows() == m_includeRightUnmatchedRows.isSelected())
+            .findFirst().orElseThrow(() -> new IllegalStateException("Unknown join mode selected in dialog."));
     }
 
     private JPanel createJoinerSettingsTab() {
@@ -198,46 +232,40 @@ class Joiner3NodeDialog extends NodeDialogPane {
         JPanel right = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         JPanel joinModePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
         JLabel joinModeName = new JLabel("");
+        joinModeName.setOpaque(false);
+        joinModeName.setVerticalTextPosition(SwingConstants.TOP);
+        joinModeName.setHorizontalTextPosition(SwingConstants.CENTER);
+
         joinModePanel.add(joinModeName);
         right.add(joinModePanel, c);
         ChangeListener joinModeListener = e -> {
-            String determiner = "a";
-            switch (getJoinMode()) {
-                case EMPTY:
-                    joinModePanel.setBackground(new Color(0xff8596));
-                    joinModeName.setText("No output rows");
-                    break;
-                case INNER:
-                    determiner = "an";
-                default:
-                    joinModePanel.setBackground(Color.white);
-                    joinModeName.setText(String.format(
-                        "<html><body style=\"text-align: center\">This corresponds to %s<br>%s</body></html>",
-                        determiner, getJoinMode().toString().toLowerCase()));
+            try {
+                // display join name
+                joinModeName.setText(getJoinMode().toString());
+                // set venn diagram image
+                String diagramPath = String.format("%s/%s.png", ICON_PATH, getJoinMode().name());
+                URL url = Joiner3NodeDialog.class.getClassLoader().getResource(diagramPath);
+                joinModeName.setIcon(new ImageIcon(ImageIO.read(url)));
+            } catch (IOException e1) {
+                getLogger().warn(e1);
             }
         };
         m_includeMatchingRows.addChangeListener(joinModeListener);
         m_includeLeftUnmatchedRows.addChangeListener(joinModeListener);
         m_includeRightUnmatchedRows.addChangeListener(joinModeListener);
 
-        p.setBorder(BorderFactory.createTitledBorder("Join Mode"));
+        p.setBorder(BorderFactory.createTitledBorder("Include in output"));
         p.add(left, BorderLayout.WEST);
         p.add(right, BorderLayout.CENTER);
         return p;
     }
 
-    private JoinMode getJoinMode() {
-        return Arrays.stream(JoinMode.values())
-            .filter(mode -> mode.isIncludeMatchingRows() == m_includeMatchingRows.isSelected()
-                && mode.isIncludeLeftUnmatchedRows() == m_includeLeftUnmatchedRows.isSelected()
-                && mode.isIncludeRightUnmatchedRows() == m_includeRightUnmatchedRows.isSelected())
-            .findFirst().orElseThrow(() -> new IllegalStateException("Unknown join mode selected in dialog."));
-    }
-
     @SuppressWarnings("serial")
     private JPanel createJoinColumnsPanel() {
         JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder("Join columns"));
 
         GridBagConstraints c = new GridBagConstraints();
 
@@ -247,18 +275,6 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         c.gridx = 0;
         c.gridy = 0;
-
-        //        JPanel matchButtonPanel = new JPanel(new FlowLayout());
-        //        matchButtonPanel.add(m_matchAllButton);
-        //        matchButtonPanel.add(m_matchAnyButton);
-        //        p.add(matchButtonPanel, c);
-        //
-        //        ButtonGroup group = new ButtonGroup();
-        //        group.add(m_matchAllButton);
-        //        group.add(m_matchAnyButton);
-
-        c.gridx = 0;
-        c.gridy++;
 
         c.gridwidth = 3;
         c.weightx = 1;
@@ -277,6 +293,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
         };
         JScrollPane scrollPane = new JScrollPane(m_columnPairs);
         m_columnPairs.setBackground(Color.white);
+
         Component header = m_columnPairs.getHeaderView();
         header.setPreferredSize(new Dimension(300, 20));
         scrollPane.setColumnHeaderView(header);
@@ -284,39 +301,35 @@ class Joiner3NodeDialog extends NodeDialogPane {
         scrollPane.setMinimumSize(new Dimension(300, 100));
 
         p.add(scrollPane, c);
-        p.setBorder(BorderFactory.createTitledBorder("Join Columns"));
 
         return p;
 
     }
 
     private JPanel createOutputPanel() {
-        JPanel p = new JPanel(new GridLayout(2, 1));
-        p.add(m_mergeJoinColumns);
-        p.add(m_outputUnmatchedRowsToSeparatePorts);
+        JPanel p = new JPanel(new GridLayout(3, 1));
+        p.setBorder(BorderFactory.createTitledBorder("Output options"));
 
-        p.setBorder(BorderFactory.createTitledBorder("Output"));
+        p.add(m_outputUnmatchedRowsToSeparatePorts.getComponentPanel().getComponent(0));
+        p.add(m_mergeJoinColumns.getComponentPanel().getComponent(0));
+        p.add(m_hilitingEnabled.getComponentPanel().getComponent(0));
+
         return p;
     }
 
     private JPanel createRowKeysPanel() {
         JPanel p = new JPanel(new GridLayout(2, 1));
+        p.setBorder(BorderFactory.createTitledBorder("Row Keys"));
+
+        // two elements in one row: button for concat and field for separator
         JPanel concatRowKeys = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        concatRowKeys.add(m_concatOrgRowKeysWithSeparator);
-        m_concatOrgRowKeysWithSeparator
-            .addChangeListener(l -> m_rowKeySeparator.setEnabled(m_concatOrgRowKeysWithSeparator.isSelected()));
-        concatRowKeys.add(m_rowKeySeparator);
+        concatRowKeys.add(m_rowKeyFactory.getButton(RowKeyFactory.CONCATENATE.name()));
+        Component rowKeySeparatorComponent = m_rowKeySeparator.getComponentPanel().getComponent(1);
+        concatRowKeys.add(rowKeySeparatorComponent);
         p.add(concatRowKeys);
 
-        p.add(m_assignNewRowKeys);
+        p.add(m_rowKeyFactory.getButton(RowKeyFactory.SEQUENTIAL.name()));
 
-        ButtonGroup bg = new ButtonGroup();
-        bg.add(m_concatOrgRowKeysWithSeparator);
-        bg.add(m_assignNewRowKeys);
-
-        m_rowKeySeparator.setPreferredSize(new Dimension(50, m_rowKeySeparator.getPreferredSize().height));
-
-        p.setBorder(BorderFactory.createTitledBorder("Row Keys"));
         return p;
     }
 
@@ -330,10 +343,10 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         c.weightx = 1;
         c.gridwidth = 1;
-        m_leftFilterPanel.setBorder(BorderFactory.createTitledBorder("Top Input ('left' table)"));
+        m_leftFilterPanel.setBorder(BorderFactory.createTitledBorder("Top Input (left table)"));
         p.add(m_leftFilterPanel, c);
         c.gridy++;
-        m_rightFilterPanel.setBorder(BorderFactory.createTitledBorder("Bottom Input ('right' table)"));
+        m_rightFilterPanel.setBorder(BorderFactory.createTitledBorder("Bottom Input (right table)"));
         p.add(m_rightFilterPanel, c);
         c.gridy++;
         p.add(createDuplicateColumnNamesPanel(), c);
@@ -342,23 +355,17 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
     private JPanel createDuplicateColumnNamesPanel() {
         JPanel p = new JPanel(new GridLayout(3, 1));
-        p.add(m_dontExecute);
-        p.add(m_appendSuffixAutomatic);
-        JPanel suffix = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        suffix.add(m_appendSuffix);
+        p.setBorder(BorderFactory.createTitledBorder("Duplicate column names"));
 
-        m_suffix.setPreferredSize(new Dimension(100, m_suffix.getPreferredSize().height));
-        suffix.add(m_suffix);
+        p.add(m_columnDisambiguation.getButton(ColumnNameDisambiguation.DO_NOT_EXECUTE.name()));
+
+        // two elements in one row: button and suffix input field
+        JPanel suffix = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        suffix.add(m_columnDisambiguation.getButton(ColumnNameDisambiguation.APPEND_SUFFIX.name()));
+        Component suffixComponent = m_columnDisambiguationSuffix.getComponentPanel().getComponent(1);
+        suffix.add(suffixComponent);
         p.add(suffix);
 
-        m_appendSuffix.addChangeListener(e -> m_suffix.setEnabled(m_appendSuffix.isSelected()));
-
-        ButtonGroup duplicateColGroup = new ButtonGroup();
-        duplicateColGroup.add(m_dontExecute);
-        duplicateColGroup.add(m_appendSuffixAutomatic);
-        duplicateColGroup.add(m_appendSuffix);
-
-        p.setBorder(BorderFactory.createTitledBorder("Duplicate column names"));
         return p;
     }
 
@@ -377,12 +384,11 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         c.gridy++;
         JPanel misc = new JPanel(new GridLayout(2, 1));
-        JPanel maxFiles = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        maxFiles.add(new JLabel("Maximum number of open files "));
-        maxFiles.add(m_maxOpenFiles);
-        misc.add(maxFiles);
-        misc.add(m_hilitingEnabled);
         misc.setBorder(BorderFactory.createTitledBorder("Miscellaneous"));
+        JPanel maxFiles = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        maxFiles.add(m_maxOpenFiles.getComponentPanel().getComponent(0));
+        maxFiles.add(m_maxOpenFiles.getComponentPanel().getComponent(0)); // yes, this delivers the second component
+        misc.add(maxFiles);
         p.add(misc, c);
 
         c.gridy++;
@@ -396,24 +402,18 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
     private JPanel createOutputOrderPanel() {
         JPanel p = new JPanel(new GridLayout(3, 1));
-        p.add(m_outputOrderArbitrary);
-        //        p.add(m_outputOrderDeterministic);
-        p.add(m_outputOrderLeftRight);
-
-        ButtonGroup bg = new ButtonGroup();
-        bg.add(m_outputOrderArbitrary);
-        //        bg.add(m_outputOrderDeterministic);
-        bg.add(m_outputOrderLeftRight);
-
         p.setBorder(BorderFactory.createTitledBorder("Output order"));
+        p.add(m_outputRowOrder.getButton("ARBITRARY"));
+        p.add(m_outputRowOrder.getButton("LEFT_RIGHT"));
         return p;
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
+
         try {
-            m_settings.loadSettingsForDialog(settings, specs);
+            m_settings.loadSettingsInDialog(settings, specs);
         } catch (InvalidSettingsException e) {
             throw new NotConfigurableException(e.getMessage());
         }
@@ -424,49 +424,15 @@ class Joiner3NodeDialog extends NodeDialogPane {
         m_includeLeftUnmatchedRows.setSelected(joinMode.isIncludeLeftUnmatchedRows());
         m_includeRightUnmatchedRows.setSelected(joinMode.isIncludeRightUnmatchedRows());
 
-        //        m_matchAllButton.setSelected(m_settings.getCompositionMode().equals(CompositionMode.MatchAll));
-        //        m_matchAnyButton.setSelected(m_settings.getCompositionMode().equals(CompositionMode.MatchAny));
-
         // join columns
         String[] leftSelected = joinClauseToColumnPairs(m_settings.getLeftJoinColumns());
         String[] rightSelected = joinClauseToColumnPairs(m_settings.getRightJoinColumns());
         m_columnPairs.updateData(specs, leftSelected, rightSelected);
 
-        // output
-        m_mergeJoinColumns.setSelected(m_settings.isMergeJoinColumns());
-        m_outputUnmatchedRowsToSeparatePorts.setSelected(m_settings.isOutputUnmatchedRowsToSeparateOutputPort());
-
-        // row keys
-        m_rowKeySeparator.setText(m_settings.getRowKeySeparator());
-        m_concatOrgRowKeysWithSeparator.setSelected(!m_settings.isAssignNewRowKeys());
-        m_assignNewRowKeys.setSelected(m_settings.isAssignNewRowKeys());
-
-        // column selection
+        // include column selection
         m_leftFilterPanel.loadConfiguration(m_settings.getLeftColumnSelectionConfig(), specs[0]);
         m_rightFilterPanel.loadConfiguration(m_settings.getRightColumnSelectionConfig(), specs[1]);
-        m_dontExecute.setSelected(m_settings.getDuplicateHandling() == ColumnNameDisambiguation.DO_NOT_EXECUTE);
-        m_appendSuffixAutomatic
-            .setSelected(m_settings.getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX_AUTOMATIC);
-        m_appendSuffix.setSelected(m_settings.getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX);
-        m_suffix.setText(m_settings.getDuplicateColumnSuffix());
-        m_suffix.setEnabled(m_settings.getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX);
 
-        // performance
-        m_outputOrderArbitrary.setSelected(false);
-        m_outputOrderDeterministic.setSelected(false);
-        m_outputOrderLeftRight.setSelected(false);
-        switch (m_settings.getOutputRowOrder()) {
-            case ARBITRARY:
-                m_outputOrderArbitrary.setSelected(true);
-                break;
-            case DETERMINISTIC:
-                m_outputOrderDeterministic.setSelected(true);
-                break;
-            case LEFT_RIGHT:
-                m_outputOrderLeftRight.setSelected(true);
-        }
-        m_maxOpenFiles.setText(Integer.toString(m_settings.getMaxOpenFiles()));
-        m_hilitingEnabled.setSelected(m_settings.isHilitingEnabled());
     }
 
     /**
@@ -487,54 +453,20 @@ class Joiner3NodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
 
+        // save independent configurations for column filter dialog components
+        m_leftFilterPanel.saveConfiguration(m_settings.getLeftColumnSelectionConfig());
+        m_rightFilterPanel.saveConfiguration(m_settings.getRightColumnSelectionConfig());
+
         // join mode
         m_settings.setJoinMode(getJoinMode());
 
         // join columns
-        m_settings.setCompositionMode(CompositionMode.MATCH_ALL);
-
         m_settings.setLeftJoinColumns(columnPairsToJoinClauses(m_columnPairs.getLeftSelectedItems()));
         m_settings.setRightJoinColumns(columnPairsToJoinClauses(m_columnPairs.getRightSelectedItems()));
 
         // output
-        m_settings.setMergeJoinColumns(m_mergeJoinColumns.isSelected());
-        m_settings.setOutputUnmatchedRowsToSeparateOutputPort(m_outputUnmatchedRowsToSeparatePorts.isSelected());
-
-        // row keys
-        m_settings.setAssignNewRowKeys(m_assignNewRowKeys.isSelected());
-        m_settings.setRowKeySeparator(m_rowKeySeparator.getText());
-
-        // column selection
-        if (m_dontExecute.isSelected()) {
-            m_settings.setDuplicateHandling(ColumnNameDisambiguation.DO_NOT_EXECUTE);
-        } else if (m_appendSuffixAutomatic.isSelected()) {
-            m_settings.setDuplicateHandling(ColumnNameDisambiguation.APPEND_SUFFIX_AUTOMATIC);
-        } else {
-            String suffix = m_suffix.getText();
-            if (suffix.isEmpty()) {
-                throw new InvalidSettingsException(
-                    "Append suffix is selected to disambiguate column names, but no suffix is provided.");
-            }
-            m_settings.setDuplicateHandling(ColumnNameDisambiguation.APPEND_SUFFIX);
-            m_settings.setDuplicateColumnSuffix(suffix);
-        }
-        m_leftFilterPanel.saveConfiguration(m_settings.getLeftColumnSelectionConfig());
-        m_rightFilterPanel.saveConfiguration(m_settings.getRightColumnSelectionConfig());
-
-        // performance
-        if (m_outputOrderArbitrary.isSelected()) {
-            m_settings.setOutputRowOrder(OutputRowOrder.ARBITRARY);
-        } else if (m_outputOrderDeterministic.isSelected()) {
-            m_settings.setOutputRowOrder(OutputRowOrder.DETERMINISTIC);
-        } else if (m_outputOrderLeftRight.isSelected()) {
-            m_settings.setOutputRowOrder(OutputRowOrder.LEFT_RIGHT);
-        }
-        m_settings.setMaxOpenFiles(Integer.valueOf(m_maxOpenFiles.getText()));
-
-        m_settings.validateSettings();
-        m_settings.enabledHiliting(m_hilitingEnabled.isSelected());
-
-        m_settings.saveSettings(settings);
+//        m_settings.validateSettings();
+        m_settings.saveSettingsTo(settings);
     }
 
     /**

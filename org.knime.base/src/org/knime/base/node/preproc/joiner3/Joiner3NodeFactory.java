@@ -58,7 +58,20 @@ import org.knime.core.node.NodeView;
  */
 public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
 
-    private Joiner3Settings m_settings = new Joiner3Settings();
+    @Override
+    public Joiner3NodeModel createNodeModel() {
+       return new Joiner3NodeModel();
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new Joiner3NodeDialog();
+    }
+
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
 
     @Override
     public int getNrNodeViews() {
@@ -68,27 +81,6 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
     @Override
     public NodeView<Joiner3NodeModel> createNodeView(final int viewIndex, final Joiner3NodeModel nodeModel) {
         throw new IndexOutOfBoundsException();
-    }
-
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Joiner3NodeModel createNodeModel() {
-       return new Joiner3NodeModel(m_settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new Joiner3NodeDialog();
     }
 
 }

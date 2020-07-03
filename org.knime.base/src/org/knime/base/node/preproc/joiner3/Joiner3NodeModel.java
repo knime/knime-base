@@ -101,13 +101,12 @@ class Joiner3NodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Joiner3NodeModel.class);
 
-    private Joiner3Settings m_settings;
+    private Joiner3Settings m_settings = new Joiner3Settings();
 
     private Hiliter m_hiliter = new Hiliter();
 
-    Joiner3NodeModel(final Joiner3Settings settings) {
+    Joiner3NodeModel() {
         super(2, 3);
-        m_settings = settings;
     }
 
     @Override
@@ -116,7 +115,7 @@ class Joiner3NodeModel extends NodeModel {
         JoinSpecification joinSpecification = joinSpecificationForSpecs(inSpecs);
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
 
-        if (m_settings.getDuplicateHandling() == ColumnNameDisambiguation.DO_NOT_EXECUTE) {
+        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn = checkForDuplicateColumn(joinSpecification);
             if (duplicateColumn.isPresent()) {
                 throw new InvalidSettingsException(String.format("Do not execute on ambiguous column names selected. "
@@ -194,16 +193,11 @@ class Joiner3NodeModel extends NodeModel {
         JoinTableSettings rightSettings = new JoinTableSettings(m_settings.getJoinMode().isIncludeRightUnmatchedRows(),
             m_settings.getRightJoinColumns(), rightIncludes, InputTable.RIGHT, right);
 
-        BiFunction<DataRow, DataRow, RowKey> rowKeysFactory;
-        if (m_settings.isAssignNewRowKeys()) {
-            rowKeysFactory = JoinSpecification.createSequenceRowKeysFactory();
-        } else {
-            rowKeysFactory = JoinSpecification.createConcatRowKeysFactory(m_settings.getRowKeySeparator());
-        }
+        BiFunction<DataRow, DataRow, RowKey> rowKeysFactory = m_settings.getRowKeyFactory().getFactory(m_settings.getRowKeySeparator());
 
         UnaryOperator<String> columnNameDisambiguator;
         // replace with custom
-        if (m_settings.getDuplicateHandling() == ColumnNameDisambiguation.APPEND_SUFFIX) {
+        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX) {
             columnNameDisambiguator = s -> s.concat(m_settings.getDuplicateColumnSuffix());
         } else {
             columnNameDisambiguator = s -> s.concat(" (#1)");
@@ -266,21 +260,16 @@ class Joiner3NodeModel extends NodeModel {
         m_hiliter.loadInternals(nodeInternDir);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettings(settings);
+        m_settings.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         Joiner3Settings validationSettings = new Joiner3Settings();
         validationSettings.loadSettingsInModel(settings);
+        validationSettings.validateSettings();
     }
 
     /**
@@ -391,7 +380,7 @@ class Joiner3NodeModel extends NodeModel {
          * Create an output handler for each output port. Create translators that connect each input port to each output
          * port.
          *
-         * @param results provides {@link JoinContainer#getHiliteMapping(InputTable, ResultType)} to obtain mappings.
+         * @param results provides {@link JoinResult#getHiliteMapping(InputTable, ResultType)} to obtain mappings.
          */
         public <T> void setResults(final JoinResult<T> results) {
 
