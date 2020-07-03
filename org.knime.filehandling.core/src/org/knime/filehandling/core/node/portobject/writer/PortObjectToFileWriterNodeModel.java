@@ -46,12 +46,12 @@
 package org.knime.filehandling.core.node.portobject.writer;
 
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
+import org.knime.filehandling.core.connections.FSFiles;
 
 /**
  * Abstract node model for port object writer nodes that write directly to a file.
@@ -75,7 +75,7 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
     @Override
     protected final void writeToPath(final PortObject object, final Path outputPath, final ExecutionContext exec)
         throws Exception {
-        try (final OutputStream outputStream = Files.newOutputStream(outputPath,
+        try (final OutputStream outputStream = FSFiles.newOutputStream(outputPath,
             getConfig().getFileChooserModel().getFileOverwritePolicy().getOpenOptions())) {
             write(object, outputStream, exec);
         }

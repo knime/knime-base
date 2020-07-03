@@ -46,12 +46,12 @@
 package org.knime.filehandling.core.node.portobject.reader;
 
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
+import org.knime.filehandling.core.connections.FSFiles;
 
 /**
  * Abstract node model for port object reader nodes that read directly from a file.
@@ -74,7 +74,7 @@ public abstract class PortObjectFromFileReaderNodeModel<C extends PortObjectRead
 
     @Override
     protected final PortObject[] readFromPath(final Path inputPath, final ExecutionContext exec) throws Exception {
-        try (final InputStream inputStream = Files.newInputStream(inputPath)) {
+        try (final InputStream inputStream = FSFiles.newInputStream(inputPath)) {
             return read(inputStream, exec);
         }
     }

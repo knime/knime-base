@@ -50,13 +50,13 @@ package org.knime.filehandling.core.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipException;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSFiles;
 
 /**
  * A static utility class for crating a compression aware {@link InputStream} based on file extension.
@@ -88,7 +88,7 @@ public final class FileCompressionUtils {
         if (path.toString().endsWith(".gz")) {
             CheckUtils.checkArgument(!path.toString().endsWith(".tar.gz"),
                 "Cannot create a GZIPInputStream directly from a tar archive (%s).", path.toString());
-            InputStream inStream = Files.newInputStream(path, options);
+            InputStream inStream = FSFiles.newInputStream(path, options);
             try {
                 return new GZIPInputStream(inStream);
             } catch (ZipException ex) {
@@ -97,6 +97,6 @@ public final class FileCompressionUtils {
                 inStream.close();
             }
         }
-        return Files.newInputStream(path, options);
+        return FSFiles.newInputStream(path, options);
     }
 }

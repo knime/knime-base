@@ -143,7 +143,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
             m_statusConumser.setWarningsIfRequired(this::setWarningMessage);
             if (!Files.exists(parentPath)) {
                 if (m_config.getParentDirChooserModel().isCreateMissingFolders()) {
-                    Files.createDirectories(parentPath);
+                    FSFiles.createDirectories(parentPath);
                 } else {
                     throw new IOException(String.format(
                         "The directory '%s' does not exist and must not be created due to user settings.", parentPath));

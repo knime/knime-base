@@ -49,12 +49,19 @@
 package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
  * This class is the FS*-specific companion class of {@link Files}, i.e. it consists exclusively of static methods that
@@ -66,6 +73,85 @@ import java.util.stream.Stream;
 public final class FSFiles {
 
     private FSFiles() {
+    }
+
+    /**
+     * Wraps {@link Files#newInputStream(Path, OpenOption...)} and decorates {@link IOException IOExceptions} via
+     * {@link ExceptionUtil#wrapIOException(IOException)}.
+     *
+     * @param path the path to the file to open
+     * @param options options specifying how the file is opened
+     *
+     * @return a new input stream
+     *
+     * @throws IllegalArgumentException if an invalid combination of options is specified
+     * @throws UnsupportedOperationException if an unsupported option is specified
+     * @throws IOException if an I/O error occurs
+     * @throws SecurityException In the case of the default provider, and a security manager is installed, the
+     *             {@link SecurityManager#checkRead(String) checkRead} method is invoked to check read access to the
+     *             file.
+     */
+    public static InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
+        try {
+            return Files.newInputStream(path, options);
+        } catch (final IOException e) {
+            throw ExceptionUtil.wrapIOException(e);
+        }
+    }
+
+    /**
+     * Wraps {@link Files#newOutputStream(Path, OpenOption...)} and decorates {@link IOException IOExceptions} via
+     * {@link ExceptionUtil#wrapIOException(IOException)}.
+     *
+     * @param path the path to the file to open
+     * @param options options specifying how the file is opened
+     *
+     * @return a new input stream
+     * @throws IllegalArgumentException if an invalid combination of options is specified
+     * @throws UnsupportedOperationException if an unsupported option is specified
+     * @throws IOException if an I/O error occurs
+     * @throws SecurityException In the case of the default provider, and a security manager is installed, the
+     *             {@link SecurityManager#checkRead(String) checkRead} method is invoked to check read access to the
+     *             file.
+     */
+    public static OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
+        try {
+            return Files.newOutputStream(path, options);
+        } catch (final IOException e) {
+            throw ExceptionUtil.wrapIOException(e);
+        }
+    }
+
+    /**
+     * Wraps {@link Files#createDirectories(Path, FileAttribute...)} and decorates {@link IOException IOExceptions} via
+     * {@link ExceptionUtil#wrapIOException(IOException)}.
+     *
+     * @param dir the directory to create
+     *
+     * @param attrs an optional list of file attributes to set atomically when creating the directory
+     *
+     * @return the directory
+     *
+     * @throws UnsupportedOperationException if the array contains an attribute that cannot be set atomically when
+     *             creating the directory
+     * @throws FileAlreadyExistsException if {@code dir} exists but is not a directory <i>(optional specific
+     *             exception)</i>
+     * @throws IOException if an I/O error occurs
+     * @throws SecurityException in the case of the default provider, and a security manager is installed, the
+     *             {@link SecurityManager#checkWrite(String) checkWrite} method is invoked prior to attempting to create
+     *             a directory and its {@link SecurityManager#checkRead(String) checkRead} is invoked for each parent
+     *             directory that is checked. If {@code
+     *          dir} is not an absolute path then its {@link Path#toAbsolutePath toAbsolutePath} may need to be invoked
+     *             to get its absolute path. This may invoke the security manager's
+     *             {@link SecurityManager#checkPropertyAccess(String) checkPropertyAccess} method to check access to the
+     *             system property {@code user.dir}
+     */
+    public static Path createDirectories(final Path dir, final FileAttribute<?>... attrs) throws IOException {
+        try {
+            return Files.createDirectories(dir, attrs);
+        } catch (final IOException e) {
+            throw ExceptionUtil.wrapIOException(e);
+        }
     }
 
     @SuppressWarnings({"unchecked", "resource"})
@@ -197,7 +283,7 @@ public final class FSFiles {
         }
 
         for (Path currToDelete : pathsToDelete) {
-           deleteSafely(currToDelete, ioeRef);
+            deleteSafely(currToDelete, ioeRef);
         }
 
         if (ioeRef.get() != null) {
@@ -228,4 +314,5 @@ public final class FSFiles {
             }
         }
     }
+
 }

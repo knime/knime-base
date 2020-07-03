@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
 
@@ -85,7 +86,7 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
             final boolean createParentDir = getConfig().getFileChooserModel().isCreateMissingFolders();
             if (parentPath != null && !Files.exists(parentPath)) {
                 if (createParentDir) {
-                    Files.createDirectories(parentPath);
+                    FSFiles.createDirectories(parentPath);
                 } else {
                     throw new IOException(String.format(
                         "The directory '%s' does not exist and must not be created due to user settings.", parentPath));

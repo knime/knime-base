@@ -84,6 +84,7 @@ import org.knime.core.node.streamable.PortInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
@@ -207,7 +208,7 @@ final class CSVWriter2NodeModel extends NodeModel {
     private OutputStream createOutputStream(final Path outputPath) throws IOException {
         OutputStream outStream;
         try {
-            outStream = Files.newOutputStream(outputPath,
+            outStream = FSFiles.newOutputStream(outputPath,
                 m_writerConfig.getFileChooserModel().getFileOverwritePolicy().getOpenOptions());
         } catch (final FileAlreadyExistsException e) {
             throw new IOException(
@@ -225,7 +226,7 @@ final class CSVWriter2NodeModel extends NodeModel {
         final Path parentPath = outputPath.getParent();
         if (parentPath != null && !Files.exists(parentPath)) {
             if (m_writerConfig.getFileChooserModel().isCreateMissingFolders()) {
-                Files.createDirectories(parentPath);
+                FSFiles.createDirectories(parentPath);
             } else {
                 throw new IOException(String.format(
                     "The directory '%s' does not exist and must not be created due to user settings.", parentPath));

@@ -48,67 +48,101 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+
 /**
-* FIXME: this code is copied from org.knime.kerberos and should be moved to org.knime.core so that
-* it is usable everywhere.
-*
-* @author Bjoern Lohrmann, KNIME GmbH
-*/
+ * FIXME: this code is copied from org.knime.kerberos and should be moved to org.knime.core so that it is usable
+ * everywhere.
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
+ */
 public class ExceptionUtil {
 
-   /**
-    * Returns deepest non empty error message from the given exception and its cause stack.
-    *
-    * @param t A throwable, possibly with cause chain.
-    * @param appendType Whether to append the type of the deepest exception with non-empty error message to the
-    *            returned string.
-    * @return deepest non empty error message or null.
-    */
-   public static String getDeepestErrorMessage(final Throwable t, final boolean appendType) {
-       String deeperMsg = null;
-       if (t.getCause() != null) {
-           deeperMsg = getDeepestErrorMessage(t.getCause(), appendType);
-       }
+    /**
+     * Returns deepest non empty error message from the given exception and its cause stack.
+     *
+     * @param t A throwable, possibly with cause chain.
+     * @param appendType Whether to append the type of the deepest exception with non-empty error message to the
+     *            returned string.
+     * @return deepest non empty error message or null.
+     */
+    public static String getDeepestErrorMessage(final Throwable t, final boolean appendType) {
+        String deeperMsg = null;
+        if (t.getCause() != null) {
+            deeperMsg = getDeepestErrorMessage(t.getCause(), appendType);
+        }
 
-       if (deeperMsg != null && deeperMsg.length() > 0) {
-           return deeperMsg;
-       } else if (t.getMessage() != null && t.getMessage().length() > 0) {
-           if (appendType) {
-               return String.format("%s (%s)", t.getMessage(), t.getClass().getSimpleName());
-           } else {
-               return t.getMessage();
-           }
-       } else {
-           return null;
-       }
-   }
+        if (deeperMsg != null && deeperMsg.length() > 0) {
+            return deeperMsg;
+        } else if (t.getMessage() != null && t.getMessage().length() > 0) {
+            if (appendType) {
+                return String.format("%s (%s)", t.getMessage(), t.getClass().getSimpleName());
+            } else {
+                return t.getMessage();
+            }
+        } else {
+            return null;
+        }
+    }
 
-   /**
-    * Returns deepest exeption cause from the cause stack o fthe given exception.
-    *
-    * @param t A throwable, possibly with cause chain.
-    * @return deepest The deepest exception cause.
-    */
-   public static Throwable getDeepestError(final Throwable t) {
-       if (t.getCause() != null && t.getCause() != t) {
-           return getDeepestError(t.getCause());
-       } else {
-           return t;
-       }
-   }
+    /**
+     * Returns deepest exeption cause from the cause stack o fthe given exception.
+     *
+     * @param t A throwable, possibly with cause chain.
+     * @return deepest The deepest exception cause.
+     */
+    public static Throwable getDeepestError(final Throwable t) {
+        if (t.getCause() != null && t.getCause() != t) {
+            return getDeepestError(t.getCause());
+        } else {
+            return t;
+        }
+    }
 
-   /**
-    *
-    * @param msg The message to limit in length.
-    * @param maxLen Maximum requested length of the message.
-    * @return the truncated messaged, with "..." as a replacement text if something has been truncated.
-    */
-   public static String limitMessageLength(final String msg, final int maxLen) {
-       if (msg.length() > maxLen) {
-           return msg.substring(0, maxLen) + "...";
-       } else {
-           return msg;
-       }
-   }
+    /**
+     *
+     * @param msg The message to limit in length.
+     * @param maxLen Maximum requested length of the message.
+     * @return the truncated messaged, with "..." as a replacement text if something has been truncated.
+     */
+    public static String limitMessageLength(final String msg, final int maxLen) {
+        if (msg.length() > maxLen) {
+            return msg.substring(0, maxLen) + "...";
+        } else {
+            return msg;
+        }
+    }
+
+    /**
+     * Wraps IO exceptions so that the {@link Exception#getMessage()} is easier to understand.
+     *
+     * @param e the {@link IOException} to wrap
+     * @return the wrapped {@link IOException}
+     */
+    public static IOException wrapIOException(final IOException e) {
+        if (e instanceof AccessDeniedException) {
+            return new FormattedAccessDeniedException((AccessDeniedException)e);
+        }
+        return e;
+    }
+
+    /**
+     * An {@link AccessDeniedException} with a more user-friendly error message.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    private static final class FormattedAccessDeniedException extends AccessDeniedException {
+
+        private static final long serialVersionUID = 1L;
+
+        FormattedAccessDeniedException(final AccessDeniedException e) {
+            super(e.getFile(), e.getOtherFile(), "Unable to access");
+        }
+
+        @Override
+        public String getMessage() {
+            return getReason() + " " + getFile();
+        }
+    }
 }
-

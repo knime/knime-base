@@ -53,12 +53,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
+import org.knime.filehandling.core.connections.FSFiles;
 
 /**
  * This static utility class provides methods to create readers that handle the BOM for UTF encoded files.
@@ -116,7 +116,7 @@ public final class BomEncodingUtils {
      */
     public static InputStreamReader createReader(final Path path, final Charset charset, final OpenOption... options)
         throws IOException {
-        return createReader(Files.newInputStream(path, options), charset);
+        return createReader(FSFiles.newInputStream(path, options), charset);
     }
 
     /**
