@@ -397,19 +397,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
             m_statusMessageWorker = null;
         }
         getSettingsModel().getFileSystemConfiguration().validate();
-        // checkStatus() only fails if the swing worker found an error,
-        // otherwise the previous call should already have failed
-        checkStatus();
         m_fileSelection.addCurrentSelectionToHistory();
-    }
-
-    private void checkStatus() throws InvalidSettingsException {
-        final Optional<StatusMessage> status = m_statusView.getStatus();
-        if (status.isPresent()) {
-            final StatusMessage actualStatus = status.get();
-            final MessageType type = actualStatus.getType();
-            CheckUtils.checkSetting(type != MessageType.ERROR, actualStatus.getMessage());
-        }
     }
 
     @Override
