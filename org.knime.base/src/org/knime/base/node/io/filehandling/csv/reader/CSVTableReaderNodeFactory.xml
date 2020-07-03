@@ -13,16 +13,12 @@
 		  Reads CSV files. Use this node if the workflow is used in a server
 		  or batch environment and the input files structure change between
 		  different invocations. In particular, this includes a variable number
-		  of input columns. Upon executing the node will scan the input file
+		  of input columns. Upon execution, the node will scan the input file
 		  to determine number and types of the columns and output a table with
 		  the auto-guessed structure.  
         </p>
         <p>
-          <b>Note:</b> If you are only using the desktop version of KNIME and
-          your workflow is not meant to be used in a batch or server environment
-          use the <b>File Reader</b> node. The file reader node has more
-          configuration options and guesses meaningful default settings as it
-          scans the input file during node configuration (in the dialog).
+          <b>Note:</b> If you find that this node can't read your file, try the <b>File Reader</b> node. It offers more options for reading complex files.
         </p>
 		</intro>
 		<tab name="Settings">
@@ -38,12 +34,12 @@
 	                	When selected, a new drop-down menu appears to choose the mountpoint.
 	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
 	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
-	                	A mountpoint is displayed in red if it was previously selected but no longer available.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
 	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
 	                </li>
 	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
-						relative to the workflow or mountpoint.
-	                When selected a new drop-down menu appears to choose which of the two options to use.
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
 	                </li>
 	                <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
 	                    When selected, a spinner appears that allows you to specify the desired connection and read timeout in milliseconds.
@@ -59,7 +55,7 @@
 				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
 			</option>
 			<option name="Mode">
-				Select whether you want to read a file or multiple files in a folder.
+				Select whether you want to read a single file or multiple files in a folder.
 				When reading files in a folder, you can set filters to specify which
 				files and subfolders to include (see below).
 			</option>
@@ -116,7 +112,7 @@
 	          The format can only be detected if the read number of characters comprises one full data row and the 
 	          auto-detection will take at most 20 data rows into account. It is assumed that data rows are separated by
 	          line breaks. Note that the "Skip first lines" option as well as the specified  "Comment char" will be used
-	          when guessing the files format.
+	          when guessing the file's format.
 			</option>
 			<option name="Comment char">
 	          A character indicating line comments.
@@ -140,17 +136,17 @@
 			<option name="Maximum number of columns">
 				Sets the number of allowed columns (default 8192 columns) to
 				prevent memory exhaustion. The node will fail if the number of columns
-				exceed the set limit.
+				exceeds the set limit.
 			</option>
 			<option name="Quote options">
 				<ul>
 					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value followed by trimming
-					any leading/trailing whitespace.</li>
+					any leading/trailing whitespaces.</li>
 					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
 				</ul>
 			</option>
 			<option name="Replace empty quoted strings with missing values">
-				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cell.
+				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.
 			</option>
 			<option name="Table specification">
 			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
@@ -195,7 +191,7 @@
 	          not taken into account.    
 			</option>
         </tab>
-        <tab name="CSV Reader Encoding">
+        <tab name="Encoding">
 	        <option name="Encoding">
 	            To read a CSV file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
 	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default

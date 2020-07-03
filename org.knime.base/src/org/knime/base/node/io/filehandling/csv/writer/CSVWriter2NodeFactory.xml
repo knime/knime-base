@@ -16,7 +16,7 @@
 			must contain only string or numerical columns. Other column types are not
 			supported.
 		</intro>
-		<tab name="Options">
+		<tab name="Settings">
 			<description>
 				General settings regarding the output file location and
 				formats.
@@ -30,16 +30,16 @@
 					<li><i>Local File System:</i> Allows you to select a location in your
 	                    local system.
 	                </li>
-	                <li><i>Mountpoint:</i> Allows you to read from a mountpoint.
+	                <li><i>Mountpoint:</i> Allows you to write to a mountpoint.
 	                	When selected, a new drop-down menu appears to choose the mountpoint.
 	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
 	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
-	                	A mountpoint is displayed in red if it was previously selected but no longer available.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
 	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
 	                </li>
 	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
-						relative to the workflow or mountpoint.
-	                When selected a new drop-down menu appears to choose which of the two options to use.
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
 	                </li>
 					<li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
 	                    When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
@@ -144,10 +144,10 @@
 			</option>
 		</tab>
 
-		<tab name="Advanced">
+		<tab name="Advanced Settings">
 			<description>
-				In the Advanced tab, you can specify the when to quote values and how to handle the formating of
-				numeric values before writing them to files. There is also an option to write files compressed
+				In the Advanced tab, you can specify when to quote values and how to handle the formatting of
+				numeric values before writing them to file. There is also an option to write files compressed
 				with GZip compression.
 			</description>
 			<option name="Quote values: always">Every data item written out is
@@ -159,7 +159,7 @@
 				tab) or if it equals the missing value pattern. The right quote pattern
 				will be replaced if it appears in a quoted data item.
 				</option>
-			<option name="Quote values: non-numerical only">Integer and floating point
+			<option name="Quote values: strings only">Integer and floating point
 				numbers are not quoted, all other data items are. (Selecting the decimal
 				point as data separator will lead to an output that can&apos;t be read in
 				again.) The right quote is replaced in quoted items.
@@ -185,11 +185,14 @@
 				Check this if you want to write every decimal value with .0 suffix even though
 				the value doesn't contain any fractional part. (e.g., the value 12 will be written as 12.0
 				if it is coming from a decimal column). Use with caution as this could lead to unnecessary
-				increase to the file size. This doesn't affect the way to write values from
+				increase of the file size. This doesn't affect the way to write values from
 				integer columns. The option is ignored if we are using a scientific format.
 			</option>
 		   <option name="Replace missing value with">
-				set this option to replace missing values from the input table with specific text when writing.
+				Set this option to replace missing values from the input table with specific text when writing.
+			</option>
+			<option name="Compress output file (gzip)">
+				Check this if you want to compress the output file using gzip compression.
 			</option>
 
 		</tab>
@@ -199,13 +202,13 @@
 				own comment line(s) or choose from the predefined items.
 				If you check one of the options you must also enter a comment line marker.
 			</description>
+			<option name="the user (login) name">If checked, the login
+				name of the user that
+				created the file (probably you!) is inserted.
+			</option>
 			<option name="the current execution time">If checked, a
 				comment line with the current execution time
 				and date is added.
-			</option>
-			<option name="the user account name">If checked, the login
-				name of the user that
-				created the file (probably you!) is inserted.
 			</option>
 			<option name="the input table name">If checked, a comment
 				line is added showing the
@@ -216,8 +219,8 @@
 			</option>
 			<option name="Comment Line Marker">
 				If you have checked at least one of the content
-				options, you must provide comment line marker that is used as a prefix for each
-				comment lines.
+				options, you must provide a comment line marker that is used as a prefix for each
+				comment line.
 			</option>
 			<option name="Comment Indentation">
 				If you have checked at least one of the content

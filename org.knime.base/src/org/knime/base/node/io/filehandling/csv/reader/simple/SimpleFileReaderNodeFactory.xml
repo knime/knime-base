@@ -18,12 +18,12 @@
 			it tries to guess
 			the column specs by analyzing the content of the file. By default, only the first 50 rows are analyzed. 
 			You can change this setting in the 'Limit Rows' tab. The file analysis can also be cut short by clicking
-			the &quot;Quick scan&quot; button, which shows up if the analysis takes longer. If the file is not 
+			the &quot;Stop file scanning&quot; button, which shows up if the analysis takes longer. If the file is not 
 			analyzed completely, it could happen that
-			the preview appears looking fine, but the execution of the node
+			the preview looks fine, but the execution of the node
 			fails when it reads the lines it didn't analyze.
 			Check the results of the analyzed file in the preview table and increase the number of rows scanned
-			for spec if necessary.<br />
+			for guessing the spec if necessary.<br />
 	        </p>
 		</intro>
 		<tab name="Settings">
@@ -34,16 +34,16 @@
 			<option name="Connection timeout [s]">Timeout in seconds for connections when reading remote files.
 			</option>
 			<option name="Column delimiter">
-			  The character string delimiting columns. Use '\t' for tab character. Can get detected automatically.
+			  The character string delimiting columns. Use '\t' for tab character. Can be detected automatically.
 			</option>
 			<option name="Row delimiter">
-	          The character string delimiting rows. Use '\n' for new line character. Can get detected automatically.
+	          The character string delimiting rows. Use '\n' for new line character. Can be detected automatically.
 			</option>
 			<option name="Quote char">
-	          The quote character. Can get detected automatically. 
+	          The quote character. Can be detected automatically. 
 			</option>			
 			<option name="Quote escape char">
-	          The character is used for escaping quotes inside an already quoted value. Can get detected automatically.
+	          The character is used for escaping quotes inside an already quoted value. Can be detected automatically.
 			</option>
 			<option name="Autodetect format">
 	          By pressing this button, the "Column delimiter", "Row delimiter", "Quote char" and "Quote escape char" get 
@@ -68,9 +68,6 @@
 			<option name="Support short data rows">
 	          Select this box if some rows may be shorter than others (filled with missing values).
 			</option>
-			<option name="Skip empty data rows">
-	          Select this box if rows without any content should not be in the output.
-			</option>
 		</tab>
 		<tab name="Advanced Settings">
 			<option name="Limit memory per column">
@@ -80,12 +77,12 @@
 			<option name="Maximum number of columns">
 				Sets the number of allowed columns (default 8192 columns) to
 				prevent memory exhaustion. The node will fail if the number of columns
-				exceed the set limit.
+				exceeds the set limit.
 			</option>
 			<option name="Quote options">
 				<ul>
 					<li>Remove quotes and trim whitespaces: Quotes will be removed from the value followed by trimming
-					any leading/trailing whitespace.</li>
+					any leading/trailing whitespaces.</li>
 					<li>Keep quotes: The quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>
 				</ul>
 			</option>

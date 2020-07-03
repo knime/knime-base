@@ -23,12 +23,12 @@
 	                	When selected, a new drop-down menu appears to choose the mountpoint.
 	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
 	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
-	                	A mountpoint is displayed in red if it was previously selected but no longer available.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
 	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
 	                </li>
 	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
-						relative to the workflow or mountpoint.
-	                When selected a new drop-down menu appears to choose which of the two options to use.
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
 	                </li>
 					<li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
 	                    When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
