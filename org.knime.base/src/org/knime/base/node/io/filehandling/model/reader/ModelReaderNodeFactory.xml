@@ -11,9 +11,7 @@
 
 	<fullDescription>
 		<intro>
-			This node reads a KNIME model from a file that was written with
-			the Model
-			Writer node.
+			This node reads a KNIME model from a file that was written with the Model Writer node.
 		</intro>
 		<option name="Read from">
 				Select a file system which stores the data you want to read. There are
@@ -32,35 +30,35 @@
 	                </li>
 	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
 						relative to the current mountpoint, current workflow or the current workflow's data area.
-	                When selected, a new drop-down menu appears to choose which of the two options to use.
+	                When selected, a new drop-down menu appears to choose which of the three options to use.
 	                </li>
 	                <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
 	                    When selected, a spinner appears that allows you to specify the desired connection and read timeout in milliseconds.
 	                    Browsing is disabled for this option.
 	                </li>
 				</ul>
-				To read from other file systems, click on
-	            <b>...</b> in the bottom left corner of the node icon followed by
-	            <i>Add File System Connection port</i>. Afterwards, connect the desired file system connector
-	            node to the newly added input port. The file system connection will then be shown in the drop-down menu.
+				To read from other file systems, click on <b>...</b> in the bottom left corner of the node icon followed by <i>Add File System Connection port</i>.
+	            Afterwards, connect the desired file system connector node to the newly added input port.
+	            The file system connection will then be shown in the drop-down menu.
 	            It is greyed out if the file system is not connected in which case you have to (re)execute the connector node first.
 				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
 			</option>
 		<option name="File/URL">
 			Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file. The
-				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
-				File System on Windows) or  &quot;/path/to/file&quot; (Local
-	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
-	            description of the respective connector node describes the required path format.
-				You can also choose a previously selected file from the drop-down list, or select a location
-				from the &quot;Browse...&quot; dialog. Note that browsing is disabled in some cases:
-				<ul>
-					<li><i>Custom/KNIME URL:</i>Browsing is never enabled.</li>
-					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+			required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+			File System on Windows) or  &quot;/path/to/file&quot; (Local
+	        File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	        description of the respective connector node describes the required path format.
+			You can also choose a previously selected file from the drop-down list, or select a location
+			from the &quot;Browse...&quot; dialog. Note that browsing is disabled in some cases:
+			<ul>
+				<li><i>Custom/KNIME URL:</i>Browsing is never enabled.</li>
+				<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
 					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
-					<li><i>File systems provided via input port:</i>
+				<li><i>File systems provided via input port:</i>
 					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
-					(Re)execute the connector node to enable browsing.</li>
+					(Re)execute the connector node to enable browsing.
+				</li>
 				</ul>
 		</option>
 	</fullDescription>
