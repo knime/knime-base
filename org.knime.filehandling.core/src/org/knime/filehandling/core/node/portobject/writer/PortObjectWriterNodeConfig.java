@@ -47,6 +47,7 @@
 package org.knime.filehandling.core.node.portobject.writer;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -74,6 +75,23 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
     public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig,
         final SelectionMode defaultSelectionMode) {
         this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter());
+    }
+
+    /**
+     * Constructor for configurations for which the default filter mode is set to the default associated with the given
+     * {@link SelectionMode}, the set of available {@link FileOverwritePolicy FileOverwritePolicys} is configurable, and
+     * no valid suffixes are available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param defaultSelectionMode the default {@link SelectionMode}
+     * @param defaultPolicy the policy selected by default
+     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     */
+    public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig,
+        final SelectionMode defaultSelectionMode, final FileOverwritePolicy defaultPolicy,
+        final Set<FileOverwritePolicy> supportedPolicies) {
+        this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter(), defaultPolicy, supportedPolicies);
     }
 
     /**
@@ -107,10 +125,28 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
      */
     private PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes,
         final FilterMode defaultFilterMode) {
+        this(creationConfig, fileSuffixes, defaultFilterMode, FileOverwritePolicy.FAIL,
+            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL));
+    }
+
+    /**
+     * Constructor for configurations for which the default filter mode is set according the provided
+     * {@link FilterMode}, the set of available {@link FileOverwritePolicy FileOverwritePolicys} is configurable, and a
+     * set of valid suffixes is available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param fileSuffixes the suffixes to filter on
+     * @param defaultFilterMode the default {@link FilterMode}
+     * @param defaultPolicy the policy selected by default
+     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     */
+    private PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes,
+        final FilterMode defaultFilterMode, final FileOverwritePolicy defaultPolicy,
+        final Set<FileOverwritePolicy> supportedPolicies) {
         super(new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER,
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            defaultFilterMode, FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL), fileSuffixes));
+            defaultFilterMode, defaultPolicy, supportedPolicies, fileSuffixes));
     }
 
 }
