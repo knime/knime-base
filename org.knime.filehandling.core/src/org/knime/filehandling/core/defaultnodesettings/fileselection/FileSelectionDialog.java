@@ -238,8 +238,7 @@ public final class FileSelectionDialog {
      *
      * @param fsConnectionSupplier the {@link FSConnection} this instance should use from now on
      */
-    public void
-        setFSConnectionSupplier(final IOESupplier<FSConnection> fsConnectionSupplier) {
+    public void setFSConnectionSupplier(final IOESupplier<FSConnection> fsConnectionSupplier) {
         m_fsConnectionSupplier =
             CheckUtils.checkArgumentNotNull(fsConnectionSupplier, "The fsConnectionSupplier must not be null.");
     }
@@ -341,10 +340,12 @@ public final class FileSelectionDialog {
             FSConnection fsConnection = null;
             try {
                 fsConnection = get();
-            final String currentlySelected = m_fileSelectionComboBox.getSelectedItem();
+                final String currentlySelected = m_fileSelectionComboBox.getSelectedItem();
                 final FileSystemBrowser fsBrowser = fsConnection.getFileSystemBrowser();
+                final String[] fileExtensions =
+                    m_fileSelectionMode != FileSelectionMode.DIRECTORIES_ONLY ? m_fileExtensions : null;
                 final String selectedInBrowser = fsBrowser.openDialogAndGetSelectedFileName(m_fileSelectionMode,
-                    m_dialogType, m_panel, getDefaultFileExtension(), currentlySelected, m_fileExtensions);
+                    m_dialogType, m_panel, getDefaultFileExtension(), currentlySelected, fileExtensions);
                 // selectedInBrowser is null if browsing was canceled via the cancel button or closing the browser
                 if (selectedInBrowser != null && !Objects.equals(currentlySelected, selectedInBrowser)) {
                     m_fileSelectionComboBox.setSelectedItem(selectedInBrowser);
