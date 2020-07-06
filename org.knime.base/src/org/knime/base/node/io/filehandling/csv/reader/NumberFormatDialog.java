@@ -84,7 +84,9 @@ final class NumberFormatDialog {
 
     private final JTextField m_decimalSeparatorField = CSVReaderDialogUtils.mkTextField();
 
-    private final StatusView m_status = new StatusView(300);
+    private String m_columnDelimiter = ",";
+
+    private final StatusView m_status = new StatusView(700);
 
     NumberFormatDialog() {
         final DocumentListener listener = new DocumentListener() {
@@ -104,26 +106,48 @@ final class NumberFormatDialog {
                 validateSeparators();
             }
 
-            private void validateSeparators() {
-                if (m_decimalSeparatorField.getText().isEmpty()) {
-                    m_status.setStatus(EMPTY_DECIMAL_SEPARATOR_ERROR);
-                } else if (separatorsAreEqual()) {
-                    m_status.setStatus(SAME_SEPARATORS_ERROR);
-                } else {
-                    m_status.clearStatus();
-                }
-            }
-
-            private boolean separatorsAreEqual() {
-                final String decimalSeparator = m_decimalSeparatorField.getText();
-                final String thousandsSeparator = m_thousandsSeparatorField.getText();
-                return Objects.equals(decimalSeparator, thousandsSeparator.replace("\0", ""));
-            }
-
         };
 
         m_decimalSeparatorField.getDocument().addDocumentListener(listener);
         m_thousandsSeparatorField.getDocument().addDocumentListener(listener);
+    }
+
+    private void validateSeparators() {
+        final String decimalSeparator = getDecimalSeparator();
+        if (decimalSeparator.isEmpty()) {
+            m_status.setStatus(EMPTY_DECIMAL_SEPARATOR_ERROR);
+        } else if (separatorsAreEqual()) {
+            m_status.setStatus(SAME_SEPARATORS_ERROR);
+        } else if (Objects.equals(m_columnDelimiter, decimalSeparator)) {
+            setColumnDelimiterError("decimal");
+        } else if (Objects.equals(m_columnDelimiter, getThousandsSeparator())) {
+            setColumnDelimiterError("thousands");
+        } else {
+            m_status.clearStatus();
+        }
+    }
+
+    private void setColumnDelimiterError(final String separatorLabel) {
+        m_status.setStatus(new DefaultStatusMessage(MessageType.WARNING,
+            "The %s separator can't be the same as the column delimiter ('%s').", separatorLabel, m_columnDelimiter));
+    }
+
+    private boolean separatorsAreEqual() {
+        return Objects.equals(getDecimalSeparator(), getThousandsSeparator());
+    }
+
+    private String getThousandsSeparator() {
+        final String thousandsSeparator = m_thousandsSeparatorField.getText();
+        return thousandsSeparator.replace("\0", "");
+    }
+
+    private String getDecimalSeparator() {
+        return m_decimalSeparatorField.getText();
+    }
+
+    void setColumnDelimiter(final String columnDelimiter) {
+        m_columnDelimiter = columnDelimiter;
+        validateSeparators();
     }
 
     void registerDocumentListener(final DocumentListener listener) {

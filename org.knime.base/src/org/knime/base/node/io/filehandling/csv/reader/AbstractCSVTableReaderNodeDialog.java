@@ -281,6 +281,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
         m_config = config;
         registerPreviewChangeListeners();
+        hookUpNumberFormatWithColumnDelimiter();
     }
 
     /**
@@ -377,6 +378,30 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         m_encodingPanel.addChangeListener(changeListener);
 
         m_numberFormatDialog.registerDocumentListener(documentListener);
+    }
+
+    private void hookUpNumberFormatWithColumnDelimiter() {
+        m_colDelimiterField.getDocument().addDocumentListener(new DocumentListener() {
+
+            @Override
+            public void removeUpdate(final DocumentEvent e) {
+                notifyNumberFormat();
+            }
+
+            @Override
+            public void insertUpdate(final DocumentEvent e) {
+                notifyNumberFormat();
+            }
+
+            @Override
+            public void changedUpdate(final DocumentEvent e) {
+                notifyNumberFormat();
+            }
+
+            private void notifyNumberFormat() {
+                m_numberFormatDialog.setColumnDelimiter(m_colDelimiterField.getText());
+            }
+        });
     }
 
     private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() {
