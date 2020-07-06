@@ -297,6 +297,10 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NoSuchFileException(targetParent.toString());
         }
 
+        if (isSameFile(checkedSource, checkedTarget)) {
+            return;
+        }
+
         moveInternal(checkedSource, checkedTarget, options);
         getFileSystemInternal().removeFromAttributeCache(checkedSource);
     }
