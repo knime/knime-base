@@ -46,7 +46,7 @@
  * History
  *   Apr 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
+package org.knime.filehandling.core.connections;
 
 import java.util.Arrays;
 
@@ -61,10 +61,12 @@ public enum RelativeTo {
          * Relative to mountpoint.
          */
         MOUNTPOINT("knime.mountpoint", "Current mountpoint"),
+
         /**
          * Relative to workflow.
          */
         WORKFLOW("knime.workflow", "Current workflow"),
+
         /**
          * Relative to workflow data area..
          */
@@ -94,8 +96,7 @@ public enum RelativeTo {
      */
     public static RelativeTo fromSettingsValue(final String string) {
         return Arrays.stream(RelativeTo.values())//
-            .filter(r -> r.m_settingsValue.equals(
-                string))//
+            .filter(r -> r.m_settingsValue.equals(string))//
             .findFirst()//
             .orElseThrow(() -> new IllegalArgumentException(
                 String.format("Unknown relative to option '%s' encountered.", string)));

@@ -57,6 +57,7 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -109,7 +110,8 @@ final class CreateTempDir2NodeConfig {
             EnumSet.of(FileOverwritePolicy.APPEND));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
-            m_parentDirChooserModel.setLocation(new FSLocation(FSCategory.RELATIVE, "knime.workflow.data", "."));
+            m_parentDirChooserModel
+                .setLocation(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "."));
         }
 
         m_deleteDirOnReset = DEFAULT_ON_RESET;

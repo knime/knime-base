@@ -63,7 +63,7 @@ import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.RelativeTo;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**

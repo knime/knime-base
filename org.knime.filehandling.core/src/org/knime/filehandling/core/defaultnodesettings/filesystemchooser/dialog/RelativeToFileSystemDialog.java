@@ -56,7 +56,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.RelativeTo;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.util.GBCBuilder;
 
