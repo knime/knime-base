@@ -113,7 +113,7 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
         m_additionalVariablePathPairPanel.setKeyColumnLabel("Variable Name");
         m_additionalVariablePathPairPanel.setValueColumnLabel("Filename");
 
-        addTab("Configuration", initLayout());
+        addTab("Settings", initLayout());
     }
 
     /**
