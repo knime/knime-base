@@ -95,7 +95,7 @@ public interface FSLocationValue extends DataValue {
 
         @Override
         public String getName() {
-            return "Location";
+            return "Path";
         }
 
     }

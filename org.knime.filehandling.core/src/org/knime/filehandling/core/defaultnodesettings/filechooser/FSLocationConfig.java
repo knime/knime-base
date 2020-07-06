@@ -66,10 +66,13 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.
  */
 final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLocationConfig> {
 
-    static final String CFG_LOCATION = "location";
+    private static final String CFG_OLD = "location";
+
+    static final String CFG_PATH = "path";
 
     FSLocationConfig() {
-
+        super();
+        // everything happens in the super constructor.
     }
 
     private FSLocationConfig(final FSLocationConfig toCopy) {
@@ -91,7 +94,15 @@ final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLo
     }
 
     private static FSLocation loadLocation(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_LOCATION));
+        try {
+            return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_PATH));
+        } catch (InvalidSettingsException ex) {
+            try {
+                return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_OLD));
+            } catch (InvalidSettingsException oldNameEx) {
+                throw ex;
+            }
+        }
     }
 
     @Override
@@ -101,7 +112,7 @@ final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLo
 
     @Override
     public void save(final NodeSettingsWO settings) {
-        FSLocationUtils.saveFSLocation(getLocationSpec(), settings.addNodeSettings(CFG_LOCATION));
+        FSLocationUtils.saveFSLocation(getLocationSpec(), settings.addNodeSettings(CFG_PATH));
     }
 
     @Override

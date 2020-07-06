@@ -72,6 +72,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
+    private static final String FOLDER = "folder";
+
     private static final DefaultStatusMessage SUCCESS_MSG = new DefaultStatusMessage(MessageType.INFO, "");
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SaveBackgroundWorker.class);
@@ -122,7 +124,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         final FileSelectionMode fileSelectionMode = settings.getFilterModeModel().getFilterMode().getFileSelectionMode();
         switch (fileSelectionMode) {
             case DIRECTORIES_ONLY:
-                return new AppendHandler("folder", BasicFileAttributes::isDirectory);
+                return new AppendHandler(FOLDER, BasicFileAttributes::isDirectory);
             case FILES_AND_DIRECTORIES:
                 // yes, it's expected that we accept everything
                 return new AppendHandler("file or folder", a -> true);
@@ -153,28 +155,20 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
             if (m_successPredicate.test(attrs)) {
                 return SUCCESS_MSG;
             } else {
-                return mkError("The specified location '%s' is not a %s", path, m_expectedEntity);
+                return mkError("The specified path '%s' does not point to a %s", path, m_expectedEntity);
             }
         }
 
     }
 
-    private static StatusMessage createParentFolderStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        if (!attrs.isDirectory()) {
-            return mkError("The specified location '%s' is not a folder.", path);
-        } else {
-            return SUCCESS_MSG;
-        }
-    }
-
     private static StatusMessage createFailStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        return mkError("There already exists a %s at the specified location '%s'.",
-            attrs.isDirectory() ? "folder" : "file", path);
+        return mkError("There already exists a %s with the specified path '%s'.",
+            attrs.isDirectory() ? FOLDER : "file", path);
     }
 
     private static StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        return mkWarning("There exists a %s at the specified location '%s' that will be overwritten.",
-            attrs.isDirectory() ? "folder" : "file", path);
+        return mkWarning("There exists a %s with the specified path '%s' that will be overwritten.",
+            attrs.isDirectory() ? FOLDER : "file", path);
     }
 
     private static StatusMessage mkError(final String format, final Object... args) {

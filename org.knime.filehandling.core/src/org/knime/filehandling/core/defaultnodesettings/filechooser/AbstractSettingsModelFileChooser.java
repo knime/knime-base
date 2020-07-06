@@ -92,10 +92,10 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
 public abstract class AbstractSettingsModelFileChooser extends SettingsModel implements StatusReporter {
 
     private static final DefaultStatusMessage NO_LOCATION_ERROR =
-        new DefaultStatusMessage(MessageType.ERROR, "Please specify a location");
+        new DefaultStatusMessage(MessageType.ERROR, "Please specify a path");
 
     private static final DefaultStatusMessage TRAILING_OR_LEADING_WHITESPACE_ERROR = new DefaultStatusMessage(
-        MessageType.ERROR, "The location contains leading and/or trailing whitespaces, please remove them");
+        MessageType.ERROR, "The path contains leading and/or trailing whitespaces, please remove them");
 
     private final FileSystemConfiguration<FSLocationConfig> m_fsConfig;
 
@@ -168,7 +168,7 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      * @return the keys corresponding to the location configuration
      */
     public String[] getKeysForFSLocation() {
-        return new String[]{m_configName, FSLocationConfig.CFG_LOCATION};
+        return new String[]{m_configName, FSLocationConfig.CFG_PATH};
     }
 
     FileSystemConfiguration<FSLocationConfig> getFileSystemConfiguration() {

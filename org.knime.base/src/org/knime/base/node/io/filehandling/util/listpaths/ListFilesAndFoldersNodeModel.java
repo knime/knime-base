@@ -118,7 +118,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
     }
 
     private DataTableSpec createOutputSpec() {
-        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Location", FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", FSLocationCellFactory.TYPE);
         final FSLocation location = m_config.getFileChooserSettings().getLocation();
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
