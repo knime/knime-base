@@ -75,7 +75,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     private static final String CFG_RELATIVE_TO = "relative_to";
 
-    private static final RelativeTo DEFAULT = RelativeTo.WORKFLOW;
+    private static final RelativeTo DEFAULT = RelativeTo.WORKFLOW_DATA;
 
     private RelativeTo m_relativeTo = DEFAULT;
 
