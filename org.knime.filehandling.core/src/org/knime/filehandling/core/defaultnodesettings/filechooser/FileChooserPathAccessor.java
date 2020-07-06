@@ -65,6 +65,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
@@ -202,10 +203,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     @Override
     public final List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
-        final FSPath rootPath = getOutputPath(statusMessageConsumer);
-        // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
-        CheckUtils.checkSetting(Files.exists(rootPath), "The specified %s %s does not exist.",
-            m_filterMode == FilterMode.FILE ? "file" : "folder", rootPath);
+        final FSPath rootPath = getRootPath(statusMessageConsumer);
 
         if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.FOLDER) {
             return handleSinglePath(rootPath);
@@ -217,7 +215,6 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     }
 
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
-
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE) {
             CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
@@ -288,7 +285,15 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     @Override
     public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
-        return getOutputPath(statusMessageConsumer);
+        final FSPath rootPath = getOutputPath(statusMessageConsumer);
+
+        // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
+        CheckUtils.checkSetting(Files.exists(rootPath), "The specified %s %s does not exist.",
+            m_filterMode == FilterMode.FILE ? "file" : "folder", rootPath);
+        if (!Files.isReadable(rootPath)) {
+            throw ExceptionUtil.createAccessDeniedException(rootPath);
+        }
+        return rootPath;
     }
 
 }

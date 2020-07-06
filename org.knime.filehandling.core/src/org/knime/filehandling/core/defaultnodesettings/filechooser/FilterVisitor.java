@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -105,6 +106,9 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
         final FileVisitResult result = super.visitFile(file, attrs);
+        if (result == FileVisitResult.CONTINUE && !Files.isReadable(file)) {
+            throw ExceptionUtil.createAccessDeniedException(file);
+        }
         // also called for directories
         if (attrs.isRegularFile()) {
             m_visitedFiles++;

@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Path;
 
 /**
  * FIXME: this code is copied from org.knime.kerberos and should be moved to org.knime.core so that it is usable
@@ -128,16 +129,35 @@ public class ExceptionUtil {
     }
 
     /**
+     * Creates a formatted {@link AccessDeniedException}.
+     *
+     * @param path the path for which the {@link AccessDeniedException} occured
+     * @return the formatted {@link AccessDeniedException}
+     */
+    public static AccessDeniedException createAccessDeniedException(final Path path) {
+        return new FormattedAccessDeniedException(path);
+    }
+
+    /**
      * An {@link AccessDeniedException} with a more user-friendly error message.
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
      */
     private static final class FormattedAccessDeniedException extends AccessDeniedException {
 
+        private static final String MSG_PREFIX = "Unable to access";
+
         private static final long serialVersionUID = 1L;
 
         FormattedAccessDeniedException(final AccessDeniedException e) {
-            super(e.getFile(), e.getOtherFile(), "Unable to access");
+            super(e.getFile(), e.getOtherFile(), MSG_PREFIX);
+        }
+
+        /**
+         * @param path
+         */
+        public FormattedAccessDeniedException(final Path path) {
+            super(path.toString(), null, MSG_PREFIX);
         }
 
         @Override
