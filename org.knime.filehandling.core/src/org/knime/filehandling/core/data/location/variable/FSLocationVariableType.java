@@ -52,11 +52,14 @@ import static org.knime.filehandling.core.connections.FSLocation.NULL;
 
 import java.util.Set;
 
+import javax.swing.Icon;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeExtension;
@@ -78,6 +81,9 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
      */
     public static final FSLocationVariableType INSTANCE = new FSLocationVariableType();
 
+    /** Singleton icon to be used to display this variable type. */
+    private static final Icon ICON = SharedIcons.FLOWVAR_PATH.get();
+
     private FSLocationVariableType() {
         // singleton
     }
@@ -97,6 +103,11 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
     @Override
     public Class<FSLocation> getSimpleType() {
         return FSLocation.class;
+    }
+
+    @Override
+    public Icon getIcon() {
+        return ICON;
     }
 
     @Override

@@ -81,8 +81,7 @@ public interface FSLocationValue extends DataValue {
     /** Implementations of the meta information of this value class. */
     class PathUtilityFactory extends ExtensibleUtilityFactory {
         /** Singleton icon to be used to display this cell type. */
-        // TODO change icon, see https://knime-com.atlassian.net/browse/AP-13751
-        private static final Icon ICON = SharedIcons.TYPE_DEFAULT.get();
+        private static final Icon ICON = SharedIcons.TYPE_PATH.get();
 
         /** Only subclasses are allowed to instantiate this class. */
         protected PathUtilityFactory() {
