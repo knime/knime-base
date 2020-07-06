@@ -98,7 +98,7 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
         try {
             return m_backgroundWorker.call();
         } catch (Exception ex) {
-            LOGGER.error("Error while updating status message.", ex);
+            LOGGER.error("Error while updating status message: " + ex.getMessage(), ex);
             return new DefaultStatusMessage(MessageType.ERROR, ex.getMessage());
         }
     }
