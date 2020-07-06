@@ -67,16 +67,18 @@ public final class FileFilterStatistic {
      * Constructor.
      *
      * @param filteredFiles the number of filtered files
+     * @param filteredHiddenFiles the number of filtered hidden files
      * @param visitedFiles the number of visited files
      * @param filteredFolders the number of filtered folders
+     * @param filteredHiddenFolders the number of filtered hidden folders
      * @param visitedFolders the number of visited folders
      */
-    public FileFilterStatistic(final int filteredFiles, final int visitedFiles, final int filteredFolders,
-        final int visitedFolders) {
+    public FileFilterStatistic(final int filteredFiles, final int filteredHiddenFiles, final int visitedFiles,
+        final int filteredFolders, final int filteredHiddenFolders, final int visitedFolders) {
         m_filteredFiles = filteredFiles;
-        m_visitedFiles = visitedFiles;
+        m_visitedFiles = visitedFiles - filteredHiddenFiles;
         m_filteredFolders = filteredFolders;
-        m_visitedFolders = visitedFolders;
+        m_visitedFolders = visitedFolders - filteredHiddenFolders;
     }
 
     /**

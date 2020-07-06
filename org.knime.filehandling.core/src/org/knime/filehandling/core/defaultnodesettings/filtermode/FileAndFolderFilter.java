@@ -147,6 +147,12 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     /** Total number of filtered folders */
     private int m_numberOfFilteredFolders;
 
+    /** Total number of hidden files. */
+    private int m_numberOfFilteredHiddenFiles;
+
+    /** Total number of hidden folders. */
+    private int m_numberOfFilteredHiddenFolders;
+
     private final FilterOptionsSettings m_filterOptionsSettings;
 
     private final List<String> m_extensions;
@@ -178,9 +184,13 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         return caseSensitive ? Pattern.compile(regexString) : Pattern.compile(regexString, Pattern.CASE_INSENSITIVE);
     }
 
-    private boolean isSatisfiedFilterHidden(final Path path) {
+    private boolean isSatisfiedFileHidden(final Path path) {
         try {
-            return !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFiles();
+            final boolean accept = !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFiles();
+            if (!accept) {
+                ++m_numberOfFilteredHiddenFiles;
+            }
+            return accept;
         } catch (final IOException ex) {
             return true;
         }
@@ -188,7 +198,11 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
 
     private boolean isSatisfiedFolderHidden(final Path path) {
         try {
-            return !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFolders();
+            final boolean accept = !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFolders();
+            if (!accept) {
+                ++m_numberOfFilteredHiddenFolders;
+            }
+            return accept;
         } catch (final IOException ex) {
             return true;
         }
@@ -255,6 +269,24 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     }
 
     /**
+     * Returns the number of filtered hidden files.
+     *
+     * @return the number of filtered hidden files
+     */
+    public int getNumberOfFilteredHiddenFiles() {
+        return m_numberOfFilteredHiddenFiles;
+    }
+
+    /**
+     * Returns the number of filtered hidden folders.
+     *
+     * @return the number of filtered hidden folders
+     */
+    public int getNumberOfFilteredHiddenFolders() {
+        return m_numberOfFilteredHiddenFolders;
+    }
+
+    /**
      * Resets the counters of filtered files and filtered folders.
      */
     public void resetCounter() {
@@ -269,7 +301,7 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
                 isSatisfiedFolderName(path);
         }
         return attrs.isRegularFile() && //
-            isSatisfiedFilterHidden(path) && //
+            isSatisfiedFileHidden(path) && //
             isSatisfiedFileExtension(path) && //
             isSatisfiedFileName(path);
     }

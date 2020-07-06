@@ -78,8 +78,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by the {@link AbstractSettingsModelFileChooser} provided in the
- * constructor. The paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
+ * Allows access to the {@link FSPath FSPaths} referred to by the {@link AbstractSettingsModelFileChooser} provided in
+ * the constructor. The paths are also validated and respective exceptions are thrown if the settings yield invalid
+ * paths.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -107,8 +108,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private FSFileSystem<?> m_fileSystem;
 
     /**
-     * Creates a new FileChooserAccessor for the provided {@link AbstractSettingsModelFileChooser} and {@link FSConnection
-     * connection} (if provided).</br>
+     * Creates a new FileChooserAccessor for the provided {@link AbstractSettingsModelFileChooser} and
+     * {@link FSConnection connection} (if provided).</br>
      * The settings are not validated in this constructor but instead if {@link #getOutputPath(Consumer)} or
      * {@link #getFSPaths(Consumer)} are called.
      *
@@ -185,8 +186,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
                 ValidationUtils.validateLocalFsAccess();
                 return m_fileSystem.getPath(m_rootLocation);
             default:
-                throw new IllegalStateException(
-                    "Unsupported file system category: " + m_rootLocation.getFSCategory());
+                throw new IllegalStateException("Unsupported file system category: " + m_rootLocation.getFSCategory());
         }
     }
 
@@ -221,10 +221,10 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE) {
             CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
-            m_fileFilterStatistic = new FileFilterStatistic(0, 1, 0, 0);
+            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 1, 0, 0, 0);
         } else if (m_filterMode == FilterMode.FOLDER) {
             checkIsFolder(rootPath, attr);
-            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 1);
+            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 0, 0, 1);
         } else {
             throw new IllegalStateException("Unexpected filter mode in handleSingleCase: " + m_filterMode);
         }

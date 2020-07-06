@@ -265,7 +265,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
         public FileFilterStatistic getFileFilterStatistic() {
             CheckUtils.checkState(m_connection != null,
                 "No statistic available. Call getFSPaths() or getPaths() first.");
-            return new FileFilterStatistic(0, 1, 0, 0);
+            return new FileFilterStatistic(0, 0, 1, 0, 0, 0);
         }
 
     }

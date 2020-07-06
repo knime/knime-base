@@ -145,8 +145,9 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     }
 
     FileFilterStatistic getFileFilterStatistic() {
-        return new FileFilterStatistic(m_filter.getNumberOfFilteredFiles(), m_visitedFiles,
-            m_filter.getNumberOfFilteredFolders(), m_visitedFolders);
+        return new FileFilterStatistic(m_filter.getNumberOfFilteredFiles(), m_filter.getNumberOfFilteredHiddenFiles(),
+            m_visitedFiles, m_filter.getNumberOfFilteredFolders(), m_filter.getNumberOfFilteredHiddenFolders(),
+            m_visitedFolders);
     }
 
 }
