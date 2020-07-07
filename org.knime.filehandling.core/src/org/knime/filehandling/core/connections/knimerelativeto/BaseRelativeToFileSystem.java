@@ -231,7 +231,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     public abstract boolean isWorkflowDirectory(final RelativeToPath path) throws IOException;
 
     /**
-     * Validates if the given local file system path is a workflow folder.
+     * Validates if the given local file system path is a workflow, component or meta node directory.
      *
      * @param localPath a path in the local file system to validate
      * @return {@code true} when the path contains a workflow
@@ -241,11 +241,8 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             return false;
         }
 
-        if (Files.exists(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE))) { // metanode
-            return false;
-        }
-
-        return Files.exists(localPath.resolve(WorkflowPersistor.WORKFLOW_FILE));
+        return Files.exists(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE))
+            || Files.exists(localPath.resolve(WorkflowPersistor.WORKFLOW_FILE));
     }
 
     /**
