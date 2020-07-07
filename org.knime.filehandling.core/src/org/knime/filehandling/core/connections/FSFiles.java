@@ -51,11 +51,14 @@ package org.knime.filehandling.core.connections;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
@@ -263,6 +266,29 @@ public final class FSFiles {
     public static FSPath createTempFile(final FSPath parent, final String prefix, final String suffix)
         throws IOException {
         return provider(parent).createTempFile(parent, prefix, suffix);
+    }
+
+    /**
+     * Similar to {@link Files#exists(Path, LinkOption...)} with the important distinction that it doesn't return
+     * {@code false} for paths that it can't access but instead throws an {@link AccessDeniedException}.
+     *
+     * @param path the path to the file to test
+     * @param linkOptions for resolving symbolic links
+     * @return {@code true} if the file exists; {@code false} if the file does not exist or its existence cannot be
+     *         determined.
+     * @throws AccessDeniedException if the access to <b>path</b> is denied
+     * @throws SecurityException In the case of the default provider, the {@link SecurityManager#checkRead(String)} is
+     *             invoked to check read access to the file.
+     */
+    public static boolean exists(final Path path, final LinkOption... linkOptions) throws AccessDeniedException {
+        try {
+            Files.readAttributes(path, BasicFileAttributes.class, linkOptions);
+            return true;
+        } catch (AccessDeniedException ade) {
+            throw ExceptionUtil.createAccessDeniedException(path);
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     /**
