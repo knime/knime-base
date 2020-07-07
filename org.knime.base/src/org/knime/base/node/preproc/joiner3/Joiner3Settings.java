@@ -220,19 +220,32 @@ class Joiner3Settings {
         }
     }
 
-    final SettingsModelString m_joinModeModel = new SettingsModelString("joinMode", JoinMode.INNER.name());
+    // join conditions
     final SettingsModelStringArray m_leftJoiningColumnsModel = new SettingsModelStringArray("leftTableJoinPredicate", new String[0]);
     final SettingsModelStringArray m_rightJoiningColumnsModel = new SettingsModelStringArray("rightTableJoinPredicate", new String[0]);
     final SettingsModelString m_compositionModeModel = new SettingsModelString("compositionMode", CompositionMode.MATCH_ALL.name());
+
+    // include in output: matches, left unmatched, right unmatched
+    final SettingsModelBoolean m_includeMatchesModel = new SettingsModelBoolean("includeMatchesInOutput", true);
+    final SettingsModelBoolean m_includeLeftUnmatchedModel = new SettingsModelBoolean("includeLeftUnmatchedInOutput", false);
+    final SettingsModelBoolean m_includeRightUnmatchedModel = new SettingsModelBoolean("includeRightUnmatchedInOutput", false);
+
+    // output options
     final SettingsModelBoolean m_mergeJoinColumnsModel = new SettingsModelBoolean("mergeJoinColumns", false);
     final SettingsModelBoolean m_outputUnmatchedRowsToSeparatePortsModel = new SettingsModelBoolean("outputUnmatchedRowsToSeparatePorts", false);
+    final SettingsModelBoolean m_enableHilitingModel = new SettingsModelBoolean("enableHiliting", false);
+
+    // row keys
     final SettingsModelString m_rowKeyFactoryModel = new SettingsModelString("rowKeyFactory", RowKeyFactory.CONCATENATE.name());
     final SettingsModelString m_rowKeySeparatorModel = new SettingsModelString("rowKeySeparator", "_");
+
+    // include columns and column name disambiguation
     final SettingsModelString m_columnDisambiguationModel = new SettingsModelString("duplicateHandling", ColumnNameDisambiguation.APPEND_SUFFIX.name());
     final SettingsModelString m_columnNameSuffixModel = new SettingsModelString("suffix", " (right)");
+
+    // performance
     final SettingsModelString m_outputRowOrderModel = new SettingsModelString("outputRowOrder", OutputRowOrder.ARBITRARY.name());
     final SettingsModelIntegerBounded m_maxOpenFilesModel = new SettingsModelIntegerBounded("maxOpenFiles", 200, 3, Integer.MAX_VALUE);
-    final SettingsModelBoolean m_enableHilitingModel = new SettingsModelBoolean("enableHiliting", false);
 
     final List<SettingsModel> m_settings = new ArrayList<>();
 
@@ -244,7 +257,9 @@ class Joiner3Settings {
         new DataColumnSpecFilterConfiguration("rightColumnSelectionConfig");
 
     public Joiner3Settings() {
-        m_settings.add(m_joinModeModel);
+        m_settings.add(m_includeMatchesModel);
+        m_settings.add(m_includeLeftUnmatchedModel);
+        m_settings.add(m_includeRightUnmatchedModel);
         m_settings.add(m_leftJoiningColumnsModel);
         m_settings.add(m_rightJoiningColumnsModel);
         m_settings.add(m_compositionModeModel);
@@ -300,7 +315,7 @@ class Joiner3Settings {
         }
 
         if (getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX
-            && getDuplicateColumnSuffix().isEmpty()) {
+            && getDuplicateColumnSuffix().trim().isEmpty()) {
             throw new InvalidSettingsException("No suffix for duplicate columns provided");
         }
     }
@@ -318,22 +333,24 @@ class Joiner3Settings {
 
     }
 
-    /**
-     * Returns the mode how the two tables should be joined.
-     *
-     * @return the join mode
-     */
-    JoinMode getJoinMode() {
-        return JoinMode.valueOf(m_joinModeModel.getStringValue());
+    boolean isIncludeMatches() {
+        return m_includeMatchesModel.getBooleanValue();
     }
 
-    /**
-     * Sets the mode how the two tables should be joined.
-     *
-     * @param joinMode the join mode
-     */
-    void setJoinMode(final JoinMode joinMode) {
-        m_joinModeModel.setStringValue(joinMode.name());
+    boolean isIncludeLeftUnmatched() {
+        return m_includeLeftUnmatchedModel.getBooleanValue();
+    }
+
+    boolean isIncludeRightUnmatched() {
+        return m_includeRightUnmatchedModel.getBooleanValue();
+    }
+
+    JoinMode getJoinMode() {
+        return Arrays.stream(JoinMode.values())
+            .filter(mode -> mode.isIncludeMatchingRows() == isIncludeMatches()
+                && mode.isIncludeLeftUnmatchedRows() == isIncludeLeftUnmatched()
+                && mode.isIncludeRightUnmatchedRows() == isIncludeRightUnmatched())
+            .findFirst().orElseThrow(() -> new IllegalStateException("Unknown join mode selected in dialog."));
     }
 
     /**

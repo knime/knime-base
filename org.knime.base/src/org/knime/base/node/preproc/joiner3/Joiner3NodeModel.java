@@ -185,12 +185,12 @@ class Joiner3NodeModel extends NodeModel {
 
         // left (top port) input table
         String[] leftIncludes = m_settings.getLeftColumnSelectionConfig().applyTo(left).getIncludes();
-        JoinTableSettings leftSettings = new JoinTableSettings(m_settings.getJoinMode().isIncludeLeftUnmatchedRows(),
+        JoinTableSettings leftSettings = new JoinTableSettings(m_settings.isIncludeLeftUnmatched(),
             m_settings.getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
 
         // right (bottom port) input table
         String[] rightIncludes = m_settings.getRightColumnSelectionConfig().applyTo(right).getIncludes();
-        JoinTableSettings rightSettings = new JoinTableSettings(m_settings.getJoinMode().isIncludeRightUnmatchedRows(),
+        JoinTableSettings rightSettings = new JoinTableSettings(m_settings.isIncludeRightUnmatched(),
             m_settings.getRightJoinColumns(), rightIncludes, InputTable.RIGHT, right);
 
         BiFunction<DataRow, DataRow, RowKey> rowKeysFactory = m_settings.getRowKeyFactory().getFactory(m_settings.getRowKeySeparator());
@@ -206,7 +206,7 @@ class Joiner3NodeModel extends NodeModel {
         return new JoinSpecification.Builder(leftSettings, rightSettings)
             .conjunctive(m_settings.getCompositionMode() == CompositionMode.MATCH_ALL)
             .outputRowOrder(m_settings.getOutputRowOrder())
-            .retainMatched(m_settings.getJoinMode().isIncludeMatchingRows())
+            .retainMatched(m_settings.isIncludeMatches())
             .mergeJoinColumns(m_settings.isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
             .rowKeyFactory(rowKeysFactory).build();
     }
