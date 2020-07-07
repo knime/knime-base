@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -57,7 +58,9 @@ import java.util.function.Predicate;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -95,7 +98,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         try (final WritePathAccessor accessor = m_settings.createPathAccessor()) {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             final FSPath path = accessor.getOutputPath(consumer);
-            if (Files.exists(path)) {
+            if (FSFiles.exists(path)) {
                 return handlePathExists(path);
             } else {
                 return handleNewPath(path);
@@ -103,7 +106,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         }
     }
 
-    private StatusMessage handleNewPath(final FSPath path) {
+    private StatusMessage handleNewPath(final FSPath path) throws AccessDeniedException {
         if (m_settings.isCreateMissingFolders()) {
             return SUCCESS_MSG;
         } else {
@@ -111,7 +114,10 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         }
     }
 
-    private StatusMessage handlePathExists(final FSPath path) {
+    private StatusMessage handlePathExists(final FSPath path) throws AccessDeniedException {
+        if (!Files.isWritable(path)) {
+            throw ExceptionUtil.createAccessDeniedException(path);
+        }
         try {
             return m_existsHandler.create(path, Files.readAttributes(path, BasicFileAttributes.class));
         } catch (IOException ex) {
@@ -120,11 +126,18 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
         }
     }
 
-    private static StatusMessage checkIfParentFoldersAreMissing(final FSPath path) {
+    private static StatusMessage checkIfParentFoldersAreMissing(final FSPath path) throws AccessDeniedException {
         final Path parent = path.getParent();
-        if (parent == null || Files.exists(parent)) {
+        if (parent == null) {
+            return SUCCESS_MSG;
+        }
+        if (FSFiles.exists(parent)) {
+            if (!Files.isWritable(parent)) {
+                throw ExceptionUtil.createAccessDeniedException(parent);
+            }
             return SUCCESS_MSG;
         } else {
+            // TODO recursively go through ancestors until an existing one is found and check if we can write into it
             return MISSING_FOLDERS_MSG;
         }
     }

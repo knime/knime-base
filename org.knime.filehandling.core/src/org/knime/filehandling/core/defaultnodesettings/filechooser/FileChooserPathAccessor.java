@@ -63,8 +63,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
@@ -287,8 +289,11 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         final FSPath rootPath = getOutputPath(statusMessageConsumer);
 
         // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
-        CheckUtils.checkSetting(Files.exists(rootPath), "The specified %s %s does not exist.",
+        CheckUtils.checkSetting(FSFiles.exists(rootPath), "The specified %s %s does not exist.",
             m_filterMode == FilterMode.FILE ? "file" : "folder", rootPath);
+        if (!Files.isReadable(rootPath)) {
+            throw ExceptionUtil.createAccessDeniedException(rootPath);
+        }
         return rootPath;
     }
 

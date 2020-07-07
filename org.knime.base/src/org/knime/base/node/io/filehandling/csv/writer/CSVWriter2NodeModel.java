@@ -224,7 +224,7 @@ final class CSVWriter2NodeModel extends NodeModel {
     private void createParentDirIfRequired(final Path outputPath) throws IOException {
         // create parent directories according to the state of m_createDirectoryConfig.
         final Path parentPath = outputPath.getParent();
-        if (parentPath != null && !Files.exists(parentPath)) {
+        if (parentPath != null && !FSFiles.exists(parentPath)) {
             if (m_writerConfig.getFileChooserModel().isCreateMissingFolders()) {
                 FSFiles.createDirectories(parentPath);
             } else {
