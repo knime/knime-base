@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.util.Optional;
@@ -66,6 +65,7 @@ import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnecti
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * Utility class to obtain a {@link FSConnection}.
@@ -85,7 +85,6 @@ public final class FileSystemHelper {
      * @param settings {@link SettingsModelFileChooser2} instance.
      * @param timeoutInMillis timeout in milliseconds, or -1 if not applicable.
      * @return {@link FileSystem} to use.
-     * @throws IOException
      */
     public static final FSConnection retrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final SettingsModelFileChooser2 settings, final int timeoutInMillis) {
@@ -202,6 +201,11 @@ public final class FileSystemHelper {
 
     private static FSConnection getRelativeToConnection(final Type type) {
 
+        if (isRelativeToWorkflowOrWorkflowDataArea(type) && CheckNodeContextUtil.isInComponentProject()) {
+            throw new IllegalStateException(
+                "Nodes in a shared component don't have access to workflow-relative locations");
+        }
+
         if (type == Type.WORKFLOW_DATA_RELATIVE) {
             return new WorkflowDataRelativeFSConnection(false);
         } else if (isServerContext()) {
@@ -211,6 +215,10 @@ public final class FileSystemHelper {
         } else {
             return new LocalRelativeToFSConnection(type, false);
         }
+    }
+
+    private static boolean isRelativeToWorkflowOrWorkflowDataArea(final Type type) {
+        return type == Type.WORKFLOW_RELATIVE || type == Type.WORKFLOW_DATA_RELATIVE;
     }
 
     private static boolean isServerContext() {

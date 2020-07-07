@@ -76,11 +76,13 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * The configuration of {@link FileSystemChooser}.</br>
@@ -299,6 +301,22 @@ public final class FileSystemConfiguration<L extends FSLocationSpecConfig<L>>
                 final FileSystemSpecificConfig fsConfig = current.get();
                 fsConfig.configureInModel(specs, statusMessageConsumer);
             }
+            failIfWorkflowRelativeInComponentProject();
+        }
+    }
+
+    private void failIfWorkflowRelativeInComponentProject() throws InvalidSettingsException {
+        failIfWorkflowRelativeInComponentProject(getLocationSpec());
+
+    }
+
+    private static void failIfWorkflowRelativeInComponentProject(final FSLocationSpec locationSpec)
+        throws InvalidSettingsException {
+        if (locationSpec.getFSCategory() == FSCategory.RELATIVE) {
+            final RelativeTo specifier = RelativeTo.fromSettingsValue(locationSpec.getFileSystemSpecifier()
+                .orElseThrow(() -> new IllegalStateException("No relative option provided.")));
+            CheckUtils.checkSetting(specifier == RelativeTo.MOUNTPOINT || !CheckNodeContextUtil.isInComponentProject(),
+                "Nodes in a shared component don't have access to workflow-relative locations");
         }
     }
 

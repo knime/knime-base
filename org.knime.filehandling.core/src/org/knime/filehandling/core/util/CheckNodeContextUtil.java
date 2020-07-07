@@ -48,7 +48,10 @@
  */
 package org.knime.filehandling.core.util;
 
+import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContainerParent;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.SubNodeContainer;
 
 /**
  * Utility class to check the node context.
@@ -70,5 +73,27 @@ public final class CheckNodeContextUtil {
      */
     public static boolean isRemoteWorkflowContext() {
         return NodeContext.getContext() != null && NodeContext.getContext().getNodeContainer() == null;
+    }
+
+    /**
+     * Returns {@code true} if the node is in a component project.
+     *
+     * @return {@code true} if the node is in a component project
+     */
+    public static boolean isInComponentProject() {
+        NodeContext context = NodeContext.getContext();
+        if (context != null) {
+            NodeContainer nc = context.getNodeContainer();
+            if (nc != null) {
+                NodeContainerParent parent = nc.getParent();
+                while (!parent.isProject()) {
+                    parent = parent.getDirectNCParent();
+                }
+                if (parent instanceof SubNodeContainer) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
