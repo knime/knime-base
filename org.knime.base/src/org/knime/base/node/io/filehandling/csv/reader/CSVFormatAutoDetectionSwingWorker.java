@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -96,7 +97,8 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
     @Override
     protected CsvFormat doInBackgroundWithContext() throws IOException, InvalidSettingsException, InterruptedException {
         try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-            final List<Path> paths = accessor.getPaths(s -> {});
+            final List<Path> paths = accessor.getPaths(s -> {
+            });
             final CsvParser csvParser =
                 new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
 
@@ -108,9 +110,11 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
                     if (m_dialog.getSkipLines()) {
                         skipLines(reader, m_dialog.getNumLinesToSkip());
                     }
-
-                    csvParser.beginParsing(reader);
-                    csvParser.stopParsing();
+                    // Fixes a bug where the univocity library does not fill the buffer used for auto-guessing correctly
+                    try (final FullyBufferedReader fullyBufferedReader = new FullyBufferedReader(reader)) {
+                        csvParser.beginParsing(fullyBufferedReader);
+                        csvParser.stopParsing();
+                    }
                 }
                 return csvParser.getDetectedFormat();
             } else {
@@ -166,6 +170,40 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
     private static void skipLines(final BufferedReader reader, final long n) throws IOException {
         for (int i = 0; i < n; i++) {
             reader.readLine();
+        }
+    }
+
+    private static class FullyBufferedReader extends BufferedReader {
+
+        FullyBufferedReader(final Reader in) {
+            super(in);
+        }
+
+        /**
+         * Ensures that the buffer gets completely filled even if {@link Reader#ready()} evaluates to {@code false}.
+         * <br/>
+         * This fixes a bug in the univocity lib that occurs when auto guessing the csv's format.
+         *
+         * @param cbuf Destination buffer
+         * @param off Offset at which to start storing characters
+         * @param len Maximum number of characters to read
+         * @return The number of characters read, or -1 if the end of the stream has been reached
+         *
+         */
+        @Override
+        public int read(final char[] cbuf, final int off, final int len) throws IOException {
+            int remaining = len;
+            int n = super.read(cbuf, off, len);
+            if (n <= 0) {
+                return n;
+            }
+            remaining -= n;
+            int curOff = off + n;
+            while ((n = super.read(cbuf, curOff, remaining)) > 0) {
+                curOff += n;
+                remaining -= n;
+            }
+            return curOff - off;
         }
     }
 }
