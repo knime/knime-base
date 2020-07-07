@@ -72,6 +72,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
+    private static final DefaultStatusMessage MISSING_FOLDERS_MSG =
+        new DefaultStatusMessage(MessageType.ERROR, "Some folders in the specified path are missing.");
+
     private static final String FOLDER = "folder";
 
     private static final DefaultStatusMessage SUCCESS_MSG = new DefaultStatusMessage(MessageType.INFO, "");
@@ -84,7 +87,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
     SaveBackgroundWorker(final SettingsModelWriterFileChooser settings) {
         m_settings = settings;
-        m_existsHandler = createExistsHandler(settings);
+        m_existsHandler = createExistsHandler();
     }
 
     @Override
@@ -93,35 +96,56 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             final FSPath path = accessor.getOutputPath(consumer);
             if (Files.exists(path)) {
-                try {
-                    return m_existsHandler.create(path, Files.readAttributes(path, BasicFileAttributes.class));
-                } catch (IOException ex) {
-                    LOGGER.error("Can't access attributes of existing path", ex);
-                    return new DefaultStatusMessage(MessageType.ERROR, "Can't access attributes of %s.", path);
-                }
+                return handlePathExists(path);
             } else {
-                return SUCCESS_MSG;
+                return handleNewPath(path);
             }
         }
     }
 
-    private ExistsHandler createExistsHandler(final SettingsModelWriterFileChooser settings) {
-        switch (settings.getFileOverwritePolicy()) {
+    private StatusMessage handleNewPath(final FSPath path) {
+        if (m_settings.isCreateMissingFolders()) {
+            return SUCCESS_MSG;
+        } else {
+            return checkIfParentFoldersAreMissing(path);
+        }
+    }
+
+    private StatusMessage handlePathExists(final FSPath path) {
+        try {
+            return m_existsHandler.create(path, Files.readAttributes(path, BasicFileAttributes.class));
+        } catch (IOException ex) {
+            LOGGER.error("Can't access attributes of existing path", ex);
+            return new DefaultStatusMessage(MessageType.ERROR, "Can't access attributes of %s.", path);
+        }
+    }
+
+    private static StatusMessage checkIfParentFoldersAreMissing(final FSPath path) {
+        final Path parent = path.getParent();
+        if (parent == null || Files.exists(parent)) {
+            return SUCCESS_MSG;
+        } else {
+            return MISSING_FOLDERS_MSG;
+        }
+    }
+
+    private ExistsHandler createExistsHandler() {
+        switch (m_settings.getFileOverwritePolicy()) {
             case APPEND:
-                return createAppendHandler(settings);
+                return createAppendHandler();
             case FAIL:
                 return SaveBackgroundWorker::createFailStatusMsg;
             case IGNORE:
                 return (p, a) -> SUCCESS_MSG;
             case OVERWRITE:
-                return SaveBackgroundWorker::createOverwriteStatusMsg;
+                return this::createOverwriteStatusMsg;
             default:
                 throw new IllegalStateException("Unknown overwrite policy: " + m_settings.getFileOverwritePolicy());
         }
     }
 
-    private static AppendHandler createAppendHandler(final SettingsModelWriterFileChooser settings) {
-        final FileSelectionMode fileSelectionMode = settings.getFilterModeModel().getFilterMode().getFileSelectionMode();
+    private AppendHandler createAppendHandler() {
+        final FileSelectionMode fileSelectionMode = getFileSelectionMode();
         switch (fileSelectionMode) {
             case DIRECTORIES_ONLY:
                 return new AppendHandler(FOLDER, BasicFileAttributes::isDirectory);
@@ -133,6 +157,10 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + fileSelectionMode);
         }
+    }
+
+    private FileSelectionMode getFileSelectionMode() {
+        return m_settings.getFilterModeModel().getFilterMode().getFileSelectionMode();
     }
 
     private interface ExistsHandler {
@@ -162,11 +190,24 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
     }
 
     private static StatusMessage createFailStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        return mkError("There already exists a %s with the specified path '%s'.",
-            attrs.isDirectory() ? FOLDER : "file", path);
+        return mkError("There already exists a %s with the specified path '%s'.", attrs.isDirectory() ? FOLDER : "file",
+            path);
     }
 
-    private static StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
+    private StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
+        switch (getFileSelectionMode()) {
+            case DIRECTORIES_ONLY:
+                return attrs.isDirectory() ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
+            case FILES_AND_DIRECTORIES:
+                return mkOverwriteWarning(path, attrs);
+            case FILES_ONLY:
+                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
+            default:
+                throw new IllegalStateException("Unknown file selection mode: " + getFileSelectionMode());
+        }
+    }
+
+    private static StatusMessage mkOverwriteWarning(final Path path, final BasicFileAttributes attrs) {
         return mkWarning("There exists a %s with the specified path '%s' that will be overwritten.",
             attrs.isDirectory() ? FOLDER : "file", path);
     }
