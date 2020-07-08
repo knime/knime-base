@@ -62,6 +62,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileStore;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileSystemNotFoundException;
@@ -491,6 +492,12 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      */
     protected final F getFileSystemInternal() {
         return m_fileSystem;
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public final FileStore getFileStore(final Path path) throws IOException {
+        return getFileSystemInternal().getFileStores().get(0);
     }
 
     /**

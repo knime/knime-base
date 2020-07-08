@@ -45,6 +45,7 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -72,12 +73,10 @@ public class FileStoreTest extends AbstractParameterizedFSTest {
         final Path testFile = m_testInitializer.createFile("some-file");
         final FileStore filestore = Files.getFileStore(testFile);
         assertNotNull(filestore);
-        assertNotNull(filestore.isReadOnly());
-        assertNotNull(filestore.getTotalSpace());
-        assertNotNull(filestore.getUsableSpace());
+        assertFalse(filestore.isReadOnly());
 
         boolean found = false;
-        for (FileStore other : m_testInitializer.getFSConnection().getFileSystem().getFileStores()) {
+        for (FileStore other : getFileSystem().getFileStores()) {
             if (other.equals(filestore)) {
                 found = true;
                 break;

@@ -59,7 +59,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
@@ -195,14 +194,6 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     protected void moveInternal(final URIPath source, final URIPath target, final CopyOption... options) throws IOException {
         throw new UnsupportedOperationException("Moving files is not supported with custom URLs");
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    public FileStore getFileStore(final Path path) throws IOException {
-        checkPathProvider(path);
-        // there is only one file store
-        return getFileSystemInternal().getFileStores().iterator().next();
     }
 
     @Override

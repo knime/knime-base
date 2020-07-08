@@ -50,14 +50,17 @@ package org.knime.filehandling.core.connections.url;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileStore;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 
 /**
@@ -79,7 +82,8 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
             toBaseURI(uri), //
             0L, //
             PATH_SEPARATOR, //
-            createFSLocationSpec(isConnectedFs, timeoutInMillis));
+            createFSLocationSpec(isConnectedFs, timeoutInMillis),
+            createFileStore(toBaseURI(uri)));
 
         m_baseUri = toBaseURI(uri);
         m_workingDirectory = getPath(PATH_SEPARATOR);
@@ -89,6 +93,10 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
         final FSCategory category = isConnectedFs ? FSCategory.CONNECTED : FSCategory.CUSTOM_URL;
         final String specifier = Integer.toString(timeoutInMillis);
         return new DefaultFSLocationSpec(category, specifier);
+    }
+
+    private static List<FileStore> createFileStore(final URI baseURI) {
+        return Collections.singletonList(new BaseFileStore(FSCategory.CUSTOM_URL.toString(), "default_file_store"));
     }
 
     /**

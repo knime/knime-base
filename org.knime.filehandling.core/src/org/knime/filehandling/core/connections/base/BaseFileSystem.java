@@ -57,6 +57,7 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -85,6 +86,8 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
     private final AttributesCache m_cache;
 
+    private final List<FileStore> m_fileStores;
+
     /**
      * Constructs {@FileSystem} with the given file system provider, identifying uri and name an type of the file
      * system.
@@ -100,6 +103,29 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         final String workingDirectory,
         final FSLocationSpec fsLocationSpec) {
 
+        this(fileSystemProvider, uri, cacheTTL, workingDirectory, fsLocationSpec, null);
+    }
+
+    /**
+     * Constructs {@FileSystem} with the given file system provider, identifying uri and name an type of the file
+     * system.
+     *
+     * @param fileSystemProvider the provider that the file system belongs to
+     * @param uri the uri identifying the file system
+     * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
+     *            caching.
+     * @param workingDirectory The working directory of this file system.
+     * @param fsLocationSpec The {@link FSLocationSpec} for this file system.
+     * @param fileStores The file stores of this file system. May be null, in which case
+     *            {@link #createDefaultFileStore()} will be called to instantiate a file store.
+     */
+    public BaseFileSystem(final BaseFileSystemProvider<?,?> fileSystemProvider,
+        final URI uri,
+        final long cacheTTL,
+        final String workingDirectory,
+        final FSLocationSpec fsLocationSpec,
+        final List<FileStore> fileStores) {
+
         super(fsLocationSpec, workingDirectory);
 
         fileSystemProvider.setFileSystem(this);
@@ -114,6 +140,16 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         } else {
             m_cache = new NoOpAttributesCache();
         }
+
+        if (fileStores != null) {
+            m_fileStores = fileStores;
+        } else {
+            m_fileStores = Collections.singletonList(createDefaultFileStore());
+        }
+    }
+
+    protected FileStore createDefaultFileStore() {
+        return new BaseFileStore(getSchemeString(), "default_file_store");
     }
 
     @SuppressWarnings("unchecked")
@@ -159,12 +195,9 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      */
     protected abstract void prepareClose() throws IOException;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Iterable<FileStore> getFileStores() {
-        return Collections.singletonList(new BaseFileStore(getSchemeString(), "default_file_store"));
+    public final List<FileStore> getFileStores() {
+        return m_fileStores;
     }
 
     /**

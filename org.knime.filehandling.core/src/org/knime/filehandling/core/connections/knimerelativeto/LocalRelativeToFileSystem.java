@@ -50,16 +50,11 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
 
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -68,10 +63,6 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * @author Sascha Wolke, KNIME GmbH
  */
 public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
-
-    private final FileStore m_localFileStore;
-
-    private final List<FileStore> m_fileStores;
 
     /**
      * A local path (from the default FS provider) that points to the
@@ -84,10 +75,7 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      *
      * @param uri URI without a path
      * @param localMountpointRoot mountpoint root in the local file system
-     * @param virtualWorkflowDirectory workflow directory in the relative-to file system
      * @param type {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
-     * @param isConnectedFs Whether this file system is a {@link FSCategory#CONNECTED} or a convenience file system
-     *            ({@link FSCategory#RELATIVE})
      * @throws IOException
      */
     protected LocalRelativeToFileSystem(final URI uri, //
@@ -103,23 +91,6 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
             fsLocationSpec);
 
         m_localMountpointDirectory = localMountpointRoot;
-        m_localFileStore = getFileStore(localMountpointRoot, getFileStoreType(), "default_file_store");
-
-        final String fsType = type == Type.MOUNTPOINT_RELATIVE ? MOUNTPOINT_REL_SCHEME
-            : WORKFLOW_REL_SCHEME;
-        m_fileStores =
-                Collections.unmodifiableList(Collections.singletonList(new BaseFileStore(fsType, "default_file_store",
-                    m_localFileStore.isReadOnly(), m_localFileStore.getTotalSpace(), m_localFileStore.getUsableSpace())));
-    }
-
-    @Override
-    public Iterable<FileStore> getFileStores() {
-        return m_fileStores;
-    }
-
-    @Override
-    protected FileStore getFileStore(final RelativeToPath path) throws IOException {
-        return m_localFileStore;
     }
 
     @Override

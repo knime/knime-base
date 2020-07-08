@@ -58,7 +58,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileStore;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -114,11 +113,6 @@ public class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMER
     @Override
     protected void moveInternal(final KNIMERemotePath source, final KNIMERemotePath target, final CopyOption... options) throws IOException {
         MountPointFileSystemAccessService.instance().moveFile(source.toKNIMEProtocolURI(), target.toKNIMEProtocolURI());
-    }
-
-    @Override
-    public FileStore getFileStore(final Path path) throws IOException {
-        return path.getFileSystem().getFileStores().iterator().next();
     }
 
     @Override

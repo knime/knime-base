@@ -55,6 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.node.workflow.WorkflowPersistor;
@@ -63,7 +64,6 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -116,14 +116,13 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      *
      * @param fileSystemProvider Creator of this FS, holding a reference.
      * @param uri URI without a path
-     * @param connectionType {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
-     * @param isConnectedFs Whether this file system is a {@link Choice#CONNECTED_FS} or a convenience file system
-     *            ({@link Choice#KNIME_FS})
-     * @throws IOException
+     * @param type {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
+     * @param workingDir
+     * @param fsLocationSpec
      */
     protected BaseRelativeToFileSystem(final BaseRelativeToFileSystemProvider<? extends BaseRelativeToFileSystem> fileSystemProvider,
         final URI uri,
-        final Type connectionType,
+        final Type type,
         final String workingDir,
         final FSLocationSpec fsLocationSpec) {
 
@@ -131,9 +130,10 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             uri, //
             CACHE_TTL, //
             workingDir,
-            fsLocationSpec);
+            fsLocationSpec,
+            createFileStores(type));
 
-        m_type = connectionType;
+        m_type = type;
         if (m_type == Type.MOUNTPOINT_RELATIVE) {
             m_scheme = MOUNTPOINT_REL_SCHEME;
         } else if (m_type == Type.WORKFLOW_RELATIVE) {
@@ -144,6 +144,10 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             throw new IllegalArgumentException("Illegal type " + m_type);
         }
         m_hostString = uri.getHost();
+    }
+
+    private static List<FileStore> createFileStores(final Type type) {
+        return Collections.singletonList(new BaseFileStore(type.toString(), "default_file_store"));
     }
 
     @Override
@@ -161,33 +165,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     @Override
     public Iterable<Path> getRootDirectories() {
         return Collections.singletonList(getRoot());
-    }
-
-    /**
-     * Get the file store of a given relative-to path.
-     *
-     * @param path relative-to path
-     * @return file store of the given relative-to path.
-     * @throws IOException
-     */
-    protected abstract FileStore getFileStore(final RelativeToPath path) throws IOException;
-
-    /**
-     * Utility method to create a {@link FileStore} based on the file store of a given path.
-     *
-     * @param path path with source file store
-     * @param type type of the new file store
-     * @param name name of the new file store
-     * @return file store with given type, name and attributes from file store of the given path
-     * @throws IOException
-     */
-    protected static FileStore getFileStore(final Path path, final String type, final String name) throws IOException {
-        final FileStore localFileStore = Files.getFileStore(path);
-        return new BaseFileStore(type, //
-            name, //
-            localFileStore.isReadOnly(), //
-            localFileStore.getTotalSpace(), //
-            localFileStore.getUsableSpace());
     }
 
     @Override

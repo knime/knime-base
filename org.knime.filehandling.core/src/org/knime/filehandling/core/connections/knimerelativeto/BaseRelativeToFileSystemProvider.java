@@ -196,11 +196,6 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     }
 
     @Override
-    public FileStore getFileStore(final Path path) throws IOException {
-        return getFileSystemInternal().getFileStore(checkCastAndAbsolutizePath(path));
-    }
-
-    @Override
     protected void checkAccessInternal(final RelativeToPath path, final AccessMode... modes) throws IOException {
         final Path realPath = toRealPathWithAccessibilityCheck(path);
         realPath.getFileSystem().provider().checkAccess(realPath);
