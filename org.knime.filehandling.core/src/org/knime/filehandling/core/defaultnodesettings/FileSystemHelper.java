@@ -75,7 +75,7 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
 public final class FileSystemHelper {
 
     private FileSystemHelper() {
-        // static uitlity class
+        // static utility class
     }
 
     /**
@@ -203,7 +203,7 @@ public final class FileSystemHelper {
 
         if (isRelativeToWorkflowOrWorkflowDataArea(type) && CheckNodeContextUtil.isInComponentProject()) {
             throw new IllegalStateException(
-                "Nodes in a shared component don't have access to workflow-relative locations");
+                "Nodes in a shared component don't have access to workflow-relative locations or the workflow data area.");
         }
 
         if (type == Type.WORKFLOW_DATA_RELATIVE) {
