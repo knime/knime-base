@@ -252,7 +252,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      * @return {@code true} if given path or a parent path is part of a workflow
      * @throws IOException
      */
-    private boolean isPartOfWorkflow(final RelativeToPath path) throws IOException {
+    public boolean isPartOfWorkflow(final RelativeToPath path) throws IOException {
         RelativeToPath current = (RelativeToPath)path.toAbsolutePath().normalize();
 
         while (isInMountPoint(current)) {

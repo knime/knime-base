@@ -142,4 +142,10 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
             throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
         }
     }
+
+    @Override
+    public P makePath(final String... pathComponents) {
+        return toFSPath(Paths.get(getLocalTestCaseScratchDir().toString(), pathComponents));
+    }
+
 }

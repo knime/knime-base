@@ -163,8 +163,10 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_dot_directory() throws Exception {
-        ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
+        ignoreWithReason("The working directory in knime-local-relative-workflow is actually a file",
             KNIME_LOCAL_RELATIVE_WORKFLOW);
+        ignoreWithReason("The working directory in knime-local-relative-mountpoint contains the workflow, hence the assertEquals will fail",
+            KNIME_LOCAL_RELATIVE_MOUNTPOINT);
 
         // force creation of scratch dir
         m_testInitializer.createFile("file");
@@ -179,4 +181,27 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
             getFileSystem().getPath(".").resolve(m_testInitializer.getTestCaseScratchDir().getFileName());
         assertEquals(expectedPath, dirList[0]);
     }
+
+    @Test
+    public void test_list_dot_directory_relative_mountpoint() throws Exception {
+        ignoreAllExcept(KNIME_LOCAL_RELATIVE_MOUNTPOINT);
+
+        // force creation of scratch dir inside working dir
+        m_testInitializer.createFile("file");
+
+        final Path[] dirList;
+        try (final Stream<Path> stream = Files.list(getFileSystem().getPath("."))) {
+            dirList = stream.toArray(Path[]::new);
+        }
+        assertEquals(2, dirList.length);
+
+        final Path expectedPath1 =
+            getFileSystem().getPath(".").resolve(m_testInitializer.getTestCaseScratchDir().getFileName());
+        assertEquals(expectedPath1, dirList[0]);
+
+        final Path expectedPath2 =
+                getFileSystem().getPath(".").resolve("current-workflow");
+            assertEquals(expectedPath2, dirList[1]);
+    }
+
 }

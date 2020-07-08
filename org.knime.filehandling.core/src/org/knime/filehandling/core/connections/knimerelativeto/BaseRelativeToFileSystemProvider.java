@@ -55,7 +55,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
@@ -85,8 +84,8 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected InputStream newInputStreamInternal(final RelativeToPath path, final OpenOption... options) throws IOException {
-        if (getFileSystemInternal().isWorkflowDirectory(path)) {
-            throw new IOException("Workflows cannot be opened for reading");
+        if (getFileSystemInternal().isPartOfWorkflow(path)) {
+            throw new IOException(path.toString()  + " points to/into a workflow. Cannot read data from a workflow.");
         }
 
         return Files.newInputStream(toRealPathWithAccessibilityCheck(path), options);
@@ -94,8 +93,8 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected OutputStream newOutputStreamInternal(final RelativeToPath path, final OpenOption... options) throws IOException {
-        if (getFileSystemInternal().isWorkflowDirectory(path)) {
-            throw new IOException("Workflows cannot be opened for writing");
+        if (getFileSystemInternal().isPartOfWorkflow(path)) {
+            throw new IOException(path.toString()  + " points to/into a workflow. Cannot write data to a workflow");
         }
 
         return Files.newOutputStream(toRealPathWithAccessibilityCheck(path), options);
@@ -103,6 +102,10 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected Iterator<RelativeToPath> createPathIterator(final RelativeToPath path, final Filter<? super Path> filter) throws IOException {
+        if (getFileSystemInternal().isPartOfWorkflow(path)) {
+            throw new IOException(path.toString()  + " points to/into a workflow. Cannot list folder contents in a workflow");
+        }
+
         return new RelativeToPathIterator(path, toRealPathWithAccessibilityCheck(path), filter);
     }
 
@@ -113,6 +116,10 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected void deleteInternal(final RelativeToPath path) throws IOException {
+        if (getFileSystemInternal().isPartOfWorkflow(path)) {
+            throw new IOException(path.toString()  + " points to/into a workflow. Cannot delete data from a workflow");
+        }
+
         Files.delete(toRealPathWithAccessibilityCheck(path));
     }
 
@@ -125,8 +132,8 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     protected SeekableByteChannel newByteChannelInternal(final RelativeToPath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
 
-        if (getFileSystemInternal().isWorkflowDirectory(path)) {
-            throw new IOException("Workflows cannot be opened for reading/writing");
+        if (getFileSystemInternal().isPartOfWorkflow(path)) {
+            throw new IOException(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing");
         }
 
         return Files.newByteChannel(toRealPathWithAccessibilityCheck(path), options);
@@ -135,18 +142,41 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     @Override
     protected void createDirectoryInternal(final RelativeToPath dir, final FileAttribute<?>... attrs)
         throws IOException {
+
+        if (getFileSystemInternal().isPartOfWorkflow(dir)) {
+            throw new IOException(dir.toString()  + " points to/into a workflow. Cannot create a directory there.");
+        }
+
         Files.createDirectory(toRealPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 
     @Override
     protected void copyInternal(final RelativeToPath source, final RelativeToPath target,
         final CopyOption... options) throws IOException {
+
+        if (getFileSystemInternal().isPartOfWorkflow(source)) {
+            throw new IOException(source.toString()  + " points to/into a workflow. Cannot copy files from workflows.");
+        }
+
+        if (getFileSystemInternal().isPartOfWorkflow(target)) {
+            throw new IOException(source.toString()  + " points to/into a workflow. Cannot copy files to workflows.");
+        }
+
         Files.copy(toRealPathWithAccessibilityCheck(source), toRealPathWithAccessibilityCheck(target), options);
     }
 
     @Override
     protected void moveInternal(final RelativeToPath source, final RelativeToPath target,
         final CopyOption... options) throws IOException {
+
+        if (getFileSystemInternal().isPartOfWorkflow(source)) {
+            throw new IOException(source.toString()  + " points to/into a workflow. Cannot move files from workflows.");
+        }
+
+        if (getFileSystemInternal().isPartOfWorkflow(target)) {
+            throw new IOException(source.toString()  + " points to/into a workflow. Cannot move files to workflows.");
+        }
+
         Files.move(toRealPathWithAccessibilityCheck(source), toRealPathWithAccessibilityCheck(target), options);
     }
 
@@ -178,6 +208,10 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected BaseFileAttributes fetchAttributesInternal(final RelativeToPath path, final Class<?> type) throws IOException {
+        if (getFileSystemInternal().isPartOfWorkflow(path) && !getFileSystemInternal().isWorkflowDirectory(path)) {
+            throw new IOException(path.toString()  + " points into a workflow. Cannot access what is inside a workflow.");
+        }
+
         if (type == BasicFileAttributes.class) {
             final Path realPath = toRealPathWithAccessibilityCheck(path);
 

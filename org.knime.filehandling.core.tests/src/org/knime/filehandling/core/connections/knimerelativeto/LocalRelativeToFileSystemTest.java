@@ -399,10 +399,11 @@ public class LocalRelativeToFileSystemTest {
     @Test(expected = IOException.class)
     public void newInputStreamOnWorkflowFails() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        final Path path = fs.getPath("/other-workflow");
         try {
-            Files.newInputStream(fs.getPath("/other-workflow"));
+            Files.newInputStream(path);
         } catch (final IOException e) {
-            assertEquals("Workflows cannot be opened for reading", e.getMessage());
+            assertEquals(path.toString()  + " points to/into a workflow. Cannot read data from a workflow.", e.getMessage());
             throw e;
         }
     }
@@ -410,10 +411,11 @@ public class LocalRelativeToFileSystemTest {
     @Test(expected = IOException.class)
     public void newOutputStreamOnWorkflowFails() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        final Path path = fs.getPath("/other-workflow");
         try {
-            Files.newOutputStream(fs.getPath("/other-workflow"));
+            Files.newOutputStream(path);
         } catch (final IOException e) {
-            assertEquals("Workflows cannot be opened for writing", e.getMessage());
+            assertEquals(path.toString()  + " points to/into a workflow. Cannot write data to a workflow", e.getMessage());
             throw e;
         }
     }
@@ -421,10 +423,11 @@ public class LocalRelativeToFileSystemTest {
     @Test(expected = IOException.class)
     public void newByteChannelOnWorkflowFails() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
+        final Path path = fs.getPath("/other-workflow");
         try {
-            Files.newByteChannel(fs.getPath("/other-workflow"));
+            Files.newByteChannel(path);
         } catch (final IOException e) {
-            assertEquals("Workflows cannot be opened for reading/writing", e.getMessage());
+            assertEquals(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing", e.getMessage());
             throw e;
         }
     }

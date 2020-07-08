@@ -297,7 +297,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NoSuchFileException(targetParent.toString());
         }
 
-        if (isSameFile(checkedSource, checkedTarget)) {
+        if (checkedSource.equals(checkedTarget)) {
             return;
         }
 
@@ -430,15 +430,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NotDirectoryException(checkedDir.toString());
         }
 
-        Iterator<Path> pathIterator = (Iterator<Path>)createPathIterator(checkedDir, filter);
-        if (!dir.isAbsolute()) {
-            // when the original path provided to this method was relative, the paths provided by the
-            // DirectoryStream must also be relative
-            pathIterator = new RelativizingPathIterator(pathIterator, //
-                dir);
-        }
+        final Iterator<Path> pathIterator = (Iterator<Path>)createPathIterator(checkedDir, filter);
 
-        return new BaseDirectoryStream(pathIterator, getFileSystemInternal());
+        return new BaseDirectoryStream(new RelativizingPathIterator(pathIterator, dir), getFileSystemInternal());
     }
 
     /**
