@@ -133,7 +133,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         } else {
             // otherwise we retrieve the connection from the location
             return FileSystemHelper.retrieveFSConnection(m_portObjectConnection, m_rootLocation)
-                .orElseThrow(() -> new IllegalStateException("No connection available. Execute connector node."));
+                .orElseThrow(() -> new IllegalStateException("No file system connection available. Execute connector node."));
         }
     }
 

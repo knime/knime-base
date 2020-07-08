@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Path;
 
 /**
@@ -86,6 +87,24 @@ public class ExceptionUtil {
             return null;
         }
     }
+
+    public static String getDeepestNIOErrorMessage(final Throwable t) {
+        String deeperMsg = null;
+        if (t.getCause() != null && t.getCause() != t) {
+            deeperMsg = getDeepestNIOErrorMessage(t.getCause());
+        }
+
+        if (deeperMsg != null && deeperMsg.length() > 0) {
+            return deeperMsg;
+        } else if (t instanceof FormattedNIOException) {
+            return t.getMessage();
+        } else if (t instanceof FileSystemException) {
+            return String.format("%s (%s)", t.getMessage(), t.getClass().getSimpleName());
+        } else {
+            return null;
+        }
+    }
+
 
     /**
      * Returns deepest exeption cause from the cause stack o fthe given exception.
@@ -139,11 +158,19 @@ public class ExceptionUtil {
     }
 
     /**
+     * Marker interface for formatted NIO exceptions.
+     *
+     * @author Bjoern Lohrmann, KNIME GmbH
+     */
+    private static interface FormattedNIOException {
+    }
+
+    /**
      * An {@link AccessDeniedException} with a more user-friendly error message.
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
      */
-    private static final class FormattedAccessDeniedException extends AccessDeniedException {
+    private static final class FormattedAccessDeniedException extends AccessDeniedException implements FormattedNIOException {
 
         private static final String MSG_PREFIX = "Unable to access";
 
