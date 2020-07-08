@@ -124,7 +124,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param configName the name of the config.
      */
     public SettingsModelFileChooser2(final String configName) {
-        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
+        this(configName, "", KNIMEConnection.WORKFLOW_DATA_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
             new FileFilterSettings(), new String[0]);
     }
 
@@ -135,7 +135,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
      * @param suffixes the list of default suffixes the dialog should filter on
      */
     public SettingsModelFileChooser2(final String configName, final String[] suffixes) {
-        this(configName, "", KNIMEConnection.WORKFLOW_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
+        this(configName, "", KNIMEConnection.WORKFLOW_DATA_RELATIVE_CONNECTION.getId(), null, DEFAULT_PATH, false,
             new FileFilterSettings(suffixes), suffixes);
     }
 
