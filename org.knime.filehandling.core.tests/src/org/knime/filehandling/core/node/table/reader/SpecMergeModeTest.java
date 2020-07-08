@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -127,7 +128,7 @@ public class SpecMergeModeTest {
     /**
      * Tests if {@link SpecMergeMode#FAIL_ON_DIFFERING_SPECS} fails if no specs are provided.
      */
-    @Test(expected = AssertionError.class)
+    @Test(expected = NoSuchElementException.class)
     public void testFailOnDifferingSpecsFailsOnEmptyCollection() {
         SpecMergeMode.FAIL_ON_DIFFERING_SPECS.mergeSpecs(Collections.emptyList(), m_typeHierarchy);
     }
@@ -164,7 +165,7 @@ public class SpecMergeModeTest {
     /**
      * Tests if {@link SpecMergeMode#INTERSECTION} fails if no specs are provided.
      */
-    @Test(expected = AssertionError.class)
+    @Test(expected = NoSuchElementException.class)
     public void testIntersectionFailsOnEmptyCollection() {
         SpecMergeMode.INTERSECTION.mergeSpecs(Collections.emptyList(), m_typeHierarchy);
     }

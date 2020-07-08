@@ -81,7 +81,6 @@ public enum SpecMergeMode {
                 final TypeHierarchy<T, T> typeHierarchy) {
                 final Iterator<TypedReaderTableSpec<T>> iterator = individualSpecs.iterator();
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
-                assert iterator.hasNext() : "No specs provided.";
                 addAllColumnsInSpec(resolversByName, iterator.next(), typeHierarchy);
                 while (iterator.hasNext()) {
                     final TypedReaderTableSpec<T> individualSpec = iterator.next();
@@ -113,7 +112,6 @@ public enum SpecMergeMode {
             <T> TypedReaderTableSpec<T> mergeSpecs(final Collection<TypedReaderTableSpec<T>> individualSpecs,
                 final TypeHierarchy<T, T> typeHierarchy) {
                 final Iterator<TypedReaderTableSpec<T>> iterator = individualSpecs.iterator();
-                assert iterator.hasNext() : "No specs provided.";
                 final Map<String, TypeResolver<T, T>> resolversByName = new LinkedHashMap<>();
                 addAllColumnsInSpec(resolversByName, iterator.next(), typeHierarchy);
                 while (iterator.hasNext()) {
