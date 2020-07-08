@@ -445,14 +445,6 @@ public class NioFileTest {
     }
 
     /**
-     * Tests whether getFreeSpace equals.
-     */
-    @Test
-    public void free_space_equals() {
-        assertEquals(m_file.getFreeSpace(), m_nioFile.getFreeSpace());
-    }
-
-    /**
      * Tests whether listing of files is equal.
      */
     @Test
