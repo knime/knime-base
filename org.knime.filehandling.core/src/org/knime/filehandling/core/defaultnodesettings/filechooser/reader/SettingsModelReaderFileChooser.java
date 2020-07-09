@@ -57,6 +57,8 @@ import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
  * File chooser settings model for reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class SettingsModelReaderFileChooser extends AbstractSettingsModelFileChooser implements PathSettings {
 

@@ -61,6 +61,8 @@ import org.knime.core.node.port.PortObjectSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of config this serializer operates on
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface ConfigSerializer<C> {
 

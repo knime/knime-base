@@ -62,8 +62,9 @@ import org.knime.core.node.NodeLogger;
  * Helper to load {@link FSConnectionProvider} via extension points.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
  */
-public class FileSystemExtensionHelper {
+public final class FileSystemExtensionHelper {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FileSystemExtensionHelper.class);
 

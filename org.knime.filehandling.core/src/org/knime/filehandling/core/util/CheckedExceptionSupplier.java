@@ -48,11 +48,16 @@
  */
 package org.knime.filehandling.core.util;
 
+import java.util.function.Supplier;
+
 /**
+ * A {@link Supplier} that throws a checked exception.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @param <R> The return type of the function
  * @param <E> The exception thrown by the function
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 @FunctionalInterface
 public interface CheckedExceptionSupplier <R, E extends Exception> {

@@ -68,6 +68,7 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * Enum of the available merge modes for combining multiple {@link TypedReaderTableSpec ReaderTableSpecs}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public enum SpecMergeMode {
 

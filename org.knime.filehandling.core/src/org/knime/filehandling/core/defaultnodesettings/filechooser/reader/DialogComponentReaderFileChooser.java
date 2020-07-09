@@ -59,6 +59,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * File chooser dialog component for reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DialogComponentReaderFileChooser extends AbstractDialogComponentFileChooser {
 

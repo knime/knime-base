@@ -52,6 +52,8 @@ package org.knime.filehandling.core.defaultnodesettings.status;
  * Combines a status message with a {@link MessageType type} e.g. error.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface StatusMessage extends Comparable<StatusMessage> {
 

@@ -60,8 +60,10 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * KNIME relative-to file system path.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class RelativeToPath extends UnixStylePath {
+public final class RelativeToPath extends UnixStylePath {
 
     /**
      * Creates a path using a given file system and path parts.
@@ -70,11 +72,9 @@ public class RelativeToPath extends UnixStylePath {
      * @param first first part of the path
      * @param more subsequent parts of the path
      */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first,
-        final String... more) {
+    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
         super(fileSystem, first, more);
     }
-
 
     public URI toKNIMEProtocolURI() {
         try {

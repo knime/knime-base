@@ -55,9 +55,10 @@ import java.io.InputStream;
  * Wrapper for {@link InputStream} that is closed when the file system is closed.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class FSInputStream extends InputStream {
+public final class FSInputStream extends InputStream {
 
     private final InputStream m_inputStream;
 

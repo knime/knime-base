@@ -76,6 +76,8 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type used to identify external data types
  * @param <V> the type used as value by the reader
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
     extends ConfigurableNodeFactory<TableReaderNodeModel<C>> {

@@ -55,6 +55,8 @@ package org.knime.filehandling.core.node.table.reader.type.hierarchy;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify external data types
  * @param <V> the type of values
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface TypeFocusableTypeHierarchy<T, V> extends TypeHierarchy<T, V> {
 

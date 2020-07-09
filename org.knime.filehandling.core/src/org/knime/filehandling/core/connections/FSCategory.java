@@ -52,6 +52,7 @@ package org.knime.filehandling.core.connections;
  * Enum to model file system categories.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
 public enum FSCategory {
 
@@ -64,22 +65,22 @@ public enum FSCategory {
         /** Category for "convenience" file systems that access mountpoints */
         MOUNTPOINT("Mountpoint"),
 
-        /** Category for  "convenience" file system(s) that acces only URLs */
+        /** Category for "convenience" file system(s) that acces only URLs */
         CUSTOM_URL("Custom/KNIME URL"),
 
         /** Category for file systems that need to be connected via input port. */
         CONNECTED("");
 
-        private final String m_label;
+    private final String m_label;
 
-        private FSCategory(final String label) {
-            m_label = label;
-        }
-
-        /**
-         * @return a human-readable label for the file system category, to be used for display purposes.
-         */
-        public String getLabel() {
-            return m_label;
-        }
+    private FSCategory(final String label) {
+        m_label = label;
     }
+
+    /**
+     * @return a human-readable label for the file system category, to be used for display purposes.
+     */
+    public String getLabel() {
+        return m_label;
+    }
+}

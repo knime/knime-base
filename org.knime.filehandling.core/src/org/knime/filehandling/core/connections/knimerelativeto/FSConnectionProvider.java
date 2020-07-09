@@ -57,12 +57,14 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * {@link FSConnection} provider, implemented by extension points.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSConnectionProvider {
 
     /**
      * Create a new {@link FSConnection} with given URI and timeout in milliseconds.
-
+     *
      * @param type
      * @return a file system connection
      * @throws IOException

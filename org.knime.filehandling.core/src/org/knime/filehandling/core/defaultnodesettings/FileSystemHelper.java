@@ -71,6 +71,7 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
  * Utility class to obtain a {@link FSConnection}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
 public final class FileSystemHelper {
 

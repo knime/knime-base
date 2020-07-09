@@ -65,6 +65,7 @@ import org.knime.filehandling.core.connections.FSFiles;
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
  */
 public final class BomEncodingUtils {
 
@@ -114,6 +115,7 @@ public final class BomEncodingUtils {
      *             {@link SecurityManager#checkRead(String) checkRead} method is invoked to check read access to the
      *             file.
      */
+    @SuppressWarnings("resource") // closing is responsibility of the caller
     public static InputStreamReader createReader(final Path path, final Charset charset, final OpenOption... options)
         throws IOException {
         return createReader(FSFiles.newInputStream(path, options), charset);

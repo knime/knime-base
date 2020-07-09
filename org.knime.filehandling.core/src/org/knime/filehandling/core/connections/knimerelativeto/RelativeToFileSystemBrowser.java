@@ -61,8 +61,10 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
+public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
 
     private final FSFileSystem<?> m_fileSystem;
 
@@ -75,7 +77,8 @@ public class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
         this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
     }
 
-    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir, final FSPath defaultDir) {
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
+        final FSPath defaultDir) {
         super(new NioFileSystemView(fileSystem, homeDir, defaultDir));
         m_fileSystem = fileSystem;
     }

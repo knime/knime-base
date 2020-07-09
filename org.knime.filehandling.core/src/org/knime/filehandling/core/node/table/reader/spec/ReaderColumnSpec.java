@@ -55,6 +55,8 @@ import java.util.Optional;
  * The name is optional because it might not be part of the data.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 @FunctionalInterface
 public interface ReaderColumnSpec {

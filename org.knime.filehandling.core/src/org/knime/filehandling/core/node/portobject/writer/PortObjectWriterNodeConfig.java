@@ -60,6 +60,9 @@ import org.knime.filehandling.core.node.portobject.SelectionMode;
  * Configuration class for port object writer nodes that can be extended with additional configurations.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsModelWriterFileChooser> {
 

@@ -54,6 +54,8 @@ import java.util.function.Consumer;
  * Reports {@link StatusMessage StatusMessages} to a {@link Consumer} of {@link StatusMessage}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 @FunctionalInterface
 public interface StatusReporter {

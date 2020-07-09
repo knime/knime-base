@@ -59,6 +59,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * Allows to access the output {@link FSPath} for writer nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface WritePathAccessor extends Closeable {
 

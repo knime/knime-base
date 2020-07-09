@@ -54,49 +54,35 @@ import java.util.Optional;
  * Dummy implementation for the attributes cache used if not caching is required.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class NoOpAttributesCache implements AttributesCache {
+public final class NoOpAttributesCache implements AttributesCache {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void storeAttributes(final String path, final BaseFileAttributes attributes) {
         //Nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Optional<BaseFileAttributes> getAttributes(final String path) {
         //Nothing to do
         return Optional.empty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void clearCache() {
         //Nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void removeAttribute(final String path) {
         //Nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void removeAttributes(final String prefix) {
-        // TODO Auto-generated method stub
-
+        //Nothing to do
     }
 
 }

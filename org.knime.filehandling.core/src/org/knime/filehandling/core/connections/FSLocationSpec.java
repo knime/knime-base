@@ -60,7 +60,8 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @see FSLocation
- * @since 4.2
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSLocationSpec {
 
@@ -108,10 +109,9 @@ public interface FSLocationSpec {
     @Override
     String toString();
 
-
     /**
-     * Checks if the provided {@link FSLocationSpec} objects are equal regarding their file
-     * system category and specifier.
+     * Checks if the provided {@link FSLocationSpec} objects are equal regarding their file system category and
+     * specifier.
      *
      * @param first {@link FSLocationSpec}
      * @param second {@link FSLocationSpec}
@@ -177,6 +177,7 @@ public interface FSLocationSpec {
          * @param config The {@link ConfigRO} to (optionally) deserialize further fields from.
          * @return an instance of {@link FSLocationSpec} subclass.
          */
-        protected abstract T createFSLocationSpec(String fileSystemCategory, String fileSystemSpecifier, ConfigRO config);
+        protected abstract T createFSLocationSpec(String fileSystemCategory, String fileSystemSpecifier,
+            ConfigRO config);
     }
 }

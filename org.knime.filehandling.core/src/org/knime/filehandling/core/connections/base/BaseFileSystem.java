@@ -76,11 +76,14 @@ import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCac
  * Base implementation of {@FileSystem}.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @param <T> the path type
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
-    private final BaseFileSystemProvider<?,?> m_fileSystemProvider;
+    private final BaseFileSystemProvider<?, ?> m_fileSystemProvider;
 
     private final URI m_uri;
 
@@ -96,12 +99,11 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param uri the uri identifying the file system
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
+     * @param workingDirectory the working directory
+     * @param fsLocationSpec the {@link FSLocationSpec}
      */
-    public BaseFileSystem(final BaseFileSystemProvider<?,?> fileSystemProvider,
-        final URI uri,
-        final long cacheTTL,
-        final String workingDirectory,
-        final FSLocationSpec fsLocationSpec) {
+    protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, final URI uri, final long cacheTTL,
+        final String workingDirectory, final FSLocationSpec fsLocationSpec) {
 
         this(fileSystemProvider, uri, cacheTTL, workingDirectory, fsLocationSpec, null);
     }
@@ -169,7 +171,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     }
 
     @Override
-    public final void closeAllCloseables() {
+    public final synchronized void closeAllCloseables() {
         super.closeAllCloseables();
     }
 

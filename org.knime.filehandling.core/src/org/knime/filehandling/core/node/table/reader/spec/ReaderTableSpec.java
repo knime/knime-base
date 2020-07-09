@@ -62,6 +62,9 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @param <S> type of {@link ReaderColumnSpec}
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class ReaderTableSpec<S extends ReaderColumnSpec> implements Iterable<S> {
 

@@ -71,7 +71,8 @@ import org.knime.core.node.util.CheckUtils;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @param <P> The type of path that this file system provider works with.
  * @param <F> The file system type of this provider.
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class FSFileSystemProvider<P extends FSPath, F extends FSFileSystem<P>> extends FileSystemProvider {
 

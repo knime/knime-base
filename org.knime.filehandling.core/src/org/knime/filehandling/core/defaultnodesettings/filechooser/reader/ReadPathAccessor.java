@@ -63,6 +63,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * Allows to access {@link FSPath} objects in reader nodes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface ReadPathAccessor extends Closeable {
 

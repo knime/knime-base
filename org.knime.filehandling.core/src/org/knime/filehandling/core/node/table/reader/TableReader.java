@@ -64,6 +64,8 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @param <C> the type of the {@link ReaderSpecificConfig}
  * @param <T> the type used to identify individual data types
  * @param <V> the type of tokens a row read in consists of
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> {
 

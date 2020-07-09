@@ -54,10 +54,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Utility class for basic file attributes.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class BasicFileAttributesUtil {
+public final class BasicFileAttributesUtil {
+
+    private BasicFileAttributesUtil() {
+
+    }
 
     /**
      * Parses the given file attribute selector string and creates a map with the selected basic file attributes.

@@ -63,9 +63,9 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
+final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
 
-    public static final String FS_TYPE = "knime-mountpoint";
+    private static final String FS_TYPE = "knime-mountpoint";
 
     private static final String PATH_SEPARATOR = "/";
 
@@ -77,8 +77,7 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      * @param baseLocation
      * @param isConnectedFs
      */
-    public KNIMERemoteFileSystem(final URI baseLocation,
-        final boolean isConnectedFs) {
+    KNIMERemoteFileSystem(final URI baseLocation, final boolean isConnectedFs) {
         super(new KNIMERemoteFileSystemProvider(), //
             baseLocation, //
             0, //
@@ -112,7 +111,6 @@ public class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
     public Iterable<Path> getRootDirectories() {
         return Collections.singletonList(new KNIMERemotePath(this, URI.create(UnixStylePathUtil.SEPARATOR)));
     }
-
 
     /**
      * {@inheritDoc}

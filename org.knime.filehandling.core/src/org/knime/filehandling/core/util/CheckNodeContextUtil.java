@@ -57,6 +57,7 @@ import org.knime.core.node.workflow.SubNodeContainer;
  * Utility class to check the node context.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class CheckNodeContextUtil {
 

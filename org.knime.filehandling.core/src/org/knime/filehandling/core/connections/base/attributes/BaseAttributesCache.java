@@ -60,8 +60,10 @@ import com.google.common.cache.CacheBuilder;
  * Cache for file attributes. Attributes can be stored
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class BaseAttributesCache implements AttributesCache {
+public final class BaseAttributesCache implements AttributesCache {
 
     private final long m_timeTolive;
 

@@ -59,7 +59,8 @@ import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+class LocalRelativeToFSTestInitializer
+    extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
 
     private final Path m_localRoot;
 
@@ -67,12 +68,16 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
 
     /**
      * Default constructor.
-     * @param localRoot
+     *
+     * @param fsConnection the {@link FSConnection}
+     * @param localRoot the {@link Path} to the local root
      *
      * @throws IOException
      */
-    public LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localRoot) throws IOException {
-        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
+    LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localRoot) throws IOException {
+        super(fsConnection, //
+            LocalRelativeToTestUtil
+                .determineLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
         m_localRoot = localRoot;
     }
 
@@ -92,7 +97,6 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
         }
     }
 
-
     @Override
     protected void afterTestCaseInternal() throws IOException {
         try {
@@ -110,7 +114,7 @@ public class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<
 
         RelativeToPath toReturn = getFileSystem().getRoot();
         for (Path localPathComp : relLocalPath) {
-            toReturn = (RelativeToPath) toReturn.resolve(localPathComp.toString());
+            toReturn = (RelativeToPath)toReturn.resolve(localPathComp.toString());
         }
 
         return toReturn;

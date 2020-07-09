@@ -61,6 +61,8 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataCreator<FSLocationValueMetaData> {
 

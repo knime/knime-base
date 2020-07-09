@@ -54,6 +54,8 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeFactory;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <M> the node model of the node
  * @param <D> the node dialog of the node
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class PortObjectWriterNodeFactory<M extends PortObjectToPathWriterNodeModel<?>,
         D extends PortObjectWriterNodeDialog<?>> extends PortObjectIONodeFactory<M, D> {

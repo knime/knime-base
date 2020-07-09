@@ -79,6 +79,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * detached from the first panel.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DialogComponentFilterMode extends DialogComponent {
 

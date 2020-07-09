@@ -60,6 +60,7 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
  */
 public enum FileOverwritePolicy implements ButtonGroupEnumInterface {
 

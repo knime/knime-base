@@ -62,6 +62,8 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values returned by this read
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractReadDecorator<V> implements Read<V> {
 

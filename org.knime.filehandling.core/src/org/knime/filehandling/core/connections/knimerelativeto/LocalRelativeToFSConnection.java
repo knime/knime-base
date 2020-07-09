@@ -65,8 +65,10 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * {@link FSConnection} implementation for the local relative-to file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToFSConnection implements FSConnection {
+public final class LocalRelativeToFSConnection implements FSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
@@ -78,6 +80,7 @@ public class LocalRelativeToFSConnection implements FSConnection {
      * Constructor.
      *
      * @param type The type of the file system (mountpoint- or workflow relative).
+     * @param isConnected {@code true} if it is a connected file system, {@code false} otherwise
      */
     public LocalRelativeToFSConnection(final Type type, final boolean isConnected) {
         if (!SUPPORTED_TYPES.contains(type)) {

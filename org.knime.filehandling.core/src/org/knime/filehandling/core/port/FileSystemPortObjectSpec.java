@@ -64,8 +64,10 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
  * File handling {@link PortObjectSpec} implementation.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
+public final class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec {
 
     /**
      * @noreference This class is not intended to be referenced by clients.

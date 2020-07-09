@@ -69,6 +69,8 @@ import org.knime.filehandling.core.connections.FSPath;
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  * @param <P> The concrete path type of the file system.
  * @param <F> The concrete file system type.
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> {
 
@@ -87,7 +89,7 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
     public void afterTestCase() throws IOException;
 
     /**
-     * Called after all test cases of a {@link AbstractParameterizedFSTest} have completed. The default implementation
+     * Called after all test cases of a AbstractParameterizedFSTest have completed. The default implementation
      * does nothing, but some file systems may need to do final cleanup, e.g. delete their working directory.
      *
      * @throws IOException

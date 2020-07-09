@@ -58,7 +58,7 @@ import java.util.stream.Stream;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class RelativeToPathIterator implements Iterator<RelativeToPath> {
+final class RelativeToPathIterator implements Iterator<RelativeToPath> {
 
     private final RelativeToPath[] m_paths;
 
@@ -72,7 +72,7 @@ public class RelativeToPathIterator implements Iterator<RelativeToPath> {
      * @param filter
      * @throws IOException on I/O errors
      */
-    public RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
+    RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
         final Filter<? super Path> filter) throws IOException {
 
         try (final Stream<Path> stream = Files.list(realPath)) {

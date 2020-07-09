@@ -62,6 +62,9 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
  * Renderer for file system choices.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class FileSystemChoiceRenderer extends DefaultListCellRenderer {
 

@@ -69,22 +69,26 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
+ * {@link FileSystemView} for java.nio file systems.
  *
  * @author Julian Bunzel, KNIME
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class NioFileSystemView extends FileSystemView {
 
     private static final String UNABLE_TO_LIST_FILES_MSG = "Unable to list files";
 
     /**
-     * The "default directory" on this particular file system connection. This is the directory
-     * where the browsing starts by default.
+     * The "default directory" on this particular file system connection. This is the directory where the browsing
+     * starts by default.
      */
     private final Path m_defaultDirectory;
 
     /**
-     * The "home directory" on this particular file system connection. This will typically be the
-     * working directory of the file system.
+     * The "home directory" on this particular file system connection. This will typically be the working directory of
+     * the file system.
      */
     private final Path m_homeDirectory;
 
@@ -106,7 +110,8 @@ public class NioFileSystemView extends FileSystemView {
      */
     @SuppressWarnings("unchecked")
     public NioFileSystemView(final FSConnection conn) {
-        this(conn.getFileSystem(), conn.getFileSystem().getWorkingDirectory(), conn.getFileSystem().getWorkingDirectory());
+        this(conn.getFileSystem(), conn.getFileSystem().getWorkingDirectory(),
+            conn.getFileSystem().getWorkingDirectory());
     }
 
     /**
@@ -124,7 +129,8 @@ public class NioFileSystemView extends FileSystemView {
      * @param defaultDirectory
      * @param homeDirectory
      */
-    public NioFileSystemView(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory, final FSPath homeDirectory) {
+    public NioFileSystemView(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
+        final FSPath homeDirectory) {
         m_fileSystem = (FSFileSystem<FSPath>)fileSystem;
         m_homeDirectory = homeDirectory;
         m_defaultDirectory = defaultDirectory;
@@ -168,25 +174,23 @@ public class NioFileSystemView extends FileSystemView {
 
             if (e != null) {
                 if (e instanceof NoSuchFileException) {
-                    JOptionPane.showMessageDialog(m_parentComponent,
-                        ExceptionUtil.limitMessageLength(String.format("No such file or folder: %s", e.getMessage()), 120),
-                        UNABLE_TO_LIST_FILES_MSG,
-                        JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(
+                        m_parentComponent, ExceptionUtil
+                            .limitMessageLength(String.format("No such file or folder: %s", e.getMessage()), 120),
+                        UNABLE_TO_LIST_FILES_MSG, JOptionPane.ERROR_MESSAGE);
                 } else if (e instanceof AccessDeniedException) {
                     JOptionPane.showMessageDialog(m_parentComponent,
                         ExceptionUtil.limitMessageLength(String.format("Access denied: %s", e.getMessage()), 120),
-                        UNABLE_TO_LIST_FILES_MSG,
-                        JOptionPane.ERROR_MESSAGE);
+                        UNABLE_TO_LIST_FILES_MSG, JOptionPane.ERROR_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(m_parentComponent,
-                        ExceptionUtil.limitMessageLength(ExceptionUtils.getMessage(ExceptionUtils.getRootCause(e)), 120),
-                        UNABLE_TO_LIST_FILES_MSG,
-                        JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(
+                        m_parentComponent, ExceptionUtil
+                            .limitMessageLength(ExceptionUtils.getMessage(ExceptionUtils.getRootCause(e)), 120),
+                        UNABLE_TO_LIST_FILES_MSG, JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(m_parentComponent,
-                    "Error in directory listing, see KNIME console/log.", UNABLE_TO_LIST_FILES_MSG,
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(m_parentComponent, "Error in directory listing, see KNIME console/log.",
+                    UNABLE_TO_LIST_FILES_MSG, JOptionPane.ERROR_MESSAGE);
             }
 
             return new File[0];

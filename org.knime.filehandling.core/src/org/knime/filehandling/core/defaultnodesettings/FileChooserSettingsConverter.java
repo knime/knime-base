@@ -56,8 +56,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
  * path or URL.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
-public class FileChooserSettingsConverter {
+public final class FileChooserSettingsConverter {
 
     /** Node logger */
     static final NodeLogger LOGGER = NodeLogger.getLogger(FileChooserSettingsConverter.class);

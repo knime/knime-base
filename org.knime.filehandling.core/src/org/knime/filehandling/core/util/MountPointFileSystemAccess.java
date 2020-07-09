@@ -60,6 +60,8 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
  * Interface for MountPointFileSystemAccess instances.
  *
  * @author Gabriel Einsdorf
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface MountPointFileSystemAccess {
 

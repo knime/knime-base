@@ -102,9 +102,14 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
  * Base implementation of the {@link FileSystemProvider} class.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @param <P> the path type
+ * @param <F> the base file system type
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
-public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFileSystem<P>> extends FSFileSystemProvider<P,F> {
+public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFileSystem<P>>
+    extends FSFileSystemProvider<P, F> {
 
     private static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different file system provider";
 
@@ -208,7 +213,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
         // APPEND and TRUNCATE_EXISTING imply WRITE
         if ((options.contains(StandardOpenOption.APPEND) || options.contains(StandardOpenOption.TRUNCATE_EXISTING))
-                && !options.contains(StandardOpenOption.WRITE)) {
+            && !options.contains(StandardOpenOption.WRITE)) {
             sanitized.add(StandardOpenOption.WRITE);
         }
 
@@ -224,14 +229,14 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
         // ignore CREATE_NEW and CREATE if file is only opened for reading
         if ((sanitized.contains(StandardOpenOption.CREATE) || sanitized.contains(StandardOpenOption.CREATE_NEW))
-                && !sanitized.contains(StandardOpenOption.WRITE)) {
+            && !sanitized.contains(StandardOpenOption.WRITE)) {
             sanitized.remove(StandardOpenOption.CREATE);
             sanitized.remove(StandardOpenOption.CREATE_NEW);
         }
 
         if ((sanitized.contains(StandardOpenOption.READ) || sanitized.contains(StandardOpenOption.TRUNCATE_EXISTING))
-                && sanitized.contains(StandardOpenOption.APPEND)) {
-                throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
+            && sanitized.contains(StandardOpenOption.APPEND)) {
+            throw new IllegalArgumentException("APPEND is not allowed with READ/TRUNCATE_EXISTING.");
         }
 
         return sanitized;
@@ -247,8 +252,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      *
      * @return a new seekable byte channel
      */
-    protected abstract SeekableByteChannel newByteChannelInternal(final P path,
-        final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException;
+    protected abstract SeekableByteChannel newByteChannelInternal(final P path, final Set<? extends OpenOption> options,
+        final FileAttribute<?>... attrs) throws IOException;
 
     @Override
     public InputStream newInputStream(final Path path, final OpenOption... options) throws IOException {
@@ -449,7 +454,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     protected abstract Iterator<P> createPathIterator(final P dir, final Filter<? super Path> filter)
         throws IOException;
 
-
     @Override
     public void createDirectory(final Path dir, final FileAttribute<?>... attrs) throws IOException {
         checkFileSystemOpenAndNotClosing();
@@ -512,19 +516,19 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @SuppressWarnings("unchecked")
     protected P checkCastAndAbsolutizePath(final Path path) {
         checkPathProvider(path);
-        return (P) path.toAbsolutePath().normalize();
+        return (P)path.toAbsolutePath().normalize();
     }
 
     /**
-     * Tests whether the given path (after toAbsolute().normalize()) exists, by
-     * first checking for a cache entry, and then invoking {@link #exists(FSPath)}.
+     * Tests whether the given path (after toAbsolute().normalize()) exists, by first checking for a cache entry, and
+     * then invoking {@link #exists(FSPath)}.
      *
      * @param path The path to check.
      * @return whether the path exists or not.
      * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
      */
     final protected boolean existsCached(final P path) throws IOException {
-        final P normalizedAbsolute = (P) path.toAbsolutePath().normalize();
+        final P normalizedAbsolute = (P)path.toAbsolutePath().normalize();
         return getFileSystemInternal().hasCachedAttributes(normalizedAbsolute) || exists(normalizedAbsolute);
     }
 
@@ -574,7 +578,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
 
             BaseFileAttributes attributes;
-            final Optional<BaseFileAttributes> cachedAttributes = getFileSystemInternal().getCachedAttributes(checkedPath);
+            final Optional<BaseFileAttributes> cachedAttributes =
+                getFileSystemInternal().getCachedAttributes(checkedPath);
 
             if (!cachedAttributes.isPresent()) {
                 if (!existsCached(checkedPath)) {
@@ -605,8 +610,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * @return FSFileAttribute for this path
      * @throws IOException if an I/O error occurs while fetching the attributes.
      */
-    protected abstract BaseFileAttributes fetchAttributesInternal(final P path, final Class<?> type)
-        throws IOException;
+    protected abstract BaseFileAttributes fetchAttributesInternal(final P path, final Class<?> type) throws IOException;
 
     /**
      * {@inheritDoc}
@@ -622,7 +626,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         return BasicFileAttributesUtil.attributesToMap(readAttributes(path, BasicFileAttributes.class, options),
             attributes);
     }
-
 
     @Override
     public void checkAccess(final Path path, final AccessMode... modes) throws IOException {
@@ -764,7 +767,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
     @Override
     public void setAttribute(final Path arg0, final String arg1, final Object arg2, final LinkOption... arg3)
-            throws IOException {
+        throws IOException {
         throw new UnsupportedOperationException();
     }
 }

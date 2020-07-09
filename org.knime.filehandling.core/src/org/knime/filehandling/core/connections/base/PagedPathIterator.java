@@ -59,11 +59,13 @@ import org.knime.filehandling.core.connections.FSPath;
 
 /**
  * Base implementation of a "paged" path iterator. Paging is important when a directory contains too many entries to
- * fetch them all at once and the fetching needs to be split into multiple requests (this is for example the
- * case with some of the object stores).
+ * fetch them all at once and the fetching needs to be split into multiple requests (this is for example the case with
+ * some of the object stores).
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @param <T> The path type.
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class PagedPathIterator<T extends FSPath> implements Iterator<T> {
 

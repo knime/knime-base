@@ -60,6 +60,8 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type used to identify data types
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderColumnSpec<T>> {
 

@@ -55,6 +55,8 @@ import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDi
  * Abstract node factory for simple port object writer nodes.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class SimplePortObjectWriterNodeFactory extends
     PortObjectWriterNodeFactory<SimplePortObjectWriterNodeModel, PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>> {

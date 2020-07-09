@@ -60,8 +60,10 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  * Test initializer provider for the local mountpoint relative file system.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class LocalRelativeToMountpointFSTestInitializerProvider implements FSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-local-relative-mountpoint";
 
@@ -70,7 +72,8 @@ public class LocalRelativeToMountpointFSTestInitializerProvider implements FSTes
         final Path localMountPointRoot = Files.createTempDirectory("knime-relative-mountpoint-test");
 
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
-        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true);
+        final LocalRelativeToFSConnection fsConnection =
+            new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true);
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 

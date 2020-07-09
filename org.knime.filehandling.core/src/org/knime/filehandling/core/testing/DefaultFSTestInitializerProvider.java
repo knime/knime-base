@@ -56,6 +56,8 @@ import java.util.UUID;
  * method to randomize the working directory name of the file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class DefaultFSTestInitializerProvider implements FSTestInitializerProvider {
 

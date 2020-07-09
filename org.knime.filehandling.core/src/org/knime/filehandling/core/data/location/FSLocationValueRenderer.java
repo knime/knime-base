@@ -59,6 +59,8 @@ import org.knime.filehandling.core.connections.FSLocation;
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationValueRenderer extends DefaultDataValueRenderer {
 

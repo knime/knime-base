@@ -52,6 +52,8 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
  * Statistics on the number of files/folders visited and filtered.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FileFilterStatistic {
 

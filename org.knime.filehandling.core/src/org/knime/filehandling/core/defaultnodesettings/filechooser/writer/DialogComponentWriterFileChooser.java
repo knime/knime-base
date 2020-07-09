@@ -78,6 +78,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DialogComponentWriterFileChooser extends AbstractDialogComponentFileChooser {
 

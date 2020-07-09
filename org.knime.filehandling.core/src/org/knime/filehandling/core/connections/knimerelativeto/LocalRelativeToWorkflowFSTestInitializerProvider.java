@@ -60,8 +60,10 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  * Test initializer provider for the local workflow relative file system.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class LocalRelativeToWorkflowFSTestInitializerProvider implements FSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-local-relative-workflow";
 

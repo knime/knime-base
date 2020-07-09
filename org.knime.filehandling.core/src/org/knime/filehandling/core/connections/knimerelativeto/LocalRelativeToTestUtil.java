@@ -30,9 +30,13 @@ import org.osgi.framework.FrameworkUtil;
  * down the workflow manager.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- *
+ * @noreference non-public API
  */
-public class LocalRelativeToTestUtil {
+public final class LocalRelativeToTestUtil {
+
+    private LocalRelativeToTestUtil() {
+
+    }
 
     /**
      * Copies a dummy workflow into the given mountpoint root folder and loads it into a workflow manager.
@@ -137,7 +141,8 @@ public class LocalRelativeToTestUtil {
      * @return the local path that corresponds to the given path in the given file system.
      * @throws IOException
      */
-    public static Path determineLocalPath(final LocalRelativeToFileSystem fs, final RelativeToPath path) throws IOException {
+    public static Path determineLocalPath(final LocalRelativeToFileSystem fs, final RelativeToPath path)
+        throws IOException {
         return fs.toRealPathWithAccessibilityCheck(path);
     }
 

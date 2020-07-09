@@ -54,6 +54,8 @@ import org.knime.core.node.context.NodeCreationConfiguration;
  * Abstract node factory for simple port object reader nodes.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class SimplePortObjectReaderNodeFactory extends
     PortObjectReaderNodeFactory<SimplePortObjectReaderNodeModel, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>> {

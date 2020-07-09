@@ -58,6 +58,8 @@ import java.util.Objects;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type used to identify types
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
 

@@ -61,6 +61,8 @@ import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
  * A factory for creating {@link FSLocation} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationFactory implements AutoCloseable {
 

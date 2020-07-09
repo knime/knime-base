@@ -53,13 +53,18 @@ package org.knime.filehandling.core.connections.base;
  * for each file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class UnixStylePathUtil {
+public final class UnixStylePathUtil {
 
     /**
      * Separator character for UNIX-style paths.
      */
     public static final String SEPARATOR = "/";
+
+    private UnixStylePathUtil() {
+
+    }
 
     /**
      * Parses a UNIX-style path String into its components. Does not do any normalization (e.g. removing "..", ".").
@@ -69,7 +74,7 @@ public class UnixStylePathUtil {
      * @return array containing the path components.
      */
     public static String[] toPathComponentsArray(String path) {
-        if(path == null) {
+        if (path == null) {
             return new String[0];
         }
         // remove leading slash if present (this may leave us with an empty string)

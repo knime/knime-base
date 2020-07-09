@@ -69,6 +69,8 @@ import org.knime.filehandling.core.connections.FSPath;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @see FSPathProviderFactory
  * @since 4.2
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSPathProvider extends AutoCloseable {
 

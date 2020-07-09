@@ -59,6 +59,8 @@ import org.apache.commons.lang3.RegExUtils;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class WordWrapJLabel extends JLabel {
 

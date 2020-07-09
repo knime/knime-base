@@ -53,8 +53,13 @@ package org.knime.filehandling.core.util;
  *
  * @author Thorsten Meinl, University of Konstanz
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class WildcardToRegexUtil {
+
+    private WildcardToRegexUtil() {
+        // static utility class
+    }
 
     /**
      * Converts a wildcard pattern containing '*' and '?' as meta characters into a regular expression.

@@ -60,6 +60,8 @@ import org.knime.filehandling.core.data.location.cell.FSLocationCell;
  * Object encapsulating all information required to convert between {@link Path} and {@link FSLocationCell}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocation implements FSLocationSpec {
 
@@ -95,7 +97,6 @@ public final class FSLocation implements FSLocationSpec {
         this(fsCategory.toString(), null, path);
     }
 
-
     /**
      * Creates a new instance with an empty specifier.
      *
@@ -127,7 +128,8 @@ public final class FSLocation implements FSLocationSpec {
      * @throws IllegalArgumentException if {@code fsCategory} or {@code path} is {@code null}
      */
     public FSLocation(final String fsCategory, final String fsSpecifier, final String path) {
-        m_fileSystemCategory = CheckUtils.checkArgumentNotNull(fsCategory, "The file system category must not be null.");
+        m_fileSystemCategory =
+            CheckUtils.checkArgumentNotNull(fsCategory, "The file system category must not be null.");
         m_fileSystemSpecifier = Optional.ofNullable(fsSpecifier);
         m_path = CheckUtils.checkArgumentNotNull(path, "The path must not be null.");
     }

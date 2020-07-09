@@ -98,6 +98,8 @@ import org.knime.core.node.workflow.NodeContext;
  *
  * @see org.knime.core.node.util.StringHistory
  * @author Bernd Wiswedel, University of Konstanz
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 @SuppressWarnings("serial")
 public final class FilesHistoryPanel extends JPanel {

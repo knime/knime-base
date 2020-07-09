@@ -70,6 +70,8 @@ import org.knime.core.node.util.CheckUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify data types
  * @param <V> the type of values
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy<T, V> {
 

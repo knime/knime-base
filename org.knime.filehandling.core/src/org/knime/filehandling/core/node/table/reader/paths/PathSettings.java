@@ -63,6 +63,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * paths.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface PathSettings {
 

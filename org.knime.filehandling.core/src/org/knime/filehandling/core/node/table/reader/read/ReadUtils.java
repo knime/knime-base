@@ -55,6 +55,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  * Static utility class for modifying {@link Read} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class ReadUtils {
 

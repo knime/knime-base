@@ -65,8 +65,10 @@ import org.knime.filehandling.core.util.IOESupplier;
  * Panel for file system connector dialogs, which allows to specify a working directory.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class WorkingDirectoryChooser extends JPanel {
+public final class WorkingDirectoryChooser extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -74,11 +76,12 @@ public class WorkingDirectoryChooser extends JPanel {
 
     private final FileSelectionDialog m_fileSelector;
 
-    /** Constructor.
-    *
-    * @param historyID ID for storing a file history
-    * @param connectionSupplier the initial supplier for the {@link FSConnection}
-    */
+    /**
+     * Constructor.
+     *
+     * @param historyID ID for storing a file history
+     * @param connectionSupplier the initial supplier for the {@link FSConnection}
+     */
     public WorkingDirectoryChooser(final String historyID, final IOESupplier<FSConnection> connectionSupplier) {
         m_fileSelector = new FileSelectionDialog(historyID, //
             25, //

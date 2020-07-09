@@ -62,6 +62,8 @@ import org.knime.filehandling.core.connections.FSPath;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @param <P> The concrete path type of the file system.
  * @param <F> The concrete file system type.
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class DefaultFSTestInitializer<P extends FSPath, F extends FSFileSystem<P>>
     implements FSTestInitializer<P, F> {

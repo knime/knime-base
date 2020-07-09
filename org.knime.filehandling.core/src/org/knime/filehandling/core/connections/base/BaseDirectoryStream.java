@@ -59,9 +59,8 @@ import org.apache.commons.lang3.Validate;
  * Base implementation of {@link DirectoryStream}.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
  */
-public class BaseDirectoryStream implements DirectoryStream<Path> {
+final class BaseDirectoryStream implements DirectoryStream<Path> {
 
     private final Iterator<Path> m_iterator;
 
@@ -76,7 +75,7 @@ public class BaseDirectoryStream implements DirectoryStream<Path> {
      * @param iterator the iterator to use in the directory stream
      * @param fileSystem the file system this stream belongs to
      */
-    public BaseDirectoryStream(final Iterator<Path> iterator,
+    BaseDirectoryStream(final Iterator<Path> iterator,
         final BaseFileSystem<?> fileSystem) {
         Validate.notNull(iterator, "Iterator must not be null.");
         m_iterator = iterator;

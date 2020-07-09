@@ -100,6 +100,9 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  * @author Bjoern Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class DialogComponentFileChooser2 extends DialogComponent {
 

@@ -60,6 +60,9 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  * Class encapsulating the different types of KNIME file system connections.
  *
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class KNIMEConnection {
 

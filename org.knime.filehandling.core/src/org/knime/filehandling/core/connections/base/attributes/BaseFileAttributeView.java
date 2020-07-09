@@ -65,8 +65,10 @@ import java.util.Set;
  * Basic implementation of <{@link BasicFileAttributeView}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class BaseFileAttributeView implements PosixFileAttributeView {
+public final class BaseFileAttributeView implements PosixFileAttributeView {
 
     private final Path m_path;
 

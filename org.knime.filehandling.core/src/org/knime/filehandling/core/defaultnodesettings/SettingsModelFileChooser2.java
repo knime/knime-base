@@ -67,6 +67,8 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  *
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class SettingsModelFileChooser2 extends SettingsModel implements Cloneable {
 

@@ -70,8 +70,9 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
  * NB This exists to prevent a dependency on org.knime.workbench.explorer.view
  *
  * @author Gabriel Einsdorf
+ * @noreference non-public API
  */
-public class MountPointFileSystemAccessService {
+public final class MountPointFileSystemAccessService {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(MountPointFileSystemAccessService.class);
 

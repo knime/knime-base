@@ -54,6 +54,7 @@ import java.util.Arrays;
  * Lists the available options for the relative to file system.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public enum RelativeTo {
 

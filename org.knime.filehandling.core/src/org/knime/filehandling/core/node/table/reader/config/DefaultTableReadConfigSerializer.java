@@ -61,6 +61,8 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig}
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DefaultTableReadConfigSerializer<C extends ReaderSpecificConfig<C>>
     implements ConfigSerializer<DefaultTableReadConfig<C>> {

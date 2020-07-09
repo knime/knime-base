@@ -56,6 +56,8 @@ import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of the {@link ReaderSpecificConfig}
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends ReaderConfig {
 

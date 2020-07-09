@@ -62,11 +62,10 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
+final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
 
     /**
-     * A local path (from the default FS provider) that points to the
-     * folder of the current mountpoint.
+     * A local path (from the default FS provider) that points to the folder of the current mountpoint.
      */
     private final Path m_localMountpointDirectory;
 
@@ -78,7 +77,7 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      * @param type {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
      * @throws IOException
      */
-    protected LocalRelativeToFileSystem(final URI uri, //
+    LocalRelativeToFileSystem(final URI uri, //
         final Path localMountpointRoot, //
         final Type type, //
         final String workingDir, //
@@ -114,8 +113,8 @@ public class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
      */
     private Path toAbsoluteLocalPath(final RelativeToPath path) {
-        final RelativeToPath absolutePath = (RelativeToPath) path.toAbsolutePath().normalize();
-        final Path realPath =  absolutePath.appendToBaseDir(m_localMountpointDirectory);
+        final RelativeToPath absolutePath = (RelativeToPath)path.toAbsolutePath().normalize();
+        final Path realPath = absolutePath.appendToBaseDir(m_localMountpointDirectory);
         return realPath;
     }
 

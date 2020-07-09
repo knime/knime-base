@@ -62,6 +62,8 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of tokens making up a row in the read
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface Read<V> extends AutoCloseable {
 

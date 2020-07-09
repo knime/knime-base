@@ -58,6 +58,8 @@ import org.knime.core.data.meta.DataColumnMetaDataSerializer;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationValueMetaDataExtension implements DataColumnMetaDataExtension<FSLocationValueMetaData> {
 

@@ -72,6 +72,8 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type identifying external data types
  * @param <V> the type of values
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DefaultTypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V> implements TypeMappingFactory<C, T, V> {
 

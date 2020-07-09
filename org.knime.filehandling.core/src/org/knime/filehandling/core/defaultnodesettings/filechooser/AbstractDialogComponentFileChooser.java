@@ -113,6 +113,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * The file selection combo box stores previously selected paths in a history that can be accessed in the drop down.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractDialogComponentFileChooser extends DialogComponent {
 
@@ -146,7 +148,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
      * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
      *            from <b>model</b> is used)
      */
-    public AbstractDialogComponentFileChooser(final AbstractSettingsModelFileChooser model, final String historyID,
+    protected AbstractDialogComponentFileChooser(final AbstractSettingsModelFileChooser model, final String historyID,
         final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
         final FilterMode... filterModes) {
         super(model);

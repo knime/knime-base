@@ -54,9 +54,14 @@ import org.knime.core.node.workflow.WorkflowContext;
 
 /**
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class RelativeToUtil {
+public final class RelativeToUtil {
+
+    private RelativeToUtil() {
+
+    }
 
     /**
      * @return current {@link WorkflowContext} from the {@link NodeContext}

@@ -68,7 +68,6 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderF
  * FileVisitor keeps track of the number of visited files and folders, as well as the number of filtered out files and
  * folders. The {@link FileFilterStatistic} can be retrieved via the getFileFilterStatistic() method.
  *
- *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class FilterVisitor extends SimpleFileVisitor<Path> {

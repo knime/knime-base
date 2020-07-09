@@ -67,6 +67,8 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 @SuppressWarnings("javadoc")
 public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAttributes> {

@@ -82,6 +82,8 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class FSPathProviderFactory implements AutoCloseable {
 

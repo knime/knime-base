@@ -58,6 +58,8 @@ import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used in the node implementation
  * @param <TC> the type of {@link TableReadConfig} used in the node implementation
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
     implements MultiTableReadConfig<C> {
@@ -73,7 +75,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      *
      * @param tableReadConfig holding settings for reading a single table
      */
-    public AbstractMultiTableReadConfig(final TC tableReadConfig) {
+    protected AbstractMultiTableReadConfig(final TC tableReadConfig) {
         m_tableReadConfig = tableReadConfig;
     }
 

@@ -73,8 +73,11 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
+ * Adapter from java.nio to File.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class NioFile extends File {
 
@@ -222,7 +225,7 @@ public final class NioFile extends File {
 
     }
 
-    private boolean wasInterrupted(final Exception ex) {
+    private static boolean wasInterrupted(final Exception ex) {
         return Thread.interrupted() //
                 || ex instanceof InterruptedIOException //
                 || ExceptionUtil.getDeepestError(ex) instanceof InterruptedException;

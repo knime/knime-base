@@ -58,6 +58,8 @@ import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface TypeMapping<V> {
 

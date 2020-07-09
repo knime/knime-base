@@ -57,9 +57,10 @@ import java.nio.channels.SeekableByteChannel;
  * closed when the file system gets closed.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class FSSeekableByteChannel implements SeekableByteChannel {
+public final class FSSeekableByteChannel implements SeekableByteChannel {
 
     private final SeekableByteChannel m_seekableByteChannel;
 

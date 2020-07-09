@@ -73,7 +73,8 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @param <T> The type of path that this file system works with.
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
 
@@ -178,8 +179,8 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
-     * Closes all registered {@link Closeable}s (streams, temp files, ...). This method is openly accessible only
-     * for testing purposes and must not be called by any nodes.
+     * Closes all registered {@link Closeable}s (streams, temp files, ...). This method is openly accessible only for
+     * testing purposes and must not be called by any nodes.
      */
     protected synchronized void closeAllCloseables() {
         for (final Closeable closeable : new ArrayList<>(m_closeables)) {
@@ -254,9 +255,8 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
             fsLocationSpec.getFileSystemCategory() != null && fsLocationSpec.getFSCategory() == getFileSystemCategory(),
             String.format("Only FSLocations of type %s are allowed with this file system.", getFileSystemCategory()));
 
-        CheckUtils.checkArgument(
-            getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier()),
-            String.format("Only FSLocations with specifier %s are allowed with this file system.", getFileSystemSpecifier()));
+        CheckUtils.checkArgument(getFileSystemSpecifier().equals(fsLocationSpec.getFileSystemSpecifier()), String
+            .format("Only FSLocations with specifier %s are allowed with this file system.", getFileSystemSpecifier()));
     }
 
     /**

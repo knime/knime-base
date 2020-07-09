@@ -67,6 +67,8 @@ import org.knime.filehandling.core.data.location.FSLocationValue;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationCell extends FileStoreCell implements FSLocationValue {
 

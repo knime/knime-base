@@ -58,6 +58,8 @@ package org.knime.filehandling.core.connections;
  * </p>
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSType {
 

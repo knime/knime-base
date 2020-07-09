@@ -55,14 +55,14 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemView extends NioFileSystemView {
+final class KNIMERemoteFileSystemView extends NioFileSystemView {
 
     /**
      * File System view for {@link KNIMERemoteFileSystem}
      *
      * @param fileSystem the {@link KNIMERemoteFileSystem}
      */
-    public KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
+    KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
         super(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getDefaultDirectory());
     }
 

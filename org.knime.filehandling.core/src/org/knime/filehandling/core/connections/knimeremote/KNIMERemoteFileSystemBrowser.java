@@ -58,14 +58,14 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
+final class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
 
     /**
      * Creates a file system browser for remote KNIME mount points.
      *
      * @param fileSystemView the file system view to wrap
      */
-    public KNIMERemoteFileSystemBrowser(final NioFileSystemView fileSystemView) {
+    KNIMERemoteFileSystemBrowser(final NioFileSystemView fileSystemView) {
         super(fileSystemView);
     }
 

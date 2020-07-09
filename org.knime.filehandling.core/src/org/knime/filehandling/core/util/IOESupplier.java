@@ -55,6 +55,8 @@ import java.io.IOException;
  *
  * @author Björn Lohrmann, KNIME Gmbh
  * @param <R> The return type of the function
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 @FunctionalInterface
 public interface IOESupplier<R> extends CheckedExceptionSupplier<R, IOException> {

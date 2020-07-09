@@ -73,6 +73,7 @@ import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDi
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the node config of the node
  * @noextend extend either {@link PortObjectReaderNodeDialog} or {@link PortObjectWriterNodeDialog}
+ * @noreference non-public API
  */
 public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>> extends NodeDialogPane {
 

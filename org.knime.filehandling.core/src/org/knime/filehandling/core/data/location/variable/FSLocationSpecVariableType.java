@@ -63,6 +63,8 @@ import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
  * accessible via the {@link FSLocationSpecVariableType#INSTANCE} field.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationSpecVariableType extends VariableType<FSLocationSpec> {
 

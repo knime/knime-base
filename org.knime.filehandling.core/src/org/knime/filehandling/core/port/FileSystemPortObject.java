@@ -69,8 +69,10 @@ import org.knime.filehandling.core.connections.FSConnectionRegistry;
  * File handling {@link PortObject} implementation.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class FileSystemPortObject extends AbstractSimplePortObject {
+public final class FileSystemPortObject extends AbstractSimplePortObject {
 
     /**Standard type.*/
     @SuppressWarnings("hiding")
@@ -88,7 +90,7 @@ public class FileSystemPortObject extends AbstractSimplePortObject {
     private FileSystemPortObjectSpec m_spec;
 
     /**
-     *
+     * Constructor.
      */
     public FileSystemPortObject() {
         this(null);

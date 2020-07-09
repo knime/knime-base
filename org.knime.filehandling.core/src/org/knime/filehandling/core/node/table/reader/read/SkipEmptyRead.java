@@ -68,6 +68,7 @@ final class SkipEmptyRead<V> extends AbstractReadDecorator<V> {
         super(source);
     }
 
+    @SuppressWarnings("resource") // the source is closed in AbstractReadDecorator#close
     @Override
     public RandomAccessible<V> next() throws IOException {
         RandomAccessible<V> current;

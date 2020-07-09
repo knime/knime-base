@@ -62,6 +62,7 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @param <M> the node model of the node
  * @param <D> the node dialog of the node
  * @noextend extend either {@link PortObjectReaderNodeFactory} or {@link PortObjectWriterNodeFactory}
+ * @noreference non-public API
  */
 public abstract class PortObjectIONodeFactory<M extends PortObjectIONodeModel<?>, D extends PortObjectIONodeDialog<?>>
     extends ConfigurableNodeFactory<M> {

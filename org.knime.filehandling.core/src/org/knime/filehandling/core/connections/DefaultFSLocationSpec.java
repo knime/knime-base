@@ -58,7 +58,9 @@ import org.knime.core.node.config.ConfigRO;
  * mostly only useful for file system implementations.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class DefaultFSLocationSpec implements FSLocationSpec {
 
@@ -134,9 +136,9 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
     @Override
     public int hashCode() {
         return new HashCodeBuilder()//
-                .append(m_fsCategory)//
-                .append(m_fileSystemSpecifier)//
-                .toHashCode();
+            .append(m_fsCategory)//
+            .append(m_fileSystemSpecifier)//
+            .toHashCode();
     }
 
     @Override

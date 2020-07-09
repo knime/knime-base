@@ -50,17 +50,16 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
-import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
 /**
  * Configuration class for port object reader and writer nodes that can be extended with additional configurations.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <S> any class inheriting from {@link AbstractSettingsModelFileChooser}
- * @noextend extend either {@link PortObject} or {@link PortObjectWriterNodeConfig}
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class PortObjectIONodeConfig<S extends AbstractSettingsModelFileChooser> {
 

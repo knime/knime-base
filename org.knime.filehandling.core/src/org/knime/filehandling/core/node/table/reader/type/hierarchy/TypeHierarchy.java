@@ -56,6 +56,8 @@ import java.util.function.Consumer;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type that is used to identify types (e.g. Class)
  * @param <V> type of values that are tested for being of a certain type
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface TypeHierarchy<T, V> {
 

@@ -64,6 +64,9 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  * Class for file attributes that uses {@link Function} implementations to generate the necessary metadata lazy
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class BaseFileAttributes implements PosixFileAttributes {
 

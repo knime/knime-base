@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
 
 /**
@@ -71,7 +72,8 @@ import org.knime.filehandling.core.connections.FSPath;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @param <P> Path type to use.
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class TempFileSeekableByteChannel<P extends FSPath> implements SeekableByteChannel {
 
@@ -97,8 +99,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
      * @param options options specifying how the file is opened
      * @throws IOException if an I/O error occurs
      */
-    @SuppressWarnings("resource")
-    public TempFileSeekableByteChannel(final P file, final Set<? extends OpenOption> options) throws IOException {
+    protected TempFileSeekableByteChannel(final P file, final Set<? extends OpenOption> options) throws IOException {
         m_file = file;
         m_openOptions = options;
 
@@ -120,8 +121,10 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
         opts.add(StandardOpenOption.CREATE);
         m_tempFileSeekableByteChannel = Files.newByteChannel(m_tempFile, opts);
 
-        if (file.getFileSystem() instanceof BaseFileSystem) {
-            ((BaseFileSystem<?>) file.getFileSystem()).registerCloseable(this);
+        @SuppressWarnings("resource")
+        FSFileSystem<? extends FSPath> fileSystem = file.getFileSystem();
+        if (fileSystem instanceof BaseFileSystem) {
+            ((BaseFileSystem<?>)fileSystem).registerCloseable(this);
         }
     }
 
@@ -151,7 +154,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
     @SuppressWarnings("resource")
     @Override
     public void close() throws IOException {
-        if(!m_isClosed) {
+        if (!m_isClosed) {
             final long size = m_tempFileSeekableByteChannel.size();
 
             m_tempFileSeekableByteChannel.close();
@@ -171,7 +174,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public int read(final ByteBuffer dst) throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
         return m_tempFileSeekableByteChannel.read(dst);
@@ -189,7 +192,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public long position() throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
         return m_tempFileSeekableByteChannel.position();
@@ -197,7 +200,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public SeekableByteChannel position(final long newPosition) throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
         return m_tempFileSeekableByteChannel.position(newPosition);
@@ -205,7 +208,7 @@ public abstract class TempFileSeekableByteChannel<P extends FSPath> implements S
 
     @Override
     public long size() throws IOException {
-        if(m_isClosed) {
+        if (m_isClosed) {
             throw new ClosedChannelException();
         }
         return m_tempFileSeekableByteChannel.size();

@@ -76,6 +76,8 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * Configuration storing all the information needed to create a {@link DataTableSpec}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class TableSpecConfig {
 

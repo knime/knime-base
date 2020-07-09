@@ -55,8 +55,12 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileView;
 
 /**
+ * {@link FileView} for java.nio file systems.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class NioFileView extends FileView {
 

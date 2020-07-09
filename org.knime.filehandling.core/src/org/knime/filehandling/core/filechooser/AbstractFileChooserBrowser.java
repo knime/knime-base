@@ -77,6 +77,8 @@ import org.knime.core.util.SimpleFileFilter;
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
 

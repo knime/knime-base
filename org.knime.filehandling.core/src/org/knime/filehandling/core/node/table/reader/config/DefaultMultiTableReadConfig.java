@@ -62,6 +62,8 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used by the node implementation
  * @param <TC> the type of {@link TableReadConfig} used by the node implementation
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
     extends AbstractMultiTableReadConfig<C, TC> {

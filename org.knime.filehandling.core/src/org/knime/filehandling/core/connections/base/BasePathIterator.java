@@ -61,6 +61,8 @@ import org.knime.filehandling.core.connections.FSPath;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @param <T> The path type.
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public class BasePathIterator<T extends FSPath> extends PagedPathIterator<T> {
 

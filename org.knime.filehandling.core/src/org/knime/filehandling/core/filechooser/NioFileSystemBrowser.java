@@ -62,6 +62,9 @@ import org.knime.filehandling.core.connections.FSConnection;
  * {@link FileSystemBrowser} implementation for NioFileSystems.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
 

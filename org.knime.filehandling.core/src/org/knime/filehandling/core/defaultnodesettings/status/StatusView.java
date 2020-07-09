@@ -61,6 +61,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * A view that displays status messages.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public final class StatusView {
 

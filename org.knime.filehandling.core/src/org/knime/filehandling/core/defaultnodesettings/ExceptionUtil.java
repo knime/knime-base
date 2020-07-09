@@ -58,8 +58,13 @@ import java.nio.file.Path;
  * everywhere.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
 public class ExceptionUtil {
+
+    private ExceptionUtil() {
+        // static utility class
+    }
 
     /**
      * Returns deepest non empty error message from the given exception and its cause stack.

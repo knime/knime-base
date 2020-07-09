@@ -54,8 +54,10 @@ import java.nio.file.attribute.GroupPrincipal;
  * Principal implementation for the usage with {@link PosixAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class BasePrincipal implements GroupPrincipal {
+public final class BasePrincipal implements GroupPrincipal {
 
     private final String m_name;
 
@@ -68,17 +70,11 @@ public class BasePrincipal implements GroupPrincipal {
         m_name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getName() {
         return m_name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean equals(final Object o) {
         if (o == null) {
@@ -97,9 +93,6 @@ public class BasePrincipal implements GroupPrincipal {
         return this.getName().equals(other.getName());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
         return m_name.hashCode();

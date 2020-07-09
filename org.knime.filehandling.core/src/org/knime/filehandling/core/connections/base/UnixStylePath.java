@@ -73,7 +73,8 @@ import org.knime.filehandling.core.filechooser.NioFile;
  * Base implementation for unix style paths.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class UnixStylePath extends FSPath {
 
@@ -99,7 +100,7 @@ public abstract class UnixStylePath extends FSPath {
      * @param pathString path String
      */
     @SuppressWarnings({"unchecked", "resource"})
-    public UnixStylePath(final BaseFileSystem<?> fileSystem, final String pathString) {
+    protected UnixStylePath(final BaseFileSystem<?> fileSystem, final String pathString) {
         CheckUtils.checkNotNull(fileSystem, "FileSystem must not be null.");
         CheckUtils.checkNotNull(pathString, "Path string must not be null.");
         m_fileSystem = (BaseFileSystem<? extends UnixStylePath>)fileSystem;
@@ -115,7 +116,7 @@ public abstract class UnixStylePath extends FSPath {
      * @param first first part of the path
      * @param more subsequent parts of the path
      */
-    public UnixStylePath(final BaseFileSystem<?> fileSystem, final String first, final String... more) {
+    protected UnixStylePath(final BaseFileSystem<?> fileSystem, final String first, final String... more) {
         this(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
     }
 

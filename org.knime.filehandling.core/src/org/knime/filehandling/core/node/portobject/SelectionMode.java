@@ -56,6 +56,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * writers.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
  */
 public enum SelectionMode {
 

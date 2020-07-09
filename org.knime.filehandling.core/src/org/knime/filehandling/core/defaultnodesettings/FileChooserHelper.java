@@ -72,6 +72,8 @@ import org.knime.filehandling.core.filefilter.FileFilter;
  * Class used to scan files in directories.
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FileChooserHelper {
 

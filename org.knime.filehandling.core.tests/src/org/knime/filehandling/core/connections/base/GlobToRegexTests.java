@@ -46,7 +46,7 @@
  * History
  *   05.02.2020 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.base;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -55,7 +55,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.junit.Test;
-import org.knime.filehandling.core.connections.base.GlobToRegexConverter;
 
 /**
  * Tests the conversion from glob to regex pattern with the {@link GlobToRegexConverter}.

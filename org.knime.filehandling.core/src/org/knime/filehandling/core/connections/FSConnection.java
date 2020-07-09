@@ -9,7 +9,8 @@ import org.knime.core.node.util.FileSystemBrowser;
  * Interface for file system connections.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- * @since 4.1
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSConnection extends AutoCloseable {
 

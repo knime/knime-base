@@ -62,6 +62,7 @@ import org.knime.filehandling.core.connections.FSFiles;
  * A static utility class for crating a compression aware {@link InputStream} based on file extension.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
  */
 public final class FileCompressionUtils {
     /**

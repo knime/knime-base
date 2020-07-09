@@ -61,6 +61,8 @@ import java.util.stream.StreamSupport;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values stored in this RandomAccessible
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface RandomAccessible<V> extends Iterable<V> {
 

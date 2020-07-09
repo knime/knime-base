@@ -56,6 +56,9 @@ import org.knime.filehandling.core.node.portobject.SelectionMode;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the config of the node
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> extends PortObjectIONodeDialog<C> {
 

@@ -62,9 +62,10 @@ import org.apache.commons.lang3.Validate;
  * Calling {@link #getAttribute} will lead to an IOException.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class BaseFileStore extends FileStore {
+public final class BaseFileStore extends FileStore {
 
     private final String m_type;
 

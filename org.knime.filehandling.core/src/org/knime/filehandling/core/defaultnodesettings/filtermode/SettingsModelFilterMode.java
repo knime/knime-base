@@ -62,6 +62,8 @@ import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
  * Settings model for {@link DialogComponentFilterMode}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class SettingsModelFilterMode extends SettingsModel {
 

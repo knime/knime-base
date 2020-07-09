@@ -57,7 +57,9 @@ import java.util.stream.Stream;
  * to {@link FSLocation} (see {@link #toFSLocation()}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public abstract class FSPath implements Path {
 

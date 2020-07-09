@@ -56,8 +56,10 @@ import java.util.Iterator;
  * {@link Path#subpath(int, int)}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class RelativizingPathIterator implements Iterator<Path> {
+public final class RelativizingPathIterator implements Iterator<Path> {
 
     private final Iterator<Path> m_wrappedIterator;
 

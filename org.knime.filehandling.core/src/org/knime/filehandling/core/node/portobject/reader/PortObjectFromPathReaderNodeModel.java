@@ -66,6 +66,8 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeModel;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <C> the config used by the node
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectReaderNodeConfig>
     extends PortObjectIONodeModel<C> {

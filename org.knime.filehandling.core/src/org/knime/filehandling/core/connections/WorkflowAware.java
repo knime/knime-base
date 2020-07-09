@@ -58,6 +58,8 @@ import java.nio.file.Path;
  * view.
  *
  * @author "Marc Bux, KNIME GmbH, Berlin, Germany"
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface WorkflowAware {
 

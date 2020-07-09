@@ -70,6 +70,8 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * Abstract relative to file system.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeToPath> {
 
@@ -103,7 +105,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     protected static final String PATH_SEPARATOR = "/";
 
     private static final long CACHE_TTL = 0; // = disabled
-
 
     private final Type m_type;
 
@@ -173,8 +174,8 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     }
 
     /**
-     * Utility method whether the given path (from the relative-to FS) can be accessed with the relative-to
-     * file system, e.g. files outside the current mountpoint are not accessible.
+     * Utility method whether the given path (from the relative-to FS) can be accessed with the relative-to file system,
+     * e.g. files outside the current mountpoint are not accessible.
      *
      * @param path A path (from the relative-to FS).
      * @return true when the given path can be accessed with the relative-to file system, false otherwise.
@@ -201,6 +202,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
 
     /**
      * Validate if a given relative-to path is a workflow, meta node or component directory.
+     *
      * @param path path to check
      * @return {@code true} if the path represents a workflow, meta node or component directory.
      * @throws IOException
@@ -284,7 +286,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      * @throws IOException
      */
     protected abstract boolean existsWithAccessibilityCheck(final RelativeToPath path) throws IOException;
-
 
     /**
      *

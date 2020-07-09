@@ -63,7 +63,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
+final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
 
     private final KNIMERemoteFileSystem m_fileSystem;
 
@@ -77,7 +77,7 @@ public class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
      * @throws IOException
      * @throws UncheckedIOException on I/O errors
      */
-    public KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
+    KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
         final KNIMERemotePath knimePath = path;
         m_fileSystem = knimePath.getFileSystem();
 

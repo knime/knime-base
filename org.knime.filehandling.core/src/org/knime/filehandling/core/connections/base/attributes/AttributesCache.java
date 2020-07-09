@@ -54,6 +54,8 @@ import java.util.Optional;
  * Interface for the attributes cache
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface AttributesCache {
 
@@ -80,7 +82,7 @@ public interface AttributesCache {
 
     /**
      * Removes the given path from the attributes cache.
-     * 
+     *
      * @param path the path as string
      */
     void removeAttribute(String path);

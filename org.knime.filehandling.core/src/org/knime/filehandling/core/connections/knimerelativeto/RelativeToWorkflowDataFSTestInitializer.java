@@ -58,7 +58,7 @@ import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
  *
  * @author bjoern
  */
-public class RelativeToWorkflowDataFSTestInitializer
+final class RelativeToWorkflowDataFSTestInitializer
     extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
 
     final Path m_localRoot;
@@ -69,7 +69,8 @@ public class RelativeToWorkflowDataFSTestInitializer
      * @param fsConnection
      * @throws IOException
      */
-    public RelativeToWorkflowDataFSTestInitializer(final WorkflowDataRelativeFSConnection fsConnection) throws IOException {
+    RelativeToWorkflowDataFSTestInitializer(final WorkflowDataRelativeFSConnection fsConnection)
+        throws IOException {
         super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory(fsConnection.getFileSystem()));
         m_localRoot = LocalRelativeToTestUtil.determineLocalPath(getFileSystem(), getFileSystem().getRoot());
     }
@@ -80,7 +81,7 @@ public class RelativeToWorkflowDataFSTestInitializer
 
         RelativeToPath toReturn = getFileSystem().getRoot();
         for (Path localPathComp : relLocalPath) {
-            toReturn = (RelativeToPath) toReturn.resolve(localPathComp.toString());
+            toReturn = (RelativeToPath)toReturn.resolve(localPathComp.toString());
         }
         return toReturn;
     }

@@ -63,7 +63,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class KNIMERemotePath extends UnixStylePath {
+public final class KNIMERemotePath extends UnixStylePath {
 
     /**
      * Constructs a {@code KNIMERemotePath} from a path string, or a sequence of strings that when joined form a path
@@ -73,7 +73,7 @@ public class KNIMERemotePath extends UnixStylePath {
      * @param first the path string or initial part of the path string
      * @param more additional strings to be joined to form the path string
      */
-    protected KNIMERemotePath(final KNIMERemoteFileSystem fileSystem, final String first, final String... more) {
+    KNIMERemotePath(final KNIMERemoteFileSystem fileSystem, final String first, final String... more) {
         super(fileSystem, first, more);
     }
 
@@ -83,7 +83,7 @@ public class KNIMERemotePath extends UnixStylePath {
      * @param fileSystem the paths file system
      * @param uri the uri to be wrapped
      */
-    protected KNIMERemotePath(final KNIMERemoteFileSystem fileSystem, final URI uri) {
+    KNIMERemotePath(final KNIMERemoteFileSystem fileSystem, final URI uri) {
         super(fileSystem, uri.getPath());
     }
 
@@ -92,7 +92,7 @@ public class KNIMERemotePath extends UnixStylePath {
         return (KNIMERemoteFileSystem) super.getFileSystem();
     }
 
-    public URI toKNIMEProtocolURI() {
+    URI toKNIMEProtocolURI() {
         try {
             return new URI("knime", getFileSystem().getMountpoint(), toAbsolutePath().toString(), null);
         } catch (final URISyntaxException ex) {
@@ -106,7 +106,7 @@ public class KNIMERemotePath extends UnixStylePath {
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection() throws IOException {
+    URLConnection openURLConnection() throws IOException {
         return openURLConnection(FileUtil.getDefaultURLTimeoutMillis());
     }
 
@@ -117,7 +117,7 @@ public class KNIMERemotePath extends UnixStylePath {
      * @return an already connected {@link URLConnection}.
      * @throws IOException
      */
-    public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
+    URLConnection openURLConnection(final int timeoutMillis) throws IOException {
         final URL url = toKNIMEProtocolURI().toURL();
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);

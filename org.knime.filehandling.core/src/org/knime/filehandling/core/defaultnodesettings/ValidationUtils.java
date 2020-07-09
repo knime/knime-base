@@ -64,12 +64,12 @@ import org.knime.filehandling.core.connections.FSPath;
  * This class only exists temporarily since the validation should eventually be done by the individual file systems.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not intended for the use by clients
+ * @noreference non-public API
  */
 public final class ValidationUtils {
 
     private ValidationUtils() {
-
+        // static utility class
     }
 
     /**

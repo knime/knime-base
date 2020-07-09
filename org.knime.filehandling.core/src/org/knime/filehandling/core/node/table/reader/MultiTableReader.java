@@ -87,6 +87,8 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @param <C> the type of the {@link ReaderSpecificConfig}
  * @param <T> the type used by the reader to identify individual data types
  * @param <V> the type of tokens the reader produces
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class MultiTableReader<C extends ReaderSpecificConfig<C>, T, V> {
 

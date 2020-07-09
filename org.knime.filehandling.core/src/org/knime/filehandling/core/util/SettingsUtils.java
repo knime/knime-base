@@ -58,11 +58,13 @@ import org.knime.core.node.NodeSettingsWO;
  * {@link NodeSettingsWO} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class SettingsUtils {
 
     /**
      * Config key for the settings tab.
+     *
      * @noreference not intended to be used by clients
      */
     public static final String CFG_SETTINGS_TAB = "settings";

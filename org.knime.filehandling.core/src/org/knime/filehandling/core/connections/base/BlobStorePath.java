@@ -55,11 +55,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Base implementation for blob store paths. This class adds a flag that hints whether this
- * path is supposed to be a directory or not (see {@link #isDirectory()}.
+ * Base implementation for blob store paths. This class adds a flag that hints whether this path is supposed to be a
+ * directory or not (see {@link #isDirectory()}.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class BlobStorePath extends UnixStylePath {
 
@@ -68,15 +69,15 @@ public abstract class BlobStorePath extends UnixStylePath {
     /**
      * Creates a BlobStorePath from the given path name components.
      *
-     * Paths that end with a path separator, or contain a relative notation element (like "{@code ..}", "{@code .}" or the empty string)
-     * as the last component are considered to be directories. This behavior can be adapted by
+     * Paths that end with a path separator, or contain a relative notation element (like "{@code ..}", "{@code .}" or
+     * the empty string) as the last component are considered to be directories. This behavior can be adapted by
      * overriding the {@link #lastComponentUsesRelativeNotation()} method.
      *
      * @param fileSystem the file system.
      * @param first The first name component.
      * @param more More name components.
      */
-    public BlobStorePath(final BaseFileSystem<?> fileSystem, final String first, final String[] more) {
+    protected BlobStorePath(final BaseFileSystem<?> fileSystem, final String first, final String[] more) {
         super(fileSystem, first, more);
         m_isDirectory =
             concatenatePathSegments(fileSystem.getSeparator(), first, more).endsWith(fileSystem.getSeparator())
@@ -94,7 +95,7 @@ public abstract class BlobStorePath extends UnixStylePath {
      * @param bucketName the bucket
      * @param blobName the object key
      */
-    public BlobStorePath(final BaseFileSystem<?> fileSystem, final String bucketName, final String blobName) {
+    protected BlobStorePath(final BaseFileSystem<?> fileSystem, final String bucketName, final String blobName) {
         super(fileSystem, fileSystem.getSeparator() + bucketName + fileSystem.getSeparator() + blobName);
         m_isDirectory = blobName.endsWith(fileSystem.getSeparator()) || lastComponentUsesRelativeNotation();
     }
@@ -110,7 +111,7 @@ public abstract class BlobStorePath extends UnixStylePath {
     @Override
     public Stream<String> stringStream() {
         if (getNameCount() == 0) {
-            return Collections.<String>emptySet().stream();
+            return Collections.<String> emptySet().stream();
         }
 
         if (isEmptyPath()) {
@@ -120,11 +121,11 @@ public abstract class BlobStorePath extends UnixStylePath {
         @SuppressWarnings("resource")
         final String sep = getFileSystem().getSeparator();
         final String[] nameComponents = new String[getNameCount()];
-        for (int i = 0; i < nameComponents.length -1; i++) {
+        for (int i = 0; i < nameComponents.length - 1; i++) {
             nameComponents[i] = m_pathParts.get(i) + sep;
         }
 
-        nameComponents[nameComponents.length -1] = toString();
+        nameComponents[nameComponents.length - 1] = toString();
         return Arrays.stream(nameComponents);
     }
 

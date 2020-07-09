@@ -53,6 +53,8 @@ package org.knime.filehandling.core.node.table.reader.config;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> The type of {@link ReaderSpecificConfig} used
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
 

@@ -52,6 +52,7 @@ package org.knime.filehandling.core.node.table.reader.randomaccess;
  * Utility class for {@link RandomAccessible RandomAccessibles}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class RandomAccessibleUtils {
 

@@ -55,8 +55,17 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values returned by this {@link RandomAccessible}
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractRandomAccessible<V> implements RandomAccessible<V> {
+
+    /**
+     * Constructor.
+     */
+    protected AbstractRandomAccessible() {
+        super();
+    }
 
     @Override
     public String toString() {

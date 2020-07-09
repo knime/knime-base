@@ -58,6 +58,8 @@ import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationValueMetaData extends DefaultFSLocationSpec implements DataColumnMetaData {
 

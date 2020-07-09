@@ -62,8 +62,10 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * This consumer should be used in every {@link NodeModel NodeModels} that use {@link AbstractSettingsModelFileChooser}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class NodeModelStatusConsumer implements Consumer<StatusMessage> {
+public final class NodeModelStatusConsumer implements Consumer<StatusMessage> {
 
     private final PriorityStatusConsumer m_priorityConsumer;
 

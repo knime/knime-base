@@ -13,8 +13,9 @@ import org.apache.commons.lang3.Validate;
  * A registry for file system connections.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @noreference non-public API
  */
-public class FSConnectionRegistry {
+public final class FSConnectionRegistry {
 
     private static FSConnectionRegistry INSTANCE;
 

@@ -57,6 +57,8 @@ import org.knime.core.node.util.CheckUtils;
  * Convenience builder for {@link GridBagConstraints} that allows method-chaining.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class GBCBuilder {
 
@@ -292,7 +294,6 @@ public final class GBCBuilder {
         m_gbc.anchor = GridBagConstraints.LINE_END;
         return this;
     }
-
 
     /**
      * Sets the {@link GridBagConstraints#insets} property to <b>insets</b>.

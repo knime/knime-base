@@ -88,6 +88,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
  * model before retrieving e.g. the {@link FSLocation} via {@link #getLocation()}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class AbstractSettingsModelFileChooser extends SettingsModel implements StatusReporter {
 
@@ -114,7 +116,7 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      * @param defaultFilterMode the default {@link FilterMode}
      * @param fileExtensions the supported file extensions
      */
-    public AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
+    protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
         m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier, new FSLocationConfig());
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());

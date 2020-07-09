@@ -61,6 +61,8 @@ import org.knime.filehandling.core.connections.FSLocation;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSLocationValue extends DataValue {
 

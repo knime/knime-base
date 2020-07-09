@@ -52,20 +52,23 @@ import java.util.Map;
 
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  * Test initializer provider for the local workflow relative file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class RelativeToWorkflowDataFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class RelativeToWorkflowDataFSTestInitializerProvider implements FSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-relative-workflow-data";
 
     @SuppressWarnings("resource")
     @Override
-    public RelativeToWorkflowDataFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+    public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
 
         final Path tmpDir = Files.createTempDirectory("knime-relative-workflow-test");
 

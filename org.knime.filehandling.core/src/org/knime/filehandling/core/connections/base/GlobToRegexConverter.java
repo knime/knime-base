@@ -57,14 +57,14 @@ import java.util.regex.PatternSyntaxException;
  * basically a refactoring of the sun.nio.fs.Globs class.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
  */
-public class GlobToRegexConverter {
+final class GlobToRegexConverter {
 
     private static final String REGEX_META_CHARS = ".^$+{[]|()\\*?";
 
-    private static boolean isRegexMeta(final char c) {
-        return REGEX_META_CHARS.indexOf(c) != -1;
+    private GlobToRegexConverter() {
+
     }
 
     /**
@@ -74,7 +74,7 @@ public class GlobToRegexConverter {
      * @param pathSeparator the path separator for the file system
      * @return the regex pattern
      */
-    public static Pattern convert(final String glob, final char pathSeparator) {
+    static Pattern convert(final String glob, final char pathSeparator) {
         final StringBuilder regex = new StringBuilder("^");
         boolean inGroup = false;
         int index = 0;
@@ -252,6 +252,10 @@ public class GlobToRegexConverter {
         escaped.append(character);
 
         return escaped.toString();
+    }
+
+    private static boolean isRegexMeta(final char c) {
+        return REGEX_META_CHARS.indexOf(c) != -1;
     }
 
 }

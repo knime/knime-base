@@ -73,6 +73,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify data types
  * @param <V> the type used as values
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class TableSpecGuesser<T, V> {
 

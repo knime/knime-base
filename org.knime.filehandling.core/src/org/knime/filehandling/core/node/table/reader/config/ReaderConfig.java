@@ -58,6 +58,8 @@ import org.knime.core.node.port.PortObjectSpec;
  * Base interface for configuration classes used in the table reader framework.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface ReaderConfig {
 

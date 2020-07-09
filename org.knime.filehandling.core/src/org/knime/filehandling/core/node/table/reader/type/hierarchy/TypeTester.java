@@ -56,6 +56,8 @@ import java.util.function.Predicate;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify data types
  * @param <V> the type of value to test
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface TypeTester<T, V> extends Predicate<V> {
 

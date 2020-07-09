@@ -72,8 +72,10 @@ import org.osgi.framework.FrameworkUtil;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Sascha Wolke, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class WorkflowAwareFileView extends NioFileView {
+public final class WorkflowAwareFileView extends NioFileView {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowAwareFileView.class);
 
     private Icon m_workflowIcon = null;

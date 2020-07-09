@@ -58,6 +58,8 @@ import org.knime.filehandling.core.connections.FSFiles;
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the config used by the node
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class PortObjectFromFileReaderNodeModel<C extends PortObjectReaderNodeConfig>
     extends PortObjectFromPathReaderNodeModel<C> {

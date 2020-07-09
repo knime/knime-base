@@ -60,7 +60,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemProvider<LocalRelativeToFileSystem>
+final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemProvider<LocalRelativeToFileSystem>
     implements WorkflowAware {
 
     @Override

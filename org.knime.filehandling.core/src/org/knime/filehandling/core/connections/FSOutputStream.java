@@ -55,9 +55,11 @@ import java.io.OutputStream;
  * Wrapper for {@link OutputStream} that is closed when the file system is closed.
  *
  * @author Mareike Hoeger, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
+ * @noinstantiate non-public API
+ *
  */
-public class FSOutputStream extends OutputStream {
+public final class FSOutputStream extends OutputStream {
 
     private final OutputStream m_outputStream;
 

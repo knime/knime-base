@@ -77,7 +77,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
-class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String>, Pair<Color, String>> {
+final class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String>, Pair<Color, String>> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
 

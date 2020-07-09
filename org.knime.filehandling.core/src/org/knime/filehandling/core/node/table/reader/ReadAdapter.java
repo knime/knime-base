@@ -72,7 +72,8 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type used to identify data types
  * @param <V> type of tokens read by the reader
- * @noreference not meant to be referenced by clients
+ * @noreference non-public API
+ * @noextend non-public API
  */
 public abstract class ReadAdapter<T, V> implements Source<T> {
 

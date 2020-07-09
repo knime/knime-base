@@ -60,6 +60,8 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify data types
  * @param <V> the type of values
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface ReadAdapterFactory<T, V> {
 

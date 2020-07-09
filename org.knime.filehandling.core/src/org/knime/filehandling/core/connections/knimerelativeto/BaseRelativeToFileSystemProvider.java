@@ -73,8 +73,11 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
  *
  * @author Sascha Wolke, KNIME GmbH
  * @param <F> provided file system
+ * @noreference non-public API
+ * @noextend non-public API
  */
-public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToFileSystem> extends BaseFileSystemProvider<RelativeToPath, F> {
+public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToFileSystem>
+    extends BaseFileSystemProvider<RelativeToPath, F> {
 
     private static final String SCHEME = "knime";
 
@@ -129,8 +132,8 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     }
 
     @Override
-    protected SeekableByteChannel newByteChannelInternal(final RelativeToPath path, final Set<? extends OpenOption> options,
-        final FileAttribute<?>... attrs) throws IOException {
+    protected SeekableByteChannel newByteChannelInternal(final RelativeToPath path,
+        final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 
         if (getFileSystemInternal().isPartOfWorkflow(path)) {
             throw new IOException(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing");
@@ -181,8 +184,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     }
 
     @Override
-    public boolean isSameFileInternal(final RelativeToPath path, final RelativeToPath path2)
-        throws IOException {
+    public boolean isSameFileInternal(final RelativeToPath path, final RelativeToPath path2) throws IOException {
         return Files.isSameFile(toRealPathWithAccessibilityCheck(path), toRealPathWithAccessibilityCheck(path2));
     }
 
@@ -215,8 +217,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
             final BasicFileAttributes localAttributes =
                 Files.readAttributes(realPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
 
-            return new BaseFileAttributes(
-                isRegularFile, //
+            return new BaseFileAttributes(isRegularFile, //
                 path, //
                 localAttributes.lastModifiedTime(), //
                 localAttributes.lastAccessTime(), //

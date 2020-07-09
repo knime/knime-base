@@ -74,6 +74,7 @@ final class SkipIdxRead<V> extends AbstractReadDecorator<V> {
         m_idxToSkip = idxToSkip;
     }
 
+    @SuppressWarnings("resource") // the source is closed in AbstractReadDecorator#close
     @Override
     public RandomAccessible<V> next() throws IOException {
         m_current++;

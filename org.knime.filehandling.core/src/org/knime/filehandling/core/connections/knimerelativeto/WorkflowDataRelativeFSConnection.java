@@ -63,60 +63,62 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 /**
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class WorkflowDataRelativeFSConnection implements FSConnection {
+public final class WorkflowDataRelativeFSConnection implements FSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
     private final RelativeToFileSystemBrowser m_browser;
 
     /**
-    * Constructor.
-    *
-    */
-   public WorkflowDataRelativeFSConnection(final boolean isConnected) {
+     * Constructor.
+     *
+     */
+    public WorkflowDataRelativeFSConnection(final boolean isConnected) {
 
-       final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
-       final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
+        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
-       try {
-           m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected);
-       } catch (IOException ex) {
-           // should never happen
-           throw new UncheckedIOException(ex);
-       }
+        try {
+            m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected);
+        } catch (IOException ex) {
+            // should never happen
+            throw new UncheckedIOException(ex);
+        }
 
-       m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
-   }
+        m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
+    }
 
-   private LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-       final boolean isConnected) throws IOException {
+    private LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
+        final boolean isConnected) throws IOException {
 
-       final Path workflowDataDir = workflowLocation.resolve("data");
-       Files.createDirectories(workflowDataDir);
+        final Path workflowDataDir = workflowLocation.resolve("data");
+        Files.createDirectories(workflowDataDir);
 
-       final FSLocationSpec fsLocationSpec;
-       if (isConnected) {
-           fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-       } else {
-           fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-       }
+        final FSLocationSpec fsLocationSpec;
+        if (isConnected) {
+            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+        } else {
+            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+        }
 
-       final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
-       return new LocalRelativeToFileSystem(uri, //
-           workflowDataDir, //
-           Type.WORKFLOW_DATA_RELATIVE, //
-           BaseRelativeToFileSystem.PATH_SEPARATOR, //
-           fsLocationSpec);
-   }
+        final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
+        return new LocalRelativeToFileSystem(uri, //
+            workflowDataDir, //
+            Type.WORKFLOW_DATA_RELATIVE, //
+            BaseRelativeToFileSystem.PATH_SEPARATOR, //
+            fsLocationSpec);
+    }
 
-   @Override
-   public LocalRelativeToFileSystem getFileSystem() {
-       return m_fileSystem;
-   }
+    @Override
+    public LocalRelativeToFileSystem getFileSystem() {
+        return m_fileSystem;
+    }
 
-   @Override
-   public FileSystemBrowser getFileSystemBrowser() {
-       return m_browser;
-   }
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_browser;
+    }
 }

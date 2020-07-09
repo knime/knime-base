@@ -61,8 +61,10 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 /**
  *
  * @author bjoern
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class KNIMERemoteFSConnection implements FSConnection {
+public final class KNIMERemoteFSConnection implements FSConnection {
 
     private final KNIMERemoteFileSystem m_fileSystem;
 

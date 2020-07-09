@@ -58,6 +58,9 @@ import javax.swing.JList;
  * Renderer for KNIME Connections.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public class KNIMEConnectionRenderer extends DefaultListCellRenderer {
 

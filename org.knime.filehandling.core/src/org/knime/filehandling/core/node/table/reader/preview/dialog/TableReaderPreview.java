@@ -97,6 +97,9 @@ import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMon
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of the {@link ReaderSpecificConfig}
  * @param <V> the type of tokens the reader produces
+ * @noreference non-public API
+ * @noinstantiate non-public API
+
  */
 public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> extends JPanel {
 

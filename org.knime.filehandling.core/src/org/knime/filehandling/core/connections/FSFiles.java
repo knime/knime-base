@@ -71,7 +71,7 @@ import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
  * operate on {@link FSFileSystem}s and {@link FSPath}s.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @since 4.2
+ * @noreference non-public API
  */
 public final class FSFiles {
 

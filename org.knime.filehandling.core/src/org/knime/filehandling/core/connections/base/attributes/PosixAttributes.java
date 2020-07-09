@@ -59,8 +59,10 @@ import java.util.Set;
  * This class provides POSIX file attributes for the {@link BaseFileAttributes}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class PosixAttributes {
+public final class PosixAttributes {
 
     private final UserPrincipal m_owner;
 
@@ -97,13 +99,12 @@ public class PosixAttributes {
     }
 
     /**
-     * Returns the permissions of the file. The file permissions are returned
-     * as a set of {@link PosixFilePermission} elements. The returned set is a
-     * copy of the file permissions and is modifiable. This allows the result
-     * to be modified and passed to the {@link PosixFileAttributeView#setPermissions
-     * setPermissions} method to update the file's permissions.
+     * Returns the permissions of the file. The file permissions are returned as a set of {@link PosixFilePermission}
+     * elements. The returned set is a copy of the file permissions and is modifiable. This allows the result to be
+     * modified and passed to the {@link PosixFileAttributeView#setPermissions setPermissions} method to update the
+     * file's permissions.
      *
-     * @return  the file permissions
+     * @return the file permissions
      */
     public Set<PosixFilePermission> permissions() {
         return new HashSet<>(m_permissions);

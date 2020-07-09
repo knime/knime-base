@@ -73,6 +73,8 @@ import com.google.common.collect.Sets;
  * via the {@link FSLocationVariableType#INSTANCE} field.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FSLocationVariableType extends VariableType<FSLocation> {
 
