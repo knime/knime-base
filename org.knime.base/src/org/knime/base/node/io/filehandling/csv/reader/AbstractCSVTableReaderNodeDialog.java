@@ -92,6 +92,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
+import org.knime.core.node.util.ViewUtils;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -1021,8 +1022,10 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     @Override
     public void onClose() {
-        cancelFormatAutoDetection();
-        m_tableReaderPreview.onClose();
+        ViewUtils.invokeAndWaitInEDT(() -> {
+            cancelFormatAutoDetection();
+            m_tableReaderPreview.onClose();
+        });
         super.onClose();
     }
 }
