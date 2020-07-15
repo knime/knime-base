@@ -50,9 +50,14 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.WorkflowAware;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -63,11 +68,33 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemProvider<LocalRelativeToFileSystem>
     implements WorkflowAware {
 
+    @SuppressWarnings("resource")
     @Override
     public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
-        final RelativeToPath checkedPath = checkCastAndAbsolutizePath(dest);
-        MountPointFileSystemAccessService.instance().deployWorkflow(source, checkedPath.toKNIMEProtocolURI(), overwrite, attemptOpen);
+
+        if (getFileSystemInternal().getType() == Type.WORKFLOW_DATA_RELATIVE) {
+            throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");
+        }
+
+        final RelativeToPath absoluteDest = checkCastAndAbsolutizePath(dest);
+
+        final String currentMountpoint = getCurrentMountpoint();
+        try {
+            MountPointFileSystemAccessService.instance().deployWorkflow( //
+                source, //
+                new URI("knime", currentMountpoint, absoluteDest.toString(), null), //
+               overwrite, //
+               attemptOpen);
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    private static String getCurrentMountpoint() {
+        final WorkflowContext context = RelativeToUtil.getWorkflowContext();
+        CheckUtils.checkState(context.getMountpointURI().isPresent(), "Cannot determine name of mountpoint to deploy workflow.");
+        return context.getMountpointURI().get().getAuthority();
     }
 
     /**
