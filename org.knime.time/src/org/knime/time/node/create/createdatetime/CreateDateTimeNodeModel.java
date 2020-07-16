@@ -56,6 +56,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -275,11 +276,16 @@ final class CreateDateTimeNodeModel extends NodeModel {
         final Temporal start;
         final Temporal end;
         if (m_start.getSelectedDateTime() instanceof ZonedDateTime) {
+            ZoneId zone = m_start.getZone();
+            if (m_startUseExecTime.getBooleanValue()) {
+                zone = ZonedDateTime.now().getZone();
+            }
             start = m_startUseExecTime.getBooleanValue()
-                ? getTemporalExecTimeWithFormat(((LocalDateTime)m_end.getSelectedDateTime()).atZone(m_start.getZone()))
+                ? getTemporalExecTimeWithFormat(((LocalDateTime)m_end.getSelectedDateTime()).atZone(zone))
                 : m_start.getSelectedDateTime();
-            end = m_endUseExecTime.getBooleanValue() ? getTemporalExecTimeWithFormat(m_start.getSelectedDateTime())
-                : ZonedDateTime.of((LocalDateTime)m_end.getSelectedDateTime(), m_start.getZone());
+            end = m_endUseExecTime.getBooleanValue()
+                ? getTemporalExecTimeWithFormat(m_start.getSelectedDateTime())
+                : ZonedDateTime.of((LocalDateTime)m_end.getSelectedDateTime(), zone);
         } else {
             start = m_startUseExecTime.getBooleanValue() ? getTemporalExecTimeWithFormat(m_end.getSelectedDateTime())
                 : m_start.getSelectedDateTime();
