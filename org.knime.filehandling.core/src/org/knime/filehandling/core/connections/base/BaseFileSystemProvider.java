@@ -203,7 +203,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
             if (!parentAttrs.isDirectory()) {
                 // additionally we fail if the parent path is not a directory
-                throw new FileSystemException(path.toString(), null, "Not a directory");
+                throw new FileSystemException(checkedPathParent.toString(), null, "Not a directory");
             }
         }
     }
