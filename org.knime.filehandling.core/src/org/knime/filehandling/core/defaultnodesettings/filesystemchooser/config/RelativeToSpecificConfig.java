@@ -81,9 +81,11 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     /**
      * Constructor.
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
      */
-    public RelativeToSpecificConfig() {
-
+    public RelativeToSpecificConfig(final boolean active) {
+        super(active);
     }
 
     /**
@@ -92,6 +94,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
      * @param toCopy instance to copy
      */
     private RelativeToSpecificConfig(final RelativeToSpecificConfig toCopy) {
+        super(toCopy.isActive());
         m_relativeTo = toCopy.m_relativeTo;
     }
 

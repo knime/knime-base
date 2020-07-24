@@ -65,6 +65,12 @@ abstract class AbstractFileSystemSpecificConfig implements FileSystemSpecificCon
 
     private final ChangeEvent m_changeEvent = new ChangeEvent(this);
 
+    private final boolean m_active;
+
+    protected AbstractFileSystemSpecificConfig(final boolean active) {
+        m_active = active;
+    }
+
     @Override
     public final void addChangeListener(final ChangeListener listener) {
         m_listeners.add(listener);
@@ -74,6 +80,11 @@ abstract class AbstractFileSystemSpecificConfig implements FileSystemSpecificCon
         for (ChangeListener l : m_listeners) {
             l.stateChanged(m_changeEvent);
         }
+    }
+
+    @Override
+    public boolean isActive() {
+        return m_active;
     }
 
 }

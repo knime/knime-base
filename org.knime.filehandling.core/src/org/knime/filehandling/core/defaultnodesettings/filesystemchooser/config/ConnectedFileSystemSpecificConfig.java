@@ -78,6 +78,8 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  */
 public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemSpecificConfig {
 
+    private static final DefaultStatusMessage NO_FS_ERROR = new DefaultStatusMessage(MessageType.ERROR, "No file system connected.");
+
     private static final String CFG_CONNECTED_FS = "connected_fs";
 
     private final int m_portIdx;
@@ -91,16 +93,24 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     /**
      * Constructor.
      *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
      * @param portsConfig {@link PortsConfiguration} of the node this settings is used for
      * @param fileSystemPortIdentifier the ID used to identify the file system port in <b>portsConfig</b>
      */
-    public ConnectedFileSystemSpecificConfig(final PortsConfiguration portsConfig,
+    public ConnectedFileSystemSpecificConfig(final boolean active, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier) {
+        super(active);
         final int[] portIdx = portsConfig.getInputPortLocation().get(fileSystemPortIdentifier);
+        if (portIdx == null) {
+            // the portIdx is null if the node has no fs port but then this config must be inactive
+            CheckUtils.checkArgument(!active, "No file system port found.");
+            m_portIdx = -1;
+        } else {
         CheckUtils.checkArgument(portIdx.length == 1,
             "The input port group '%s' should contain at most 1 element but contained %s.", fileSystemPortIdentifier,
             portIdx.length);
         m_portIdx = portIdx[0];
+        }
     }
 
     int getPortIdx() {
@@ -108,6 +118,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     }
 
     private ConnectedFileSystemSpecificConfig(final ConnectedFileSystemSpecificConfig toCopy) {
+        super(toCopy.isActive());
         m_portIdx = toCopy.m_portIdx;
         m_connection = toCopy.m_connection;
         m_fileSystemName = toCopy.m_fileSystemName;
@@ -135,6 +146,10 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        if (m_portIdx == -1) {
+            // nothing to load, the config is inactive
+            return;
+        }
         if (specs[m_portIdx] == null) {
             throw new NotConfigurableException("No file system connected");
         }
@@ -157,7 +172,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void report(final Consumer<StatusMessage> statusConsumer) {
         if (m_fileSystemName == null) {
-            statusConsumer.accept(new DefaultStatusMessage(MessageType.ERROR, "No file system connected."));
+            statusConsumer.accept(NO_FS_ERROR);
         }
         if (!m_connection.isPresent()) {
             issueNotConnectedWarning(statusConsumer);
@@ -198,9 +213,14 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
+        if (m_portIdx == -1) {
+            // nothing to configure, we are inactive
+            return;
+        }
         CheckUtils.checkSetting(specs.length > m_portIdx && specs[m_portIdx] != null,
             "No file system connected at port %s.", m_portIdx);
         m_locationSpec = extractFSLocationSpec(specs);
+        m_fileSystemName = FileSystemPortObjectSpec.getFileSystemType(specs, m_portIdx).orElse(null);
         m_connection = FileSystemPortObjectSpec.getFileSystemConnection(specs, m_portIdx);
         if (!m_connection.isPresent()) {
             issueNotConnectedWarning(statusMessageConsumer);
