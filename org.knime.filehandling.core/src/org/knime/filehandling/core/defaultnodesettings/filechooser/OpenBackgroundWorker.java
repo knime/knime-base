@@ -53,6 +53,7 @@ import java.util.concurrent.Callable;
 
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -66,9 +67,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 final class OpenBackgroundWorker implements Callable<StatusMessage> {
 
-    private final AbstractSettingsModelFileChooser m_settings;
+    private final SettingsModelReaderFileChooser m_settings;
 
-    OpenBackgroundWorker(final AbstractSettingsModelFileChooser settings) {
+    OpenBackgroundWorker(final SettingsModelReaderFileChooser settings) {
         m_settings = settings;
     }
 

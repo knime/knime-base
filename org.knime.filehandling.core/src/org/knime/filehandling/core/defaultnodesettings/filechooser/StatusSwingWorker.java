@@ -59,6 +59,7 @@ import javax.swing.SwingWorker;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
@@ -82,11 +83,12 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
     private final Callable<StatusMessage> m_backgroundWorker;
 
-    StatusSwingWorker(final AbstractSettingsModelFileChooser settings, final Consumer<StatusMessage> statusMessageConsumer,
-        final DialogType dialogType) {
+    StatusSwingWorker(final AbstractSettingsModelFileChooser settings,
+        final Consumer<StatusMessage> statusMessageConsumer, final DialogType dialogType) {
         m_statusMessageConsumer = statusMessageConsumer;
-        m_backgroundWorker = dialogType == DialogType.OPEN_DIALOG ? new OpenBackgroundWorker(settings)
-            : new SaveBackgroundWorker((SettingsModelWriterFileChooser)settings);
+        m_backgroundWorker = dialogType == DialogType.OPEN_DIALOG
+            ? new OpenBackgroundWorker(((SettingsModelReaderFileChooser)settings).createClone())
+            : new SaveBackgroundWorker(((SettingsModelWriterFileChooser)settings).createClone());
     }
 
     @Override
