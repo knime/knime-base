@@ -96,4 +96,9 @@ public final class DefaultStatusMessage implements StatusMessage {
         return m_msg;
     }
 
+    @Override
+    public String toString() {
+        return String.format("[Type: %s, Message: %s]", m_type, m_msg);
+    }
+
 }

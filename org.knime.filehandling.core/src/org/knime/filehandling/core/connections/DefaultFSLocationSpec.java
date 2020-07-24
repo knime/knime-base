@@ -124,10 +124,7 @@ public class DefaultFSLocationSpec implements FSLocationSpec {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (obj instanceof DefaultFSLocationSpec) {
+        if (obj != null && this.getClass() == obj.getClass()) {
             return FSLocationSpec.areEqual(this, (DefaultFSLocationSpec)obj);
         }
         return false;
