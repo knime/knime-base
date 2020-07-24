@@ -146,7 +146,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        if (m_portIdx == -1) {
+        if (!isActive()) {
             // nothing to load, the config is inactive
             return;
         }
@@ -196,7 +196,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     }
 
     @Override
-    public void overwriteWith(final FSLocationSpec locationSpec) {
+    public void updateSpecifier(final FSLocationSpec locationSpec) {
         // nothing to overwrite
     }
 
@@ -213,7 +213,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
-        if (m_portIdx == -1) {
+        if (!isActive()) {
             // nothing to configure, we are inactive
             return;
         }
@@ -240,6 +240,11 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
     @Override
     public Set<FileSelectionMode> getSupportedFileSelectionModes() {
         return EnumSet.allOf(FileSelectionMode.class);
+    }
+
+    @Override
+    public boolean canConnect() {
+        return m_fileSystemName != null && m_connection.isPresent();
     }
 
 }

@@ -44,56 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 22, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 20, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
-
-import java.util.Objects;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.VariableType;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.AbstractLocationSpecConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecConfig;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * {@link FSLocationSpecConfig} implementation that works with full-fledged {@link FSLocation FSLocations}.
+ * {@link FSLocationSpecHandler} implementation for FSLocation instances.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLocationConfig> {
+enum FSLocationHandler implements FSLocationSpecHandler<FSLocation> {
+        INSTANCE;
 
     private static final String CFG_OLD = "location";
 
     static final String CFG_PATH = "path";
 
-    FSLocationConfig() {
-        super();
-        // everything happens in the super constructor.
-    }
-
-    private FSLocationConfig(final FSLocationConfig toCopy) {
-        super(toCopy);
-    }
-
     @Override
-    public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        try {
-            loadSettingsForModel(settings);
-        } catch (InvalidSettingsException ex) {
-            // keep using the old value
-        }
-    }
-
-    @Override
-    public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        setLocationSpec(loadLocation(settings));
-    }
-
-    private static FSLocation loadLocation(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public FSLocation load(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
             return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_PATH));
         } catch (InvalidSettingsException ex) {
@@ -106,39 +88,36 @@ final class FSLocationConfig extends AbstractLocationSpecConfig<FSLocation, FSLo
     }
 
     @Override
-    public void validateForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        loadLocation(settings);
+    public void save(final NodeSettingsWO settings, final FSLocation spec) {
+        FSLocationUtils.saveFSLocation(spec, settings.addNodeSettings(CFG_PATH));
     }
 
     @Override
-    public void save(final NodeSettingsWO settings) {
-        FSLocationUtils.saveFSLocation(getLocationSpec(), settings.addNodeSettings(CFG_PATH));
-    }
-
-    @Override
-    public FSLocationConfig copy() {
-        return new FSLocationConfig(this);
-    }
-
-    void setPath(final String path) {
-        final FSLocation locationSpec = getLocationSpec();
-        if (!Objects.equals(locationSpec.getPath(), path)) {
-            // sets the new location and notifies the listeners
-            setLocationSpec(new FSLocation(locationSpec.getFileSystemCategory(),
-                locationSpec.getFileSystemSpecifier().orElse(null), path));
-        }
-    }
-
-    @Override
-    protected FSLocation adapt(final FSLocationSpec locationSpec) {
-        if (locationSpec instanceof FSLocation) {
-            return (FSLocation)locationSpec;
+    public FSLocation adapt(final FSLocation oldSpec, final FSLocationSpec newSpec) {
+        if (newSpec instanceof FSLocation) {
+            return (FSLocation)newSpec;
         } else {
-            final FSLocation current = getLocationSpec();
-            final String path = current == null ? "" : current.getPath();
-            return new FSLocation(locationSpec.getFileSystemCategory(), locationSpec.getFileSystemSpecifier().orElse(null),
-                path);
+            final String path = oldSpec == null ? "" : oldSpec.getPath();
+            return new FSLocation(newSpec.getFileSystemCategory(), newSpec.getFileSystemSpecifier().orElse(null), path);
         }
+    }
+
+    @Override
+    public StatusMessage warnIfConnectedOverwrittenWithFlowVariable(final FSLocation flowVarLocationSpec) {
+        if (flowVarLocationSpec.getFSCategory() == FSCategory.CONNECTED) {
+            return new DefaultStatusMessage(MessageType.WARNING,
+                "The file system at the input port differs from the connected file system provided via flow variable."
+                    + " Only the path (%s) of the variable is used.",
+                flowVarLocationSpec.getPath());
+        } else {
+            return new DefaultStatusMessage(MessageType.WARNING, "Only the path (%s) of the flow variable is used.",
+                flowVarLocationSpec.getPath());
+        }
+    }
+
+    @Override
+    public VariableType<FSLocation> getVariableType() {
+        return FSLocationVariableType.INSTANCE;
     }
 
 }

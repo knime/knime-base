@@ -96,7 +96,7 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      *
      * @param locationSpec to overwrite the configuration with
      */
-    void overwriteWith(final FSLocationSpec locationSpec);
+    void updateSpecifier(final FSLocationSpec locationSpec);
 
     /**
      * Validates if the configuration represented by the provided {@link FSLocationSpec} is valid.
@@ -105,6 +105,13 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      * @throws InvalidSettingsException if the provided location is invalid
      */
     void validate(final FSLocationSpec location) throws InvalidSettingsException;
+
+    /**
+     * Returns {@code true} if a connection with the file system has a chance at success i.e. a connection can be established.
+     *
+     * @return {@code true} if a connection with the system is possible
+     */
+    boolean canConnect();
 
     /**
      * Getter for the file system connection.</br>

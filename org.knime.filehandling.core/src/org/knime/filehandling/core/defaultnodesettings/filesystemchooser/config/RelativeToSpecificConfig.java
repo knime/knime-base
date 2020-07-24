@@ -159,7 +159,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
     }
 
     @Override
-    public void overwriteWith(final FSLocationSpec locationSpec) {
+    public void updateSpecifier(final FSLocationSpec locationSpec) {
         setRelativeTo(
             RelativeTo.fromSettingsValue(locationSpec.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
                 String.format("The provided FSLocation '%s' does not provide a relative-to option.", locationSpec)))));
@@ -186,6 +186,12 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
     @Override
     public Set<FileSelectionMode> getSupportedFileSelectionModes() {
         return EnumSet.allOf(FileSelectionMode.class);
+    }
+
+    @Override
+    public boolean canConnect() {
+        // It's always possible to connect to the relative to file systems
+        return true;
     }
 
 }

@@ -48,14 +48,12 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -78,6 +76,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusCons
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * SettingsModel for the {@link AbstractDialogComponentFileChooser}.</br>
@@ -99,13 +98,15 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     private static final DefaultStatusMessage TRAILING_OR_LEADING_WHITESPACE_ERROR = new DefaultStatusMessage(
         MessageType.ERROR, "The path contains leading and/or trailing whitespaces, please remove them");
 
-    private final FileSystemConfiguration<FSLocationConfig> m_fsConfig;
+    private final FileSystemConfiguration<FSLocation> m_fsConfig;
 
     private final String m_configName;
 
     private final SettingsModelFilterMode m_filterModeModel;
 
     private String[] m_fileExtensions;
+
+    private boolean m_loading = false;
 
     /**
      * Constructor.
@@ -118,7 +119,8 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      */
     protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
-        m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier, new FSLocationConfig());
+        m_fsConfig =
+            FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier, FSLocationHandler.INSTANCE);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
         m_configName = configName;
         m_fileExtensions =
@@ -137,6 +139,13 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         m_fsConfig = toCopy.m_fsConfig.copy();
         m_fileExtensions = toCopy.m_fileExtensions.clone();
         m_filterModeModel = toCopy.m_filterModeModel.createClone();
+    }
+
+    @Override
+    protected void notifyChangeListeners() {
+        if (!m_loading) {
+            super.notifyChangeListeners();
+        }
     }
 
     /**
@@ -170,10 +179,14 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      * @return the keys corresponding to the location configuration
      */
     public String[] getKeysForFSLocation() {
-        return new String[]{m_configName, FSLocationConfig.CFG_PATH};
+        return new String[]{m_configName, FSLocationHandler.CFG_PATH};
     }
 
-    FileSystemConfiguration<FSLocationConfig> getFileSystemConfiguration() {
+    void setLocationFlowVariableModel(final FlowVariableModel locationFvm) {
+        m_fsConfig.setLocationFlowVariableModel(locationFvm);
+    }
+
+    FileSystemConfiguration<FSLocation> getFileSystemConfiguration() {
         return m_fsConfig;
     }
 
@@ -214,10 +227,8 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
 
     /**
      * @return the selected FSConnection or {@link Optional#empty()} if the file system isn't connected
-     * @throws IOException
-     * @throws IllegalStateException
      */
-    FSConnection getConnection() throws IllegalStateException, IOException {
+    FSConnection getConnection() {
         final Optional<FSConnection> connection = m_fsConfig.getConnection();
         return FileSystemHelper.retrieveFSConnection(connection, getLocation())
             .orElseThrow(() -> new IllegalStateException("Can't retrieve connection."));
@@ -237,12 +248,36 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     }
 
     /**
+     * Sets the given <b>path</b> without modifying the file system.
+     *
+     * @param path to set
+     */
+    public void setPath(final String path) {
+        final FSLocation location = m_fsConfig.getLocationSpec();
+        if (!location.getPath().equals(path)) {
+            m_fsConfig.setLocationSpec(
+                new FSLocation(location.getFSCategory(), location.getFileSystemSpecifier().orElse(null), path));
+        }
+    }
+
+    /**
      * Returns the currently configured {@link FSLocation}.
      *
      * @return the currently configured {@link FSLocation}
      */
     public FSLocation getLocation() {
-        return m_fsConfig.getLocationConfig().getLocationSpec();
+        return m_fsConfig.getLocationSpec();
+    }
+
+    /**
+     * Returns {@code true} if accessing the file at the {@link FSLocation} returned by {@link #getLocation()} has a
+     * chance at success.
+     *
+     * @return {@code true} if accessing the file at the {@link FSLocation} returned by {@link #getLocation()} has a
+     *         chance at success
+     */
+    public boolean isLocationValid() {
+        return m_fsConfig.isLocationSpecValid();
     }
 
     @Override
@@ -253,10 +288,21 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     @Override
     protected final void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        final NodeSettingsRO topLevel = getChildOrEmpty(settings, m_configName);
+        m_loading = true;
+        final NodeSettingsRO topLevel = SettingsUtils.getOrEmpty(settings, m_configName);
         m_fsConfig.loadSettingsForDialog(topLevel, specs);
         m_filterModeModel.loadSettingsForDialog(topLevel, specs);
         loadAdditionalSettingsForDialog(topLevel, specs);
+        m_loading = false;
+        notifyChangeListeners();
+    }
+
+    boolean isLoading() {
+        return m_loading;
+    }
+
+    boolean isLocationOverwrittenByFlowVariable() {
+        return m_fsConfig.isLocationOverwrittenByVar();
     }
 
     /**
@@ -271,18 +317,11 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         // no additional settings to load
     }
 
-    private static NodeSettingsRO getChildOrEmpty(final NodeSettingsRO settings, final String childKey) {
-        try {
-            return settings.getNodeSettings(childKey);
-        } catch (InvalidSettingsException ex) {
-            return new NodeSettings(childKey);
-        }
-    }
-
     @Override
     protected final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         final NodeSettingsWO topLevel = settings.addNodeSettings(m_configName);
-        save(topLevel);
+        m_fsConfig.saveSettingsForDialog(topLevel);
+        m_filterModeModel.saveSettingsTo(topLevel);
         saveAdditionalSettingsForDialog(topLevel);
     }
 
@@ -294,6 +333,10 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      */
     protected void saveAdditionalSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         // no additional settings to save
+    }
+
+    void validateConfig() throws InvalidSettingsException {
+        m_fsConfig.validate();
     }
 
     @Override
@@ -335,7 +378,8 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
     @Override
     protected final void saveSettingsForModel(final NodeSettingsWO settings) {
         final NodeSettingsWO topLevel = settings.addNodeSettings(m_configName);
-        save(topLevel);
+        m_fsConfig.saveSettingsForModel(topLevel);
+        m_filterModeModel.saveSettingsTo(topLevel);
         saveAdditionalSettingsForModel(topLevel);
     }
 
@@ -346,11 +390,6 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      */
     protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
         // nothing to do
-    }
-
-    private void save(final NodeSettingsWO topLevel) {
-        m_fsConfig.saveSettingsForModel(topLevel);
-        m_filterModeModel.saveSettingsTo(topLevel);
     }
 
     @Override

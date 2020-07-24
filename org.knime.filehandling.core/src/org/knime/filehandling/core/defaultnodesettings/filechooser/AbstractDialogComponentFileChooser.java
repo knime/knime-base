@@ -71,13 +71,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
-import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.DialogComponentFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
@@ -128,13 +125,11 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private final JLabel m_fileSelectionLabel = new JLabel("File:");
 
-    private final StatusView m_statusView = new StatusView(300);
+    private final StatusView m_statusView = new StatusView(700);
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
     private final FlowVariableModel m_locationFvm;
-
-    private boolean m_replacedByFlowVar = false;
 
     private StatusSwingWorker m_statusMessageWorker = null;
 
@@ -155,6 +150,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         m_dialogType = dialogType;
         m_locationFvm =
             CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
+        model.setLocationFlowVariableModel(locationFvm);
         Set<FilterMode> selectableFilterModes =
             Stream.concat(Stream.of(model.getFilterModeModel().getFilterMode()), Arrays.stream(filterModes)).distinct()
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
@@ -185,7 +181,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     private void hookUpListeners() {
         m_fileSelection.addListener(e -> handleFileSelectionChange());
         getModel().addChangeListener(e -> updateComponent());
-        m_locationFvm.addChangeListener(e -> handleFlowVariableModelChange());
     }
 
     private void layout(final boolean displayFilterModes) {
@@ -240,48 +235,24 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         // no additonal components to add
     }
 
-    private void handleFlowVariableModelChange() {
-        // FIXME when the flow variable is no longer present, the fvm still signals that the value is replaced which is wrong
-        // and causes the components to stay disabled. A quick investigation did not find the bug,
-        // so we will postpone this to a later bugfix in order to get this enhancement resolved
-        m_replacedByFlowVar = m_locationFvm.isVariableReplacementEnabled();
-        final Optional<FlowVariable> flowVar = m_locationFvm.getVariableValue();
-        if (m_replacedByFlowVar && flowVar.isPresent()) {
-            final FSLocation location = flowVar.get().getValue(FSLocationVariableType.INSTANCE);
-            FileSystemConfiguration<FSLocationConfig> fsConfig = getSettingsModel().getFileSystemConfiguration();
-            if (!fsConfig.hasFSPort()) {
-                fsConfig.setLocationSpec(location);
-            } else {
-                // in the connected case only the path is overwritten
-            }
-            m_fileSelection.setSelected(location.getPath());
-        }
-        setEnabledFlowVarSensitive(!m_replacedByFlowVar);
-    }
-
     private void handleFileSelectionChange() {
         final String selectedPath = m_fileSelection.getSelected();
         // triggers updateComponent
-        getSettingsModel().getFileSystemConfiguration().getLocationConfig()
-            .setPath(selectedPath == null ? "" : selectedPath);
+        getSettingsModel().setPath(selectedPath == null ? "" : selectedPath);
     }
 
     @Override
     protected final void updateComponent() {
         final AbstractSettingsModelFileChooser sm = getSettingsModel();
-        final FileSystemConfiguration<FSLocationConfig> config = sm.getFileSystemConfiguration();
-        final FSLocationConfig locationConfig = config.getLocationConfig();
-        final FSLocation location = locationConfig.getLocationSpec();
+        final FSLocation location = sm.getLocation();
 
         m_fileSelection.setSelected(location.getPath());
 
         updateFilterMode();
         updateFileSelectionLabel(location);
         updateBrowser();
-        // the file system chooser updates itself when its config changes
-
         updateStatus();
-        handleFlowVariableModelChange();
+        setEnabledFlowVarSensitive(!sm.isLocationOverwrittenByFlowVariable());
     }
 
     /**
@@ -303,17 +274,14 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     private void updateStatus() {
+        m_statusView.clearStatus();
         m_statusConsumer.clear();
-        getSettingsModel().report(m_statusConsumer);
+        final AbstractSettingsModelFileChooser sm = getSettingsModel();
+        sm.report(m_statusConsumer);
         Optional<StatusMessage> status = m_statusConsumer.get();
-        boolean isWarningOrError = false;
-        if (status.isPresent()) {
-            status.ifPresent(m_statusView::setStatus);
-            MessageType type = status.get().getType();
-            isWarningOrError = type == MessageType.ERROR || type == MessageType.WARNING;
-        }
-        // don't check file if there are warnings/errors or we are in a convenience fs on the server
-        if (!isWarningOrError && !isRemoteJobView()) {
+        status.ifPresent(m_statusView::setStatus);
+        // don't check file if there are warnings/errors or we are on the server or currently loading the settings
+        if (sm.isLocationValid() && !isRemoteJobView() && !sm.isLoading()) {
             triggerSwingWorker();
         } else if (!status.isPresent()) {
             m_statusView.clearStatus();
@@ -326,12 +294,27 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         return CheckNodeContextUtil.isRemoteWorkflowContext();
     }
 
+    /**
+     * Sets the status provided by the swing worker if it is more urgent than the currently set status message.
+     * This is necessary because the swing worker works asynchronously and we might have already had the
+     * next event before it finishes.
+     *
+     * @param msg output by the status message swing worker
+     */
+    private void setStatusIfMoreUrgent(final StatusMessage msg) {
+        m_statusConsumer.clear();
+        m_statusConsumer.accept(msg);
+        m_statusView.getStatus().ifPresent(m_statusConsumer);
+        m_statusConsumer.get().ifPresent(m_statusView::setStatus);
+    }
+
     private void triggerSwingWorker() {
         if (m_statusMessageWorker != null) {
             m_statusMessageWorker.cancel(true);
         }
         try {
-            m_statusMessageWorker = new StatusSwingWorker(getSettingsModel(), m_statusView::setStatus, m_dialogType);
+            m_statusMessageWorker =
+                new StatusSwingWorker(getSettingsModel(), this::setStatusIfMoreUrgent, m_dialogType);
             m_statusMessageWorker.execute();
         } catch (Exception ex) {
             NodeLogger.getLogger(AbstractDialogComponentFileChooser.class)
@@ -398,7 +381,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
             m_statusMessageWorker.cancel(true);
             m_statusMessageWorker = null;
         }
-        getSettingsModel().getFileSystemConfiguration().validate();
+        getSettingsModel().validateConfig();
         m_fileSelection.addCurrentSelectionToHistory();
     }
 
@@ -414,7 +397,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     private void setEnabledFlowVarSensitive(final boolean enabled) {
-        final boolean actual = enabled && !m_replacedByFlowVar;
+        final boolean actual = enabled && getSettingsModel().isEnabled() && !getSettingsModel().isLocationOverwrittenByFlowVariable();
         m_fsChooser.setEnabled(actual);
         m_fileSelection.setEnabled(actual);
     }

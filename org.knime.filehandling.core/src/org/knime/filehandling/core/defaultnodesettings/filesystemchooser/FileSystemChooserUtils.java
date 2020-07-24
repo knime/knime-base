@@ -54,9 +54,10 @@ import java.util.Set;
 
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
@@ -80,31 +81,23 @@ public final class FileSystemChooserUtils {
         // static utility class
     }
 
-    private static <L extends FSLocationSpecConfig<L>> FileSystemConfiguration<L>
-        createConvenienceConfig(final L locationConfig) {
-        return new FileSystemConfiguration<>(locationConfig, //
-            new LocalSpecificConfig(), //
-            new RelativeToSpecificConfig(), //
-            new MountpointSpecificConfig(), //
-            new CustomURLSpecificConfig());
-    }
-
     /**
      * Creates a {@link FileSystemConfiguration} for the provided parameters.
      *
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param locationConfig the {@link FSLocationSpecConfig} to be used
+     * @param locationHandler the {@link FSLocationSpecHandler} to be used
      * @return a fresh {@link FileSystemConfiguration}
      */
-    public static <L extends FSLocationSpecConfig<L>> FileSystemConfiguration<L> createConfig(
-        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier, final L locationConfig) {
-        if (portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null) {
-            return new FileSystemConfiguration<>(locationConfig,
-                new ConnectedFileSystemSpecificConfig(portsConfig, fileSystemPortIdentifier));
-        } else {
-            return FileSystemChooserUtils.createConvenienceConfig(locationConfig);
-        }
+    public static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfig(
+        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier, final FSLocationSpecHandler<L> locationHandler) {
+        final boolean isConvenience = portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) == null;
+        return new FileSystemConfiguration<>(locationHandler, //
+                new LocalSpecificConfig(isConvenience), //
+                new RelativeToSpecificConfig(isConvenience),//
+                new MountpointSpecificConfig(isConvenience), //
+                new CustomURLSpecificConfig(isConvenience), //
+                new ConnectedFileSystemSpecificConfig(!isConvenience, portsConfig, fileSystemPortIdentifier));
     }
 
     /**
