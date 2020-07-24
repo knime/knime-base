@@ -54,7 +54,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
@@ -77,9 +76,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialo
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
@@ -136,8 +132,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         specMergePanel.add(m_union, gbc);
         ++gbc.gridx;
         gbc.weightx = 1;
-        gbc.fill= GridBagConstraints.HORIZONTAL;
-        specMergePanel.add(Box.createVerticalBox(),gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        specMergePanel.add(Box.createVerticalBox(), gbc);
         return specMergePanel;
     }
 
@@ -180,27 +176,17 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     @Override
     protected void registerPreviewChangeListeners() {
         super.registerPreviewChangeListeners();
-        final ActionListener actionListener = l -> {
-            if (validateFileSelection()) {
-                m_tableReaderPreview.configChanged();
-            }
-        };
+        final ActionListener actionListener = l -> configChanged();
+
         m_failOnDifferingSpecs.addActionListener(actionListener);
         m_intersection.addActionListener(actionListener);
         m_union.addActionListener(actionListener);
-        m_filePanel.getModel().addChangeListener(l -> {
-            if (validateFileSelection()) {
-                m_tableReaderPreview.configChanged();
-            }
-        });
+        m_filePanel.getModel().addChangeListener(l -> configChanged());
     }
 
     @Override
     protected boolean validateFileSelection() {
-        final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
-        m_filePanel.getSettingsModel().report(consumer);
-        final Optional<StatusMessage> statusMsg = consumer.get();
-        return !statusMsg.isPresent() || statusMsg.get().getType() == MessageType.INFO;
+        return m_filePanel.getSettingsModel().isLocationValid();
     }
 
     @Override

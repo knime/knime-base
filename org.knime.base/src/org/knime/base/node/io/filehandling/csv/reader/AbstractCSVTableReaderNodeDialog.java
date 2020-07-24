@@ -321,34 +321,24 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
             @Override
             public void removeUpdate(final DocumentEvent e) {
-                if (validateFileSelection()) {
-                    m_tableReaderPreview.configChanged();
-                }
+                configChanged();
             }
 
             @Override
             public void insertUpdate(final DocumentEvent e) {
-                if (validateFileSelection()) {
-                    m_tableReaderPreview.configChanged();
-                }
+                configChanged();
             }
 
             @Override
             public void changedUpdate(final DocumentEvent e) {
-                if (validateFileSelection()) {
-                    m_tableReaderPreview.configChanged();
-                }
+                configChanged();
             }
         };
         final ActionListener actionListener = l -> {
-            if (validateFileSelection()) {
-                m_tableReaderPreview.configChanged();
-            }
+            configChanged();
         };
         final ChangeListener changeListener = l -> {
-            if (validateFileSelection()) {
-                m_tableReaderPreview.configChanged();
-            }
+            configChanged();
         };
 
         m_colDelimiterField.getDocument().addDocumentListener(documentListener);
@@ -1015,9 +1005,16 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     void refreshPreview(final boolean refreshPreview) {
         m_tableReaderPreview.setEnabled(!m_disableComponentsRemoteContext);
-        if (refreshPreview && validateFileSelection()) {
-            m_tableReaderPreview.configChanged();
+        if (refreshPreview) {
+            configChanged();
         }
+    }
+
+    /**
+     * Should be called if the config changed in some way or form.
+     */
+    protected final void configChanged() {
+        m_tableReaderPreview.configChanged(validateFileSelection());
     }
 
     @Override
