@@ -50,7 +50,6 @@ package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import java.awt.GridBagLayout;
 import java.util.EnumSet;
-import java.util.Optional;
 
 import javax.swing.JPanel;
 
@@ -61,10 +60,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -84,10 +80,6 @@ public final class DialogComponentFileSystem extends DialogComponent {
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
-    private final FlowVariableModel m_fvm;
-
-    private boolean m_replacedByFlowVar = false;
-
     /**
      * Creates a file system chooser with an optional {@link FlowVariableModelButton} (if {@link FlowVariableModel fvm}
      * is not {@code null}).</br>
@@ -102,15 +94,12 @@ public final class DialogComponentFileSystem extends DialogComponent {
         super(model);
         CheckUtils.checkArgumentNotNull(model, "The model must not be null.");
         FileSystemConfiguration<?> config = model.getFileSystemConfiguration();
+        config.setLocationFlowVariableModel(fvm);
         m_fileSystemChooser = FileSystemChooserUtils.createFileSystemChooser(config, EnumSet.allOf(FSCategory.class));
         model.addChangeListener(e -> updateComponent());
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart();
-        m_fvm = fvm;
-        if (fvm != null) {
-            fvm.addChangeListener(e -> handleFVMChange());
-        }
         if (fvm != null && !config.hasFSPort()) {
             FlowVariableModelButton fvButton = new FlowVariableModelButton(fvm);
             panel.add(fvButton, gbc.build());
@@ -133,19 +122,6 @@ public final class DialogComponentFileSystem extends DialogComponent {
         this(model, null);
     }
 
-    private void handleFVMChange() {
-        if (m_fvm != null) {
-            m_replacedByFlowVar = m_fvm.isVariableReplacementEnabled();
-            final Optional<FlowVariable> flowVar = m_fvm.getVariableValue();
-            // we enable "by-hand" to avoid unnecessary events from being fired
-            m_fileSystemChooser.setEnabled(!m_replacedByFlowVar);
-            if (m_replacedByFlowVar && flowVar.isPresent()) {
-                final FSLocationSpec fsLocationSpec = flowVar.get().getValue(FSLocationSpecVariableType.INSTANCE);
-                getSM().getFileSystemConfiguration().setLocationSpec(fsLocationSpec);
-            }
-        }
-    }
-
     @Override
     protected void updateComponent() {
         final SettingsModelFileSystem sm = getSM();
@@ -154,7 +130,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
         m_statusConsumer.clear();
         sm.getFileSystemConfiguration().report(m_statusConsumer);
         m_statusConsumer.get().ifPresent(m_statusView::setStatus);
-        handleFVMChange();
+        m_fileSystemChooser.setEnabled(sm.isEnabled() && !sm.getFileSystemConfiguration().isLocationOverwrittenByVar());
     }
 
     private SettingsModelFileSystem getSM() {
@@ -173,7 +149,9 @@ public final class DialogComponentFileSystem extends DialogComponent {
 
     @Override
     protected void setEnabledComponents(final boolean enabled) {
-        m_fileSystemChooser.setEnabled(enabled && !m_replacedByFlowVar);
+        SettingsModelFileSystem sm = getSM();
+        m_fileSystemChooser
+            .setEnabled(enabled && sm.isEnabled() && !sm.getFileSystemConfiguration().isLocationOverwrittenByVar());
     }
 
     @Override

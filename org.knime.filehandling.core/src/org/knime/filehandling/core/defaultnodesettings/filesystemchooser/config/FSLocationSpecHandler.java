@@ -44,78 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 22, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 20, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * Abstract implementation of a {@link FSLocationSpecConfig} that provides getter and setters and handles listeners.
+ * Used by {@link FileSystemConfiguration} to handle specific implementations of {@link FSLocationSpec}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <S> The concrete type of {@link FSLocationSpec} handled by the subclass
- * @param <L> The concrete type of the subclass
+ * @param <L> the type of {@link FSLocationSpec} this handler handles
  */
-public abstract class AbstractLocationSpecConfig<S extends FSLocationSpec, L extends AbstractLocationSpecConfig<S, L>>
-    implements FSLocationSpecConfig<L> {
-
-    private final List<ChangeListener> m_listeners = new LinkedList<>();
-
-    private final ChangeEvent m_changeEvent = new ChangeEvent(this);
-
-    private S m_location;
+public interface FSLocationSpecHandler<L> {
 
     /**
-     * Constructor.
-     */
-    protected AbstractLocationSpecConfig() {
-    }
-
-    /**
-     * Copy constructor.
+     * Loads a location spec from the provided {@link NodeSettingsRO}.
      *
-     * @param toCopy instance to copy
+     * @param settings to load from
+     * @return the location spec stored in {@link NodeSettingsRO} settings
+     * @throws InvalidSettingsException if the settings are invalid
      */
-    protected AbstractLocationSpecConfig(final AbstractLocationSpecConfig<S, L> toCopy) {
-        m_location = toCopy.m_location;
-    }
-
-    @Override
-    public S getLocationSpec() {
-        return m_location;
-    }
-
-    @Override
-    public void setLocationSpec(final FSLocationSpec locationSpec) {
-        if (!Objects.equals(m_location, locationSpec)) {
-            m_location = adapt(locationSpec);
-            notifyChangeListeners();
-        }
-    }
+    L load(final NodeSettingsRO settings) throws InvalidSettingsException;
 
     /**
-     * Converts the provided {@link FSLocationSpec locationSpec} into the concrete type handled by the subclass.</br>
+     * Saves the <b>spec</b> into the {@link NodeSettingsWO}.
      *
-     * @param locationSpec to convert to the concrete type of the subclass
-     * @return the converted locationSpec
+     * @param settings to save to
+     * @param spec to save
      */
-    protected abstract S adapt(final FSLocationSpec locationSpec);
+    void save(final NodeSettingsWO settings, final L spec);
 
-    @Override
-    public final void addChangeListener(final ChangeListener listener) {
-        m_listeners.add(listener);
-    }
+    /**
+     * Adapts the provided {@link FSLocationSpec spec} to be of the same type as the oldSpec.
+     *
+     * @param oldSpec previously stored spec (may be {@code null})
+     * @param spec to adapt
+     * @return an adapted version of {@link FSLocationSpec spec}
+     */
+    L adapt(final L oldSpec, final FSLocationSpec spec);
 
-    private final void notifyChangeListeners() {
-        m_listeners.forEach(l -> l.stateChanged(m_changeEvent));
-    }
+    /**
+     * Called if the config has a fs port and the file system is overwritten with a flow variable.
+     *
+     * @param flowVarLocationSpec the locationSpec provided via flow variable
+     * @return the {@link StatusMessage} to display to the user
+     */
+    StatusMessage warnIfConnectedOverwrittenWithFlowVariable(L flowVarLocationSpec);
+
+    /**
+     * Returns the {@link VariableType} compatible with this handler.
+     * 
+     * @return the {@link VariableType} with which this location handler can work
+     */
+    VariableType<L> getVariableType();
 
 }

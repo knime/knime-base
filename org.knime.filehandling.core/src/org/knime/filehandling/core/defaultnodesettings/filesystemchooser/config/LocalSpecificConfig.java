@@ -94,7 +94,7 @@ public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpec
     }
 
     @Override
-    public void overwriteWith(final FSLocationSpec locationSpec) {
+    public void updateSpecifier(final FSLocationSpec locationSpec) {
         // nothing to overwrite
     }
 
@@ -131,6 +131,12 @@ public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpec
     @Override
     public Set<FileSelectionMode> getSupportedFileSelectionModes() {
         return EnumSet.allOf(FileSelectionMode.class);
+    }
+
+    @Override
+    public boolean canConnect() {
+        // a connection to the local file system is always possible
+        return true;
     }
 
 }

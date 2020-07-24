@@ -61,7 +61,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.DefaultFSLocationSpecConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
@@ -74,7 +73,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
 
     private final String m_configName;
 
-    private final FileSystemConfiguration<DefaultFSLocationSpecConfig> m_fsConfig;
+    private final FileSystemConfiguration<FSLocationSpec> m_fsConfig;
 
     /**
      * Constructor.
@@ -91,7 +90,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
             m_configName = configName;
         }
         m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
-            new DefaultFSLocationSpecConfig());
+            DefaultFSLocationSpecHandler.INSTANCE);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
     }
 
@@ -106,7 +105,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
     }
 
     String[] getKeysForFSLocation() {
-        return new String[]{m_configName, DefaultFSLocationSpecConfig.CFG_LOCATION_SPEC};
+        return new String[]{m_configName, DefaultFSLocationSpecHandler.CFG_LOCATION_SPEC};
     }
 
     /**
@@ -127,7 +126,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
         return m_fsConfig.createLocationFactory();
     }
 
-    FileSystemConfiguration<DefaultFSLocationSpecConfig> getFileSystemConfiguration() {
+    FileSystemConfiguration<FSLocationSpec> getFileSystemConfiguration() {
         return m_fsConfig;
     }
 

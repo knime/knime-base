@@ -44,75 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 20, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 20, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
-
-import javax.swing.event.ChangeListener;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.DeepCopy;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
+import org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
- * Configuration for dealing with objects extending {@link FSLocationSpec}.
+ * Implementation of a {@link FSLocationSpecHandler} that operates on actual {@link FSLocationSpec} instances.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <L> the concrete implementation type
  */
-public interface FSLocationSpecConfig<L extends FSLocationSpecConfig<L>> extends DeepCopy<L> {
+enum DefaultFSLocationSpecHandler implements FSLocationSpecHandler<FSLocationSpec> {
+        INSTANCE;
 
     /**
-     * Sets the new {@link FSLocationSpec} and notifies the change listeners if the value changed.
-     *
-     * @param locationSpec to set
+     * Config key used to store location specs.
      */
-    void setLocationSpec(final FSLocationSpec locationSpec);
+    public static final String CFG_LOCATION_SPEC = "location_spec";
 
-    /**
-     * Returns the {@link FSLocationSpec}.
-     *
-     * @return the {@link FSLocationSpec}
-     */
-    FSLocationSpec getLocationSpec();
+    @Override
+    public FSLocationSpec load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return FSLocationUtils.loadFSLocationSpec(settings.getNodeSettings(CFG_LOCATION_SPEC));
+    }
 
-    /**
-     * Restores the configuration from the provided settings in the node dialog.
-     *
-     * @param settings to load from
-     */
-    void loadSettingsForDialog(final NodeSettingsRO settings);
+    @Override
+    public void save(final NodeSettingsWO settings, final FSLocationSpec spec) {
+        FSLocationUtils.saveFSLocationSpec(spec, settings.addNodeSettings(CFG_LOCATION_SPEC));
+    }
 
-    /**
-     * Restores the configuration from the provided settings in the node model.
-     *
-     * @param settings to load from
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException;
+    @Override
+    public FSLocationSpec adapt(final FSLocationSpec oldSpec, final FSLocationSpec spec) {
+        return spec;
+    }
 
-    /**
-     * Validates the provided settings without changing the value of this configuration.
-     *
-     * @param settings to validate
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    void validateForModel(final NodeSettingsRO settings) throws InvalidSettingsException;
+    @Override
+    public StatusMessage warnIfConnectedOverwrittenWithFlowVariable(final FSLocationSpec flowVarLocationSpec) {
+        return new DefaultStatusMessage(MessageType.WARNING,
+            "The flow variable %s is ignored in favor of the file system provided via the input port.",
+            flowVarLocationSpec);
+    }
 
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(final NodeSettingsWO settings);
-
-    /**
-     * Adds the provided listener.
-     *
-     * @param listener to add
-     */
-    void addChangeListener(final ChangeListener listener);
+    @Override
+    public VariableType<FSLocationSpec> getVariableType() {
+        return FSLocationSpecVariableType.INSTANCE;
+    }
 
 }

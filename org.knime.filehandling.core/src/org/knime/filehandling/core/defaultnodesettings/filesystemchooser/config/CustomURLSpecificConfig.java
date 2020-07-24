@@ -131,7 +131,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
     }
 
     @Override
-    public void overwriteWith(final FSLocationSpec locationSpec) {
+    public void updateSpecifier(final FSLocationSpec locationSpec) {
         final int timeout = Integer.parseInt(locationSpec.getFileSystemSpecifier()
             .orElseThrow(() -> new IllegalArgumentException("No timeout for custom URL file system provided.")));
         CheckUtils.checkArgument(timeout >= 0, "The custom URL timeout must not be negative.");
@@ -190,6 +190,12 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
     @Override
     public Set<FileSelectionMode> getSupportedFileSelectionModes() {
         return EnumSet.of(FileSelectionMode.FILES_ONLY);
+    }
+
+    @Override
+    public boolean canConnect() {
+        // always true because we would need to connect in order to test if a connection is possible
+        return true;
     }
 
 }

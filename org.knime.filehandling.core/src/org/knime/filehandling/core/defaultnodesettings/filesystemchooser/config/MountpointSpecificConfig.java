@@ -200,7 +200,7 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
     }
 
     @Override
-    public void overwriteWith(final FSLocationSpec locationSpec) {
+    public void updateSpecifier(final FSLocationSpec locationSpec) {
         String mountpoint = locationSpec.getFileSystemSpecifier()
             .orElseThrow(() -> new IllegalArgumentException("No mountpoint specified."));
         setMountpoint(KNIMEConnection.getOrCreateMountpointAbsoluteConnection(mountpoint));
@@ -295,6 +295,11 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
     @Override
     public Set<FileSelectionMode> getSupportedFileSelectionModes() {
         return EnumSet.allOf(FileSelectionMode.class);
+    }
+
+    @Override
+    public boolean canConnect() {
+        return m_mountpoint != null && m_mountpoint.isValid() && m_mountpoint.isConnected();
     }
 
 }
