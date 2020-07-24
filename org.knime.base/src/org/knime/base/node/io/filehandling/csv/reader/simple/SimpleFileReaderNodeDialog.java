@@ -98,11 +98,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
 
     @Override
     protected void registerPreviewChangeListeners() {
-        m_filePanel.getFileHistoryPanel().addChangeListener(l -> {
-            if (validateFileSelection()) {
-                m_tableReaderPreview.configChanged();
-            }
-        });
+        m_filePanel.getFileHistoryPanel().addChangeListener(l -> configChanged());
         super.registerPreviewChangeListeners();
     }
 

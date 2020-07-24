@@ -298,10 +298,13 @@ public final class TableReaderPreview<C extends ReaderSpecificConfig<C>, V> exte
      * Inform the preview panel that the config has changed. It will display a hint that the preview needs to be
      * refreshed.
      *
+     * @param isValid whether the config is valid i.e. refreshing with the config has a chance at being successful
      */
-    public synchronized void configChanged() {
-        if (isEnabled()) {
+    public synchronized void configChanged(final boolean isValid) {
+        if (isEnabled() && isValid) {
             refresh();
+        } else {
+            onClose();
         }
     }
 
