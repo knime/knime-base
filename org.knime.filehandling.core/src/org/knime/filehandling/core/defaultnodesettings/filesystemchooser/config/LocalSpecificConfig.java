@@ -73,6 +73,15 @@ public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpec
 
     private static final FSLocationSpec LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
 
+    /**
+     * Constructor.
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
+     */
+    public LocalSpecificConfig(final boolean active) {
+        super(active);
+    }
+
     @Override
     public FSLocationSpec getLocationSpec() {
         return LOCATION_SPEC;
@@ -111,7 +120,7 @@ public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpec
 
     @Override
     public FileSystemSpecificConfig copy() {
-        return new LocalSpecificConfig();
+        return new LocalSpecificConfig(isActive());
     }
 
     @Override

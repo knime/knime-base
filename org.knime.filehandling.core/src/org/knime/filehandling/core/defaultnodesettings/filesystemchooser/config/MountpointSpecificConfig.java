@@ -104,9 +104,11 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
 
     /**
      * Constructor.
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
      */
-    public MountpointSpecificConfig() {
-
+    public MountpointSpecificConfig(final boolean active) {
+        super(active);
     }
 
     /**
@@ -115,6 +117,7 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
      * @param toCopy instance to copy
      */
     private MountpointSpecificConfig(final MountpointSpecificConfig toCopy) {
+        super(toCopy.isActive());
         m_mountpoint = toCopy.m_mountpoint;
     }
 

@@ -63,13 +63,17 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  */
 abstract class AbstractConvenienceFileSystemSpecificConfig extends AbstractFileSystemSpecificConfig {
 
+    protected AbstractConvenienceFileSystemSpecificConfig(final boolean active) {
+        super(active);
+    }
+
     @Override
     public Optional<FSConnection> getConnection() {
         return Optional.empty();
     }
 
     @Override
-    public void configureInModel(final PortObjectSpec[] specs, Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
         // default implementation is empty since convenience file systems don't have to do anything
         // during configure (with the exception of the mountpoint file system)
     }

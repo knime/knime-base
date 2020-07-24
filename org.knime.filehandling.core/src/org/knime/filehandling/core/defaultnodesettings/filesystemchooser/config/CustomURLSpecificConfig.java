@@ -86,11 +86,15 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
 
     /**
      * Constructor.
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
      */
-    public CustomURLSpecificConfig() {
+    public CustomURLSpecificConfig(final boolean active) {
+        super(active);
     }
 
     private CustomURLSpecificConfig(final CustomURLSpecificConfig toCopy) {
+        super(toCopy.isActive());
         m_timeout = toCopy.m_timeout;
     }
 

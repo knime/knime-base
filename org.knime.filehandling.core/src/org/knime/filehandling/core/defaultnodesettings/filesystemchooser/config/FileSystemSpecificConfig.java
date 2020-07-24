@@ -164,4 +164,11 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
      */
     void addChangeListener(ChangeListener listener);
 
+    /**
+     * Returns {@code true} if this config is active i.e. it is selectable for the user.
+     *
+     * @return {@code true} if this config is active
+     */
+    boolean isActive();
+
 }
