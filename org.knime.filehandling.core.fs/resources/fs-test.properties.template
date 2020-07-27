@@ -56,3 +56,8 @@ microsoft-sharepoint.password = <PASSWORD>
 microsoft-sharepoint.tenant = <TENANT-ID>
 microsoft-sharepoint.siteWebURL = https://knimedev.sharepoint.com/
 microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
+
+################ Azure Blob Storage ########################
+microsoft-blobstorage.account = <ACCOUNT>
+microsoft-blobstorage.key = <KEY>
+microsoft-blobstorage.workingDirPrefix = /knime-filehandling-test-container

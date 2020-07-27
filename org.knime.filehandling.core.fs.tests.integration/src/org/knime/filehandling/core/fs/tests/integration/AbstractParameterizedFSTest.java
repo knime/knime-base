@@ -77,8 +77,9 @@ public abstract class AbstractParameterizedFSTest {
     private static Collection<Object[]> allFileSystemTestInitializerProviders;
 
     protected static final String LOCAL = "local";
-    protected static final String S3 = "amazon-s3";
-    protected static final String GS = "google-cs";
+    protected static final String AMAZON_S3 = "amazon-s3";
+    protected static final String GOOGLE_CS = "google-cs";
+    protected static final String MICROSOFT_BLOBSTORAGE = "microsoft-blobstorage";
 
     protected static final String KNIME_LOCAL_RELATIVE_WORKFLOW = "knime-local-relative-workflow";
     protected static final String KNIME_LOCAL_RELATIVE_MOUNTPOINT = "knime-local-relative-mountpoint";

@@ -73,8 +73,9 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringTrailingSlash() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3);
+        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GOOGLE_CS);
+        ignoreWithReason("Azure Blob storage differentiates between paths with and without trailing slashes.", MICROSOFT_BLOBSTORAGE);
         final FileSystem fileSystem = m_connection.getFileSystem();
         final String that = "qwehekweq" + fileSystem.getSeparator();
         final Path path = fileSystem.getPath(that);
@@ -84,8 +85,9 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringTrailingSlash2() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3);
+        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GOOGLE_CS);
+        ignoreWithReason("Azure Blob storage differentiates between paths with and without trailing slashes.", MICROSOFT_BLOBSTORAGE);
         final FileSystem fileSystem = m_connection.getFileSystem();
         final String sep = fileSystem.getSeparator();
         final String that = String.join(sep, "", "ab", "cd", "ef", "g");
@@ -96,8 +98,9 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringEmpty() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3);
+        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GOOGLE_CS);
+        ignoreWithReason("Azure Blob storage differentiates between paths with and without trailing slashes.", MICROSOFT_BLOBSTORAGE);
         final String that = "";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -107,8 +110,9 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringSymbolicThisDir() {
-        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", S3);
-        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GS);
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3);
+        ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GOOGLE_CS);
+        ignoreWithReason("Azure Blob storage differentiates between paths with and without trailing slashes.", MICROSOFT_BLOBSTORAGE);
         final String that = ".";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -118,7 +122,7 @@ public class ToStringTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testToStringSymbolicThisDirBlobStore() {
-        ignoreAllExcept(S3, GS);
+        ignoreAllExcept(AMAZON_S3, GOOGLE_CS, MICROSOFT_BLOBSTORAGE);
         final String that = ".";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
