@@ -129,7 +129,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
-    private final FlowVariableModel m_locationFvm;
+    private final FlowVariableModelButton m_locationFvmBtn;
 
     private StatusSwingWorker m_statusMessageWorker = null;
 
@@ -148,7 +148,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         final FilterMode... filterModes) {
         super(model);
         m_dialogType = dialogType;
-        m_locationFvm =
             CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
         Set<FilterMode> selectableFilterModes =
@@ -158,6 +157,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         if (!selectableFilterModes.contains(FilterMode.FILE)) {
             categories.remove(FSCategory.CUSTOM_URL);
         }
+        m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
         m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration(), categories);
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
             selectableFilterModes.toArray(new FilterMode[0]));
@@ -197,7 +197,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(),
             gbc.incX().fillHorizontal().insetLeft(5).setWeightX(1).setWidth(2).build());
-        panel.add(new FlowVariableModelButton(m_locationFvm), gbc.incX(2).setWeightX(0).setWidth(1).build());
+        panel.add(m_locationFvmBtn, gbc.incX(2).setWeightX(0).setWidth(1).build());
         addAdditionalComponents(panel, gbc.resetX().insetLeft(0).incY());
         panel.add(m_statusView.getLabel(),
             gbc.anchorLineStart().insetLeft(9).insetTop(4).insetBottom(4).setX(1).widthRemainder().incY().build());
@@ -253,6 +253,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         updateBrowser();
         updateStatus();
         setEnabledFlowVarSensitive(!sm.isLocationOverwrittenByFlowVariable());
+        setEnabledComponents(sm.isEnabled());
     }
 
     /**
@@ -394,6 +395,8 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     protected void setEnabledComponents(final boolean enabled) {
         setEnabledFlowVarSensitive(enabled);
         m_filterMode.setEnabledComponents(enabled);
+        m_locationFvmBtn.setEnabled(enabled);
+        m_statusView.getLabel().setEnabled(enabled);
     }
 
     private void setEnabledFlowVarSensitive(final boolean enabled) {
