@@ -284,7 +284,7 @@ final class CreateDateTimeNodeModel extends NodeModel {
                 ? getTemporalExecTimeWithFormat(((LocalDateTime)m_end.getSelectedDateTime()).atZone(zone))
                 : m_start.getSelectedDateTime();
             end = m_endUseExecTime.getBooleanValue()
-                ? getTemporalExecTimeWithFormat(m_start.getSelectedDateTime())
+                ? ((ZonedDateTime)getTemporalExecTimeWithFormat(m_start.getSelectedDateTime())).withZoneSameLocal(zone)
                 : ZonedDateTime.of((LocalDateTime)m_end.getSelectedDateTime(), zone);
         } else {
             start = m_startUseExecTime.getBooleanValue() ? getTemporalExecTimeWithFormat(m_end.getSelectedDateTime())
