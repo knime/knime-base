@@ -85,6 +85,7 @@ public class WriteTableNodeModel extends NodeModel {
      */
     private static class DeferredOpenOutputStream extends OutputStream {
         private final URL m_url;
+
         private OutputStream m_delegate;
 
         DeferredOpenOutputStream(final URL url) {
@@ -96,7 +97,8 @@ public class WriteTableNodeModel extends NodeModel {
                 return m_delegate;
             }
 
-            m_delegate = FileUtil.openOutputConnection(m_url, "PUT").getOutputStream();
+            m_delegate = FileUtil.openOutputStream(m_url, "PUT");
+
             return m_delegate;
         }
 

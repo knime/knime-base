@@ -253,7 +253,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
             if (localURL != null) {
                 return Files.newOutputStream(localURL, options);
             } else {
-                return FileUtil.openOutputConnection(path.toUri().toURL(), "PUT").getOutputStream();
+                return FileUtil.openOutputStream(path.toUri().toURL(), "PUT");
             }
         } catch (final URISyntaxException ex) {
             throw new IOException(ex);

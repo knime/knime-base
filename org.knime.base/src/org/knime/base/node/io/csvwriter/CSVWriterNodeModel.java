@@ -56,7 +56,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -254,7 +253,6 @@ public class CSVWriterNodeModel extends NodeModel {
 
         boolean writeColHeader = m_settings.writeColumnHeader();
         OutputStream tempOut;
-        URLConnection urlConnection = null;
         boolean appendToFile;
         if (localPath != null) {
             // figure out if the writer is actually supposed to write col headers
@@ -275,8 +273,7 @@ public class CSVWriterNodeModel extends NodeModel {
         } else {
             CheckUtils.checkState(m_settings.getFileOverwritePolicy() != FileOverwritePolicy.Append,
                 url + " points to a remote file but append to remote files is not possible!");
-            urlConnection = FileUtil.openOutputConnection(url, "PUT");
-            tempOut = urlConnection.getOutputStream();
+            tempOut = FileUtil.openOutputStream(url, "PUT");
             appendToFile = false;
         }
 

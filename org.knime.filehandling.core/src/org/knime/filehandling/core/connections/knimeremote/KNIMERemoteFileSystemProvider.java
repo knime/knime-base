@@ -157,9 +157,10 @@ final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERe
     }
 
     @Override
-    protected OutputStream newOutputStreamInternal(final KNIMERemotePath path, final OpenOption... options) throws IOException {
+    protected OutputStream newOutputStreamInternal(final KNIMERemotePath path, final OpenOption... options)
+        throws IOException {
         final URL knimeURL = path.toKNIMEProtocolURI().toURL();
-        return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
+        return FileUtil.openOutputStream(knimeURL, "PUT");
     }
 
     @Override
