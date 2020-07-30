@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="createpaths.png" type="Other"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Create Paths (Labs)</name>
+	<shortDescription>Creates paths and exposes them as flow variables.</shortDescription>
+	<fullDescription>
+		<intro>
+			This node takes a folder path as root and a list of path names to create and expose multiple paths in path
+			flow variables after execution.
+			<br />
+			<i>Note:</i>
+			By default the workflow data area is selected as directory, as defined by “.“ in the Folder field
+		</intro>
+		<option name="Read from">
+			Select a file system to which your file names are related. There are three default file system options to
+			choose from:
+			<br />
+			<ul>
+				<li>
+					<i>Local File System:</i>
+					Allows you to select a folder on your local system.
+				</li>
+				<li>
+					<i>Mountpoint:</i>
+					Allows you to read from a mountpoint. When selected, a new drop-down menu appears to choose the
+					mountpoint. Unconnected mountpoints are greyed out but can still be selected (note that browsing is
+					disabled in this case). Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
+					A mountpoint is displayed in red if it was previously selected but is no longer available.
+					You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
+				</li>
+				<li>
+					<i>Relative to:</i>
+					Allows you to choose whether to resolve the path relative to the current mountpoint, current 
+					workflow or the current workflow's data area. When selected a new drop-down menu appears to choose
+					which of the three options to use.
+				</li>
+			</ul>
+			It is possible to use other file systems with this node. Therefore, you have to enable the file system
+			connection input port of this node by clicking the <b>...</b> in the bottom left corner of the node's icon
+			and choose <i>Add File System Connection port</i>.
+			<br />
+			Afterwards, you can simply connect the desired connector node to this node. The file system connection will
+			then be shown in the drop-down menu. It is grayed out if the file system is not connected in which case you
+			have to (re)execute the connector node first. Note: The default file systems listed above can't be selected
+			if a file system is provided via the input port.
+		</option>
+		<option name="Folder">
+			Enter a valid location as root for your paths. The required syntax of a path depends on the chosen file
+			system, such as &quot;C:\path\to\file&quot; (Local File System on Windows) or &quot;/path/to/file&quot;
+			(Local File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+			description of the respective connector node describes the required path format. You can also choose a 
+			previously selected folder from the drop-down list, or select a location from the &quot;Browse...&quot;
+			dialog. Note that browsing is disabled in some cases:
+			<ul>
+				<li>
+					<i>Mountpoint:</i>
+					Browsing is disabled if, the selected mountpoint isn't connected. Go to the KNIME Explorer and
+					connect to the mountpoint to enable browsing.
+				</li>
+				<li>
+					<i>File systems provided via input port:</i>
+					Browsing is disabled, if the connector node hasn't been executed since the workflow has been opened.
+					(Re)execute the connector node to enable browsing.
+				</li>
+			</ul>
+		</option>
+		<option name="Path variables">A list of paths that will form a path with the selected root directory. Enter the
+		name of the flow variable in the first column and the path in the second column.
+		</option>
+		<link
+			href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
+			KNIME E-Learning Course: Creation and usage of Flow Variables in
+			a KNIME workflow
+		</link>
+	</fullDescription>
+	<ports>
+		<dynInPort group-identifier="File System Connection"
+			insert-before="0" name="File system connection">The file system connection.
+		</dynInPort>
+		<outPort index="0" name="Flow Variables with path information">Flow Variables with path information.
+		</outPort>
+	</ports>
+</knimeNode>
