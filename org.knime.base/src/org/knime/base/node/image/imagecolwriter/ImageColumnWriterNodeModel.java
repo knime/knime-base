@@ -213,7 +213,7 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         if (file != null) {
             return new BufferedOutputStream(Files.newOutputStream(file));
         } else {
-            return new BufferedOutputStream(FileUtil.openOutputConnection(url, "PUT").getOutputStream());
+            return new BufferedOutputStream(FileUtil.openOutputStream(url, "PUT"));
         }
     }
 

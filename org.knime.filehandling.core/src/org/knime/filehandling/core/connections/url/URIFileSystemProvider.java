@@ -195,7 +195,7 @@ public class URIFileSystemProvider extends FileSystemProvider {
             if (localURL != null) {
                 return Files.newOutputStream(localURL, options);
             } else {
-                return FileUtil.openOutputConnection(uriPath.toUri().toURL(), "PUT").getOutputStream();
+                return FileUtil.openOutputStream(uriPath.toUri().toURL(), "PUT");
             }
         } catch (final URISyntaxException ex) {
             throw new IOException(ex);
@@ -415,3 +415,4 @@ public class URIFileSystemProvider extends FileSystemProvider {
         throw new UnsupportedOperationException();
     }
 }
+

@@ -298,7 +298,7 @@ public class ARFFWriterNodeModel extends NodeModel {
         if (localPath != null) {
             return Files.newBufferedWriter(localPath, Charset.forName("UTF-8"));
         } else {
-            OutputStream os = FileUtil.openOutputConnection(url, "PUT").getOutputStream();
+            OutputStream os = FileUtil.openOutputStream(url, "PUT");
             return new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
         }
     }

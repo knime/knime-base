@@ -204,7 +204,7 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         final KNIMERemotePath knimePath = (KNIMERemotePath)path;
         final URL knimeURL = toURL(knimePath);
 
-        return FileUtil.openOutputConnection(knimeURL, "PUT").getOutputStream();
+        return FileUtil.openOutputStream(knimeURL, "PUT");
     }
 
     private static int getTimeout() {
@@ -366,3 +366,4 @@ public class KNIMERemoteFileSystemProvider extends FileSystemProvider {
         }
     }
 }
+
