@@ -306,7 +306,7 @@ Require-Bundle: org.apache.commons.math;bundle-version="[2.1.0,2.2.0)",
  jenetics;bundle-version="[4.3.0,5.0.0]",
  org.knime.core.pmml;bundle-version="[4.0.0,5.0.0)",
  org.knime.filehandling.core;bundle-version="[4.1.2,5.0.0)",
- org.knime.core;bundle-version="[4.0.0,5.0.0)";visibility:=reexport
+ org.knime.core;bundle-version="[4.1.4,5.0.0)";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-BuddyPolicy: dependent
 Eclipse-BundleShape: dir
