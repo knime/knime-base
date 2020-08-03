@@ -97,7 +97,7 @@ public final class FSLocationFactory implements AutoCloseable {
     public FSLocation createLocation(final String path) {
         final FSLocation unvalidatedLocation =
             new FSLocation(m_spec.getFileSystemCategory(), m_spec.getFileSystemSpecifier()
-                .orElseThrow(() -> new IllegalStateException("FSLocationSpec is missing specifier.")), path);
+                .orElse(null), path);
         FSLocation validatedLocation = null;
         try (FSPathProvider pathProvider = m_pathProviderFactory.create(unvalidatedLocation)) {
             final FSPath fsPath = pathProvider.getPath();
