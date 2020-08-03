@@ -111,17 +111,6 @@ public final class DialogComponentFileSystem extends DialogComponent {
         panel.add(new JPanel(), gbc.resetX().incY().fillBoth().widthRemainder().setWeightX(1).setWeightY(1).build());
     }
 
-    /**
-     * Creates a file system chooser without a flow variable button.</br>
-     * Use {@link DialogComponentFileSystem#DialogComponentFileSystem(SettingsModelFileSystem, FlowVariableModel)} if
-     * you want to display a flow variable button.
-     *
-     * @param model the {@link SettingsModelFileSystem} to display
-     */
-    public DialogComponentFileSystem(final SettingsModelFileSystem model) {
-        this(model, null);
-    }
-
     @Override
     protected void updateComponent() {
         final SettingsModelFileSystem sm = getSM();
