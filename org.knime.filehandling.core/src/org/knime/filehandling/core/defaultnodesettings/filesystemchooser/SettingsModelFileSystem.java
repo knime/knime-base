@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -58,6 +59,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -104,7 +106,11 @@ public final class SettingsModelFileSystem extends SettingsModel {
         m_fsConfig = toCopy.m_fsConfig.copy();
     }
 
-    String[] getKeysForFSLocation() {
+    /**
+     *
+     * @return keys to be used to create the flow variable model for the {@link FSLocationSpec} flow variable
+     */
+    public String[] getKeysForFSLocation() {
         return new String[]{m_configName, DefaultFSLocationSpecHandler.CFG_LOCATION_SPEC};
     }
 
@@ -115,6 +121,15 @@ public final class SettingsModelFileSystem extends SettingsModel {
      */
     public FSLocationSpec getLocationSpec() {
         return m_fsConfig.getLocationSpec();
+    }
+
+    /**
+     * Retrieves the {@link FSConnection} if a file system port is connected and the connection is available, otherwise {@link Optional#empty()}.
+     *
+     * @return an {@link Optional} holding the {@link FSConnection} from the input port (if available)
+     */
+    public Optional<FSConnection> getConnection() {
+        return m_fsConfig.getConnection();
     }
 
     /**
