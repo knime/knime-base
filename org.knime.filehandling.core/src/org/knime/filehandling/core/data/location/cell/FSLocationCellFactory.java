@@ -58,6 +58,7 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.data.filestore.FileStoreUtil;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * Factory for {@link FSLocationCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
@@ -103,10 +104,10 @@ public final class FSLocationCellFactory {
      * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
-     * @param fsLocation the file system location object holding the type and specifier of the file system
+     * @param fsLocationSpec the file system location spec object holding the type and specifier of the file system
      */
-    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocation fsLocation) {
-        this(fileStoreFactory, fsLocation.getFileSystemCategory(), fsLocation.getFileSystemSpecifier().orElse(null));
+    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocationSpec fsLocationSpec) {
+        this(fileStoreFactory, fsLocationSpec.getFileSystemCategory(), fsLocationSpec.getFileSystemSpecifier().orElse(null));
     }
 
     /**
