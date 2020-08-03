@@ -2,7 +2,7 @@
 <feature
       id="org.knime.features.filehandling.core"
       label="KNIME File Handling (Prototype)"
-      version="4.1.2.qualifier"
+      version="4.1.4.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
 
    <description>

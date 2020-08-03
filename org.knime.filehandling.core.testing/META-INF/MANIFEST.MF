@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Unit-Tests for org.knime.filehandling.connections
 Bundle-SymbolicName: org.knime.filehandling.core.testing;singleton:=true
-Bundle-Version: 4.1.0.qualifier
+Bundle-Version: 4.1.4.qualifier
 Fragment-Host: org.knime.filehandling.core;bundle-version="4.1.0"
 Automatic-Module-Name: org.knime.filehandling.connections.testing
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
