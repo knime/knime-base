@@ -278,6 +278,10 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         m_statusView.clearStatus();
         m_statusConsumer.clear();
         final AbstractSettingsModelFileChooser sm = getSettingsModel();
+        if (!sm.isEnabled()) {
+            // Don't update the status message if the model is disabled
+            return;
+        }
         sm.report(m_statusConsumer);
         Optional<StatusMessage> status = m_statusConsumer.get();
         status.ifPresent(m_statusView::setStatus);
