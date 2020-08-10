@@ -61,6 +61,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.data.StringValue;
@@ -81,9 +82,17 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableFunction;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -108,15 +117,19 @@ final class StringToPathNodeModel extends NodeModel {
 
     static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Data Table";
 
-    static final String CFG_FILE_SYSTEM = "file_system";
+    private static final int DATA_TABLE_OUTPUT_IDX = 0;
 
-    static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
+    private static final String CFG_FILE_SYSTEM = "file_system";
 
-    static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
+    private static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
 
-    static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
+    private static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
 
-    static final String CFG_ABORT_ON_MISSING_FILE = "abort_on_missing_file";
+    private static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
+
+    private static final String CFG_ABORT_ON_MISSING_FILE = "fail_on_missing_file_folder";
+
+    private static final String CFG_FAIL_ON_MISSING_VALS = "fail_on_missing_values";
 
     private final SettingsModelFileSystem m_fileSystemModel;
 
@@ -128,29 +141,35 @@ final class StringToPathNodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_abortOnMissingFileModel = createSettingsModelAbortOnMissingFile();
 
+    private final SettingsModelBoolean m_failOnMissingValues = createSettingsModelFailOnMissingValues();
+
     private final NodeModelStatusConsumer m_statusConsumer;
 
     private final int m_dataTablePortIndex;
 
-    public static SettingsModelFileSystem createSettingsModelFileSystem(final PortsConfiguration portsConfig) {
+    static SettingsModelFileSystem createSettingsModelFileSystem(final PortsConfiguration portsConfig) {
         return new SettingsModelFileSystem(CFG_FILE_SYSTEM, portsConfig,
             StringToPathNodeModel.CONNECTION_INPUT_PORT_GRP_NAME);
     }
 
-    public static SettingsModelString createSettingsModelColumnName() {
+    static SettingsModelString createSettingsModelColumnName() {
         return new SettingsModelString(CFG_SELECTED_COLUMN_NAME, "");
     }
 
-    public static SettingsModelString createSettingsModelColumnMode() {
+    static SettingsModelString createSettingsModelColumnMode() {
         return new SettingsModelString(CFG_GENERATED_COLUMN_MODE, GenerateColumnMode.APPEND_NEW.getActionCommand());
     }
 
-    public static SettingsModelString createSettingsModelAppendedColumnName() {
+    static SettingsModelString createSettingsModelAppendedColumnName() {
         return new SettingsModelString(CFG_APPENDED_COLUMN_NAME, "Path");
     }
 
-    public static SettingsModelBoolean createSettingsModelAbortOnMissingFile() {
+    static SettingsModelBoolean createSettingsModelAbortOnMissingFile() {
         return new SettingsModelBoolean(CFG_ABORT_ON_MISSING_FILE, false);
+    }
+
+    static SettingsModelBoolean createSettingsModelFailOnMissingValues() {
+        return new SettingsModelBoolean(CFG_FAIL_ON_MISSING_VALS, true);
     }
 
     StringToPathNodeModel(final PortsConfiguration portsConfig) {
@@ -167,10 +186,8 @@ final class StringToPathNodeModel extends NodeModel {
         DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
         DataTableSpec outSpec = null;
 
-        try {
-            Pair<StringToPathCellFactory, ColumnRearranger> pair = createColumnRearranger(inSpec, null);
-            pair.getFirst().close();
-            outSpec = pair.getSecond().createSpec();
+        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, null)) {
+            outSpec = createColumnRearranger(inSpec, factory).createSpec();
         } catch (IOException e) {
             LOGGER.debug("Unable to close StringToPathCellFactory: " + e.getMessage(), e);
         }
@@ -178,62 +195,63 @@ final class StringToPathNodeModel extends NodeModel {
         return new PortObjectSpec[]{outSpec};
     }
 
-    @SuppressWarnings("resource") // StringToPathCellFactory gets closed in separate method
     @Override
     protected BufferedDataTable[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final BufferedDataTable inTable = (BufferedDataTable)data[m_dataTablePortIndex];
-        final Pair<StringToPathCellFactory, ColumnRearranger> pair =
-            createColumnRearranger(inTable.getDataTableSpec(), exec);
-        BufferedDataTable out = null;
-        try {
-            out = exec.createColumnRearrangeTable(inTable, pair.getSecond(), exec);
-        } finally {
-            tryToCloseStringToPathCellFactory(pair.getFirst());
+        final DataTableSpec inSpec = inTable.getDataTableSpec();
+        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, exec)) {
+            final BufferedDataTable out =
+                exec.createColumnRearrangeTable(inTable, createColumnRearranger(inSpec, factory), exec);
+            return new BufferedDataTable[]{out};
         }
-
-        return new BufferedDataTable[]{out};
     }
 
-    private static void tryToCloseStringToPathCellFactory(final StringToPathCellFactory factory) {
-        try {
-            factory.close();
-        } catch (IOException e) {
-            LOGGER.debug("Unable to close StringToPathCellFactory: " + e.getMessage(), e);
-        }
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        // assumes that the order is (dynamic) FS connection port before data table input port
+        return m_dataTablePortIndex == 0 //
+            ? new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE}//
+            : new InputPortRole[]{InputPortRole.NONDISTRIBUTED_NONSTREAMABLE, InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new StringToPathStreamableOperator();
+
     }
 
     /**
      * Create a {@link ColumnRearranger} that either replaces the selected column with its Path counterpart, or appends
      * a new column.
      *
-     * @param inSpec Specification of the input table
-     * @param exec this nodes execution context
+     * @param inSpec specification of the input table
+     * @param factory the {@link StringToPathCellFactory}
      * @return {@link ColumnRearranger} that will append a new column or replace the selected column
-     * @throws InvalidSettingsException If the settings are incorrect
      */
-    @SuppressWarnings("resource") // The calling methods ensure that the StringToPathCellFactory is closed
-    private Pair<StringToPathCellFactory, ColumnRearranger> createColumnRearranger(final DataTableSpec inSpec,
-        final ExecutionContext exec) throws InvalidSettingsException {
-
-        final String selectedColumn = m_selectedColumnNameModel.getStringValue();
-        final int colIdx = inSpec.findColumnIndex(selectedColumn);
-
-        checkSettings(inSpec, colIdx, selectedColumn);
-
-        ColumnRearranger rearranger = new ColumnRearranger(inSpec);
-        DataColumnSpec colSpec = getNewColumnSpec(inSpec);
-
-        // Create cell factory with PATHs
-        // The calling methods must close the StringToPathCellFactory
-        final StringToPathCellFactory factory = new StringToPathCellFactory(colSpec, colIdx, exec); // NOSONAR
+    private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec, final StringToPathCellFactory factory) {
+        final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         // Either replace or append a column depending on users choice
         if (isReplaceMode(m_generatedColumnModeModel)) {
             rearranger.replace(factory, m_selectedColumnNameModel.getStringValue());
         } else {
             rearranger.append(factory);
         }
+        return rearranger;
+    }
 
-        return new Pair<>(factory, rearranger);
+    private StringToPathCellFactory createStringPathCellFactory(final DataTableSpec inSpec, final ExecutionContext exec)
+        throws InvalidSettingsException {
+        final String selectedColumn = m_selectedColumnNameModel.getStringValue();
+        final int colIdx = inSpec.findColumnIndex(selectedColumn);
+        checkSettings(inSpec, colIdx, selectedColumn);
+        DataColumnSpec colSpec = getNewColumnSpec(inSpec);
+        return new StringToPathCellFactory(colSpec, colIdx, exec);
     }
 
     private DataColumnSpec getNewColumnSpec(final DataTableSpec inSpec) {
@@ -278,6 +296,7 @@ final class StringToPathNodeModel extends NodeModel {
         m_fileSystemModel.saveSettingsTo(settings);
         m_selectedColumnNameModel.saveSettingsTo(settings);
         m_abortOnMissingFileModel.saveSettingsTo(settings);
+        m_failOnMissingValues.saveSettingsTo(settings);
         m_appendedColumnNameModel.saveSettingsTo(settings);
         m_generatedColumnModeModel.saveSettingsTo(settings);
     }
@@ -287,6 +306,7 @@ final class StringToPathNodeModel extends NodeModel {
         m_fileSystemModel.loadSettingsFrom(settings);
         m_selectedColumnNameModel.loadSettingsFrom(settings);
         m_abortOnMissingFileModel.loadSettingsFrom(settings);
+        m_failOnMissingValues.loadSettingsFrom(settings);
         m_appendedColumnNameModel.loadSettingsFrom(settings);
         m_generatedColumnModeModel.loadSettingsFrom(settings);
     }
@@ -296,6 +316,7 @@ final class StringToPathNodeModel extends NodeModel {
         m_fileSystemModel.validateSettings(settings);
         m_selectedColumnNameModel.validateSettings(settings);
         m_abortOnMissingFileModel.validateSettings(settings);
+        m_failOnMissingValues.validateSettings(settings);
         m_appendedColumnNameModel.validateSettings(settings);
         m_generatedColumnModeModel.validateSettings(settings);
     }
@@ -329,7 +350,7 @@ final class StringToPathNodeModel extends NodeModel {
          * @param colIdx the index of the selected column
          * @param exec execution context used to create file store for {@link FSLocationCellFactory}
          */
-        public StringToPathCellFactory(final DataColumnSpec newColSpec, final int colIdx, final ExecutionContext exec) {
+        StringToPathCellFactory(final DataColumnSpec newColSpec, final int colIdx, final ExecutionContext exec) {
             super(newColSpec);
             m_colIdx = colIdx;
             if (exec != null) {
@@ -365,7 +386,8 @@ final class StringToPathNodeModel extends NodeModel {
             if (!tempCell.isMissing()) {
                 final String cellValue = ((StringValue)tempCell).getStringValue();
 
-                checkIfValueIsEmpty(cellValue);
+                CheckUtils.checkArgument(cellValue != null && !cellValue.trim().isEmpty(),
+                    "Selected column contains empty string(s).");
 
                 final FSLocation fsLocation = m_fsLocationFactory.createLocation(cellValue);
 
@@ -376,7 +398,11 @@ final class StringToPathNodeModel extends NodeModel {
                 pathCell = m_fsLocationCellFactory.createCell(fsLocation);
 
             } else {
-                throw new MissingValueException((MissingValue)tempCell, "Selected column contains missing cell!");
+                if (m_failOnMissingValues.getBooleanValue()) {
+                    throw new MissingValueException((MissingValue)tempCell,
+                        "Selected column contains missing cell(s).");
+                }
+                pathCell = DataType.getMissingCell();
             }
 
             return pathCell;
@@ -394,19 +420,43 @@ final class StringToPathNodeModel extends NodeModel {
             }
         }
 
-        private void checkIfValueIsEmpty(final String value) {
-            if (value != null && value.trim().isEmpty()) {
-                throw new IllegalArgumentException("Selected column contains an empty string!");
-            }
-        }
-
         @Override
         public void close() throws IOException {
             if (m_fsLocationFactory != null) {
-                m_fsLocationFactory.close();
+                try {
+                    m_fsLocationFactory.close();
+                } finally {
+                    if (m_fsPathProviderFactory != null) {
+                        m_fsPathProviderFactory.close();
+                    }
+                }
             }
-            if (m_fsPathProviderFactory != null) {
-                m_fsPathProviderFactory.close();
+        }
+    }
+
+    /**
+     * Inner class allowing the node to be executed in streaming mode.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    private class StringToPathStreamableOperator extends StreamableOperator {
+
+        @Override
+        public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+            throws Exception {
+            final RowInput in = (RowInput)inputs[m_dataTablePortIndex];
+            final RowOutput out = (RowOutput)outputs[DATA_TABLE_OUTPUT_IDX];
+            final DataTableSpec inSpec = in.getDataTableSpec();
+            try (StringToPathCellFactory factory = createStringPathCellFactory(inSpec, exec)) {
+                final StreamableFunction streamableFunction =
+                    createColumnRearranger(inSpec, factory).createStreamableFunction();
+                DataRow row;
+                while ((row = in.poll()) != null) {
+                    out.push(streamableFunction.compute(row));
+                }
+            } finally {
+                in.close();
+                out.close();
             }
         }
     }
