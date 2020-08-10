@@ -153,12 +153,8 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         Set<FilterMode> selectableFilterModes =
             Stream.concat(Stream.of(model.getFilterModeModel().getFilterMode()), Arrays.stream(filterModes)).distinct()
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
-        final Set<FSCategory> categories = EnumSet.allOf(FSCategory.class);
-        if (!selectableFilterModes.contains(FilterMode.FILE)) {
-            categories.remove(FSCategory.CUSTOM_URL);
-        }
         m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
-        m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration(), categories);
+        m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration());
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
             selectableFilterModes.toArray(new FilterMode[0]));
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =

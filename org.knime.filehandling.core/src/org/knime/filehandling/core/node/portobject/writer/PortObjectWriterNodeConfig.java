@@ -50,6 +50,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -94,7 +95,28 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
     public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig,
         final SelectionMode defaultSelectionMode, final FileOverwritePolicy defaultPolicy,
         final Set<FileOverwritePolicy> supportedPolicies) {
-        this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter(), defaultPolicy, supportedPolicies);
+        this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter(), defaultPolicy, supportedPolicies,
+            EnumSet.allOf(FSCategory.class));
+    }
+
+    /**
+     * Constructor for configurations for which the default filter mode is set to the default associated with the given
+     * {@link SelectionMode}, the set of available {@link FileOverwritePolicy FileOverwritePolicys} is configurable, and
+     * no valid suffixes are available.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param defaultSelectionMode the default {@link SelectionMode}
+     * @param defaultPolicy the policy selected by default
+     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that is available if no file
+     *            system port is present (may contain {@link FSCategory#CONNECTED})
+     */
+    public PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig,
+        final SelectionMode defaultSelectionMode, final FileOverwritePolicy defaultPolicy,
+        final Set<FileOverwritePolicy> supportedPolicies, final Set<FSCategory> convenienceFS) {
+        this(creationConfig, new String[0], defaultSelectionMode.getDefaultFilter(), defaultPolicy, supportedPolicies,
+            convenienceFS);
     }
 
     /**
@@ -129,7 +151,7 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
     private PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes,
         final FilterMode defaultFilterMode) {
         this(creationConfig, fileSuffixes, defaultFilterMode, FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL));
+            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL), EnumSet.allOf(FSCategory.class));
     }
 
     /**
@@ -143,13 +165,15 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
      * @param defaultPolicy the policy selected by default
      * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
      *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
      */
     private PortObjectWriterNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes,
         final FilterMode defaultFilterMode, final FileOverwritePolicy defaultPolicy,
-        final Set<FileOverwritePolicy> supportedPolicies) {
+        final Set<FileOverwritePolicy> supportedPolicies, final Set<FSCategory> convenienceFS) {
         super(new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER,
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            defaultFilterMode, defaultPolicy, supportedPolicies, fileSuffixes));
+            defaultFilterMode, defaultPolicy, supportedPolicies, convenienceFS, fileSuffixes));
     }
 
 }

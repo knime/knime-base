@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import java.awt.GridBagLayout;
-import java.util.EnumSet;
 
 import javax.swing.JPanel;
 
@@ -60,7 +59,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -95,7 +93,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
         CheckUtils.checkArgumentNotNull(model, "The model must not be null.");
         FileSystemConfiguration<?> config = model.getFileSystemConfiguration();
         config.setLocationFlowVariableModel(fvm);
-        m_fileSystemChooser = FileSystemChooserUtils.createFileSystemChooser(config, EnumSet.allOf(FSCategory.class));
+        m_fileSystemChooser = FileSystemChooserUtils.createFileSystemChooser(config);
         model.addChangeListener(e -> updateComponent());
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());

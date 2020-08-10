@@ -59,6 +59,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
@@ -83,16 +84,18 @@ public final class SettingsModelFileSystem extends SettingsModel {
      * @param configName name under which the SettingsModel is stored
      * @param portsConfig the {@link PortsConfiguration} of the node
      * @param fileSystemPortIdentifier identifier of the file system port in {@link PortsConfiguration portsConfig}
+     * @param convenienceFS the {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
      */
     public SettingsModelFileSystem(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier) {
+        final String fileSystemPortIdentifier, final FSCategory... convenienceFS) {
         if (portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null) {
             m_configName = configName + SettingsModel.CFGKEY_INTERNAL;
         } else {
             m_configName = configName;
         }
         m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
-            DefaultFSLocationSpecHandler.INSTANCE);
+            DefaultFSLocationSpecHandler.INSTANCE, convenienceFS);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
     }
 

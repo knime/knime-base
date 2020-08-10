@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.FlowVariableModel;
@@ -61,6 +62,7 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -115,12 +117,15 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
      * @param defaultFilterMode the default {@link FilterMode}
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
-        m_fsConfig =
-            FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier, FSLocationHandler.INSTANCE);
+        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS,
+        final String... fileExtensions) {
+        m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
+            FSLocationHandler.INSTANCE, convenienceFS);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
         m_configName = configName;
         m_fileExtensions =

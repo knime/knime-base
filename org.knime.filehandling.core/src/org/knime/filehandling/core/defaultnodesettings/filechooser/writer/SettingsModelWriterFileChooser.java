@@ -99,13 +99,44 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
      * @param defaultPolicy the policy selected by default
      * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
      *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode,
         final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies,
-        final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, fileExtensions);
+        final Set<FSCategory> convenienceFS, final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, convenienceFS, fileExtensions);
+        if (defaultPolicy == null) {
+            CheckUtils.checkArgument(supportedPolicies.isEmpty(),
+                "There must not be any supported policy if the default policy is null.");
+        } else {
+            CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
+                "The default policy must be among the possible policies.");
+        }
+        m_defaultPolicy = defaultPolicy;
+        m_supportedPolicies = Collections.unmodifiableSet(EnumSet.copyOf(supportedPolicies));
+        m_selectedPolicy = defaultPolicy;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param configName under which to store the settings
+     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
+     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
+     * @param defaultFilterMode the default {@link FilterMode} (may be {@code null} if there is no policy for existing
+     *            files)
+     * @param defaultPolicy the policy selected by default
+     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param fileExtensions the supported file extensions
+     */
+    public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode,
+        final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies, final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class), fileExtensions);
         if (defaultPolicy == null) {
             CheckUtils.checkArgument(supportedPolicies.isEmpty(),
                 "There must not be any supported policy if the default policy is null.");
