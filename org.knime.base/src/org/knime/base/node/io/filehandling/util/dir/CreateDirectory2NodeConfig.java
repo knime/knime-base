@@ -97,7 +97,7 @@ final class CreateDirectory2NodeConfig {
     CreateDirectory2NodeConfig(final PortsConfiguration portsConfig) {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_DIR_PARENT, portsConfig,
             CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.APPEND,
-            EnumSet.of(FileOverwritePolicy.APPEND));
+            EnumSet.of(FileOverwritePolicy.APPEND), EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> New Folder)
         if (!portsConfig.getInputPortLocation()
             .containsKey(CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
