@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -81,23 +82,70 @@ public final class FileSystemChooserUtils {
         // static utility class
     }
 
+    private static EnumSet<FSCategory> createDefaultCategories(final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier) {
+        if (hasFSPort(portsConfig, fileSystemPortIdentifier)) {
+            final EnumSet<FSCategory> categories = EnumSet.allOf(FSCategory.class);
+            categories.remove(FSCategory.CONNECTED);
+            return categories;
+        } else {
+            return EnumSet.of(FSCategory.CONNECTED);
+        }
+    }
+
+    private static boolean hasFSPort(final PortsConfiguration portsConfig, final String fileSystemPortIdentifier) {
+        return portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) == null;
+    }
+
     /**
-     * Creates a {@link FileSystemConfiguration} for the provided parameters.
-     *
+     * @param <L> the type of {@link FSLocationSpec}
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
      * @param locationHandler the {@link FSLocationSpecHandler} to be used
+     * @param convenienceFS the convenience file systems that should be active in the config (provided there is no
+     *            connected file system)
      * @return a fresh {@link FileSystemConfiguration}
      */
     public static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfig(
-        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier, final FSLocationSpecHandler<L> locationHandler) {
-        final boolean isConvenience = portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) == null;
+        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
+        final FSLocationSpecHandler<L> locationHandler, final Set<FSCategory> convenienceFS) {
+        final EnumSet<FSCategory> categories = EnumSet.copyOf(convenienceFS);
+        categories.add(FSCategory.CONNECTED);
+        final EnumSet<FSCategory> defaultCategories = createDefaultCategories(portsConfig, fileSystemPortIdentifier);
+        categories.retainAll(defaultCategories);
+        return createConfigInternal(portsConfig, fileSystemPortIdentifier, locationHandler, categories);
+    }
+
+    /**
+     * Creates a {@link FileSystemConfiguration} for the provided parameters.
+     *
+     * @param <L> the type of {@link FSLocationSpec} the config should store
+     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
+     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
+     * @param locationHandler the {@link FSLocationSpecHandler} to be used
+     * @param convenienceFS the convenience file systems that should be active in the config (provided there is no
+     *            connected file system)
+     * @return a fresh {@link FileSystemConfiguration}
+     */
+    public static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfig(
+        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
+        final FSLocationSpecHandler<L> locationHandler, final FSCategory[] convenienceFS) {
+        final EnumSet<FSCategory> categories = EnumSet.of(FSCategory.CONNECTED, convenienceFS);
+        final EnumSet<FSCategory> defaultCategories = createDefaultCategories(portsConfig, fileSystemPortIdentifier);
+        categories.retainAll(defaultCategories);
+        return createConfigInternal(portsConfig, fileSystemPortIdentifier, locationHandler, categories);
+    }
+
+    private static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfigInternal(
+        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
+        final FSLocationSpecHandler<L> locationHandler, final Set<FSCategory> fsCategories) {
         return new FileSystemConfiguration<>(locationHandler, //
-                new LocalSpecificConfig(isConvenience), //
-                new RelativeToSpecificConfig(isConvenience),//
-                new MountpointSpecificConfig(isConvenience), //
-                new CustomURLSpecificConfig(isConvenience), //
-                new ConnectedFileSystemSpecificConfig(!isConvenience, portsConfig, fileSystemPortIdentifier));
+            new LocalSpecificConfig(fsCategories.contains(FSCategory.LOCAL)), //
+            new RelativeToSpecificConfig(fsCategories.contains(FSCategory.RELATIVE)), //
+            new MountpointSpecificConfig(fsCategories.contains(FSCategory.MOUNTPOINT)), //
+            new CustomURLSpecificConfig(fsCategories.contains(FSCategory.CUSTOM_URL)), //
+            new ConnectedFileSystemSpecificConfig(fsCategories.contains(FSCategory.CONNECTED), portsConfig,
+                fileSystemPortIdentifier));
     }
 
     /**
@@ -105,12 +153,10 @@ public final class FileSystemChooserUtils {
      * {@link FSCategory file system category}.
      *
      * @param config the configuration of the chooser
-     * @param categories the file system categories that should be available in the chooser (only considered for the convenience file
-     *            systems)
      * @return a new {@link FileSystemChooser}
      */
-    public static FileSystemChooser createFileSystemChooser(final FileSystemConfiguration<?> config,
-        final Set<FSCategory> categories) {
+    public static FileSystemChooser createFileSystemChooser(final FileSystemConfiguration<?> config) {
+        final Set<FSCategory> categories = config.getActiveFSCategories();
         if (config.hasFSPort()) {
             return new FileSystemChooser(config, new ConnectedFileSystemDialog(
                 (ConnectedFileSystemSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.CONNECTED)));

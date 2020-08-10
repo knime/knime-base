@@ -83,7 +83,7 @@ public abstract class SimplePortObjectWriterNodeFactory extends
     @Override
     protected final PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>
         createDialog(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeDialog<PortObjectWriterNodeConfig>(getConfig(creationConfig),
+        return new PortObjectWriterNodeDialog<>(getConfig(creationConfig),
             m_fileChooserHistoryId);
     }
 

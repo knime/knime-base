@@ -49,11 +49,14 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -264,6 +267,19 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         m_settingsStoredWithFSPort = toCopy.m_settingsStoredWithFSPort;
         m_overwrittenByVariable = toCopy.m_overwrittenByVariable;
         m_convenienceFSCategory = toCopy.m_convenienceFSCategory;
+    }
+
+    /**
+     * Returns the {@link Set} of active {@link FSCategory categories}.</br>
+     * In case {@link #hasFSPort()} returns {@code true} this set will only contain {@link FSCategory#CONNECTED}.
+     *
+     * @return the {@link Set} of active {@link FSCategory categories}
+     */
+    public Set<FSCategory> getActiveFSCategories() {
+        return m_fsSpecificConfigs.entrySet().stream()//
+            .filter(e -> e.getValue().isActive())//
+            .map(Entry::getKey)//
+            .collect(toCollection(() -> EnumSet.noneOf(FSCategory.class)));
     }
 
     /**

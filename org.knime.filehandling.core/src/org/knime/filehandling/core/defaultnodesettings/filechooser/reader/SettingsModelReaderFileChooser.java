@@ -48,7 +48,11 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -69,11 +73,27 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
      * @param defaultFilterMode the default {@link FilterMode}
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
+     * @param fileExtensions the supported file extensions
+     */
+    public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS, final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, convenienceFS, fileExtensions);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param configName under which to store the settings
+     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
+     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
+     * @param defaultFilterMode the default {@link FilterMode}
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, fileExtensions);
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class), fileExtensions);
     }
 
     private SettingsModelReaderFileChooser(final SettingsModelReaderFileChooser toCopy) {

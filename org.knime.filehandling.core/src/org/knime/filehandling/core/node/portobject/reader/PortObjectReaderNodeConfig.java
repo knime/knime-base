@@ -46,7 +46,11 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
@@ -65,9 +69,34 @@ public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig<SettingsM
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
      *
      * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
+     */
+    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final Set<FSCategory> convenienceFS) {
+        this(creationConfig, convenienceFS, new String[0]);
+    }
+
+    /**
+     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      */
     public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig) {
-        this(creationConfig, new String[0]);
+        this(creationConfig, EnumSet.allOf(FSCategory.class), new String[0]);
+    }
+
+    /**
+     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     *
+     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
+     *            no file system port is present
+     * @param fileSuffixes the file suffixes to filter on
+     */
+    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final Set<FSCategory> convenienceFS, final String[] fileSuffixes) {
+        super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
+            FilterMode.FILE, convenienceFS, fileSuffixes));
     }
 
     /**
@@ -79,6 +108,6 @@ public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig<SettingsM
     public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes) {
         super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            FilterMode.FILE, fileSuffixes));
+            FilterMode.FILE, EnumSet.allOf(FSCategory.class), fileSuffixes));
     }
 }
