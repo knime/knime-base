@@ -101,12 +101,14 @@ final class StringToPathNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_abortOnMissingFileComponent;
 
+    private final DialogComponentBoolean m_failOnMissingValuesComponent;
+
     /**
      * Constructor for node dialog with dynamic ports.
      *
      * @param portsConfig the ports configuration
      */
-    public StringToPathNodeDialog(final PortsConfiguration portsConfig) {
+    StringToPathNodeDialog(final PortsConfiguration portsConfig) {
         final SettingsModelFileSystem fileSystemModel =
             StringToPathNodeModel.createSettingsModelFileSystem(portsConfig);
 
@@ -128,6 +130,9 @@ final class StringToPathNodeDialog extends NodeDialogPane {
         m_abortOnMissingFileModel = StringToPathNodeModel.createSettingsModelAbortOnMissingFile();
         m_abortOnMissingFileComponent =
             new DialogComponentBoolean(m_abortOnMissingFileModel, "Fail if file/folder does not exist");
+
+        m_failOnMissingValuesComponent = new DialogComponentBoolean(
+            StringToPathNodeModel.createSettingsModelFailOnMissingValues(), "Fail on missing values");
 
         addTab("Settings", getOptionsPanel());
     }
@@ -194,6 +199,9 @@ final class StringToPathNodeDialog extends NodeDialogPane {
         gbc.gridy++;
         colSelectionPanel.add(m_abortOnMissingFileComponent.getComponentPanel(), gbc);
 
+        gbc.gridy++;
+        colSelectionPanel.add(m_failOnMissingValuesComponent.getComponentPanel(), gbc);
+
         gbc.gridx++;
         gbc.weightx = 1;
         colSelectionPanel.add(Box.createHorizontalBox(), gbc);
@@ -245,9 +253,10 @@ final class StringToPathNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_fileSystemComponent.saveSettingsTo(settings);
         m_selectedColumnNameComponent.saveSettingsTo(settings);
+        m_abortOnMissingFileComponent.saveSettingsTo(settings);
+        m_failOnMissingValuesComponent.saveSettingsTo(settings);
         m_generatedColumnModeComponent.saveSettingsTo(settings);
         m_appendedColumnNameComponent.saveSettingsTo(settings);
-        m_abortOnMissingFileComponent.saveSettingsTo(settings);
     }
 
     @Override
@@ -255,10 +264,10 @@ final class StringToPathNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_fileSystemComponent.loadSettingsFrom(settings, specs);
         m_selectedColumnNameComponent.loadSettingsFrom(settings, specs);
+        m_abortOnMissingFileComponent.loadSettingsFrom(settings, specs);
+        m_failOnMissingValuesComponent.loadSettingsFrom(settings, specs);
         m_generatedColumnModeComponent.loadSettingsFrom(settings, specs);
         m_appendedColumnNameComponent.loadSettingsFrom(settings, specs);
-        m_abortOnMissingFileComponent.loadSettingsFrom(settings, specs);
-
         checkGeneratedColumnMode();
     }
 }

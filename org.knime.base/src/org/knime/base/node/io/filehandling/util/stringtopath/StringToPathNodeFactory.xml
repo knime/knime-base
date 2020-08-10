@@ -10,14 +10,11 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			This node converts a selected string column into a column of
-			the type Path
+			This node converts a selected string column into a column of the type Path
 		</intro>
 		<option name="File system">
-			Select the file system to which the created paths should be related
-			to.
-			There are
-			four default file system options to choose from:
+			Select the file system to which the created paths should be related to. There are four default file system
+			options to choose from:
 			<br />
 			<ul>
 				<li>
@@ -26,78 +23,50 @@
 				</li>
 				<li>
 					<i>Mountpoint:</i>
-					Resolves the path to a mountpoint.
-					When selected, a new drop-down
-					menu appears to choose the mountpoint.
-					Unconnected mountpoints are
-					grayed out but can still be selected.
-					A mountpoint is displayed in
-					red if it
-					was previously selected but
-					is no longer available.
-					You
-					won't be able
-					to save the dialog as long as you don't select a
-					valid
-					i.e. known
-					mountpoint.
+					Resolves the path to a mountpoint. When selected, a new drop-down menu appears to choose the
+					mountpoint. Unconnected mountpoints are grayed out but can still be selected. A mountpoint is 
+					displayed in red if it was previously selected but is no longer available. You won't be able to save
+					the dialog as long as you don't select a valid i.e. known mountpoint.
 				</li>
 				<li>
 					<i>Relative to:</i>
-					Resolve the path
-					relative to the
-					current mountpoint, current workflow or the current
-					workflow's data
-					area.
-					When selected a new drop-down menu appears to choose which of
-					the three
-					options to use.
+					Resolve the path relative to the current mountpoint, current workflow or the current workflow's data
+					area. When selected a new drop-down menu appears to choose which of the three options to use.
 				</li>
 				<li>
 					<i>Custom/KNIME URL:</i>
-					Resolve the paths to a URL (e.g. file://, http:// or knime://
-					protocol). When selected, a spinner appears that allows you to
-					specify the desired connection and write timeout in milliseconds..
+					Resolve the paths to a URL (e.g. file://, http:// or knime:// protocol). When selected, a spinner
+					appears that allows you to specify the desired connection and write timeout in milliseconds..
 				</li>
 			</ul>
-			It is possible to use other file systems with this node. Therefore,
-			you have to enable the file system connection input port of this
-			node
-			by clicking the
-			<b>...</b>
-			in the bottom left corner of the node's icon and choose
-			<i>Add File System Connection port</i>
-			.
+			It is possible to use other file systems with this node. Therefore, you have to enable the file system
+			connection input port of this node by clicking the <b>...</b> in the bottom left corner of the node's icon
+			and choose <i>Add File System Connection port</i>.
 			<br />
-			Afterwards, you can simply connect the desired connector node to this
-			node.
-			The file system connection will then be shown in the drop-down
-			menu.
-			It is grayed out if the file system is not connected in which
-			case you
+			Afterwards, you can simply connect the desired connector node to this node. The file system connection will
+			then be shown in the drop-down menu. It is grayed out if the file system is not connected in which case you
 			have to (re)execute the connector node first.
-			Note: The
-			default file systems listed above can't be selected if a file
-			system
-			is provided via the input port.
+			Note: The default file systems listed above can't be selected if a file system is provided via the input
+			port.
 		</option>
 		<option name="Column selection">
-			Column that will be converted. It has to contain a
-			string with correct Path /foo/bar.txt syntax.
+			Column that will be converted. It has to contain a string with correct Path /foo/bar.txt syntax.
 		</option>
 		<option name="Fail if file does not exist">
-			Checks if the files referenced by the created Path
-			are existing
-			and will abort if one is not.
+			Checks if the files referenced by the created Path are existing and will abort if one is not.
 		</option>
-		<option name="Append or replace">
-			<b>Append column</b>
-			<br />
-			Append the new column to the table with the selected column name.
-			<br />
-			<b>Replace</b>
-			<br />
-			Replace the selected column with the new Path column.
+		<option name="Fail on missing values">
+			If selected the node will fail if the selected column contains missing values.
+		</option>
+		<option name="Output">
+			<ul>
+				<li>
+					<b>Append column:</b> Append the new column to the table with the selected column name.
+				</li>
+				<li>
+					<b>Replace:</b> Replace the selected column with the new Path column.
+				</li>
+			</ul>
 		</option>
 		<option name="New column name">
 			Name of the appended column.
