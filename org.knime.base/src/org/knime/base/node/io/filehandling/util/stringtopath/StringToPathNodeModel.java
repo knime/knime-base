@@ -93,6 +93,7 @@ import org.knime.core.node.streamable.StreamableFunction;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -149,7 +150,7 @@ final class StringToPathNodeModel extends NodeModel {
 
     static SettingsModelFileSystem createSettingsModelFileSystem(final PortsConfiguration portsConfig) {
         return new SettingsModelFileSystem(CFG_FILE_SYSTEM, portsConfig,
-            StringToPathNodeModel.CONNECTION_INPUT_PORT_GRP_NAME);
+            StringToPathNodeModel.CONNECTION_INPUT_PORT_GRP_NAME, EnumSet.allOf(FSCategory.class));
     }
 
     static SettingsModelString createSettingsModelColumnName() {

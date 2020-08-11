@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -84,11 +85,11 @@ public final class SettingsModelFileSystem extends SettingsModel {
      * @param configName name under which the SettingsModel is stored
      * @param portsConfig the {@link PortsConfiguration} of the node
      * @param fileSystemPortIdentifier identifier of the file system port in {@link PortsConfiguration portsConfig}
-     * @param convenienceFS the {@link FSCategory convenience file systems} that should be available if
-     *            no file system port is present
+     * @param convenienceFS the {@link FSCategory convenience file systems} that should be available if no file system
+     *            port is present
      */
     public SettingsModelFileSystem(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FSCategory... convenienceFS) {
+        final String fileSystemPortIdentifier, final Set<FSCategory> convenienceFS) {
         if (portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null) {
             m_configName = configName + SettingsModel.CFGKEY_INTERNAL;
         } else {
@@ -127,7 +128,8 @@ public final class SettingsModelFileSystem extends SettingsModel {
     }
 
     /**
-     * Retrieves the {@link FSConnection} if a file system port is connected and the connection is available, otherwise {@link Optional#empty()}.
+     * Retrieves the {@link FSConnection} if a file system port is connected and the connection is available, otherwise
+     * {@link Optional#empty()}.
      *
      * @return an {@link Optional} holding the {@link FSConnection} from the input port (if available)
      */
