@@ -95,7 +95,11 @@ public class RecursiveLoopStart2NodeModel extends NodeModel implements LoopStart
             }
             //otherwise we get the data from the loop end node
             RecursiveLoopEnd2NodeModel end = (RecursiveLoopEnd2NodeModel)getLoopEndNode();
-            result = new BufferedDataTable[]{end.getInData(1), end.getInData(2)};
+            BufferedDataTable copiedFromEndNode1 = RecursiveLoopStartNodeModel
+                .cloneTableFromLoopEndNode(end.getInData(1), exec, exec.createSubProgress(0.5));
+            BufferedDataTable copiedFromEndNode2 = RecursiveLoopStartNodeModel
+                    .cloneTableFromLoopEndNode(end.getInData(2), exec, exec.createSubProgress(0.5));
+            result = new BufferedDataTable[]{copiedFromEndNode1, copiedFromEndNode2};
         }
         pushFlowVariableInt("currentIteration", m_currentiteration);
 
