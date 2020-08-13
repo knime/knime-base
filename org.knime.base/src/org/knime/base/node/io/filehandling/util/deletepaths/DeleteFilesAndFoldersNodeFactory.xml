@@ -38,13 +38,6 @@
 					mountpoint, current workflow or the current workflow's data area. When selected a new drop-down menu
 					appears to choose which of the three options to use.
 				</li>
-				<li>
-					<i>Custom/KNIME URL:</i>
-					Allows to specify a URL (e.g. file://, http:// or knime:// protocol). When selected, a spinner
-					appears that allows you to specify the desired connection and a timeout in milliseconds. In case
-					it takes longer to connect to the host / delete the file/folder, the node fails to execute.
-					Browsing is disabled for this option.
-				</li>
 			</ul>
 			To read from other file systems, click on <b>...</b> in the bottom left corner of the node icon followed by
 			<i>Add File System Connection port</i>. Afterwards, connect the desired file system connector node to the
@@ -69,18 +62,14 @@
 			options. If left unchecked, only the files in the selected folder will be included and all files from
 			subfolders are ignored.
 		</option>
-		<option name="File, Folder or URL">
-			Enter a URL when deleting from <i>Custom/KNIME URL</i>, otherwise enter a path to a file or folder. The
+		<option name="File or Folder">
+			Enter a path to a file or folder. The
 			required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
 			File System on Windows) or &quot;/path/to/file&quot; (Local File System on Linux/MacOS and Mountpoint). For
 			file systems connected via input port, the node description of the respective connector node describes the
 			required path format. You can also choose a previously selected file/folder from the drop-down list, or
 			select a location from the &quot;Browse...&quot; dialog. Note that browsing is disabled in some cases:
 			<ul>
-				<li>
-					<i>Custom/KNIME URL:</i>
-					Browsing is always disabled.
-				</li>
 				<li>
 					<i>Mountpoint:</i>
 					Browsing is disabled if the selected mountpoint isn't connected. Go to the KNIME Explorer and
