@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel">
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="createStreamableOperator(PartitionInfo, PortObjectSpec[])"/>
+            </message_arguments>
+        </filter>
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="getInputPortRoles()"/>
+            </message_arguments>
+        </filter>
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="getOutputPortRoles()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel$StringToPathStreamableOperator">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="StreamableOperator"/>
+                <message_argument value="StringToPathStreamableOperator"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="ColumnRearranger"/>
+                <message_argument value="StringToPathStreamableOperator"/>
+                <message_argument value="createStreamableFunction()"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.core.util.RetriggerableDelayedRunnable">
         <filter id="305422471">
             <message_arguments>
