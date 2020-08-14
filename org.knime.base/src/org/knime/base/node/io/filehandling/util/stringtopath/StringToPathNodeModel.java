@@ -53,8 +53,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
-import java.util.NoSuchElementException;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -189,11 +189,8 @@ final class StringToPathNodeModel extends NodeModel {
 
         try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, null)) {
             outSpec = createColumnRearranger(inSpec, factory).createSpec();
-        } catch (IOException e) {
-            LOGGER.debug("Unable to close StringToPathCellFactory: " + e.getMessage(), e);
+            return new PortObjectSpec[]{outSpec};
         }
-
-        return new PortObjectSpec[]{outSpec};
     }
 
     @Override
@@ -410,26 +407,30 @@ final class StringToPathNodeModel extends NodeModel {
         }
 
         private void checkIfFileExists(final FSLocation fsLocation) {
-            try (FSPathProvider pathProvider = m_fsPathProviderFactory.create(fsLocation)) {
+            try (final FSPathProvider pathProvider = m_fsPathProviderFactory.create(fsLocation)) {
                 final FSPath fsPath = pathProvider.getPath();
-                if (!Files.exists(fsPath)) {
-                    throw new NoSuchElementException(
-                        String.format("The file/directory '%s' does not exist on the selected file system.", fsPath));
-                }
-            } catch (IOException e) {
-                LOGGER.debug("Unable to close FSPathProvider: " + e.getMessage(), e);
+                Files.readAttributes(fsPath, BasicFileAttributes.class);
+            } catch (final IOException e) {
+                throw new IllegalArgumentException(
+                    String.format("The file/folder '%s' does not exists or cannot be accessed", fsLocation.getPath()), e);
             }
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
+            // we can catch those exceptions as they cannot occur and even if we don't need to care about them here
             if (m_fsLocationFactory != null) {
                 try {
                     m_fsLocationFactory.close();
-                } finally {
-                    if (m_fsPathProviderFactory != null) {
-                        m_fsPathProviderFactory.close();
-                    }
+                } catch (final IOException e) {
+                    LOGGER.debug("Unable to close fs location factory", e);
+                }
+            }
+            if (m_fsPathProviderFactory != null) {
+                try {
+                    m_fsPathProviderFactory.close();
+                } catch (final IOException e) {
+                    LOGGER.debug("Unable to close fs path factory", e);
                 }
             }
         }

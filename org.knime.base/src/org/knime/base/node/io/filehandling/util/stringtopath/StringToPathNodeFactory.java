@@ -67,9 +67,9 @@ public final class StringToPathNodeFactory extends ConfigurableNodeFactory<Strin
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addFixedInputPortGroup(StringToPathNodeModel.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         builder.addOptionalInputPortGroup(StringToPathNodeModel.CONNECTION_INPUT_PORT_GRP_NAME,
             FileSystemPortObject.TYPE);
+        builder.addFixedInputPortGroup(StringToPathNodeModel.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         builder.addFixedOutputPortGroup("Output table", BufferedDataTable.TYPE);
         return Optional.of(builder);
     }
