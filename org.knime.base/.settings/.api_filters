@@ -2,9 +2,47 @@
 <component id="org.knime.base" version="2">
     <resource path="META-INF/MANIFEST.MF">
         <filter id="929038356">
-            <message_arguments>
+        <message_arguments>
                 <message_argument value="4.2.1"/>
                 <message_argument value="org.knime.core"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel">
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="createStreamableOperator(PartitionInfo, PortObjectSpec[])"/>
+            </message_arguments>
+        </filter>
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="getInputPortRoles()"/>
+            </message_arguments>
+        </filter>
+        <filter id="642777099">
+            <message_arguments>
+                <message_argument value="NodeModel"/>
+                <message_argument value="StringToPathNodeModel"/>
+                <message_argument value="getOutputPortRoles()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel$StringToPathStreamableOperator">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="StreamableOperator"/>
+                <message_argument value="StringToPathStreamableOperator"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="ColumnRearranger"/>
+                <message_argument value="StringToPathStreamableOperator"/>
+                <message_argument value="createStreamableFunction()"/>
             </message_arguments>
         </filter>
     </resource>
