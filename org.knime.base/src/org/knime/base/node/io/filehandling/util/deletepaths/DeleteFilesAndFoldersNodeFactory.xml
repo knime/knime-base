@@ -15,7 +15,7 @@
 			Folders will also be deleted if they still contain files.
 		</intro>
 		<option name="Read from">
-			Select a file system on which you want to delete file(s) or folder(s). There are four default file system
+			Select a file system on which you want to delete file(s) or folder(s). There are three default file system
 			options to choose from:
 			<br />
 			<ul>
