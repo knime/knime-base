@@ -83,6 +83,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 public final class DialogComponentWriterFileChooser extends AbstractDialogComponentFileChooser {
 
+    private JLabel m_writeOptionsLabel;
+
     private JCheckBox m_createMissingFolders;
 
     private ButtonGroup m_policyButtons;
@@ -109,6 +111,13 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     private void initComponents() {
         initCreateMissingFolders();
         initPolicyButtons();
+        initWriteOptionsLabel();
+    }
+
+    private void initWriteOptionsLabel() {
+        if (m_writeOptionsLabel == null) {
+            m_writeOptionsLabel = new JLabel("Write options");
+        }
     }
 
     private void initPolicyButtons() {
@@ -150,13 +159,13 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
 
     @Override
     protected void addAdditionalComponents(final JPanel panel, final GBCBuilder gbc) {
-        panel.add(new JLabel("Write options"), gbc.build());
+        initComponents();
+        panel.add(m_writeOptionsLabel, gbc.build());
         panel.add(createWriteOptionsPanel(), gbc.incX().insetLeft(6).build());
         panel.add(new JPanel(), gbc.fillHorizontal().incX().build());
     }
 
     private JPanel createWriteOptionsPanel() {
-        initComponents();
         final JPanel additional = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart();
         additional.add(m_createMissingFolders, gbc.build());
@@ -210,6 +219,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     }
 
     private void updateEnabledStatus() {
+        m_writeOptionsLabel.setEnabled(enableComponents());
         m_createMissingFolders.setEnabled(enableComponents());
         forEachButton(b -> b.setEnabled(enableComponents()));
     }
