@@ -152,11 +152,16 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         super(model);
         m_dialogType = dialogType;
         m_fsChooserLabel = new JLabel(m_dialogType == DialogType.OPEN_DIALOG ? "Read from" : "Write to");
-            CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
+        CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
         Set<FilterMode> selectableFilterModes =
             Stream.concat(Stream.of(model.getFilterModeModel().getFilterMode()), Arrays.stream(filterModes)).distinct()
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
+        if (model.getFileSystemConfiguration().getActiveFSCategories().contains(FSCategory.CUSTOM_URL)) {
+            CheckUtils.checkArgument(selectableFilterModes.contains(FilterMode.FILE),
+                "FilterMode.FILE must be among the selectable filter modes "
+                        + "if FSCategory.CUSTOM_URL is an active file system.");
+        }
         m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
         m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration());
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
@@ -276,9 +281,9 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     /**
-     * Sets the status provided by the swing worker if it is more urgent than the currently set status message.
-     * This is necessary because the swing worker works asynchronously and we might have already had the
-     * next event before it finishes.
+     * Sets the status provided by the swing worker if it is more urgent than the currently set status message. This is
+     * necessary because the swing worker works asynchronously and we might have already had the next event before it
+     * finishes.
      *
      * @param msg output by the status message swing worker
      */
@@ -383,7 +388,8 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     private void setEnabledFlowVarSensitive(final boolean enabled) {
-        final boolean actual = enabled && getSettingsModel().isEnabled() && !getSettingsModel().isLocationOverwrittenByFlowVariable();
+        final boolean actual =
+            enabled && getSettingsModel().isEnabled() && !getSettingsModel().isLocationOverwrittenByFlowVariable();
         m_fsChooser.setEnabled(actual);
         m_fileSelection.setEnabled(actual);
     }
