@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.util.listpaths;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
@@ -56,6 +57,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
@@ -101,7 +103,8 @@ public final class ListFilesAndFoldersNodeFactory extends ConfigurableNodeFactor
 
     private static ListFilesAndFoldersNodeConfiguration createSettings(final PortsConfiguration portsConfiguration) {
         return new ListFilesAndFoldersNodeConfiguration(new SettingsModelReaderFileChooser("file_chooser",
-            portsConfiguration, ListFilesAndFoldersNodeFactory.FS_PORT_ID, FilterMode.FILES_IN_FOLDERS));
+            portsConfiguration, ListFilesAndFoldersNodeFactory.FS_PORT_ID, FilterMode.FILES_IN_FOLDERS,
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
 
     }
 
