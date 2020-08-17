@@ -73,7 +73,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-class ListFilesAndFoldersNodeDialog extends NodeDialogPane {
+final class ListFilesAndFoldersNodeDialog extends NodeDialogPane {
 
     private final ListFilesAndFoldersNodeConfiguration m_config;
 

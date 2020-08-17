@@ -53,6 +53,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import javax.swing.event.ChangeListener;
+
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -132,6 +134,13 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
             CheckUtils.checkArgumentNotNull(fileExtensions, "The fileExtensions may be empty but never null.").clone();
         m_filterModeModel = new SettingsModelFilterMode("filter_mode", defaultFilterMode);
         m_filterModeModel.addChangeListener(e -> notifyChangeListeners());
+        addChangeListener(e -> updateFilterMode());
+    }
+
+    @Override
+    public final void addChangeListener(final ChangeListener l) {
+        // overwritten to finalize the method (otherwise Sonar will complain if we use it in the constructor)
+        super.addChangeListener(l);
     }
 
     /**
@@ -151,6 +160,14 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         if (!m_loading) {
             super.notifyChangeListeners();
         }
+    }
+
+    private void updateFilterMode() {
+        final FSCategory fsCategory = m_fsConfig.getFSCategory();
+        if (fsCategory == FSCategory.CUSTOM_URL) {
+            m_filterModeModel.setFilterMode(FilterMode.FILE);
+        }
+        m_filterModeModel.setEnabled(fsCategory != FSCategory.CUSTOM_URL && isEnabled());
     }
 
     /**

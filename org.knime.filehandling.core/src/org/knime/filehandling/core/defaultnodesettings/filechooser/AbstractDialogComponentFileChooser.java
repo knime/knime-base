@@ -77,7 +77,6 @@ import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelecti
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.DialogComponentFilterMode;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -123,11 +122,15 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private final DialogComponentFilterMode m_filterMode;
 
-    private final JLabel m_fileSelectionLabel = new JLabel("File:");
+    private final JLabel m_fileSelectionLabel = new JLabel("File");
 
     private final StatusView m_statusView = new StatusView(700);
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
+
+    private final JLabel m_fsChooserLabel;
+
+    private final JLabel m_modeLabel = new JLabel("Mode");
 
     private final FlowVariableModelButton m_locationFvmBtn;
 
@@ -148,6 +151,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         final FilterMode... filterModes) {
         super(model);
         m_dialogType = dialogType;
+        m_fsChooserLabel = new JLabel(m_dialogType == DialogType.OPEN_DIALOG ? "Read from" : "Write to");
             CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
         Set<FilterMode> selectableFilterModes =
@@ -183,11 +187,11 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1);
-        panel.add(new JLabel(getFSLabel()), gbc.setWeightX(0).setWidth(1).build());
+        panel.add(m_fsChooserLabel, gbc.setWeightX(0).setWidth(1).build());
         panel.add(m_fsChooser.getPanel(), gbc.incX().insetLeft(5).fillNone().build());
         gbc.insetLeft(0);
         if (displayFilterModes) {
-            panel.add(new JLabel("Mode"), gbc.incY().resetX().insetLeft(0).build());
+            panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWidth(2).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
@@ -206,18 +210,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
         panel.add(Box.createHorizontalBox(), gbc.fillHorizontal().insetLeft(0).setWeightX(1).build());
         return panel;
-    }
-
-    private String getFSLabel() {
-        switch (m_dialogType) {
-            case OPEN_DIALOG:
-                return "Read from";
-            case SAVE_DIALOG:
-                return "Write to";
-            default:
-                throw new IllegalStateException("Unsupported DialogType: " + m_dialogType);
-
-        }
     }
 
     /**
@@ -244,7 +236,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
         m_fileSelection.setSelected(location.getPath());
 
-        updateFilterMode();
         updateFileSelectionLabel(location);
         updateBrowser();
         updateStatus();
@@ -257,17 +248,6 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
      */
     protected void updateAdditionalComponents() {
         // no additional components to update
-    }
-
-    private void updateFilterMode() {
-        final AbstractSettingsModelFileChooser sm = getSettingsModel();
-        SettingsModelFilterMode filterModeModel = sm.getFilterModeModel();
-        if (sm.getLocation().getFSCategory() == FSCategory.CUSTOM_URL) {
-            filterModeModel.setFilterMode(FilterMode.FILE);
-            filterModeModel.setEnabled(false);
-        } else {
-            filterModeModel.setEnabled(true);
-        }
     }
 
     private void updateStatus() {
@@ -394,9 +374,12 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     @Override
     protected void setEnabledComponents(final boolean enabled) {
         setEnabledFlowVarSensitive(enabled);
-        m_filterMode.setEnabledComponents(enabled);
+        m_fsChooserLabel.setEnabled(enabled);
+        // the filter mode panel is updated via the settings model
+        m_modeLabel.setEnabled(enabled);
         m_locationFvmBtn.setEnabled(enabled);
         m_statusView.getLabel().setEnabled(enabled);
+        m_fileSelectionLabel.setEnabled(enabled);
     }
 
     private void setEnabledFlowVarSensitive(final boolean enabled) {
