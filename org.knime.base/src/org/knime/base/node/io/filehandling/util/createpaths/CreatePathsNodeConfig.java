@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.util.createpaths;
 
+import java.util.EnumSet;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -82,7 +84,8 @@ final class CreatePathsNodeConfig {
 
     CreatePathsNodeConfig(final PortsConfiguration portsConfig) {
         m_dirChooserModel = new SettingsModelReaderFileChooser(CFG_DIR_PARENT, portsConfig,
-            CreatePathsNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER);
+            CreatePathsNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER,
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreatePathsNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
             m_dirChooserModel
