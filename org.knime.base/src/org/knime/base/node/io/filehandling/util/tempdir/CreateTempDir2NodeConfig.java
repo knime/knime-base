@@ -71,9 +71,9 @@ final class CreateTempDir2NodeConfig {
 
     private static final boolean DEFAULT_ON_RESET = true;
 
-    private static final String DEFAULT_TEMP_PATH_VAR_NAME = "temp_path";
+    private static final String DEFAULT_TEMP_PATH_VAR_NAME = "temp_dir_path";
 
-    private static final String DEFAULT_TMP_DIR_PREFIX = "knimetmp-";
+    private static final String DEFAULT_TEMP_DIR_PREFIX = "knimetemp-";
 
     private static final String CFG_TEMP_DIR_PARENT = "temp_dir_location";
 
@@ -107,7 +107,8 @@ final class CreateTempDir2NodeConfig {
     CreateTempDir2NodeConfig(final PortsConfiguration portsConfig) {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_TEMP_DIR_PARENT, portsConfig,
             CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.APPEND,
-            EnumSet.of(FileOverwritePolicy.APPEND), EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            EnumSet.of(FileOverwritePolicy.APPEND),
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
             m_parentDirChooserModel
@@ -116,7 +117,7 @@ final class CreateTempDir2NodeConfig {
 
         m_deleteDirOnReset = DEFAULT_ON_RESET;
 
-        m_tempDirPrefix = DEFAULT_TMP_DIR_PREFIX;
+        m_tempDirPrefix = DEFAULT_TEMP_DIR_PREFIX;
         m_tempDirPathVariableName = DEFAULT_TEMP_PATH_VAR_NAME;
 
         m_additionalVarNames = new String[0];
@@ -140,7 +141,7 @@ final class CreateTempDir2NodeConfig {
     void loadSettingsForDialog(final NodeSettingsRO settings) {
         m_deleteDirOnReset = settings.getBoolean(CFG_DELETE_ON_RESET, DEFAULT_ON_RESET);
 
-        m_tempDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX, DEFAULT_TMP_DIR_PREFIX);
+        m_tempDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX, DEFAULT_TEMP_DIR_PREFIX);
         m_tempDirPathVariableName = settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME, DEFAULT_TEMP_PATH_VAR_NAME);
 
         m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, new String[0]);
