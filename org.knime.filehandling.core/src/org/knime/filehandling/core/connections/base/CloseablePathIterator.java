@@ -44,52 +44,22 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 30, 2020 (bjoern): created
+ *   Aug 19, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.base;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Path;
 import java.util.Iterator;
 
 import org.knime.filehandling.core.connections.FSPath;
 
 /**
- * Simple base implementation of a {@link PagedPathIterator} that only has one page. Implementations should invoke
- * {@link #setFirstPage(Iterator)} to add the paths to return.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @param <T> The path type.
- * @noreference non-public API
- * @noextend non-public API
  */
-public class BasePathIterator<T extends FSPath> extends PagedPathIterator<T> {
-
-    /**
-     * Creates new instance.
-     *
-     * @param path The path to create an iterator for.
-     * @param filter Filter to apply on the returned paths.
-     */
-    protected BasePathIterator(final T path, final Filter<? super Path> filter) {
-        super(path, filter);
-    }
+public interface CloseablePathIterator<P extends FSPath> extends Iterator<P>, AutoCloseable {
 
     @Override
-    protected final boolean hasNextPage() {
-        // directory listings are not paged
-        return false;
-    }
+    void close() throws IOException;
 
-    @Override
-    protected final Iterator<T> loadNextPage() throws IOException {
-        // directory listings are not paged
-        return null;
-    }
-
-    @Override
-    public void close() throws IOException {
-        // do nothing
-    }
 }

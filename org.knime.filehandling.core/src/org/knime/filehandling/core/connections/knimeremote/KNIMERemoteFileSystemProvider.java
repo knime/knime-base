@@ -63,7 +63,6 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -71,6 +70,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.BasePathIterator;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -164,7 +164,7 @@ final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERe
     }
 
     @Override
-    protected Iterator<KNIMERemotePath> createPathIterator(final KNIMERemotePath dir, final Filter<? super Path> filter)
+    protected BasePathIterator<KNIMERemotePath> createPathIterator(final KNIMERemotePath dir, final Filter<? super Path> filter)
             throws IOException {
         try {
             return new KNIMERemotePathIterator(dir, filter);

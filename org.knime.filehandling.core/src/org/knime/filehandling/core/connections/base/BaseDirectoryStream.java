@@ -54,47 +54,56 @@ import java.nio.file.Path;
 import java.util.Iterator;
 
 import org.apache.commons.lang3.Validate;
+import org.knime.filehandling.core.connections.FSPath;
 
 /**
  * Base implementation of {@link DirectoryStream}.
  *
  * @author Mareike Hoeger, KNIME GmbH
  */
-final class BaseDirectoryStream implements DirectoryStream<Path> {
+final class BaseDirectoryStream<P extends FSPath> implements DirectoryStream<Path> {
 
-    private final Iterator<Path> m_iterator;
+    private final P m_dir;
+
+    private final CloseablePathIterator<P> m_iterator;
 
     private volatile boolean m_isClosed = false;
-
-    private final BaseFileSystem<?> m_fileSystem;
 
     /**
      * Constructs a DirectoryStream with the given iterator.
      *
-     * @param originalPath The original path given to the provider method.
-     * @param iterator the iterator to use in the directory stream
-     * @param fileSystem the file system this stream belongs to
+     * @param iterator The iterator to use in the directory stream
+     * @param dir The original path given to the provider method.
      */
-    BaseDirectoryStream(final Iterator<Path> iterator,
-        final BaseFileSystem<?> fileSystem) {
+    @SuppressWarnings("resource")
+    BaseDirectoryStream(final CloseablePathIterator<P> iterator, final P dir) {
         Validate.notNull(iterator, "Iterator must not be null.");
         m_iterator = iterator;
-        m_fileSystem = fileSystem;
-        m_fileSystem.registerCloseable(this);
+        m_dir = dir;
+        dir.getFileSystem().registerCloseable(this); //NOSONAR we are just registering a closeable here which has no accessible state
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void close() throws IOException {
+        if (m_isClosed) {
+            return;
+        }
         m_isClosed = true;
-        m_fileSystem.unregisterCloseable(this);
+
+        try {
+            m_iterator.close();
+        } finally {
+            m_dir.getFileSystem().unregisterCloseable(this);
+        }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Iterator<Path> iterator() {
         if (m_isClosed) {
             throw new IllegalStateException("Directory stream is already closed.");
         }
-
-        return m_iterator;
+        return new RelativizingPathIterator((Iterator<Path>)m_iterator, m_dir);
     }
 }

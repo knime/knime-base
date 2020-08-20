@@ -52,8 +52,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 
 /**
- * Path iterator that relativizes all paths of the wrapped path iterator by cutting a way a prefix using
- * {@link Path#subpath(int, int)}.
+ * Prefixes the filenames of the paths returned by the wrapped iterator with the provided directory path.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API

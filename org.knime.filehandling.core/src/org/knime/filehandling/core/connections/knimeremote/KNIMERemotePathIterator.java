@@ -56,6 +56,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
+import org.knime.filehandling.core.connections.base.BasePathIterator;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -63,11 +64,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
-
-    private final KNIMERemoteFileSystem m_fileSystem;
-
-    private Iterator<KNIMERemotePath> m_iterator;
+final class KNIMERemotePathIterator extends BasePathIterator<KNIMERemotePath> {
 
     /**
      * Creates an iterator over all the files and folder in the given paths location.
@@ -78,12 +75,15 @@ final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
      * @throws UncheckedIOException on I/O errors
      */
     KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
-        final KNIMERemotePath knimePath = path;
-        m_fileSystem = knimePath.getFileSystem();
+        super(path, filter);
+
+        @SuppressWarnings("resource")
+        final KNIMERemoteFileSystem fileSystem = path.getFileSystem();
 
         final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toKNIMEProtocolURI());
-        m_iterator = uriList.stream()
-            .map(p -> new KNIMERemotePath(m_fileSystem, p))
+
+        final Iterator<KNIMERemotePath> iterator = uriList.stream()
+            .map(p -> new KNIMERemotePath(fileSystem, p))
             .filter(p -> {
                 try {
                     return filter.accept(p);
@@ -91,22 +91,6 @@ final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
                     throw new UncheckedIOException(ex);
                 }})
             .iterator();
+        setFirstPage(iterator);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public KNIMERemotePath next() {
-        return m_iterator.next();
-    }
-
 }

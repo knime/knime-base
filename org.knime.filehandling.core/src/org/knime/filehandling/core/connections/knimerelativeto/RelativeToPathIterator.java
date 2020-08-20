@@ -50,19 +50,18 @@ import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.knime.filehandling.core.connections.base.BasePathIterator;
 
 /**
  * Iterates over all the files and folders of the path on a relative-to file system.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-final class RelativeToPathIterator implements Iterator<RelativeToPath> {
-
-    private final RelativeToPath[] m_paths;
-
-    private int m_currIdx = 0;
+final class RelativeToPathIterator extends BasePathIterator<RelativeToPath> {
 
     /**
      * Creates an iterator over all the files and folder in the given paths location.
@@ -72,11 +71,12 @@ final class RelativeToPathIterator implements Iterator<RelativeToPath> {
      * @param filter
      * @throws IOException on I/O errors
      */
-    RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
-        final Filter<? super Path> filter) throws IOException {
+    RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath, final Filter<? super Path> filter)
+        throws IOException {
+        super(knimePath, filter);
 
         try (final Stream<Path> stream = Files.list(realPath)) {
-            m_paths =  stream//
+             final List<RelativeToPath> paths = stream//
                 .map(p -> (RelativeToPath)knimePath.resolve(p.getFileName().toString())) //
                 .filter(p -> {
                     try {
@@ -84,7 +84,10 @@ final class RelativeToPathIterator implements Iterator<RelativeToPath> {
                     } catch (final IOException ex) { // wrap exception
                         throw new UncheckedIOException(ex);
                     }
-                }).toArray(RelativeToPath[]::new);
+                }) //
+                .collect(Collectors.toList());
+
+            setFirstPage(paths.iterator());
         } catch (final UncheckedIOException ex) { // unwrap exception
             if (ex.getCause() != null) {
                 throw ex.getCause();
@@ -92,17 +95,5 @@ final class RelativeToPathIterator implements Iterator<RelativeToPath> {
                 throw ex;
             }
         }
-    }
-
-    @Override
-    public boolean hasNext() {
-        return m_currIdx < m_paths.length;
-    }
-
-    @Override
-    public RelativeToPath next() {
-        final RelativeToPath next = m_paths[m_currIdx];
-        m_currIdx++;
-        return next;
     }
 }

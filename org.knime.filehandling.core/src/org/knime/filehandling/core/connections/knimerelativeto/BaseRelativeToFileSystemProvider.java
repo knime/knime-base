@@ -61,11 +61,11 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.BasePathIterator;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
@@ -104,7 +104,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     }
 
     @Override
-    protected Iterator<RelativeToPath> createPathIterator(final RelativeToPath path, final Filter<? super Path> filter) throws IOException {
+    protected BasePathIterator<RelativeToPath> createPathIterator(final RelativeToPath path, final Filter<? super Path> filter) throws IOException {
         if (getFileSystemInternal().isPartOfWorkflow(path)) {
             throw new IOException(path.toString()  + " points to/into a workflow. Cannot list folder contents in a workflow");
         }

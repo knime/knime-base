@@ -84,7 +84,6 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -421,7 +420,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      */
     protected abstract OutputStream newOutputStreamInternal(P path, OpenOption... options) throws IOException;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"resource", "unchecked"})
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path dir, final Filter<? super Path> filter)
         throws IOException {
@@ -436,9 +435,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NotDirectoryException(checkedDir.toString());
         }
 
-        final Iterator<Path> pathIterator = (Iterator<Path>)createPathIterator(checkedDir, filter);
+        final CloseablePathIterator<P> pathIterator = createPathIterator(checkedDir, filter);
 
-        return new BaseDirectoryStream(new RelativizingPathIterator(pathIterator, dir), getFileSystemInternal());
+        return new BaseDirectoryStream<>(pathIterator, (P) dir);
     }
 
     /**
@@ -451,7 +450,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * @return a new {@code Iterator<Path>} object
      * @throws IOException if I/O error occurs
      */
-    protected abstract Iterator<P> createPathIterator(final P dir, final Filter<? super Path> filter)
+    protected abstract CloseablePathIterator<P> createPathIterator(final P dir, final Filter<? super Path> filter)
         throws IOException;
 
     @Override

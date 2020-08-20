@@ -69,13 +69,13 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
+import org.knime.filehandling.core.connections.base.BasePathIterator;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
 /**
@@ -261,7 +261,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     }
 
     @Override
-    protected Iterator<URIPath> createPathIterator(final URIPath dir, final Filter<? super Path> filter) throws IOException {
+    protected BasePathIterator<URIPath> createPathIterator(final URIPath dir, final Filter<? super Path> filter) throws IOException {
         throw new UnsupportedOperationException("Listing folder contents is not supported for URLs");
     }
 
