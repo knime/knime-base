@@ -49,13 +49,14 @@
 package org.knime.filehandling.core.connections.url;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileStore;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -69,9 +70,11 @@ import org.knime.filehandling.core.connections.base.BaseFileSystem;
  */
 public class URIFileSystem extends BaseFileSystem<URIPath> {
 
+    public static final String FS_TYPE = "knime-custom-url";
+
     private static final String PATH_SEPARATOR = "/";
 
-    private final URI m_baseUri;
+    private final String m_baseUri;
 
     private final URIPath m_workingDirectory;
 
@@ -79,11 +82,11 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
         final int timeoutInMillis) {
 
         super(new URIFileSystemProvider(timeoutInMillis), //
-            toBaseURI(uri), //
+            URI.create(FS_TYPE + "://" + UUID.randomUUID().toString()), //
             0L, //
             PATH_SEPARATOR, //
             createFSLocationSpec(isConnectedFs, timeoutInMillis),
-            createFileStore(toBaseURI(uri)));
+            createFileStore());
 
         m_baseUri = toBaseURI(uri);
         m_workingDirectory = getPath(PATH_SEPARATOR);
@@ -95,31 +98,22 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
         return new DefaultFSLocationSpec(category, specifier);
     }
 
-    private static List<FileStore> createFileStore(final URI baseURI) {
+    private static List<FileStore> createFileStore() {
         return Collections.singletonList(new BaseFileStore(FSCategory.CUSTOM_URL.toString(), "default_file_store"));
     }
 
     /**
-     * Retains the scheme and authority from the URL and removes everything else. The path of the returned base URI is
-     * simply "/".
+     * Retains everything left of the URI's path.
      *
-     * @return the base URI (same scheme and authority, but no path, query or fragment.
+     * @return the base URL (same scheme and authority, but no path, query or fragment.
      */
-    private static URI toBaseURI(final URI uri) {
-        try {
-            // special case: file:/path/to/file
-            // here authority is null and the scheme-specific-part is /path/to/file
-            if (uri.getAuthority() == null) {
-                return new URI(uri.getScheme() + ":///");
-            } else {
-                return new URI(uri.getScheme(), uri.getAuthority(), "/", null, null);
-            }
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException(ex);
-        }
+    private static String toBaseURI(final URI uri) {
+        final String uriPath = CheckUtils.checkNotNull(uri.getRawPath(), "URL must specify a path");
+        final int indexOfPath = uri.toString().indexOf(uriPath);
+        return uri.toString().substring(0, indexOfPath);
     }
 
-    public URI getBaseURI() {
+    public String getBaseURI() {
         return m_baseUri;
     }
 
@@ -133,11 +127,9 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
     }
 
     public boolean isRelativeKNIMEProtocol() {
-        final String hostString = getHostString();
-        return getSchemeString().equalsIgnoreCase("knime")
-                && (hostString.equalsIgnoreCase("knime.mountpoint") //
-                        || getHostString().equalsIgnoreCase("knime.workflow") //
-                        || getHostString().equalsIgnoreCase("knime.node"));
+        return m_baseUri.equalsIgnoreCase("knime://knime.mountpoint") //
+            || m_baseUri.equalsIgnoreCase("knime://knime.workflow") //
+            || m_baseUri.equalsIgnoreCase("knime://nime.node");
     }
 
 
@@ -167,6 +159,12 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
         final StringBuilder pathBuilder = new StringBuilder(uri.getPath());
 
+        if (isRelativeKNIMEProtocol()) {
+            // for a knime:// URL, the URL path comes absolute but we need to translate it to
+            // a relative path by deleting the leading slash
+            pathBuilder.deleteCharAt(0);
+        }
+
         if (uri.getQuery() != null) {
             pathBuilder.append("?");
             pathBuilder.append(uri.getQuery());
@@ -191,11 +189,11 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
     @Override
     public String getSchemeString() {
-        return m_baseUri.getScheme();
+        return FS_TYPE;
     }
 
     @Override
     public String getHostString() {
-        return m_baseUri.getAuthority();
+        return "";
     }
 }

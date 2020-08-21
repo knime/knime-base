@@ -58,7 +58,7 @@ public class URIPathTest {
 
 
     @Test
-    public void resolveRelativePath() throws URISyntaxException, IOException {
+    public void test_resolve_relative_path() throws URISyntaxException, IOException {
         final String scheme = "knime";
         final String authority = "LOCAL";
         final String absolute = "/absolute";
@@ -71,5 +71,4 @@ public class URIPathTest {
         final Path resolved = uriPath.resolve(relative);
         assertEquals(String.format("%s/%s", absolute, relative), resolved.toString());
     }
-
 }

@@ -54,13 +54,13 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
      */
     @Test
     public void test_https_location_with_query_and_fragment() throws IOException {
-        final String url = "https://tools.ietf.org/html/rfc7230?bla=blub#section-1.1";
+        final String url = "https://update.knime.com/analytics-platform/4.2/index.html?bla=blub#section-1.1";
 
         final byte[] expectedBytes = readUrl(url);
 
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, "/html/rfc7230?bla=blub#section-1.1");
+        testReadFSLocation(Optional.empty(), loc, expectedBytes, "/analytics-platform/4.2/index.html");
     }
 
     /**
@@ -78,7 +78,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         final String url = localTestFile.toUri().toURL().toString();
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
+        testReadFSLocation(loc, expectedBytes, localTestFile.toString(), localTestFile.toUri().toURL().toString());
     }
 
     /**
@@ -93,10 +93,11 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         Files.write(localTestFile, expectedBytes);
 
         // try unencoded url with spaces
-        final String url = localTestFile.getParent().toUri().toURL().toString() + "/testfile with spaces";
+        // Note that in this case we will have a file: URL such as file:/tmp/bla...
+        final String url = localTestFile.getParent().toUri().toURL().toString() + "testfile with spaces";
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
+        testReadFSLocation(loc, expectedBytes, localTestFile.toString(), localTestFile.toUri().toURL().toString());
     }
 
     /**
@@ -153,7 +154,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
             final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.workflow/../tempfile with spaces");
 
-            testReadFSLocation(Optional.empty(), loc, expectedBytes, "../tempfile with spaces");
+            testReadFSLocation(loc, expectedBytes, "../tempfile with spaces", "knime://knime.workflow/../tempfile%20with%20spaces");
         } finally {
             LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         }
@@ -203,7 +204,7 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
             final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000",
                 "knime://knime.mountpoint/tempfile with spaces");
 
-            testReadFSLocation(Optional.empty(), loc, expectedBytes, "tempfile with spaces");
+            testReadFSLocation(loc, expectedBytes, "tempfile with spaces", "knime://knime.mountpoint/tempfile%20with%20spaces");
         } finally {
             LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         }
