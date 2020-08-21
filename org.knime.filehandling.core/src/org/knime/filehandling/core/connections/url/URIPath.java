@@ -55,6 +55,8 @@ import java.net.URLConnection;
 import java.nio.file.Path;
 
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
@@ -78,29 +80,34 @@ public class URIPath extends UnixStylePath {
     protected URIPath(final URIFileSystem fileSystem, final String first, final String...more) {
         super(fileSystem, extractPathString(fileSystem, first, more));
         m_uri = buildURI(fileSystem, first, more);
-
     }
 
     private static String extractPathString(final URIFileSystem fileSystem, final String first, final String[] more) {
-        //the uri path is always absolute, but it has been separated from query and fragment
-        final String uriPath = buildURI(fileSystem, first, more).getPath();
-
         // the actual path may actually be relative, but it still may contain query and fragment
         final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
 
-        if (fileSystem.isRelativeKNIMEProtocol() || !concatenatedPath.startsWith(fileSystem.getSeparator())) {
-            return uriPath.substring(1);
+        final String pathString;
+
+        if (!concatenatedPath.startsWith(fileSystem.getSeparator())) {
+            // we need to briefly turn this relative path into an absolute one so we can parse the proper path string
+            // (without query and fragment) out of a URL instance.
+            pathString = buildURI(fileSystem, first, more).getPath().substring(1);
         } else {
-            return concatenatedPath;
+            pathString = buildURI(fileSystem, first, more).getPath();
         }
+
+        return pathString;
     }
 
     private static URI buildURI(final URIFileSystem fileSystem, final String first, final String[] more) {
         final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
 
-        String baseURI = fileSystem.getBaseURI().toString();
-        if (baseURI.endsWith("/") && concatenatedPath.startsWith("/")) {
-            baseURI = baseURI.substring(0, baseURI.length() - 1);
+        String baseURI = fileSystem.getBaseURI();
+        if (!concatenatedPath.startsWith(fileSystem.getSeparator())) {
+            // in this case the concatenatedPath is relative, however URLs can only handle absolute paths,
+            // so we prepend a separator just for the sake of being able to build a URL. For knime:// URLs
+            // this also gives the correct result.
+            baseURI = baseURI + fileSystem.getSeparator();
         }
 
         return URI.create(baseURI + concatenatedPath.replace(" ", "%20"));
@@ -144,6 +151,15 @@ public class URIPath extends UnixStylePath {
     }
 
     @Override
+    public Path normalize() {
+        // do not normalize URIPaths as this breaks URLs like knime://knime.workflow/../bla.csv,
+        // which gets parsed into a relative path ../bla.csv. However, when trying to read this
+        // file, the base file system does toAbsolutePath().normalize(), which results in /bla.csv
+        // Path normalization should anyway be done be the URL handler, that opens the input/output streams.
+        return this;
+    }
+
+    @Override
     public int compareTo(final Path other) {
         if (other.getFileSystem() != m_fileSystem) {
             throw new IllegalArgumentException("Cannot compare paths across different file systems");
@@ -182,5 +198,14 @@ public class URIPath extends UnixStylePath {
      */
     public boolean isDirectory() {
         return m_uri.getPath().endsWith(m_fileSystem.getSeparator());
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public FSLocation toFSLocation() {
+        final FSFileSystem<?> fs = getFileSystem();
+        return new FSLocation(fs.getFileSystemCategory(), //
+            fs.getFileSystemSpecifier().orElseGet(() -> null),
+            m_uri.toString());
     }
 }
