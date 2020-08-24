@@ -109,8 +109,9 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
      */
     private static String toBaseURI(final URI uri) {
         final String uriPath = CheckUtils.checkNotNull(uri.getRawPath(), "URL must specify a path");
-        final int indexOfPath = uri.toString().indexOf(uriPath);
-        return uri.toString().substring(0, indexOfPath);
+        final String ssp = uri.getRawSchemeSpecificPart();
+        final String nonPathSSP = ssp.substring(0, ssp.lastIndexOf(uriPath));
+        return String.format("%s:%s", uri.getScheme(), nonPathSSP);
     }
 
     public String getBaseURI() {
