@@ -78,7 +78,10 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         final String url = localTestFile.toUri().toURL().toString();
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(loc, expectedBytes, localTestFile.toString(), localTestFile.toUri().toURL().toString());
+        testReadFSLocation(loc, //
+            expectedBytes, //
+            localTestFile.toUri().getPath(), //
+            localTestFile.toUri().toURL().toString());
     }
 
     /**
@@ -97,7 +100,10 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         final String url = localTestFile.getParent().toUri().toURL().toString() + "testfile with spaces";
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(loc, expectedBytes, localTestFile.toString(), localTestFile.toUri().toURL().toString());
+        testReadFSLocation(loc, //
+            expectedBytes, //
+            localTestFile.toUri().getPath(), //
+            localTestFile.toUri().toURL().toString());
     }
 
     /**
@@ -115,7 +121,10 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         final String url = localTestFile.toUri().toURL().toString();
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
+        testReadFSLocation(Optional.empty(), //
+            loc, //
+            expectedBytes, //
+            localTestFile.toUri().getPath());
     }
 
     /**
@@ -132,7 +141,10 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         // this provides a url like file:/path/to/file, but we want file:///path/to/file which should also work
         final String url = localTestFile.toUri().toURL().toString();
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url.replace("file:", "file://"));
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, localTestFile.toString());
+        testReadFSLocation(Optional.empty(), //
+            loc, //
+            expectedBytes, //
+            localTestFile.toUri().getPath());
     }
 
     /**
