@@ -163,12 +163,16 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
 
     private final Pattern m_regexFolderName;
 
+    private final Path m_rootPath;
+
     /**
      * Constructor using a {@link FilterOptionsSettings} that contains all necessary parameters.
      *
+     * @param rootPath the root path
      * @param filterOptionsSettings settings model containing necessary parameters
      */
-    public FileAndFolderFilter(final FilterOptionsSettings filterOptionsSettings) {
+    public FileAndFolderFilter(final Path rootPath, final FilterOptionsSettings filterOptionsSettings) {
+        m_rootPath = rootPath;
         m_filterOptionsSettings = filterOptionsSettings;
         // make sure each extension starts with a dot
         m_extensions = Arrays.stream(m_filterOptionsSettings.getFilesExtensionExpression().split(";"))
@@ -188,7 +192,7 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
 
     private boolean isSatisfiedFileHidden(final Path path) {
         try {
-            final boolean accept = !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFiles();
+            final boolean accept = m_filterOptionsSettings.isIncludeHiddenFiles() || !Files.isHidden(path);
             if (!accept) {
                 ++m_numberOfFilteredHiddenFiles;
             }
@@ -198,10 +202,10 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         }
     }
 
-    private boolean isSatisfiedFolderHidden(final Path path) {
+    private boolean isSatisfiedFolderHidden(final Path path, final boolean incCounter) {
         try {
-            final boolean accept = !Files.isHidden(path) || m_filterOptionsSettings.isIncludeHiddenFolders();
-            if (!accept) {
+            final boolean accept = m_filterOptionsSettings.isIncludeHiddenFolders() || !Files.isHidden(path);
+            if (incCounter && !accept) {
                 ++m_numberOfFilteredHiddenFolders;
             }
             return accept;
@@ -240,13 +244,13 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         return accept;
     }
 
-    private boolean isSatisfiedFolderName(final Path path) {
+    private boolean isSatisfiedFolderName(final Path path, final boolean incCounter) {
         if (!m_filterOptionsSettings.isFilterFoldersByName()) {
             return true;
         }
-        final String pathAsString = path.getFileName().toString();
+        final String pathAsString = m_rootPath.relativize(path).toString();
         final boolean accept = m_regexFolderName.matcher(pathAsString).matches();
-        if (!accept) {
+        if (incCounter && !accept) {
             m_numberOfFilteredFolders++;
         }
         return accept;
@@ -289,6 +293,26 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     }
 
     /**
+     * Tests that the folder structure matches the selected folder filters.
+     *
+     * @param folder path to the folder to be tested
+     * @return {@code true} if the folder matches the selected filters.
+     */
+    public boolean testFolderName(final Path folder) {
+        return isSatisfiedFolderName(folder, false);
+    }
+
+    /**
+     * Tells whether or not to visit the files in the provided folder with respect to the selected folder filters.
+     *
+     * @param folder the folder in question
+     * @return {@code true} if the folder has to be visited, {@link false} otherwise
+     */
+    public boolean visitFolder(final Path folder) {
+        return isSatisfiedFolderHidden(folder, false);
+    }
+
+    /**
      * Resets the counters of filtered files and filtered folders.
      */
     public void resetCounter() {
@@ -299,13 +323,20 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     @Override
     public boolean test(final Path path, final BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
-            return isSatisfiedFolderHidden(path) && //
-                isSatisfiedFolderName(path);
+            return testFolder(path, true);
         }
         return attrs.isRegularFile() && //
-            isSatisfiedFileHidden(path) && //
+            testFile(path);
+    }
+
+    private boolean testFolder(final Path path, final boolean incCounter) {
+        return isSatisfiedFolderHidden(path, incCounter) && //
+            isSatisfiedFolderName(path, incCounter);
+    }
+
+    private boolean testFile(final Path path) {
+        return isSatisfiedFileHidden(path) && //
             isSatisfiedFileExtension(path) && //
             isSatisfiedFileName(path);
     }
-
 }

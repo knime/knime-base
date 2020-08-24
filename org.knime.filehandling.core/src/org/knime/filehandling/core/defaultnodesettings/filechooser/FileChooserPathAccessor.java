@@ -241,7 +241,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private List<FSPath> walkFileTree(final Path rootPath) throws IOException, InvalidSettingsException {
         final BasicFileAttributes attrs = Files.readAttributes(rootPath, BasicFileAttributes.class);
         checkIsFolder(rootPath, attrs);
-        final FilterVisitor visitor = createVisitor();
+        final FilterVisitor visitor = createVisitor(rootPath);
         final boolean includeSubfolders = m_settings.getFilterModeModel().isIncludeSubfolders();
         Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), includeSubfolders ? Integer.MAX_VALUE : 1,
             visitor);
@@ -257,10 +257,10 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         CheckUtils.checkSetting(attrs.isDirectory(), "%s is not a folder. Please specify a folder.", rootPath);
     }
 
-    private FilterVisitor createVisitor() {
+    private FilterVisitor createVisitor(final Path rootPath) {
         final SettingsModelFilterMode settings = m_settings.getFilterModeModel();
         final boolean includeSubfolders = settings.isIncludeSubfolders();
-        final FileAndFolderFilter filter = new FileAndFolderFilter(settings.getFilterOptionsSettings());
+        final FileAndFolderFilter filter = new FileAndFolderFilter(rootPath, settings.getFilterOptionsSettings());
         switch (m_filterMode) {
             case FILES_AND_FOLDERS:
                 return new FilterVisitor(filter, true, true, includeSubfolders);
