@@ -104,8 +104,9 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
         final FileVisitResult result = super.visitFile(file, attrs);
-        // also called for directories
-        if (attrs.isRegularFile()) {
+        // also called for directories (if max depth is hit by Files.walkFileTree) for these directories pre
+        // #preVisitDirectory is not being invoked
+        if (attrs.isRegularFile() && m_filter.testFolderName(file.getParent())) {
             m_visitedFiles++;
             if (m_includeFiles && m_filter.test(file, attrs)) {
                 m_paths.add(file);
@@ -130,13 +131,12 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
         super.preVisitDirectory(dir, attrs);
         m_visitedFolders++;
-        // the root directory is not tested
-        final boolean searchSubtree = m_visitedFolders > 0 ? m_filter.test(dir, attrs) : true;
         // the root directory is ignored
-        if (m_visitedFolders > 0 && m_includeSubfolders && m_includeFolders && searchSubtree) {
+        if (m_visitedFolders > 0 && m_includeSubfolders && m_includeFolders && m_filter.test(dir, attrs)) {
             m_paths.add(dir);
         }
-        return searchSubtree ? FileVisitResult.CONTINUE : FileVisitResult.SKIP_SUBTREE;
+        return m_visitedFolders == 0 || m_filter.visitFolder(dir) ? FileVisitResult.CONTINUE
+            : FileVisitResult.SKIP_SUBTREE;
     }
 
     List<Path> getPaths() {
