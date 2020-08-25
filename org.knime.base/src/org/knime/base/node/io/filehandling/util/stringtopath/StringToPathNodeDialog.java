@@ -116,7 +116,8 @@ final class StringToPathNodeDialog extends NodeDialogPane {
             createFlowVariableModel(fileSystemModel.getKeysForFSLocation(), FSLocationSpecVariableType.INSTANCE);
         m_fileSystemComponent = new DialogComponentFileSystem(fileSystemModel, fvm);
 
-        m_selectedColumnNameComponent = pathCompatibleDialogComponentColumnNameSelection();
+        m_selectedColumnNameComponent = pathCompatibleDialogComponentColumnNameSelection(
+            portsConfig.getInputPortLocation().get(StringToPathNodeModel.DATA_TABLE_INPUT_PORT_GRP_NAME)[0]);
 
         final SettingsModelString appendedColumnNameModel =
             StringToPathNodeModel.createSettingsModelAppendedColumnName();
@@ -233,9 +234,10 @@ final class StringToPathNodeDialog extends NodeDialogPane {
             .setEnabled(StringToPathNodeModel.isAppendMode(m_generatedColumnModeModel));
     }
 
-    private static DialogComponentColumnNameSelection pathCompatibleDialogComponentColumnNameSelection() {
+    private static DialogComponentColumnNameSelection
+        pathCompatibleDialogComponentColumnNameSelection(final int dataTableIdx) {
         final SettingsModelString selectedColumnNameModel = StringToPathNodeModel.createSettingsModelColumnName();
-        return new DialogComponentColumnNameSelection(selectedColumnNameModel, "", 0, new ColumnFilter() {
+        return new DialogComponentColumnNameSelection(selectedColumnNameModel, "", dataTableIdx, new ColumnFilter() {
             @Override
             public boolean includeColumn(final DataColumnSpec colSpec) {
                 DataType type = colSpec.getType();
