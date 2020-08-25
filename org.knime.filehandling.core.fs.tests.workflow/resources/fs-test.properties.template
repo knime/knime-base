@@ -20,11 +20,17 @@
 
 # Limits the integration tests to only one file system. The currently available file systems are:
 #   local
-#   knime-relative-workflow-local
-#   knime-relative-mountpoint-local
+#   knime-local-relative-workflow
+#   knime-local-relative-mountpoint
+#   knime-relative-workflow-data
+#   knime-rest-relative-workflow
+#   knime-rest-relative-mountpoint
+#   knime-rest
 #   amazon-s3
 #   google-cs
 #   microsoft-sharepoint
+#   microsoft-blobstorage
+#   ssh
 # test-fs = local
 
 ################## Test fixtures for workflow tests ##################
@@ -35,6 +41,27 @@
 #
 # fixture-dir = 
 
+
+################ KNIME: REST file system (connects to Server and Hub) ################
+knime-rest.workingDirPrefix = <PATH-IN-SERVER-REPO>
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest.url = <REST-URL>
+knime-rest.user = <USERNAME>
+knime-rest.pass = <PASSWORD>
+
+################ KNIME: Server-side mountpoint-relative file system (connects to Server)  #######
+knime-rest-relative-mountpoint.workingDirPrefix = <PATH-IN-SERVER-REPO>
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest-relative-mountpoint.url = <REST-URL>
+knime-rest-relative-mountpoint.user = <USERNAME>
+knime-rest-relative-mountpoint.pass = <PASSWORD>
+
+################ KNIME: Server-side workflow-relative file system (connects to Server)  ########
+knime-rest-relative-workflow.workingDirPrefix = <PATH-IN-SERVER-REPO>
+# Example url: http://localhost:8080/knime/rest/v4/repository
+knime-rest-relative-workflow.url = <REST-URL>
+knime-rest-relative-workflow.user = <USERNAME>
+knime-rest-relative-workflow.pass = <PASSWORD>
 
 ################ Amazon S3 ################ 
 amazon-s3.workingDirPrefix = /knime-s3-file-handling-v2-test-temp
@@ -51,8 +78,19 @@ google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
 google-cs.projectId = <PROJECT-ID>
 
 ################ Microsoft SharePoint Online ################
+microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
+microsoft-sharepoint.siteWebURL = https://knimedev.sharepoint.com/
 microsoft-sharepoint.username = <USERNAME>
 microsoft-sharepoint.password = <PASSWORD>
 microsoft-sharepoint.tenant = <TENANT-ID>
-microsoft-sharepoint.siteWebURL = https://knimedev.sharepoint.com/
-microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
+
+################ Microsoft Azure Blob Storage  ################
+microsoft-blobstorage.workingDirPrefix = /knime-filehandling-test-container
+microsoft-blobstorage.account = <STORAGE-ACCOUNT>
+microsoft-blobstorage.key = <STORAGE-ACCOUNT-KEY>
+
+################ SSH ###################
+ssh.workingDirPrefix = <PATH-ON-SSH-SERVER>
+ssh.host = <HOST>
+ssh.username = <USERNAME>
+ssh.password = <PASSWORD>
