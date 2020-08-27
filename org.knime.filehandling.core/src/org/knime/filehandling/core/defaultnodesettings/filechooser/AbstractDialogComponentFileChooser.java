@@ -243,6 +243,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
         updateFileSelectionLabel(location);
         updateBrowser();
+        updateAdditionalComponents();
         updateStatus();
         setEnabledFlowVarSensitive(!sm.isLocationOverwrittenByFlowVariable());
         setEnabledComponents(sm.isEnabled());
