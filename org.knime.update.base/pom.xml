@@ -15,6 +15,10 @@
 	<artifactId>org.knime.update.base</artifactId>
 	<packaging>eclipse-repository</packaging>
 
+	<properties>
+		<revision>4.3.0</revision>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
