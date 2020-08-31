@@ -95,8 +95,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     private FilesHistoryPanel m_filePanel;
 
-    private final JSpinner m_timeoutSpinner =
-        new JSpinner(new SpinnerNumberModel(DEFAULT_URL_TIMEOUT_SECONDS, 1, Integer.MAX_VALUE, 1));
+    private JSpinner m_timeoutSpinner;
 
     static final String CFG_KEY_LOCATION = "file_location";
 
@@ -125,6 +124,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
         gbc.insets = new Insets(0, 5, 5, 5);
         filePanel.add(new JLabel("Connection timeout [s]"), gbc);
         gbc.gridx++;
+        m_timeoutSpinner =
+                new JSpinner(new SpinnerNumberModel(DEFAULT_URL_TIMEOUT_SECONDS, 1, Integer.MAX_VALUE, 1));
         m_timeoutSpinner.setPreferredSize(new Dimension(70, m_timeoutSpinner.getPreferredSize().height));
         filePanel.add(m_timeoutSpinner, gbc);
         return filePanel;
@@ -162,7 +163,11 @@ final class PathAwareFileHistoryPanel implements PathSettings {
     @Override
     public void saveSettingsTo(final NodeSettingsWO settings) {
         settings.addString(CFG_KEY_LOCATION, getPath().trim());
-        settings.addInt(CFG_KEY_TIMEOUT, (int)m_timeoutSpinner.getValue());
+        if (m_timeoutSpinner != null) {
+            settings.addInt(CFG_KEY_TIMEOUT, (int)m_timeoutSpinner.getValue());
+        } else {
+            settings.addInt(CFG_KEY_TIMEOUT, DEFAULT_URL_TIMEOUT_SECONDS);
+        }
         if (m_filePanel != null) {
             m_filePanel.addToHistory();
         }
@@ -171,7 +176,9 @@ final class PathAwareFileHistoryPanel implements PathSettings {
     @Override
     public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selectedFile = settings.getString(CFG_KEY_LOCATION, DEFAULT_FILE);
-        m_timeoutSpinner.setValue(settings.getInt(CFG_KEY_TIMEOUT, DEFAULT_URL_TIMEOUT_SECONDS));
+        if (m_timeoutSpinner != null) {
+            m_timeoutSpinner.setValue(settings.getInt(CFG_KEY_TIMEOUT, DEFAULT_URL_TIMEOUT_SECONDS));
+        }
         if (m_filePanel != null) {
             m_filePanel.setSelectedFile(m_selectedFile);
         }
@@ -193,7 +200,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public ReadPathAccessor createReadPathAccessor() {
-        return new PathAwareReadAccessor(getPath(), (int)m_timeoutSpinner.getValue() * 1000L);
+        final int timeoutInSec = m_timeoutSpinner != null ? (int) m_timeoutSpinner.getValue() : DEFAULT_URL_TIMEOUT_SECONDS;
+        return new PathAwareReadAccessor(getPath(), timeoutInSec * 1000L);
     }
 
     private boolean hasPath() {
