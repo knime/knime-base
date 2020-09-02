@@ -28,6 +28,7 @@
 #   knime-rest
 #   amazon-s3
 #   google-cs
+#   hdfs
 #   microsoft-sharepoint
 #   microsoft-blobstorage
 #   ssh
@@ -76,6 +77,14 @@ google-cs.workingDirPrefix = /knime-filehandling-test-bucket
 google-cs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
 google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
 google-cs.projectId = <PROJECT-ID>
+
+################ HDFS ################
+# Example url: webhdfs://test-cluster:50070
+hdfs.workingDirPrefix = /tmp/file-handling-tests
+hdfs.url = <PROTOCOL>://<HOST>:<PORT>
+# authentication type: none, user or kerberos
+hdfs.auth = none
+# hdfs.user = knime-server
 
 ################ Microsoft SharePoint Online ################
 microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
