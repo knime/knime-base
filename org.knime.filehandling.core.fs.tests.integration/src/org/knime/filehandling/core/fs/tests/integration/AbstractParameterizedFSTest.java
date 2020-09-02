@@ -76,6 +76,8 @@ public abstract class AbstractParameterizedFSTest {
 
     private static Collection<Object[]> allFileSystemTestInitializerProviders;
 
+    private static boolean preferencesLoaded = false;
+
     protected static final String LOCAL = "local";
     protected static final String AMAZON_S3 = "amazon-s3";
     protected static final String GOOGLE_CS = "google-cs";
@@ -96,6 +98,11 @@ public abstract class AbstractParameterizedFSTest {
     public synchronized static Collection<Object[]> allFileSystemTestInitializerProviders() {
         if (allFileSystemTestInitializerProviders == null) {
             allFileSystemTestInitializerProviders = FSTestParameters.getTestInitializers();
+        }
+
+        if (!preferencesLoaded) {
+            FSTestPreferencesLoader.loadPreferences();
+            preferencesLoaded = true;
         }
 
         return allFileSystemTestInitializerProviders;
