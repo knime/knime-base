@@ -46,14 +46,11 @@
  * History
  *   May 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -65,17 +62,22 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class OpenBackgroundWorker implements Callable<StatusMessage> {
+final class DefaultReaderStatusMessageReporter implements StatusMessageReporter {
 
     private final SettingsModelReaderFileChooser m_settings;
 
-    OpenBackgroundWorker(final SettingsModelReaderFileChooser settings) {
+    /**
+     * Constructor.
+     *
+     * @param settings the reader file chooser settings
+     */
+    DefaultReaderStatusMessageReporter(final SettingsModelReaderFileChooser settings) {
         m_settings = settings;
     }
 
     @Override
-    public StatusMessage call() throws Exception {
-        try (final ReadPathAccessor accessor = m_settings.createPathAccessor()) {
+    public StatusMessage report() {
+        try (final ReadPathAccessor accessor = m_settings.createReadPathAccessor()) {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             accessor.getFSPaths(consumer);
             final Optional<StatusMessage> scanningStatus = consumer.get();

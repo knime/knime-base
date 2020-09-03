@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -109,10 +110,12 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * The file selection combo box stores previously selected paths in a history that can be accessed in the drop down.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> The actual type of the implementation of the AbstractSettingsModelFileChooser
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractDialogComponentFileChooser extends DialogComponent {
+public abstract class AbstractDialogComponentFileChooser<T extends AbstractSettingsModelFileChooser<T>>
+    extends DialogComponent {
 
     private final DialogType m_dialogType;
 
@@ -134,6 +137,8 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     private final FlowVariableModelButton m_locationFvmBtn;
 
+    private final Function<T, StatusMessageReporter> m_statusMessageReporter;
+
     private StatusSwingWorker m_statusMessageWorker = null;
 
     /**
@@ -143,12 +148,14 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
      * @param dialogType the type of dialog i.e. open or save
      * @param locationFvm the {@link FlowVariableModel} for the location
+     * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
+     *            component
      * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
      *            from <b>model</b> is used)
      */
-    protected AbstractDialogComponentFileChooser(final AbstractSettingsModelFileChooser model, final String historyID,
+    protected AbstractDialogComponentFileChooser(final T model, final String historyID,
         final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
-        final FilterMode... filterModes) {
+        final Function<T, StatusMessageReporter> statusMessageReporter, final FilterMode... filterModes) {
         super(model);
         m_dialogType = dialogType;
         m_fsChooserLabel = new JLabel(m_dialogType == DialogType.OPEN_DIALOG ? "Read from" : "Write to");
@@ -160,9 +167,10 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
         if (model.getFileSystemConfiguration().getActiveFSCategories().contains(FSCategory.CUSTOM_URL)) {
             CheckUtils.checkArgument(selectableFilterModes.contains(FilterMode.FILE),
                 "FilterMode.FILE must be among the selectable filter modes "
-                        + "if FSCategory.CUSTOM_URL is an active file system.");
+                    + "if FSCategory.CUSTOM_URL is an active file system.");
         }
         m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
+        m_statusMessageReporter = statusMessageReporter;
         m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration());
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
             selectableFilterModes.toArray(new FilterMode[0]));
@@ -236,7 +244,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
 
     @Override
     protected final void updateComponent() {
-        final AbstractSettingsModelFileChooser sm = getSettingsModel();
+        final T sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
 
         m_fileSelection.setSelected(location.getPath());
@@ -259,7 +267,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     private void updateStatus() {
         m_statusView.clearStatus();
         m_statusConsumer.clear();
-        final AbstractSettingsModelFileChooser sm = getSettingsModel();
+        final T sm = getSettingsModel();
         if (!sm.isEnabled()) {
             // Don't update the status message if the model is disabled
             return;
@@ -288,7 +296,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
      *
      * @param msg output by the status message swing worker
      */
-    private void setStatusIfMoreUrgent(final StatusMessage msg) {
+    protected final void setStatusIfMoreUrgent(final StatusMessage msg) {
         m_statusConsumer.clear();
         m_statusConsumer.accept(msg);
         m_statusView.getStatus().ifPresent(m_statusConsumer);
@@ -300,8 +308,8 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
             m_statusMessageWorker.cancel(true);
         }
         try {
-            m_statusMessageWorker =
-                new StatusSwingWorker(getSettingsModel(), this::setStatusIfMoreUrgent, m_dialogType);
+            m_statusMessageWorker = new StatusSwingWorker(this::setStatusIfMoreUrgent,
+                m_statusMessageReporter.apply(getSettingsModel().createClone()));
             m_statusMessageWorker.execute();
         } catch (Exception ex) {
             NodeLogger.getLogger(AbstractDialogComponentFileChooser.class)
@@ -312,7 +320,7 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
     }
 
     private void updateBrowser() {
-        final AbstractSettingsModelFileChooser sm = getSettingsModel();
+        final T sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
         if (location.getFSCategory() != FSCategory.CUSTOM_URL) {
             // we can only browse if the file system connection is available
@@ -358,8 +366,9 @@ public abstract class AbstractDialogComponentFileChooser extends DialogComponent
      *
      * @return the {@link AbstractSettingsModelFileChooser} of this dialog component
      */
-    public AbstractSettingsModelFileChooser getSettingsModel() {
-        return (AbstractSettingsModelFileChooser)getModel();
+    @SuppressWarnings("unchecked")
+    public T getSettingsModel() {
+        return (T)getModel();
     }
 
     @Override

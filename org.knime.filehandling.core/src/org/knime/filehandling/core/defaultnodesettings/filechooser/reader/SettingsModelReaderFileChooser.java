@@ -64,7 +64,8 @@ import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class SettingsModelReaderFileChooser extends AbstractSettingsModelFileChooser implements PathSettings {
+public final class SettingsModelReaderFileChooser
+    extends AbstractSettingsModelFileChooser<SettingsModelReaderFileChooser> implements PathSettings {
 
     /**
      * Constructor.
@@ -78,7 +79,8 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS, final String... fileExtensions) {
+        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS,
+        final String... fileExtensions) {
         super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, convenienceFS, fileExtensions);
     }
 
@@ -93,7 +95,8 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
      */
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class), fileExtensions);
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class),
+            fileExtensions);
     }
 
     private SettingsModelReaderFileChooser(final SettingsModelReaderFileChooser toCopy) {
@@ -105,7 +108,6 @@ public final class SettingsModelReaderFileChooser extends AbstractSettingsModelF
         return super.createPathAccessor();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public SettingsModelReaderFileChooser createClone() {
         return new SettingsModelReaderFileChooser(this);

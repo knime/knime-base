@@ -48,19 +48,17 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import javax.swing.SwingWorker;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -81,14 +79,12 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
     private final Consumer<StatusMessage> m_statusMessageConsumer;
 
-    private final Callable<StatusMessage> m_backgroundWorker;
+    private final StatusMessageReporter m_statusMessageReporter;
 
-    StatusSwingWorker(final AbstractSettingsModelFileChooser settings,
-        final Consumer<StatusMessage> statusMessageConsumer, final DialogType dialogType) {
+    StatusSwingWorker(final Consumer<StatusMessage> statusMessageConsumer,
+        final StatusMessageReporter statusMessageReporter) {
         m_statusMessageConsumer = statusMessageConsumer;
-        m_backgroundWorker = dialogType == DialogType.OPEN_DIALOG
-            ? new OpenBackgroundWorker(((SettingsModelReaderFileChooser)settings).createClone())
-            : new SaveBackgroundWorker(((SettingsModelWriterFileChooser)settings).createClone());
+        m_statusMessageReporter = statusMessageReporter;
     }
 
     @Override
@@ -98,8 +94,8 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
         Thread.sleep(200);
         try {
-            return m_backgroundWorker.call();
-        } catch (Exception ex) {
+            return m_statusMessageReporter.report();
+        } catch (IOException | InvalidSettingsException ex) {
             LOGGER.error("Error while updating status message: " + ex.getMessage(), ex);
             return new DefaultStatusMessage(MessageType.ERROR, ex.getMessage());
         }

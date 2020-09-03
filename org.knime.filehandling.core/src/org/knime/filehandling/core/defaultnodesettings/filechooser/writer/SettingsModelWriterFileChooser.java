@@ -74,7 +74,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class SettingsModelWriterFileChooser extends AbstractSettingsModelFileChooser {
+public final class SettingsModelWriterFileChooser
+    extends AbstractSettingsModelFileChooser<SettingsModelWriterFileChooser> {
 
     private static final String CFG_CREATE_MISSING_FOLDERS = "create_missing_folders";
 
@@ -135,8 +136,10 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final FilterMode defaultFilterMode,
-        final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies, final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class), fileExtensions);
+        final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies,
+        final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class),
+            fileExtensions);
         if (defaultPolicy == null) {
             CheckUtils.checkArgument(supportedPolicies.isEmpty(),
                 "There must not be any supported policy if the default policy is null.");
@@ -303,7 +306,6 @@ public final class SettingsModelWriterFileChooser extends AbstractSettingsModelF
             String.format("The file overwrite policy '%s' is not supported by this node.", policyText)));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public SettingsModelWriterFileChooser createClone() {
         return new SettingsModelWriterFileChooser(this);
