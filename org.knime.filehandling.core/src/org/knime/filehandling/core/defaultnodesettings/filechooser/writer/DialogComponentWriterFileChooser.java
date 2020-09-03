@@ -52,6 +52,7 @@ import java.awt.GridBagLayout;
 import java.util.Enumeration;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -64,6 +65,7 @@ import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -81,7 +83,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DialogComponentWriterFileChooser extends AbstractDialogComponentFileChooser {
+public final class DialogComponentWriterFileChooser
+    extends AbstractDialogComponentFileChooser<SettingsModelWriterFileChooser> {
 
     private JLabel m_writeOptionsLabel;
 
@@ -92,7 +95,7 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
     private boolean m_isEnabled = true;
 
     /**
-     * Constructor.
+     * Constructor using a default status message calculator implementation.
      *
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
@@ -102,7 +105,34 @@ public final class DialogComponentWriterFileChooser extends AbstractDialogCompon
      */
     public DialogComponentWriterFileChooser(final SettingsModelWriterFileChooser model, final String historyID,
         final FlowVariableModel locationFvm, final FilterMode... filterModes) {
-        super(model, historyID, DialogType.SAVE_DIALOG, locationFvm, filterModes);
+        this(model//
+            , historyID//
+            , locationFvm//
+            , DefaultWriterStatusMessageReporter::new//
+            , filterModes);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param locationFvm the {@link FlowVariableModel} for the location
+     * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
+     *            component
+     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
+     *            from <b>model</b> is used)
+     */
+    public DialogComponentWriterFileChooser(final SettingsModelWriterFileChooser model, final String historyID,
+        final FlowVariableModel locationFvm,
+        final Function<SettingsModelWriterFileChooser, StatusMessageReporter> statusMessageReporter,
+        final FilterMode... filterModes) {
+        super(model//
+            , historyID//
+            , DialogType.SAVE_DIALOG//
+            , locationFvm//
+            , statusMessageReporter//
+            , filterModes);
         initComponents();
         m_createMissingFolders
             .addActionListener(e -> model.setCreateMissingFolders(m_createMissingFolders.isSelected()));

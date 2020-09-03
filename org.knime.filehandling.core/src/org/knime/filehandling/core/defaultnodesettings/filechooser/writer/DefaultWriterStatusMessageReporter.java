@@ -46,23 +46,22 @@
  * History
  *   May 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.writer;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
@@ -73,7 +72,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class SaveBackgroundWorker implements Callable<StatusMessage> {
+final class DefaultWriterStatusMessageReporter implements StatusMessageReporter {
 
     private static final DefaultStatusMessage MISSING_FOLDERS_MSG =
         new DefaultStatusMessage(MessageType.ERROR, "Some folders in the specified path are missing.");
@@ -82,20 +81,25 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
 
     private static final DefaultStatusMessage SUCCESS_MSG = new DefaultStatusMessage(MessageType.INFO, "");
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(SaveBackgroundWorker.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultWriterStatusMessageReporter.class);
 
     private final SettingsModelWriterFileChooser m_settings;
 
     private final ExistsHandler m_existsHandler;
 
-    SaveBackgroundWorker(final SettingsModelWriterFileChooser settings) {
+    /**
+     * Constructor.
+     *
+     * @param settings the writer file chooser settings
+     */
+    DefaultWriterStatusMessageReporter(final SettingsModelWriterFileChooser settings) {
         m_settings = settings;
         m_existsHandler = createExistsHandler();
     }
 
     @Override
-    public StatusMessage call() throws Exception {
-        try (final WritePathAccessor accessor = m_settings.createPathAccessor()) {
+    public StatusMessage report() throws IOException, InvalidSettingsException {
+        try (final WritePathAccessor accessor = m_settings.createWritePathAccessor()) {
             final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             final FSPath path = accessor.getOutputPath(consumer);
             if (FSFiles.exists(path)) {
@@ -147,7 +151,7 @@ final class SaveBackgroundWorker implements Callable<StatusMessage> {
             case APPEND:
                 return createAppendHandler();
             case FAIL:
-                return SaveBackgroundWorker::createFailStatusMsg;
+                return DefaultWriterStatusMessageReporter::createFailStatusMsg;
             case IGNORE:
                 return (p, a) -> SUCCESS_MSG;
             case OVERWRITE:

@@ -44,34 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 2, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser.writer;
+package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
-import java.io.Closeable;
-import java.util.function.Consumer;
+import java.io.IOException;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * Allows to access the output {@link FSPath} for writer nodes.
+ * Represents a supplier that calculates status messages.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public interface WritePathAccessor extends Closeable {
+@FunctionalInterface
+public interface StatusMessageReporter {
 
     /**
-     * Retrieves the output/root {@link FSPath} specified in the settings provided to the constructor.</br>
-     * Writer nodes should make use of this method.
+     * Gets the {@link StatusMessage}.
      *
-     * @param statusMessageConsumer used to communicating non-fatal erros and warnings
-     * @return the output path
-     * @throws InvalidSettingsException if the settings provided in the constructor are invalid
+     * @return a result
+     * @throws IOException - If something went wrong while opening/closing streams
+     * @throws InvalidSettingsException - If any settings required to create the status message exhibit an invalid
+     *             configuration
      */
-    FSPath getOutputPath(final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException;
-
+    StatusMessage report() throws IOException, InvalidSettingsException;
 }

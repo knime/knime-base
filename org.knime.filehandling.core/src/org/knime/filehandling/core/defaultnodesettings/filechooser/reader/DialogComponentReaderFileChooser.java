@@ -48,10 +48,13 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
+import java.util.function.Function;
+
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -62,10 +65,11 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DialogComponentReaderFileChooser extends AbstractDialogComponentFileChooser {
+public final class DialogComponentReaderFileChooser
+    extends AbstractDialogComponentFileChooser<SettingsModelReaderFileChooser> {
 
     /**
-     * Constructor.
+     * Constructor using a default status message calculator implementation.
      *
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
@@ -75,7 +79,34 @@ public final class DialogComponentReaderFileChooser extends AbstractDialogCompon
      */
     public DialogComponentReaderFileChooser(final SettingsModelReaderFileChooser model, final String historyID,
         final FlowVariableModel locationFvm, final FilterMode... filterModes) {
-        super(model, historyID, DialogType.OPEN_DIALOG, locationFvm, filterModes);
+        this(model//
+            , historyID//
+            , locationFvm//
+            , DefaultReaderStatusMessageReporter::new//
+            , filterModes);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
+     * @param historyID id used to store file history used by {@link FileSelectionDialog}
+     * @param locationFvm the {@link FlowVariableModel} for the location
+     * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
+     *            component
+     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
+     *            from <b>model</b> is used)
+     */
+    public DialogComponentReaderFileChooser(final SettingsModelReaderFileChooser model, final String historyID,
+        final FlowVariableModel locationFvm,
+        final Function<SettingsModelReaderFileChooser, StatusMessageReporter> statusMessageReporter,
+        final FilterMode... filterModes) {
+        super(model//
+            , historyID//
+            , DialogType.OPEN_DIALOG//
+            , locationFvm//
+            , statusMessageReporter//
+            , filterModes);
     }
 
 }

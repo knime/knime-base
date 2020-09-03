@@ -91,10 +91,12 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * model before retrieving e.g. the {@link FSLocation} via {@link #getLocation()}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> The actual type of the implementation of the AbstractSettingsModelFileChooser
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractSettingsModelFileChooser extends SettingsModel implements StatusReporter {
+public abstract class AbstractSettingsModelFileChooser<T extends AbstractSettingsModelFileChooser<T>>
+    extends SettingsModel implements StatusReporter {
 
     private static final DefaultStatusMessage NO_LOCATION_ERROR =
         new DefaultStatusMessage(MessageType.ERROR, "Please specify a path");
@@ -148,7 +150,7 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
      *
      * @param toCopy instance to copy
      */
-    protected AbstractSettingsModelFileChooser(final AbstractSettingsModelFileChooser toCopy) {
+    protected AbstractSettingsModelFileChooser(final AbstractSettingsModelFileChooser<T> toCopy) {
         m_configName = toCopy.m_configName;
         m_fsConfig = toCopy.m_fsConfig.copy();
         m_fileExtensions = toCopy.m_fileExtensions.clone();
@@ -435,4 +437,7 @@ public abstract class AbstractSettingsModelFileChooser extends SettingsModel imp
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public abstract T createClone();
 }
