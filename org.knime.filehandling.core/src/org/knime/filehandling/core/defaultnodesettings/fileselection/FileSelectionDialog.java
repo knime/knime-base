@@ -56,10 +56,12 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -75,6 +77,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.util.CheckedExceptionSupplier;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.IOESupplier;
@@ -354,6 +357,9 @@ public final class FileSelectionDialog {
                 notifyListeners();
             } catch (ExecutionException ee) {
                 LOGGER.error("ExecutionException while creating browser.", ee);
+                final String message = Optional.ofNullable(ExceptionUtil.getDeepestErrorMessage(ee.getCause(), true))
+                        .orElse("No error message provided. Please see KNIME log for more information");
+                JOptionPane.showMessageDialog(m_panel, message, "Error while creating browser", JOptionPane.ERROR_MESSAGE);
             } catch (InterruptedException | CancellationException ex) {
                 LOGGER.debug("Browser creation was interrupted.", ex);
             } finally {
