@@ -56,33 +56,7 @@ package org.knime.filehandling.core.node.table.reader.config;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
-
-    private final C m_readerSpecificConfig;
-
-    private long m_columnHeaderIdx = -1;
-
-    private int m_rowIDIdx = -1;
-
-    private boolean m_useColumnHeaderIdx = true;
-
-    private boolean m_useRowIDIdx = false;
-
-    private boolean m_allowShortRows;
-
-    private boolean m_skipEmptyRows;
-
-    private boolean m_skipRows = false;
-
-    private long m_numRowsToSkip = 1;
-
-    private boolean m_limitRows = false;
-
-    private long m_maxRows = 50;
-
-    private boolean m_limitRowsForSpec = true;
-
-    private long m_maxRowsForSpec = 50;
+public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> extends AbstractTableReadConfig<C> {
 
     /**
      * Constructor.
@@ -90,28 +64,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
      * @param readerSpecificConfig containing reader specific settings
      */
     public DefaultTableReadConfig(final C readerSpecificConfig) {
-        m_readerSpecificConfig = readerSpecificConfig;
+        super(readerSpecificConfig);
     }
 
     private DefaultTableReadConfig(final DefaultTableReadConfig<C> toCopy) {
-        m_readerSpecificConfig = toCopy.m_readerSpecificConfig.copy();
-        m_columnHeaderIdx = toCopy.m_columnHeaderIdx;
-        m_rowIDIdx = toCopy.m_rowIDIdx;
-        m_useColumnHeaderIdx = toCopy.m_useColumnHeaderIdx;
-        m_useRowIDIdx = toCopy.m_useRowIDIdx;
-
-        m_allowShortRows = toCopy.m_allowShortRows;
-
-        m_skipEmptyRows = toCopy.m_skipEmptyRows;
-
-        m_skipRows = toCopy.m_skipRows;
-        m_numRowsToSkip = toCopy.m_numRowsToSkip;
-
-        m_limitRows = toCopy.m_limitRows;
-        m_maxRows = toCopy.m_maxRows;
-
-        m_limitRowsForSpec = toCopy.m_limitRowsForSpec;
-        m_maxRowsForSpec = toCopy.m_maxRowsForSpec;
+        super(toCopy);
     }
 
     @Override
@@ -119,24 +76,13 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         return new DefaultTableReadConfig<>(this);
     }
 
-    @Override
-    public C getReaderSpecificConfig() {
-        return m_readerSpecificConfig;
-    }
-
-    @Override
-    public long getColumnHeaderIdx() {
-        return m_columnHeaderIdx;
-    }
-
-    @Override
-    public int getRowIDIdx() {
-        return m_rowIDIdx;
-    }
-
-    @Override
-    public boolean useRowIDIdx() {
-        return m_useRowIDIdx;
+    /**
+     * Sets whether rows should be skipped/omitted in the beginning.
+     *
+     * @param skipRows whether rows should be skipped/omitted in the beginning.
+     */
+    public void setSkipRows(final boolean skipRows) {
+        m_skipRows = skipRows;
     }
 
     /**
@@ -167,11 +113,6 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         m_columnHeaderIdx = idx < -1 ? -1 : idx;
     }
 
-    @Override
-    public boolean useColumnHeaderIdx() {
-        return m_useColumnHeaderIdx;
-    }
-
     /**
      * Sets whether the column header index returned by {@link #getColumnHeaderIdx()} should be used.
      *
@@ -179,35 +120,6 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
      */
     public void setUseColumnHeaderIdx(final boolean useColumnHeaderIdx) {
         m_useColumnHeaderIdx = useColumnHeaderIdx;
-    }
-
-    @Override
-    public boolean skipEmptyRows() {
-        return m_skipEmptyRows;
-    }
-
-    @Override
-    public boolean allowShortRows() {
-        return m_allowShortRows;
-    }
-
-    @Override
-    public boolean skipRows() {
-        return m_skipRows;
-    }
-
-    /**
-     * Sets whether rows should be skipped/omitted in the beginning.
-     *
-     * @param skipRows whether rows should be skipped/omitted in the beginning.
-     */
-    public void setSkipRows(final boolean skipRows) {
-        m_skipRows = skipRows;
-    }
-
-    @Override
-    public long getNumRowsToSkip() {
-        return m_numRowsToSkip;
     }
 
     /**
@@ -220,39 +132,6 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         m_numRowsToSkip = numRowsToSkip;
     }
 
-    @Override
-    public boolean limitRows() {
-        return m_limitRows;
-    }
-
-    /**
-     * Sets whether to limit the number of rows to a certain maximum.
-     *
-     * @param limitRows whether to limit the number of rows to a certain maximum.
-     */
-    public void setLimitRows(final boolean limitRows) {
-        m_limitRows = limitRows;
-    }
-
-    @Override
-    public long getMaxRows() {
-        return m_maxRows;
-    }
-
-    /**
-     * Sets the maximum number of rows that should be read. Used only if {@link #limitRows()} is set <code>true</code>.
-     *
-     * @param maxRows the number of rows that should be
-     */
-    public void setMaxRows(final long maxRows) {
-        m_maxRows = maxRows;
-    }
-
-    @Override
-    public boolean limitRowsForSpec() {
-        return m_limitRowsForSpec;
-    }
-
     /**
      * Sets whether to limit the number of rows for the purpose of defining the table specifications.
      *
@@ -260,11 +139,6 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
      */
     public void setLimitRowsForSpec(final boolean limitRowsForSpec) {
         m_limitRowsForSpec = limitRowsForSpec;
-    }
-
-    @Override
-    public long getMaxRowsForSpec() {
-        return m_maxRowsForSpec;
     }
 
     /**
@@ -286,7 +160,11 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> imp
         m_skipEmptyRows = skipEmptyRows;
     }
 
-    @Override
+    /**
+     * Sets whether short rows should be allowed or not.
+     *
+     * @param allowShortRows whether short rows should be allowed
+     */
     public void setAllowShortRows(final boolean allowShortRows) {
         m_allowShortRows = allowShortRows;
     }

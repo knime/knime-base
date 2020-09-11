@@ -48,8 +48,10 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
 /**
  * Configuration for the table readers that can jointly read tables from multiple sources.
@@ -59,7 +61,7 @@ import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends ReaderConfig {
+public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
 
     /**
      * Returns the configuration for reading an individual table.
@@ -78,23 +80,34 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends
     /**
      * Indicates whether a table spec is already provided, or has to be computed.
      *
-     * @return <code>true</code> if the {@link TableSpecConfig} is available, {@code false} otherwise
+     * @return <code>true</code> if the {@link DefaultTableSpecConfig} is available, {@code false} otherwise
      */
     boolean hasTableSpecConfig();
 
     /**
-     * Returns the {@link TableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()} returned
+     * Returns the {@link DefaultTableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()} returned
      * {@code true}
      *
-     * @return the {@link TableSpecConfig}
+     * @return the {@link DefaultTableSpecConfig}
      */
     TableSpecConfig getTableSpecConfig();
 
     /**
-     * Sets the {@link TableSpecConfig}
+     * Sets the {@link DefaultTableSpecConfig}
      *
-     * @param config the {@link TableSpecConfig} to set
+     * @param config the {@link DefaultTableSpecConfig} to set
      */
-    public void setTableSpecConfig(TableSpecConfig config);
+    void setTableSpecConfig(TableSpecConfig config);
 
+    /**
+     * Returns {@code true} if the {@link DefaultTableSpecConfig} has been created with the provided <b>rootPath</b> and
+     * {@link List} of {@link Path Paths}.
+     *
+     * @param rootPath string representation of the root path
+     * @param paths the paths for which the {@link DefaultTableSpecConfig} has been configured
+     * @return {@code true} if the {@link DefaultTableSpecConfig} is present and has been created with the provided parameters
+     */
+    default boolean isConfiguredWith(final String rootPath, final List<Path> paths) {
+        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(rootPath, paths);
+    }
 }

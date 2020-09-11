@@ -44,62 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
 
-import java.nio.file.Path;
-import java.util.Arrays;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
-import org.knime.core.data.convert.map.Source;
-import org.knime.core.data.def.StringCell;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.core.node.tableview.TableView;
+import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
- * Contains utility methods for testing classes relying on a {@link TableSpecConfig}.
+ * View of the table reader preview.</br>
+ * Displays a {@link TableView} with additional components for progress and error reporting.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference not part of public API
+ * @noinstantiate not part of public API
  */
-final class TableSpecConfigUtils implements Source<String> {
+public final class TableReaderPreviewView extends JPanel {
 
-    private static ProducerRegistry<String, TableSpecConfigUtils> m_registry;
+    private static final long serialVersionUID = 1L;
 
-    private TableSpecConfigUtils() {
-        // static utility class
+    private static final int PREVIEW_WIDTH = 750;
+
+    private static final int PREVIEW_HEIGHT = 250;
+
+    private final AnalysisComponentView m_analysisComponentView;
+
+    private final TableView m_tableView;
+
+    TableReaderPreviewView(final TableReaderPreviewModel model) {
+        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
+        m_tableView = new TableView(model.getPreviewTableModel());
+        createPanel();
     }
 
-    static synchronized ProducerRegistry<String, TableSpecConfigUtils> getProducerRegistry() {
-        if (m_registry == null) {
-            m_registry = MappingFramework.forSourceType(TableSpecConfigUtils.class);
-            m_registry.register(new SimpleCellValueProducerFactory<>("foo", String.class, null));
-        }
-        return m_registry;
+    private void createPanel() {
+        setLayout(new GridBagLayout());
+        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
+        add(m_analysisComponentView, gbc.build());
+        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
+        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
     }
 
-    static Path mockPath(final String path) {
-        final Path p = mock(Path.class);
-        when(p.toString()).thenReturn(path);
-        return p;
-    }
-
-    static ReaderTableSpec<ReaderColumnSpec> createSpec(final String... cols) {
-        return ReaderTableSpec.createReaderTableSpec(Arrays.asList(cols));
-    }
-
-    static DataTableSpec createDataTableSpec(final String... cols) {
-        return new DataTableSpec(Arrays.stream(cols)//
-            .map(s -> new DataColumnSpecCreator(s, StringCell.TYPE).createSpec())//
-            .toArray(DataColumnSpec[]::new));
-    }
 }

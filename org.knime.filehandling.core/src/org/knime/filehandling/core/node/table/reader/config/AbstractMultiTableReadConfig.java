@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 
 /**
  * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and setters but doesn't implement

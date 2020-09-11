@@ -77,6 +77,7 @@ public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> {
      * @return a {@link Read} that reads from {@link Path filePath} using the provided {@link TableReadConfig config}
      * @throws IOException if creating the read fails due to IO problems
      */
+    // TODO add separate parameter for doing pushdown e.g. filtering
     Read<V> read(final Path path, final TableReadConfig<C> config) throws IOException;
 
     /**

@@ -49,21 +49,20 @@
 package org.knime.filehandling.core.node.table.reader.util;
 
 import java.nio.file.Path;
-import java.util.Collection;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 
 /**
- * Encapsulates information needed by the MultiTableReader to read tables from multiple {@link Path paths}. Note:
- * Implementations of this class don't perform any I/O.
+ * Encapsulates information necessary to read tables from multiple {@link Path paths}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type representing values
  */
-public interface MultiTableRead<V> {
+public interface MultiTableRead {
 
     /**
      * Returns the {@link DataTableSpec} of the currently read table.
@@ -73,29 +72,28 @@ public interface MultiTableRead<V> {
     DataTableSpec getOutputSpec();
 
     /**
-     * Checks if the provided <b>paths</b> match the paths used to instantiate this MultiTableRead.
-     *
-     * @param paths to read from
-     * @return {@code true} if the provided <b>paths</b> are valid
-     */
-    boolean isValidFor(final Collection<Path> paths);
-
-    /**
-     * Creates an {@link IndividualTableReader} to read the contents stored at {@link Path path}.
-     *
-     * @param path to read from
-     * @param config user provided {@link TableReadConfig}
-     * @param fsFactory for creating certain types of DataCells
-     * @return an {@link IndividualTableReader} configured for {@link Path path}
-     */
-    IndividualTableReader<V> createIndividualTableReader(Path path, TableReadConfig<?> config,
-        FileStoreFactory fsFactory);
-
-    /**
      * Allows to create the {@link TableSpecConfig}.
      *
      * @return the {@link TableSpecConfig}
      */
-    TableSpecConfig createTableSpec();
+    TableSpecConfig getTableSpecConfig();
+
+    /**
+     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
+     *
+     * @return a {@link PreviewRowIterator} for use in the dialog
+     */
+    PreviewRowIterator createPreviewIterator();
+
+    /**
+     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
+     *
+     * @param output to push to
+     * @param exec for progress monitoring and canceling
+     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
+     * @throws Exception if something goes awry
+     */
+    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory)
+        throws Exception; // NOSONAR, can't be specialized because the type mapping throws Exception
 
 }

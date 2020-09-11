@@ -48,211 +48,110 @@
  */
 package org.knime.filehandling.core.node.table.reader.preview;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
-import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
+import javax.swing.event.ChangeEvent;
+
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowIterator;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
-import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.CloseableTable;
+import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
 
 /**
  * A data table holding a preview of potentially multiple files to read in. If an error occurs, a
  * {@link PreviewExecutionMonitor} is informed instead of throwing an exception. </br>
  * </br>
- * Note that {@link #dispose()} should be called in order to properly clean up this table.
+ * Note that {@link #close()} should be called in order to properly clean up this table.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @param <C> the type of the {@link ReaderSpecificConfig}
- * @param <V> the type of tokens the reader produces
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class PreviewDataTable<C extends ReaderSpecificConfig<C>, V> implements DataTable {
+public final class PreviewDataTable implements CloseableTable {
 
-    private final List<Path> m_paths;
+    static final NodeLogger LOGGER = NodeLogger.getLogger(PreviewDataTable.class);
 
-    private final MultiTableReadConfig<C> m_config;
+    private final DataTableSpec m_spec;
 
-    private final TableReader<C, ?, V> m_tableReader;
+    private final Supplier<PreviewRowIterator> m_iteratorFn;
 
-    private final MultiTableRead<V> m_multiTableRead;
+    private final CopyOnWriteArrayList<CloseableRowIterator> m_iterators = new CopyOnWriteArrayList<>();
 
-    private final PreviewExecutionMonitor m_execMonitor;
+    private final CopyOnWriteArrayList<PreviewIterationErrorListener> m_errorListeners = new CopyOnWriteArrayList<>();
 
-    private final CopyOnWriteArrayList<MultiTablePreviewRowIterator> m_iterators = new CopyOnWriteArrayList<>();
+    /**
+     * Listener interface for errors during preview iteration.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    public interface PreviewIterationErrorListener {
+
+        /**
+         * Called whenever an error is encountered during preview iteration.
+         *
+         * @param row the index of the row that caused the error
+         * @param errorMsg the error message
+         */
+        void errorEncountered(final long row, final String errorMsg);
+    }
 
     /**
      * Constructor.
      *
-     * @param paths the paths to read from
-     * @param config the config for reading
-     * @param tableReader the table reader used for reading
-     * @param multiTableRead the multi table read
-     * @param execMonitor
+     * @param iteratorSupplier supplies the {@link PreviewRowIterator}
+     * @param spec the {@link DataTableSpec} of the table
      */
-    public PreviewDataTable(final List<Path> paths, final MultiTableReadConfig<C> config,
-        final TableReader<C, ?, V> tableReader, final MultiTableRead<V> multiTableRead,
-        final PreviewExecutionMonitor execMonitor) {
-        CheckUtils.checkArgumentNotNull(paths, "The paths must not be null.");
-        CheckUtils.checkArgumentNotNull(config, "The config must not be null.");
-        CheckUtils.checkArgumentNotNull(tableReader, "The table reader must not be null.");
-        CheckUtils.checkArgumentNotNull(multiTableRead, "The multi table read must not be null.");
-        CheckUtils.checkArgumentNotNull(execMonitor, "The preview execution monitor must not be null.");
-        m_paths = paths;
-        m_config = config;
-        m_multiTableRead = multiTableRead;
-        m_execMonitor = execMonitor;
-        m_tableReader = tableReader;
+    public PreviewDataTable(final Supplier<PreviewRowIterator> iteratorSupplier, final DataTableSpec spec) {
+        m_iteratorFn = iteratorSupplier;
+        m_spec = spec;
+    }
+
+    /**
+     * Adds a {@link PreviewIterationErrorListener} to the list of error listeners.
+     *
+     * @param listener to add
+     */
+    public void addErrorListener(final PreviewIterationErrorListener listener) {
+        if (!m_errorListeners.contains(listener)) {//NOSONAR
+            m_errorListeners.add(listener);//NOSONAR a small price to pay for thread-safety
+        }
     }
 
     @Override
     public DataTableSpec getDataTableSpec() {
-        return m_multiTableRead.getOutputSpec();
+        return m_spec;
     }
 
     @Override
-    public RowIterator iterator() {
-        final MultiTablePreviewRowIterator multiTablePreviewRowIterator = new MultiTablePreviewRowIterator();
-        m_iterators.add(multiTablePreviewRowIterator);
-        return multiTablePreviewRowIterator;
+    public ObservablePreviewIterator iterator() {
+        final ObservablePreviewIterator iterator = new ObservablePreviewIterator(m_iteratorFn.get());
+        iterator.addErrorListener(this::handleIteratorError);
+        m_iterators.add(iterator); //NOSONAR that's the prize we pay to avoid concurrency issues
+        return iterator;
     }
 
-    /**
-     * @return the execution monitor
-     */
-    public PreviewExecutionMonitor getExecutionMonitor() {
-        return m_execMonitor;
+    private void handleIteratorError(final ChangeEvent errorEvent) {
+        @SuppressWarnings("resource") // the iterator will be closed by the #close()
+        final ObservablePreviewIterator iterator = (ObservablePreviewIterator)errorEvent.getSource();
+        final long errorRow = iterator.getCurrentRowIdx();
+        final String errorMsg = iterator.getErrorMsg();
+        for (PreviewIterationErrorListener listener : m_errorListeners) {
+            listener.errorEncountered(errorRow, errorMsg);
+        }
     }
+
 
     /**
      * Dispose all iterators and close their underlying sources.
      */
-    public void dispose() {
-        for (final MultiTablePreviewRowIterator iterator : m_iterators) {
-            iterator.dispose();
+    @Override
+    public void close() {
+        for (final CloseableRowIterator iterator : m_iterators) {
+            iterator.close();
         }
         m_iterators.clear();
-    }
-
-    private final class MultiTablePreviewRowIterator extends RowIterator {
-
-        private int m_pathIdx = 0;
-
-        private IndividualTablePreviewRowIterator m_currentIterator;
-
-        @Override
-        public boolean hasNext() {
-            if (m_execMonitor.isIteratorErrorOccurred()) {
-                return false;
-            }
-            assignCurrentIterator();
-            return m_currentIterator != null && m_currentIterator.hasNext();
-        }
-
-        private void assignCurrentIterator() {
-            // if no iterator is yet assigned or the current iterator does not have further elements,
-            // take the next iterator if possible and check if it #hasNext
-            if ((m_currentIterator == null || !m_currentIterator.hasNext()) && m_pathIdx < m_paths.size()) {
-                if (m_currentIterator != null) {
-                    m_currentIterator.dispose();
-                }
-                final Path path = m_paths.get(m_pathIdx++);
-                final IndividualTableReader<V> individualTableReader = m_multiTableRead.createIndividualTableReader(
-                    path, m_config.getTableReadConfig(), FileStoreFactory.createNotInWorkflowFileStoreFactory());
-                try {
-                    m_currentIterator = new IndividualTablePreviewRowIterator(path, individualTableReader);
-                } catch (IOException e) {
-                    m_execMonitor
-                        .setSpecGuessingError("Error during reading of '" + path.toString() + "': " + e.getMessage());
-                }
-                // the now selected iterator may have an empty source, so check again
-                assignCurrentIterator();
-            }
-        }
-
-        @Override
-        public DataRow next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            return m_currentIterator.next();
-        }
-
-        private void dispose() {
-            if (m_currentIterator != null) {
-                m_currentIterator.dispose();
-            }
-        }
-
-    }
-
-    private final class IndividualTablePreviewRowIterator extends RowIterator {
-
-        private Read<V> m_read;
-
-        DataRow m_next;
-
-        private IndividualTableReader<V> m_individualTableReader;
-
-        private IndividualTablePreviewRowIterator(final Path path, final IndividualTableReader<V> individualTableReader)
-            throws IOException {
-            m_individualTableReader = individualTableReader;
-            m_read = ReadUtils.decorateForReading(m_tableReader.read(path, m_config.getTableReadConfig()),
-                m_config.getTableReadConfig());
-        }
-
-        @Override
-        public DataRow next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            final DataRow next = m_next;
-            m_next = null;
-            return next;
-        }
-
-        @Override
-
-        public boolean hasNext() {
-            if (m_execMonitor.isIteratorErrorOccurred()) {
-                return false;
-            }
-            if (m_next != null) {
-                return true;
-            }
-            try {
-                final RandomAccessible<V> next = m_read.next();
-                m_next = next == null ? null : m_individualTableReader.toRow(next);
-            } catch (Exception e) {
-                m_execMonitor.setIteratorErrorRow(e.getMessage());
-                return false;
-            }
-            if (m_next != null) {
-                m_execMonitor.incrementRowsIteratorTotalRead();
-                return true;
-            }
-            return false;
-        }
-
-        private void dispose() {
-            try {
-                m_read.close();
-            } catch (IOException ex) {
-                // then don't close it
-            }
-        }
+        m_errorListeners.clear();
     }
 
 }

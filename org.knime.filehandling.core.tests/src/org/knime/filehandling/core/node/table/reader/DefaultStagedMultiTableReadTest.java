@@ -1,0 +1,308 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Sep 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ */
+package org.knime.filehandling.core.node.table.reader;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils.createTypedTableSpec;
+import static org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils.mockProductionPath;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+
+/**
+ * Unit tests for DefaultStagedMultiTableRead.
+ *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class DefaultStagedMultiTableReadTest {
+
+    private static final String TABLE_NAME = "default";
+
+    private static final TypedReaderColumnSpec<String> COL1 = trcs("A", "X");
+
+    private static final TypedReaderColumnSpec<String> COL2 = trcs("B", "Y");
+
+    private static final TypedReaderColumnSpec<String> COL3 = trcs("C", "Z");
+
+    private static final String ROOT = "root";
+
+    private static final TypedReaderTableSpec<String> RAW_SPEC =
+        createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
+
+    private static final TypedReaderTableSpec<String> SPEC1 = createTypedTableSpec(asList("A", "B"), asList("X", "Y"));
+
+    private static final TypedReaderTableSpec<String> SPEC2 = createTypedTableSpec(asList("B", "C"), asList("Y", "Z"));
+
+    @Mock
+    private TableReader<DummyReaderSpecificConfig, String, String> m_tableReader;
+
+    @Mock
+    private RowKeyGeneratorContextFactory<String> m_rowKeyGenContextFactory;
+
+    @Mock
+    private RowKeyGeneratorContext<String> m_rowKeyGenContext;
+
+    @Mock
+    private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
+
+    @Mock
+    private TransformationModel<String> m_defaultTransformationModel;
+
+    @Mock
+    private TypeMappingFactory<DummyReaderSpecificConfig, String, String> m_typeMappingFactory;
+
+    @Mock
+    private TypeMapping<String> m_typeMapping;
+
+    @Mock
+    private Path m_path1;
+
+    @Mock
+    private Path m_path2;
+
+    private ProductionPath m_pp1;
+
+    private ProductionPath m_pp2;
+
+    private ProductionPath m_pp3;
+
+    private DefaultStagedMultiTableRead<DummyReaderSpecificConfig, String, String> m_testInstance;
+
+    /**
+     * Initializes the test instance.
+     */
+    @Before
+    public void init() {
+        Mockito.when(m_defaultTransformationModel.getRawSpec()).thenReturn(RAW_SPEC);
+        final Map<Path, TypedReaderTableSpec<String>> individualSpecs = new LinkedHashMap<>();
+
+        m_pp1 = mockProductionPath();
+        m_pp2 = mockProductionPath();
+        m_pp3 = mockProductionPath();
+
+        individualSpecs.put(m_path1, SPEC1);
+        individualSpecs.put(m_path2, SPEC2);
+        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, ROOT, individualSpecs,
+            m_rowKeyGenContextFactory, m_typeMappingFactory, m_defaultTransformationModel, m_tableReadConfig);
+    }
+
+    /**
+     * Tests the implementation of {@link StagedMultiTableRead#withoutTransformation()}.
+     */
+    @Test
+    public void testWithoutTransformation() {
+
+        stubTransformationModel(m_defaultTransformationModel);
+
+        final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
+            new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
+
+        stubTypeMapping(knimeSpec);
+
+        final MultiTableRead mtr = m_testInstance.withoutTransformation();
+        assertEquals(knimeSpec, mtr.getOutputSpec());
+
+    }
+
+    private void stubTypeMapping(final DataTableSpec expectedSpec) {
+        when(m_typeMappingFactory.create(any(), any(), any())).thenReturn(m_typeMapping);
+        when(m_typeMapping.map(RAW_SPEC)).thenReturn(expectedSpec);
+    }
+
+    private static TypedReaderColumnSpec<String> trcs(final String name, final String type) {
+        return TypedReaderColumnSpec.createWithName(name, type, true);
+    }
+
+    /**
+     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(TransformationModel)}.
+     */
+    @Test
+    public void testWithTransformationTypeMapping() {
+        TransformationModel<String> lastColumnToString = mockTransformationModel();
+        when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
+        final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
+            new DataType[]{StringCell.TYPE, IntCell.TYPE, StringCell.TYPE});
+        stubTypeMapping(knimeSpec);
+        MultiTableRead mtr = m_testInstance.withTransformation(lastColumnToString);
+        assertEquals(knimeSpec, mtr.getOutputSpec());
+    }
+
+    /**
+     * Tests filtering columns.
+     */
+    @Test
+    public void testWithTransformationFiltering() {
+        TransformationModel<String> filterSecondColumn = mockTransformationModel();
+        when(filterSecondColumn.keep(COL2)).thenReturn(false);
+        final DataTableSpec knimeSpec =
+            new DataTableSpec(TABLE_NAME, new String[]{"A", "C"}, new DataType[]{StringCell.TYPE, DoubleCell.TYPE});
+        when(m_typeMappingFactory.create(any(), any(), any())).thenReturn(m_typeMapping);
+        when(m_typeMapping.map(TypedReaderTableSpec.create(asList("A", "C"), asList("X", "Z"), asList(true, true))))
+            .thenReturn(knimeSpec);
+        MultiTableRead mtr = m_testInstance.withTransformation(filterSecondColumn);
+        assertEquals(knimeSpec, mtr.getOutputSpec());
+    }
+
+    /**
+     * Tests renaming columns.
+     */
+    @Test
+    public void testWithTransformationRenaming() {
+        TransformationModel<String> renameSecondColumn = mockTransformationModel();
+        when(renameSecondColumn.getName(COL2)).thenReturn("M");
+        final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
+            new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
+        when(m_typeMappingFactory.create(any(), any(), any())).thenReturn(m_typeMapping);
+        when(m_typeMapping
+            .map(TypedReaderTableSpec.create(asList("A", "M", "C"), asList("X", "Y", "Z"), asList(true, true, true))))
+                .thenReturn(knimeSpec);
+        MultiTableRead mtr = m_testInstance.withTransformation(renameSecondColumn);
+        assertEquals(knimeSpec, mtr.getOutputSpec());
+    }
+
+    /**
+     * Tests reordering columns.
+     */
+    @Test
+    public void testWithTransformationReordering() {
+        TransformationModel<String> reorderColumns = mockTransformationModel();
+        when(reorderColumns.getPosition(COL1)).thenReturn(0);
+        when(reorderColumns.getPosition(COL2)).thenReturn(2);
+        when(reorderColumns.getPosition(COL3)).thenReturn(1);
+
+        final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "C", "B"},
+            new DataType[]{StringCell.TYPE, DoubleCell.TYPE, IntCell.TYPE});
+        when(m_typeMappingFactory.create(any(), any(), any())).thenReturn(m_typeMapping);
+        when(m_typeMapping
+            .map(TypedReaderTableSpec.create(asList("A", "C", "B"), asList("X", "Z", "Y"), asList(true, true, true))))
+                .thenReturn(knimeSpec);
+        MultiTableRead mtr = m_testInstance.withTransformation(reorderColumns);
+        assertEquals(knimeSpec, mtr.getOutputSpec());
+    }
+
+    private TransformationModel<String> mockTransformationModel() {
+        @SuppressWarnings("unchecked")
+        TransformationModel<String> transformationModel = mock(TransformationModel.class);
+        stubTransformationModel(transformationModel);
+        return transformationModel;
+    }
+
+    private void stubTransformationModel(final TransformationModel<String> transformationModel) {
+        when(transformationModel.getName(any())).then(invocation -> {
+            TypedReaderColumnSpec<String> cs = invocation.getArgument(0);
+            return cs.getName().get();
+        });
+        when(transformationModel.getPosition(COL1)).thenReturn(0);
+        when(transformationModel.getPosition(COL2)).thenReturn(1);
+        when(transformationModel.getPosition(COL3)).thenReturn(2);
+
+        when(transformationModel.keep(any())).thenReturn(true);
+
+        when(transformationModel.getProductionPath(COL1)).thenReturn(m_pp1);
+        when(transformationModel.getProductionPath(COL2)).thenReturn(m_pp2);
+        when(transformationModel.getProductionPath(COL3)).thenReturn(m_pp3);
+
+        when(m_pp1.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
+        when(m_pp2.getConverterFactory().getDestinationType()).thenReturn(IntCell.TYPE);
+        when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(DoubleCell.TYPE);
+
+        when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
+    }
+
+    /**
+     * Tests the implementation of {@link StagedMultiTableRead#getRawSpec()}.
+     */
+    @Test
+    public void testGetRawSpec() {
+        assertEquals(RAW_SPEC, m_testInstance.getRawSpec());
+    }
+
+    /**
+     * Tests the implementation of {@link StagedMultiTableRead#isValidFor(java.util.Collection)}.
+     */
+    @Test
+    public void testIsValidFor() {
+        assertTrue(m_testInstance.isValidFor(asList(m_path1, m_path2)));
+        assertFalse(m_testInstance.isValidFor(asList(m_path1)));
+        final Path unknown = mock(Path.class);
+        assertFalse(m_testInstance.isValidFor(asList(m_path1, unknown)));
+    }
+
+}

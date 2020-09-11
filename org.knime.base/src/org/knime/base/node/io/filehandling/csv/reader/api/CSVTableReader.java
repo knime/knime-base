@@ -223,8 +223,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @param config the CSV table reader configuration.
          * @throws IOException if a stream can not be created from the provided file.
          */
+        @SuppressWarnings("resource") // The input stream is closed by the close method
         CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(FileCompressionUtils.createInputStream(path), Files.size(path), path, config);
+            this(FileCompressionUtils.createInputStream(path), Files.size(path), path, config);//NOSONAR
         }
 
         /**

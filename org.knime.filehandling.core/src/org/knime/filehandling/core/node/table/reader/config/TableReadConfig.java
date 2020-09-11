@@ -68,22 +68,6 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     C getReaderSpecificConfig();
 
     /**
-     * Retrieves the configured column filter.
-     *
-     * @return the column filter configuration
-     */
-    // TODO add once we actually have a UI and a concrete config
-    //    ColumnFilterConfig getColumnFilter();
-
-    /**
-     * Sets a new column filter
-     *
-     * @param filter to set must not be <code>null</code>
-     */
-    // TODO add once we actually have a UI and a concrete config
-    //    void setColumnFilter(final ColumnFilterConfig filter);
-
-    /**
      * Returns the index of the row containing the column headers.
      *
      * @return the row index of the column header row
@@ -132,13 +116,6 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      * @return {@code true} if not all rows must have the same size
      */
     boolean allowShortRows();
-
-    /**
-     * Sets whether short rows are supported.
-     *
-     * @param allowShortRows whether short rows are supported
-     */
-    void setAllowShortRows(final boolean allowShortRows);
 
     /**
      * Returns whether a certain number of rows are skipped at the beginning. If <code>true</code> the actual number is

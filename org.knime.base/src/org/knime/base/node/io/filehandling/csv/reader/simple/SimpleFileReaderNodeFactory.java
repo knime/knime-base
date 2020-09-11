@@ -49,11 +49,15 @@
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeFactory;
-import org.knime.core.node.NodeDialogPane;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 
 /**
  * Node factory for the simple file reader node.
@@ -61,12 +65,6 @@ import org.knime.core.node.context.url.URLConfiguration;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
 public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader());
-    }
 
     @Override
     protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -81,6 +79,14 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
             settings.setPath(urlConfig.get().getUrl().toString());
         }
         return settings;
+    }
+
+    @Override
+    protected AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
+        final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> readFactory,
+        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
+        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
+            readFactory, defaultProductionPathFn);
     }
 
 }

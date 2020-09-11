@@ -1,0 +1,163 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Sep 10, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ */
+package org.knime.filehandling.core.node.table.reader;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.NoSuchElementException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.knime.core.data.DataRow;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+/**
+ * Unit tests for IndividualTablePreviewRowIterator.
+ *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class IndividualTablePreviewRowIteratorTest {
+
+    @Mock
+    private Read<String> m_read;
+
+    @Mock
+    private RandomAccessible<String> m_randomAccessible;
+
+    @Mock
+    private CheckedExceptionFunction<RandomAccessible<String>, DataRow, Exception> m_rowMapper;
+
+    private IndividualTablePreviewRowIterator<String> m_testInstance;
+
+    /**
+     * Initializes the test instance.
+     */
+    @Before
+    public void init() {
+        m_testInstance = new IndividualTablePreviewRowIterator<>(m_read, m_rowMapper);
+    }
+
+    /**
+     * Tests the implementation of {@link PreviewRowIterator#hasNext()}.
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testHasNext() throws Exception {
+        DataRow row = mock(DataRow.class);
+        when(m_read.next()).thenReturn(m_randomAccessible, m_randomAccessible, null);
+        when(m_rowMapper.apply(m_randomAccessible)).thenReturn(row);
+        assertTrue(m_testInstance.hasNext());
+        assertTrue(m_testInstance.hasNext());
+        m_testInstance.next();
+        assertTrue(m_testInstance.hasNext());
+        m_testInstance.next();
+        assertFalse(m_testInstance.hasNext());
+    }
+
+    /**
+     * Tests if hasNext wraps an {@link IOException} in to a {@link PreviewIteratorException}.
+     *
+     * @throws IOException thrown and then wrapped into {@link PreviewIteratorException}
+     */
+    @Test (expected = PreviewIteratorException.class)
+    public void testHasNextThrowsPreviewIteratorExceptionOnIOException() throws IOException {
+        when(m_read.next()).thenThrow(IOException.class);
+        m_testInstance.hasNext();
+    }
+
+    /**
+     * Tests the implementation of {@link PreviewRowIterator#next()}.
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testNext() throws Exception {
+        DataRow row = mock(DataRow.class);
+        DataRow secondRow = mock(DataRow.class);
+        RandomAccessible<String> second = mock(RandomAccessible.class);
+        when(m_read.next()).thenReturn(m_randomAccessible, second, null);
+        when(m_rowMapper.apply(any())).thenReturn(row, secondRow);
+        assertEquals(row, m_testInstance.next());
+        assertEquals(secondRow, m_testInstance.next());
+        assertFalse(m_testInstance.hasNext());
+    }
+
+    /**
+     * Tests if calling next without any more elements causes a {@link NoSuchElementException}.
+     */
+    @Test (expected = NoSuchElementException.class)
+    public void testNextThrowsNoSuchElementException() {
+        m_testInstance.next();
+    }
+
+    /**
+     * Tests the implementation {@link PreviewRowIterator#close()}.
+     *
+     * @throws IOException never thrown
+     */
+    @Test
+    public void testClose() throws IOException {
+        m_testInstance.close();
+        verify(m_read).close();
+    }
+}

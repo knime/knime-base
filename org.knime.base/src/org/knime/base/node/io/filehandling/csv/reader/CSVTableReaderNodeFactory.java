@@ -49,14 +49,18 @@
 package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-import org.knime.core.node.NodeDialogPane;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 
 /**
  * Node factory for the prototype CSV reader based on the new table reader framework.
@@ -69,22 +73,25 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            createMultiTableReader());
-    }
-
-    @Override
     protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
             nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
             FilterMode.FILE, FILE_SUFFIXES);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
-            settingsModel.setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000",
-                urlConfig.get().getUrl().toString()));
+            settingsModel
+                .setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000", urlConfig.get().getUrl().toString()));
         }
         return settingsModel;
+    }
+
+    @Override
+    protected AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
+        final NodeCreationConfiguration creationConfig,
+        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> readFactory,
+        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
+        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(), readFactory,
+            defaultProductionPathFn);
     }
 
 }

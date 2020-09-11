@@ -107,7 +107,7 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
                 try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
                         final BufferedReader reader =
                             BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
-                    if (m_dialog.getSkipLines()) {
+                    if (m_dialog.isSkipLines()) {
                         skipLines(reader, m_dialog.getNumLinesToSkip());
                     }
                     // Fixes a bug where the univocity library does not fill the buffer used for auto-guessing correctly

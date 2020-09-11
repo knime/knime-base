@@ -49,26 +49,30 @@
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.mockProductionPath;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.DummyReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingTestUtils.TestReadAdapter;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -80,11 +84,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultTypeMappingFactoryTest {
 
-    @Mock
-    private ProducerRegistry<String, TestReadAdapter> m_producerRegistry = null;
+    private static final TypedReaderTableSpec<String> SPEC = TableSpecConfigTestingUtils.createTypedTableSpec(asList("A", "B"), asList("X", "Y"));
+
+    private ProductionPath m_p1;
+
+    private ProductionPath m_p2;
 
     @Mock
     private DummyReaderSpecificConfig m_config;
+
+    @Mock
+    private Function<String, ProductionPath> m_defaultProductionPathProvider;
+
+    @Mock
+    private ReadAdapterFactory<String, String> m_readAdapterFactory;
 
     private DefaultTypeMappingFactory<DummyReaderSpecificConfig, String, String> m_testInstance;
 
@@ -93,67 +106,67 @@ public class DefaultTypeMappingFactoryTest {
      */
     @Before
     public void init() {
-        final Map<String, DataType> defaultTypes = new HashMap<>();
-        defaultTypes.put("frieda", StringCell.TYPE);
-        defaultTypes.put("berta", StringCell.TYPE);
-        ReadAdapterFactory<String, String> readAdapterFactory = new ReadAdapterFactory<String, String>() {
-
-            @Override
-            public ReadAdapter<String, String> createReadAdapter() {
-                return new TestReadAdapter();
-            }
-
-            @Override
-            public ProducerRegistry<String, ? extends ReadAdapter<String, String>> getProducerRegistry() {
-                return m_producerRegistry;
-            }
-
-            @Override
-            public Map<String, DataType> getDefaultTypeMap() {
-                return defaultTypes;
-            }
-
-        };
-        m_testInstance = new DefaultTypeMappingFactory<>(readAdapterFactory);
+        m_p1 = TableSpecConfigTestingUtils.mockProductionPath();
+        m_p2 = TableSpecConfigTestingUtils.mockProductionPath();
+        m_testInstance = new DefaultTypeMappingFactory<>(m_readAdapterFactory, m_defaultProductionPathProvider);
     }
 
     /**
-     * Tests the
-     * {@link TypeMappingFactory#create(org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec)}
-     * implementation.
+     * Tests the {@link TypeMappingFactory#create(TypedReaderTableSpec, ReaderSpecificConfig)} implementation.
      */
     @Test
-    public void testCreate() {
-        when(m_producerRegistry.getAvailableProductionPaths("berta")).thenReturn(asList(mockProductionPath("berta")));
-        when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(asList(mockProductionPath("frieda")));
-        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
-            asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        TypeMapping<String> typeMapping = m_testInstance.create(spec, m_config);
-        DataTableSpec expected = new DataTableSpec("default", new String[]{"hans", "franz"},
-            new DataType[]{StringCell.TYPE, StringCell.TYPE});
-        DataTableSpec actual = typeMapping.map(spec);
-        assertEquals(expected, actual);
+    public void testCreateDefaults() {
+        DataTableSpec expected = new DataTableSpec("default", new String[]{"A", "B"},
+            new DataType[]{StringCell.TYPE, IntCell.TYPE});
+        when(m_p1.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
+        when(m_p2.getConverterFactory().getDestinationType()).thenReturn(IntCell.TYPE);
+        when(m_defaultProductionPathProvider.apply("X")).thenReturn(m_p1);
+        when(m_defaultProductionPathProvider.apply("Y")).thenReturn(m_p2);
+        TypeMapping<String> tm = m_testInstance.create(SPEC, m_config);
+        assertEquals(expected, tm.map(SPEC));
+        assertArrayEquals(new ProductionPath[]{m_p1, m_p2}, tm.getProductionPaths());
     }
 
     /**
-     * Tests if {@code create} fails if no production path can be found for a specified type.
+     * Tests the implementation of {@link TypeMappingFactory#create(TableSpecConfig, ReaderSpecificConfig)}.
      */
-    @Test(expected = IllegalStateException.class)
-    public void testCreateFailsIfNoProductionPathForExternalTypeCanBeFound() {
-        when(m_producerRegistry.getAvailableProductionPaths("frieda")).thenReturn(Collections.emptyList());
-        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
-            asList("frieda", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        m_testInstance.create(spec, m_config);
+    @Test
+    public void testCreateFromTableSpecConfig() {
+        final TableSpecConfig tableSpecConfig = mock(TableSpecConfig.class);
+        DataTableSpec expected = new DataTableSpec("default", new String[]{"A", "B"},
+            new DataType[]{DoubleCell.TYPE, LongCell.TYPE});
+        when(tableSpecConfig.getProductionPaths()).thenReturn(new ProductionPath[] {m_p1, m_p2});
+        when(m_p1.getConverterFactory().getDestinationType()).thenReturn(DoubleCell.TYPE);
+        when(m_p2.getConverterFactory().getDestinationType()).thenReturn(LongCell.TYPE);
+
+        TypeMapping<String> tm = m_testInstance.create(tableSpecConfig, m_config);
+
+        assertEquals(expected, tm.map(SPEC));
+        assertArrayEquals(new ProductionPath[]{m_p1, m_p2}, tm.getProductionPaths());
     }
 
     /**
-     * Tests if {@code create} fails if no production path can be found for a specified type.
+     * Tests the implementation of
+     * {@link TypeMappingFactory#create(TypedReaderTableSpec, ReaderSpecificConfig, TransformationModel)}
      */
-    @Test(expected = IllegalStateException.class)
-    public void testCreateFailsIfDefaultTypeIsNOTSpecified() {
-        TypedReaderTableSpec<String> spec = TypedReaderTableSpec.create(asList("hans", "franz"),
-            asList("gunter", "berta"), asList(Boolean.TRUE, Boolean.TRUE));
-        m_testInstance.create(spec, m_config);
+    @Test
+    public void testCreateWithTansformation() {
+        TypedReaderTableSpec<String> spec =
+            TableSpecConfigTestingUtils.createTypedTableSpec(asList("A", "B"), asList("X", "Y"));
+
+        @SuppressWarnings("unchecked")
+        TransformationModel<String> tm = mock(TransformationModel.class);
+        when(tm.getProductionPath(spec.getColumnSpec(0))).thenReturn(m_p1);
+        when(tm.getProductionPath(spec.getColumnSpec(1))).thenReturn(m_p2);
+        when(m_p1.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
+        when(m_p2.getConverterFactory().getDestinationType()).thenReturn(IntCell.TYPE);
+
+        TypeMapping<String> typeMapping = m_testInstance.create(spec, m_config, tm);
+
+        DataTableSpec expected =
+            new DataTableSpec("default", new String[]{"A", "B"}, new DataType[]{StringCell.TYPE, IntCell.TYPE});
+        assertEquals(expected, typeMapping.map(spec));
+        assertArrayEquals(new ProductionPath[]{m_p1, m_p2}, typeMapping.getProductionPaths());
     }
 
 }

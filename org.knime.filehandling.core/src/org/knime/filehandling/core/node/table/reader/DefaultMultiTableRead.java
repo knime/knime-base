@@ -48,23 +48,25 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
 
 /**
  * Default implementation of MultiTableRead.
@@ -72,26 +74,38 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type representing values
  */
-final class DefaultMultiTableRead<V> implements MultiTableRead<V> {
-
-    private final String m_rootPath;
+final class DefaultMultiTableRead<V> implements MultiTableRead {
 
     private final DataTableSpec m_outputSpec;
 
-    private final Map<Path, ? extends ReaderTableSpec<?>> m_individualSpecs;
+    private final TableSpecConfig m_tableSpecConfig;
 
     private final TypeMapping<V> m_typeMapping;
 
     private final RowKeyGeneratorContext<V> m_keyGenContext;
 
-    DefaultMultiTableRead(final String rootPath, final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
-        final DataTableSpec outputSpec, final TypeMapping<V> typeMapping,
-        final RowKeyGeneratorContext<V> keyGenContext) {
-        m_rootPath = rootPath;
-        m_outputSpec = outputSpec;
-        m_individualSpecs = individualSpecs;
+    private final Map<Path, IndexMapper> m_indexMappers;
+
+    private final CheckedExceptionFunction<Path, Read<V>, IOException> m_readFn;
+
+    /**
+     * Constructor.
+     *
+     * @param readFn produces a {@link Read} from a {@link Path}
+     * @param tableSpecConfig corresponding to this instance
+     * @param typeMapping {@link TypeMapping} for this instance
+     * @param keyGenContext {@link RowKeyGeneratorContext} for creating row keys
+     * @param indexMappers {@link Map} containing for each path the corresponding {@link IndexMapper}
+     */
+    DefaultMultiTableRead(final CheckedExceptionFunction<Path, Read<V>, IOException> readFn,
+        final TableSpecConfig tableSpecConfig, final TypeMapping<V> typeMapping,
+        final RowKeyGeneratorContext<V> keyGenContext, final Map<Path, IndexMapper> indexMappers) {
+        m_outputSpec = tableSpecConfig.getDataTableSpec();
+        m_tableSpecConfig = tableSpecConfig;
         m_typeMapping = typeMapping;
         m_keyGenContext = keyGenContext;
+        m_indexMappers = indexMappers;
+        m_readFn = readFn;
     }
 
     @Override
@@ -99,25 +113,46 @@ final class DefaultMultiTableRead<V> implements MultiTableRead<V> {
         return m_outputSpec;
     }
 
-    @Override
-    public boolean isValidFor(final Collection<Path> paths) {
-        return paths.size() == m_individualSpecs.size() && m_individualSpecs.keySet().containsAll(paths);
-    }
-
-    @Override
-    public IndividualTableReader<V> createIndividualTableReader(final Path path, final TableReadConfig<?> config,
-        final FileStoreFactory fsFactory) {
-        CheckUtils.checkArgument(m_individualSpecs.containsKey(path), "Unknown path '%s' encountered.");
-        final IndexMapper idxMapper =
-            MultiTableUtils.createIndexMapper(m_outputSpec, m_individualSpecs.get(path), config);
+    private IndividualTableReader<V> createIndividualTableReader(final Path path, final FileStoreFactory fsFactory) {
+        final IndexMapper idxMapper = m_indexMappers.get(path);
         final TypeMapper<V> typeMapper = m_typeMapping.createTypeMapper(fsFactory);
         final RowKeyGenerator<V> keyGen = m_keyGenContext.createKeyGenerator(path);
         return new DefaultIndividualTableReader<>(typeMapper, idxMapper, keyGen);
     }
 
     @Override
-    public TableSpecConfig createTableSpec() {
-        return new TableSpecConfig(m_rootPath, m_outputSpec, m_individualSpecs, m_typeMapping.getProductionPaths());
+    public TableSpecConfig getTableSpecConfig() {
+        return m_tableSpecConfig;
+    }
+
+    @Override
+    public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec,
+        final FileStoreFactory fsFactory) throws Exception {
+        for (Entry<Path, IndexMapper> entry : m_indexMappers.entrySet()) {
+            exec.checkCanceled();
+            final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_indexMappers.size());
+            final Path path = entry.getKey();
+            final TypeMapper<V> typeMapper = m_typeMapping.createTypeMapper(fsFactory);
+            final RowKeyGenerator<V> keyGen = m_keyGenContext.createKeyGenerator(path);
+            final IndividualTableReader<V> reader = new DefaultIndividualTableReader<>(typeMapper, entry.getValue(), keyGen);
+            try (final Read<V> read = m_readFn.apply(path)) {
+                reader.fillOutput(read, output, progress);
+            }
+            progress.setProgress(1.0);
+        }
+        output.close();
+    }
+
+    @Override
+    public PreviewRowIterator createPreviewIterator() {
+        return new MultiTablePreviewRowIterator(m_indexMappers.keySet().iterator(), this::createIndividualTableIterator);
+    }
+
+    @SuppressWarnings("resource") // the read is closed by the IndividualTablePreviewRowIterator
+    private PreviewRowIterator createIndividualTableIterator(final Path path, final FileStoreFactory fsFactory)
+        throws IOException {
+        final IndividualTableReader<V> reader = createIndividualTableReader(path, fsFactory);
+        return new IndividualTablePreviewRowIterator<V>(m_readFn.apply(path), reader::toRow);
     }
 
 }

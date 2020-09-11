@@ -74,8 +74,8 @@ import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -88,7 +88,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     static final int FS_INPUT_PORT = 0;
 
-    private final MultiTableReadConfig<C> m_config;
+    private final StorableMultiTableReadConfig<C> m_config;
 
     private final PathSettings m_pathSettings;
 
@@ -99,7 +99,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
      * that the specs are recalculated for each generated reader.
      */
-    private final MultiTableReader<C, ?, ?> m_tableReader;
+    private final MultiTableReader<C> m_tableReader;
 
 
     /**
@@ -109,8 +109,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
      */
-    protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C, ?, ?> tableReader) {
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
+        final MultiTableReader<C> tableReader) {
         super(0, 1);
         m_config = config;
         m_pathSettings = pathSettingsModel;
@@ -125,8 +125,8 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param tableReader reader for reading tables
      * @param portsConfig determines the in and outports.
      */
-    protected TableReaderNodeModel(final MultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C, ?, ?> tableReader,
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
+        final MultiTableReader<C> tableReader,
         final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
@@ -144,7 +144,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
             }
             setWarningMessage("The stored spec has not been created with the given file/path.");
         }
-        return null;
+        return null;// NOSONAR, we aren't allowed to do I/O in configure therefore we can't calculate the output spec
     }
 
     @Override

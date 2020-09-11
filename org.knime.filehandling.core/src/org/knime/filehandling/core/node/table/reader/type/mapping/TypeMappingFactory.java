@@ -48,8 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -65,7 +66,6 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  */
 public interface TypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V> {
 
-    // TODO add type mapping settings as argument once defined
     /**
      * Creates a {@link TypeMapping} for the provided {@link TypedReaderTableSpec}.
      *
@@ -74,6 +74,17 @@ public interface TypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V> {
      * @return a {@link TypeMapping} for {@link TypedReaderTableSpec spec}
      */
     TypeMapping<V> create(TypedReaderTableSpec<T> spec, C readerSpecificConfig);
+
+    /**
+     * Creates a {@link TypeMapping} for the provided parameters.
+     *
+     * @param spec the {@link TypedReaderTableSpec} of the output table
+     * @param readerSpecificConfig the {@link ReaderSpecificConfig}
+     * @param transformation the {@link TransformationModel} that provides the type mapping information
+     * @return a {@link TypeMapping} corresponding to the provided parameters
+     */
+    TypeMapping<V> create(final TypedReaderTableSpec<T> spec, final C readerSpecificConfig,
+        final TransformationModel<T> transformation);
 
     /**
      * Creates a {@link TypeMapping} for the provided {@link TableSpecConfig}.

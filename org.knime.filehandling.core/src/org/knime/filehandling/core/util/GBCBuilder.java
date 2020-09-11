@@ -307,6 +307,19 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#insets} property to the provided values.
+     *
+     * @param top the inset from the top
+     * @param left the inset from the left
+     * @param bottom the inset from the bottom
+     * @param right the inset from the right
+     * @return this builder
+     */
+    public GBCBuilder insets(final int top, final int left, final int bottom, final int right) {
+        return setInsets(new Insets(top, left, bottom, right));
+    }
+
+    /**
      * Sets the right padding of the {@link GridBagConstraints#insets} property to the provided value.
      *
      * @param insetRight the external padding on the right side
@@ -351,6 +364,28 @@ public final class GBCBuilder {
     public GBCBuilder insetBottom(final int insetBottom) {
         final Insets oldInsets = m_gbc.insets;
         m_gbc.insets = new Insets(oldInsets.top, oldInsets.left, insetBottom, oldInsets.right);
+        return this;
+    }
+
+    /**
+     * Sets the {@link GridBagConstraints#ipadx} property to the provided value.
+     *
+     * @param ipadX the ipadX value
+     * @return this builder
+     */
+    public GBCBuilder ipadX(final int ipadX) {
+        m_gbc.ipadx = ipadX;
+        return this;
+    }
+
+    /**
+     * Sets the {@link GridBagConstraints#ipady} property to the provided value.
+     *
+     * @param ipadY the ipadY value
+     * @return this builder
+     */
+    public GBCBuilder ipadY(final int ipadY) {
+        m_gbc.ipady = ipadY;
         return this;
     }
 

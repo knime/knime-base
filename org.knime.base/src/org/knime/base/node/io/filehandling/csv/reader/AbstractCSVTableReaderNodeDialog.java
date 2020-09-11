@@ -60,6 +60,7 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -85,20 +86,21 @@ import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filereader.CharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
-import org.knime.filehandling.core.node.table.reader.MultiTableReader;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreview;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 import com.univocity.parsers.csv.CsvFormat;
@@ -109,7 +111,8 @@ import com.univocity.parsers.csv.CsvFormat;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
+public abstract class AbstractCSVTableReaderNodeDialog
+    extends AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> {
 
     private static final String START_AUTODETECT_LABEL = "Autodetect format";
 
@@ -186,9 +189,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     /** The multi table reader config. */
     protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> m_config;
 
-    /** The table preview. */
-    protected final TableReaderPreview<CSVTableReaderConfig, String> m_tableReaderPreview;
-
     /**
      * If the preview, autodetection, etc. components should be disabled (by default when opened in remote job view).
      * Might be overridden.
@@ -201,13 +201,15 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
      * @param pathSettings the path settings
      * @param config the config
      * @param multiReader the multi reader
+     * @param defaultProductionPathFn provides the default {@link ProductionPath} for a specific column type
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
-        final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
+        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
+        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
+        super(multiReader, defaultProductionPathFn);
         init(pathSettings);
         m_pathSettings = pathSettings;
-        m_tableReaderPreview = new TableReaderPreview<>(multiReader, m_pathSettings, this::saveAndGetConfig);
         m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
         Long stepSize = Long.valueOf(1);
@@ -284,6 +286,16 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         hookUpNumberFormatWithColumnDelimiter();
     }
 
+    @Override
+    protected final MultiTableReadConfig<CSVTableReaderConfig> getConfig() throws InvalidSettingsException {
+        return saveAndGetConfig();
+    }
+
+    @Override
+    protected final ReadPathAccessor createReadPathAccessor() {
+        return m_pathSettings.createReadPathAccessor();
+    }
+
     /**
      * Initializes additional components and members of the sub class.
      *
@@ -333,12 +345,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
                 configChanged();
             }
         };
-        final ActionListener actionListener = l -> {
-            configChanged();
-        };
-        final ChangeListener changeListener = l -> {
-            configChanged();
-        };
+        final ActionListener actionListener = l -> configChanged();
+        final ChangeListener changeListener = l -> configChanged();
 
         m_colDelimiterField.getDocument().addDocumentListener(documentListener);
         m_rowDelimiterField.getDocument().addDocumentListener(documentListener);
@@ -394,11 +402,11 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         });
     }
 
-    private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() {
+    private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() throws InvalidSettingsException {
         try {
             saveConfig();
-        } catch (InvalidSettingsException e) {
-            throw new IllegalStateException(e);
+        } catch (RuntimeException e) {
+            throw new InvalidSettingsException(e.getMessage(), e);
         }
         return m_config;
     }
@@ -431,7 +439,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         panel.add(createOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
-        panel.add(m_tableReaderPreview, gbc);
+        panel.add(getPreview(), gbc);
         return panel;
     }
 
@@ -465,8 +473,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
 
     private JPanel createDataRowsSpecLimitPanel() {
         final JPanel specLimitPanel = new JPanel(new GridBagLayout());
-        specLimitPanel
-            .setBorder(CSVReaderDialogUtils.createBorder("Table specification"));
+        specLimitPanel.setBorder(CSVReaderDialogUtils.createBorder("Table specification"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
@@ -500,7 +507,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         ++gbc.gridy;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0,0,0,0);
+        gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(Box.createHorizontalBox(), gbc);
         return panel;
     }
@@ -702,7 +709,6 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         gbc.fill = GridBagConstraints.BOTH;
         optionsPanel.add(new JPanel(), gbc);
 
-
         return optionsPanel;
     }
 
@@ -794,6 +800,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     protected void saveConfig() throws InvalidSettingsException {
         saveTableReadSettings();
         saveCsvSettings();
+        m_config.setTableSpecConfig(getTableSpecConfig());
     }
 
     /**
@@ -804,7 +811,8 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     @Override
     protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_tableReaderPreview.setEnabled(false);
+        ignoreEvents(true);
+        getPreview().setEnabled(false);
         m_config.loadInDialog(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
@@ -817,6 +825,10 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
 
+        if (m_config.hasTableSpecConfig()) {
+            loadFromTableSpecConfig(m_config.getTableSpecConfig());
+        }
+        ignoreEvents(false);
         refreshPreview(true);
     }
 
@@ -904,7 +916,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     private void startFormatAutoDetection() {
         m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(this, m_pathSettings);
 
-        m_tableReaderPreview.setEnabled(false);
+        getPreview().setEnabled(false);
 
         setAutodetectComponentsEnabled(false);
         showCardInCardLayout(PROGRESS_BAR_CARD);
@@ -952,7 +964,7 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
         return m_commentStartField.getText();
     }
 
-    boolean getSkipLines() {
+    boolean isSkipLines() {
         return m_skipFirstLinesChecker.isSelected();
     }
 
@@ -1003,23 +1015,15 @@ public abstract class AbstractCSVTableReaderNodeDialog extends NodeDialogPane {
     }
 
     void refreshPreview(final boolean refreshPreview) {
-        m_tableReaderPreview.setEnabled(!m_disableComponentsRemoteContext);
+        getPreview().setEnabled(!m_disableComponentsRemoteContext);
         if (refreshPreview) {
             configChanged();
         }
     }
 
-    /**
-     * Should be called if the config changed in some way or form.
-     */
-    protected final void configChanged() {
-        m_tableReaderPreview.configChanged(validateFileSelection());
-    }
-
     @Override
     public void onClose() {
         cancelFormatAutoDetection();
-        m_tableReaderPreview.onClose();
         super.onClose();
     }
 }

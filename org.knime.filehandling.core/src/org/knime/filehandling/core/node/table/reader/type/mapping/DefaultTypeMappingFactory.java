@@ -48,20 +48,13 @@
  */
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import static java.util.stream.Collectors.toList;
+import java.util.function.Function;
 
-import java.util.List;
-import java.util.Map;
-
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -75,73 +68,48 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultTypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V> implements TypeMappingFactory<C, T, V> {
+public final class DefaultTypeMappingFactory<C extends ReaderSpecificConfig<C>, T, V>
+    implements TypeMappingFactory<C, T, V> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTypeMappingFactory.class);
+    private final ReadAdapterFactory<T, V> m_readAdapterFactory;
 
-    private ReadAdapterFactory<T, V> m_readAdapterFactory;
-
-    private ProducerRegistry<T, ? extends ReadAdapter<T, V>> m_producerRegistry;
-
-    private Map<T, DataType> m_defaultKnimeTypes;
+    private final Function<T, ProductionPath> m_defaultProductionPathFn;
 
     /**
      * Constructor.
      *
      * @param readAdapterFactory provides reader specific information for type mapping
+     * @param defaultProductionPathFn provides default production paths
      */
-    public DefaultTypeMappingFactory(final ReadAdapterFactory<T, V> readAdapterFactory) {
+    public DefaultTypeMappingFactory(final ReadAdapterFactory<T, V> readAdapterFactory, final Function<T, ProductionPath> defaultProductionPathFn) {
         m_readAdapterFactory = readAdapterFactory;
-        m_producerRegistry = m_readAdapterFactory.getProducerRegistry();
-        m_defaultKnimeTypes = m_readAdapterFactory.getDefaultTypeMap();
+        m_defaultProductionPathFn = defaultProductionPathFn;
     }
 
     @Override
     public TypeMapping<V> create(final TypedReaderTableSpec<T> mergedSpec, final C config) {
         final ProductionPath[] paths = mergedSpec.stream()//
             .map(TypedReaderColumnSpec::getType)//
-            .map(this::getDefaultPath)//
+            .map(m_defaultProductionPathFn)//
             .toArray(ProductionPath[]::new);
         return create(paths, config);
     }
 
     @Override
-    public TypeMapping<V> create(final TableSpecConfig config, final C multiTableReadConfig) {
-        return create(config.getProductionPaths(), multiTableReadConfig);
+    public TypeMapping<V> create(final TableSpecConfig config, final C readerSpecificConfig) {
+        return create(config.getProductionPaths(), readerSpecificConfig);
     }
 
     private TypeMapping<V> create(final ProductionPath[] paths, final C config) {
         return new DefaultTypeMapping<>(m_readAdapterFactory::createReadAdapter, paths, config);
     }
 
-    private ProductionPath getDefaultPath(final T externalType) {
-        final DataType knimeType = m_defaultKnimeTypes.get(externalType);
-
-        if (knimeType == null) {
-            final ProductionPath productionPath = getFirstPath(externalType);
-            if (productionPath != null) {
-                return productionPath;
-            }
-        }
-
-        CheckUtils.checkState(knimeType != null, "No default KNIME type defined for external type '%s'.", externalType);
-        return getPath(externalType, knimeType);
-    }
-
-    private ProductionPath getFirstPath(final T externalType) {
-        return m_producerRegistry.getAvailableProductionPaths(externalType).stream().findFirst().orElse(null);
-    }
-
-    private ProductionPath getPath(final T externalType, final DataType knimeType) {
-        final List<ProductionPath> paths = m_producerRegistry.getAvailableProductionPaths(externalType).stream()
-            .filter(p -> p.getConverterFactory().getDestinationType().equals(knimeType)).collect(toList());
-        CheckUtils.checkState(!paths.isEmpty(), "No mapping registered from external type '%s' to KNIME type '%s'.",
-            externalType, knimeType);
-        if (paths.size() > 1) {
-            LOGGER.debugWithFormat(
-                "Multiple mappings from external type '%s' to KNIME type '%s' found (%s). Taking the first.",
-                externalType, knimeType, paths);
-        }
-        return paths.get(0);
+    @Override
+    public TypeMapping<V> create(final TypedReaderTableSpec<T> spec, final C readerSpecificConfig,
+        final TransformationModel<T> transformation) {
+        final ProductionPath[] paths = spec.stream()//
+            .map(transformation::getProductionPath)//
+            .toArray(ProductionPath[]::new);
+        return create(paths, readerSpecificConfig);
     }
 }

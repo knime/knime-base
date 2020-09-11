@@ -54,6 +54,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
@@ -64,6 +65,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -72,11 +74,10 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.table.reader.MultiTableReader;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -90,7 +91,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  */
 final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
-    private AbstractDialogComponentFileChooser m_filePanel;
+    private DialogComponentReaderFileChooser m_filePanel;
 
     private JRadioButton m_failOnDifferingSpecs;
 
@@ -100,8 +101,9 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
-        final MultiTableReader<CSVTableReaderConfig, Class<?>, String> multiReader) {
-        super(fileChooserModel, config, multiReader);
+        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
+        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
+        super(fileChooserModel, config, multiReader, defaultProductionPathFn);
     }
 
     private JPanel createFilePanel() {

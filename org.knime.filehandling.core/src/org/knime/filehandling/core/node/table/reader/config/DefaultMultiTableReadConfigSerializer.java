@@ -56,7 +56,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -79,6 +78,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
     private final ProducerRegistry<?, ?> m_producerRegistry;
 
+    private final Object m_mostGenericExternalType;
+
     private final ConfigSerializer<TC> m_tableReadConfigSerializer;
 
     /**
@@ -87,11 +88,13 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
      * @param tableReadConfigSerializer serializer for the {@link TableReadConfig} (also expected to serialize the
      *            {@link ReaderSpecificConfig})
      * @param producerRegistry {@link ProducerRegistry} for de-serializing the type mapping production paths
+     * @param mostGenericExternalType the identifier for the most generic external type
      */
     public DefaultMultiTableReadConfigSerializer(final ConfigSerializer<TC> tableReadConfigSerializer,
-        final ProducerRegistry<?, ?> producerRegistry) {
+        final ProducerRegistry<?, ?> producerRegistry, final Object mostGenericExternalType) {
         m_tableReadConfigSerializer = tableReadConfigSerializer;
         m_producerRegistry = producerRegistry;
+        m_mostGenericExternalType = mostGenericExternalType;
     }
 
     @Override
@@ -104,8 +107,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(
-                    TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry));
+                config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                    m_producerRegistry, m_mostGenericExternalType));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -123,8 +126,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         m_tableReadConfigSerializer.loadInModel(config.getTableReadConfig(), settings);
         config.setSpecMergeMode(SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE)));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(
-                TableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry));
+            config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                m_producerRegistry, m_mostGenericExternalType));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -133,7 +136,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
     @Override
     public void saveInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
-        m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(), settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
+        m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(),
+            settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
         settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
 
         if (config.hasTableSpecConfig()) {
@@ -148,7 +152,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         settings.getString(CFG_SPEC_MERGE_MODE);
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            TableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
+            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
         }
 
     }

@@ -49,9 +49,8 @@
 package org.knime.filehandling.core.node.table.reader.preview;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -61,18 +60,12 @@ import javax.swing.event.ChangeListener;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeProgressMonitor;
-import org.knime.filehandling.core.node.table.reader.MultiTableReader;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreview;
 
 /**
  * // TODO AP-14295: we need sth like our own TableReadExecutionMonitor (from that PreviewExecutionMonitor inherits)
  *
- * The execution monitor used when creating a {@link PreviewDataTable}. Besides progress and cancellations, it
- * communicates further information and errors between the {@link TableReaderPreview} and the creation process of
- * {@link PreviewDataTable} (see
- * {@link MultiTableReader#createPreviewDataTable(List, MultiTableReadConfig, PreviewExecutionMonitor)}.</br>
- * </br>
+ * The execution monitor used when creating a {@link PreviewDataTable}.
+ *
  * Note that no real sub progress can be created at the moment (see TODO above).
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
@@ -81,7 +74,7 @@ public final class PreviewExecutionMonitor extends ExecutionMonitor {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(PreviewExecutionMonitor.class);
 
-    private final CopyOnWriteArrayList<ChangeListener> m_listeners = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArraySet<ChangeListener> m_listeners = new CopyOnWriteArraySet<>();
 
     private long m_specGuessingErrorRow;
 
@@ -203,9 +196,7 @@ public final class PreviewExecutionMonitor extends ExecutionMonitor {
      * @param listener the {@link ChangeListener} being notified when an error occurs.
      */
     public void addChangeListener(final ChangeListener listener) {
-        if (!m_listeners.contains(listener)) {
-            m_listeners.add(listener);
-        }
+        m_listeners.add(listener);//NOSONAR a small price to pay for thread safety
     }
 
     /**

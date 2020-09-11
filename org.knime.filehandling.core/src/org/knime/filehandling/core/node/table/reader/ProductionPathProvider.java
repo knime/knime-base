@@ -44,63 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 3, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Base interface for configuration classes used in the table reader framework.
+ * Creates default {@link ProductionPath ProductionPaths} for external types.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference non-public API
- * @noimplement non-public API
  */
-public interface ReaderConfig {
+final class ProductionPathProvider<T> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(ProductionPathProvider.class);
+
+    private final ProducerRegistry<T, ?> m_producerRegistry;
+
+    private final Map<T, DataType> m_defaultKnimeTypes;
 
     /**
-     * Loads the configuration in the dialog.
-     *
-     * @param settings to load from
-     * @param specs input {@link PortObjectSpec specs} of the node
-     * @throws NotConfigurableException if the node can't be configured
+     * Constructor.
      */
-    void loadInDialog(final NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException;
+    ProductionPathProvider(final ProducerRegistry<T, ?> producerRegistry, final Map<T, DataType> defaultKnimeTypes) {
+        m_producerRegistry = producerRegistry;
+        m_defaultKnimeTypes = defaultKnimeTypes;
+    }
 
-    /**
-     * Loads the configuration in the node model.
-     *
-     * @param settings to load from
-     * @throws InvalidSettingsException if the settings are invalid or can't be loaded
-     */
-    void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException;
+    ProductionPath getDefaultProductionPath(final T externalType) {
+        final DataType knimeType = m_defaultKnimeTypes.get(externalType);
 
-    /**
-     * Checks that this configuration can be loaded from the provided settings.
-     *
-     * @param settings to validate
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
+        if (knimeType == null) {
+            final ProductionPath productionPath = getFirstPath(externalType);
+            if (productionPath != null) {
+                return productionPath;
+            }
+        }
 
-    /**
-     * Saves the configuration to settings in the node model.
-     *
-     * @param settings to save to
-     */
-    void saveInModel(final NodeSettingsWO settings);
+        CheckUtils.checkState(knimeType != null, "No default KNIME type defined for external type '%s'.", externalType);
+        return getPath(externalType, knimeType);
+    }
 
-    /**
-     * Saves the configuration to settings in the node dialog.
-     *
-     * @param settings to save to
-     * @throws InvalidSettingsException if the config is invalid
-     */
-    void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException;
+    private ProductionPath getFirstPath(final T externalType) {
+        return m_producerRegistry.getAvailableProductionPaths(externalType).stream().findFirst().orElse(null);
+    }
+
+    private ProductionPath getPath(final T externalType, final DataType knimeType) {
+        final List<ProductionPath> paths = m_producerRegistry.getAvailableProductionPaths(externalType).stream()
+            .filter(p -> p.getConverterFactory().getDestinationType().equals(knimeType)).collect(toList());
+        CheckUtils.checkState(!paths.isEmpty(), "No mapping registered from external type '%s' to KNIME type '%s'.",
+            externalType, knimeType);
+        if (paths.size() > 1) {
+            LOGGER.debugWithFormat(
+                "Multiple mappings from external type '%s' to KNIME type '%s' found (%s). Taking the first.",
+                externalType, knimeType, paths);
+        }
+        return paths.get(0);
+    }
+
 
 }

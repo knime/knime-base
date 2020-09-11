@@ -66,7 +66,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * @noinstantiate non-public API
  */
 public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    extends AbstractMultiTableReadConfig<C, TC> {
+    extends AbstractMultiTableReadConfig<C, TC> implements StorableMultiTableReadConfig<C> {
 
     private final ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> m_serializer;
 
@@ -91,16 +91,17 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
      * @param readerSpecificConfig {@link ReaderSpecificConfig} used by the node implementation
      * @param specificConfigSerializer {@link ConfigSerializer} for the {@link ReaderSpecificConfig}
      * @param producerRegistry for loading type mapping production paths
+     * @param mostGenericExternalType the identifier for the most generic external type
      * @return a {@link DefaultMultiTableReadConfig} with default serialization
      */
     public static <C extends ReaderSpecificConfig<C>> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>> create(
         final C readerSpecificConfig, final ConfigSerializer<C> specificConfigSerializer,
-        final ProducerRegistry<?, ?> producerRegistry) {
+        final ProducerRegistry<?, ?> producerRegistry, final Object mostGenericExternalType) {
         final DefaultTableReadConfig<C> tc = new DefaultTableReadConfig<>(readerSpecificConfig);
         final DefaultTableReadConfigSerializer<C> tcSerializer =
             new DefaultTableReadConfigSerializer<>(specificConfigSerializer);
         final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>> serializer =
-            new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry);
+            new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry, mostGenericExternalType);
         return new DefaultMultiTableReadConfig<>(tc, serializer);
     }
 
@@ -129,6 +130,5 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_serializer.validate(settings);
     }
-
 
 }
