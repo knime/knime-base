@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Filehandling Nodes
+Bundle-SymbolicName: org.knime.filehandling.utility.nodes;singleton:=true
+Bundle-Version: 4.2.2.qualifier
+Bundle-Vendor: KNIME AG, Zurich, Switzerland
+Automatic-Module-Name: org.knime.filehandling.nodes
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.knime.base;bundle-version="4.2.0",
+ org.knime.filehandling.core;bundle-version="4.2.0",
+ org.knime.time;bundle-version="4.2.0"

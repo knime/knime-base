@@ -35,6 +35,8 @@
 		<module>org.knime.filehandling.core.fs</module>
 		<module>org.knime.filehandling.core.fs.tests.integration</module>
 		<module>org.knime.filehandling.core.fs.tests.workflow</module>
+		<module>org.knime.filehandling.utility.nodes</module>
+		<module>org.knime.filehandling.utility.nodes.tests</module>
 		<module>org.knime.time</module>
 		<module>org.knime.time.tests</module>
 		<module>org.knime.update.base</module>
