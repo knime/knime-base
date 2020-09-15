@@ -78,7 +78,6 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
@@ -554,9 +553,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         checkFileSystemOpenOrClosing();
 
         checkPathProvider(path);
-        if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class
-            || type == FileOwnerAttributeView.class) {
-
+        if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class) {
             return (V)new BaseFileAttributeView(path, type);
         }
         return null;
@@ -578,6 +575,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         if (type == BasicFileAttributes.class || type == PosixFileAttributes.class) {
 
             BaseFileAttributes attributes;
+
             final Optional<BaseFileAttributes> cachedAttributes =
                 getFileSystemInternal().getCachedAttributes(checkedPath);
 
@@ -589,11 +587,13 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
                 getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
             } else {
                 attributes = cachedAttributes.get();
-                if (type == PosixFileAttributes.class && !attributes.hasPosixAttributesSet()) {
-                    attributes = attributes.generatePosixAttributes();
-                    getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
-                }
             }
+
+            if (type == PosixFileAttributes.class && !attributes.hasPosixAttributesSet()) {
+                attributes = attributes.generatePosixAttributes();
+                getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
+            }
+
             return (A)attributes;
         }
 
