@@ -100,6 +100,7 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
@@ -255,7 +256,12 @@ final class StringToPathNodeModel extends NodeModel {
     private DataColumnSpec getNewColumnSpec(final DataTableSpec inSpec) {
         final String columnName = isReplaceMode(m_generatedColumnModeModel) ? m_selectedColumnNameModel.getStringValue()
             : DataTableSpec.getUniqueColumnName(inSpec, m_appendedColumnNameModel.getStringValue());
-        return new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE).createSpec();
+        final FSLocationSpec location = m_fileSystemModel.getLocationSpec();
+        final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
+            location.getFileSystemSpecifier().orElse(null));
+        final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
+        fsLocationSpec.addMetaData(metaData, true);
+        return fsLocationSpec.createSpec();
     }
 
     /**
@@ -412,7 +418,8 @@ final class StringToPathNodeModel extends NodeModel {
                 Files.readAttributes(fsPath, BasicFileAttributes.class);
             } catch (final IOException e) {
                 throw new IllegalArgumentException(
-                    String.format("The file/folder '%s' does not exists or cannot be accessed", fsLocation.getPath()), e);
+                    String.format("The file/folder '%s' does not exists or cannot be accessed", fsLocation.getPath()),
+                    e);
             }
         }
 
