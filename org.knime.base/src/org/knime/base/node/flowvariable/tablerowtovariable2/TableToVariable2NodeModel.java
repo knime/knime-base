@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
+import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -67,9 +67,9 @@ import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
@@ -91,6 +91,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * The node model for the table row to variable node.
@@ -98,6 +100,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
  * @author Bernd Wiswedel, University of Konstanz
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 class TableToVariable2NodeModel extends NodeModel {
 
@@ -128,9 +131,8 @@ class TableToVariable2NodeModel extends NodeModel {
         if (!m_onMV.getStringValue().equals(MissingValuePolicy.OMIT.getName())) {
             // Pushes the default variables onto the stack
             final DataTableSpec spec = (DataTableSpec)inSpecs[0];
-            final DefaultRow row = new DefaultRow(/* default value for RowID*/ "", createDefaultCells(spec));
             try {
-                pushVariables(spec, row);
+                pushVariables(spec, null, createDefaultCells(spec));
             } catch (Exception e) {
                 // ignored
             }
@@ -140,7 +142,7 @@ class TableToVariable2NodeModel extends NodeModel {
 
     private DataCell[] createDefaultCells(final DataTableSpec spec) {
         final DataCell[] cells = new DataCell[spec.getNumColumns()];
-        for (int i = cells.length; --i >= 0;) {
+        for (int i = cells.length; --i >= 0;) { //NOSONAR
             final DataType type = spec.getColumnSpec(i).getType();
 
             final DataCell cell;
@@ -170,7 +172,8 @@ class TableToVariable2NodeModel extends NodeModel {
             } else if (type.isCompatible(StringValue.class)) {
                 cell = new StringCell(m_string.getStringValue());
             } else {
-                cell = DataType.getMissingCell();
+                // setting the default to null will omit this column.
+                cell = null;
             }
             cells[i] = cell;
 
@@ -182,15 +185,17 @@ class TableToVariable2NodeModel extends NodeModel {
      * Pushes the variable as given by the row argument onto the stack.
      *
      * @param variablesSpec The spec (for names and types)
-     * @param currentVariables The values of the variables.
+     * @param rowKey the name of the row
+     * @param row the content of the row
      * @throws Exception if the node is supposed to fail on missing values or empty table
      */
-    private void pushVariables(final DataTableSpec variablesSpec, final DataRow currentVariables) throws Exception {
+    private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row)
+        throws Exception {
         // push also the rowID onto the stack
         final String rowIDVarName = "RowID";
         final boolean fail = m_onMV.getStringValue().equals(MissingValuePolicy.FAIL.getName());
         final boolean defaults = m_onMV.getStringValue().equals(MissingValuePolicy.DEFAULT.getName());
-        pushFlowVariableString(rowIDVarName, currentVariables == null ? "" : currentVariables.getKey().getString());
+        pushFlowVariableString(rowIDVarName, rowKey == null ? "" : rowKey);
         final DataCell[] defaultCells = createDefaultCells(variablesSpec);
         // column names starting with "knime." are uniquified as they represent global constants
         final Set<String> variableNames = new HashSet<>();
@@ -212,7 +217,7 @@ class TableToVariable2NodeModel extends NodeModel {
             }
 
             final DataCell cell;
-            if (currentVariables == null) {
+            if (row == null) {
                 if (fail) {
                     throw new Exception("No rows in input table");
                 } else if (defaults) {
@@ -221,13 +226,13 @@ class TableToVariable2NodeModel extends NodeModel {
                     // omit
                     cell = null;
                 }
-            } else if (currentVariables.getCell(i).isMissing()) {
+            } else if (row[i].isMissing()) {
                 if (fail) {
-                    throw new MissingValueException((MissingValue)currentVariables.getCell(i),
+                    throw new MissingValueException((MissingValue)row[i],
                         String.format(
                             "Missing Values not allowed as variable values -- "
                                 + "in row with ID \"%s\", column \"%s\" (index %d)",
-                            currentVariables.getKey(), variablesSpec.getColumnSpec(i).getName(), i));
+                            rowKey, variablesSpec.getColumnSpec(i).getName(), i));
                 } else if (defaults) {
                     cell = defaultCells[i];
                 } else {
@@ -236,31 +241,56 @@ class TableToVariable2NodeModel extends NodeModel {
                 }
             } else {
                 // take the value from the input table row
-                cell = currentVariables.getCell(i);
+                cell = row[i];
             }
 
             if (cell != null) {
-                final String finalName = name;
-                VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(finalName, t, c));
+                pushVariable(CellToVariableConverterFactory.createConverter(type).createFlowVariable(name, cell));
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void pushVariable(final FlowVariable fv) {
+        pushFlowVariable(fv.getName(), (VariableType<T>)fv.getVariableType(), (T)fv.getValue(fv.getVariableType()));
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable variables = (BufferedDataTable)inData[0];
-        DataRow row = null;
-        for (DataRow r : variables) {
-            // take the first row
-            row = r;
-            break;
-        }
-        pushVariables(variables.getDataTableSpec(), row);
+        pushVariables(variables.getDataTableSpec(), getFirstRow(variables));
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
+    }
+
+    private static DataRow getFirstRow(final BufferedDataTable variables) {
+        try (final CloseableRowIterator iter = variables.iterator()) {
+            if (iter.hasNext()) {
+                return iter.next();
+            } else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Converts the {@link DataRow}'s {@link DataCell}'s to {@link FlowVariable}s and pushes them onto the variable
+     * stack.
+     *
+     * @param spec the input {@link DataTableSpec}
+     * @param row the row whose cells have to be converted to {@link FlowVariable}s
+     * @throws Exception
+     */
+    private void pushVariables(final DataTableSpec spec, final DataRow row) throws Exception {
+        if (row == null) {
+            pushVariables(spec, null, null);
+        } else {
+            pushVariables(spec, row.getKey().toString(), row.stream().toArray(DataCell[]::new));
+        }
     }
 
     @Override
     protected void reset() {
+        // nothing to do
     }
 
     @Override
@@ -302,11 +332,13 @@ class TableToVariable2NodeModel extends NodeModel {
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
 }
