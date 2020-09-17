@@ -49,7 +49,7 @@ package org.knime.base.node.flowvariable.appendvariabletotable3;
 
 import javax.swing.JScrollPane;
 
-import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -74,8 +74,8 @@ class AppendVariableToTable3NodeDialogPane extends NodeDialogPane {
 
     /** Inits components. */
     AppendVariableToTable3NodeDialogPane() {
-        m_filter =
-            new FlowVariableFilterPanel(new VariableTypeFilter(VariableAndDataCellUtil.getSupportedVariableTypes()));
+        m_filter = new FlowVariableFilterPanel(
+            new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
         addTab("Variable Selection", new JScrollPane(m_filter));
     }
 
@@ -84,7 +84,7 @@ class AppendVariableToTable3NodeDialogPane extends NodeDialogPane {
         throws NotConfigurableException {
         final FlowVariableFilterConfiguration config =
             new FlowVariableFilterConfiguration(AppendVariableToTable3NodeModel.CFG_KEY_FILTER);
-        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
+        final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
         m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
     }

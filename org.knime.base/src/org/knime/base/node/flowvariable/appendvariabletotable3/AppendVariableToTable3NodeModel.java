@@ -51,18 +51,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.knime.base.node.flowvariable.VariableAndDataCellPair;
-import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverter;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
@@ -70,14 +71,24 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableFunction;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
 /**
@@ -87,83 +98,145 @@ import org.knime.core.node.workflow.VariableType;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNodeModel {
+class AppendVariableToTable3NodeModel extends NodeModel {
 
     /** Key for the filter configuration. */
     static final String CFG_KEY_FILTER = "variable-filter";
+
+    private static final int DATA_INPUT_PORT_IDX = 1;
+
+    private static final int DATA_OUTPUT_PORT_IDX = 0;
 
     private FlowVariableFilterConfiguration m_filter;
 
     /** One input, one output. */
     AppendVariableToTable3NodeModel() {
         super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL, BufferedDataTable.TYPE},
-            new PortType[]{BufferedDataTable.TYPE}, 1, 0);
+            new PortType[]{BufferedDataTable.TYPE});
         m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        m_filter.loadDefaults(getAvailableFlowVariables(VariableAndDataCellUtil.getSupportedVariableTypes()), false);
+        m_filter.loadDefaults(getAvailableFlowVariables(VariableToCellConverterFactory.getSupportedTypes()), false);
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable table = (BufferedDataTable)inData[1];
-        final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec());
+        final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec(), exec);
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(table, columnRearranger, exec)};
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[1]);
+        final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[1], null);
         return new DataTableSpec[]{columnRearranger.createSpec()};
     }
 
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ExecutionContext exec)
+        throws InvalidSettingsException {
         final ColumnRearranger columnRearranger = new ColumnRearranger(spec);
-        final Set<String> nameHash = spec.stream().map(c -> c.getName()).collect(Collectors.toCollection(HashSet::new));
-        final List<VariableAndDataCellPair> vars = getFilteredVariables();
+        final Set<String> nameHash = spec.stream()//
+            .map(DataColumnSpec::getName)//
+            .collect(Collectors.toCollection(HashSet::new));
+        final Map<String, VariableToCellConverter> vars = getFilteredVariables();
         if (vars.isEmpty()) {
             throw new InvalidSettingsException("No variables selected");
         }
 
         final DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
-        final DataCell[] cells = new DataCell[vars.size()];
-        for (int i = 0; i < vars.size(); i++) {
-            final VariableAndDataCellPair var = vars.get(i);
-            final DataType type = var.getCellType();
-            cells[i] = var.getDataCell();
-
-            String name = var.getName();
+        int pos = 0;
+        for (final Entry<String, VariableToCellConverter> entry : vars.entrySet()) {
+            final VariableToCellConverter var = entry.getValue();
+            String name = entry.getKey();
             if (nameHash.contains(name) && !name.toLowerCase().endsWith("(variable)")) {
                 name = name.concat(" (variable)");
             }
             String newName = name;
             int uniquifier = 1;
             while (!nameHash.add(newName)) {
-                newName = name + " (#" + (uniquifier++) + ")";
+                newName = name + " (#" + (uniquifier) + ")";
+                uniquifier++;
             }
-            specs[i] = new DataColumnSpecCreator(newName, type).createSpec();
+            specs[pos] = var.createSpec(newName);
+            pos++;
         }
 
         columnRearranger.append(new AbstractCellFactory(specs) {
+
+            private final Object m_lock = new Object();
+
+            private DataCell[] m_cells;
+
             @Override
             public DataCell[] getCells(final DataRow row) {
-                return cells;
+                synchronized (m_lock) {
+                    if (m_cells == null) {
+                        m_cells = vars.values().stream()//
+                            .map(c -> c.getDataCell(exec))//
+                            .toArray(DataCell[]::new);
+                    }
+                }
+                return m_cells;
             }
         });
         return columnRearranger;
     }
 
-    private List<VariableAndDataCellPair> getFilteredVariables() {
-        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
+    private Map<String, VariableToCellConverter> getFilteredVariables() {
+        final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
 
-        final Set<String> include_names =
-            new HashSet<>(Arrays.asList(m_filter.applyTo(getAvailableFlowVariables(types)).getIncludes()));
+        final Map<String, FlowVariable> availableVars = getAvailableFlowVariables(types);
+        final Set<String> includeNames = new HashSet<>(Arrays.asList(m_filter.applyTo(availableVars).getIncludes()));
 
-        return VariableAndDataCellUtil.getVariablesAsDataCells(getAvailableFlowVariables(types)).stream()
-            .filter(v -> include_names.contains(v.getName())).collect(Collectors.toList());
+        return availableVars.entrySet().stream() //
+            .filter(e -> includeNames.contains(e.getKey())) //
+            .filter(e -> VariableToCellConverterFactory.isSupported(e.getValue().getVariableType())) //
+            .collect(Collectors.toMap(Map.Entry::getKey,
+                e -> VariableToCellConverterFactory.createConverter(e.getValue()), (x, y) -> y, LinkedHashMap::new));
+    }
+
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        final InputPortRole[] inRoles = Stream.generate(() -> InputPortRole.NONDISTRIBUTED_NONSTREAMABLE)//
+            .limit(getNrInPorts())//
+            .toArray(InputPortRole[]::new);
+        inRoles[DATA_INPUT_PORT_IDX] = InputPortRole.DISTRIBUTED_STREAMABLE;
+        return inRoles;
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        final OutputPortRole[] outRoles = Stream.generate(() -> OutputPortRole.NONDISTRIBUTED)//
+            .limit(getNrOutPorts())//
+            .toArray(OutputPortRole[]::new);
+        outRoles[DATA_OUTPUT_PORT_IDX] = OutputPortRole.DISTRIBUTED;
+        return outRoles;
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new StreamableOperator() {
+
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
+                final RowInput in = (RowInput)inputs[DATA_INPUT_PORT_IDX];
+                final RowOutput out = (RowOutput)outputs[DATA_OUTPUT_PORT_IDX];
+                final StreamableFunction streamableFunction =
+                    createColumnRearranger(in.getDataTableSpec(), exec).createStreamableFunction();
+                DataRow row;
+                while ((row = in.poll()) != null) {
+                    out.push(streamableFunction.compute(row));
+                }
+                in.close();
+                out.close();
+            }
+        };
+
     }
 
     @Override
     protected void reset() {
+        // nothing to do
     }
 
     @Override
@@ -187,11 +260,13 @@ class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNodeModel 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
+        // nothing to do
     }
 
 }
