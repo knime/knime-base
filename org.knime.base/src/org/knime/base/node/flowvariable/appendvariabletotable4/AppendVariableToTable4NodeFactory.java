@@ -55,7 +55,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Patrick Winters, KNIME AG, Zurich, Switzerland
  */
-public class AppendVariableToTable4NodeFactory extends NodeFactory<AppendVariableToTable4NodeModel> {
+public final class AppendVariableToTable4NodeFactory extends NodeFactory<AppendVariableToTable4NodeModel> {
 
     @Override
     protected AppendVariableToTable4NodeDialogPane createNodeDialogPane() {

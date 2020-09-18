@@ -69,7 +69,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
+final class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
 
     private SettingsModelString m_onMissing;
 
