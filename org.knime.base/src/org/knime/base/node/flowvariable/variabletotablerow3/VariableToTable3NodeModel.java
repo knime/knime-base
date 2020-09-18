@@ -51,15 +51,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverter;
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
+import org.knime.base.node.flowvariable.VariableAndDataCellPair;
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
@@ -77,7 +77,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
-import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
 /**
@@ -100,15 +99,13 @@ class VariableToTable3NodeModel extends NodeModel {
     VariableToTable3NodeModel() {
         super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{BufferedDataTable.TYPE});
         m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        m_filter.loadDefaults(getAvailableFlowVariables(VariableToCellConverterFactory.getSupportedTypes()), false);
+        m_filter.loadDefaults(getAvailableFlowVariables(VariableAndDataCellUtil.getSupportedVariableTypes()), false);
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataContainer cont = exec.createDataContainer(createOutSpec());
-        final DataCell[] cells = getFilteredVariables().values().stream()//
-            .map(c -> c.getDataCell(exec))//
-            .toArray(DataCell[]::new);
+        final DataCell[] cells = getFilteredVariables().stream().map(v -> v.getDataCell()).toArray(DataCell[]::new);
         cont.addRowToTable(new DefaultRow(m_rowID.getStringValue(), cells));
         cont.close();
         return new BufferedDataTable[]{cont.getTable()};
@@ -119,22 +116,19 @@ class VariableToTable3NodeModel extends NodeModel {
         return new DataTableSpec[]{createOutSpec()};
     }
 
-    private Map<String, VariableToCellConverter> getFilteredVariables() {
-        final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
+    private List<VariableAndDataCellPair> getFilteredVariables() {
+        final VariableType<?>[] types = VariableAndDataCellUtil.getSupportedVariableTypes();
 
-        final Map<String, FlowVariable> availableVars = getAvailableFlowVariables(types);
-        final Set<String> includeNames = new HashSet<>(Arrays.asList(m_filter.applyTo(availableVars).getIncludes()));
+        final Set<String> include_names =
+            new HashSet<>(Arrays.asList(m_filter.applyTo(getAvailableFlowVariables(types)).getIncludes()));
 
-        return availableVars.entrySet().stream() //
-            .filter(e -> includeNames.contains(e.getKey())) //
-            .filter(e -> VariableToCellConverterFactory.isSupported(e.getValue().getVariableType())) //
-            .collect(Collectors.toMap(Map.Entry::getKey,
-                e -> VariableToCellConverterFactory.createConverter(e.getValue()), (x, y) -> y, LinkedHashMap::new));
+        return VariableAndDataCellUtil.getVariablesAsDataCells(getAvailableFlowVariables(types)).stream()
+            .filter(v -> include_names.contains(v.getName())).collect(Collectors.toList());
     }
 
     private DataTableSpec createOutSpec() throws InvalidSettingsException {
-        final DataColumnSpec[] specs = getFilteredVariables().entrySet().stream() //
-            .map(e -> e.getValue().createSpec(e.getKey())) //
+        final DataColumnSpec[] specs = getFilteredVariables().stream()
+            .map(v -> (new DataColumnSpecCreator(v.getName(), v.getCellType())).createSpec())
             .toArray(DataColumnSpec[]::new);
         if (specs.length == 0) {
             throw new InvalidSettingsException("No variables selected");
@@ -144,7 +138,6 @@ class VariableToTable3NodeModel extends NodeModel {
 
     @Override
     protected void reset() {
-        // nothing to do
     }
 
     @Override
@@ -171,13 +164,11 @@ class VariableToTable3NodeModel extends NodeModel {
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do
     }
 
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // nothing to do
     }
 
 }

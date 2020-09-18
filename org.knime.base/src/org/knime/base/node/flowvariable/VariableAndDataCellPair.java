@@ -54,7 +54,6 @@ import static org.knime.core.data.collection.ListCell.getCollectionType;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverter;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
@@ -78,9 +77,7 @@ import org.knime.core.node.workflow.VariableType.StringArrayType;
  * @noreference This class is not intended to be referenced by clients.
  * @noextend This class is not intended to be subclassed by clients.
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated replaced by {@link VariableToCellConverter}
  */
-@Deprecated
 public abstract class VariableAndDataCellPair {
 
     private final FlowVariable m_var;
