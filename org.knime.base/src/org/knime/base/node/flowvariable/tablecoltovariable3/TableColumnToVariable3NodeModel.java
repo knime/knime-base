@@ -53,12 +53,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverter;
-import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.node.BufferedDataTable;
@@ -76,8 +76,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType;
 
 /**
  * This node model allows to convert the values from a table column to flow variables. The flow variable names are
@@ -119,37 +117,27 @@ final class TableColumnToVariable3NodeModel extends NodeModel {
             final DataTableSpec spec = table.getSpec();
             final int colIndex = spec.findColumnIndex(m_column.getStringValue());
             assert colIndex >= 0 : colIndex;
-            final CellToVariableConverter<?> cell2VarConverter =
-                CellToVariableConverterFactory.createConverter(spec.getColumnSpec(colIndex).getType());
+            final DataType type = spec.getColumnSpec(colIndex).getType();
             if (table.size() > 0) {
-                convertColToVar(table, colIndex, cell2VarConverter);
+
+                for (final DataRow row : table) {
+                    final DataCell cell = row.getCell(colIndex);
+                    final String name = row.getKey().getString();
+                    if (cell.isMissing()) {
+                        if (m_ignoreMissing.getBooleanValue()) {
+                            continue;
+                        }
+                        throw new MissingValueException((MissingValue)cell, String.format(
+                            "Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
+                    }
+
+                    VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
+                }
             } else {
                 setWarningMessage("Node created no variables since the input data table is empty.");
             }
         }
         return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
-    }
-
-    private void convertColToVar(final BufferedDataTable table, final int colIndex,
-        final CellToVariableConverter<?> cell2VarConverter) {
-        for (final DataRow row : table) {
-            final DataCell cell = row.getCell(colIndex);
-            final String name = row.getKey().getString();
-            if (cell.isMissing()) {
-                if (m_ignoreMissing.getBooleanValue()) {
-                    continue;
-                }
-                throw new MissingValueException((MissingValue)cell, String
-                    .format("Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
-            }
-
-            pushVariable(cell2VarConverter.createFlowVariable(name, cell));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void pushVariable(final FlowVariable fv) {
-        pushFlowVariable(fv.getName(), (VariableType<T>)fv.getVariableType(), (T)fv.getValue(fv.getVariableType()));
     }
 
     @Override
@@ -185,7 +173,7 @@ final class TableColumnToVariable3NodeModel extends NodeModel {
 
     private static Collection<DataColumnSpec> applicableColumns(final DataTableSpec spec) {
         return spec.stream()//
-            .filter(s -> CellToVariableConverterFactory.isSupported(s.getType()))//
+            .filter(s -> VariableAndDataCellUtil.isTypeCompatible(s.getType()))//
             .collect(Collectors.toList());
     }
 

@@ -50,12 +50,13 @@ package org.knime.base.node.flowvariable.tablecoltovariable3;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.JPanel;
 
-import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
+import org.knime.base.node.flowvariable.VariableAndDataCellUtil;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -66,7 +67,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.util.ColumnFilter;
-import org.knime.core.node.workflow.VariableType;
 
 /**
  * The node dialog for the "TableColumnToVariable3" node.
@@ -86,16 +86,14 @@ final class TableColumnToVariable3NodeDialog extends NodeDialogPane {
         final ColumnFilter filter = new ColumnFilter() {
             @Override
             public final boolean includeColumn(final DataColumnSpec colSpec) {
-                return CellToVariableConverterFactory.isSupported(colSpec.getType());
+                return VariableAndDataCellUtil.isTypeCompatible(colSpec.getType());
             }
 
             @Override
             public final String allFilteredMsg() {
-                return "No column is compatible with any of the supported types '%s'"
-                    + CellToVariableConverterFactory.getSupportedTargetVariableTypes().stream() //
-                        .map(VariableType::getIdentifier) //
-                        .map(String::toLowerCase) //
-                        .collect(Collectors.joining(", "))
+                return "No columns compatible with any of the types "
+                    + Arrays.stream(VariableAndDataCellUtil.getSupportedVariableTypes())
+                        .map(t -> t.getIdentifier().toLowerCase()).collect(Collectors.joining(", "))
                     + ".";
             }
         };

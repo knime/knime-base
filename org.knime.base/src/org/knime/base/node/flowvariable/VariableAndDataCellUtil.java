@@ -65,8 +65,6 @@ import org.knime.base.node.flowvariable.VariableAndDataCellPair.LongArrayValueTo
 import org.knime.base.node.flowvariable.VariableAndDataCellPair.LongVariableToLongCell;
 import org.knime.base.node.flowvariable.VariableAndDataCellPair.StringArrayValueToStringListCell;
 import org.knime.base.node.flowvariable.VariableAndDataCellPair.StringVariableToStringCell;
-import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -98,9 +96,7 @@ import org.knime.core.node.workflow.VariableType.StringType;
  * @noreference This class is not intended to be referenced by clients.
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated replaced by {@link CellToVariableConverterFactory} and {@link VariableToCellConverterFactory}
  */
-@Deprecated
 public final class VariableAndDataCellUtil {
 
     private VariableAndDataCellUtil() {
