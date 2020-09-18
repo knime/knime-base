@@ -248,7 +248,10 @@ final class StringToPathNodeModel extends NodeModel {
         throws InvalidSettingsException {
         final String selectedColumn = m_selectedColumnNameModel.getStringValue();
         final int colIdx = inSpec.findColumnIndex(selectedColumn);
-        checkSettings(inSpec, colIdx, selectedColumn);
+
+        // show the warning only in configure not in execute
+        final boolean showUniqueColumnNameWarning = exec == null;
+        checkSettings(inSpec, colIdx, selectedColumn, showUniqueColumnNameWarning);
         DataColumnSpec colSpec = getNewColumnSpec(inSpec);
         return new StringToPathCellFactory(colSpec, colIdx, exec);
     }
@@ -270,7 +273,7 @@ final class StringToPathNodeModel extends NodeModel {
      * @param inSpec Specification of the input table
      * @throws InvalidSettingsException If the settings are incorrect
      */
-    private void checkSettings(final DataTableSpec inSpec, final int colIdx, final String selectedColumn)
+    private void checkSettings(final DataTableSpec inSpec, final int colIdx, final String selectedColumn, final boolean showUniqueColumnNameWarning)
         throws InvalidSettingsException {
 
         CheckUtils.checkSetting(colIdx >= 0, "Please select a column", selectedColumn);
@@ -284,7 +287,7 @@ final class StringToPathNodeModel extends NodeModel {
                 || m_appendedColumnNameModel.getStringValue().trim().isEmpty()) {
                 throw new InvalidSettingsException("Column name cannot be empty");
             }
-            if (inSpec.findColumnIndex(m_appendedColumnNameModel.getStringValue()) != -1) {
+            if (showUniqueColumnNameWarning && inSpec.findColumnIndex(m_appendedColumnNameModel.getStringValue()) != -1) {
                 setWarningMessage("Column name already taken, using unique auto-generated column name instead.");
             }
         }
