@@ -74,7 +74,7 @@ import org.knime.core.node.workflow.VariableType;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class VariableToTable4NodeDialogPane extends NodeDialogPane {
+final class VariableToTable4NodeDialogPane extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 

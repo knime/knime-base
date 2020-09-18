@@ -102,7 +102,7 @@ import org.knime.core.node.workflow.VariableType;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-class TableToVariable3NodeModel extends NodeModel {
+final class TableToVariable3NodeModel extends NodeModel {
 
     private final SettingsModelString m_onMV;
 
@@ -133,7 +133,7 @@ class TableToVariable3NodeModel extends NodeModel {
             final DataTableSpec spec = (DataTableSpec)inSpecs[0];
             try {
                 pushVariables(spec, null, createDefaultCells(spec));
-            } catch (Exception e) {
+            } catch (Exception e) { //NOSONAR
                 // ignored
             }
         }
@@ -147,20 +147,7 @@ class TableToVariable3NodeModel extends NodeModel {
 
             final DataCell cell;
             if (type.isCollectionType()) {
-                final DataType elementType = type.getCollectionElementType();
-                if (elementType.isCompatible(BooleanValue.class)) {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<BooleanCell>());
-                } else if (elementType.isCompatible(IntValue.class)) {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<IntCell>());
-                } else if (elementType.isCompatible(LongValue.class)) {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<LongCell>());
-                } else if (elementType.isCompatible(DoubleValue.class)) {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<DoubleCell>());
-                } else if (elementType.isCompatible(StringValue.class)) {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<StringCell>());
-                } else {
-                    cell = CollectionCellFactory.createListCell(new ArrayList<>());
-                }
+                cell = getCollectionCell(type);
             } else if (type.isCompatible(BooleanValue.class)) {
                 cell = BooleanCellFactory.create(Boolean.parseBoolean(m_boolean.getStringValue()));
             } else if (type.isCompatible(IntValue.class)) {
@@ -179,6 +166,25 @@ class TableToVariable3NodeModel extends NodeModel {
 
         }
         return cells;
+    }
+
+    private static DataCell getCollectionCell(final DataType type) {
+        final DataCell cell;
+        final DataType elementType = type.getCollectionElementType();
+        if (elementType.isCompatible(BooleanValue.class)) {
+            cell = CollectionCellFactory.createListCell(new ArrayList<BooleanCell>());
+        } else if (elementType.isCompatible(IntValue.class)) {
+            cell = CollectionCellFactory.createListCell(new ArrayList<IntCell>());
+        } else if (elementType.isCompatible(LongValue.class)) {
+            cell = CollectionCellFactory.createListCell(new ArrayList<LongCell>());
+        } else if (elementType.isCompatible(DoubleValue.class)) {
+            cell = CollectionCellFactory.createListCell(new ArrayList<DoubleCell>());
+        } else if (elementType.isCompatible(StringValue.class)) {
+            cell = CollectionCellFactory.createListCell(new ArrayList<StringCell>());
+        } else {
+            cell = CollectionCellFactory.createListCell(new ArrayList<>());
+        }
+        return cell;
     }
 
     /**
@@ -200,54 +206,74 @@ class TableToVariable3NodeModel extends NodeModel {
         // column names starting with "knime." are uniquified as they represent global constants
         final Set<String> variableNames = new HashSet<>();
         variableNames.add(rowIDVarName);
-        for (int i = variablesSpec.getNumColumns(); --i >= 0;) {
+        pushVariables(variablesSpec, rowKey, row, fail, defaults, defaultCells, variableNames);
+    }
+
+    private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
+        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final Set<String> variableNames)
+        throws Exception {
+        for (int i = variablesSpec.getNumColumns(); --i >= 0;) { //NOSONAR
             final DataColumnSpec spec = variablesSpec.getColumnSpec(i);
             final DataType type = spec.getType();
 
-            String name = spec.getName();
-            if (name.equals("knime.")) {
-                name = "column_" + i;
-            } else if (name.startsWith("knime.")) {
-                name = name.substring("knime.".length());
-            }
+            String name = getName(i, spec);
             int uniquifier = 1;
             final String basename = name;
             while (!variableNames.add(name)) {
-                name = basename + "(#" + (uniquifier++) + ")";
+                name = basename + "(#" + (uniquifier) + ")";
+                uniquifier++;
             }
 
-            final DataCell cell;
-            if (row == null) {
-                if (fail) {
-                    throw new Exception("No rows in input table");
-                } else if (defaults) {
-                    cell = defaultCells[i];
-                } else {
-                    // omit
-                    cell = null;
-                }
-            } else if (row[i].isMissing()) {
-                if (fail) {
-                    throw new MissingValueException((MissingValue)row[i],
-                        String.format(
-                            "Missing Values not allowed as variable values -- "
-                                + "in row with ID \"%s\", column \"%s\" (index %d)",
-                            rowKey, variablesSpec.getColumnSpec(i).getName(), i));
-                } else if (defaults) {
-                    cell = defaultCells[i];
-                } else {
-                    // omit
-                    cell = null;
-                }
-            } else {
-                // take the value from the input table row
-                cell = row[i];
-            }
+            final DataCell cell = getCell(variablesSpec, rowKey, row, fail, defaults, defaultCells, i);
 
             if (cell != null) {
                 pushVariable(CellToVariableConverterFactory.createConverter(type).createFlowVariable(name, cell));
             }
         }
+    }
+
+    private static String getName(final int i, final DataColumnSpec spec) {
+        final String name = spec.getName();
+        if (name.equals("knime.")) {
+            return "column_" + i;
+        } else if (name.startsWith("knime.")) {
+            return name.substring("knime.".length());
+        } else {
+            return name;
+        }
+    }
+
+    @SuppressWarnings("squid:S112")
+    private static DataCell getCell(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
+        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final int i) throws Exception {
+        final DataCell cell;
+        if (row == null) {
+            if (fail) {
+                throw new Exception("No rows in input table");
+            } else if (defaults) {
+                cell = defaultCells[i];
+            } else {
+                // omit
+                cell = null;
+            }
+        } else if (row[i].isMissing()) {
+            if (fail) {
+                throw new MissingValueException((MissingValue)row[i],
+                    String.format(
+                        "Missing Values not allowed as variable values -- "
+                            + "in row with ID \"%s\", column \"%s\" (index %d)",
+                        rowKey, variablesSpec.getColumnSpec(i).getName(), i));
+            } else if (defaults) {
+                cell = defaultCells[i];
+            } else {
+                // omit
+                cell = null;
+            }
+        } else {
+            // take the value from the input table row
+            cell = row[i];
+        }
+        return cell;
     }
 
     @SuppressWarnings("unchecked")

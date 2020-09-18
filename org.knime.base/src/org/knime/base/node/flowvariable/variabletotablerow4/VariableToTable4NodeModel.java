@@ -87,8 +87,9 @@ import org.knime.core.node.workflow.VariableType;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-class VariableToTable4NodeModel extends NodeModel {
+final class VariableToTable4NodeModel extends NodeModel {
 
     /** Key for the filter configuration. */
     static final String CFG_KEY_FILTER = "variable-filter";
