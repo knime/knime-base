@@ -1340,11 +1340,6 @@
             >
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.createpaths.CreatePathsNodeFactory"
-            >
-      </node>
-      <node
             after="org.knime.base.node.preproc.lowvarfilter2.LowVarFilter2NodeFactory"
             category-path="/analytics/mining/featureselection"
             deprecated="true"
