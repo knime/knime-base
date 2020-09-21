@@ -50,12 +50,7 @@ package org.knime.base.node.io.filehandling.util.copymovefiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -76,6 +71,7 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -180,9 +176,10 @@ final class CopyMoveFilesNodeModel extends NodeModel {
     private List<FSPath> getSourcePaths(final ReadPathAccessor readPathAccessor, final FilterMode filterMode)
         throws IOException, InvalidSettingsException {
         List<FSPath> sourcePaths = readPathAccessor.getFSPaths(m_statusConsumer);
-        CheckUtils.checkSetting(!sourcePaths.isEmpty(), "No files available please select a folder which contains files");
+        CheckUtils.checkSetting(!sourcePaths.isEmpty(),
+            "No files available please select a folder which contains files");
         if (filterMode == FilterMode.FOLDER) {
-            final List<FSPath> pathsFromFolder = getFilePathsFromFolder(sourcePaths.get(0));
+            final List<FSPath> pathsFromFolder = FSFiles.getFilePathsFromFolder(sourcePaths.get(0));
             sourcePaths = pathsFromFolder;
         }
         return sourcePaths;
@@ -198,30 +195,6 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         pushFlowVariable("source_path", FSLocationVariableType.INSTANCE, source.toFSLocation());
         pushFlowVariable("destination_path", FSLocationVariableType.INSTANCE, target.toFSLocation());
     }
-
-    /**
-     * This methods returns a {@link List} of {@link FSPath}s of a all files in a single folder.
-     *
-     * @param source the path of the source folder
-     * @throws IOException
-     */
-    private static List<FSPath> getFilePathsFromFolder(final Path source) throws IOException {
-        final List<FSPath> paths = new ArrayList<>();
-
-        /*
-         * Only interested in file paths as the directories will be created on the fly
-         * during the copying process to use the same logic as in the Files in Folder option.
-         */
-        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                paths.add((FSPath)file);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        return paths;
-    }
-
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)

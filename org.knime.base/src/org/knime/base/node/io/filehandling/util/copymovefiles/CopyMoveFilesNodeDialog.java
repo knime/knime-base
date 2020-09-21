@@ -98,15 +98,17 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         final SettingsModelReaderFileChooser sourceFileChooserConfig = config.getSourceFileChooserModel();
         final SettingsModelWriterFileChooser destinationFileChooserConfig = config.getDestinationFileChooserModel();
 
-        final FlowVariableModel sourceFvm = createFlowVariableModel(
-            sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        final FlowVariableModel writeFvm = createFlowVariableModel(
-            destinationFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        final FlowVariableModel sourceFvm =
+            createFlowVariableModel(sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserConfig.getKeysForFSLocation(),
+            FSLocationVariableType.INSTANCE);
 
         m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm,
             FilterMode.FILE, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER);
 
-        m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig, "destination_chooser", writeFvm,
+        m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig,
+            "destination_chooser", writeFvm, s -> new CopyMoveFilesStatusMessageReporter(s,
+                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeParentFolder().getBooleanValue()),
             FilterMode.FOLDER);
 
         m_deleteSourceFilesCheckbox =
@@ -115,10 +117,15 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_includeParentFolderCheckbox = new DialogComponentBoolean(config.getSettingsModelIncludeParentFolder(),
             "Include parent folder from source path");
 
+        //Update the component in case something changes so that the status message will be updated accordingly
+        sourceFileChooserConfig.addChangeListener(l -> m_destinationFilePanel.updateComponent());
+        config.getSettingsModelIncludeParentFolder().addChangeListener(l -> m_destinationFilePanel.updateComponent());
+
         m_swingWorkerManager = new SwingWorkerManager(
             () -> new IncludeParentFolderAvailableSwingWorker(sourceFileChooserConfig::createReadPathAccessor,
                 sourceFileChooserConfig.getFilterModeModel().getFilterMode(),
                 m_includeParentFolderCheckbox.getModel()::setEnabled));
+
         sourceFileChooserConfig.addChangeListener(l -> m_swingWorkerManager.startSwingWorker());
 
         createPanel();
