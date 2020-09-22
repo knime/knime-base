@@ -3,12 +3,6 @@
 <plugin>
    <extension
          point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            deprecated="false"
-            factory-class="org.knime.filehandling.utility.nodes.metainfo.FileFolderMetaInfoNodeFactory"
-            hidden="false">
-      </node>
    </extension>
 
 </plugin>
