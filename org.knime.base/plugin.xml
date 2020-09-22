@@ -1383,12 +1383,6 @@
              >
        </node>
        <node
-             after="org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeFactory"
-             category-path="/labs/file-handling-prototype/flowcontrol_labs/variables_labs"
-             factory-class="org.knime.base.node.flowvariable.appendvariabletotable4.AppendVariableToTable4NodeFactory"
-             >
-       </node>
-       <node
              after="org.knime.base.node.flowvariable.appendvariabletotable2.AppendVariableToTable2NodeFactory"
              category-path="/flowcontrol/variables"
              deprecated="true"
@@ -1402,12 +1396,6 @@
              >
        </node>
        <node
-             after="org.knime.base.node.flowvariable.appendvariabletotable4.AppendVariableToTable4NodeFactory"
-             category-path="/labs/file-handling-prototype/flowcontrol_labs/variables_labs"
-             factory-class="org.knime.base.node.flowvariable.variabletotablerow4.VariableToTable4NodeFactory"
-             >
-       </node>
-       <node
              after="org.knime.base.node.flowvariable.tablecoltovariable.TableColumnToVariableNodeFactory"
              category-path="/flowcontrol/variables"
              deprecated="true"
@@ -1418,12 +1406,6 @@
              after="org.knime.base.node.flowvariable.tablecoltovariable3.TableColumnToVariable3NodeFactory"
              category-path="/flowcontrol/variables"
              factory-class="org.knime.base.node.flowvariable.tablerowtovariable2.TableToVariable2NodeFactory"
-             >
-       </node>
-       <node
-             after="org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeFactory"
-             category-path="/labs/file-handling-prototype/flowcontrol_labs/variables_labs"
-             factory-class="org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeFactory"
              >
        </node>
       <node
@@ -1866,10 +1848,6 @@
             after="org.knime.base.node.flowvariable.extractvariables.ExtractVariablesDBNodeFactory"
             category-path="/flowcontrol/variables"
             factory-class="org.knime.base.node.flowvariable.tablecoltovariable3.TableColumnToVariable3NodeFactory">
-      </node>
-      <node
-            category-path="/labs/file-handling-prototype/flowcontrol_labs/variables_labs"
-            factory-class="org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeFactory">
       </node>
       <node
             category-path="/flowcontrol/automation"
