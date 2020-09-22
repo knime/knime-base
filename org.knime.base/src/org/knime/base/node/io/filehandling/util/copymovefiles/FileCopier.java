@@ -224,7 +224,7 @@ final class FileCopier {
     static DataTableSpec createOutputSpec(final CopyMoveFilesNodeConfig config) {
         final ArrayList<DataColumnSpec> columnSpecs = new ArrayList<>();
         columnSpecs.add(createMetaColumnSpec(config.getSourceFileChooserModel().getLocation(), "Source Path"));
-        columnSpecs.add(createMetaColumnSpec(config.getSourceFileChooserModel().getLocation(), "Destination Path"));
+        columnSpecs.add(createMetaColumnSpec(config.getDestinationFileChooserModel().getLocation(), "Destination Path"));
         columnSpecs.add(new DataColumnSpecCreator("Copied", BooleanCell.TYPE).createSpec());
         columnSpecs.add(new DataColumnSpecCreator("Source Deleted", BooleanCell.TYPE).createSpec());
         columnSpecs.add(new DataColumnSpecCreator("Status", StringCell.TYPE).createSpec());
