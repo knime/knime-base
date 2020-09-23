@@ -76,14 +76,14 @@ final class CreatePathsNodeConfig {
 
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-    private SettingsModelReaderFileChooser m_dirChooserModel;
+    private SettingsModelCreatorFileChooser m_dirChooserModel;
 
     private String[] m_additionalVarNames;
 
     private String[] m_additionalVarValues;
 
     CreatePathsNodeConfig(final PortsConfiguration portsConfig) {
-        m_dirChooserModel = new SettingsModelReaderFileChooser(CFG_DIR_PARENT, portsConfig,
+        m_dirChooserModel = new SettingsModelCreatorFileChooser(CFG_DIR_PARENT, portsConfig,
             CreatePathsNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER,
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
@@ -141,17 +141,8 @@ final class CreatePathsNodeConfig {
      *
      * @return the {@link SettingsModelReaderFileChooser} used to select a directory
      */
-    SettingsModelReaderFileChooser getDirChooserModel() {
+    SettingsModelCreatorFileChooser getDirChooserModel() {
         return m_dirChooserModel;
-    }
-
-    /**
-     * Sets the {@link SettingsModelReaderFileChooser} used to select a directory where the new file path relates to.
-     *
-     * @param the {@link SettingsModelReaderFileChooser} used to select a directory
-     */
-    void setDirChooserModel(final SettingsModelReaderFileChooser dirChooserModel) {
-        m_dirChooserModel = dirChooserModel;
     }
 
     /**

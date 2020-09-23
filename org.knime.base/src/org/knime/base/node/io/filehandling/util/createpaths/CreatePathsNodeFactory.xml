@@ -13,7 +13,7 @@
 			<i>Note:</i>
 			By default the workflow data area is selected as directory, as defined by “.“ in the Folder field
 		</intro>
-		<option name="Read from">
+		<option name="Create for">
 			Select a file system to which your file names are related. There are three default file system options to
 			choose from:
 			<br />

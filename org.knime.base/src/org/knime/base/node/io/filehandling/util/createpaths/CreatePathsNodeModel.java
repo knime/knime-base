@@ -67,7 +67,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
@@ -97,8 +97,8 @@ final class CreatePathsNodeModel extends NodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        try (final ReadPathAccessor readPathAccessor = m_config.getDirChooserModel().createReadPathAccessor()) {
-            final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
+        try (final WritePathAccessor pathAccessor = m_config.getDirChooserModel().createCreatorPathAccessor()) {
+            final FSPath rootPath = pathAccessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
             createFlowVariables(rootPath);
