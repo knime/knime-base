@@ -1695,6 +1695,10 @@
             category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
             factory-class="org.knime.base.node.io.filehandling.util.decompress.DecompressNodeFactory"
             />
+	  <node
+	  		category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            factory-class="org.knime.base.node.io.filehandling.util.compress.CompressNodeFactory"
+            />
       <node
             after="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
             category-path="/io/io-other"

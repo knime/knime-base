@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="compress16x16.png" type="Other"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Compress Files/Folder (Labs)</name>
+
+	<shortDescription>
+		Compresses a file, a folder or files in folder to an archive.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node compresses files or a folder to an archive. 
+			The archive format is determined by the file extension in the destination file selection. 
+			All supported formats are selectable in the destination file browser. If a format is selected, the file extension gets appended to the entered filename automatically.
+			<br />
+			<br />
+			Supported archive formats are:
+			<ul>
+				<li>.zip</li>
+				<li>.jar</li>
+				<li>.tar</li>
+				<li>.tar.gz</li>
+				<li>.tar.bz2</li>
+				<li>.cpio</li>
+				<li>.ar</li>
+			</ul>
+		</intro>
+
+<option name="Read from">
+			Select a file system from which you want to choose files/folders which should be added to an archive. There are four default file system
+			options to choose from:
+			<br />
+			<ul>
+				<li>
+					<i>Local File System:</i>
+					Allows you to pack an archive with files/folder from your local system.
+				</li>
+				<li>
+					<i>Mountpoint:</i>
+					Allows you to pack an archive with files/folder from a mountpoint. When selected, a new drop-down menu appears to 
+					choose the mountpoint. Unconnected mountpoints are grayed out but can still be selected (note that
+					browsing is disabled in this case). Go to the KNIME Explorer and connect to the mountpoint to enable
+					browsing. A mountpoint is displayed in red, if it was previously selected but is no longer 
+					available. You won't be able to save the dialog as long as you don't select a valid i.e. known
+					mountpoint.
+				</li>
+				<li>
+					<i>Relative to:</i>
+					Allows you to choose whether to resolve the path of files/folder that should be packed to an archive relative to the current
+					mountpoint, current workflow or the current workflow's data area. When selected a new drop-down menu
+					appears to choose which of the three options to use.
+				</li>
+				<li>
+					<i>Custom/KNIME URL:</i> 
+					Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+	                When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
+	                In case it takes longer to connect to the host / write the file, the node fails to execute.
+	                Browsing is disabled for this option.
+	            </li>
+			</ul>
+			To read from other file systems, click on <b>...</b> in the bottom left corner of the node icon followed by
+			<i>Add ports</i> and <i>Source file system connection</i>. Afterwards, connect the desired file system connector node to the
+			newly added input port. The file system connection will then be shown in the drop-down menu. It is grayed
+			out if the file system is not connected in which case you have to (re)execute the connector node first.
+			Note: The default file systems listed above can't be selected if a file system is provided via the input
+			port.
+		</option>
+		<option name="Mode">
+				Select whether you want to add single file, a folder or multiple files in a folder to an archive.
+				When reading files in a folder, you can set filters to specify which
+				files and subfolders to include (see below).
+			</option>
+			<option name="Filter options">
+				Only displayed if the mode <i>Files in folder</i> is selected.
+				Allows to specify which files should be included according to their file extension and/or name.
+				It is also possible to include hidden files.
+				The folder filter options enable you to specify which folders should be included based on their name and hidden status.
+				Note that the folders themselves will not be included, only the files they contain.
+			</option>
+			<option name="Include subfolders">
+				If this option is checked, the node will include all files from subfolders that satisfy the specified filter options.
+				If left unchecked, only the files in the selected folder will be included and all files from subfolders are ignored.
+			</option>
+		<option name="File, Folder or URL">
+			Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file or folder. The
+				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	            description of the respective connector node describes the required path format.
+				You can also choose a previously selected folder from the drop-down list, or select a location
+				from the &quot;Browse...&quot; dialog.
+				Note that browsing is disabled in some cases:
+				<ul>
+					<li><i>Custom/KNIME URL:</i> Browsing is always disabled.</li>
+					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
+					<li><i>File systems provided via input port:</i>
+					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
+					(Re)execute the connector node to enable browsing.</li>
+				</ul>
+		</option>
+		<option name="Include parent folder">
+			If this option is selected, a folder with the name of the last part of the selected path will get included in the archive, 
+			otherwise only the contents of the specified folder will get included in the archive.
+			This option will get disabled, if only a single file should get packed into an archive or if the selected folder path ends with <b>..</b> or <b>.</b>.
+		</option>
+		<option name="Write to">
+				Select a file system on which you want to save your archive file.
+				There are four default file system options to choose from:
+				<br />
+				<ul>
+					<li><i>Local File System:</i> Allows you to select a folder on your
+	                    local system.
+	                </li>
+	                <li><i>Mountpoint:</i> Allows you to write to a mountpoint.
+	                	When selected, a new drop-down menu appears to choose the mountpoint.
+	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
+	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
+	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
+	                </li>
+	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
+	                </li>
+	                <li>
+					<i>Custom/KNIME URL:</i> 
+					Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+	                When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
+	                In case it takes longer to connect to the host / write the file, the node fails to execute.
+	                Browsing is disabled for this option.
+	            </li>
+				</ul>
+				It is possible to use other file systems with this node. Therefore,
+				you have to enable the file system connection input port of this
+				node
+				by clicking the
+				<b>...</b>
+				in the bottom left corner of the node's icon and choose
+				<i>Add ports</i> followed by <i>Destination file system connection</i>
+				.
+				<br />
+				Afterwards, you can simply connect the desired connector node to this node.
+				The file system connection will then be shown in the drop-down menu.
+				It is grayed out if the file system is not connected in which case you have to (re)execute the connector node first.
+				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
+			</option>
+		<option name="File">
+			Enter a valid path where the created archive should get saved. The
+				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	            description of the respective connector node describes the required path format.
+				You can also choose a previously selected folder from the drop-down list, or select a location
+				from the &quot;Browse...&quot; dialog.
+				Note that browsing is disabled in some cases:
+				<ul>
+					<li><i>Custom/KNIME URL:</i> Browsing is always disabled.</li>
+					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
+					<li><i>File systems provided via input port:</i>
+					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
+					(Re)execute the connector node to enable browsing.</li>
+				</ul>
+		</option>
+		<option name="Create missing folders">Select if the folders of the selected
+				output
+				location should be created if they do not already exist. If
+				this
+				option is unchecked, the node will fail if a folder does not
+				exist.
+			</option>
+			<option name="If exists">
+				Specify the behavior of the node in case the output file already exists.
+				<ul>
+					<li><i>Overwrite:</i> Will replace any existing file.
+					</li>
+					<li><i>Ignore:</i> Will ignore existing files
+					</li>
+					<li><i>Fail:</i> Will issue an error during the node's execution (to prevent unintentional overwrite).
+					</li>
+				</ul>
+			</option>
+	</fullDescription>
+
+	<ports>
+		<dynInPort insert-before="0" name="Source File System Connection"
+			group-identifier="Source File System Connection">
+			The file system connection.
+		</dynInPort>
+		<dynInPort insert-before="0" name="Destination File System Connection"
+			group-identifier="Destination File System Connection">
+			The file system connection.
+		</dynInPort>
+	</ports>
+</knimeNode>
