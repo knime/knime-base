@@ -130,6 +130,7 @@ public final class DialogComponentWriterFileChooser
         super(model//
             , historyID//
             , DialogType.SAVE_DIALOG//
+            , "Write to"//
             , locationFvm//
             , statusMessageReporter//
             , filterModes);
