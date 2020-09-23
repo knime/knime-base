@@ -147,6 +147,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
      * @param dialogType the type of dialog i.e. open or save
+     * @param fsChooserLabel label for the file system chooser
      * @param locationFvm the {@link FlowVariableModel} for the location
      * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
      *            component
@@ -154,11 +155,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
      *            from <b>model</b> is used)
      */
     protected AbstractDialogComponentFileChooser(final T model, final String historyID,
-        final FileSystemBrowser.DialogType dialogType, final FlowVariableModel locationFvm,
+        final FileSystemBrowser.DialogType dialogType, final String fsChooserLabel, final FlowVariableModel locationFvm,
         final Function<T, StatusMessageReporter> statusMessageReporter, final FilterMode... filterModes) {
         super(model);
         m_dialogType = dialogType;
-        m_fsChooserLabel = new JLabel(m_dialogType == DialogType.OPEN_DIALOG ? "Read from" : "Write to");
+        m_fsChooserLabel = new JLabel(fsChooserLabel);
         CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
         Set<FilterMode> selectableFilterModes =

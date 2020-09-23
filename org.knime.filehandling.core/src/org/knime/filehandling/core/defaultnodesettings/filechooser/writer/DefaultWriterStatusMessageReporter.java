@@ -117,7 +117,7 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
         }
     }
 
-    private ExistsHandler createExistsHandler() {
+    private ExistsHandler createExistsHandler() {//NOSONAR, stupid rule
         switch (m_settings.getFileOverwritePolicy()) {
             case APPEND:
                 return createAppendHandler();

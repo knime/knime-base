@@ -97,7 +97,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
 
     private final Optional<FSConnection> m_portObjectConnection;
 
-    private final AbstractSettingsModelFileChooser m_settings;
+    private final AbstractSettingsModelFileChooser<?> m_settings;
 
     private final FilterMode m_filterMode;
 
@@ -120,7 +120,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
      * @param settings {@link AbstractSettingsModelFileChooser} provided by the user
      * @param portObjectConnection connection retrieved from the file system port object (if the node has one)
      */
-    public FileChooserPathAccessor(final AbstractSettingsModelFileChooser settings,
+    public FileChooserPathAccessor(final AbstractSettingsModelFileChooser<?> settings,
         final Optional<FSConnection> portObjectConnection) {
         m_rootLocation = settings.getLocation();
         m_portObjectConnection = portObjectConnection;

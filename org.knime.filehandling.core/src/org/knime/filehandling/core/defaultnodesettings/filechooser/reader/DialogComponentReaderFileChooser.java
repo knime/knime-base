@@ -104,6 +104,7 @@ public final class DialogComponentReaderFileChooser
         super(model//
             , historyID//
             , DialogType.OPEN_DIALOG//
+            , "Read from"//
             , locationFvm//
             , statusMessageReporter//
             , filterModes);
