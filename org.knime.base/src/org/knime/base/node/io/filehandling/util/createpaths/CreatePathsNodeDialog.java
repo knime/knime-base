@@ -68,8 +68,6 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.KeyValuePanel;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 
 /**
  * The NodeDialog for the "Create Paths" node.
@@ -82,16 +80,16 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
 
     private final KeyValuePanel m_additionalVariablePathPairPanel;
 
-    private final AbstractDialogComponentFileChooser m_filePanel;
+    private final DialogComponentCreatorFileChooser m_filePanel;
 
     private final CreatePathsNodeConfig m_config;
 
     CreatePathsNodeDialog(final PortsConfiguration portsConfig) {
         m_config = new CreatePathsNodeConfig(portsConfig);
 
-        final FlowVariableModel readFvm = createFlowVariableModel(m_config.getDirChooserModel().getKeysForFSLocation(),
+        final FlowVariableModel fvm = createFlowVariableModel(m_config.getDirChooserModel().getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
-        m_filePanel = new DialogComponentReaderFileChooser(m_config.getDirChooserModel(), FILE_HISTORY_ID, readFvm);
+        m_filePanel = new DialogComponentCreatorFileChooser(m_config.getDirChooserModel(), FILE_HISTORY_ID, fvm);
 
         m_additionalVariablePathPairPanel = new KeyValuePanel();
         m_additionalVariablePathPairPanel.setKeyColumnLabel("Variable Name");
@@ -134,7 +132,7 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
     private JPanel createFilePanel() {
         final JPanel filePanel = new JPanel();
         filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Root location"));
         filePanel.setMaximumSize(
             new Dimension(Integer.MAX_VALUE, m_filePanel.getComponentPanel().getPreferredSize().height));
         filePanel.add(m_filePanel.getComponentPanel());
