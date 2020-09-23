@@ -250,6 +250,15 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
+     * Convenience getter for the {@link FilterMode}.
+     *
+     * @return the {@link FilterMode}
+     */
+    public FilterMode getFilterMode() {
+        return m_filterModeModel.getFilterMode();
+    }
+
+    /**
      * @return the selected FSConnection or {@link Optional#empty()} if the file system isn't connected
      */
     FSConnection getConnection() {
@@ -379,6 +388,20 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      */
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         // no additional settings to validate
+    }
+
+    /**
+     * Loads the {@link FSLocation} from the provided {@link NodeSettingsRO} <b>without</b> changing the state of this
+     * instance.
+     *
+     * @param settings the settings to load the {@link FSLocation} from
+     * @return the {@link FSLocation} stored in {@link NodeSettingsRO settings}
+     * @throws InvalidSettingsException if the settings don't contain the subsettings corresponding to this
+     *             SettingsModel or the location can't be loaded
+     */
+    public FSLocation extractLocation(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final NodeSettingsRO topLevel = settings.getNodeSettings(m_configName);
+        return FSLocationHandler.INSTANCE.load(topLevel);
     }
 
     @Override
