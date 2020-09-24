@@ -85,7 +85,7 @@ public final class DefaultStatusMessage implements StatusMessage {
      * @param args arguments that are injected into <b>format</b>
      * @see String#format(String, Object...)
      */
-    public DefaultStatusMessage(final MessageType type, final String format, final Object...args) {
+    public DefaultStatusMessage(final MessageType type, final String format, final Object... args) {
         this(type, String.format(format, args));
     }
 

@@ -65,6 +65,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessage
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageNewPathUtils;
 
 /**
  * Computes the status message for dialogs of type "save".
@@ -72,9 +73,6 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DefaultWriterStatusMessageReporter implements StatusMessageReporter {
-
-    private static final StatusMessage MISSING_FOLDERS_MSG =
-        DefaultStatusMessage.mkError("Some folders in the specified path are missing.");
 
     private static final String FOLDER = "folder";
 
@@ -102,16 +100,8 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
             if (FSFiles.exists(path)) {
                 return handlePathExists(path);
             } else {
-                return handleNewPath(path);
+                return StatusMessageNewPathUtils.handleNewPath(path, m_settings.isCreateMissingFolders());
             }
-        }
-    }
-
-    private StatusMessage handleNewPath(final FSPath path) throws AccessDeniedException {
-        if (m_settings.isCreateMissingFolders()) {
-            return DefaultStatusMessage.SUCCESS_MSG;
-        } else {
-            return checkIfParentFoldersAreMissing(path);
         }
     }
 
@@ -124,22 +114,6 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
         } catch (IOException ex) {
             LOGGER.error("Can't access attributes of existing path", ex);
             return DefaultStatusMessage.mkError("Can't access attributes of %s.", path);
-        }
-    }
-
-    private static StatusMessage checkIfParentFoldersAreMissing(final FSPath path) throws AccessDeniedException {
-        final Path parent = path.getParent();
-        if (parent == null) {
-            return DefaultStatusMessage.SUCCESS_MSG;
-        }
-        if (FSFiles.exists(parent)) {
-            if (!Files.isWritable(parent)) {
-                throw ExceptionUtil.createAccessDeniedException(parent);
-            }
-            return DefaultStatusMessage.SUCCESS_MSG;
-        } else {
-            // TODO recursively go through ancestors until an existing one is found and check if we can write into it
-            return MISSING_FOLDERS_MSG;
         }
     }
 
@@ -197,15 +171,16 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
             if (m_successPredicate.test(attrs)) {
                 return DefaultStatusMessage.SUCCESS_MSG;
             } else {
-                return DefaultStatusMessage.mkError("The specified path '%s' does not point to a %s", path, m_expectedEntity);
+                return DefaultStatusMessage.mkError("The specified path '%s' does not point to a %s", path,
+                    m_expectedEntity);
             }
         }
 
     }
 
     private static StatusMessage createFailStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        return DefaultStatusMessage.mkError("There already exists a %s with the specified path '%s'.", attrs.isDirectory() ? FOLDER : "file",
-            path);
+        return DefaultStatusMessage.mkError("There already exists a %s with the specified path '%s'.",
+            attrs.isDirectory() ? FOLDER : "file", path);
     }
 
     private StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
@@ -222,7 +197,8 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
     }
 
     private static StatusMessage mkOverwriteWarning(final Path path, final BasicFileAttributes attrs) {
-        return DefaultStatusMessage.mkWarning("There exists a %s with the specified path '%s' that will be overwritten.",
+        return DefaultStatusMessage.mkWarning(
+            "There exists a %s with the specified path '%s' that will be overwritten.",
             attrs.isDirectory() ? FOLDER : "file", path);
     }
 }
