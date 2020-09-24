@@ -59,6 +59,9 @@ import org.knime.core.node.util.CheckUtils;
  */
 public final class DefaultStatusMessage implements StatusMessage {
 
+    /** Default success message */
+    public static final StatusMessage SUCCESS_MSG = mkInfo("");
+
     private final MessageType m_type;
 
     private final String m_msg;
@@ -99,6 +102,39 @@ public final class DefaultStatusMessage implements StatusMessage {
     @Override
     public String toString() {
         return String.format("[Type: %s, Message: %s]", m_type, m_msg);
+    }
+
+    /**
+     * Creates an error {@link StatusMessage}.
+     *
+     * @param format defines the format of the message
+     * @param args arguments that are injected into <b>format</b>
+     * @return the error {@link StatusMessage}
+     */
+    public static StatusMessage mkError(final String format, final Object... args) {
+        return new DefaultStatusMessage(MessageType.ERROR, format, args);
+    }
+
+    /**
+     * Creates a warning {@link StatusMessage}.
+     *
+     * @param format defines the format of the message
+     * @param args arguments that are injected into <b>format</b>
+     * @return the warning {@link StatusMessage}
+     */
+    public static StatusMessage mkWarning(final String format, final Object... args) {
+        return new DefaultStatusMessage(MessageType.WARNING, format, args);
+    }
+
+    /**
+     * Creates a info {@link StatusMessage}.
+     *
+     * @param format defines the format of the message
+     * @param args arguments that are injected into <b>format</b>
+     * @return the info {@link StatusMessage}
+     */
+    public static StatusMessage mkInfo(final String format, final Object... args) {
+        return new DefaultStatusMessage(MessageType.INFO, format, args);
     }
 
 }

@@ -55,7 +55,6 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
  * Computes the status message for dialogs of type "open".
@@ -84,13 +83,13 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
             if (scanningStatus.isPresent()) {
                 return scanningStatus.get();
             } else if (getFilterMode() == FilterMode.FILE || getFilterMode() == FilterMode.FOLDER) {
-                return new DefaultStatusMessage(MessageType.INFO, "");
+                return DefaultStatusMessage.SUCCESS_MSG;
             } else {
                 final FileFilterStatistic stats = accessor.getFileFilterStatistic();
                 return createFilterMessage(stats);
             }
         } catch (Exception ex) {
-            return new DefaultStatusMessage(MessageType.ERROR, ex.getMessage());
+            return DefaultStatusMessage.mkError(ex.getMessage());
         }
     }
 
@@ -103,7 +102,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
     }
 
     private StatusMessage createScanSuccessMessage(final FileFilterStatistic stat) {
-        return new DefaultStatusMessage(MessageType.INFO, createScanSuccessMessageText(stat));
+        return DefaultStatusMessage.mkInfo(createScanSuccessMessageText(stat));
     }
 
     private String createScanSuccessMessageText(final FileFilterStatistic stat) {
@@ -127,7 +126,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
     }
 
     private StatusMessage createNoMatchesError() {
-        return new DefaultStatusMessage(MessageType.ERROR, "No %s matched the filters", getFilterEntity());
+        return DefaultStatusMessage.mkError("No %s matched the filters", getFilterEntity());
     }
 
     private String getFilterEntity() {
