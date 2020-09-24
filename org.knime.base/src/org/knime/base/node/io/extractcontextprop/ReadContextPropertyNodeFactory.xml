@@ -19,6 +19,7 @@
                 <li><i>context.workflow.last.editor.name</i> Name of the person who edited the workflow last (on last save).</li>
                 <li><i>context.workflow.creation.date</i> Date when the workflow was saved the first time.</li>
                 <li><i>context.workflow.last.time.modified</i> Date when workflow was saved last.</li>
+                <li><i>context.job.id</i> the job's ID when run on server, otherwise will be empty.</li>
             </ul>
             More properties may be added in the future.
         </intro>
