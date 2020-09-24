@@ -243,7 +243,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
     }
 
     @Override
-    protected final void updateComponent() {
+    public final void updateComponent() {
         final T sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
 
