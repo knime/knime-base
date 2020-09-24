@@ -53,14 +53,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -339,6 +343,26 @@ public final class FSFiles {
                 }
             }
         }
+    }
+
+    /**
+     * Returns a {@link List} of {@link FSPath}s of a all files in a single folder.
+     *
+     * @param source the {@link Path} of the source folder
+     * @return a {@link List} of {@link Path} from files in a folder
+     * @throws IOException
+     */
+    public static List<FSPath> getFilePathsFromFolder(final FSPath source) throws IOException {
+        final List<FSPath> paths = new ArrayList<>();
+
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                paths.add((FSPath)file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return paths;
     }
 
 }
