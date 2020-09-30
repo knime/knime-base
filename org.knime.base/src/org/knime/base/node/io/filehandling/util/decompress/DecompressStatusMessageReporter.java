@@ -123,8 +123,8 @@ final class DecompressStatusMessageReporter implements StatusMessageReporter {
                 if (!Files.readAttributes(rootPathSource, BasicFileAttributes.class).isRegularFile()) {
                     return INVALID_SOURCE;
                 }
-
-                if ((Arrays.stream(FILE_EXTENSIONS).noneMatch(rootPathSource.toString()::endsWith))) {
+                final String rootPathSourceLower = rootPathSource.toString().toLowerCase();
+                if ((Arrays.stream(FILE_EXTENSIONS).noneMatch(rootPathSourceLower::endsWith))) {
                     return DefaultStatusMessage.mkError("Invalid source file extension .%s",
                         FilenameUtils.getExtension(rootPathSource.getFileName().toString()));
                 }
