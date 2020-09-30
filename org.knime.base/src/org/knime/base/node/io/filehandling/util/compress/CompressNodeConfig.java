@@ -90,7 +90,7 @@ final class CompressNodeConfig {
      *
      * @param portsConfig {@link PortsConfiguration} of the node
      */
-    public CompressNodeConfig(final PortsConfiguration portsConfig) {
+    CompressNodeConfig(final PortsConfiguration portsConfig) {
         m_inputLocationChooserModel = new SettingsModelReaderFileChooser(CFG_INPUT_LOCATION, portsConfig,
             CompressNodeFactory.CONNECTION_INPUT_FILE_PORT_GRP_NAME, FilterMode.FILE);
 
@@ -172,7 +172,8 @@ final class CompressNodeConfig {
      * @return <code>true</code> if path ends with valid file extension, <code>false</code> otherwise
      */
     static boolean hasValidFileExtension(final String path) {
-        return Arrays.stream(FILE_EXTENSIONS).anyMatch(path::endsWith);
+        final String lowerCase = path.toLowerCase();
+        return Arrays.stream(FILE_EXTENSIONS).anyMatch(lowerCase::endsWith);
     }
 
     /**
