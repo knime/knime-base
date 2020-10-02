@@ -89,6 +89,22 @@ public final class StatusMessageNewPathUtils {
     }
 
     /**
+     * Handler in case the {@link DialogComponentWriterFileChooser} gets a path which does not already exist and we do
+     * not want to create folders.
+     *
+     * @param isCreateMissingFolders flag whether the option to create new folders is checked or not
+     * @return the corresponding {@link StatusMessage}
+     * @throws AccessDeniedException
+     */
+    public static StatusMessage handleNewPath(final boolean isCreateMissingFolders) throws AccessDeniedException {
+        if (isCreateMissingFolders) {
+            return DefaultStatusMessage.SUCCESS_MSG;
+        } else {
+            return DefaultStatusMessage.mkError("Destination folder does not exist.");
+        }
+    }
+
+    /**
      * Returns a {@link StatusMessage} based on an yet non existent path.
      *
      * @param path the destination {@link Path}
