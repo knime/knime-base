@@ -146,6 +146,9 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         //Creates output directories if necessary
         if (m_config.getDestinationFileChooserModel().isCreateMissingFolders()) {
             FileCopier.createOutputDirectories(destinationDir);
+        } else {
+            CheckUtils.checkSetting(FSFiles.exists(destinationDir),
+                String.format("The specified destination folder %s does not exist.", destinationDir));
         }
 
         final PathRelativizer pathRelativizer = new PathRelativizerNonTableInput(rootPath,

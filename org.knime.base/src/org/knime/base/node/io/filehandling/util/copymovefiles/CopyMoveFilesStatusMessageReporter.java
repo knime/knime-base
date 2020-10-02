@@ -140,8 +140,7 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
                 return handlePathExists(destinationPath, numberOfExistingFiles);
             } else {
-                return StatusMessageNewPathUtils.handleNewPath(destinationPath,
-                    m_settingsWriter.isCreateMissingFolders());
+                return StatusMessageNewPathUtils.handleNewPath(m_settingsWriter.isCreateMissingFolders());
             }
         }
     }

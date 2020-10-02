@@ -171,9 +171,11 @@
 			</ul>
 		</option>
 		<option name="Include parent folder from source path">
-			This option is only available if the File or Files
+			This option is only available if the Folder or
+			Files
 			in Folder mode is selected.
-			If this option is checked the folder which
+			If this option is checked the folder
+			which
 			is selected will also be copied otherwise only the files in the
 			folder will be copied.
 		</option>
@@ -181,7 +183,8 @@
 			If this option is checked all files which have
 			been
 			successfully copied to the destination folder
-			will be deleted in the
+			will be deleted in
+			the
 			source
 			folder. The output contains an
 			additional column indicating
@@ -204,7 +207,8 @@
 			The destination file system connection.
 		</dynInPort>
 		<outPort index="0" name="Copied files table">The files which should be copied with
-			a source path column, destination path column, copied status column and a deleted source column.
+			a source path column, destination path column, copied status column
+			and a deleted source column.
 		</outPort>
 	</ports>
 </knimeNode>
