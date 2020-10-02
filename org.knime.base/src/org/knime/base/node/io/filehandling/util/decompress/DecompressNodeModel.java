@@ -196,7 +196,7 @@ final class DecompressNodeModel extends NodeModel {
                 if (m_config.getOutputDirChooserModel().isCreateMissingFolders()) {
                     Files.createDirectories(outputPath);
                 } else {
-                    throw new InvalidSettingsException("Some folders in the specified path are missing");
+                    throw new InvalidSettingsException( String.format("The specified destination folder %s does not exist.", outputPath));
                 }
             }
 
@@ -262,8 +262,7 @@ final class DecompressNodeModel extends NodeModel {
 
         final boolean exists = FSFiles.exists(destinationPath);
         if (!(exists && overwritePolicy == FileOverwritePolicy.IGNORE)) {
-            status = exists && overwritePolicy == FileOverwritePolicy.OVERWRITE ? "overwritten"
-                : "created";
+            status = exists && overwritePolicy == FileOverwritePolicy.OVERWRITE ? "overwritten" : "created";
 
             try (final OutputStream outputStream =
                 FSFiles.newOutputStream(destinationPath, overwritePolicy.getOpenOptions())) {

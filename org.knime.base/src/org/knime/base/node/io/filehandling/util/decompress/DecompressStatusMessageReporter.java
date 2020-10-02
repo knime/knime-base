@@ -134,14 +134,11 @@ final class DecompressStatusMessageReporter implements StatusMessageReporter {
                 return INVALID_SOURCE;
             }
 
-            final StatusMessage statusMessage;
             if (FSFiles.exists(destinationPath)) {
-                statusMessage = handlePathExists(destinationPath);
+                return handlePathExists(destinationPath);
             } else {
-                statusMessage =
-                    StatusMessageNewPathUtils.handleNewPath(destinationPath, m_settingsWriter.isCreateMissingFolders());
+                return StatusMessageNewPathUtils.handleNewPath(m_settingsWriter.isCreateMissingFolders());
             }
-            return statusMessage;
         }
     }
 
