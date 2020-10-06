@@ -72,7 +72,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageNewPa
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultWriterStatusMessageReporter implements StatusMessageReporter {
+public final class DefaultWriterStatusMessageReporter implements StatusMessageReporter {
 
     private static final String FOLDER = "folder";
 
@@ -87,7 +87,7 @@ final class DefaultWriterStatusMessageReporter implements StatusMessageReporter 
      *
      * @param settings the writer file chooser settings
      */
-    DefaultWriterStatusMessageReporter(final SettingsModelWriterFileChooser settings) {
+    public DefaultWriterStatusMessageReporter(final SettingsModelWriterFileChooser settings) {
         m_settings = settings;
         m_existsHandler = createExistsHandler();
     }
