@@ -69,13 +69,14 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class CompressNodeConfig {
 
-    static final String INVALID_EXTENSION_ERROR = "Invalid destination file extension. Please find the valid extensions in the node description";
+    static final String INVALID_EXTENSION_ERROR =
+        "Invalid destination file extension. Please find the valid extensions in the node description";
 
     private static final String CFG_INPUT_LOCATION = "input_location";
 
     private static final String CFG_OUTPUT_LOCATION = "output_location";
 
-    private static final String CFG_INCLUDE_PARENT_FOLDER = "include_parent";
+    private static final String CFG_INCLUDE_SELECTED_FOLDER = "include_selected_source_folder";
 
     private final SettingsModelReaderFileChooser m_inputLocationChooserModel;
 
@@ -95,15 +96,15 @@ final class CompressNodeConfig {
             CompressNodeFactory.CONNECTION_INPUT_FILE_PORT_GRP_NAME, FilterMode.FILE);
 
         m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
-            CompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FILE, FileOverwritePolicy.IGNORE,
-            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL),
+            CompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FILE, FileOverwritePolicy.FAIL,
+            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
             FILE_EXTENSIONS);
 
         m_includeFolder = false;
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
-        includeParentFolder(settings.getBoolean(CFG_INCLUDE_PARENT_FOLDER, false));
+        includeSelectedFolder(settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER, false));
     }
 
     void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
@@ -112,7 +113,7 @@ final class CompressNodeConfig {
     }
 
     private void saveIncludeParentFolder(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_INCLUDE_PARENT_FOLDER, includeParentFolder());
+        settings.addBoolean(CFG_INCLUDE_SELECTED_FOLDER, includeParentFolder());
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -121,7 +122,7 @@ final class CompressNodeConfig {
         final FSLocation destination = m_destinationFileChooserModel.extractLocation(settings);
         CheckUtils.checkSetting(hasValidFileExtension(destination.getPath()), INVALID_EXTENSION_ERROR);
 
-        settings.getBoolean(CFG_INCLUDE_PARENT_FOLDER);
+        settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER);
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -161,7 +162,7 @@ final class CompressNodeConfig {
         return m_includeFolder;
     }
 
-    void includeParentFolder(final boolean include) {
+    void includeSelectedFolder(final boolean include) {
         m_includeFolder = include;
     }
 

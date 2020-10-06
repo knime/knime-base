@@ -49,7 +49,6 @@
 package org.knime.base.node.io.filehandling.util.compress;
 
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -71,9 +70,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -87,11 +83,9 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
-    private final DialogComponentWriterFileChooser m_outputDirChooserPanel;
+    private final DialogComponentWriterFileChooser m_destinationFileChooserPanel;
 
-    private final JCheckBox m_includeParent;
-
-    private final StatusView m_fileExtensionStatus;
+    private final JCheckBox m_includeSelected;
 
     private final CompressNodeConfig m_config;
 
@@ -100,37 +94,27 @@ final class CompressNodeDialog extends NodeDialogPane {
     CompressNodeDialog(final PortsConfiguration portsConfig) {
         m_config = new CompressNodeConfig(portsConfig);
 
-        final SettingsModelReaderFileChooser inputLocationChooserModel = m_config.getInputLocationChooserModel();
-        final SettingsModelWriterFileChooser targetFileChooserModel = m_config.getTargetFileChooserModel();
+        final SettingsModelReaderFileChooser sourceLocationChooserModel = m_config.getInputLocationChooserModel();
+        final SettingsModelWriterFileChooser destinationFileChooserModel = m_config.getTargetFileChooserModel();
 
         final FlowVariableModel readFvm =
-            createFlowVariableModel(inputLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_inputFileChooserPanel = new DialogComponentReaderFileChooser(inputLocationChooserModel, FILE_HISTORY_ID,
+            createFlowVariableModel(sourceLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_inputFileChooserPanel = new DialogComponentReaderFileChooser(sourceLocationChooserModel, FILE_HISTORY_ID,
             readFvm, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
 
-        m_includeParent = new JCheckBox("Include parent folder");
+        m_includeSelected = new JCheckBox("Include selected source folder");
 
-        m_fileExtensionStatus = new StatusView(300);
+        final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
+            FSLocationVariableType.INSTANCE);
+        m_destinationFileChooserPanel = new DialogComponentWriterFileChooser(destinationFileChooserModel,
+            FILE_HISTORY_ID, writeFvm, CompressDestinationStatusMessageReporter::new, FilterMode.FILE);
 
-        final FlowVariableModel writeFvm =
-            createFlowVariableModel(targetFileChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_outputDirChooserPanel =
-            new DialogComponentWriterFileChooser(targetFileChooserModel, FILE_HISTORY_ID, writeFvm, FilterMode.FILE);
+        m_includeParentSwingWorkerManager = new SwingWorkerManager(
+            () -> new IncludeParentFolderAvailableSwingWorker(sourceLocationChooserModel::createReadPathAccessor,
+                m_config.getInputLocationChooserModel().getFilterModeModel().getFilterMode(),
+                m_includeSelected::setEnabled));
 
-        m_includeParentSwingWorkerManager = new SwingWorkerManager(() -> new IncludeParentFolderAvailableSwingWorker(
-            inputLocationChooserModel::createReadPathAccessor,
-            m_config.getInputLocationChooserModel().getFilterModeModel().getFilterMode(), m_includeParent::setEnabled));
-
-        inputLocationChooserModel.addChangeListener(l -> m_includeParentSwingWorkerManager.startSwingWorker());
-
-        targetFileChooserModel.addChangeListener(l -> {
-            if (m_config.hasValidFileExtension()) {
-                m_fileExtensionStatus.clearStatus();
-            } else {
-                m_fileExtensionStatus.setStatus(new DefaultStatusMessage(MessageType.ERROR,
-                    CompressNodeConfig.INVALID_EXTENSION_ERROR));
-            }
-        });
+        sourceLocationChooserModel.addChangeListener(l -> m_includeParentSwingWorkerManager.startSwingWorker());
 
         addTab("Settings", initLayout());
     }
@@ -150,25 +134,20 @@ final class CompressNodeDialog extends NodeDialogPane {
 
         panel.add(createInputPanel(), gbc.fillHorizontal().setWeightX(1).build());
         gbc.incY();
-        panel.add(createOutputPanel(), gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
+        panel.add(createOutputPanel(), gbc.resetX().fillHorizontal().setWeightX(1).build());
         gbc.incY();
-        gbc.setWeightY(1);
+        panel.add(createOptionsPanel(), gbc.build());
+        gbc.incY().setWeightY(1);
         panel.add(new JPanel(), gbc.build());
-
         return panel;
     }
 
     private JPanel createInputPanel() {
         final JPanel inputPanel = new JPanel(new GridBagLayout());
         inputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
-
-        final GBCBuilder gbc = new GBCBuilder(new Insets(0, 0, 0, 0)).resetX().resetY();
-
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
         inputPanel.add(m_inputFileChooserPanel.getComponentPanel(),
             gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
-        gbc.incY();
-        inputPanel.add(m_includeParent, gbc.setInsets(new Insets(5, 80, 0, 0)).build());
-
         return inputPanel;
     }
 
@@ -176,22 +155,29 @@ final class CompressNodeDialog extends NodeDialogPane {
         final JPanel outputPanel = new JPanel(new GridBagLayout());
         outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Destination"));
 
-        final GBCBuilder gbc = new GBCBuilder(new Insets(0, 0, 0, 0)).resetX().resetY();
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
 
-        outputPanel.add(m_outputDirChooserPanel.getComponentPanel(),
+        outputPanel.add(m_destinationFileChooserPanel.getComponentPanel(),
             gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
-        gbc.incY();
-        outputPanel.add(m_fileExtensionStatus.getLabel(), gbc.setInsets(new Insets(5, 103, 0, 0)).build());
 
         return outputPanel;
+    }
+
+    private JPanel createOptionsPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorPageStart().fillHorizontal();
+        panel.add(m_includeSelected, gbc.build());
+        panel.add(new JPanel(), gbc.fillHorizontal().setWeightX(1).incX().build());
+        return panel;
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_inputFileChooserPanel.saveSettingsTo(settings);
-        m_outputDirChooserPanel.saveSettingsTo(settings);
+        m_destinationFileChooserPanel.saveSettingsTo(settings);
 
-        m_config.includeParentFolder(m_includeParent.isSelected());
+        m_config.includeSelectedFolder(m_includeSelected.isSelected());
         m_config.saveSettingsForDialog(settings);
     }
 
@@ -199,9 +185,9 @@ final class CompressNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_inputFileChooserPanel.loadSettingsFrom(settings, specs);
-        m_outputDirChooserPanel.loadSettingsFrom(settings, specs);
+        m_destinationFileChooserPanel.loadSettingsFrom(settings, specs);
 
         m_config.loadSettingsForDialog(settings);
-        m_includeParent.setSelected(m_config.includeParentFolder());
+        m_includeSelected.setSelected(m_config.includeParentFolder());
     }
 }
