@@ -124,8 +124,10 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
             final Path rootSourcePath;
 
             try {
-                sourcePaths = getSourcePaths(m_consumerReader);
+
+                sourcePaths = getSourcePaths(m_consumerReader, readPathAccessor);
                 rootSourcePath = readPathAccessor.getRootPath(m_consumerReader);
+
             } catch (InvalidSettingsException e) {
                 LOGGER.error(
                     "An error occured during the process of retrieving the source paths. See log for more details.", e);
@@ -178,14 +180,12 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
      * @throws IOException
      * @throws InvalidSettingsException
      */
-    private List<FSPath> getSourcePaths(final PriorityStatusConsumer consumerReader)
-        throws IOException, InvalidSettingsException {
-        try (final ReadPathAccessor readPathAccessor = m_settingsReader.createReadPathAccessor()) {
-            if (m_settingsReader.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
-                return FSFiles.getFilePathsFromFolder(readPathAccessor.getFSPaths(consumerReader).get(0));
-            } else {
-                return readPathAccessor.getFSPaths(consumerReader);
-            }
+    private List<FSPath> getSourcePaths(final PriorityStatusConsumer consumerReader,
+        final ReadPathAccessor readPathAccessor) throws IOException, InvalidSettingsException {
+        if (m_settingsReader.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
+            return FSFiles.getFilePathsFromFolder(readPathAccessor.getFSPaths(consumerReader).get(0));
+        } else {
+            return readPathAccessor.getFSPaths(consumerReader);
         }
     }
 
