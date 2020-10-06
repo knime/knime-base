@@ -86,6 +86,9 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
     private static final StatusMessage INVALID_SOURCE = DefaultStatusMessage.mkError("Invalid source path.");
 
+    private static final String SRC_PATH_ERROR_MSG =
+        "An error occured during the process of retrieving the source paths. See log for more details.";
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CopyMoveFilesStatusMessageReporter.class);
 
     private final SettingsModelWriterFileChooser m_settingsWriter;
@@ -124,14 +127,20 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
             final Path rootSourcePath;
 
             try {
-
-                sourcePaths = getSourcePaths(m_consumerReader, readPathAccessor);
                 rootSourcePath = readPathAccessor.getRootPath(m_consumerReader);
 
+                //Additional check, as an empty path is still a regular path
+                if (rootSourcePath.toString().length() == 0) {
+                    return INVALID_SOURCE;
+                }
+
+                sourcePaths = getSourcePaths(m_consumerReader, readPathAccessor);
             } catch (InvalidSettingsException e) {
-                LOGGER.error(
-                    "An error occured during the process of retrieving the source paths. See log for more details.", e);
+                LOGGER.error(SRC_PATH_ERROR_MSG, e);
                 return INVALID_SOURCE;
+            } catch (AccessDeniedException e) {
+                LOGGER.error(SRC_PATH_ERROR_MSG, e);
+                return DefaultStatusMessage.mkError("Source path could not be accessed.");
             }
 
             if (FSFiles.exists(destinationPath)) {
@@ -142,7 +151,8 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
                 return handlePathExists(destinationPath, numberOfExistingFiles);
             } else {
-                return StatusMessageNewPathUtils.handleNewPath(m_settingsWriter.isCreateMissingFolders());
+                return StatusMessageNewPathUtils.handleNewPath(destinationPath,
+                    m_settingsWriter.isCreateMissingFolders());
             }
         }
     }
@@ -183,7 +193,7 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
     private List<FSPath> getSourcePaths(final PriorityStatusConsumer consumerReader,
         final ReadPathAccessor readPathAccessor) throws IOException, InvalidSettingsException {
         if (m_settingsReader.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
-            return FSFiles.getFilePathsFromFolder(readPathAccessor.getFSPaths(consumerReader).get(0));
+            return FSFiles.getFilePathsFromFolder(readPathAccessor.getRootPath(consumerReader));
         } else {
             return readPathAccessor.getFSPaths(consumerReader);
         }
