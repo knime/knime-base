@@ -170,7 +170,7 @@
 				</li>
 			</ul>
 		</option>
-		<option name="Include parent folder from source path">
+		<option name="Include selected source folder">
 			This option is only available if the Folder or
 			Files
 			in Folder mode is selected.

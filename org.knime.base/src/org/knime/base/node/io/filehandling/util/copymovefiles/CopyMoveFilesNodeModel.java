@@ -152,7 +152,7 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         }
 
         final PathRelativizer pathRelativizer = new PathRelativizerNonTableInput(rootPath,
-            m_config.getSettingsModelIncludeParentFolder().getBooleanValue(), filterMode);
+            m_config.getSettingsModelIncludeSourceFolder().getBooleanValue(), filterMode);
 
         createFlowVariables(rootPath, destinationDir);
 

@@ -85,7 +85,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_deleteSourceFilesCheckbox;
 
-    private final DialogComponentBoolean m_includeParentFolderCheckbox;
+    private final DialogComponentBoolean m_includeSourceFolderCheckbox;
 
     private final SwingWorkerManager m_swingWorkerManager;
 
@@ -108,23 +108,23 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
 
         m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig,
             "destination_chooser", writeFvm, s -> new CopyMoveFilesStatusMessageReporter(s,
-                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeParentFolder().getBooleanValue()),
+                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()),
             FilterMode.FOLDER);
 
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(config.getDeleteSourceFilesModel(), "Delete source files (move)");
 
-        m_includeParentFolderCheckbox = new DialogComponentBoolean(config.getSettingsModelIncludeParentFolder(),
-            "Include parent folder from source path");
+        m_includeSourceFolderCheckbox = new DialogComponentBoolean(config.getSettingsModelIncludeSourceFolder(),
+            "Include selected source folder");
 
         //Update the component in case something changes so that the status message will be updated accordingly
         sourceFileChooserConfig.addChangeListener(l -> m_destinationFilePanel.updateComponent());
-        config.getSettingsModelIncludeParentFolder().addChangeListener(l -> m_destinationFilePanel.updateComponent());
+        config.getSettingsModelIncludeSourceFolder().addChangeListener(l -> m_destinationFilePanel.updateComponent());
 
         m_swingWorkerManager = new SwingWorkerManager(
             () -> new IncludeParentFolderAvailableSwingWorker(sourceFileChooserConfig::createReadPathAccessor,
                 sourceFileChooserConfig.getFilterModeModel().getFilterMode(),
-                m_includeParentFolderCheckbox.getModel()::setEnabled));
+                m_includeSourceFolderCheckbox.getModel()::setEnabled));
 
         sourceFileChooserConfig.addChangeListener(l -> m_swingWorkerManager.startSwingWorker());
 
@@ -168,7 +168,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
         gbc.weightx = 0;
-        panel.add(m_includeParentFolderCheckbox.getComponentPanel(), gbc);
+        panel.add(m_includeSourceFolderCheckbox.getComponentPanel(), gbc);
         gbc.gridx++;
         panel.add(m_deleteSourceFilesCheckbox.getComponentPanel(), gbc);
         gbc.weightx = 1;
@@ -217,7 +217,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_destinationFilePanel.saveSettingsTo(settings);
         m_sourceFilePanel.saveSettingsTo(settings);
         m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
-        m_includeParentFolderCheckbox.saveSettingsTo(settings);
+        m_includeSourceFolderCheckbox.saveSettingsTo(settings);
     }
 
     @Override
@@ -226,6 +226,6 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_sourceFilePanel.loadSettingsFrom(settings, specs);
         m_destinationFilePanel.loadSettingsFrom(settings, specs);
         m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
-        m_includeParentFolderCheckbox.loadSettingsFrom(settings, specs);
+        m_includeSourceFolderCheckbox.loadSettingsFrom(settings, specs);
     }
 }

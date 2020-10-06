@@ -66,7 +66,7 @@ final class CopyMoveFilesNodeConfig {
     private static final String CFG_DELETE_SOURCE_FILES = "delete_source_files";
 
     /** Config key for include parent folder checkbox. */
-    private static final String CFG_INCLUDE_PARENT_FOLDER = "include_parent_folder";
+    private static final String CFG_INCLUDE_SOURCE_FOLDER = "include_source_folder";
 
     /** The file chooser model. */
     private final SettingsModelReaderFileChooser m_sourceFileChooserModel;
@@ -79,8 +79,8 @@ final class CopyMoveFilesNodeConfig {
         new SettingsModelBoolean(CFG_DELETE_SOURCE_FILES, false);
 
     /** The include parent folder settings model */
-    private final SettingsModelBoolean m_includeParentFolderModel =
-        new SettingsModelBoolean(CFG_INCLUDE_PARENT_FOLDER, false);
+    private final SettingsModelBoolean m_includeSourcetFolderModel =
+        new SettingsModelBoolean(CFG_INCLUDE_SOURCE_FOLDER, false);
 
     CopyMoveFilesNodeConfig(final SettingsModelReaderFileChooser sourceFilceChooserSettings,
         final SettingsModelWriterFileChooser destinationFileChooserSettings) {
@@ -120,8 +120,8 @@ final class CopyMoveFilesNodeConfig {
      *
      * @return the includeParentFolderModel
      */
-    SettingsModelBoolean getSettingsModelIncludeParentFolder() {
-        return m_includeParentFolderModel;
+    SettingsModelBoolean getSettingsModelIncludeSourceFolder() {
+        return m_includeSourcetFolderModel;
     }
 
     /**
@@ -134,7 +134,7 @@ final class CopyMoveFilesNodeConfig {
         m_sourceFileChooserModel.validateSettings(settings);
         m_destinationFileChooserModel.validateSettings(settings);
         m_deleteSourceFilesModel.validateSettings(settings);
-        m_includeParentFolderModel.validateSettings(settings);
+        m_includeSourcetFolderModel.validateSettings(settings);
     }
 
     /**
@@ -146,7 +146,7 @@ final class CopyMoveFilesNodeConfig {
         m_sourceFileChooserModel.saveSettingsTo(settings);
         m_destinationFileChooserModel.saveSettingsTo(settings);
         m_deleteSourceFilesModel.saveSettingsTo(settings);
-        m_includeParentFolderModel.saveSettingsTo(settings);
+        m_includeSourcetFolderModel.saveSettingsTo(settings);
     }
 
     /**
@@ -159,6 +159,6 @@ final class CopyMoveFilesNodeConfig {
         m_sourceFileChooserModel.loadSettingsFrom(settings);
         m_destinationFileChooserModel.loadSettingsFrom(settings);
         m_deleteSourceFilesModel.loadSettingsFrom(settings);
-        m_includeParentFolderModel.loadSettingsFrom(settings);
+        m_includeSourcetFolderModel.loadSettingsFrom(settings);
     }
 }

@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.util;
 
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import org.knime.filehandling.core.connections.FSPath;
@@ -78,8 +79,11 @@ public final class PathHandlingUtils {
         if (filterMode == FilterMode.FILE) {
             return false;
         }
-        final String path = rootPath.toString();
+        final Path absoluteRootPath = rootPath.toAbsolutePath();
+        final Path root = absoluteRootPath.getRoot();
+        final String path = absoluteRootPath.toString() ;
 
-        return !(path.isEmpty() || rootPath.getParent() == null || POINT_PATTERN.matcher(path).matches());
+        return !(path.isEmpty() || root == null || root.equals(absoluteRootPath)
+            || POINT_PATTERN.matcher(path).matches());
     }
 }
