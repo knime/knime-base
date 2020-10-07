@@ -53,35 +53,39 @@ import javax.swing.event.ChangeListener;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelLong;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.util.filter.NameFilterConfiguration;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
 /**
  * <code>NodeDialog</code> for the "TableRowToVariable" node. Exports the first row of a table into variables.
  *
- * @author Iris Adae, University of Konstanz, Germany
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
 
-    private SettingsModelString m_onMissing;
+    private final SettingsModelString m_onMissing;
 
-    private SettingsModelDouble m_replaceDouble;
+    private final SettingsModelDouble m_replaceDouble;
 
-    private SettingsModelInteger m_replaceInteger;
+    private final SettingsModelInteger m_replaceInteger;
 
-    private SettingsModelLong m_replaceLong;
+    private final SettingsModelLong m_replaceLong;
 
-    private SettingsModelString m_replaceString;
+    private final SettingsModelString m_replaceString;
 
-    private SettingsModelString m_replaceBoolean;
+    private final SettingsModelString m_replaceBoolean;
+
+    private final SettingsModelColumnFilter2 m_columnFilter;
 
     /**
      * New pane for configuring the TableToVariable2 node.
@@ -105,6 +109,8 @@ final class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentString(m_replaceString, "String: ", true, 13));
         m_replaceBoolean = getReplaceBoolean(m_onMissing);
         addDialogComponent(new DialogComponentStringSelection(m_replaceBoolean, "Boolean: ", "false", "true"));
+        m_columnFilter = getColumnFilter();
+        addDialogComponent(new DialogComponentColumnFilter2(m_columnFilter, 0));
     }
 
     @Override
@@ -164,6 +170,11 @@ final class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
         policyModel.addChangeListener(listener);
         listener.stateChanged(null);
         return model;
+    }
+
+    static final SettingsModelColumnFilter2 getColumnFilter() {
+        return new SettingsModelColumnFilter2("column_selection", null,
+            NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
     }
 
     private static class PolicyChangeListener implements ChangeListener {

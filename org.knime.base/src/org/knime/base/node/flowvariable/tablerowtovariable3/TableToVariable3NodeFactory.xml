@@ -18,15 +18,20 @@
 		<option name="Fail">If selected the node fails with an error on Missing Values or empty tables.</option>
 		<option name="Defaults">If selected the node replaces Missing Values or empty table columns by either integer, 
 			long, double, boolean, or String values as defined. If there exists no default value for the column type
-			containing the Missing Value the entry is omitted.
+			containing the Missing Value the entry is omitted from the output.
 		</option>
 		<option name="Omit">If selected the node ignores Missing Values or empty table columns.</option>
+		<option name="Column selection">
+			Allows the selection of the columns whose cells must be converted to flow variables.
+		</option>
+		
 		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
 			KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
 		</link>
 		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/transforming-data-cell-into-flow-variable">
 			KNIME E-Learning Course: Transforming a data cell into a flow variable
 		</link>
+		
 	</fullDescription>
 	
 	<ports>

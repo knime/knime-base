@@ -82,6 +82,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelLong;
@@ -116,6 +117,8 @@ final class TableToVariable3NodeModel extends NodeModel {
 
     private final SettingsModelString m_boolean;
 
+    private final SettingsModelColumnFilter2 m_columnSelection;
+
     TableToVariable3NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
         m_onMV = TableToVariable3NodeDialog.getOnMissing();
@@ -124,15 +127,20 @@ final class TableToVariable3NodeModel extends NodeModel {
         m_double = TableToVariable3NodeDialog.getReplaceDouble(m_onMV);
         m_string = TableToVariable3NodeDialog.getReplaceString(m_onMV);
         m_boolean = TableToVariable3NodeDialog.getReplaceBoolean(m_onMV);
+        m_columnSelection = TableToVariable3NodeDialog.getColumnFilter();
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec spec = (DataTableSpec)inSpecs[0];
+        final String[] selectedColumns = m_columnSelection.applyTo(spec).getIncludes();
+        if (selectedColumns.length == 0) {
+            setWarningMessage("No column selected only the RowID will be converted");
+        }
         if (!m_onMV.getStringValue().equals(MissingValuePolicy.OMIT.getName())) {
             // Pushes the default variables onto the stack
-            final DataTableSpec spec = (DataTableSpec)inSpecs[0];
             try {
-                pushVariables(spec, null, createDefaultCells(spec));
+                pushVariables(spec, null, createDefaultCells(spec), selectedColumns);
             } catch (Exception e) { //NOSONAR
                 // ignored
             }
@@ -193,10 +201,11 @@ final class TableToVariable3NodeModel extends NodeModel {
      * @param variablesSpec The spec (for names and types)
      * @param rowKey the name of the row
      * @param row the content of the row
+     * @param selectedColumns the names of the column to be converted to flow variables
      * @throws Exception if the node is supposed to fail on missing values or empty table
      */
-    private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row)
-        throws Exception {
+    private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
+        final String[] selectedColumns) throws Exception {
         // push also the rowID onto the stack
         final String rowIDVarName = "RowID";
         final boolean fail = m_onMV.getStringValue().equals(MissingValuePolicy.FAIL.getName());
@@ -206,17 +215,19 @@ final class TableToVariable3NodeModel extends NodeModel {
         // column names starting with "knime." are uniquified as they represent global constants
         final Set<String> variableNames = new HashSet<>();
         variableNames.add(rowIDVarName);
-        pushVariables(variablesSpec, rowKey, row, fail, defaults, defaultCells, variableNames);
+        pushVariables(variablesSpec, rowKey, row, fail, defaults, defaultCells, variableNames, selectedColumns);
     }
 
     private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
-        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final Set<String> variableNames)
-        throws Exception {
-        for (int i = variablesSpec.getNumColumns(); --i >= 0;) { //NOSONAR
-            final DataColumnSpec spec = variablesSpec.getColumnSpec(i);
-            final DataType type = spec.getType();
+        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final Set<String> variableNames,
+        final String[] selectedColumns) throws Exception {
+        for (int i = selectedColumns.length - 1; i >= 0; i--) {
+            final String selectedColumnName = selectedColumns[i];
+            final int colIdx = variablesSpec.findColumnIndex(selectedColumnName);
 
-            String name = getName(i, spec);
+            final DataColumnSpec spec = variablesSpec.getColumnSpec(selectedColumnName);
+            final DataType type = spec.getType();
+            String name = getName(colIdx, spec);
             int uniquifier = 1;
             final String basename = name;
             while (!variableNames.add(name)) {
@@ -224,7 +235,7 @@ final class TableToVariable3NodeModel extends NodeModel {
                 uniquifier++;
             }
 
-            final DataCell cell = getCell(variablesSpec, rowKey, row, fail, defaults, defaultCells, i);
+            final DataCell cell = getCell(variablesSpec, rowKey, row, fail, defaults, defaultCells, colIdx);
 
             if (cell != null) {
                 pushVariable(CellToVariableConverterFactory.createConverter(type).createFlowVariable(name, cell));
@@ -232,10 +243,10 @@ final class TableToVariable3NodeModel extends NodeModel {
         }
     }
 
-    private static String getName(final int i, final DataColumnSpec spec) {
+    private static String getName(final int colIdx, final DataColumnSpec spec) {
         final String name = spec.getName();
         if (name.equals("knime.")) {
-            return "column_" + i;
+            return "column_" + colIdx;
         } else if (name.startsWith("knime.")) {
             return name.substring("knime.".length());
         } else {
@@ -245,33 +256,34 @@ final class TableToVariable3NodeModel extends NodeModel {
 
     @SuppressWarnings("squid:S112")
     private static DataCell getCell(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
-        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final int i) throws Exception {
+        final boolean fail, final boolean defaults, final DataCell[] defaultCells, final int colIdx) throws Exception {
         final DataCell cell;
         if (row == null) {
             if (fail) {
                 throw new Exception("No rows in input table");
             } else if (defaults) {
-                cell = defaultCells[i];
+                cell = defaultCells[colIdx];
             } else {
                 // omit
                 cell = null;
             }
-        } else if (row[i].isMissing()) {
+            // TODO: this is a bug as there might be a null value in here during configure
+        } else if (row[colIdx].isMissing()) {
             if (fail) {
-                throw new MissingValueException((MissingValue)row[i],
+                throw new MissingValueException((MissingValue)row[colIdx],
                     String.format(
                         "Missing Values not allowed as variable values -- "
                             + "in row with ID \"%s\", column \"%s\" (index %d)",
-                        rowKey, variablesSpec.getColumnSpec(i).getName(), i));
+                        rowKey, variablesSpec.getColumnSpec(colIdx).getName(), colIdx));
             } else if (defaults) {
-                cell = defaultCells[i];
+                cell = defaultCells[colIdx];
             } else {
                 // omit
                 cell = null;
             }
         } else {
             // take the value from the input table row
-            cell = row[i];
+            cell = row[colIdx];
         }
         return cell;
     }
@@ -307,10 +319,11 @@ final class TableToVariable3NodeModel extends NodeModel {
      * @throws Exception
      */
     private void pushVariables(final DataTableSpec spec, final DataRow row) throws Exception {
+        final String[] selectedColumns = m_columnSelection.applyTo(spec).getIncludes();
         if (row == null) {
-            pushVariables(spec, null, null);
+            pushVariables(spec, null, null, selectedColumns);
         } else {
-            pushVariables(spec, row.getKey().toString(), row.stream().toArray(DataCell[]::new));
+            pushVariables(spec, row.getKey().toString(), row.stream().toArray(DataCell[]::new), selectedColumns);
         }
     }
 
@@ -327,6 +340,7 @@ final class TableToVariable3NodeModel extends NodeModel {
         m_double.saveSettingsTo(settings);
         m_string.saveSettingsTo(settings);
         m_boolean.saveSettingsTo(settings);
+        m_columnSelection.saveSettingsTo(settings);
     }
 
     @Override
@@ -339,6 +353,7 @@ final class TableToVariable3NodeModel extends NodeModel {
             m_double.loadSettingsFrom(settings);
             m_string.loadSettingsFrom(settings);
             m_boolean.loadSettingsFrom(settings);
+            m_columnSelection.loadSettingsFrom(settings);
         }
     }
 
@@ -352,6 +367,7 @@ final class TableToVariable3NodeModel extends NodeModel {
             m_double.validateSettings(settings);
             m_string.validateSettings(settings);
             m_boolean.validateSettings(settings);
+            m_columnSelection.validateSettings(settings);
         }
     }
 
