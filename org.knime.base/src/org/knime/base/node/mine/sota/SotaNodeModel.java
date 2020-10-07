@@ -74,9 +74,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortTypeRegistry;
 
 /**
  *
@@ -155,7 +155,7 @@ public class SotaNodeModel extends NodeModel {
         if (withOutPort) {
             return new PortType[]{PortTypeRegistry.getInstance().getPortType(SotaPortObject.class)};
         }
-        return new PortType[]{null};
+        return new PortType[]{};
     }
 
 
@@ -207,8 +207,11 @@ public class SotaNodeModel extends NodeModel {
 
         int classColIndex = inDataSpec.findColumnIndex(
                 m_classCol.getStringValue());
-        return new PortObjectSpec[]{new SotaPortObjectSpec(inDataSpec,
+        if (m_withOutPort) {
+            return new PortObjectSpec[]{new SotaPortObjectSpec(inDataSpec,
                 classColIndex)};
+        }
+        return new PortObjectSpec[] {};
     }
 
 
