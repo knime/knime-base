@@ -576,13 +576,14 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
             BaseFileAttributes attributes;
 
+            if (!existsCached(checkedPath)) {
+                throw new NoSuchFileException(checkedPath.toString());
+            }
+
             final Optional<BaseFileAttributes> cachedAttributes =
                 getFileSystemInternal().getCachedAttributes(checkedPath);
 
             if (!cachedAttributes.isPresent()) {
-                if (!existsCached(checkedPath)) {
-                    throw new NoSuchFileException(checkedPath.toString());
-                }
                 attributes = fetchAttributesInternal(checkedPath, type);
                 getFileSystemInternal().addToAttributeCache(checkedPath, attributes);
             } else {
