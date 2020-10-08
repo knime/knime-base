@@ -87,7 +87,7 @@ import org.knime.core.node.workflow.VariableType;
  */
 final class TableColumnToVariable4NodeModel extends NodeModel {
 
-    private static final String CFGKEY_IGNORE_MISSING = "ignore missing";
+    private static final String CFGKEY_IGNORE_MISSING = "skip_missing";
 
     private static final boolean DEFAULT_IGNORE_MISSING = true;
 

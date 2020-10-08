@@ -47,11 +47,13 @@
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
-import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -83,18 +85,66 @@ final class VariableToTable4NodeDialogPane extends NodeDialogPane {
     VariableToTable4NodeDialogPane() {
         m_filter =
             new FlowVariableFilterPanel(new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
-        m_rowID = new DialogComponentString(createSettingsModelRowID(), "Name of RowID: ");
-        final JPanel panel = new JPanel(new BorderLayout());
-        panel.add(m_filter, BorderLayout.CENTER);
-        final JPanel panelRowID = new JPanel(new BorderLayout());
-        panelRowID.setBorder(BorderFactory.createTitledBorder(" Generated RowID "));
-        panelRowID.add(m_rowID.getComponentPanel(), BorderLayout.CENTER);
-        panel.add(panelRowID, BorderLayout.SOUTH);
-        addTab("Variable Selection", new JScrollPane(panel));
+        m_rowID = new DialogComponentString(createSettingsModelRowID(), "Row name  ", true, 13);
+        addTab("Variable Selection", createPanel());
+    }
+
+    private JPanel createPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        panel.add(createRowIdPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(createVarSelectionPanel(), gbc);
+
+        return panel;
+    }
+
+    private Component createRowIdPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
+
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "RowID"));
+        panel.add(m_rowID.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createVerticalBox(), gbc);
+
+        return panel;
+    }
+
+    private Component createVarSelectionPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.BOTH;
+
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Variable Selection"));
+        panel.add(m_filter, gbc);
+
+        return panel;
     }
 
     static SettingsModelString createSettingsModelRowID() {
-        return new SettingsModelString("row-id", "values");
+        return new SettingsModelString("row_id", "values");
     }
 
     @Override

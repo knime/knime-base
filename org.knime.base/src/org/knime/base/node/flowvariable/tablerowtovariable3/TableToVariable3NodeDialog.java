@@ -47,152 +47,206 @@
  */
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponent;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JPanel;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelLong;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.util.filter.NameFilterConfiguration;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
 /**
  * <code>NodeDialog</code> for the "TableRowToVariable" node. Exports the first row of a table into variables.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class TableToVariable3NodeDialog extends DefaultNodeSettingsPane {
+final class TableToVariable3NodeDialog extends NodeDialogPane {
 
-    private final SettingsModelString m_onMissing;
+    private final DialogComponentButtonGroup m_onMissing;
 
-    private final SettingsModelDouble m_replaceDouble;
+    private final DialogComponentNumber m_replaceDouble;
 
-    private final SettingsModelInteger m_replaceInteger;
+    private final DialogComponentNumber m_replaceInteger;
 
-    private final SettingsModelLong m_replaceLong;
+    private final DialogComponentNumber m_replaceLong;
 
-    private final SettingsModelString m_replaceString;
+    private final DialogComponentString m_replaceString;
 
-    private final SettingsModelString m_replaceBoolean;
+    private final DialogComponentStringSelection m_replaceBoolean;
 
-    private final SettingsModelColumnFilter2 m_columnFilter;
+    private final DialogComponentColumnFilter2 m_columnFilter;
 
     /**
      * New pane for configuring the TableToVariable2 node.
      */
     TableToVariable3NodeDialog() {
-        // Missing Values
-        m_onMissing = getOnMissing();
-        final DialogComponentButtonGroup missingGroup =
-            new DialogComponentButtonGroup(m_onMissing, false, " Missing Values ", MissingValuePolicy.getAllSettings());
-        missingGroup.setToolTipText("Applies to missing values and if the input table is empty");
-        addDialogComponent(missingGroup);
-        // Default Values
-        createNewGroup(" Default Values ");
-        m_replaceDouble = getReplaceDouble(m_onMissing);
-        addDialogComponent(new DialogComponentNumber(m_replaceDouble, "Double: ", 0.1, 10));
-        m_replaceInteger = getReplaceInteger(m_onMissing);
-        addDialogComponent(new DialogComponentNumber(m_replaceInteger, "Integer: ", 1, 10));
-        m_replaceLong = getReplaceLong(m_onMissing);
-        addDialogComponent(new DialogComponentNumber(m_replaceLong, "Long: ", 1L, 10));
-        m_replaceString = getReplaceString(m_onMissing);
-        addDialogComponent(new DialogComponentString(m_replaceString, "String: ", true, 13));
-        m_replaceBoolean = getReplaceBoolean(m_onMissing);
-        addDialogComponent(new DialogComponentStringSelection(m_replaceBoolean, "Boolean: ", "false", "true"));
-        m_columnFilter = getColumnFilter();
-        addDialogComponent(new DialogComponentColumnFilter2(m_columnFilter, 0));
+        m_onMissing = new DialogComponentButtonGroup(TableToVariable3NodeModel.getOnMissing(), null, true,
+            MissingValuePolicy.values());
+        m_replaceString =
+            new DialogComponentString(TableToVariable3NodeModel.getReplaceString(), "String      ", true, 10);
+        m_replaceBoolean = new DialogComponentStringSelection(TableToVariable3NodeModel.getReplaceBoolean(),
+            "Boolean  ", "false", "true");
+        m_replaceInteger =
+            new DialogComponentNumber(TableToVariable3NodeModel.getReplaceInteger(), "Integer    ", 1, 11);
+        m_replaceLong = new DialogComponentNumber(TableToVariable3NodeModel.getReplaceLong(), "Long        ", 1L, 11);
+        m_replaceDouble =
+            new DialogComponentNumber(TableToVariable3NodeModel.getReplaceDouble(), "Double     ", 0.1, 10);
+        m_columnFilter = new DialogComponentColumnFilter2(TableToVariable3NodeModel.getColumnFilter(), 0);
+
+        m_onMissing.getModel().addChangeListener(e -> policyChanged());
+
+        addTab("Settings", createPanel());
+
+        // get the initial state right
+        policyChanged();
+    }
+
+    private Component createPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = getGbc();
+
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        p.add(createMissingValueHandlingPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        p.add(createColumnSelectionPanel(), gbc);
+
+        return p;
+    }
+
+    private static GridBagConstraints getGbc() {
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridy = 0;
+        return gbc;
+    }
+
+    private Component createMissingValueHandlingPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = getGbc();
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Missing values"));
+
+        p.add(createHandlingPanel(), gbc);
+
+        ++gbc.gridy;
+        p.add(createDefaultsPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        p.add(Box.createVerticalBox(), gbc);
+
+        return p;
+    }
+
+    private JPanel createHandlingPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = getGbc();
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Handling"));
+        p.add(m_onMissing.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        p.add(Box.createVerticalBox(), gbc);
+
+        return p;
+    }
+
+    private Component createDefaultsPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = getGbc();
+
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Defaults"));
+
+        p.add(m_replaceString.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        p.add(m_replaceBoolean.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        p.add(m_replaceInteger.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        p.add(m_replaceLong.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        p.add(m_replaceDouble.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        p.add(Box.createVerticalBox(), gbc);
+
+        return p;
+    }
+
+    private Component createColumnSelectionPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column selection"));
+        p.add(m_columnFilter.getComponentPanel(), gbc);
+        return p;
+    }
+
+    private void policyChanged() {
+        final MissingValuePolicy policy =
+            MissingValuePolicy.valueOf(((SettingsModelString)m_onMissing.getModel()).getStringValue());
+        final boolean enabled = MissingValuePolicy.OMIT != policy;
+        m_replaceBoolean.getModel().setEnabled(enabled);
+        m_replaceInteger.getModel().setEnabled(enabled);
+        m_replaceLong.getModel().setEnabled(enabled);
+        m_replaceString.getModel().setEnabled(enabled);
+        m_replaceBoolean.getModel().setEnabled(enabled);
     }
 
     @Override
-    public final void createNewGroup(final String title) {
-        super.createNewGroup(title);
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_onMissing.saveSettingsTo(settings);
+        m_replaceString.saveSettingsTo(settings);
+        m_replaceBoolean.saveSettingsTo(settings);
+        m_replaceInteger.saveSettingsTo(settings);
+        m_replaceLong.saveSettingsTo(settings);
+        m_replaceDouble.saveSettingsTo(settings);
+        m_columnFilter.saveSettingsTo(settings);
     }
 
     @Override
-    public final void addDialogComponent(final DialogComponent diaC) {
-        super.addDialogComponent(diaC);
-    }
-
-    static final SettingsModelString getOnMissing() {
-        return new SettingsModelString("CFG_FAILONMISS", MissingValuePolicy.DEFAULT.getName());
-    }
-
-    static final SettingsModelDouble getReplaceDouble(final SettingsModelString policyModel) {
-        final SettingsModelDouble model = new SettingsModelDouble("CFG_Double", 0);
-        ChangeListener listener = new PolicyChangeListener(policyModel, model);
-        policyModel.addChangeListener(listener);
-        listener.stateChanged(null);
-        return model;
-    }
-
-    static final SettingsModelString getReplaceString(final SettingsModelString policyModel) {
-        SettingsModelString model = new SettingsModelString("CFG_String", "missing");
-        ChangeListener listener = new PolicyChangeListener(policyModel, model);
-        policyModel.addChangeListener(listener);
-        listener.stateChanged(null);
-        return model;
-    }
-
-    /**
-     * This method returns a SettingsModelString, since a SettingsModelBoolean / DialogComponentBoolean would be
-     * represented as a checkbox with the label placed behind. Not only does that look weird, it is also less intuitive
-     * to use and is not in line with the other options in the dialog, which have their label in the front.
-     */
-    static final SettingsModelString getReplaceBoolean(final SettingsModelString policyModel) {
-        final SettingsModelString model = new SettingsModelString("CFG_Boolean", "false");
-        final ChangeListener listener = new PolicyChangeListener(policyModel, model);
-        policyModel.addChangeListener(listener);
-        listener.stateChanged(null);
-        return model;
-    }
-
-    static final SettingsModelInteger getReplaceInteger(final SettingsModelString policyModel) {
-        SettingsModelInteger model = new SettingsModelInteger("CFG_Integer", 0);
-        ChangeListener listener = new PolicyChangeListener(policyModel, model);
-        policyModel.addChangeListener(listener);
-        listener.stateChanged(null);
-        return model;
-    }
-
-    static final SettingsModelLong getReplaceLong(final SettingsModelString policyModel) {
-        final SettingsModelLong model = new SettingsModelLong("CFG_Long", 0L);
-        final ChangeListener listener = new PolicyChangeListener(policyModel, model);
-        policyModel.addChangeListener(listener);
-        listener.stateChanged(null);
-        return model;
-    }
-
-    static final SettingsModelColumnFilter2 getColumnFilter() {
-        return new SettingsModelColumnFilter2("column_selection", null,
-            NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
-    }
-
-    private static class PolicyChangeListener implements ChangeListener {
-
-        private SettingsModelString m_policyModel;
-
-        private SettingsModel m_model;
-
-        PolicyChangeListener(final SettingsModelString policyModel, final SettingsModel defaultValueModel) {
-            m_policyModel = policyModel;
-            m_model = defaultValueModel;
-        }
-
-        @Override
-        public void stateChanged(final ChangeEvent arg0) {
-            boolean isDefaultMissValue = MissingValuePolicy.DEFAULT.getName().equals(m_policyModel.getStringValue());
-            m_model.setEnabled(isDefaultMissValue);
-        }
-
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
+        m_replaceString.loadSettingsFrom(settings, specs);
+        m_replaceBoolean.loadSettingsFrom(settings, specs);
+        m_replaceInteger.loadSettingsFrom(settings, specs);
+        m_replaceLong.loadSettingsFrom(settings, specs);
+        m_replaceDouble.loadSettingsFrom(settings, specs);
+        m_columnFilter.loadSettingsFrom(settings, specs);
+        m_onMissing.loadSettingsFrom(settings, specs);
     }
 }

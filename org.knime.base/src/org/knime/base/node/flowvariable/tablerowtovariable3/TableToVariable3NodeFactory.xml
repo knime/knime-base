@@ -9,20 +9,34 @@
 	
 	<fullDescription>
 		<intro>
-		  This node uses the first row of a data table to define new
-		  flow variables. The names of the variables are defined 
-		  by the column names and the variable assignments (i.e. the values)
-		  are given by the values in the row. The variables are exposed
-		  using a variables out connection.
+		  This node uses the first row of a data table to define new flow variables. The names of the variables are 
+		  defined by the column names and the variable assignments (i.e. the values) are given by the values in the row.
+		  The variables are exposed using a variables out connection.
 		</intro>
-		<option name="Fail">If selected the node fails with an error on Missing Values or empty tables.</option>
-		<option name="Use Defaults if available">If selected the node replaces Missing Values or empty table columns by either integer, 
-			long, double, boolean, or String values as defined. If there exists no default value for the column type
-			containing the Missing Value the execution will fail.
+		<option name="Missing value handling">
+			Allows to specify how to cope with missing values. Note that an empty table is treated as if it would 
+			contain only missing values.
+			<ul>
+				<li>
+					<i>Fail:</i> Ensures that the node will fail during execution if the input table is empty
+					or contains missing values in the columns to convert
+				</li>
+				<li>
+					<i>Use defaults if available:</i> Replaces any missing value by the (configured) defaults.
+					In case no default value is associated with the missing cell's type the execution will fail.
+				</li>
+				<li>
+					<i>Omit:</i> Missing cells will not be converted and therefore be omitted from the output.
+				</li>
+			
+			</ul>
 		</option>
-		<option name="Omit">If selected the node ignores Missing Values or empty table columns.</option>
+		<option name="Defaults">
+			Allows to specify the defaults for <tt>String</tt>, <tt>Boolean</tt>, <tt>Integer</tt>, <tt>Long</tt> and 
+			<tt>Double</tt> cells. 
+		</option>
 		<option name="Column selection">
-			Allows the selection of the columns whose cells must be converted to flow variables.
+			Allows the selection of the those columns whose cells must be converted to flow variables.
 		</option>
 		
 		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">

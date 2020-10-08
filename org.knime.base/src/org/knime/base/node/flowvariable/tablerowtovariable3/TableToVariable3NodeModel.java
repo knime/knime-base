@@ -93,6 +93,8 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.filter.NameFilterConfiguration;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
@@ -106,29 +108,51 @@ final class TableToVariable3NodeModel extends NodeModel {
     /** Suffix for missing value exception. */
     private static final String MISSING_VALUE_EXCEPTION_SUFFIX = "%s -- column \"%s\" (index %d)\"";
 
-    private final SettingsModelString m_onMV;
+    private final SettingsModelString m_onMV = getOnMissing();
 
-    private final SettingsModelInteger m_int;
+    private final SettingsModelInteger m_int = getReplaceInteger();
 
-    private final SettingsModelLong m_long;
+    private final SettingsModelLong m_long = getReplaceLong();
 
-    private final SettingsModelDouble m_double;
+    private final SettingsModelDouble m_double = getReplaceDouble();
 
-    private final SettingsModelString m_string;
+    private final SettingsModelString m_string = getReplaceString();
 
-    private final SettingsModelString m_boolean;
+    private final SettingsModelString m_boolean = getReplaceBoolean();
 
-    private final SettingsModelColumnFilter2 m_columnSelection;
+    private final SettingsModelColumnFilter2 m_columnSelection = getColumnFilter();
+
+    static final SettingsModelString getOnMissing() {
+        return new SettingsModelString("missing_value_policy", MissingValuePolicy.DEFAULT.name());
+    }
+
+    static final SettingsModelDouble getReplaceDouble() {
+        return new SettingsModelDouble("default_value_double", 0);
+    }
+
+    static final SettingsModelString getReplaceString() {
+        return new SettingsModelString("default_value_string", "missing");
+    }
+
+    static final SettingsModelString getReplaceBoolean() {
+        return new SettingsModelString("default_value_boolean", "false");
+    }
+
+    static final SettingsModelInteger getReplaceInteger() {
+        return new SettingsModelInteger("default_value_integer", 0);
+    }
+
+    static final SettingsModelLong getReplaceLong() {
+        return new SettingsModelLong("default_value_long", 0L);
+    }
+
+    static final SettingsModelColumnFilter2 getColumnFilter() {
+        return new SettingsModelColumnFilter2("column_selection", null,
+            NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
+    }
 
     TableToVariable3NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
-        m_onMV = TableToVariable3NodeDialog.getOnMissing();
-        m_int = TableToVariable3NodeDialog.getReplaceInteger(m_onMV);
-        m_long = TableToVariable3NodeDialog.getReplaceLong(m_onMV);
-        m_double = TableToVariable3NodeDialog.getReplaceDouble(m_onMV);
-        m_string = TableToVariable3NodeDialog.getReplaceString(m_onMV);
-        m_boolean = TableToVariable3NodeDialog.getReplaceBoolean(m_onMV);
-        m_columnSelection = TableToVariable3NodeDialog.getColumnFilter();
     }
 
     @Override
@@ -145,18 +169,8 @@ final class TableToVariable3NodeModel extends NodeModel {
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
-    private MissingValuePolicy getMissingValuePolicy() throws InvalidSettingsException {
-        final String selection = m_onMV.getStringValue();
-        if (MissingValuePolicy.DEFAULT.getName().equals(selection)) {
-            return MissingValuePolicy.DEFAULT;
-        } else if (MissingValuePolicy.FAIL.getName().equals(selection)) {
-            return MissingValuePolicy.FAIL;
-        } else if (MissingValuePolicy.OMIT.getName().equals(selection)) {
-            return MissingValuePolicy.OMIT;
-        } else {
-            throw new InvalidSettingsException(
-                String.format("There is no missing value policy associated with %s", selection));
-        }
+    private MissingValuePolicy getMissingValuePolicy() {
+        return MissingValuePolicy.valueOf(m_onMV.getStringValue());
     }
 
     private DataCell[] createDefaultCells(final DataTableSpec spec) {
@@ -210,7 +224,6 @@ final class TableToVariable3NodeModel extends NodeModel {
      * @param rowKey the name of the row
      * @param row the content of the row
      * @param selectedColumns the names of the column to be converted to flow variables
-     * @throws InvalidSettingsException
      */
     private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
         final String[] selectedColumns) {
@@ -271,7 +284,7 @@ final class TableToVariable3NodeModel extends NodeModel {
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
-    private DataRow getFirstRow(final BufferedDataTable variables) throws InvalidSettingsException {
+    private DataRow getFirstRow(final BufferedDataTable variables) {
         try (final CloseableRowIterator iter = variables.iterator()) {
             if (iter.hasNext()) {
                 return iter.next();
@@ -284,16 +297,7 @@ final class TableToVariable3NodeModel extends NodeModel {
 
     }
 
-    /**
-     * Converts the {@link DataRow}'s {@link DataCell}'s to {@link FlowVariable}s and pushes them onto the variable
-     * stack.
-     *
-     * @param spec the input {@link DataTableSpec}
-     * @param row the row whose cells have to be converted to {@link FlowVariable}s
-     * @throws InvalidSettingsException
-     */
-    private void pushVariables(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells)
-        throws InvalidSettingsException {
+    private void pushVariables(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells) {
         final String[] selectedColumns = m_columnSelection.applyTo(spec).getIncludes();
 
         // now replace missing cells from the input by their defaults!
@@ -303,7 +307,7 @@ final class TableToVariable3NodeModel extends NodeModel {
     }
 
     private DataCell[] prepareRow(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells,
-        final String[] selectedColumns) throws InvalidSettingsException {
+        final String[] selectedColumns) {
         final DataCell[] updatedRow;
         final MissingValuePolicy policy = getMissingValuePolicy();
 
@@ -362,40 +366,34 @@ final class TableToVariable3NodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_onMV.saveSettingsTo(settings);
+        m_string.saveSettingsTo(settings);
+        m_boolean.saveSettingsTo(settings);
         m_int.saveSettingsTo(settings);
         m_long.saveSettingsTo(settings);
         m_double.saveSettingsTo(settings);
-        m_string.saveSettingsTo(settings);
-        m_boolean.saveSettingsTo(settings);
         m_columnSelection.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // new since 2.9
-        if (settings.containsKey(m_string.getKey())) {
-            m_onMV.loadSettingsFrom(settings);
-            m_int.loadSettingsFrom(settings);
-            m_long.loadSettingsFrom(settings);
-            m_double.loadSettingsFrom(settings);
-            m_string.loadSettingsFrom(settings);
-            m_boolean.loadSettingsFrom(settings);
-            m_columnSelection.loadSettingsFrom(settings);
-        }
+        m_onMV.loadSettingsFrom(settings);
+        m_string.loadSettingsFrom(settings);
+        m_boolean.loadSettingsFrom(settings);
+        m_int.loadSettingsFrom(settings);
+        m_long.loadSettingsFrom(settings);
+        m_double.loadSettingsFrom(settings);
+        m_columnSelection.loadSettingsFrom(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // new since 2.9
-        if (settings.containsKey(m_string.getKey())) {
-            m_onMV.validateSettings(settings);
-            m_int.validateSettings(settings);
-            m_long.validateSettings(settings);
-            m_double.validateSettings(settings);
-            m_string.validateSettings(settings);
-            m_boolean.validateSettings(settings);
-            m_columnSelection.validateSettings(settings);
-        }
+        m_onMV.validateSettings(settings);
+        m_string.validateSettings(settings);
+        m_boolean.validateSettings(settings);
+        m_int.validateSettings(settings);
+        m_long.validateSettings(settings);
+        m_double.validateSettings(settings);
+        m_columnSelection.validateSettings(settings);
     }
 
     @Override

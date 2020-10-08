@@ -10,9 +10,11 @@
 		<intro>		
 	    Extracts scope variables and puts them into a single row table.
 		</intro>
-		<option name="Variable Filter">Include list contains all variables that are converted into a column of the resulting row, excluded variables are not used. All variables remain on the variable stack. Enforce exclusion and 
-		inclusion options can be used to force all new variables to be included or excluded, resp.</option>
-		<option name="Generated RowID">The name of the RowID used for the resulting row.</option>
+		<option name="Row name">The name of the RowID used for the resulting row.</option>
+		<option name="Variable Filter">
+			Include list contains all variables that are converted into a column of the resulting row, excluded 
+			variables are not used. All variables remain on the variable stack. Enforce exclusion and inclusion
+			options can be used to force all new variables to be included or excluded, resp.</option>
 		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
 			KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
 		</link>

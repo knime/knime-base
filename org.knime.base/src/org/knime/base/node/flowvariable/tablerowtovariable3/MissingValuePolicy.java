@@ -47,49 +47,64 @@
  */
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
+import org.knime.core.node.util.ButtonGroupEnumInterface;
+
 /**
  * Enums for this policies.
  *
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-enum MissingValuePolicy {
+enum MissingValuePolicy implements ButtonGroupEnumInterface {
 
         /**
          * Fail the nodes execution.
          */
-        FAIL("Fail"),
+        FAIL("Fail",
+            "The execution will fail if the input table is empty or any of the selected columns contains missing "
+                + "values"),
 
         /**
          * Assign default values.
          */
-        DEFAULT("Use Defaults if available"),
+        DEFAULT("Use defaults if available",
+            "Replaces missing cells by the (predefined) defaults. If no default is available the node will fail "
+                + "during execution."),
 
         /**
          * Omit missing values.
          */
-        OMIT("Omit");
+        OMIT("Omit", "Omits the creation of flow variables for missing cells.");
 
     private final String m_name;
+
+    private final String m_toolTip;
 
     /**
      * @param name Name of this policy
      */
-    MissingValuePolicy(final String name) {
+    private MissingValuePolicy(final String name, final String toolTip) {
         m_name = name;
+        m_toolTip = toolTip;
     }
 
-    /**
-     * @return Name of this policy
-     */
-    String getName() {
+    @Override
+    public String getText() {
         return m_name;
     }
 
-    /**
-     * @return Array of all policy settings
-     */
-    static String[] getAllSettings() {
-        return new String[]{FAIL.getName(), DEFAULT.getName(), OMIT.getName()};
+    @Override
+    public String getActionCommand() {
+        return this.name();
+    }
+
+    @Override
+    public String getToolTip() {
+        return m_toolTip;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return this == DEFAULT;
     }
 
 }

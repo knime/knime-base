@@ -102,7 +102,7 @@ import org.knime.core.node.workflow.VariableType;
 final class AppendVariableToTable4NodeModel extends NodeModel {
 
     /** Key for the filter configuration. */
-    static final String CFG_KEY_FILTER = "variable-filter";
+    static final String CFG_KEY_FILTER = "variable_filter";
 
     private static final int DATA_INPUT_PORT_IDX = 1;
 
