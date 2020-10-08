@@ -139,8 +139,9 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
                 if (m_ignoreMissing.getBooleanValue()) {
                     continue;
                 }
-                throw new MissingValueException((MissingValue)cell, String
-                    .format("Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
+                throw new MissingValueException((MissingValue)cell,
+                    String.format("Missing values are not allowed as variable values -- column \"%s\" for row \"%s\"",
+                        m_column.getStringValue(), row.getKey()));
             }
 
             pushVariable(cell2VarConverter.createFlowVariable(name, cell));

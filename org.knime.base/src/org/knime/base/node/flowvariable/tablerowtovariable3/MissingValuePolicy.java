@@ -62,7 +62,7 @@ enum MissingValuePolicy {
         /**
          * Assign default values.
          */
-        DEFAULT("Use Defaults"),
+        DEFAULT("Use Defaults if available"),
 
         /**
          * Omit missing values.
