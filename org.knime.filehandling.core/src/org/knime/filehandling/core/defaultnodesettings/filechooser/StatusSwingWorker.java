@@ -48,15 +48,12 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import javax.swing.SwingWorker;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -95,9 +92,9 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
         Thread.sleep(200);
         try {
             return m_statusMessageReporter.report();
-        } catch (IOException | InvalidSettingsException ex) {
+        } catch (Exception ex) {// we catch all exceptions because they get lost otherwise
             LOGGER.error("Error while updating status message: " + ex.getMessage(), ex);
-            return new DefaultStatusMessage(MessageType.ERROR, ex.getMessage());
+            return new DefaultStatusMessage(MessageType.ERROR, "An error occurred: " + ex.getMessage());
         }
     }
 
@@ -108,14 +105,18 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
     @Override
     protected void doneWithContext() {
-        try {
-            m_statusMessageConsumer.accept(get());
-        } catch (final ExecutionException e) {
-            if (!(e.getCause() instanceof InterruptedException)) {
-                LOGGER.debug(e.getMessage(), e);
+        if (!isCancelled()) {
+            try {
+                m_statusMessageConsumer.accept(get());
+            } catch (final ExecutionException e) {
+                if (!(e.getCause() instanceof InterruptedException)) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
+            } catch (InterruptedException ex) {//NOSONAR
+                // can't be interrupted because the contract of the SwingWorker guarantees
+                // that the background computation has finished (or was cancelled) i.e. SwingWorker#get()
+                // doesn't block
             }
-        } catch (InterruptedException | CancellationException ex) {
-            // ignore
         }
     }
 
