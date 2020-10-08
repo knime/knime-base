@@ -290,29 +290,15 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         return CheckNodeContextUtil.isRemoteWorkflowContext();
     }
 
-    /**
-     * Sets the status provided by the swing worker if it is more urgent than the currently set status message. This is
-     * necessary because the swing worker works asynchronously and we might have already had the next event before it
-     * finishes.
-     *
-     * @param msg output by the status message swing worker
-     */
-    protected final void setStatusIfMoreUrgent(final StatusMessage msg) {
-        m_statusConsumer.clear();
-        m_statusConsumer.accept(msg);
-        m_statusView.getStatus().ifPresent(m_statusConsumer);
-        m_statusConsumer.get().ifPresent(m_statusView::setStatus);
-    }
-
     private void triggerSwingWorker() {
         if (m_statusMessageWorker != null) {
             m_statusMessageWorker.cancel(true);
         }
         try {
-            m_statusMessageWorker = new StatusSwingWorker(this::setStatusIfMoreUrgent,
+            m_statusMessageWorker = new StatusSwingWorker(m_statusView::setStatus,
                 m_statusMessageReporter.apply(getSettingsModel().createClone()));
             m_statusMessageWorker.execute();
-        } catch (Exception ex) {
+        } catch (Exception ex) {//NOSONAR we want to communicate any exception
             NodeLogger.getLogger(AbstractDialogComponentFileChooser.class)
                 .error("An exception occurred while updating the status message.", ex);
             m_statusView.setStatus(new DefaultStatusMessage(MessageType.ERROR,
