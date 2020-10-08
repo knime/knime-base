@@ -107,7 +107,10 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * mountpoint.</br>
  * In case of the custom URL file system, the browse button is always disabled and the user has to provide the exact
  * path via the combobox.</br>
- * The file selection combo box stores previously selected paths in a history that can be accessed in the drop down.
+ * The file selection combo box stores previously selected paths in a history that can be accessed in the drop
+ * down.</br>
+ * </br>
+ *
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The actual type of the implementation of the AbstractSettingsModelFileChooser
@@ -142,7 +145,16 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
     private StatusSwingWorker m_statusMessageWorker = null;
 
     /**
-     * Constructor.
+     * Constructor.</br>
+     * </br>
+     * In order to create the {@link FlowVariableModel}, prefix the key chain returned by
+     * {@link AbstractSettingsModelFileChooser#getKeysForFSLocation()} with the path to the settings model within your
+     * settings structure.</br>
+     * Suppose your settings have the structure foo/bar/model, then you can create the FlowVariableModel as follows:
+     * <pre>
+     * String[] keyChain = Stream.concat(Stream.of("foo", "bar"), Arrays.stream(model.getKeysForFSLocation())).toArray(String[]::new);
+     * FlowVariableModel fvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
+     * </pre>
      *
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}

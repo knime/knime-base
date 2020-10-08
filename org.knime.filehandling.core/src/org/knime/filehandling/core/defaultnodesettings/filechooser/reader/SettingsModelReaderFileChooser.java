@@ -50,15 +50,33 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 
 /**
  * File chooser settings model for reader nodes.
+ *
+ * <b>Intended usage:</b> If you only need the path string, it is sufficient to call {@link #getLocation()} and then
+ * {@link FSLocation#getPath()}. This call does not cause any I/O as opposed to calls on the {@link ReadPathAccessor}
+ * returned by {@link #createReadPathAccessor()}.</br>
+ * However, if you need access to the actual {@link FSPath} objects, you will have to use the
+ * {@link #createReadPathAccessor()}.</br>
+ * When used in the {@link NodeModel}, it is paramount to call the {@link #configureInModel(PortObjectSpec[], Consumer)}
+ * method in the {@code configure} method of the {@link NodeModel}. This serves two purposes: It updates the model with
+ * the incoming file system and validates that the file system is indeed the correct one. The
+ * {@link #configureInModel(PortObjectSpec[], Consumer)} accepts a {@link Consumer} of {@link StatusMessage} in order to
+ * report warning messages. In most cases you can make use of {@link NodeModelStatusConsumer}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @noreference non-public API
@@ -103,6 +121,12 @@ public final class SettingsModelReaderFileChooser
         super(toCopy);
     }
 
+    /**
+     * {@inheritDoc} </br>
+     * If you only need the path string, use {@link #getLocation()} instead.
+     *
+     * @see #getLocation()
+     */
     @Override
     public ReadPathAccessor createReadPathAccessor() {
         return super.createPathAccessor();

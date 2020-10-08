@@ -69,7 +69,16 @@ public final class DialogComponentReaderFileChooser
     extends AbstractDialogComponentFileChooser<SettingsModelReaderFileChooser> {
 
     /**
-     * Constructor using a default status message calculator implementation.
+     * Constructor using a default status message calculator implementation.</br>
+     * </br>
+     * In order to create the {@link FlowVariableModel}, prefix the key chain returned by
+     * {@link AbstractSettingsModelFileChooser#getKeysForFSLocation()} with the path to the settings model within your
+     * settings structure.</br>
+     * Suppose your settings have the structure foo/bar/model, then you can create the FlowVariableModel as follows:
+     * <pre>
+     * String[] keyChain = Stream.concat(Stream.of("foo", "bar"), Arrays.stream(model.getKeysForFSLocation())).toArray(String[]::new);
+     * FlowVariableModel fvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
+     * </pre>
      *
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
@@ -87,7 +96,16 @@ public final class DialogComponentReaderFileChooser
     }
 
     /**
-     * Constructor.
+     * Constructor.</br>
+     * </br>
+     * In order to create the {@link FlowVariableModel}, prefix the key chain returned by
+     * {@link AbstractSettingsModelFileChooser#getKeysForFSLocation()} with the path to the settings model within your
+     * settings structure.</br>
+     * Suppose your settings have the structure foo/bar/model, then you can create the FlowVariableModel as follows:
+     * <pre>
+     * String[] keyChain = Stream.concat(Stream.of("foo", "bar"), Arrays.stream(model.getKeysForFSLocation())).toArray(String[]::new);
+     * FlowVariableModel fvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
+     * </pre>
      *
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}

@@ -52,8 +52,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -61,13 +63,28 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * File chooser settings model for writer nodes. </br>
  * Adds the setting for creating missing folders and the {@link FileOverwritePolicy}.</br>
  * The policy is not stored in the settings if fewer than two policies are supported by the settings model.
+ *
+ * <b>Intended usage:</b> If you only need the path string, it is sufficient to call {@link #getLocation()} and then
+ * {@link FSLocation#getPath()}. This call does not cause any I/O as opposed to calls on {@link WritePathAccessor}
+ * returned by {@link #createWritePathAccessor()}.</br>
+ * However, if you need access to the actual {@link FSPath} objects, you will have to use
+ * {@link #createWritePathAccessor()}.</br>
+ * When used in the {@link NodeModel}, it is paramount to call the {@link #configureInModel(PortObjectSpec[], Consumer)}
+ * method in the {@code configure} method of the {@link NodeModel}. This serves two purposes: It updates the model with
+ * the incoming file system and validates that the file system is indeed the correct one. The
+ * {@link #configureInModel(PortObjectSpec[], Consumer)} accepts a {@link Consumer} of {@link StatusMessage} in order to
+ * report warning messages. In most cases you can make use of {@link NodeModelStatusConsumer}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 4.2
@@ -161,9 +178,11 @@ public final class SettingsModelWriterFileChooser
     }
 
     /**
-     * Creates a {@link WritePathAccessor} to be used in writer nodes.
+     * Creates a {@link WritePathAccessor} to be used in writer nodes.</br>
+     * If you only need the path string, use {@link #getLocation()} instead.
      *
      * @return a {@link WritePathAccessor}
+     * @see #getLocation()
      */
     public WritePathAccessor createWritePathAccessor() {
         return createPathAccessor();

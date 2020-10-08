@@ -57,6 +57,7 @@ import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -76,6 +77,7 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -88,7 +90,18 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * paths} specified in the dialog.</br>
  * <b>IMPORTANT NOTE:</b> Nodes that use this settings model must call the
  * {@link #configureInModel(PortObjectSpec[], Consumer)} method in the respective {@code configure} method of the node
- * model before retrieving e.g. the {@link FSLocation} via {@link #getLocation()}.
+ * model before retrieving e.g. the {@link FSLocation} via {@link #getLocation()}.</br>
+ * </br>
+ *
+ * <b>Intended usage:</b> If you only need the path string, it is sufficient to call {@link #getLocation()} and then
+ * {@link FSLocation#getPath()}. This call does not cause any I/O as opposed to calls on {@link ReadPathAccessor} or
+ * {@link WritePathAccessor}.</b> However, if you need access to the actual {@link FSPath} objects, you will have to use
+ * the {@link ReadPathAccessor} or {@link WritePathAccessor}.</br>
+ * When used in the {@link NodeModel}, it is paramount to call the {@link #configureInModel(PortObjectSpec[], Consumer)}
+ * method in the {@code configure} method of the {@link NodeModel}. This serves two purposes: It updates the model with
+ * the incoming file system and validates that the file system is indeed the correct one. The
+ * {@link #configureInModel(PortObjectSpec[], Consumer)} accepts a {@link Consumer} of {@link StatusMessage} in order to
+ * report warning messages. In most cases you can make use of {@link NodeModelStatusConsumer}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The actual type of the implementation of the AbstractSettingsModelFileChooser
@@ -173,11 +186,14 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
-     * Configures the settings model in the node model and validates teh input specs and settings.
+     * Configures the settings model in the {@link NodeModel} and validates the input specs and settings.</br>
+     * The statusMessageConsumer is used to communicate warning and info messages. In most cases you can use
+     * {@link NodeModelStatusConsumer}.
      *
      * @param specs input specs of the node
      * @param statusMessageConsumer for communicating status messages
      * @throws InvalidSettingsException if the settings are invalid or incompatible with <b>specs</b>
+     * @see NodeModelStatusConsumer
      */
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
@@ -197,7 +213,9 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
-     * Returns the keys corresponding to the location configuration.</br>
+     * Returns the keys corresponding to the location configuration within the settings model. If the settings model is
+     * not located at the top most level of the settings, you will have to prefix the returned array with the path to
+     * the settings model within your settings structure.</br>
      * Use this method when creating the {@link FlowVariableModel} for the location in the node dialog.
      *
      * @return the keys corresponding to the location configuration
