@@ -119,9 +119,9 @@ public final class FileSystemChooser {
     private void handleConfigChange() {
         FSCategory category = m_config.getFSCategory();
         final FileSystemSpecificDialog fsd = m_fileSystemDialogs.get(category);
-            if (fsd != null) {
-                setSpecificDialog(fsd);
-            }
+        if (fsd != null) {
+            setSpecificDialog(fsd);
+        }
     }
 
     private void setSpecificDialog(final FileSystemSpecificDialog fsd) {

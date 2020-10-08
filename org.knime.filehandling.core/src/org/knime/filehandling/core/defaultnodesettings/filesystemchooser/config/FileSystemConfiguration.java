@@ -251,6 +251,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         if (config.isActive() && config == getCurrentSpecificConfig()) {
             // update location config if the currently selected fs config changed
             m_locationSpec = m_locationSpecHandler.adapt(m_locationSpec, config.getLocationSpec());
+            notifyChangeListeners();
         }
     }
 
