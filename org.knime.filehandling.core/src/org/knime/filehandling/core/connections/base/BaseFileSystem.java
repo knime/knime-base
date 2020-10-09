@@ -166,7 +166,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
             prepareClose();
         } finally {
             m_cache.clearCache();
-            m_fileSystemProvider.removeFileSystem(m_uri);
         }
     }
 

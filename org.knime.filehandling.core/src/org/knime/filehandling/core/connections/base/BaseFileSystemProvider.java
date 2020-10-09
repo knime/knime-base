@@ -138,10 +138,10 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     /**
-     * Checks whether the underlying file system is either open or in the process and throws a
-     * {@link ClosedFileSystemException} if not.
+     * Checks whether the underlying file system is either open or in the process of closing. Throws a
+     * {@link ClosedFileSystemException} if the file system has already been closed.
      *
-     * @throws ClosedFileSystemException when the file system has already been closed.
+     * @throws ClosedFileSystemException if the file system has already been closed.
      */
     private void checkFileSystemOpenOrClosing() {
         if (!m_fileSystem.isOpen() && !m_fileSystem.isClosing()) {
@@ -509,7 +509,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * @param uri the URI to the file system
      */
     protected synchronized void removeFileSystem(final URI uri) {
-        m_fileSystem = null;
+        // do nothing
     }
 
     @SuppressWarnings("unchecked")
