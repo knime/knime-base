@@ -9,6 +9,12 @@
             factory-class="org.knime.filehandling.utility.nodes.metainfo.FileFolderMetaInfoNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.binaryobjects.writer.BinaryObjectsToFilesNodeFactory"
+            hidden="false">
+      </node>
    </extension>
 
 </plugin>

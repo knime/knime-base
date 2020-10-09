@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="binaryobjectstofiles16x16.png"
+	type="Manipulator" xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1
+	http://knime.org/node/v4.1.xsd">
+	<name>Binary Objects to Files (Labs)</name>
+	<shortDescription>
+		 Write the binary objects of a table as files.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			This node writes files from a table with binary objects. It will append the URIs of the files to the output 
+			table.
+		</intro>
+		<option name="Binary object column">
+			Column with binary objects.
+		</option>
+		<option name="Filenames...">
+			<b>From column</b>
+			<br />
+			The names can be found in a column of the input table.
+			<br />
+			<b>Generate</b>
+			<br />
+			The names will be generated using a pattern.
+		</option>
+		<option name="Target column">
+			URI column with the target path.
+		</option>
+		<option name="Output directory">
+			The directory where the files will be put.
+		</option>
+		<option name="Name pattern">
+			The pattern that will be used to generate the filenames. The ? will be replaced by the index of the 
+			corresponding row. (Starting with 0)
+		</option>
+		<option name="Remove binary object column">
+			Removes the column with the binary objects from the output table.
+		</option>
+		<option name="If a file exists...">
+			Specifies the behavior if one of the files already exists.
+			<br />
+			<b>Overwrite</b>
+			<br />
+			Overwrite the existing file.
+			<br />
+			<b>Abort</b>
+			<br />
+			The nodes execution will be aborted.
+		</option>
+	</fullDescription>
+
+    <ports>
+        <inPort name="Input table" index="0">
+            Table that contains the binary objects that will be written. Target paths for the output files can also be
+            used, if they are available in the table.
+        </inPort>
+        <dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+        <outPort name="Output table" index="0">
+            Input table with the URI to each file. The URI will only be appended if it is not already present in the
+            table.
+        </outPort>
+    </ports>
+</knimeNode>
