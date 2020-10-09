@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.util.tempdir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -270,29 +271,22 @@ final class CreateTempDir2NodeModel extends NodeModel {
                     for (FSLocation loc : entry.getValue()) {
                         deleteTempDir(factory, loc);
                     }
+                } catch (ClosedFileSystemException e) { // NOSONAR can be ignored
+                    // do nothing, can be safely ignored because temp dir has already been deleted when closing the file system
                 } catch (final IOException facE) {
                     LOGGER.debug("Unable to close path provider factory for " + entry.getKey().toString() + " "
-                        + facE.getMessage());
+                        + facE.getMessage(), facE);
                 }
             }
         }
 
         private static void deleteTempDir(final FSPathProviderFactory factory, final FSLocation loc) {
             try (FSPathProvider pathProvider = factory.create(loc)) {
-                deleteTempDir(pathProvider);
-            } catch (final IOException provE) {
-                LOGGER.debug("Unable to close path provider for " + loc.toString() + " " + provE.getMessage());
-            }
-        }
-
-        private static void deleteTempDir(final FSPathProvider pathProvider) {
-            try {
                 FSFiles.deleteRecursively(pathProvider.getPath());
-            } catch (IOException delE) {
-                LOGGER.debug("Problem deleting temp directory " + delE.getMessage());
+            } catch (final IOException provE) {
+                LOGGER.debug("Unable to delete temp directory: " + provE.getMessage(), provE);
             }
         }
-
     }
 
 }
