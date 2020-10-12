@@ -68,19 +68,22 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class CreatePathsNodeConfig {
 
+    // If we change the cfg key we need to ensure that the DEFAULT_VAR_NAMES stays as before
     private static final String CFG_DIR_PARENT = "base_folder";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_NAMES = "additional_variable_names";
+    private static final String CFG_VARIABLE_NAMES = "variable_names";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_VALUES = "additional_variable_values";
+    private static final String CFG_VARIABLE_VALUES = "variable_values";
 
-    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+    private static final String[] DEFAULT_VAR_NAMES = new String[]{CFG_DIR_PARENT};
+
+    private static final String[] DEFAULT_VAR_VALUES = new String[]{""};
 
     private SettingsModelCreatorFileChooser m_dirChooserModel;
 
-    private String[] m_additionalVarNames;
+    private String[] m_VarNames;
 
-    private String[] m_additionalVarValues;
+    private String[] m_VarValues;
 
     CreatePathsNodeConfig(final PortsConfiguration portsConfig) {
         m_dirChooserModel = new SettingsModelCreatorFileChooser(CFG_DIR_PARENT, portsConfig,
@@ -92,22 +95,30 @@ final class CreatePathsNodeConfig {
                 .setLocation(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "."));
         }
 
-        m_additionalVarNames = EMPTY_STRING_ARRAY;
-        m_additionalVarValues = EMPTY_STRING_ARRAY;
+        m_VarNames = DEFAULT_VAR_NAMES;
+        m_VarValues = DEFAULT_VAR_VALUES;
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_dirChooserModel.validateSettings(settings);
+        checkVariableSettings(settings.getStringArray(CFG_VARIABLE_NAMES),
+            settings.getStringArray(CFG_VARIABLE_VALUES));
 
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
+    }
 
-        validateSettings();
+    private static void checkVariableSettings(final String[] varNames, final String[] varValues)
+        throws InvalidSettingsException {
+        CheckUtils.checkSetting(varNames.length == varValues.length,
+            "The number of names for variables must be equal to that of values");
+        CheckUtils.checkSetting(varNames.length > 0, "Please specify at least one variable to be created");
+        for (final String varName : varNames) {
+            CheckUtils.checkSetting(!varName.isEmpty(), "Please assign names for each flow variable to be created");
+        }
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, EMPTY_STRING_ARRAY);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, EMPTY_STRING_ARRAY);
+        m_VarNames = settings.getStringArray(CFG_VARIABLE_NAMES, DEFAULT_VAR_NAMES);
+        m_VarValues = settings.getStringArray(CFG_VARIABLE_VALUES, DEFAULT_VAR_VALUES);
     }
 
     void saveSettingsForDialog(final NodeSettingsWO settings) {
@@ -117,8 +128,8 @@ final class CreatePathsNodeConfig {
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_dirChooserModel.loadSettingsFrom(settings);
 
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
+        m_VarNames = settings.getStringArray(CFG_VARIABLE_NAMES);
+        m_VarValues = settings.getStringArray(CFG_VARIABLE_VALUES);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -127,13 +138,8 @@ final class CreatePathsNodeConfig {
     }
 
     private void save(final NodeSettingsWO settings) {
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, m_additionalVarNames);
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, m_additionalVarValues);
-    }
-
-    private void validateSettings() {
-        CheckUtils.checkArgument(m_additionalVarNames.length == m_additionalVarValues.length,
-            "The number of names for addtional variables must be equal to that of values!");
+        settings.addStringArray(CFG_VARIABLE_NAMES, m_VarNames);
+        settings.addStringArray(CFG_VARIABLE_VALUES, m_VarValues);
     }
 
     /**
@@ -152,7 +158,7 @@ final class CreatePathsNodeConfig {
      * @return an array of variable names that are exported
      */
     String[] getAdditionalVarNames() {
-        return m_additionalVarNames;
+        return m_VarNames;
     }
 
     /**
@@ -162,7 +168,7 @@ final class CreatePathsNodeConfig {
      * @param varNames an array of variable names that are exported
      */
     void setAdditionalVarNames(final String[] varNames) {
-        m_additionalVarNames = varNames;
+        m_VarNames = varNames;
     }
 
     /**
@@ -172,7 +178,7 @@ final class CreatePathsNodeConfig {
      * @return an array of filenames that are exported as variables values
      */
     String[] getAdditionalVarValues() {
-        return m_additionalVarValues;
+        return m_VarValues;
     }
 
     /**
@@ -182,6 +188,6 @@ final class CreatePathsNodeConfig {
      * @param varNames an array of filenames that are exported as variables values
      */
     void setAdditionalVarValues(final String[] varNames) {
-        m_additionalVarValues = varNames;
+        m_VarValues = varNames;
     }
 }

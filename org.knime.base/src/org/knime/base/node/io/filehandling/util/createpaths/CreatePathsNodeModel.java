@@ -64,6 +64,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -106,9 +107,9 @@ final class CreatePathsNodeModel extends NodeModel {
         }
     }
 
-    private void createFlowVariables(final FSPath tempDirFSPath) {
+    private void createFlowVariables(final FSPath rootFSPath) {
         for (int i = 0; i < m_config.getAdditionalVarNames().length; i++) {
-            final FSPath additionalPath = (FSPath)tempDirFSPath.resolve(m_config.getAdditionalVarValues()[i]);
+            final FSPath additionalPath = (FSPath)rootFSPath.resolve(m_config.getAdditionalVarValues()[i]);
             pushFSLocationVariable(m_config.getAdditionalVarNames()[i], additionalPath.toFSLocation());
         }
     }

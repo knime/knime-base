@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.util.createpaths;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -57,7 +58,11 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -67,6 +72,8 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.KeyValuePanel;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -93,7 +100,9 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
 
         m_additionalVariablePathPairPanel = new KeyValuePanel();
         m_additionalVariablePathPairPanel.setKeyColumnLabel("Variable Name");
-        m_additionalVariablePathPairPanel.setValueColumnLabel("Path");
+        m_additionalVariablePathPairPanel.setValueColumnLabel("File / Folder location");
+        m_additionalVariablePathPairPanel.getTable().setDefaultRenderer(Object.class,
+            new PathPrefixedCellRenderer(m_config.getDirChooserModel()));
 
         addTab("Settings", initLayout());
     }
@@ -132,7 +141,7 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
     private JPanel createFilePanel() {
         final JPanel filePanel = new JPanel();
         filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Root location"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Base location"));
         filePanel.setMaximumSize(
             new Dimension(Integer.MAX_VALUE, m_filePanel.getComponentPanel().getPreferredSize().height));
         filePanel.add(m_filePanel.getComponentPanel());
@@ -144,7 +153,7 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel additionalVarPanel = new JPanel(new GridBagLayout());
         additionalVarPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Path variables"));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File/Folder variables"));
 
         gbc.insets = new Insets(5, 0, 3, 0);
         gbc.weighty = 1;
@@ -174,4 +183,73 @@ final class CreatePathsNodeDialog extends NodeDialogPane {
         m_filePanel.saveSettingsTo(settings);
         m_config.saveSettingsForDialog(settings);
     }
+
+    /**
+     * Implements a {@link DefaultTableCellRenderer} that prepends the selected root path to the path provided by the
+     * user. The prefix is displayed in a light gray and cannot be modified.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    private static class PathPrefixedCellRenderer extends DefaultTableCellRenderer {//NOSONAR
+
+        private static final long serialVersionUID = 1L;
+
+        private static final String DEFAULT_PREFIX_FONT_FORMAT = "<html><font color=#696969>%s</font>%s</html>";
+
+        private final transient SettingsModelCreatorFileChooser m_rootSelectionModel;
+
+        private String m_pathSeparator;
+
+        private FSLocation m_lastCategory;
+
+        PathPrefixedCellRenderer(final SettingsModelCreatorFileChooser rootSelectionModel) {
+            m_rootSelectionModel = rootSelectionModel;
+
+            // This is a work around and needs to be replaced once AP-14001 has been implemented
+            // corresponding ticket AP-15353
+            m_lastCategory = m_rootSelectionModel.getLocation();
+            m_rootSelectionModel.addChangeListener(this::getPathSeparator);
+            assignSeparator(m_lastCategory.getFSCategory());
+        }
+
+        private void getPathSeparator(@SuppressWarnings("unused") final ChangeEvent e) {
+            final FSLocation curLocation = m_rootSelectionModel.getLocation();
+            final FSCategory curCategory = curLocation.getFSCategory();
+            if (m_lastCategory.getFSCategory() != curCategory) {
+                assignSeparator(curCategory);
+            }
+            if (!m_lastCategory.equals(curLocation)) {
+                repaint();
+            }
+            m_lastCategory = curLocation;
+        }
+
+        private void assignSeparator(final FSCategory curCategory) {
+            if ((curCategory == FSCategory.LOCAL || curCategory == FSCategory.RELATIVE) && SystemUtils.IS_OS_WINDOWS) {
+                m_pathSeparator = "\\";
+            } else {
+                m_pathSeparator = "/";
+            }
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+            final boolean hasFocus, final int row, final int column) {
+            final DefaultTableCellRenderer c = (DefaultTableCellRenderer)super.getTableCellRendererComponent(table,
+                value, isSelected, hasFocus, row, column);
+            if (column == 1) {
+                final String prefix = getBaseDirPrefixFromLocation();
+                final String suffix = table.getModel().getValueAt(row, column).toString();
+                c.setText(String.format(DEFAULT_PREFIX_FONT_FORMAT, prefix, suffix));
+            }
+            return c;
+        }
+
+        private String getBaseDirPrefixFromLocation() {
+            final String base = m_rootSelectionModel.getLocation().getPath();
+            return base.endsWith(m_pathSeparator) ? base : (base + m_pathSeparator);
+        }
+
+    }
+
 }

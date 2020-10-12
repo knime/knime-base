@@ -3,15 +3,16 @@
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>Create Paths (Labs)</name>
-	<shortDescription>Creates paths and exposes them as flow variables.</shortDescription>
+	<name>Create File/Folder Variables (Labs)</name>
+	<shortDescription>Creates paths to files/folders and exposes them as flow variables.</shortDescription>
 	<fullDescription>
 		<intro>
-			This node takes a folder path as root and a list of path names to create and expose multiple paths in path
-			flow variables after execution.
+			This node allows selecting a (existing) base folder and to define a list of locations pointing to
+			(existing) files/folders relative to the base location. After execution the specified list of file/folder
+			locations is accessible for subsequent nodes via flow variables.
 			<br />
 			<i>Note:</i>
-			By default the workflow data area is selected as directory, as defined by “.“ in the Folder field
+			By default the workflow data area is selected as folder, as defined by “.“ in the Folder field
 		</intro>
 		<option name="Create for">
 			Select a file system to which your file names are related. There are three default file system options to
@@ -47,7 +48,7 @@
 			if a file system is provided via the input port.
 		</option>
 		<option name="Folder">
-			Enter a valid location as root for your paths. The required syntax of a path depends on the chosen file
+			Enter a valid base location for your paths. The required syntax of a path depends on the chosen file
 			system, such as &quot;C:\path\to\file&quot; (Local File System on Windows) or &quot;/path/to/file&quot;
 			(Local File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
 			description of the respective connector node describes the required path format. You can also choose a 
@@ -66,8 +67,10 @@
 				</li>
 			</ul>
 		</option>
-		<option name="Path variables">A list of paths that will form a path with the selected root directory. Enter the
-		name of the flow variable in the first column and the path in the second column.
+		<option name="File/Folder variables">
+			A list of file/folder locations that will form a path with the selected base folder. Enter the name of
+			the flow variable in the first column and the file/folder location relative to the base location in the
+			second column.
 		</option>
 		<link
 			href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
