@@ -12,12 +12,11 @@
 		The Column Appender takes two or more tables and quickly combines them by
 		appending their columns according to the order of the tables at the input 
 		ports. It simply appends columns from the second input table to the first 
-		input table and does the same for the third table if the optional port is 
-		activated and connected. One can keep adding optional ports and append 
-		columns from multiple tables. The node performs a simple and 
-		straight forward join operation but can be faster if certain preconditions are
-		met. For more details please read the description of the "Identical row
-		keys and table lengths"-option below. When in doubt, use the Joiner.
+		input table and does the same for any subsequent table if additional 
+		(dynamic) ports were added. The node performs a simple and straight
+		forward join operation but can be faster if certain preconditions are met.
+		For more details please read the description of the "Identical row keys
+		and table lengths"-option below. When in doubt, use the Joiner.
 		<br></br>
 		If the input tables share some column names, the offending column
 		names from the bottom tables will be appended with "(#1), (#2) and so on".		
