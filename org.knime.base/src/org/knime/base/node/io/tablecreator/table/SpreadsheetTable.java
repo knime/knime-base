@@ -115,13 +115,12 @@ class SpreadsheetTable extends JTable {
 
     private static final long serialVersionUID = 4270519208349907535L;
 
+    private static final int ACCELERATOR_MODIFIER_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     private static final int ACCELERATOR_MODIFIER_VK;
     static {
-        final int fromToolkit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-
-        if (fromToolkit == Event.META_MASK) {
+        if (ACCELERATOR_MODIFIER_MASK == Event.META_MASK) {
             ACCELERATOR_MODIFIER_VK = KeyEvent.VK_META;
-        } else if (fromToolkit == Event.CTRL_MASK) {
+        } else if (ACCELERATOR_MODIFIER_MASK == Event.CTRL_MASK) {
             ACCELERATOR_MODIFIER_VK = KeyEvent.VK_CONTROL;
         } else {
             ACCELERATOR_MODIFIER_VK = KeyEvent.VK_ALT;
@@ -361,7 +360,7 @@ class SpreadsheetTable extends JTable {
          */
         @Override
         public void keyPressed(final KeyEvent ke) {
-            m_expectingReleaseDueToPasteCutOrCopy.set(((ke.getModifiers() & ACCELERATOR_MODIFIER_VK) != 0)
+            m_expectingReleaseDueToPasteCutOrCopy.set(((ke.getModifiers() & ACCELERATOR_MODIFIER_MASK) != 0)
                                                             && ((ke.getKeyChar() == 'v')
                                                                     || (ke.getKeyChar() == 'c')
                                                                     || (ke.getKeyChar() == 'x')));
@@ -408,7 +407,7 @@ class SpreadsheetTable extends JTable {
         private boolean vetoKeyPress(final KeyEvent ke, final boolean pressed) {
             return ((m_expectingReleaseDueToPasteCutOrCopy.get() && !pressed))
                         || (ACCELERATOR_MODIFIER_VK == ke.getKeyCode())
-                        || ((ke.getModifiers() & ACCELERATOR_MODIFIER_VK) != 0);
+                        || ((ke.getModifiers() & ACCELERATOR_MODIFIER_MASK) != 0);
         }
     }
 
