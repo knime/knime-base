@@ -196,6 +196,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * @throws IOException if something went wrong while checking.
      */
     protected void checkParentDirectoryExists(final P path) throws IOException {
+        @SuppressWarnings("unchecked")
         final P checkedPathParent = (P)path.getParent();
         if (checkedPathParent != null) {
             // already fails with NoSuchFileException if it does not exist
@@ -208,7 +209,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
     }
 
-    private Set<OpenOption> validateAndSanitizeChannelOpenOptions(final Set<? extends OpenOption> options) {
+    private static Set<OpenOption> validateAndSanitizeChannelOpenOptions(final Set<? extends OpenOption> options) { // NOSONAR it is best to sanitize the options in one place, also the method has comments
         final Set<OpenOption> sanitized = new HashSet<>(options);
 
         // APPEND and TRUNCATE_EXISTING imply WRITE
@@ -396,8 +397,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             if (isSameFile(checkedSource, checkedTarget)) {
                 return;
             }
-        } catch (NoSuchFileException e) {
-            // target file might not exists
+        } catch (NoSuchFileException e) { // NOSONAR target file might not exist
         }
 
         if (!existsCached((P)checkedTarget.getParent())) {
@@ -522,7 +522,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             // fails with NoSuchFileException if it does not exist
             readAttributes(checkedDir, BasicFileAttributes.class);
             throw new FileAlreadyExistsException(checkedDir.toString());
-        } catch (NoSuchFileException e) {
+        } catch (NoSuchFileException e) { // NOSONAR exception is dealt with properly
             createDirectoryInternal(checkedDir, attrs);
         }
     }
@@ -584,7 +584,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      * @return whether the path exists or not.
      * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
      */
-    final protected boolean existsCached(final P path) throws IOException {
+    protected final boolean existsCached(final P path) throws IOException {
         final P normalizedAbsolute = (P)path.toAbsolutePath().normalize();
         return getFileSystemInternal().hasCachedAttributes(normalizedAbsolute) || exists(normalizedAbsolute);
     }
@@ -756,11 +756,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
         checkFileSystemOpenAndNotClosing();
 
-        if (path.getFileSystem().provider() != this) {
-            return false;
-        }
-
-        if (path2.getFileSystem().provider() != this) {
+        if (path.getFileSystem().provider() != this || path2.getFileSystem().provider() != this) {
             return false;
         }
 
