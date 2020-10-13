@@ -48,14 +48,28 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.files;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFiles;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.location.FSPathProvider;
+import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.util.IOESupplier;
@@ -90,5 +104,141 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
         assertFalse(Files.exists(m_testInitializer.makePath("dir", "childdir", "a")));
         assertFalse(Files.exists(m_testInitializer.makePath("dir", "childdir", "b")));
         assertFalse(Files.exists(m_testInitializer.makePath("dir", "childdir", "c")));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_copy_recursively_file() throws IOException {
+        final FSPath source = m_testInitializer.createFile("file");
+        final FSPath target = m_testInitializer.makePath("file2");
+        FSFiles.copyRecursively(source, target);
+    }
+
+    @Test
+    public void test_copy_recursively_empty_dir() throws IOException {
+        final FSPath source = m_testInitializer.makePath("sourcedir");
+        final FSPath target = m_testInitializer.makePath("targetdir");
+
+        Files.createDirectories(source);
+        FSFiles.copyRecursively(source, target);
+
+        assertTrue(Files.isDirectory(source));
+        assertTrue(Files.isDirectory(target));
+
+        try(Stream<Path> tgtFiles = Files.list(target)) {
+            assertEquals(0, tgtFiles.toArray(Path[]::new).length);
+        }
+    }
+
+    @Test
+    public void test_copy_recursively_file_tree() throws IOException {
+        final FSPath source = m_testInitializer.makePath("dir1");
+        final FSPath a = m_testInitializer.createFileWithContent("a", "dir1", "a");
+        final FSPath b = m_testInitializer.createFileWithContent("b", "dir1", "b");
+        final FSPath c = m_testInitializer.createFileWithContent("c", "dir1", "dir11", "a");
+        final FSPath d = m_testInitializer.createFileWithContent("d", "dir1", "dir12", "d");
+        final FSPath emptyDir = m_testInitializer.makePath("dir1", "empty_dir");
+        Files.createDirectories(emptyDir);
+
+        final FSPath target = m_testInitializer.makePath("target");
+
+        FSFiles.copyRecursively(source, target);
+
+        assertTrue(Files.isRegularFile(a));
+        assertTrue(Files.isRegularFile(b));
+        assertTrue(Files.isRegularFile(c));
+        assertTrue(Files.isRegularFile(d));
+        assertTrue(Files.isDirectory(emptyDir));
+
+
+        final FSPath targetA = m_testInitializer.makePath("target", "a");
+        final FSPath targetB = m_testInitializer.makePath("target", "b");
+        final FSPath targetC = m_testInitializer.makePath("target", "dir11", "a");
+        final FSPath targetD = m_testInitializer.makePath("target", "dir12", "d");
+        final FSPath targetEmptyDir = m_testInitializer.makePath("target", "empty_dir");
+
+        assertTrue(Files.isRegularFile(targetA));
+        assertTrue(Files.isRegularFile(targetB));
+        assertTrue(Files.isRegularFile(targetC));
+        assertTrue(Files.isRegularFile(targetD));
+        assertTrue(Files.isDirectory(targetEmptyDir));
+
+        assertEquals(Files.readAllLines(a), Files.readAllLines(targetA));
+        assertEquals(Files.readAllLines(b), Files.readAllLines(targetB));
+        assertEquals(Files.readAllLines(c), Files.readAllLines(targetC));
+        assertEquals(Files.readAllLines(d), Files.readAllLines(targetD));
+        try(Stream<Path> tgtFiles = Files.list(targetEmptyDir)) {
+            assertEquals(0, tgtFiles.toArray(Path[]::new).length);
+        }
+    }
+
+    @Test
+    public void test_copy_recursively_merge() throws IOException {
+        final FSPath source = m_testInitializer.makePath("dir1");
+        final FSPath a = m_testInitializer.createFileWithContent("a", "dir1", "a");
+        final FSPath b = m_testInitializer.createFileWithContent("c", "dir1", "dir11", "b");
+        final FSPath c = m_testInitializer.createFileWithContent("d", "dir1", "dir12", "c");
+        final FSPath emptyDir = m_testInitializer.makePath("dir1", "empty_dir");
+        Files.createDirectories(emptyDir);
+
+        final FSPath target = m_testInitializer.makePath("target");
+        final FSPath targetA = m_testInitializer.createFileWithContent("targetA", "target", "a");
+        final FSPath targetX = m_testInitializer.createFileWithContent("targetX", "target", "x");
+        final FSPath targetB = m_testInitializer.createFileWithContent("targetB", "target", "dir11", "b");
+        final FSPath targetC = m_testInitializer.makePath("target", "dir12", "c");
+        final FSPath targetEmptyDir = m_testInitializer.makePath("target", "empty_dir");
+
+        assertTrue(Files.isRegularFile(a));
+        assertTrue(Files.isRegularFile(b));
+        assertTrue(Files.isRegularFile(c));
+        assertTrue(Files.isDirectory(emptyDir));
+
+        FSFiles.copyRecursively(source, target, StandardCopyOption.REPLACE_EXISTING);
+
+        assertEquals(Files.readAllLines(a), Files.readAllLines(targetA));
+        assertEquals(Collections.singletonList("targetX"), Files.readAllLines(targetX));
+        assertEquals(Files.readAllLines(b), Files.readAllLines(targetB));
+        assertEquals(Files.readAllLines(c), Files.readAllLines(targetC));
+        try(Stream<Path> tgtFiles = Files.list(targetEmptyDir)) {
+            assertEquals(0, tgtFiles.toArray(Path[]::new).length);
+        }
+    }
+
+    @Test
+    public void test_copy_recursively_target_already_exists() throws IOException {
+        final FSPath source = m_testInitializer.makePath("source");
+        final FSPath target = m_testInitializer.makePath("target");
+
+        m_testInitializer.createFileWithContent("s", "source", "a");
+        final FSPath targetA = m_testInitializer.createFileWithContent("t", "target", "a");
+
+        try {
+            FSFiles.copyRecursively(source, target);
+            fail("FileAlreadyExistsException was not thrown");
+        } catch (FileAlreadyExistsException e) { // NOSONAR
+        }
+
+        assertEquals(Collections.singletonList("t"), Files.readAllLines(targetA));
+    }
+
+    @Test
+    public void test_copy_recursively_cross_provider() throws IOException {
+        final Path localTmpDir = Files.createTempDirectory("knime-filehanding-tests");
+        final Path localTmpFile = localTmpDir.resolve("file");
+        try (Writer writer = Files.newBufferedWriter(localTmpFile)) {
+            writer.append("content");
+        }
+        FSLocation sourceLoc = new FSLocation(FSCategory.LOCAL, localTmpDir.toString());
+
+        try (FSPathProviderFactory factory = FSPathProviderFactory.newFactory(Optional.empty(), sourceLoc)) {
+            try (FSPathProvider pathProvider = factory.create(sourceLoc)) {
+                final FSPath source = pathProvider.getPath();
+                final FSPath target = m_testInitializer.makePath("target");
+
+                FSFiles.copyRecursively(source, target);
+
+                assertTrue(Files.isDirectory(target));
+                assertEquals(Collections.singletonList("content"), Files.readAllLines(target.resolve("file")));
+            }
+        }
     }
 }

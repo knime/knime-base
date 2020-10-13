@@ -79,9 +79,9 @@ public abstract class BlobStorePath extends UnixStylePath {
      */
     protected BlobStorePath(final BaseFileSystem<?> fileSystem, final String first, final String[] more) {
         super(fileSystem, first, more);
-        m_isDirectory =
-            concatenatePathSegments(fileSystem.getSeparator(), first, more).endsWith(fileSystem.getSeparator())
-                || lastComponentUsesRelativeNotation();
+        m_isDirectory = isEmptyPath() // NOSONAR
+                || concatenatePathSegments(fileSystem.getSeparator(), first, more).endsWith(fileSystem.getSeparator())
+                || lastComponentUsesRelativeNotation(); // NOSONAR
     }
 
     /**
@@ -239,8 +239,9 @@ public abstract class BlobStorePath extends UnixStylePath {
         if (index < 0 || index >= m_pathParts.size()) {
             throw new IllegalArgumentException();
         }
+
         String name = m_pathParts.get(index);
-        if (index < m_pathParts.size() - 1 || isDirectory()) {
+        if (index < m_pathParts.size() - 1 || (!isEmptyPath() && isDirectory())) {
             //unless it is the last element and not a directory add separator
             name = name.concat(m_pathSeparator);
         }

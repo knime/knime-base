@@ -153,6 +153,21 @@ public class ExceptionUtil {
     }
 
     /**
+     * Looks at the given {@link Throwable} and wraps it in an {@link IOException}, unless it is already an IOException,
+     * in which case it will just be returned.
+     *
+     * @param e the {@link Throwable} to wrap
+     * @return a {@link IOException} that wraps (or is) the given {@link Throwable}.
+     */
+    public static IOException wrapAsIOException(final Throwable e) {
+        if (e instanceof IOException) {
+            return (IOException)e;
+        } else {
+            return new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Creates a formatted {@link AccessDeniedException}.
      *
      * @param path the path for which the {@link AccessDeniedException} occured

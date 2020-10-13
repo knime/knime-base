@@ -52,17 +52,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -365,4 +371,116 @@ public final class FSFiles {
         return paths;
     }
 
+
+    /**
+     * Checks whether the given path is a non-empty directory.
+     *
+     * @param path The path to check.
+     * @return true if the given path is a non-empty directory, false otherwise (if it does not exist, is not a directory, or is an
+     *         empty directory).
+     * @throws IOException if something went wrong while accessing the directory contents
+     */
+    public static boolean isNonEmptyDirectory(final FSPath path) throws IOException {
+        try (final Stream<Path> stream = Files.list(path)) {
+            return stream.findAny().isPresent();
+        } catch (NoSuchFileException | NotDirectoryException e) { // NOSONAR can be ignored
+        }
+
+        return false;
+    }
+
+    /**
+     * Recursively copies the given source directory to the given target directory.
+     *
+     * <p>
+     * The provided options will be forwarded to {@link FileSystemProvider#copy(Path, Path, CopyOption...)}. Note that
+     * {@link StandardCopyOption#REPLACE_EXISTING} can be used to do a recursive "merge" copy into an already existing
+     * target directory.
+     * </p>
+     *
+     * <p>
+     * This method does not perform a rollback in case of a failure. If a recursive copy fails, the target directory may
+     * be in an inconsistent state insofar, that not all data from the source directory has been copied.
+     * </p>
+     *
+     * @param source The directory to copy recursively.
+     * @param target The directory to copy to.
+     * @param options Options that specify how the copy should be done.
+     * @throws IOException
+     * @throws IllegalArgumentException if the given source path is not a directory.
+     */
+    public static void copyRecursively(final FSPath source, final FSPath target, final CopyOption... options) throws IOException {
+        if (!Files.readAttributes(source, BasicFileAttributes.class).isDirectory()) {
+            throw new IllegalArgumentException("Only directories can be copied recursively");
+        }
+
+        Files.walkFileTree(source, new RecursiveCopyVisitor(source, target, options));
+    }
+
+    private static final class RecursiveCopyVisitor implements FileVisitor<Path> {
+
+        private final FSPath m_source;
+
+        private final FSPath m_target;
+
+        private final CopyOption[] m_options;
+
+        private final boolean m_replaceExisting;
+
+        private RecursiveCopyVisitor(final FSPath source, final FSPath target, final CopyOption[] options) {
+            m_source = source;
+            m_target = target;
+            m_options = options;
+            m_replaceExisting = Arrays.stream(options) //
+                    .anyMatch(o->  o == StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+
+            final Path targetDir = toTargetPath(dir);
+
+            try {
+                Files.createDirectory(targetDir);
+            } catch (FileAlreadyExistsException e) {
+                if (!m_replaceExisting) {
+                    throw e;
+                }
+
+                if (!Files.readAttributes(targetDir, BasicFileAttributes.class).isDirectory()) {
+                    throw new IOException(
+                        String.format("Cannot replace non-directory %s with a directory", targetDir.toString()));
+                }
+            }
+
+            return FileVisitResult.CONTINUE;
+        }
+
+        private FSPath toTargetPath(final Path sourcePath) {
+            Path targetPath = m_target;
+            for (Path sourceComp : m_source.relativize(sourcePath)) {
+                targetPath = targetPath.resolve(sourceComp.toString());
+            }
+            return (FSPath)targetPath;
+        }
+
+        @Override
+        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            if (!attrs.isDirectory() && !attrs.isOther()) {
+                final Path targetFile = toTargetPath(file);
+                Files.copy(file, targetFile, m_options);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+            return FileVisitResult.TERMINATE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+            return FileVisitResult.CONTINUE;
+        }
+    }
 }

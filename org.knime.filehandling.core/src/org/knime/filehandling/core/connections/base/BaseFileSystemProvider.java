@@ -89,6 +89,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSInputStream;
 import org.knime.filehandling.core.connections.FSOutputStream;
 import org.knime.filehandling.core.connections.FSPath;
@@ -280,7 +281,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked"})
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
 
@@ -298,8 +299,12 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
 
         final P targetParent = (P)checkedTarget.getParent();
-        if (targetParent != null && !existsCached(targetParent)) {
-            throw new NoSuchFileException(targetParent.toString());
+        if (targetParent != null) {
+            // throws already NoSuchFileException
+            final BasicFileAttributes parentAttrs = readAttributes(targetParent, BasicFileAttributes.class);
+            if (!parentAttrs.isDirectory()) {
+                throw new FileSystemException(targetParent.toString() + " is not a directory");
+            }
         }
 
         if (checkedSource.equals(checkedTarget)) {
@@ -313,13 +318,66 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     /**
      * Move or rename a file to a target file. This method works in exactly the manner specified by the
      * {@link Files#move} method except that both the source and target paths must be associated with this provider.
+     * This method has a default implementation that emulates moving using (recursive) copy and delete. Subclasses are
+     * encouraged to override this method, if the underlying backend provides a O(1) operation for moving directories
+     * and/or files.
      *
-     * @param source the path to the file to move
-     * @param target the path to the target file
+     * <p>
+     * Implementations can assume that
+     * <ul>
+     * <li>the source path exists</li>
+     * <li>the target path does not exist, or the {@link StandardCopyOption#REPLACE_EXISTING} is set.
+     * <li>the parent of the target path exists and is a directory</li>
+     * </ul>
+     * </p>
+     *
+     * @param source An absolute, normalized path that specifies the source file/directory to move.
+     * @param target An absolute, normalized path that specifies the target file/directory.
      * @param options options specifying how the move should be done
-     * @throws IOException if I/O error occurs
+     * @throws IOException if something prevents moving the source file to the target location (I/O errors, access denied, ...)
      */
-    protected abstract void moveInternal(P source, P target, final CopyOption... options) throws IOException;
+    protected void moveInternal(final P source, final P target, final CopyOption... options) throws IOException {
+        if (FSFiles.isNonEmptyDirectory(target)) {
+            throw new DirectoryNotEmptyException(target.toString());
+        }
+
+        final BasicFileAttributes sourceAttrs = readAttributes(source, BasicFileAttributes.class);
+        if (sourceAttrs.isDirectory()) {
+            moveDirectoryInternal(source, target, options);
+        } else {
+            moveFileInternal(source, target, options);
+        }
+    }
+
+    /**
+     * Default implementation that moves a file.
+     *
+     * @param source An absolute, normalized path that specifies the source file to move.
+     * @param target An absolute, normalized path that specifies the target file.
+     * @param options options specifying how the move should be done
+     * @throws IOException if something prevents moving the source file to the target location (I/O errors, access
+     *             denied, ...)
+     */
+    protected void moveFileInternal(final P source, final P target, final CopyOption[] options) throws IOException {
+        copy(source, target, options);
+        delete(source);
+    }
+
+    /**
+     * Default implementation that recursively moves a directory.
+     *
+     * @param source An absolute, normalized path that specifies the source directory to move.
+     * @param target An absolute, normalized path that specifies the target directory.
+     * @param options options specifying how the move should be done
+     * @throws IOException if something prevents moving the source directory to the target location (I/O errors, access
+     *             denied, ...)
+     */
+    protected void moveDirectoryInternal(final P source, final P target, final CopyOption[] options)
+        throws IOException {
+
+        FSFiles.copyRecursively(source, target, options);
+        FSFiles.deleteRecursively(source);
+    }
 
     @SuppressWarnings("unchecked")
     @Override
