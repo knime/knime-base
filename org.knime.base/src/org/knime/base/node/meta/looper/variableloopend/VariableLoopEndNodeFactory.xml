@@ -16,11 +16,11 @@
 		<option name="Variable selection">
 			The variables that will be collected and put into the output table.
 		</option>
-		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
-			KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
+		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson2">
+			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables &amp; Components
 		</link>
-		<link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
-			KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson3">
+			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 3. Workflow Control
 		</link>
 	</fullDescription>
 		

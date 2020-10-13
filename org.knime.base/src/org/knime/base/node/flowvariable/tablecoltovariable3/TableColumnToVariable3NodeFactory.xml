@@ -15,8 +15,8 @@
 			value in the selected column will be skipped. When unchecked, the
 			node execution will fail if a row contains a missing value in the selected column.
 		</option>
-		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
-			KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
+		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson2">
+			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables &amp; Components
 		</link>
 	</fullDescription>
 
