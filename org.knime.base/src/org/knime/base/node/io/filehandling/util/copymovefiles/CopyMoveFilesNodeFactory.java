@@ -72,11 +72,17 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  */
 public final class CopyMoveFilesNodeFactory extends ConfigurableNodeFactory<CopyMoveFilesNodeModel> {
 
+    /** The name of the optional source connection input port group. */
+    private static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
+
+    /** The name of the optional destination connection input port group. */
+    private static final String CONNECTION_DESTINATION_PORT_GRP_NAME = "Destination File System Connection";
+
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(CopyMoveFilesNodeModel.CONNECTION_SOURCE_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        b.addOptionalInputPortGroup(CopyMoveFilesNodeModel.CONNECTION_DESTINATION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(CONNECTION_SOURCE_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(CONNECTION_DESTINATION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
         b.addFixedOutputPortGroup("Output", BufferedDataTable.TYPE);
         return Optional.of(b);
     }
@@ -111,10 +117,10 @@ public final class CopyMoveFilesNodeFactory extends ConfigurableNodeFactory<Copy
 
     private static CopyMoveFilesNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
         return new CopyMoveFilesNodeConfig(
-            new SettingsModelReaderFileChooser("sourceFileChooser", portsConfiguration,
-                CopyMoveFilesNodeModel.CONNECTION_SOURCE_PORT_GRP_NAME, FilterMode.FILE),
+            new SettingsModelReaderFileChooser("sourceFileChooser", portsConfiguration, CONNECTION_SOURCE_PORT_GRP_NAME,
+                FilterMode.FILE),
             new SettingsModelWriterFileChooser("destinationFileChooser", portsConfiguration,
-                CopyMoveFilesNodeModel.CONNECTION_DESTINATION_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.IGNORE,
+                CONNECTION_DESTINATION_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.IGNORE,
                 EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
                 EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
     }

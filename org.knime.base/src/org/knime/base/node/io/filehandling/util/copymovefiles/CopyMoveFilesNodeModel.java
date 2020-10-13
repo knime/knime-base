@@ -87,12 +87,6 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 final class CopyMoveFilesNodeModel extends NodeModel {
 
-    /** The name of the optional source connection input port group. */
-    static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
-
-    /** The name of the optional destination connection input port group. */
-    static final String CONNECTION_DESTINATION_PORT_GRP_NAME = "Destination File System Connection";
-
     private final CopyMoveFilesNodeConfig m_config;
 
     private final NodeModelStatusConsumer m_statusConsumer =
