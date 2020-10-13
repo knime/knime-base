@@ -63,8 +63,11 @@ import org.knime.core.node.util.CheckUtils;
  * Creates default {@link ProductionPath ProductionPaths} for external types.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> type used to identify external data types
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-final class ProductionPathProvider<T> {
+public final class ProductionPathProvider<T> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ProductionPathProvider.class);
 
@@ -80,7 +83,22 @@ final class ProductionPathProvider<T> {
         m_defaultKnimeTypes = defaultKnimeTypes;
     }
 
-    ProductionPath getDefaultProductionPath(final T externalType) {
+    /**
+     * Creates a {@link ProductionPathProvider} from a {@link ReadAdapterFactory}.
+     *
+     * @param readAdapterFactory the underlying {@link ReadAdapterFactory}
+     */
+    public ProductionPathProvider(final ReadAdapterFactory<T, ?> readAdapterFactory) {
+        this(readAdapterFactory.getProducerRegistry(), readAdapterFactory.getDefaultTypeMap());
+    }
+
+    /**
+     * Retrieves the default {@link ProductionPath} for <b>externalType</b>.
+     *
+     * @param externalType the external data type
+     * @return the default {@link ProductionPath} for <b>externalType</b>
+     */
+    public ProductionPath getDefaultProductionPath(final T externalType) {
         final DataType knimeType = m_defaultKnimeTypes.get(externalType);
 
         if (knimeType == null) {
