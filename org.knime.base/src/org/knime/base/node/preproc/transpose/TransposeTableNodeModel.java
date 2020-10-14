@@ -57,6 +57,8 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -72,8 +74,8 @@ import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.CheckUtils;
 
 /**
- * Model of the transpose node which swaps rows and columns. In addition, a new
- * <code>HiLiteHandler</code> is provided at the output.
+ * Model of the transpose node which swaps rows and columns. In addition, a new <code>HiLiteHandler</code> is provided
+ * at the output.
  *
  * @author Thomas Gabriel, University of Konstanz
  */
@@ -83,8 +85,7 @@ final class TransposeTableNodeModel extends NodeModel {
     private final HiLiteHandler m_outHiLite;
 
     /** Chunk size model. */
-    private final SettingsModelIntegerBounded m_chunkSize
-        = TransposeTableNodeDialogPane.createChunkSizeModel();
+    private final SettingsModelIntegerBounded m_chunkSize = TransposeTableNodeDialogPane.createChunkSizeModel();
 
     /**
      * Creates a transpose model with one data in- and output.
@@ -107,8 +108,7 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         // TODO (tg) option not available before 2.0
         // m_chunkSize.validateSettings(settings);
     }
@@ -117,8 +117,7 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
             m_chunkSize.loadSettingsFrom(settings);
         } catch (InvalidSettingsException ise) {
@@ -131,9 +130,8 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
 
     }
 
@@ -141,9 +139,8 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
 
     }
 
@@ -151,16 +148,14 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws CanceledExecutionException,
-            Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws CanceledExecutionException, Exception {
         // input column spec that will be transposed the output row IDs
         DataTableSpec spec = inData[0].getDataTableSpec();
         // if the input table does not contain any column, create empty rows
         // only using the column header as row IDs
-        if (inData[0].getRowCount() == 0) {
-            BufferedDataContainer cont =
-                exec.createDataContainer(new DataTableSpec());
+        if (inData[0].size() == 0) {
+            BufferedDataContainer cont = exec.createDataContainer(new DataTableSpec());
             for (int i = 0; i < spec.getNumColumns(); i++) {
                 String colName = spec.getColumnSpec(i).getName();
                 cont.addRowToTable(new DefaultRow(colName, new DataCell[0]));
@@ -170,7 +165,8 @@ final class TransposeTableNodeModel extends NodeModel {
 
         }
         // new number of columns = number of rows
-        CheckUtils.checkState(inData[0].size() <= Integer.MAX_VALUE, "Transpose operation can't handle more rows than " + Integer.MAX_VALUE);
+        CheckUtils.checkState(inData[0].size() <= Integer.MAX_VALUE,
+            "Transpose operation can't handle more rows than " + Integer.MAX_VALUE);
         final int newNrCols = (int)inData[0].size();
         // new column names
         final ArrayList<String> colNames = new ArrayList<String>();
@@ -181,79 +177,83 @@ final class TransposeTableNodeModel extends NodeModel {
         // index for unique colNames if row id only contains whitespace
         int idx = 0;
 
-        for (DataRow row : inData[0]) {
-            exec.checkCanceled();
-            exec.setMessage("Determine most-general column type for row: "
-                    + row.getKey().getString());
-            DataType type = null;
-            // and all cells
-            for (int i = 0; i < row.getNumCells(); i++) {
-                DataType newType = row.getCell(i).getType();
-                if (type == null) {
-                    type = newType;
-                } else {
-                    type = DataType.getCommonSuperType(type, newType);
+        try (final CloseableRowIterator iterator = inData[0].iterator()) {
+            while (iterator.hasNext()) {
+                final DataRow row = iterator.next();
+                exec.checkCanceled();
+                exec.setMessage("Determine most-general column type for row: " + row.getKey().getString());
+                DataType type = null;
+                // and all cells
+                for (int i = 0; i < row.getNumCells(); i++) {
+                    DataType newType = row.getCell(i).getType();
+                    if (type == null) {
+                        type = newType;
+                    } else {
+                        type = DataType.getCommonSuperType(type, newType);
+                    }
                 }
+                if (type == null) {
+                    type = DataType.getType(DataCell.class);
+                }
+                String colName = row.getKey().getString().trim();
+                if (colName.isEmpty()) {
+                    colName = "<empty_" + idx + ">";
+                    idx++;
+                }
+                colNames.add(colName);
+                colTypes.add(type);
             }
-            if (type == null) {
-                type = DataType.getType(DataCell.class);
-            }
-            String colName = row.getKey().getString().trim();
-            if (colName.isEmpty()) {
-                colName = "<empty_" + idx + ">";
-                idx++;
-            }
-            colNames.add(colName);
-            colTypes.add(type);
         }
         // new number of rows
         int newNrRows = spec.getNumColumns();
         // create new specs
         final DataColumnSpec[] colSpecs = new DataColumnSpec[newNrCols];
         for (int c = 0; c < newNrCols; c++) {
-            colSpecs[c] = new DataColumnSpecCreator(colNames.get(c), colTypes
-                    .get(c)).createSpec();
+            colSpecs[c] = new DataColumnSpecCreator(colNames.get(c), colTypes.get(c)).createSpec();
             exec.checkCanceled();
         }
-        BufferedDataContainer cont = exec
-                .createDataContainer(new DataTableSpec(colSpecs));
+        BufferedDataContainer cont = exec.createDataContainer(new DataTableSpec(colSpecs));
         final int chunkSize = m_chunkSize.getIntValue();
         // total number of chunks
-        final double nrChunks = Math.ceil((double) newNrRows / chunkSize);
+        final double nrChunks = Math.ceil((double)newNrRows / chunkSize);
         for (int chunkIdx = 0; chunkIdx < nrChunks; chunkIdx++) {
             // map of new row keys to cell arrays
-            Map<String, DataCell[]> map =
-                new LinkedHashMap<String, DataCell[]>(newNrRows);
+            Map<String, DataCell[]> map = new LinkedHashMap<String, DataCell[]>(newNrRows);
+            int colIdx = chunkIdx * chunkSize;
             int rowIdx = 0;
-            for (DataRow row : inData[0]) {
-                exec.setProgress(((rowIdx + 1) * (chunkIdx + 1))
-                        / (nrChunks * newNrCols), "Transpose row \""
-                        + row.getKey().getString() + "\" to column.");
-                int colIdx = chunkIdx * chunkSize;
-                // iterate chunk of columns
-                for (int r = colIdx;
-                        r < Math.min(newNrRows, colIdx + chunkSize); r++) {
-                    String newRowKey = spec.getColumnSpec(r).getName();
-                    DataCell[] cellArray = map.get(newRowKey);
-                    if (cellArray == null) {
-                        cellArray = new DataCell[newNrCols];
-                        map.put(newRowKey, cellArray);
+            final int[] indices = new int[Math.min(newNrRows - colIdx, chunkSize)];
+            for (int i = 0; i < indices.length; i++) {
+                indices[i] = chunkSize * chunkIdx + i;
+            }
+            try (CloseableRowIterator iterator =
+                inData[0].filter(new TableFilter.Builder().withMaterializeColumnIndices(indices).build()).iterator()) {
+                while (iterator.hasNext()) {
+                    DataRow row = iterator.next();
+                    exec.setProgress(((rowIdx + 1) * (chunkIdx + 1)) / (nrChunks * newNrCols),
+                        "Transpose row \"" + row.getKey().getString() + "\" to column.");
+                    // iterate chunk of columns
+                    for (int r = colIdx; r < colIdx + indices.length; r++) {
+                        String newRowKey = spec.getColumnSpec(r).getName();
+                        DataCell[] cellArray = map.get(newRowKey);
+                        if (cellArray == null) {
+                            cellArray = new DataCell[newNrCols];
+                            map.put(newRowKey, cellArray);
+                        }
+                        cellArray[rowIdx] = row.getCell(r);
                     }
-                    cellArray[rowIdx] = row.getCell(r);
+                    try {
+                        exec.checkCanceled();
+                    } catch (CanceledExecutionException cee) {
+                        cont.close();
+                        throw cee;
+                    }
+                    rowIdx++;
                 }
-                try {
-                    exec.checkCanceled();
-                } catch (CanceledExecutionException cee) {
-                    cont.close();
-                    throw cee;
-                }
-                rowIdx++;
             }
             // add chunk of rows to buffer
             for (Map.Entry<String, DataCell[]> e : map.entrySet()) {
                 exec.setMessage("Adding row \"" + e.getKey() + "\" to table.");
-                DataRow row = new DefaultRow(
-                        e.getKey(), e.getValue());
+                DataRow row = new DefaultRow(e.getKey(), e.getValue());
                 cont.addRowToTable(row);
             }
         }
@@ -283,8 +283,7 @@ final class TransposeTableNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         return new DataTableSpec[1];
     }
 }
