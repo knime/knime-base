@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.container.BufferedRowContainerFactory">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.container.BufferedRowContainerFactory"/>
+                <message_argument value="org.knime.base_4.2.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.container.RowContainer">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.container.RowContainer"/>
+                <message_argument value="org.knime.base_4.2.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.container.RowContainerFactory">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.container.RowContainerFactory"/>
+                <message_argument value="org.knime.base_4.2.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.container.RowContainerFactoryRegistry">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.container.RowContainerFactoryRegistry"/>
+                <message_argument value="org.knime.base_4.2.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.util.RetriggerableDelayedRunnable">
+        <filter id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.util.RetriggerableDelayedRunnable"/>
+                <message_argument value="org.knime.base_4.2.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel">
         <filter id="642777099">
             <message_arguments>
@@ -35,14 +75,6 @@
                 <message_argument value="ColumnRearranger"/>
                 <message_argument value="StringToPathStreamableOperator"/>
                 <message_argument value="createStreamableFunction()"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.util.RetriggerableDelayedRunnable">
-        <filter id="305422471">
-            <message_arguments>
-                <message_argument value="org.knime.core.util.RetriggerableDelayedRunnable"/>
-                <message_argument value="org.knime.base_4.2.0"/>
             </message_arguments>
         </filter>
     </resource>
