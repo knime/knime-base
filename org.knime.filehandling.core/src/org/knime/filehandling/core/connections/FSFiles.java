@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
@@ -358,8 +359,11 @@ public final class FSFiles {
      * @return a {@link List} of {@link Path} from files in a folder
      * @throws IOException
      */
-    public static List<FSPath> getFilePathsFromFolder(final FSPath source) throws IOException {
+    public static List<FSPath> getFilePathsFromFolder(final FSPath source)
+        throws IOException {
         final List<FSPath> paths = new ArrayList<>();
+        final BasicFileAttributes basicAttrs = Files.readAttributes(source, BasicFileAttributes.class);
+        CheckUtils.checkArgument(basicAttrs.isDirectory(), "%s is not a folder. Please specify a folder.", source);
 
         Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
             @Override
