@@ -168,7 +168,8 @@ final class CompressNodeModel extends NodeModel {
         }
     }
 
-    private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor) throws IOException, InvalidSettingsException {
+    private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor)
+        throws IOException, InvalidSettingsException {
         if (m_config.getInputLocationChooserModel().getFilterMode() == FilterMode.FOLDER) {
             return getFilePathsFromFolder(readAccessor.getRootPath(m_statusConsumer));
         } else {
@@ -195,12 +196,11 @@ final class CompressNodeModel extends NodeModel {
                     ((ArArchiveOutputStream)archiveStream).setLongFileMode(ArArchiveOutputStream.LONGFILE_BSD);
                 }
 
-                final FilterMode filterMode =
-                    m_config.getInputLocationChooserModel().getFilterMode();
+                final FilterMode filterMode = m_config.getInputLocationChooserModel().getFilterMode();
                 final boolean includeParent = m_config.includeParentFolder();
 
                 final PathRelativizer pathRelativizer =
-                    new PathRelativizerNonTableInput(rootPath, includeParent, filterMode);
+                    new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, false);
 
                 final long numOfFiles = inputPaths.size();
                 long fileCounter = 0;

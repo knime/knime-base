@@ -49,52 +49,37 @@
 package org.knime.base.node.io.filehandling.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Tests for the {@link PathRelativizer}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@RunWith(MockitoJUnitRunner.class)
 public final class PathRelativizerNonTableInputTest {
 
-    private static final String RESULT_FILE_NAME = "testFile.txt";
+    private Path m_root;
 
-    private static final String RESULT_FOLDER_NAME = "subfolder2";
+    private Path m_fooBar;
 
-    private static final String RESULT_FOLDER_NAME_W_PARENT = "subfolder1/subfolder2";
-
-    @Mock
-    private Path m_rootPath;
-
-    @Mock
-    private Path m_filePath;
-
-    @Mock
-    private Path m_absoluteNormalizedRootPath;
-
-    @Mock
-    private Path m_fileNameRoot;
+    private Path m_fooBarFolderSubfolderFile;
 
     /**
-     * Init test setup.
+     * Constructor.
      */
-    @Before
-    public void init() {
-        final Path absoluteRootPath = Mockito.mock(Path.class);
-        when(m_rootPath.toAbsolutePath()).thenReturn(absoluteRootPath);
-        when(absoluteRootPath.normalize()).thenReturn(m_absoluteNormalizedRootPath);
+    public PathRelativizerNonTableInputTest() {
+        @SuppressWarnings("resource") // cannot be closed anyways
+        final FileSystem fs = FileSystems.getDefault();
+        m_root = fs.getRootDirectories().iterator().next();
+        m_fooBar = m_root.resolve("foo").resolve("bar");
+        m_fooBarFolderSubfolderFile = m_fooBar.resolve("folder").resolve("subfolder").resolve("file.txt");
     }
 
     /**
@@ -102,32 +87,17 @@ public final class PathRelativizerNonTableInputTest {
      */
     @Test
     public void testFileMode() {
-        Mockito.when(m_absoluteNormalizedRootPath.getFileName()).thenReturn(m_fileNameRoot);
-        Mockito.when(m_fileNameRoot.toString()).thenReturn(RESULT_FILE_NAME);
-
-        /*
-         * includeParentFolder false or true should always return the same
-         * even the methode should be never called with true in file mode
-         */
-        final PathRelativizer pathManipulatorIncludeParentFalse =
-            new PathRelativizerNonTableInput(m_rootPath, false, FilterMode.FILE);
-        final PathRelativizer pathManipulatorIncludeParentTrue =
-            new PathRelativizerNonTableInput(m_rootPath, true, FilterMode.FILE);
-
-        assertEquals(RESULT_FILE_NAME, pathManipulatorIncludeParentFalse.apply(m_filePath));
-        assertEquals(RESULT_FILE_NAME, pathManipulatorIncludeParentTrue.apply(m_filePath));
-        assertEquals(pathManipulatorIncludeParentFalse.apply(m_filePath),
-            pathManipulatorIncludeParentTrue.apply(m_filePath));
-
+        final Path file = m_fooBarFolderSubfolderFile.getFileName();
+        testFileMode(false, false, file);
+        testFileMode(true, false, file);
+        testFileMode(false, true, file);
+        testFileMode(true, true, file);
     }
 
-    private Path makeFilePathAbsoluteNormalized() {
-        final Path p = Mockito.mock(Path.class);
-        final Path absoluteFilePath = Mockito.mock(Path.class);
-        when(m_filePath.toAbsolutePath()).thenReturn(absoluteFilePath);
-        when(absoluteFilePath.normalize()).thenReturn(p);
-
-        return p;
+    private void testFileMode(final boolean includeParent, final boolean flattenHierarchy, final Path file) {
+        final PathRelativizer pathManipulatorIncludeParentFalse = new PathRelativizerNonTableInput(
+            m_fooBarFolderSubfolderFile, includeParent, FilterMode.FILE, flattenHierarchy);
+        assertEquals(file.toString(), pathManipulatorIncludeParentFalse.apply(m_fooBarFolderSubfolderFile));
     }
 
     /**
@@ -135,20 +105,21 @@ public final class PathRelativizerNonTableInputTest {
      */
     @Test
     public void testFolderModeIncludeParentFolder() {
-        final Path absoluteNormalizedSourcePath = makeFilePathAbsoluteNormalized();
-        final Path relativizedPath = Mockito.mock(Path.class);
-        final Path rootPathParent = Mockito.mock(Path.class);
+        final PathRelativizer pathManipulator =
+            new PathRelativizerNonTableInput(m_fooBar, true, FilterMode.FOLDER, false);
+        final Path barFolderSubfolderFile = m_fooBar.getParent().relativize(m_fooBarFolderSubfolderFile);
+        assertEquals(barFolderSubfolderFile.toString(), pathManipulator.apply(m_fooBarFolderSubfolderFile));
+    }
 
-        //Parent is not null
-        when(m_absoluteNormalizedRootPath.getParent()).thenReturn(Mockito.mock(Path.class));
-
-        when(m_absoluteNormalizedRootPath.getParent()).thenReturn(rootPathParent);
-        when(rootPathParent.relativize(absoluteNormalizedSourcePath)).thenReturn(relativizedPath);
-        when(relativizedPath.toString()).thenReturn(RESULT_FOLDER_NAME_W_PARENT);
-
-        final PathRelativizer pathManipulator = new PathRelativizerNonTableInput(m_rootPath, true, FilterMode.FOLDER);
-
-        assertEquals(RESULT_FOLDER_NAME_W_PARENT, pathManipulator.apply(m_filePath));
+    /**
+     * Test for a folder when IncludeParentFolder is false and rootPath parent != null.
+     */
+    @Test
+    public void testFolderModeExcludeParentFolder() {
+        final PathRelativizer pathManipulator =
+            new PathRelativizerNonTableInput(m_fooBar, false, FilterMode.FOLDER, false);
+        final Path folderSubfolderFile = m_fooBar.relativize(m_fooBarFolderSubfolderFile);
+        assertEquals(folderSubfolderFile.toString(), pathManipulator.apply(m_fooBarFolderSubfolderFile));
     }
 
     /**
@@ -156,33 +127,28 @@ public final class PathRelativizerNonTableInputTest {
      */
     @Test
     public void testFolderModeIncludeParentFolderNull() {
-        final Path absoluteNormalizedSourcePath = makeFilePathAbsoluteNormalized();
-        final Path relativizedPath = Mockito.mock(Path.class);
-        final Path rootPathRoot = Mockito.mock(Path.class);
-
-        //Parent is null
-        when(m_absoluteNormalizedRootPath.getParent()).thenReturn(null);
-
-        when(m_absoluteNormalizedRootPath.getRoot()).thenReturn(rootPathRoot);
-        when(rootPathRoot.relativize(absoluteNormalizedSourcePath)).thenReturn(relativizedPath);
-        when(relativizedPath.toString()).thenReturn(RESULT_FOLDER_NAME);
-
-        final PathRelativizer pathManipulator =  new PathRelativizerNonTableInput(m_rootPath, true, FilterMode.FOLDER);
-
-        assertEquals(RESULT_FOLDER_NAME, pathManipulator.apply(m_filePath));
+        final PathRelativizer pathManipulator =
+            new PathRelativizerNonTableInput(m_root, true, FilterMode.FOLDER, false);
+        final Path rootFooFile = m_root.resolve("foo").resolve("file");
+        assertEquals(m_root.relativize(rootFooFile).toString(), pathManipulator.apply(rootFooFile));
     }
 
     /**
-     * Test for a folder when IncludeParentFolder is false.
+     * Tests the flattening mode for folders.
      */
     @Test
-    public void testFolderMode() {
-        final Path relativizedPath = Mockito.mock(Path.class);
-        when(m_absoluteNormalizedRootPath.relativize(makeFilePathAbsoluteNormalized())).thenReturn(relativizedPath);
-        when(relativizedPath.toString()).thenReturn(RESULT_FOLDER_NAME);
-
-        final PathRelativizer pathManipulator = new PathRelativizerNonTableInput(m_rootPath, false, FilterMode.FOLDER);
-
-        assertEquals(RESULT_FOLDER_NAME, pathManipulator.apply(m_filePath));
+    public void testFolderModeFlattening() {
+        testFolderModeFlattening(m_fooBar, false,
+            m_fooBar.relativize(m_fooBar.resolve(m_fooBarFolderSubfolderFile.getFileName())));
+        testFolderModeFlattening(m_fooBar, true,
+            m_fooBar.getParent().relativize(m_fooBar.resolve(m_fooBarFolderSubfolderFile.getFileName())));
+        testFolderModeFlattening(m_root, true, m_fooBarFolderSubfolderFile.getFileName());
     }
+
+    private void testFolderModeFlattening(final Path base, final boolean includeParent, final Path res) {
+        final PathRelativizer pathManipulator =
+            new PathRelativizerNonTableInput(base, includeParent, FilterMode.FOLDER, true);
+        assertEquals(res.toString(), pathManipulator.apply(m_fooBarFolderSubfolderFile));
+    }
+
 }

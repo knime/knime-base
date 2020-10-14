@@ -54,8 +54,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 
 /**
  * The {@link PathRelativizer} for non table input nodes relativizes a path based on the {@link FilterMode} and whether
- * the includeParentFolder is checked or not and returns a relativized string representation of a file {@link Path} based on a
- * root {@link Path}.
+ * the includeParentFolder is checked or not and returns a relativized string representation of a file {@link Path}
+ * based on a root {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
@@ -67,18 +67,23 @@ public final class PathRelativizerNonTableInput implements PathRelativizer {
 
     private final FilterMode m_filterMode;
 
+    private final boolean m_flattenHierarchy;
+
     /**
      * Constructor.
      *
-     * @param rootPath
-     * @param includeParentFolder
-     * @param filterMode
+     * @param rootPath the root path
+     * @param includeParentFolder flag indicating whether or not the parent folder of the rootPath has to be included
+     *            when applying the operation
+     * @param filterMode the {@link FilterMode}
+     * @param flattenHierarchy flag indicating whether or not the hierarchy has to be flattened
      */
     public PathRelativizerNonTableInput(final Path rootPath, final boolean includeParentFolder,
-        final FilterMode filterMode) {
+        final FilterMode filterMode, final boolean flattenHierarchy) {
         m_rootPath = rootPath.toAbsolutePath().normalize();
         m_includeParentFolder = includeParentFolder;
         m_filterMode = filterMode;
+        m_flattenHierarchy = flattenHierarchy;
     }
 
     @Override
@@ -86,7 +91,12 @@ public final class PathRelativizerNonTableInput implements PathRelativizer {
         if (m_filterMode == FilterMode.FILE) {
             return m_rootPath.getFileName().toString();
         } else {
-            final Path sourcePath = sourceFilePath.toAbsolutePath().normalize();
+            final Path sourcePath;
+            if (m_flattenHierarchy) {
+                sourcePath = m_rootPath.resolve(sourceFilePath.getFileName());
+            } else {
+                sourcePath = sourceFilePath.toAbsolutePath().normalize();
+            }
             if (m_includeParentFolder) {
                 return m_rootPath.getParent() == null ? m_rootPath.getRoot().relativize(sourcePath).toString()
                     : m_rootPath.getParent().relativize(sourcePath).toString();

@@ -145,7 +145,7 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
             if (FSFiles.exists(destinationPath)) {
                 final PathRelativizer pathRelativizer = new PathRelativizerNonTableInput(rootSourcePath,
-                    m_includeParentFolder, m_settingsReader.getFilterModeModel().getFilterMode());
+                    m_includeParentFolder, m_settingsReader.getFilterModeModel().getFilterMode(), false);
                 final int numberOfExistingFiles =
                     getNumberOfExistingFiles(sourcePaths.iterator(), destinationPath, pathRelativizer);
 
