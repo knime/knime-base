@@ -51,14 +51,12 @@ package org.knime.base.node.io.filehandling.util.compress;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -102,6 +100,12 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
 final class CompressNodeModel extends NodeModel {
 
     private static final String BZ2_EXTENSION = "bz2";
+
+    /**
+     * The template string for the name collision error. It requires two strings, i.e., the paths to the files causing
+     * the collision.
+     */
+    static final String NAME_COLLISION_ERROR_TEMPLATE = "Name collision while hierarchy flattening ('%s' and '%s').";
 
     private final CompressNodeConfig m_config;
 
@@ -171,7 +175,7 @@ final class CompressNodeModel extends NodeModel {
     private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor)
         throws IOException, InvalidSettingsException {
         if (m_config.getInputLocationChooserModel().getFilterMode() == FilterMode.FOLDER) {
-            return getFilePathsFromFolder(readAccessor.getRootPath(m_statusConsumer));
+            return FSFiles.getFilePathsFromFolder(readAccessor.getRootPath(m_statusConsumer));
         } else {
             return readAccessor.getFSPaths(m_statusConsumer);
         }
@@ -200,54 +204,47 @@ final class CompressNodeModel extends NodeModel {
                 final boolean includeParent = m_config.includeParentFolder();
 
                 final PathRelativizer pathRelativizer =
-                    new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, false);
+                    new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, m_config.flattenHierarchy());
 
                 final long numOfFiles = inputPaths.size();
                 long fileCounter = 0;
+
+                final Map<String, String> createdEntries = new HashMap<>();
                 for (Path file : inputPaths) {
                     exec.setProgress((fileCounter / (double)numOfFiles),
                         () -> ("Compressing file: " + file.toString()));
                     exec.checkCanceled();
-
-                    createArchiveEntry(archiveStream, file, pathRelativizer, archiver);
-
+                    addEntry(archiver, archiveStream, pathRelativizer, createdEntries, file);
                     fileCounter++;
                 }
             } catch (ArchiveException e) {
                 throw new IllegalArgumentException("Unsupported archive type", e);
             }
         }
+
+    }
+
+    private static void addEntry(final String archiver, final ArchiveOutputStream archiveStream,
+        final PathRelativizer pathRelativizer, final Map<String, String> createdEntries, final Path file)
+        throws IOException {
+        final String entryName = pathRelativizer.apply(file);
+        if (!createdEntries.containsKey(entryName)) {
+            createdEntries.put(entryName, file.toString());
+            createArchiveEntry(archiveStream, file, entryName, archiver);
+        } else {
+            throw new IllegalArgumentException(
+                String.format(NAME_COLLISION_ERROR_TEMPLATE, createdEntries.get(entryName), file.toString()));
+        }
     }
 
     private static void createArchiveEntry(final ArchiveOutputStream archiveStream, final Path file,
-        final PathRelativizer pathRelativizer, final String archiver) throws IOException {
-        final String filePath = pathRelativizer.apply(file);
-
-        archiveStream.putArchiveEntry(getArchiveEntry(archiver, file, filePath));
+        final String entryName, final String archiver) throws IOException {
+        archiveStream.putArchiveEntry(getArchiveEntry(archiver, file, entryName));
         try {
             Files.copy(file, archiveStream);
         } finally {
             archiveStream.closeArchiveEntry();
         }
-    }
-
-    /**
-     * This methods returns a {@link List} of {@link FSPath}s of all files in a folder.
-     *
-     * @param source the path of the source folder
-     * @throws IOException
-     */
-    private static List<FSPath> getFilePathsFromFolder(final Path source) throws IOException {
-        final List<FSPath> paths = new ArrayList<>();
-
-        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                paths.add((FSPath)file);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        return paths;
     }
 
     @SuppressWarnings("resource") // closing the stream is the responsibility of the caller

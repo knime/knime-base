@@ -49,10 +49,12 @@
 package org.knime.base.node.io.filehandling.util.compress;
 
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
 
 import org.knime.base.node.io.filehandling.util.IncludeParentFolderAvailableSwingWorker;
 import org.knime.base.node.io.filehandling.util.SwingWorkerManager;
@@ -70,6 +72,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -79,6 +83,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
  */
 final class CompressNodeDialog extends NodeDialogPane {
 
+    private static final int STATUS_VIEW_WIDTH = 400;
+
     private static final String FILE_HISTORY_ID = "compress_files_history";
 
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
@@ -87,9 +93,17 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private final JCheckBox m_includeSelected;
 
+    private final JCheckBox m_flattenHierarchyPanel;
+
     private final CompressNodeConfig m_config;
 
     private final SwingWorkerManager m_includeParentSwingWorkerManager;
+
+    private final StatusView m_statusView;
+
+    private final SwingWorkerManager m_flattenHierarchySwingWorkerManager;
+
+    private boolean m_isLoading;
 
     CompressNodeDialog(final PortsConfiguration portsConfig) {
         m_config = new CompressNodeConfig(portsConfig);
@@ -104,28 +118,27 @@ final class CompressNodeDialog extends NodeDialogPane {
 
         m_includeSelected = new JCheckBox("Include selected source folder");
 
+        m_flattenHierarchyPanel = new JCheckBox("Flatten hierarchy");
+        m_statusView = new StatusView(STATUS_VIEW_WIDTH);
+
+        m_config.getInputLocationChooserModel().addChangeListener(c -> m_flattenHierarchyPanel
+            .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
+
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
         m_destinationFileChooserPanel = new DialogComponentWriterFileChooser(destinationFileChooserModel,
             FILE_HISTORY_ID, writeFvm, CompressDestinationStatusMessageReporter::new, FilterMode.FILE);
 
-        m_includeParentSwingWorkerManager = new SwingWorkerManager(
-            () -> new IncludeParentFolderAvailableSwingWorker(sourceLocationChooserModel::createReadPathAccessor,
-                m_config.getInputLocationChooserModel().getFilterModeModel().getFilterMode(),
-                m_includeSelected::setEnabled));
+        m_includeParentSwingWorkerManager = new SwingWorkerManager(this::createIncludeParentFolderSwingWorker);
+
+        m_flattenHierarchySwingWorkerManager = new SwingWorkerManager(this::createFlattenSwingWorker);
 
         sourceLocationChooserModel.addChangeListener(l -> m_includeParentSwingWorkerManager.startSwingWorker());
+        sourceLocationChooserModel.addChangeListener(this::flattenHierarchy);
+
+        m_flattenHierarchyPanel.addActionListener(this::flattenHierarchy);
 
         addTab("Settings", initLayout());
-    }
-
-    /**
-     *
-     * Cancels the {@link IncludeParentFolderAvailableSwingWorker} when the dialog will be closed.
-     */
-    @Override
-    public void onClose() {
-        m_includeParentSwingWorkerManager.cancelSwingWorker();
     }
 
     private JPanel initLayout() {
@@ -166,10 +179,48 @@ final class CompressNodeDialog extends NodeDialogPane {
     private JPanel createOptionsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorPageStart().fillHorizontal();
+        GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
         panel.add(m_includeSelected, gbc.build());
-        panel.add(new JPanel(), gbc.fillHorizontal().setWeightX(1).incX().build());
+        gbc = gbc.incY();
+        panel.add(m_flattenHierarchyPanel, gbc.build());
+        gbc = gbc.incX();
+        panel.add(m_statusView.getLabel(), gbc.build());
+        panel.add(new JPanel(),
+            gbc.resetX().setWidth(2).fillHorizontal().setWeightX(1).incY().fillHorizontal().build());
         return panel;
+    }
+
+    private IncludeParentFolderAvailableSwingWorker createIncludeParentFolderSwingWorker() {
+        return new IncludeParentFolderAvailableSwingWorker(
+            m_config.getInputLocationChooserModel()::createReadPathAccessor,
+            m_config.getInputLocationChooserModel().getFilterModeModel().getFilterMode(),
+            m_includeSelected::setEnabled);
+    }
+
+    private StatusSwingWorker createFlattenSwingWorker() {
+        return new StatusSwingWorker(m_statusView::setStatus,
+            new FlattenHierarchyStatusReporter(m_config.getInputLocationChooserModel().createClone()), false);
+    }
+
+    private void flattenHierarchy(@SuppressWarnings("unused") final ChangeEvent e) {
+        flattenHierarchy();
+    }
+
+    private void flattenHierarchy(@SuppressWarnings("unused") final ActionEvent e) {
+        flattenHierarchy();
+    }
+
+    private void flattenHierarchy() {
+        m_statusView.clearStatus();
+        if (m_isLoading) {
+            return;
+        }
+        if (m_flattenHierarchyPanel.isSelected()
+            && m_config.getInputLocationChooserModel().getFilterMode() != FilterMode.FILE) {
+            m_flattenHierarchySwingWorkerManager.startSwingWorker();
+        } else {
+            m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
+        }
     }
 
     @Override
@@ -178,16 +229,35 @@ final class CompressNodeDialog extends NodeDialogPane {
         m_destinationFileChooserPanel.saveSettingsTo(settings);
 
         m_config.includeSelectedFolder(m_includeSelected.isSelected());
+        m_config.flattenHierarchy(m_flattenHierarchyPanel.isSelected());
         m_config.saveSettingsForDialog(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        // we want to disable the flatten hierarchy invocations until we have loaded all settings
+        m_isLoading = true;
+
         m_inputFileChooserPanel.loadSettingsFrom(settings, specs);
         m_destinationFileChooserPanel.loadSettingsFrom(settings, specs);
 
         m_config.loadSettingsForDialog(settings);
         m_includeSelected.setSelected(m_config.includeParentFolder());
+        m_flattenHierarchyPanel.setSelected(m_config.flattenHierarchy());
+
+        // update the flatten hierarchy status
+        m_isLoading = false;
+        flattenHierarchy();
     }
+
+    /**
+     * Cancels any running swing worker when the dialog is closing.
+     */
+    @Override
+    public void onClose() {
+        m_includeParentSwingWorkerManager.cancelSwingWorker();
+        m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
+    }
+
 }

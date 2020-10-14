@@ -70,7 +70,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 final class CompressNodeConfig {
 
     static final String INVALID_EXTENSION_ERROR =
-        "Invalid destination file extension. Please find the valid extensions in the node description";
+        "Invalid destination file extension. Please find the valid extensions in the node description.";
 
     private static final String CFG_INPUT_LOCATION = "input_location";
 
@@ -78,9 +78,13 @@ final class CompressNodeConfig {
 
     private static final String CFG_INCLUDE_SELECTED_FOLDER = "include_selected_source_folder";
 
+    private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
+
     private final SettingsModelReaderFileChooser m_inputLocationChooserModel;
 
     private final SettingsModelWriterFileChooser m_destinationFileChooserModel;
+
+    private boolean m_flattenHierarchy;
 
     private boolean m_includeFolder;
 
@@ -97,23 +101,28 @@ final class CompressNodeConfig {
 
         m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
             CompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FILE, FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
-            FILE_EXTENSIONS);
+            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), FILE_EXTENSIONS);
 
         m_includeFolder = false;
+        m_flattenHierarchy = false;
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
         includeSelectedFolder(settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER, false));
+        flattenHierarchy(settings.getBoolean(CFG_FLATTEN_HIERARCHY, false));
     }
 
     void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        saveIncludeParentFolder(settings);
+        saveNonSettingModelParameters(settings);
         validateFileExtension();
     }
 
     private void saveIncludeParentFolder(final NodeSettingsWO settings) {
         settings.addBoolean(CFG_INCLUDE_SELECTED_FOLDER, includeParentFolder());
+    }
+
+    private void saveFlattenHierarchy(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_FLATTEN_HIERARCHY, flattenHierarchy());
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -123,6 +132,7 @@ final class CompressNodeConfig {
         CheckUtils.checkSetting(hasValidFileExtension(destination.getPath()), INVALID_EXTENSION_ERROR);
 
         settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER);
+        settings.getBoolean(CFG_FLATTEN_HIERARCHY);
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -133,10 +143,15 @@ final class CompressNodeConfig {
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
-        saveIncludeParentFolder(settings);
+        saveNonSettingModelParameters(settings);
 
         m_inputLocationChooserModel.saveSettingsTo(settings);
         m_destinationFileChooserModel.saveSettingsTo(settings);
+    }
+
+    private void saveNonSettingModelParameters(final NodeSettingsWO settings) {
+        saveIncludeParentFolder(settings);
+        saveFlattenHierarchy(settings);
     }
 
     /**
@@ -164,6 +179,25 @@ final class CompressNodeConfig {
 
     void includeSelectedFolder(final boolean include) {
         m_includeFolder = include;
+    }
+
+    /**
+     * Returns the flag deciding whether or not to flatten the hierarchy during compression.
+     *
+     * @return {code true} if the hierarchy has to be flattened during compression and {@code false} otherwise
+     */
+    boolean flattenHierarchy() {
+        return m_flattenHierarchy;
+    }
+
+    /**
+     * Sets the flag indicating whether or not to flatten the hierarchy during compression.
+     *
+     * @param flattenHierarchy {@code true} if the hierarchy has to be flattened during compression and {@code false}
+     *            otherwise
+     */
+    void flattenHierarchy(final boolean flattenHierarchy) {
+        m_flattenHierarchy = flattenHierarchy;
     }
 
     /**
