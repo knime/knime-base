@@ -56,6 +56,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
@@ -82,13 +83,17 @@ public final class BinaryObjectsToFilesNodeFactory extends ConfigurableNodeFacto
 
     @Override
     protected BinaryObjectsToFilesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new BinaryObjectsToFilesNodeModel(
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        final PortsConfiguration portsConfiguration =
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new BinaryObjectsToFilesNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new),
+            createSettings(portsConfiguration));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new BinaryObjectsToFilesNodeDialog();
+        final PortsConfiguration portsConfiguration =
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new BinaryObjectsToFilesNodeDialog(portsConfiguration, createSettings(portsConfiguration));
     }
 
     @Override
@@ -105,6 +110,17 @@ public final class BinaryObjectsToFilesNodeFactory extends ConfigurableNodeFacto
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * Creates an BinaryObjectsToFilesNodeConfig object, which wraps the settings models for this node
+     *
+     * @param portsConfiguration The ports configuration
+     *
+     * @return An BinaryObjectsToFilesNodeConfig object
+     */
+    private static BinaryObjectsToFilesNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
+        return new BinaryObjectsToFilesNodeConfig(portsConfiguration);
     }
 
 }

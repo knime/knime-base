@@ -66,8 +66,11 @@ import org.knime.core.node.context.ports.PortsConfiguration;
  */
 final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
-    BinaryObjectsToFilesNodeModel(final PortsConfiguration config) {
+    final BinaryObjectsToFilesNodeConfig m_binaryObjectsToFileNodeConfig;
+
+    BinaryObjectsToFilesNodeModel(final PortsConfiguration config, final BinaryObjectsToFilesNodeConfig nodeSettings) {
         super(config.getInputPorts(), config.getOutputPorts());
+        m_binaryObjectsToFileNodeConfig = nodeSettings;
     }
 
     @Override
@@ -84,17 +87,17 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // nothing to do here
+        m_binaryObjectsToFileNodeConfig.saveSettingsTo(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // nothing to do here
+        m_binaryObjectsToFileNodeConfig.validateSettings(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // nothing to do here
+        m_binaryObjectsToFileNodeConfig.loadValidatedSettingsFrom(settings);
     }
 
     @Override

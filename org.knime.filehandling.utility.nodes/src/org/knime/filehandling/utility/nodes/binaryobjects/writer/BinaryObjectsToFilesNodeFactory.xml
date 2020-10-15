@@ -16,29 +16,48 @@
 		<option name="Binary object column">
 			Column with binary objects.
 		</option>
-		<option name="Filenames...">
-			<b>From column</b>
+		<option name="Write to">
+			Select a file system which stores the files you want to genrate.
+			There are three default file system options to choose from:
 			<br />
-			The names can be found in a column of the input table.
-			<br />
-			<b>Generate</b>
-			<br />
-			The names will be generated using a pattern.
+			<ul>
+				<li>
+					<i>Local File System:</i>
+					Allows you to select a file/folder from your
+					local system.
+				</li>
+				<li>
+					<i>Mountpoint:</i>
+					Allows you to read from a mountpoint.When selected, a new drop-down
+					menu appears to choose the mountpoint. Unconnected mountpoints are
+					greyed out but can still be selected (note that browsing is
+					disabled in this case). Go to the KNIME Explorer and connect to the
+					mountpoint to enable browsing. A mountpoint is displayed in red if
+					it was previously selected but is no longer available. You won't be
+					able to save the dialog as long as you don't select a valid i.e.
+					known mountpoint.
+				</li>
+				<li>
+					<i>Relative to:</i>
+					Allows you to choose whether to resolve the path
+					relative to the
+					current mountpoint, current workflow or the current
+					workflow's data
+					area.
+					When selected a new drop-down menu appears to choose which of
+					the three
+					options to use.
+				</li>
+			</ul>
 		</option>
-		<option name="Target column">
-			URI column with the target path.
-		</option>
-		<option name="Output directory">
+		<option name="Folder">
 			The directory where the files will be put.
 		</option>
-		<option name="Name pattern">
-			The pattern that will be used to generate the filenames. The ? will be replaced by the index of the 
-			corresponding row. (Starting with 0)
+		<option name="Create missing folders">
+			Select if the folders of the selected output location should be created if hey do not already exist.
+			If this option is unchecked, the node will fail if a folder does not exist.
 		</option>
-		<option name="Remove binary object column">
-			Removes the column with the binary objects from the output table.
-		</option>
-		<option name="If a file exists...">
+		<option name="If a folder exists...">
 			Specifies the behavior if one of the files already exists.
 			<br />
 			<b>Overwrite</b>
@@ -48,6 +67,10 @@
 			<b>Abort</b>
 			<br />
 			The nodes execution will be aborted.
+			<br />
+			<b>Fail</b>
+			<br />
+			Will issue an error during the node's execution (to prevent unintentional overwrite).
 		</option>
 	</fullDescription>
 
