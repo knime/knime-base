@@ -49,6 +49,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -118,6 +119,15 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
         List<String> fileContent = Files.readAllLines(nonExistingFile);
         assertEquals(contentToWrite, fileContent.get(0));
+    }
+
+    @Test(expected = FileAlreadyExistsException.class)
+    public void test_output_stream_create_new_file_failure() throws Exception {
+        Path file = m_testInitializer.createFile("file");
+        Files.newOutputStream(//
+            file, //
+            StandardOpenOption.CREATE_NEW, //
+            StandardOpenOption.WRITE);
     }
 
     @Test

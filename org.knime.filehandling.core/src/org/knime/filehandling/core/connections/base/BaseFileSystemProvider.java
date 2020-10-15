@@ -440,6 +440,11 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
+        if (Arrays.stream(validatedOpenOptions).anyMatch(StandardOpenOption.CREATE_NEW::equals) // NOSONAR OpenOption is related to StandardOpenOption
+            && existsCached(checkedPath)) {
+            throw new FileAlreadyExistsException(path.toString());
+        }
+
         return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
     }
 
