@@ -93,8 +93,10 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
         try {
             return m_statusMessageReporter.report();
         } catch (Exception ex) {// we catch all exceptions because they get lost otherwise
-            LOGGER.error("Error while updating status message: " + ex.getMessage(), ex);
-            return new DefaultStatusMessage(MessageType.ERROR, "An error occurred: " + ex.getMessage());
+            final String exceptionMessage = ex.getMessage();
+            LOGGER.error("Error while updating status message: " + exceptionMessage, ex);
+            return new DefaultStatusMessage(MessageType.ERROR,
+                exceptionMessage.isEmpty() ? "An error occurred" : exceptionMessage);
         }
     }
 
