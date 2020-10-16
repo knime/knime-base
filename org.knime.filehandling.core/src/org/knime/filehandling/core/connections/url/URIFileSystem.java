@@ -63,6 +63,7 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileStore;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 
 /**
  *
@@ -156,26 +157,15 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
 
     @Override
     public URIPath getPath(final FSLocation fsLocation) {
-        final URI uri = URI.create(fsLocation.getPath().replace(" ", "%20"));
 
-        final StringBuilder pathBuilder = new StringBuilder(uri.getPath());
-
+        String pathString = ValidationUtils.toCustomURLPathString(fsLocation.getPath().replace(" ", "%20"));
         if (isRelativeKNIMEProtocol()) {
             // for a knime:// URL, the URL path comes absolute but we need to translate it to
             // a relative path by deleting the leading slash
-            pathBuilder.deleteCharAt(0);
+            pathString = pathString.substring(1);
         }
 
-        if (uri.getQuery() != null) {
-            pathBuilder.append("?");
-            pathBuilder.append(uri.getQuery());
-        }
-
-        if (uri.getFragment() != null) {
-            pathBuilder.append("#");
-            pathBuilder.append(uri.getFragment());
-        }
-        return getPath(pathBuilder.toString());
+        return getPath(pathString);
     }
 
     @Override

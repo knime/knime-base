@@ -224,7 +224,7 @@ public final class FileChooserHelper {
             case CONNECTED_FS:
                 return getFileSystem().getPath(m_settings.getPathOrURL());
             case CUSTOM_URL_FS:
-                return getFileSystem().getPath(ValidationUtils.toCustomURL(m_settings.getPathOrURL()));
+                return getFileSystem().getPath(ValidationUtils.toCustomURLPathString(m_settings.getPathOrURL()));
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 ValidationUtils.validateKnimeFSPath(pathOrUrl);
