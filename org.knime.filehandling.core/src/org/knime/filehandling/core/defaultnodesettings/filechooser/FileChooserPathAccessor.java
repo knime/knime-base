@@ -179,7 +179,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
             case CONNECTED:
                 throw new IllegalStateException("The file system is not connected.");
             case CUSTOM_URL:
-                return m_fileSystem.getPath(ValidationUtils.createAndValidateCustomURLLocation(m_rootLocation));
+                ValidationUtils.validateCustomURLLocation(m_rootLocation);
+                return m_fileSystem.getPath(m_rootLocation);
             case RELATIVE:
                 final FSPath path = m_fileSystem.getPath(m_rootLocation);
                 ValidationUtils.validateKnimeFSPath(path);

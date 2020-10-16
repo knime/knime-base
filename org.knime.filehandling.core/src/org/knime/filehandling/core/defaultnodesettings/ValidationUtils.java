@@ -73,46 +73,31 @@ public final class ValidationUtils {
     }
 
     /**
-     * Attempts to turn the provided {@link FSLocation} into one that is valid for the custom URL file system.
-     * It that isn't possible, an exception is thrown.
+     * Validates the provided {@link FSLocation}.
      *
-     * @param customUrlLocation to turn into a custom url location
-     * @return a custom url location
+     * @param customUrlLocation The {@link FSLocation} to validate.
      * @throws InvalidSettingsException if the custom url is invalid
      */
-    public static FSLocation createAndValidateCustomURLLocation(final FSLocation customUrlLocation)
-        throws InvalidSettingsException {
+    public static void validateCustomURLLocation(final FSLocation customUrlLocation) throws InvalidSettingsException {
+
         CheckUtils.checkArgument(customUrlLocation.getFSCategory() == FSCategory.CUSTOM_URL,
             "Expected custom url location instead received '%s'.", customUrlLocation);
-        final URI uri = URI.create(customUrlLocation.getPath().replace(" ", "%20"));
-        validateCustomURL(uri);
-        final String uriPath = getURIPathQueryAndFragment(uri);
-        return new FSLocation(customUrlLocation.getFileSystemCategory(), customUrlLocation.getFileSystemSpecifier()
-            .orElseThrow(() -> new InvalidSettingsException("No timeout specified for custom URL file system.")),
-            uriPath);
+        CheckUtils.checkSetting(customUrlLocation.getFileSystemSpecifier().isPresent(),
+            "No timeout specified for custom URL file system.");
+
+        validateCustomURL(customUrlLocation.getPath()); // in a CUSTOM_URL FSLocation the path is actually a URL
     }
 
     /**
      * Turns the provided string into a path valid for the custom url file system.
      *
-     * @param string to transform
-     * @return the transformed string
-     * @throws InvalidSettingsException if the string is not a valid custom url
+     * @param customUrl The custom URL to transform into a path string suited for the Custom URL file system.
+     * @return a path string suited for the Custom URL file system (contains path, query and fragment, but not scheme
+     *         and authority).
      */
-    public static String toCustomURL(final String string) throws InvalidSettingsException {
-        final URI uri = URI.create(string.replace(" ", "%20"));
-        validateCustomURL(uri);
+    public static String toCustomURLPathString(final String customUrl) {
+        final URI uri = URI.create(customUrl.replace(" ", "%20"));
         return getURIPathQueryAndFragment(uri);
-    }
-
-    /**
-     * Validates a path for the relative to file system.
-     *
-     * @param knimeFSPath to validate
-     * @throws InvalidSettingsException if not relative
-     */
-    public static void validateKnimeFSPath(final FSPath knimeFSPath) throws InvalidSettingsException {
-        CheckUtils.checkSetting(!knimeFSPath.isAbsolute(), "The path must be relative.");
     }
 
     private static String getURIPathQueryAndFragment(final URI uri) {
@@ -120,17 +105,19 @@ public final class ValidationUtils {
 
         if (uri.getQuery() != null) {
             toReturn.append("?");
-            toReturn.append(uri.getQuery());
+            toReturn.append(uri.getRawQuery());
         }
 
         if (uri.getFragment() != null) {
             toReturn.append("#");
-            toReturn.append(uri.getFragment());
+            toReturn.append(uri.getRawFragment());
         }
         return toReturn.toString();
     }
 
-    private static void validateCustomURL(final URI uri) throws InvalidSettingsException {
+    public static void validateCustomURL(final String customUrl) throws InvalidSettingsException {
+        final URI uri = URI.create(customUrl.replace(" ", "%20"));
+
         // validate scheme
         if (!uri.isAbsolute()) {
             throw new InvalidSettingsException("URL must start with a scheme, e.g. http:");
@@ -148,6 +135,17 @@ public final class ValidationUtils {
             throw new InvalidSettingsException("URL must specify a path, as in https://host/path/to/file");
         }
     }
+
+    /**
+     * Validates a path for the relative to file system.
+     *
+     * @param knimeFSPath to validate
+     * @throws InvalidSettingsException if not relative
+     */
+    public static void validateKnimeFSPath(final FSPath knimeFSPath) throws InvalidSettingsException {
+        CheckUtils.checkSetting(!knimeFSPath.isAbsolute(), "The path must be relative.");
+    }
+
 
     /**
      * Checks if local file system access is valid.

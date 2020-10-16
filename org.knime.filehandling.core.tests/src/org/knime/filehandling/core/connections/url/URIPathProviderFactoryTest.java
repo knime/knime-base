@@ -1,8 +1,11 @@
 package org.knime.filehandling.core.connections.url;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +16,10 @@ import org.junit.Test;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToTestUtil;
+import org.knime.filehandling.core.connections.location.FSPathProvider;
+import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactoryTestBase;
 
 /**
@@ -61,6 +67,33 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, "/analytics-platform/4.2/index.html");
+    }
+
+    /**
+     * Tests reading from a https:// URL with query and fragment that have encoded characters (those must be preserved).
+     *
+     * @throws IOException
+     */
+    @Test
+    public void test_https_location_with_encoded_query_and_fragment() throws IOException {
+        final String url = "https://knime.com/path/index.html?bla=%2B%3D%2F#%2B%3D%2F";
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
+
+        try (FSPathProviderFactory factory = FSPathProviderFactory.newFactory(Optional.empty(), loc)) {
+            try (FSPathProvider pathProvider = factory.create(loc)) {
+                final FSPath path = pathProvider.getPath();
+
+                assertEquals("/path/index.html", path.toString());
+                assertEquals(loc, path.toFSLocation());
+                assertEquals(URI.create(url), path.toUri());
+
+
+                final FSPath samePath = path.getFileSystem().getPath("/path/index.html?bla=%2B%3D%2F#%2B%3D%2F");
+                assertEquals("/path/index.html", samePath.toString());
+                assertEquals(loc, samePath.toFSLocation());
+                assertEquals(URI.create(url), samePath.toUri());
+            }
+        }
     }
 
     /**
