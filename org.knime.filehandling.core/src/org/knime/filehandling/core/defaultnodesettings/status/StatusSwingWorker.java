@@ -46,7 +46,7 @@
  * History
  *   May 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filechooser;
+package org.knime.filehandling.core.defaultnodesettings.status;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -56,8 +56,7 @@ import javax.swing.SwingWorker;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
 /**
@@ -67,8 +66,10 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * lifetime of an instance.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, StatusMessage> {
+public final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, StatusMessage> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(StatusSwingWorker.class);
 
@@ -78,21 +79,33 @@ final class StatusSwingWorker extends SwingWorkerWithContext<StatusMessage, Stat
 
     private final StatusMessageReporter m_statusMessageReporter;
 
-    StatusSwingWorker(final Consumer<StatusMessage> statusMessageConsumer,
-        final StatusMessageReporter statusMessageReporter) {
+    private final boolean m_publishScanMsg;
+
+    /**
+     * Constructor.
+     *
+     * @param statusMessageConsumer the status message consumer receiving the messages once the {@link SwingWorker} is
+     *            finished
+     * @param statusMessageReporter the {@link StatusMessageReporter} creating the messages while executing the
+     *            {@link SwingWorker}
+     * @param publishScanMsg {@code true} to report a "Scanning..." info once the {@link SwingWorker} starts executing
+     */
+    public StatusSwingWorker(final Consumer<StatusMessage> statusMessageConsumer,
+        final StatusMessageReporter statusMessageReporter, final boolean publishScanMsg) {
         m_statusMessageConsumer = statusMessageConsumer;
         m_statusMessageReporter = statusMessageReporter;
+        m_publishScanMsg = publishScanMsg;
     }
 
     @Override
     protected StatusMessage doInBackgroundWithContext() throws Exception {
-
-        publish(SCANNING_MSG);
-
+        if (m_publishScanMsg) {
+            publish(SCANNING_MSG);
+        }
         Thread.sleep(200);
         try {
             return m_statusMessageReporter.report();
-        } catch (Exception ex) {// we catch all exceptions because they get lost otherwise
+        } catch (Exception ex) {// NOSONAR we catch all exceptions because they get lost otherwise
             final String exceptionMessage = ex.getMessage();
             LOGGER.error("Error while updating status message: " + exceptionMessage, ex);
             return new DefaultStatusMessage(MessageType.ERROR,

@@ -83,6 +83,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessa
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -151,8 +152,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
      * {@link AbstractSettingsModelFileChooser#getKeysForFSLocation()} with the path to the settings model within your
      * settings structure.</br>
      * Suppose your settings have the structure foo/bar/model, then you can create the FlowVariableModel as follows:
+     *
      * <pre>
-     * String[] keyChain = Stream.concat(Stream.of("foo", "bar"), Arrays.stream(model.getKeysForFSLocation())).toArray(String[]::new);
+     * String[] keyChain =
+     *     Stream.concat(Stream.of("foo", "bar"), Arrays.stream(model.getKeysForFSLocation())).toArray(String[]::new);
+     *
      * FlowVariableModel fvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
      * </pre>
      *
@@ -308,7 +312,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         }
         try {
             m_statusMessageWorker = new StatusSwingWorker(m_statusView::setStatus,
-                m_statusMessageReporter.apply(getSettingsModel().createClone()));
+                m_statusMessageReporter.apply(getSettingsModel().createClone()), true);
             m_statusMessageWorker.execute();
         } catch (Exception ex) {//NOSONAR we want to communicate any exception
             NodeLogger.getLogger(AbstractDialogComponentFileChooser.class)
