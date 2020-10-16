@@ -191,9 +191,7 @@ final class CompressNodeDialog extends NodeDialogPane {
     }
 
     private IncludeParentFolderAvailableSwingWorker createIncludeParentFolderSwingWorker() {
-        return new IncludeParentFolderAvailableSwingWorker(
-            m_config.getInputLocationChooserModel()::createReadPathAccessor,
-            m_config.getInputLocationChooserModel().getFilterModeModel().getFilterMode(),
+        return new IncludeParentFolderAvailableSwingWorker(m_config.getInputLocationChooserModel().createClone(),
             m_includeSelected::setEnabled);
     }
 

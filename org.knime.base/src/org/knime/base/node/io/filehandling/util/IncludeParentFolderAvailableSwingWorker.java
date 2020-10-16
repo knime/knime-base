@@ -52,14 +52,12 @@ import java.util.EnumSet;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
@@ -71,9 +69,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 public final class IncludeParentFolderAvailableSwingWorker extends SwingWorkerWithContext<Boolean, Void> {
 
-    private final Supplier<ReadPathAccessor> m_readPathAccessorSupplier;
-
-    private final FilterMode m_filterMode;
+    private final SettingsModelReaderFileChooser m_readerModel;
 
     private final NodeModelStatusConsumer m_statusConsumer;
 
@@ -84,24 +80,22 @@ public final class IncludeParentFolderAvailableSwingWorker extends SwingWorkerWi
     /**
      * Constructor.
      *
-     * @param readPathAccessorSupplier the path accessor of a {@link SettingsModelReaderFileChooser}
-     * @param filterMode the {@link FilterMode}
+     * @param readerModel the {@link SettingsModelReaderFileChooser}
      * @param booleanConsumer a {@link Consumer}
      */
-    public IncludeParentFolderAvailableSwingWorker(final Supplier<ReadPathAccessor> readPathAccessorSupplier,
-        final FilterMode filterMode, final Consumer<Boolean> booleanConsumer) {
+    public IncludeParentFolderAvailableSwingWorker(final SettingsModelReaderFileChooser readerModel,
+        final Consumer<Boolean> booleanConsumer) {
+        m_readerModel = readerModel;
         m_booleanConsumer = booleanConsumer;
-        m_readPathAccessorSupplier = readPathAccessorSupplier;
-        m_filterMode = filterMode;
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
     }
 
     @Override
     protected Boolean doInBackgroundWithContext() throws Exception {
-        try (final ReadPathAccessor readPathAccessor = m_readPathAccessorSupplier.get()) {
+        try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
             final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
 
-            return PathHandlingUtils.isIncludeParentFolderAvailable(rootPath, m_filterMode);
+            return PathHandlingUtils.isIncludeParentFolderAvailable(rootPath, m_readerModel.getFilterMode());
         }
     }
 

@@ -114,17 +114,15 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(config.getDeleteSourceFilesModel(), "Delete source files (move)");
 
-        m_includeSourceFolderCheckbox = new DialogComponentBoolean(config.getSettingsModelIncludeSourceFolder(),
-            "Include selected source folder");
+        m_includeSourceFolderCheckbox =
+            new DialogComponentBoolean(config.getSettingsModelIncludeSourceFolder(), "Include selected source folder");
 
         //Update the component in case something changes so that the status message will be updated accordingly
         sourceFileChooserConfig.addChangeListener(l -> m_destinationFilePanel.updateComponent());
         config.getSettingsModelIncludeSourceFolder().addChangeListener(l -> m_destinationFilePanel.updateComponent());
 
-        m_swingWorkerManager = new SwingWorkerManager(
-            () -> new IncludeParentFolderAvailableSwingWorker(sourceFileChooserConfig::createReadPathAccessor,
-                sourceFileChooserConfig.getFilterModeModel().getFilterMode(),
-                m_includeSourceFolderCheckbox.getModel()::setEnabled));
+        m_swingWorkerManager = new SwingWorkerManager(() -> new IncludeParentFolderAvailableSwingWorker(
+            sourceFileChooserConfig.createClone(), m_includeSourceFolderCheckbox.getModel()::setEnabled));
 
         sourceFileChooserConfig.addChangeListener(l -> m_swingWorkerManager.startSwingWorker());
 
