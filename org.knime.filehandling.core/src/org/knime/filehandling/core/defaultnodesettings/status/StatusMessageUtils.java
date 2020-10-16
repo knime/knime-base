@@ -51,6 +51,7 @@ package org.knime.filehandling.core.defaultnodesettings.status;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
@@ -62,14 +63,17 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Dialog
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-public final class StatusMessageNewPathUtils {
+public final class StatusMessageUtils {
 
     private static final StatusMessage MISSING_FOLDERS_MSG =
         DefaultStatusMessage.mkError("Some folders in the specified path are missing.");
 
-    private StatusMessageNewPathUtils() {
+    private StatusMessageUtils() {
         // static utility class
     }
+
+    /** A {@link StatusMessage} consumer that ignores any message. */
+    public static final Consumer<StatusMessage> NO_OP_CONSUMER = s -> {};
 
     /**
      * Handler in case the {@link DialogComponentWriterFileChooser} gets a path which does not already exist.

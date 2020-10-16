@@ -65,7 +65,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessage
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageNewPathUtils;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  * Computes the status message for dialogs of type "save".
@@ -100,7 +100,7 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             if (FSFiles.exists(path)) {
                 return handlePathExists(path);
             } else {
-                return StatusMessageNewPathUtils.handleNewPath(path, m_settings.isCreateMissingFolders());
+                return StatusMessageUtils.handleNewPath(path, m_settings.isCreateMissingFolders());
             }
         }
     }

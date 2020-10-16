@@ -71,7 +71,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WriteP
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageNewPathUtils;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  * Computes the status message for the destination {@link DialogComponentWriterFileChooser} of the decompress node
@@ -137,7 +137,7 @@ final class DecompressStatusMessageReporter implements StatusMessageReporter {
             if (FSFiles.exists(destinationPath)) {
                 return handlePathExists(destinationPath);
             } else {
-                return StatusMessageNewPathUtils.handleNewPath(m_settingsWriter.isCreateMissingFolders());
+                return StatusMessageUtils.handleNewPath(m_settingsWriter.isCreateMissingFolders());
             }
         }
     }

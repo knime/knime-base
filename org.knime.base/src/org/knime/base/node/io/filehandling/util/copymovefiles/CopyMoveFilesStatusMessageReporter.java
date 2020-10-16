@@ -73,9 +73,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageNewPathUtils;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  * Computes the status message for the destination {@link DialogComponentWriterFileChooser} of the copy move dialog .
@@ -94,10 +93,6 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
     private final SettingsModelWriterFileChooser m_settingsWriter;
 
     private final SettingsModelReaderFileChooser m_settingsReader;
-
-    private final PriorityStatusConsumer m_consumerWriter = new PriorityStatusConsumer();
-
-    private final PriorityStatusConsumer m_consumerReader = new PriorityStatusConsumer();
 
     private final ExistsHandler m_existsHandler;
 
@@ -118,23 +113,24 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
     @Override
     public StatusMessage report() throws IOException, InvalidSettingsException {
+
         try (final WritePathAccessor writePathAccessor = m_settingsWriter.createWritePathAccessor();
                 final ReadPathAccessor readPathAccessor = m_settingsReader.createReadPathAccessor()) {
 
-            final FSPath destinationPath = writePathAccessor.getOutputPath(m_consumerWriter);
+            final FSPath destinationPath = writePathAccessor.getOutputPath(StatusMessageUtils.NO_OP_CONSUMER);
 
             final List<FSPath> sourcePaths;
             final Path rootSourcePath;
 
             try {
-                rootSourcePath = readPathAccessor.getRootPath(m_consumerReader);
+                rootSourcePath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
 
                 //Additional check, as an empty path is still a regular path
                 if (rootSourcePath.toString().length() == 0) {
                     return INVALID_SOURCE;
                 }
 
-                sourcePaths = getSourcePaths(m_consumerReader, readPathAccessor);
+                sourcePaths = getSourcePaths(readPathAccessor);
             } catch (InvalidSettingsException e) {
                 LOGGER.error(SRC_PATH_ERROR_MSG, e);
                 return INVALID_SOURCE;
@@ -151,8 +147,7 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
 
                 return handlePathExists(destinationPath, numberOfExistingFiles);
             } else {
-                return StatusMessageNewPathUtils.handleNewPath(destinationPath,
-                    m_settingsWriter.isCreateMissingFolders());
+                return StatusMessageUtils.handleNewPath(destinationPath, m_settingsWriter.isCreateMissingFolders());
             }
         }
     }
@@ -183,19 +178,20 @@ final class CopyMoveFilesStatusMessageReporter implements StatusMessageReporter 
     }
 
     /**
-     * Returns the source paths from the {@link DialogComponentReaderFileChooser} based on the the {@link FilterMode}.
+     * Returns the source paths from the {@link DialogComponentReaderFileChooser} based on the the configured
+     * {@link FilterMode}.
      *
-     * @param consumerReader the consumer for the status messages
+     * @param readPathAccessor the {@link ReadPathAccessor}
      * @return the source paths of the {@link DialogComponentReaderFileChooser}
      * @throws IOException
      * @throws InvalidSettingsException
      */
-    private List<FSPath> getSourcePaths(final PriorityStatusConsumer consumerReader,
-        final ReadPathAccessor readPathAccessor) throws IOException, InvalidSettingsException {
+    private List<FSPath> getSourcePaths(final ReadPathAccessor readPathAccessor)
+        throws IOException, InvalidSettingsException {
         if (m_settingsReader.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
-            return FSFiles.getFilePathsFromFolder(readPathAccessor.getRootPath(consumerReader));
+            return FSFiles.getFilePathsFromFolder(readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER));
         } else {
-            return readPathAccessor.getFSPaths(consumerReader);
+            return readPathAccessor.getFSPaths(StatusMessageUtils.NO_OP_CONSUMER);
         }
     }
 
