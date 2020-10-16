@@ -184,6 +184,7 @@ final class StringToPathNodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         m_fileSystemModel.configureInModel(inSpecs, m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
         DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
         DataTableSpec outSpec = null;
@@ -273,8 +274,8 @@ final class StringToPathNodeModel extends NodeModel {
      * @param inSpec Specification of the input table
      * @throws InvalidSettingsException If the settings are incorrect
      */
-    private void checkSettings(final DataTableSpec inSpec, final int colIdx, final String selectedColumn, final boolean showUniqueColumnNameWarning)
-        throws InvalidSettingsException {
+    private void checkSettings(final DataTableSpec inSpec, final int colIdx, final String selectedColumn,
+        final boolean showUniqueColumnNameWarning) throws InvalidSettingsException {
 
         CheckUtils.checkSetting(colIdx >= 0, "Please select a column", selectedColumn);
         final DataColumnSpec colSpec = inSpec.getColumnSpec(colIdx);
@@ -287,7 +288,8 @@ final class StringToPathNodeModel extends NodeModel {
                 || m_appendedColumnNameModel.getStringValue().trim().isEmpty()) {
                 throw new InvalidSettingsException("Column name cannot be empty");
             }
-            if (showUniqueColumnNameWarning && inSpec.findColumnIndex(m_appendedColumnNameModel.getStringValue()) != -1) {
+            if (showUniqueColumnNameWarning
+                && inSpec.findColumnIndex(m_appendedColumnNameModel.getStringValue()) != -1) {
                 setWarningMessage("Column name already taken, using unique auto-generated column name instead.");
             }
         }
