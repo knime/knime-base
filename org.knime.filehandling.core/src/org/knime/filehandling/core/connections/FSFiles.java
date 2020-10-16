@@ -372,6 +372,7 @@ public final class FSFiles {
                 return FileVisitResult.CONTINUE;
             }
         });
+        paths.sort(Path::compareTo);
         return paths;
     }
 
