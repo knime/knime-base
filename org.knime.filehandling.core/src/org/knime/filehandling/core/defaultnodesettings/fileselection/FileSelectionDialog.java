@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -94,6 +95,9 @@ public final class FileSelectionDialog {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FileSelectionDialog.class);
 
+    private static final Consumer<ExecutionException> NO_OP_CONSUMER = e -> {
+    };
+
     private final List<ChangeListener> m_listeners = new LinkedList<>();
 
     private final JPanel m_panel = new JPanel(new GridBagLayout());
@@ -107,6 +111,8 @@ public final class FileSelectionDialog {
     private final DialogType m_dialogType;
 
     private final ChangeEvent m_event;
+
+    private final Consumer<ExecutionException> m_executionExceptionConsumer;
 
     private FileSelectionMode m_fileSelectionMode;
 
@@ -132,6 +138,26 @@ public final class FileSelectionDialog {
     public FileSelectionDialog(final String historyID, final int historyLength,
         final CheckedExceptionSupplier<FSConnection, IOException> fileSystemBrowserSupplier,
         final DialogType dialogType, final FileSelectionMode fileSelectionMode, final String[] fileExtensions) {
+        this(historyID, historyLength, fileSystemBrowserSupplier, dialogType, fileSelectionMode, fileExtensions,
+            NO_OP_CONSUMER);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param historyID ID for storing a file history
+     * @param historyLength the number of entries to store in the file history
+     * @param fileSystemBrowserSupplier the initial supplier for the {@link FSConnection}
+     * @param dialogType the type of dialog (Open or Save)
+     * @param fileSelectionMode the initial FileSelectionMode
+     * @param fileExtensions the initially supported file extensions
+     * @param executionExceptionConsumer the consumer used to propagate a {@link ExecutionException}
+     * @throws IllegalArgumentException if any argument is {@code null}
+     */
+    public FileSelectionDialog(final String historyID, final int historyLength,
+        final CheckedExceptionSupplier<FSConnection, IOException> fileSystemBrowserSupplier,
+        final DialogType dialogType, final FileSelectionMode fileSelectionMode, final String[] fileExtensions,
+        final Consumer<ExecutionException> executionExceptionConsumer) {
         m_historyModel = new HistoryComboBoxModel(historyID, historyLength);
         CheckUtils.checkArgument(historyLength > 0, "The historyLength must be positive.");
         m_fileSelectionComboBox = new FileSelectionComboBox(m_historyModel);
@@ -141,6 +167,7 @@ public final class FileSelectionDialog {
         m_fileExtensions = CheckUtils.checkArgumentNotNull(fileExtensions, "The suffixes must not be null.");
         m_fileSelectionMode =
             CheckUtils.checkArgumentNotNull(fileSelectionMode, "The fileSelectionMode must not be null.");
+        m_executionExceptionConsumer = executionExceptionConsumer;
         m_event = new ChangeEvent(this);
         m_browseButton.addActionListener(e -> clickBrowse());
         registerComboBoxListeners();
@@ -232,9 +259,6 @@ public final class FileSelectionDialog {
         }
     }
 
-    private String getDefaultFileExtension() {
-        return m_fileExtensions.length > 0 ? m_fileExtensions[0] : null;
-    }
 
     /**
      * Sets a new {@link FSConnection} e.g. if the used file system changes.
@@ -356,6 +380,7 @@ public final class FileSelectionDialog {
                 }
                 notifyListeners();
             } catch (ExecutionException ee) {
+                m_executionExceptionConsumer.accept(ee);
                 LOGGER.error("ExecutionException while creating browser.", ee);
                 final String message = Optional.ofNullable(ExceptionUtil.getDeepestErrorMessage(ee.getCause(), true))
                         .orElse("No error message provided. Please see KNIME log for more information");
@@ -367,6 +392,10 @@ public final class FileSelectionDialog {
                     fsConnection.closeInBackground();
                 }
             }
+        }
+
+        private String getDefaultFileExtension() {
+            return m_fileExtensions.length > 0 ? m_fileExtensions[0] : null;
         }
 
     }

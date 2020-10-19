@@ -50,6 +50,8 @@ package org.knime.filehandling.core.connections.base.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -72,6 +74,9 @@ public final class WorkingDirectoryChooser extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
+    private static final Consumer<ExecutionException> NO_OP_CONSUMER = e -> {
+    };
+
     private final JLabel m_label;
 
     private final FileSelectionDialog m_fileSelector;
@@ -83,11 +88,25 @@ public final class WorkingDirectoryChooser extends JPanel {
      * @param connectionSupplier the initial supplier for the {@link FSConnection}
      */
     public WorkingDirectoryChooser(final String historyID, final IOESupplier<FSConnection> connectionSupplier) {
+        this(historyID, connectionSupplier, NO_OP_CONSUMER);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param historyID ID for storing a file history
+     * @param connectionSupplier the initial supplier for the {@link FSConnection}
+     * @param executionExceptionConsumer the consumer used to propagate a {@link ExecutionException}
+     */
+    public WorkingDirectoryChooser(final String historyID, final IOESupplier<FSConnection> connectionSupplier,
+        final Consumer<ExecutionException> executionExceptionConsumer) {
         m_fileSelector = new FileSelectionDialog(historyID, //
             25, //
             connectionSupplier, //
             DialogType.SAVE_DIALOG, //
-            FileSelectionMode.DIRECTORIES_ONLY, new String[0]);
+            FileSelectionMode.DIRECTORIES_ONLY, //
+            new String[0], //
+            executionExceptionConsumer);
 
         setLayout(new GridBagLayout());
 
