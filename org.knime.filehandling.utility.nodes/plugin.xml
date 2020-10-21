@@ -15,6 +15,12 @@
             factory-class="org.knime.filehandling.utility.nodes.binaryobjects.writer.BinaryObjectsToFilesNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.pathtostring.PathToStringNodeFactory"
+            hidden="false">
+      </node>
    </extension>
 
 </plugin>

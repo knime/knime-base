@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="pathtostring.png"
+	type="Manipulator" xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1
+	http://knime.org/node/v4.1.xsd">
+	<name>Path to String (Labs)</name>
+	<shortDescription>
+		Converts a Path column into a String column.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+			This node converts a selected Path column into a column of the type String.
+		</intro>
+		<option name="Column selection">
+			The Path column that will be converted to a String column.
+		</option>
+		<option name="Output">
+			<ul>
+				<li>
+					<b>Append column:</b> Append the new column to the table with the selected column name.
+				</li>
+				<li>
+					<b>Replace:</b> Replace the selected column with the new String column.
+				</li>
+			</ul>
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Input Table">Table that contains a Path column.
+		</inPort>
+		<outPort name="Output Table" index="0">
+			The input table containing the converted column.
+		</outPort>
+	</ports>
+</knimeNode>
