@@ -752,6 +752,11 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         if (!existsCached(checkedPath)) {
             throw new NoSuchFileException(path.toString());
         }
+
+        if (FSFiles.isNonEmptyDirectory(checkedPath)) {
+            throw new DirectoryNotEmptyException(path.toString());
+        }
+
         deleteInternal(checkedPath);
         getFileSystemInternal().removeFromAttributeCache(path);
     }
