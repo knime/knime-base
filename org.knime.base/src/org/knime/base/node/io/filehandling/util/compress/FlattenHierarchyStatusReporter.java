@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -63,8 +64,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPa
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  *
@@ -86,17 +87,16 @@ final class FlattenHierarchyStatusReporter implements StatusMessageReporter {
     }
 
     private Optional<StatusMessage> canBeFlattened() {
-        final PriorityStatusConsumer consumerReader = new PriorityStatusConsumer();
         try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
-            final FSPath rootSourcePath = readPathAccessor.getRootPath(consumerReader);
+            final FSPath rootSourcePath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
             //Additional check, as an empty path is still a regular path
             if (rootSourcePath.toString().length() != 0) {
-                final List<FSPath> sourcePaths = getSourcePaths(consumerReader, readPathAccessor);
+                final List<FSPath> sourcePaths = getSourcePaths(StatusMessageUtils.NO_OP_CONSUMER, readPathAccessor);
                 return checkNameCollisions(sourcePaths);
             } else {
                 return Optional.empty();
             }
-        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
+        } catch (final IOException | InvalidSettingsException | IllegalArgumentException e) { // NOSONAR we don't care about exceptions here
             return Optional.empty();
         }
     }
@@ -123,7 +123,7 @@ final class FlattenHierarchyStatusReporter implements StatusMessageReporter {
      * @throws IOException
      * @throws InvalidSettingsException
      */
-    private List<FSPath> getSourcePaths(final PriorityStatusConsumer consumerReader,
+    private List<FSPath> getSourcePaths(final Consumer<StatusMessage> consumerReader,
         final ReadPathAccessor readPathAccessor) throws IOException, InvalidSettingsException {
         if (m_readerModel.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
             return FSFiles.getFilePathsFromFolder(readPathAccessor.getRootPath(consumerReader));

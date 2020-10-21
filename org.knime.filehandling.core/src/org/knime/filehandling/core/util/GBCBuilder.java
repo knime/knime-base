@@ -195,6 +195,18 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#gridwidth} property to <b>height</b>.
+     *
+     * @param height of the current cell
+     * @return this builder
+     */
+    public GBCBuilder setHeight(final int height) {
+        m_gbc.gridheight = height;
+        return this;
+    }
+
+
+    /**
      * Sets the {@link GridBagConstraints#gridwidth} property to {@link GridBagConstraints#REMAINDER} i.e. a cell will
      * now span all remaining columns of the grid.
      *
@@ -212,6 +224,16 @@ public final class GBCBuilder {
      */
     public GBCBuilder fillHorizontal() {
         m_gbc.fill = GridBagConstraints.HORIZONTAL;
+        return this;
+    }
+
+    /**
+     * Sets the {@link GridBagConstraints#fill} property to {@link GridBagConstraints#VERTICAL}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder fillVertical() {
+        m_gbc.fill = GridBagConstraints.VERTICAL;
         return this;
     }
 

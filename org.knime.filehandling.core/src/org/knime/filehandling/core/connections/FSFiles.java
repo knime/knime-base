@@ -295,9 +295,9 @@ public final class FSFiles {
         try {
             Files.readAttributes(path, BasicFileAttributes.class, linkOptions);
             return true;
-        } catch (AccessDeniedException ade) {
+        } catch (AccessDeniedException ade) { // NOSONAR
             throw ExceptionUtil.createAccessDeniedException(path);
-        } catch (IOException ex) {
+        } catch (IOException ex) { // NOSONAR
             return false;
         }
     }
@@ -329,7 +329,7 @@ public final class FSFiles {
     }
 
     /**
-     * Deletes the given file or directory (must be empty for successful deletion). Any exceptions occuring during
+     * Deletes the given file or directory (must be empty for successful deletion). Any exceptions occurring during
      * deletion will be silently ignored.
      *
      * @param toDelete The file or (empty) directory to delete.
@@ -341,13 +341,13 @@ public final class FSFiles {
     private static void deleteSafely(final Path toDelete, final AtomicReference<IOException> ioeRef) {
         try {
             Files.deleteIfExists(toDelete);
-        } catch (Exception e) {
+        } catch (final IOException ioe) {
             if (ioeRef != null) {
-                if (e instanceof IOException) {
-                    ioeRef.compareAndSet(null, (IOException)e);
-                } else {
-                    ioeRef.compareAndSet(null, new IOException(e));
-                }
+                ioeRef.compareAndSet(null, ioe);
+            }
+        } catch (final Exception e) { // NOSONAR
+            if (ioeRef != null) {
+                ioeRef.compareAndSet(null, new IOException(e));
             }
         }
     }
@@ -357,10 +357,9 @@ public final class FSFiles {
      *
      * @param source the {@link Path} of the source folder
      * @return a {@link List} of {@link Path} from files in a folder
-     * @throws IOException
+     * @throws IOException - If something went wrong while accessing the path
      */
-    public static List<FSPath> getFilePathsFromFolder(final FSPath source)
-        throws IOException {
+    public static List<FSPath> getFilePathsFromFolder(final FSPath source) throws IOException {
         final List<FSPath> paths = new ArrayList<>();
         final BasicFileAttributes basicAttrs = Files.readAttributes(source, BasicFileAttributes.class);
         CheckUtils.checkArgument(basicAttrs.isDirectory(), "%s is not a folder. Please specify a folder.", source);
@@ -376,13 +375,12 @@ public final class FSFiles {
         return paths;
     }
 
-
     /**
      * Checks whether the given path is a non-empty directory.
      *
      * @param path The path to check.
-     * @return true if the given path is a non-empty directory, false otherwise (if it does not exist, is not a directory, or is an
-     *         empty directory).
+     * @return true if the given path is a non-empty directory, false otherwise (if it does not exist, is not a
+     *         directory, or is an empty directory).
      * @throws IOException if something went wrong while accessing the directory contents
      */
     public static boolean isNonEmptyDirectory(final FSPath path) throws IOException {
@@ -414,7 +412,8 @@ public final class FSFiles {
      * @throws IOException
      * @throws IllegalArgumentException if the given source path is not a directory.
      */
-    public static void copyRecursively(final FSPath source, final FSPath target, final CopyOption... options) throws IOException {
+    public static void copyRecursively(final FSPath source, final FSPath target, final CopyOption... options)
+        throws IOException {
         if (!Files.readAttributes(source, BasicFileAttributes.class).isDirectory()) {
             throw new IllegalArgumentException("Only directories can be copied recursively");
         }
@@ -437,7 +436,7 @@ public final class FSFiles {
             m_target = target;
             m_options = options;
             m_replaceExisting = Arrays.stream(options) //
-                    .anyMatch(o->  o == StandardCopyOption.REPLACE_EXISTING);
+                .anyMatch(o -> o == StandardCopyOption.REPLACE_EXISTING);
         }
 
         @Override

@@ -143,14 +143,13 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        GBCBuilder gbc = new GBCBuilder().resetX().resetY();
-
-        panel.add(createInputPanel(), gbc.fillHorizontal().setWeightX(1).build());
-        gbc.incY();
-        panel.add(createOutputPanel(), gbc.resetX().fillHorizontal().setWeightX(1).build());
-        gbc.incY();
+        GBCBuilder gbc = new GBCBuilder().resetX().resetY().fillHorizontal().setWeightX(1).anchorLineStart();
+        panel.add(createInputPanel(), gbc.build());
+        gbc = gbc.incY();
+        panel.add(createOutputPanel(), gbc.build());
+        gbc = gbc.incY().fillNone().setWeightX(0);
         panel.add(createOptionsPanel(), gbc.build());
-        gbc.incY().setWeightY(1);
+        gbc = gbc.incY().setWeightY(1).setWeightX(1).fillBoth();
         panel.add(new JPanel(), gbc.build());
         return panel;
     }
@@ -183,10 +182,9 @@ final class CompressNodeDialog extends NodeDialogPane {
         panel.add(m_includeSelected, gbc.build());
         gbc = gbc.incY();
         panel.add(m_flattenHierarchyPanel, gbc.build());
-        gbc = gbc.incX();
+        gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
         panel.add(m_statusView.getLabel(), gbc.build());
-        panel.add(new JPanel(),
-            gbc.resetX().setWidth(2).fillHorizontal().setWeightX(1).incY().fillHorizontal().build());
+        panel.add(new JPanel(), gbc.resetX().setHeight(1).incY().build());
         return panel;
     }
 
