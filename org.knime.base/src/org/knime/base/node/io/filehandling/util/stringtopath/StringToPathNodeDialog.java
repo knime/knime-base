@@ -176,7 +176,7 @@ final class StringToPathNodeDialog extends NodeDialogPane {
         final JPanel fSConnectionPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         fSConnectionPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File system: "));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File system "));
 
         gbc.insets = new Insets(0, 7, 0, 0);
         fSConnectionPanel.add(m_fileSystemComponent.getComponentPanel(), gbc);
@@ -191,7 +191,7 @@ final class StringToPathNodeDialog extends NodeDialogPane {
         final JPanel colSelectionPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
         colSelectionPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column selection: "));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column selection "));
 
         gbc.insets = new Insets(5, 0, 0, 0);
         colSelectionPanel.add(m_selectedColumnNameComponent.getComponentPanel(), gbc);
@@ -213,7 +213,7 @@ final class StringToPathNodeDialog extends NodeDialogPane {
     private JPanel getNewColumnPanel() {
         final JPanel newColumnPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = createAndInitGBC();
-        newColumnPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output: "));
+        newColumnPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output "));
 
         gbc.insets = new Insets(5, 5, 0, 0);
         newColumnPanel.add(m_generatedColumnModeComponent.getComponentPanel(), gbc);

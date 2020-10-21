@@ -183,16 +183,65 @@ final class StringToPathNodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
+        // auto-guessing
+        if (m_selectedColumnNameModel.getStringValue() == null) {
+            autoGuess(inSpec);
+            setWarningMessage(
+                String.format("Auto-guessed column to convert '%s'", m_selectedColumnNameModel.getStringValue()));
+        }
+        // validate the settings
+        validateSettings(inSpecs);
+
+        // create output spec
+        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, null)) {
+            final ColumnRearranger rearranger = createColumnRearranger(inSpec, factory);
+            return new PortObjectSpec[]{rearranger.createSpec()};
+        }
+    }
+
+    private void autoGuess(final DataTableSpec inSpec) throws InvalidSettingsException {
+        m_selectedColumnNameModel.setStringValue(inSpec.stream()//
+            .filter(dcs -> dcs.getType().isCompatible(StringValue.class))//
+            .map(DataColumnSpec::getName)//
+            .findFirst()//
+            .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
+        );
+    }
+
+    private void validateSettings(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
+        final String pathColName = m_selectedColumnNameModel.getStringValue();
+        final int colIndex = inSpec.findColumnIndex(pathColName);
+
+        // check column existence
+        CheckUtils.checkSetting(colIndex >= 0, "The selected column '%s' is not part of the input", pathColName);
+
+        // check column type
+        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(colIndex);
+        if (!pathColSpec.getType().isCompatible(StringValue.class)) {
+            throw new InvalidSettingsException(
+                String.format("The selected column '%s' has the wrong type", pathColName));
+        }
+
+        if (isAppendMode(m_generatedColumnModeModel)) {
+            // Is column name empty?
+            if (m_appendedColumnNameModel.getStringValue() == null
+                || m_appendedColumnNameModel.getStringValue().trim().isEmpty()) {
+                throw new InvalidSettingsException("The name of the column to create cannot be empty");
+            }
+            if (inSpec.containsName(m_appendedColumnNameModel.getStringValue())) {
+                setWarningMessage(
+                    String.format("The name of the column to create is already taken, using '%s' instead.",
+                        getUniqueColumnName(inSpec)));
+            }
+        }
         m_fileSystemModel.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+    }
 
-        DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        DataTableSpec outSpec = null;
-
-        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, null)) {
-            outSpec = createColumnRearranger(inSpec, factory).createSpec();
-            return new PortObjectSpec[]{outSpec};
-        }
+    private String getUniqueColumnName(final DataTableSpec inSpec) {
+        return DataTableSpec.getUniqueColumnName(inSpec, m_appendedColumnNameModel.getStringValue());
     }
 
     @Override
@@ -245,54 +294,22 @@ final class StringToPathNodeModel extends NodeModel {
         return rearranger;
     }
 
-    private StringToPathCellFactory createStringPathCellFactory(final DataTableSpec inSpec, final ExecutionContext exec)
-        throws InvalidSettingsException {
-        final String selectedColumn = m_selectedColumnNameModel.getStringValue();
-        final int colIdx = inSpec.findColumnIndex(selectedColumn);
-
-        // show the warning only in configure not in execute
-        final boolean showUniqueColumnNameWarning = exec == null;
-        checkSettings(inSpec, colIdx, selectedColumn, showUniqueColumnNameWarning);
+    private StringToPathCellFactory createStringPathCellFactory(final DataTableSpec inSpec,
+        final ExecutionContext exec) {
+        final int colIdx = inSpec.findColumnIndex(m_selectedColumnNameModel.getStringValue());
         DataColumnSpec colSpec = getNewColumnSpec(inSpec);
         return new StringToPathCellFactory(colSpec, colIdx, exec);
     }
 
     private DataColumnSpec getNewColumnSpec(final DataTableSpec inSpec) {
         final String columnName = isReplaceMode(m_generatedColumnModeModel) ? m_selectedColumnNameModel.getStringValue()
-            : DataTableSpec.getUniqueColumnName(inSpec, m_appendedColumnNameModel.getStringValue());
+            : getUniqueColumnName(inSpec);
         final FSLocationSpec location = m_fileSystemModel.getLocationSpec();
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
         final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
         fsLocationSpec.addMetaData(metaData, true);
         return fsLocationSpec.createSpec();
-    }
-
-    /**
-     * Check if all the settings are valid.
-     *
-     * @param inSpec Specification of the input table
-     * @throws InvalidSettingsException If the settings are incorrect
-     */
-    private void checkSettings(final DataTableSpec inSpec, final int colIdx, final String selectedColumn,
-        final boolean showUniqueColumnNameWarning) throws InvalidSettingsException {
-
-        CheckUtils.checkSetting(colIdx >= 0, "Please select a column", selectedColumn);
-        final DataColumnSpec colSpec = inSpec.getColumnSpec(colIdx);
-        CheckUtils.checkSetting(colSpec.getType().isCompatible(StringValue.class),
-            "Selected column '%s' is not a string column", selectedColumn);
-
-        if (isAppendMode(m_generatedColumnModeModel)) {
-            // Is column name empty?
-            if (m_appendedColumnNameModel.getStringValue() == null
-                || m_appendedColumnNameModel.getStringValue().trim().isEmpty()) {
-                throw new InvalidSettingsException("Column name cannot be empty");
-            }
-            if (showUniqueColumnNameWarning
-                && inSpec.findColumnIndex(m_appendedColumnNameModel.getStringValue()) != -1) {
-                setWarningMessage("Column name already taken, using unique auto-generated column name instead.");
-            }
-        }
     }
 
     @Override
