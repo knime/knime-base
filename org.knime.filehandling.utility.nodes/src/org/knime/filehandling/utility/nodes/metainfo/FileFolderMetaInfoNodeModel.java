@@ -57,11 +57,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -84,6 +84,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -146,8 +147,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         if (m_selectedColumn.getStringValue() == null) {
             autoGuess(inSpecs);
+            setWarningMessage(String.format("Auto-guessed column containing file/folder paths '%s'",
+                m_selectedColumn.getStringValue()));
         }
-        validate(inSpecs);
+        validateSettings(inSpecs);
 
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
         try (final FileAttributesFactory fac = new FileAttributesFactory(createNewColumns(inputTableSpec), pathColIdx,
@@ -184,7 +187,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         );
     }
 
-    private void validate(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    private void validateSettings(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final String pathColName = m_selectedColumn.getStringValue();
         final int colIndex = inSpec.findColumnIndex(pathColName);
@@ -248,16 +251,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
     }
 
     private static DataColumnSpec[] createNewColumns(final DataTableSpec inputTableSpec) {
+        final UniqueNameGenerator uniqueNameGen = new UniqueNameGenerator(inputTableSpec);
         return Arrays.stream(KNIMEFileAttributesConverter.values())//
-            .map(attr -> createColumnSpec(attr, inputTableSpec))//
+            .map(attr -> uniqueNameGen.newColumn(attr.getName(), attr.getType()))//
             .toArray(DataColumnSpec[]::new);
-    }
-
-    private static DataColumnSpec createColumnSpec(final KNIMEFileAttributesConverter attr,
-        final DataTableSpec inputTableSpec) {
-        String name = DataTableSpec.getUniqueColumnName(inputTableSpec, attr.getName());
-        DataType type = attr.getType();
-        return new DataColumnSpecCreator(name, type).createSpec();
     }
 
     @Override
@@ -318,16 +315,19 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         @Override
         public DataCell[] getCells(final DataRow row) {
-            return createCells((FSLocationCell)row.getCell(m_colIdx));
+            final DataCell c = row.getCell(m_colIdx);
+            if (c.isMissing()) {
+                return createMissingCells(DataType::getMissingCell);
+            } else {
+                return createCells((FSLocationCell)c);
+            }
         }
 
         private DataCell[] createCells(final FSLocationCell cell) {
             try (final FSPathProvider pathProvder = m_providerFactory.create(cell.getFSLocation())) {
                 final FSPath path = pathProvder.getPath();
                 if (!FSFiles.exists(path) && !m_failIfPathNotExists.getBooleanValue()) {
-                    final DataCell[] cells = Stream.generate(() -> new MissingCell("File/folder does not exist"))//
-                        .limit(KNIMEFileAttributesConverter.values().length)//
-                        .toArray(DataCell[]::new);
+                    final DataCell[] cells = createMissingCells(() -> new MissingCell("File/folder does not exist"));
                     cells[KNIMEFileAttributesConverter.EXISTS.getPosition()] = BooleanCellFactory.create(false);
                     return cells;
                 } else {
@@ -339,6 +339,12 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
             } catch (IOException e) {
                 throw new IllegalArgumentException(e);
             }
+        }
+
+        private DataCell[] createMissingCells(final Supplier<DataCell> supplier) {
+            return Stream.generate(supplier)//
+                .limit(KNIMEFileAttributesConverter.values().length)//
+                .toArray(DataCell[]::new);
         }
 
         private DataCell[] createCells(final FSPath path) throws IOException {
