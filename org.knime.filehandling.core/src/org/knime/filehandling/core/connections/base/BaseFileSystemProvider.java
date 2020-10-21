@@ -608,14 +608,25 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     /**
-     * Tests whether the given absolute, normalized path exists in the backing file system. Implementations of this
-     * method must not perform a cache lookup (this is done in {@link #existsCached(FSPath)}.
+     * Tests whether the given absolute, normalized path exists in the backing file system. Subclasses can override
+     * this method, if there is a more efficient method than invoking {@link #fetchAttributesInternal(FSPath, Class)}
+     * to determine the existence of the given path. Note that implementations of this method must not perform a
+     * cache lookup (this is already done in {@link #existsCached(FSPath)}.
      *
      * @param path An absolute and normalized path to check for existence.
      * @return whether the path exists or not.
      * @throws IOException if IO error occurs that prevents determining whether the path exists or not.
      */
-    protected abstract boolean exists(final P path) throws IOException;
+    @SuppressWarnings("resource")
+    protected boolean exists(final P path) throws IOException {
+        try {
+            final BaseFileAttributes fileAttrs = fetchAttributesInternal(path, BasicFileAttributes.class);
+            getFileSystemInternal().addToAttributeCache(path, fileAttrs);
+            return true;
+        } catch (NoSuchFileException e) { // NOSONAR ignore because indicates file does not exist
+            return false;
+        }
+    }
 
     /**
      * {@inheritDoc}

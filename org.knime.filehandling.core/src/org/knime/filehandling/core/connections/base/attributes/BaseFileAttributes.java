@@ -227,7 +227,7 @@ public class BaseFileAttributes implements PosixFileAttributes {
      */
     @Override
     public boolean isDirectory() {
-        return !m_isRegularFile && !(m_isSymbolicLink || m_isOther);
+        return !(m_isRegularFile || m_isSymbolicLink || m_isOther);
     }
 
     /**
