@@ -323,11 +323,15 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     /**
      * @return a String for the scheme to build a URI for this path
      */
-    public abstract String getSchemeString();
+    public String getSchemeString() {
+        return m_uri.getScheme();
+    }
 
     /**
      * @return a String for the host to build a URI for this path may be null
      */
-    public abstract String getHostString();
+    public String getHostString() {
+        return m_uri.getAuthority();
+    }
 
 }

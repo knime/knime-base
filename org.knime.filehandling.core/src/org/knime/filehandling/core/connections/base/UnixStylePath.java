@@ -493,7 +493,7 @@ public abstract class UnixStylePath extends FSPath {
     @Override
     public URI toUri() {
         try {
-            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), toAbsolutePath().toString(), null);
+            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), toAbsolutePath().toString(), null, null);
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }
