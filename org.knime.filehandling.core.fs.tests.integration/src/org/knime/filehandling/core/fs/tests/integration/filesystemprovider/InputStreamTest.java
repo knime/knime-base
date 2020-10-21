@@ -46,6 +46,7 @@
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,6 +93,14 @@ public class InputStreamTest extends AbstractParameterizedFSTest {
         Path nonExistingFile = file.getParent().resolve("non-existing");
         try (InputStream inputStream = Files.newInputStream(nonExistingFile)) {
             inputStream.read(); // try to read
+        }
+    }
+
+    @Test(expected = IOException.class)
+    public void test_read_from_input_stream_from_directory() throws Exception {
+        Path file = m_testInitializer.createFile("dir", "fileName");
+        try (InputStream inputStream = Files.newInputStream(file.getParent())) {
+            fail("IOException should have been thrown before");
         }
     }
 }

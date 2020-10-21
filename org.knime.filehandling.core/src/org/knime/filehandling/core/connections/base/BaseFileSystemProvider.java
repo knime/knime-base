@@ -291,12 +291,21 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         final P checkedSource = checkCastAndAbsolutizePath(source);
         final P checkedTarget = checkCastAndAbsolutizePath(target);
 
+        if (checkedSource.equals(checkedTarget)) {
+            return;
+        }
+
         if (!existsCached(checkedSource)) {
             throw new NoSuchFileException(source.toString());
         }
 
-        if (existsCached(checkedTarget) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
-            throw new FileAlreadyExistsException(target.toString());
+        if (existsCached(checkedTarget)) {
+            if (!Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+                throw new FileAlreadyExistsException(
+                    String.format("Target file %s already exists.", target.toString()));
+            } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
+                throw new DirectoryNotEmptyException(target.toString());
+            }
         }
 
         final P targetParent = (P)checkedTarget.getParent();
@@ -308,10 +317,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             }
         }
 
-        if (checkedSource.equals(checkedTarget)) {
-            return;
-        }
-
         moveInternal(checkedSource, checkedTarget, options);
         getFileSystemInternal().removeFromAttributeCacheDeep(checkedSource);
     }
@@ -319,29 +324,31 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     /**
      * Move or rename a file to a target file. This method works in exactly the manner specified by the
      * {@link Files#move} method except that both the source and target paths must be associated with this provider.
-     * This method has a default implementation that emulates moving using (recursive) copy and delete. Subclasses are
-     * encouraged to override this method, if the underlying backend provides a O(1) operation for moving directories
-     * and/or files.
      *
      * <p>
      * Implementations can assume that
+     *
      * <ul>
-     * <li>the source path exists</li>
-     * <li>the target path does not exist, or the {@link StandardCopyOption#REPLACE_EXISTING} is set.
-     * <li>the parent of the target path exists and is a directory</li>
+     * <li>The source path exists</li>
+     * <li>The target path either (1) does not exist, or (2) it exists and {@link StandardCopyOption#REPLACE_EXISTING}
+     * and it is a file or an empty directory.</li>
+     * <li>If the target path does not exist, then its parent exists and is a directory.</li>
      * </ul>
+     * </p>
+     *
+     * <p>
+     * This method has a default implementation that emulates moving using (recursive) copy and delete. Subclasses are
+     * encouraged to override this method, if the underlying backend provides a O(1) operation for moving directories
+     * and/or files.
      * </p>
      *
      * @param source An absolute, normalized path that specifies the source file/directory to move.
      * @param target An absolute, normalized path that specifies the target file/directory.
      * @param options options specifying how the move should be done
-     * @throws IOException if something prevents moving the source file to the target location (I/O errors, access denied, ...)
+     * @throws IOException if something prevents moving the source file to the target location (I/O errors, access
+     *             denied, ...)
      */
     protected void moveInternal(final P source, final P target, final CopyOption... options) throws IOException {
-        if (FSFiles.isNonEmptyDirectory(target)) {
-            throw new DirectoryNotEmptyException(target.toString());
-        }
-
         final BasicFileAttributes sourceAttrs = readAttributes(source, BasicFileAttributes.class);
         if (sourceAttrs.isDirectory()) {
             moveDirectoryInternal(source, target, options);
@@ -404,9 +411,15 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NoSuchFileException(checkedTarget.getParent().toString());
         }
 
-        if (existsCached(checkedTarget) && !Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
-            throw new FileAlreadyExistsException(String.format("Target file %s already exists.", target.toString()));
+        if (existsCached(checkedTarget)) {
+            if (!Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+                throw new FileAlreadyExistsException(
+                    String.format("Target file %s already exists.", target.toString()));
+            } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
+                throw new DirectoryNotEmptyException(target.toString());
+            }
         }
+
         copyInternal(checkedSource, checkedTarget, options);
     }
 

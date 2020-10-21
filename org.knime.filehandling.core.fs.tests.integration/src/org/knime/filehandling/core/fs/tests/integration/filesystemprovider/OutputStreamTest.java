@@ -144,4 +144,9 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
         assertEquals(overwriteContent, fileContent.get(0));
     }
 
+    @Test(expected = IOException.class)
+    public void test_output_stream_on_directory_failure() throws Exception {
+        Path file = m_testInitializer.createFile("dir", "file");
+        Files.newOutputStream(file.getParent());
+    }
 }
