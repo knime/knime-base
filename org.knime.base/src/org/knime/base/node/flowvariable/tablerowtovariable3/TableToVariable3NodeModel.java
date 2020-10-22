@@ -103,7 +103,7 @@ import org.knime.core.node.workflow.VariableType;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class TableToVariable3NodeModel extends NodeModel {
+public class TableToVariable3NodeModel extends NodeModel {
 
     /** Suffix for missing value exception. */
     private static final String MISSING_VALUE_EXCEPTION_SUFFIX = "%s -- column \"%s\" (index %d)\"";
@@ -151,7 +151,11 @@ final class TableToVariable3NodeModel extends NodeModel {
             NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
     }
 
-    TableToVariable3NodeModel() {
+    /**
+     * Constructor. Creating a node with a {@link BufferedDataTable} input port and a {@link FlowVariablePortObject}
+     * output port.
+     */
+    protected TableToVariable3NodeModel() {
         super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
     }
 
@@ -271,8 +275,14 @@ final class TableToVariable3NodeModel extends NodeModel {
         }
     }
 
+    /**
+     * Pushes the {@link FlowVariable} onto the flow variable stack.
+     *
+     * @param <T> the simple value type of the variable
+     * @param fv the {@link FlowVariable} to be pushed onto the stack
+     */
     @SuppressWarnings("unchecked")
-    private <T> void pushVariable(final FlowVariable fv) {
+    protected final <T> void pushVariable(final FlowVariable fv) {
         pushFlowVariable(fv.getName(), (VariableType<T>)fv.getVariableType(), (T)fv.getValue(fv.getVariableType()));
     }
 
@@ -280,7 +290,7 @@ final class TableToVariable3NodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable variables = (BufferedDataTable)inData[0];
         final DataTableSpec spec = variables.getDataTableSpec();
-        pushVariables(spec, getFirstRow(variables), createDefaultCells(spec));
+        pushVariables(spec, getFirstRow(variables));
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
@@ -295,6 +305,16 @@ final class TableToVariable3NodeModel extends NodeModel {
             }
         }
 
+    }
+
+    /**
+     * Pushes the data row, which can be null, onto the flow variable stack.
+     *
+     * @param spec the data table spec
+     * @param row the row to push onto the flow variable stack
+     */
+    protected final void pushVariables(final DataTableSpec spec, final DataRow row) {
+        pushVariables(spec, row, createDefaultCells(spec));
     }
 
     private void pushVariables(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells) {

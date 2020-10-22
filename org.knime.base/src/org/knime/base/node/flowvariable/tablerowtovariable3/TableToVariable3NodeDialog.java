@@ -73,7 +73,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class TableToVariable3NodeDialog extends NodeDialogPane {
+public final class TableToVariable3NodeDialog extends NodeDialogPane {
 
     private final DialogComponentButtonGroup m_onMissing;
 
@@ -90,9 +90,9 @@ final class TableToVariable3NodeDialog extends NodeDialogPane {
     private final DialogComponentColumnFilter2 m_columnFilter;
 
     /**
-     * New pane for configuring the TableToVariable2 node.
+     * Constructor.
      */
-    TableToVariable3NodeDialog() {
+    public TableToVariable3NodeDialog() {
         m_onMissing = new DialogComponentButtonGroup(TableToVariable3NodeModel.getOnMissing(), null, true,
             MissingValuePolicy.values());
         m_replaceString =

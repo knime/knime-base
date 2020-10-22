@@ -546,6 +546,13 @@
             name="Variables"
             path="/labs/file-handling-prototype/flowcontrol_labs/">
       </category>
+      <category
+            description="Nodes for manual assembly of loops"
+            icon="icons/16x16/category_loop_support.png"
+            level-id="loopsupport_labs"
+            name="Loop Support"
+            path="/labs/file-handling-prototype/flowcontrol_labs/">
+      </category>
    </extension>
             
      <extension
@@ -1308,6 +1315,11 @@
             after="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/labs/file-handling-prototype/flowcontrol_labs/loopsupport_labs"
+            factory-class="org.knime.base.node.meta.looper.variable.start.LoopStartVariable2NodeFactory"
             >
       </node>
       <node
