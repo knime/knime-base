@@ -283,7 +283,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings("resource")
     @Override
     public void move(final Path source, final Path target, final CopyOption... options) throws IOException {
 
@@ -307,15 +307,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
                 throw new DirectoryNotEmptyException(target.toString());
             }
-        }
-
-        final P targetParent = (P)checkedTarget.getParent();
-        if (targetParent != null) {
-            // throws already NoSuchFileException
-            final BasicFileAttributes parentAttrs = readAttributes(targetParent, BasicFileAttributes.class);
-            if (!parentAttrs.isDirectory()) {
-                throw new FileSystemException(targetParent.toString() + " is not a directory");
-            }
+        } else {
+            checkParentDirectoryExists(checkedTarget);
         }
 
         moveInternal(checkedSource, checkedTarget, options);
@@ -408,10 +401,6 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         } catch (NoSuchFileException e) { // NOSONAR target file might not exist
         }
 
-        if (!existsCached((P)checkedTarget.getParent())) {
-            throw new NoSuchFileException(checkedTarget.getParent().toString());
-        }
-
         if (existsCached(checkedTarget)) {
             if (!Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
                 throw new FileAlreadyExistsException(
@@ -419,6 +408,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
                 throw new DirectoryNotEmptyException(target.toString());
             }
+        } else {
+            checkParentDirectoryExists(checkedTarget);
         }
 
         copyInternal(checkedSource, checkedTarget, options);
