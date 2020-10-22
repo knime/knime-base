@@ -166,7 +166,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
             // we can neither read nor write a directory
             if (fileAttrs.isDirectory()) {
-                throw new IOException("Is a directory");
+                throw new IOException(path.toString() + " is a directory");
             }
 
             if (options.contains(StandardOpenOption.CREATE_NEW)) {
@@ -262,8 +262,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         checkOpenOptionsForReading(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
-        if (!existsCached(checkedPath)) {
-            throw new NoSuchFileException(checkedPath.toString());
+        final BaseFileAttributes fileAttrs = (BaseFileAttributes)readAttributes(checkedPath, BasicFileAttributes.class);
+        if (fileAttrs.isDirectory()) {
+            throw new IOException(path.toString() + " is a directory");
         }
 
         return new FSInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
@@ -446,6 +447,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
      */
     protected abstract InputStream newInputStreamInternal(P path, OpenOption... options) throws IOException;
 
+    @SuppressWarnings("resource")
     @Override
     public OutputStream newOutputStream(final Path path, final OpenOption... options) throws IOException {
         checkFileSystemOpenAndNotClosing();
@@ -453,9 +455,15 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         final OpenOption[] validatedOpenOptions = ensureValidAndDefaultOpenOptionsForWriting(options);
         final P checkedPath = checkCastAndAbsolutizePath(path);
 
-        if (Arrays.stream(validatedOpenOptions).anyMatch(StandardOpenOption.CREATE_NEW::equals) // NOSONAR OpenOption is related to StandardOpenOption
-            && existsCached(checkedPath)) {
-            throw new FileAlreadyExistsException(path.toString());
+        try {
+            final BaseFileAttributes fileAttrs =
+                (BaseFileAttributes)readAttributes(checkedPath, BasicFileAttributes.class);
+            if (fileAttrs.isDirectory()) {
+                throw new IOException(path.toString() + " is a directory");
+            } else if (Arrays.stream(validatedOpenOptions).anyMatch(StandardOpenOption.CREATE_NEW::equals)) { // NOSONAR OpenOption is related to StandardOpenOption
+                throw new FileAlreadyExistsException(path.toString());
+            }
+        } catch (NoSuchFileException e) { // NOSONAR must be ignored here
         }
 
         return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
