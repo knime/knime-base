@@ -103,3 +103,5 @@ ssh.workingDirPrefix = <PATH-ON-SSH-SERVER>
 ssh.host = <HOST>
 ssh.username = <USERNAME>
 ssh.password = <PASSWORD>
+# password and keyFile authentication are mutually exclusive
+# ssh.keyFile = <PATH-TO-PRIVATE-KEY>
