@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
@@ -85,7 +84,7 @@ final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAcces
 
     @Override
     public V get(final int idx) {
-        CheckUtils.checkState(m_decoratee != null, "No RandomAccessible to decorate set.");
+//        CheckUtils.checkState(m_decoratee != null, "No RandomAccessible to decorate set.");
         if (m_idxMapper.hasMapping(idx)) {
             final int mappedIdx = m_idxMapper.map(idx);
             return m_decoratee.size() > mappedIdx ? m_decoratee.get(mappedIdx) : null;

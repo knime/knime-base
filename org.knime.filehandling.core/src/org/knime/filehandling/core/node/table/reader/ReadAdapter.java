@@ -51,7 +51,6 @@ package org.knime.filehandling.core.node.table.reader;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.Source;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -103,7 +102,7 @@ public abstract class ReadAdapter<T, V> implements Source<T> {
      * @return the value identified by params
      */
     public final V get(final ReadAdapterParams<?, ?> params) {
-        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
+//        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
         return m_current.get(params.getIdx());
     }
 
