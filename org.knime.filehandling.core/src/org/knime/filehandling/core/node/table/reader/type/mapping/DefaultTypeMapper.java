@@ -56,7 +56,6 @@ import org.knime.core.data.convert.map.DataRowProducer;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -90,11 +89,11 @@ final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements T
 
     @Override
     public DataRow map(final RowKey key, final RandomAccessible<V> randomAccessible) throws Exception {
-        CheckUtils.checkArgumentNotNull(key != null, "The row key must not be null.");
-        CheckUtils.checkArgumentNotNull(randomAccessible, "The randomAccessible must not be null.");
-        final int size = randomAccessible.size();
-        CheckUtils.checkArgument(size == m_params.length,
-            "The size of the randomAccessible is wrong. Expected %s but got %s.", size, m_params.length);
+//        CheckUtils.checkArgumentNotNull(key != null, "The row key must not be null.");
+//        CheckUtils.checkArgumentNotNull(randomAccessible, "The randomAccessible must not be null.");
+//        final int size = randomAccessible.size();
+//        CheckUtils.checkArgument(size == m_params.length,
+//            "The size of the randomAccessible is wrong. Expected %s but got %s.", size, m_params.length);
         m_readAdapter.setSource(randomAccessible);
         try {
             return m_rowProducer.produceDataRow(key, m_params);
