@@ -1323,6 +1323,11 @@
             >
       </node>
       <node
+            category-path="/labs/file-handling-prototype/flowcontrol_labs/loopsupport_labs"
+            factory-class="org.knime.base.node.meta.looper.variable.end.LoopEndVariableNodeFactory"
+            >
+      </node>
+      <node
             after="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopEndNodeFactory"

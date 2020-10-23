@@ -87,7 +87,7 @@ import org.knime.core.node.workflow.VariableType;
 public abstract class AbstractVariableToTableNodeModel extends NodeModel {
 
     /** Key for the filter configuration. */
-    static final String CFG_KEY_FILTER = "variable_filter";
+    protected static final String CFG_KEY_FILTER = "variable_filter";
 
     private FlowVariableFilterConfiguration m_filter;
 
