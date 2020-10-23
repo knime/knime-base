@@ -82,47 +82,45 @@ import org.knime.core.node.workflow.VariableType.StringArrayType;
  */
 abstract class SimpleVarToCellConverter implements VariableToCellConverter {
 
-    private final FlowVariable m_var;
-
     private final DataType m_cellType;
 
-    SimpleVarToCellConverter(final FlowVariable var, final DataType cellType) {
-        m_var = var;
+    SimpleVarToCellConverter(final DataType cellType) {
         m_cellType = cellType;
     }
 
     @Override
-    public DataColumnSpec createSpec(final String columnName) {
+    public final DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
         return new DataColumnSpecCreator(columnName, m_cellType).createSpec();
     }
 
-    final FlowVariable getVariable() {
-        return m_var;
+    @Override
+    public final void close() {
+        // nothing to do
     }
 
     static class StringVariableConverter extends SimpleVarToCellConverter {
-        StringVariableConverter(final FlowVariable var) {
-            super(var, StringCell.TYPE);
+        StringVariableConverter() {
+            super(StringCell.TYPE);
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             // For reasons of backwards compatibility, String flow variables with a value of null shall be converted
             // to empty String cells
-            return new StringCell(getVariable().getStringValue() == null ? "" : getVariable().getStringValue());
+            return new StringCell(flowVar.getStringValue() == null ? "" : flowVar.getStringValue());
         }
     }
 
     static final class StringArrayVariableConverter extends SimpleVarToCellConverter {
 
-        StringArrayVariableConverter(final FlowVariable var) {
-            super(var, getCollectionType(StringCell.TYPE));
+        StringArrayVariableConverter() {
+            super(getCollectionType(StringCell.TYPE));
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             return CollectionCellFactory.createListCell(//
-                Arrays.stream(getVariable().getValue(StringArrayType.INSTANCE))//
+                Arrays.stream(flowVar.getValue(StringArrayType.INSTANCE))//
                     .map(StringCell::new)//
                     .collect(Collectors.toList())//
             );
@@ -131,26 +129,26 @@ abstract class SimpleVarToCellConverter implements VariableToCellConverter {
 
     static final class DoubleVariableConverter extends SimpleVarToCellConverter {
 
-        DoubleVariableConverter(final FlowVariable var) {
-            super(var, DoubleCell.TYPE);
+        DoubleVariableConverter() {
+            super(DoubleCell.TYPE);
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
-            return new DoubleCell(getVariable().getDoubleValue());
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+            return new DoubleCell(flowVar.getDoubleValue());
         }
     }
 
     static final class DoubleArrayVariableConverter extends SimpleVarToCellConverter {
 
-        DoubleArrayVariableConverter(final FlowVariable var) {
-            super(var, getCollectionType(DoubleCell.TYPE));
+        DoubleArrayVariableConverter() {
+            super(getCollectionType(DoubleCell.TYPE));
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             return CollectionCellFactory.createListCell(//
-                Arrays.stream(getVariable().getValue(DoubleArrayType.INSTANCE))//
+                Arrays.stream(flowVar.getValue(DoubleArrayType.INSTANCE))//
                     .map(DoubleCell::new)//
                     .collect(Collectors.toList())//
             );
@@ -159,26 +157,26 @@ abstract class SimpleVarToCellConverter implements VariableToCellConverter {
 
     static final class IntVariableConverter extends SimpleVarToCellConverter {
 
-        IntVariableConverter(final FlowVariable var) {
-            super(var, IntCell.TYPE);
+        IntVariableConverter() {
+            super(IntCell.TYPE);
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
-            return new IntCell(getVariable().getIntValue());
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+            return new IntCell(flowVar.getIntValue());
         }
     }
 
     static final class IntArrayVariableConverter extends SimpleVarToCellConverter {
 
-        IntArrayVariableConverter(final FlowVariable var) {
-            super(var, getCollectionType(IntCell.TYPE));
+        IntArrayVariableConverter() {
+            super(getCollectionType(IntCell.TYPE));
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             return CollectionCellFactory.createListCell(//
-                Arrays.stream(getVariable().getValue(IntArrayType.INSTANCE))//
+                Arrays.stream(flowVar.getValue(IntArrayType.INSTANCE))//
                     .map(IntCell::new)//
                     .collect(Collectors.toList())//
             );
@@ -187,26 +185,26 @@ abstract class SimpleVarToCellConverter implements VariableToCellConverter {
 
     static final class LongVariableConverter extends SimpleVarToCellConverter {
 
-        LongVariableConverter(final FlowVariable var) {
-            super(var, LongCell.TYPE);
+        LongVariableConverter() {
+            super(LongCell.TYPE);
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
-            return new LongCell(getVariable().getValue(LongType.INSTANCE));
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+            return new LongCell(flowVar.getValue(LongType.INSTANCE));
         }
     }
 
     static final class LongArrayVariableConverter extends SimpleVarToCellConverter {
 
-        LongArrayVariableConverter(final FlowVariable var) {
-            super(var, getCollectionType(LongCell.TYPE));
+        LongArrayVariableConverter() {
+            super(getCollectionType(LongCell.TYPE));
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             return CollectionCellFactory.createListCell(//
-                Arrays.stream(getVariable().getValue(LongArrayType.INSTANCE))//
+                Arrays.stream(flowVar.getValue(LongArrayType.INSTANCE))//
                     .map(LongCell::new)//
                     .collect(Collectors.toList())//
             );
@@ -215,26 +213,26 @@ abstract class SimpleVarToCellConverter implements VariableToCellConverter {
 
     static final class BooleanVariableConverter extends SimpleVarToCellConverter {
 
-        BooleanVariableConverter(final FlowVariable var) {
-            super(var, BooleanCell.TYPE);
+        BooleanVariableConverter() {
+            super(BooleanCell.TYPE);
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
-            return BooleanCellFactory.create(getVariable().getValue(BooleanType.INSTANCE));
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+            return BooleanCellFactory.create(flowVar.getValue(BooleanType.INSTANCE));
         }
     }
 
     static final class BooleanArrayVariableConverter extends SimpleVarToCellConverter {
 
-        BooleanArrayVariableConverter(final FlowVariable var) {
-            super(var, getCollectionType(BooleanCell.TYPE));
+        BooleanArrayVariableConverter() {
+            super(getCollectionType(BooleanCell.TYPE));
         }
 
         @Override
-        public DataCell getDataCell(final ExecutionContext exec) {
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
             return CollectionCellFactory.createListCell(//
-                Arrays.stream(getVariable().getValue(BooleanArrayType.INSTANCE))//
+                Arrays.stream(flowVar.getValue(BooleanArrayType.INSTANCE))//
                     .map(BooleanCellFactory::create)//
                     .collect(Collectors.toList())//
             );

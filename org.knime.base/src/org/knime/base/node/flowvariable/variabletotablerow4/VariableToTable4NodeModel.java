@@ -47,38 +47,17 @@
  */
 package org.knime.base.node.flowvariable.variabletotablerow4;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverter;
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.DefaultRow;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * NodeModel for the "Variable To TableRow" node which converts variables into a single row values with the variable
@@ -89,58 +68,36 @@ import org.knime.core.node.workflow.VariableType;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class VariableToTable4NodeModel extends NodeModel {
+final class VariableToTable4NodeModel extends AbstractVariableToTableNodeModel {
 
-    /** Key for the filter configuration. */
-    static final String CFG_KEY_FILTER = "variable_filter";
+    private final SettingsModelString m_rowID = createSettingsModelRowID();
 
-    private FlowVariableFilterConfiguration m_filter;
+    static SettingsModelString createSettingsModelRowID() {
+        return new SettingsModelString("row_id", "values");
+    }
 
-    private final SettingsModelString m_rowID = VariableToTable4NodeDialogPane.createSettingsModelRowID();
-
+    /**
+     * Constructor.
+     */
     VariableToTable4NodeModel() {
-        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{BufferedDataTable.TYPE});
-        m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        m_filter.loadDefaults(getAvailableFlowVariables(VariableToCellConverterFactory.getSupportedTypes()), false);
+        super();
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataContainer cont = exec.createDataContainer(createOutSpec());
-        final DataCell[] cells = getFilteredVariables().values().stream()//
-            .map(c -> c.getDataCell(exec))//
-            .toArray(DataCell[]::new);
-        cont.addRowToTable(new DefaultRow(m_rowID.getStringValue(), cells));
-        cont.close();
-        return new BufferedDataTable[]{cont.getTable()};
+        try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
+            cont.addRowToTable(createTableRow(exec, conv, m_rowID.getStringValue()));
+            cont.close();
+            return new BufferedDataTable[]{cont.getTable()};
+        }
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new DataTableSpec[]{createOutSpec()};
-    }
-
-    private Map<String, VariableToCellConverter> getFilteredVariables() {
-        final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
-
-        final Map<String, FlowVariable> availableVars = getAvailableFlowVariables(types);
-        final Set<String> includeNames = new HashSet<>(Arrays.asList(m_filter.applyTo(availableVars).getIncludes()));
-
-        return availableVars.entrySet().stream() //
-            .filter(e -> includeNames.contains(e.getKey())) //
-            .filter(e -> VariableToCellConverterFactory.isSupported(e.getValue().getVariableType())) //
-            .collect(Collectors.toMap(Map.Entry::getKey,
-                e -> VariableToCellConverterFactory.createConverter(e.getValue()), (x, y) -> y, LinkedHashMap::new));
-    }
-
-    private DataTableSpec createOutSpec() throws InvalidSettingsException {
-        final DataColumnSpec[] specs = getFilteredVariables().entrySet().stream() //
-            .map(e -> e.getValue().createSpec(e.getKey())) //
-            .toArray(DataColumnSpec[]::new);
-        if (specs.length == 0) {
-            throw new InvalidSettingsException("No variables selected");
-        }
-        return new DataTableSpec(specs);
+        CheckUtils.checkSetting(m_rowID.getStringValue() != null && !m_rowID.getStringValue().trim().isEmpty(),
+            "Please specify a row name.");
+        return super.configure(inSpecs);
     }
 
     @Override
@@ -151,34 +108,19 @@ final class VariableToTable4NodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_rowID.loadSettingsFrom(settings);
-        final FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        conf.loadConfigurationInModel(settings);
-        m_filter = conf;
+        super.loadValidatedSettingsFrom(settings);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_rowID.saveSettingsTo(settings);
-        m_filter.saveConfiguration(settings);
+        super.saveSettingsTo(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_rowID.validateSettings(settings);
-        final FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
-        conf.loadConfigurationInModel(settings);
-    }
-
-    @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // nothing to do
-    }
-
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // nothing to do
+        super.validateSettings(settings);
     }
 
 }

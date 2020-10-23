@@ -51,13 +51,13 @@ package org.knime.base.node.flowvariable.converter.variabletocell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.FSLocationCellFactoryManager;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -67,39 +67,37 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  */
 final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
-    private final FlowVariable m_var;
+    private final FSLocationCellFactoryManager m_factoryMananger;
 
     /**
      * Constructor.
-     *
-     * @param var the {@link FlowVariable} to convert
      */
-    FSLocationVarToCellConverter(final FlowVariable var) {
-        m_var = var;
+    FSLocationVarToCellConverter() {
+        m_factoryMananger = new FSLocationCellFactoryManager();
     }
 
     @Override
-    public DataCell getDataCell(final ExecutionContext exec) {
-        final FileStoreFactory fileStoreFactory = FileStoreFactory.createFileStoreFactory(exec);
-        FSLocation fsLocation = getFsLocation();
-        final FSLocationCellFactory fsLocationCellFactory = new FSLocationCellFactory(fileStoreFactory, fsLocation);
-        final FSLocationCell cell = fsLocationCellFactory.createCell(fsLocation);
-        fileStoreFactory.close();
-        return cell;
+    public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+        return m_factoryMananger.createCell(exec, getFsLocation(flowVar));
     }
 
     @Override
-    public DataColumnSpec createSpec(final String columnName) {
+    public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
         final DataColumnSpecCreator colCreator = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
-        final FSLocation fsLocation = getFsLocation();
+        final FSLocation fsLocation = getFsLocation(flowVar);
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(fsLocation.getFileSystemCategory(),
             fsLocation.getFileSystemSpecifier().orElse(null));
         colCreator.addMetaData(metaData, true);
         return colCreator.createSpec();
     }
 
-    private FSLocation getFsLocation() {
-        return m_var.getValue(FSLocationVariableType.INSTANCE);
+    private static FSLocation getFsLocation(final FlowVariable flowVar) {
+        return flowVar.getValue(FSLocationVariableType.INSTANCE);
+    }
+
+    @Override
+    public void close() {
+        m_factoryMananger.close();
     }
 
 }

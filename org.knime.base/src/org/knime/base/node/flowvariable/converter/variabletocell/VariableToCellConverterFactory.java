@@ -50,7 +50,7 @@ package org.knime.base.node.flowvariable.converter.variabletocell;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.knime.base.node.flowvariable.converter.variabletocell.SimpleVarToCellConverter.BooleanArrayVariableConverter;
 import org.knime.base.node.flowvariable.converter.variabletocell.SimpleVarToCellConverter.BooleanVariableConverter;
@@ -84,7 +84,7 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  */
 public final class VariableToCellConverterFactory {
 
-    private static final Map<VariableType<?>, Function<FlowVariable, VariableToCellConverter>> SUPPORTED_TYPES;
+    private static final Map<VariableType<?>, Supplier<VariableToCellConverter>> SUPPORTED_TYPES;
 
     static {
         SUPPORTED_TYPES = new HashMap<>();
@@ -119,7 +119,7 @@ public final class VariableToCellConverterFactory {
                 String.format("There is no Variable to Cell converter associated with the provided variable type '%s'",
                     varType.getIdentifier().toLowerCase()));
         }
-        return SUPPORTED_TYPES.get(varType).apply(var);
+        return SUPPORTED_TYPES.get(varType).get();
     }
 
     /**

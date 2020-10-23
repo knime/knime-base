@@ -44,31 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 7, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Oct 23, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.base.node.flowvariable.converter.variabletocell;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 
 /**
- * A converter that allows to translate a {@link FlowVariable} into a {@link DataCell}.
+ * This class allows to convert {@link FlowVariable}s to {@link DataCell}s.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public interface VariableToCellConverter extends AutoCloseable {
+public final class VariableToDataColumnConverter implements AutoCloseable {
+
+    private final Map<String, ConvenienceVariableToCellConverter> m_converters;
+
+    /**
+     * Constructor.
+     */
+    public VariableToDataColumnConverter() {
+        m_converters = new HashMap<>();
+    }
+
+    @SuppressWarnings("resource") // see #close
+    private ConvenienceVariableToCellConverter getConverter(final String columnName) {
+        if (!m_converters.containsKey(columnName)) {
+            m_converters.put(columnName, new ConvenienceVariableToCellConverter());
+        }
+        return m_converters.get(columnName);
+    }
 
     /**
      * Creates the {@link DataCell} from the given {@link FlowVariable}.
      *
      * @param exec the {@link ExecutionContext} needed, e.g., to create a {@link FileStoreFactory}
+     * @param columnName the column name
      * @param flowVar the {@link FlowVariable} to be converted to a {@link DataCell}
      * @return the cell representation of the converted variable
      */
-    public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar);
+    @SuppressWarnings("resource") // see #close
+    public DataCell getDataCell(final ExecutionContext exec, final String columnName, final FlowVariable flowVar) {
+        return getConverter(columnName).getDataCell(exec, flowVar);
+    }
 
     /**
      * Creates the data column for this converter.
@@ -77,9 +102,51 @@ public interface VariableToCellConverter extends AutoCloseable {
      * @param flowVar the {@link FlowVariable} for which the {@link DataColumnSpec} needs to be created
      * @return the data {@link DataColumnSpec} of the column to be created
      */
-    DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar);
+    @SuppressWarnings("resource") // see #close
+    public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
+        return getConverter(columnName).createSpec(columnName, flowVar);
+    }
 
     @Override
-    void close();
+    public void close() {
+        m_converters.values().stream()//
+            .close();
+    }
+
+    private static class ConvenienceVariableToCellConverter implements VariableToCellConverter {
+
+        private final Map<VariableType<?>, VariableToCellConverter> m_converters;
+
+        ConvenienceVariableToCellConverter() {
+            m_converters = new HashMap<>();
+        }
+
+        @SuppressWarnings("resource") // see #close
+        private VariableToCellConverter getConverter(final FlowVariable flowVar) {
+            final VariableType<?> varType = flowVar.getVariableType();
+            if (!m_converters.containsKey(varType)) {
+                m_converters.put(varType, VariableToCellConverterFactory.createConverter(flowVar));
+            }
+            return m_converters.get(varType);
+        }
+
+        @SuppressWarnings("resource") // see #close
+        @Override
+        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
+            return getConverter(flowVar).getDataCell(exec, flowVar);
+        }
+
+        @SuppressWarnings("resource") // see #close
+        @Override
+        public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
+            return getConverter(flowVar).createSpec(columnName, flowVar);
+        }
+
+        @Override
+        public void close() {
+            m_converters.values().stream()//
+                .close();
+        }
+    }
 
 }

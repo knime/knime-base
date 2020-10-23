@@ -58,8 +58,8 @@ import org.knime.core.node.NodeView;
 public final class VariableToTable4NodeFactory extends NodeFactory<VariableToTable4NodeModel> {
 
     @Override
-    protected VariableToTable4NodeDialogPane createNodeDialogPane() {
-        return new VariableToTable4NodeDialogPane();
+    protected VariableToTable4NodeDialog createNodeDialogPane() {
+        return new VariableToTable4NodeDialog();
     }
 
     @Override

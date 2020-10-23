@@ -62,7 +62,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
@@ -76,16 +75,17 @@ import org.knime.core.node.workflow.VariableType;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class VariableToTable4NodeDialogPane extends NodeDialogPane {
+final class VariableToTable4NodeDialog extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 
     private final DialogComponentString m_rowID;
 
-    VariableToTable4NodeDialogPane() {
+    VariableToTable4NodeDialog() {
         m_filter =
             new FlowVariableFilterPanel(new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
-        m_rowID = new DialogComponentString(createSettingsModelRowID(), "Row name  ", true, 13);
+        m_rowID =
+            new DialogComponentString(VariableToTable4NodeModel.createSettingsModelRowID(), "Row name  ", true, 13);
         addTab("Variable Selection", createPanel());
     }
 
@@ -141,10 +141,6 @@ final class VariableToTable4NodeDialogPane extends NodeDialogPane {
         panel.add(m_filter, gbc);
 
         return panel;
-    }
-
-    static SettingsModelString createSettingsModelRowID() {
-        return new SettingsModelString("row_id", "values");
     }
 
     @Override

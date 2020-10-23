@@ -68,12 +68,12 @@ import org.knime.core.node.workflow.VariableType;
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class AppendVariableToTable4NodeDialogPane extends NodeDialogPane {
+final class AppendVariableToTable4NodeDialog extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 
     /** Inits components. */
-    AppendVariableToTable4NodeDialogPane() {
+    AppendVariableToTable4NodeDialog() {
         m_filter = new FlowVariableFilterPanel(
             new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
         addTab("Variable Selection", new JScrollPane(m_filter));
