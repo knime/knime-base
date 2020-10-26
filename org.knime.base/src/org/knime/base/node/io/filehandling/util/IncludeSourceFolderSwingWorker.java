@@ -48,70 +48,51 @@
  */
 package org.knime.base.node.io.filehandling.util;
 
-import java.util.EnumSet;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
+import java.io.IOException;
+import java.util.Optional;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
- * Swingworker to check whether a path ends with "." or ".." and return true or false to the passed {@link Consumer}.
+ * Swingworker to check whether a path ends with ".",  "..", has no parent or is empty and returns a corresponding {@link StatusMessage}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  */
-public final class IncludeParentFolderAvailableSwingWorker extends SwingWorkerWithContext<Boolean, Void> {
+
+public final class IncludeSourceFolderSwingWorker implements StatusMessageReporter {
 
     private final SettingsModelReaderFileChooser m_readerModel;
-
-    private final NodeModelStatusConsumer m_statusConsumer;
-
-    private final Consumer<Boolean> m_booleanConsumer;
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(IncludeParentFolderAvailableSwingWorker.class);
 
     /**
      * Constructor.
      *
      * @param readerModel the {@link SettingsModelReaderFileChooser}
-     * @param booleanConsumer a {@link Consumer}
      */
-    public IncludeParentFolderAvailableSwingWorker(final SettingsModelReaderFileChooser readerModel,
-        final Consumer<Boolean> booleanConsumer) {
+    public IncludeSourceFolderSwingWorker(final SettingsModelReaderFileChooser readerModel) {
         m_readerModel = readerModel;
-        m_booleanConsumer = booleanConsumer;
-        m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
     }
 
     @Override
-    protected Boolean doInBackgroundWithContext() throws Exception {
+    public StatusMessage report() throws IOException, InvalidSettingsException {
+        return hasParentFolder().orElse(DefaultStatusMessage.SUCCESS_MSG);
+    }
+
+    private Optional<StatusMessage> hasParentFolder() throws IOException, InvalidSettingsException {
         try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
-            final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
+            final FSPath rootPath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
 
-            return PathHandlingUtils.isIncludeParentFolderAvailable(rootPath, m_readerModel.getFilterMode());
-        }
-    }
-
-    @Override
-    protected void doneWithContext() {
-        try {
-            m_booleanConsumer.accept(get());
-        } catch (ExecutionException e) {
-            LOGGER.debug("Error during swingworker execution", e);
-            m_booleanConsumer.accept(false);
-        } catch (CancellationException e) {
-            LOGGER.debug("Swingworker got canceled", e);
-        } catch (InterruptedException e) { //NOSONAR
-            /* the InterruptedException will be never thrown and in case it will be,
-             * we cannot interrupt the UI Thread by using Thread.currentThread.interrupt()*/
-            LOGGER.error("Swingworker got interrupted", e);
+            return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
+                ? Optional.of(DefaultStatusMessage.SUCCESS_MSG)
+                : Optional.of(DefaultStatusMessage.mkError(PathHandlingUtils.createErrorMessage(rootPath)));
+        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
+            return Optional.empty();
         }
     }
 }

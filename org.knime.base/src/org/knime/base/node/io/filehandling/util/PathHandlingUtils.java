@@ -51,6 +51,8 @@ package org.knime.base.node.io.filehandling.util;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -62,7 +64,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 public final class PathHandlingUtils {
 
-    private static final Pattern POINT_PATTERN = Pattern.compile(".*\\.{1,2}$");
+    private static final Pattern POINT_PATTERN = Pattern.compile(".*\\.{1,2}(\\/|\\\\){0,1}$");
 
     private PathHandlingUtils() {
         // static utility class
@@ -72,18 +74,41 @@ public final class PathHandlingUtils {
      * Checks whether the path ends with ".", "..", has no parent or is empty as well as the passed {@link FilterMode}.
      *
      * @param rootPath the passed {@link FSPath} to be checked
-     * @param filterMode the passed {@link FilterMode} to be checked
      * @return true if the path does not end with ".", "..", has parent or is not empty and not a file, false otherwise
      */
-    public static boolean isIncludeParentFolderAvailable(final FSPath rootPath, final FilterMode filterMode) {
-        if (filterMode == FilterMode.FILE) {
-            return false;
-        }
+    public static boolean isIncludeSourceFolderAvailable(final FSPath rootPath) {
         final Path absoluteRootPath = rootPath.toAbsolutePath();
         final Path root = absoluteRootPath.getRoot();
-        final String path = absoluteRootPath.toString() ;
+        final String path = absoluteRootPath.toString();
 
         return !(path.isEmpty() || root == null || root.equals(absoluteRootPath)
             || POINT_PATTERN.matcher(path).matches());
+    }
+
+    /**
+     * Creates error message in case include source folder is not possible.
+     *
+     * @param path the {@link Path} which can not be included.
+     * @return the error message for the node dialog
+     */
+    public static String createErrorMessage(final Path path) {
+        return String.format("The source folder '%s' can not be included.", path);
+    }
+
+    /**
+     * Checks the settings in terms of {@link FilterMode},the includeSourceFolder flag and a path and throws a
+     * {@link InvalidSettingsException} in case the source folder can not be included.
+     *
+     * @param filterMode the {@link FilterMode}
+     * @param includeSourceFolder the flag whether the option is checked or not
+     * @param rootPath the {@link Path} to check
+     * @throws InvalidSettingsException
+     */
+    public static void checkSettingsIncludeSourceFolder(final FilterMode filterMode, final boolean includeSourceFolder,
+        final FSPath rootPath) throws InvalidSettingsException {
+        if (filterMode != FilterMode.FILE && includeSourceFolder) {
+            CheckUtils.checkSetting(isIncludeSourceFolderAvailable(rootPath),
+                PathHandlingUtils.createErrorMessage(rootPath), rootPath);
+        }
     }
 }
