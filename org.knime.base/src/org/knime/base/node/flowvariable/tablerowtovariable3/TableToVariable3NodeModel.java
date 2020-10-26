@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
 import org.knime.core.data.BooleanValue;
@@ -299,12 +300,18 @@ public class TableToVariable3NodeModel extends NodeModel {
             if (iter.hasNext()) {
                 return iter.next();
             } else {
-                CheckUtils.checkArgument(getMissingValuePolicy() != MissingValuePolicy.FAIL,
-                    "The input table is empty");
+                supportsEmptyTables();
                 return null;
             }
         }
 
+    }
+
+    /**
+     * Throws an exception if the input table is empty and the settings don't support this kind of input.
+     */
+    protected void supportsEmptyTables() {
+        CheckUtils.checkArgument(getMissingValuePolicy() != MissingValuePolicy.FAIL, "The input table is empty");
     }
 
     /**
@@ -332,7 +339,15 @@ public class TableToVariable3NodeModel extends NodeModel {
         final MissingValuePolicy policy = getMissingValuePolicy();
 
         if (row == null) {
-            updatedRow = defaultCells;
+            if (policy == MissingValuePolicy.DEFAULT) {
+                updatedRow = defaultCells;
+            } else if (policy == MissingValuePolicy.OMIT) {
+                updatedRow = Stream.generate(DataType::getMissingCell)//
+                    .limit(defaultCells.length)//
+                    .toArray(DataCell[]::new);
+            } else {
+                throw new IllegalStateException("The row to convert is null");
+            }
         } else if (policy == MissingValuePolicy.DEFAULT) {
             updatedRow = new DataCell[row.getNumCells()];
             for (int i = 0; i < updatedRow.length; i++) {

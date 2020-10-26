@@ -50,7 +50,6 @@ package org.knime.base.node.meta.looper.variable.start;
 
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeModel;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.RowIterator;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
@@ -76,9 +75,6 @@ final class LoopStartVariable2NodeModel extends TableToVariable3NodeModel implem
     /** The maximum number of allowed iterations. */
     private long m_maxNrIterations = -1;
 
-    /** last seen table in #execute -- used for assertions */
-    private DataTable m_lastTable;
-
     /** The row iterator w.r.t. #m_lastTable. */
     private RowIterator m_iterator;
 
@@ -90,26 +86,21 @@ final class LoopStartVariable2NodeModel extends TableToVariable3NodeModel implem
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable data = (BufferedDataTable)inData[0];
         if (m_currentIteration == -1) {
-            assert m_iterator == null : "Iterator has not been closed in previous run";
             m_currentIteration = 0;
             m_maxNrIterations = data.size();
-            m_lastTable = data;
-            m_iterator = m_lastTable.iterator();
-        }
-        assert m_lastTable == data : "Input tables differ between iterations";
-        if (m_currentIteration > m_maxNrIterations) {
-            throw new IllegalStateException("Loop did not terminate correctly.");
+            m_iterator = data.iterator();
         }
         final DataRow row;
         if (m_maxNrIterations > 0) {
-            assert m_iterator.hasNext() : "The table contains less rows than expected";
             row = m_iterator.next();
         } else {
+            supportsEmptyTables();
             row = null;
+            // can be manipulated as line 109 and #terminateLoop ensure that no additional iteration is being triggered
+            m_maxNrIterations = 1;
         }
-
         pushIterationVariables(m_maxNrIterations, m_currentIteration);
-        pushVariables(m_lastTable.getDataTableSpec(), row);
+        pushVariables(data.getDataTableSpec(), row);
 
         ++m_currentIteration;
         if (m_currentIteration == m_maxNrIterations) {
@@ -131,7 +122,6 @@ final class LoopStartVariable2NodeModel extends TableToVariable3NodeModel implem
         if (m_iterator instanceof CloseableRowIterator) {
             ((CloseableRowIterator)m_iterator).close();
         }
-        m_lastTable = null;
         m_iterator = null;
     }
 

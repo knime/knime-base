@@ -220,11 +220,11 @@ public final class TableToVariable3NodeDialog extends NodeDialogPane {
         final MissingValuePolicy policy =
             MissingValuePolicy.valueOf(((SettingsModelString)m_onMissing.getModel()).getStringValue());
         final boolean enabled = MissingValuePolicy.OMIT != policy;
+        m_replaceString.getModel().setEnabled(enabled);
         m_replaceBoolean.getModel().setEnabled(enabled);
         m_replaceInteger.getModel().setEnabled(enabled);
         m_replaceLong.getModel().setEnabled(enabled);
-        m_replaceString.getModel().setEnabled(enabled);
-        m_replaceBoolean.getModel().setEnabled(enabled);
+        m_replaceDouble.getModel().setEnabled(enabled);
     }
 
     @Override
