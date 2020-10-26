@@ -57,8 +57,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -102,7 +102,7 @@ public abstract class AbstractVariableToTableNodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new DataTableSpec[]{createOutSpec()};
+        return new DataTableSpec[]{createOutSpec(true)};
     }
 
     /**
@@ -136,17 +136,17 @@ public abstract class AbstractVariableToTableNodeModel extends NodeModel {
     /**
      * Returns the {@link DataTableSpec} with respect to the selected {@link FlowVariable}s.
      *
+     * @param warn if {@code true} a warning is issued if no variables have been selected
      * @return the data table spec created when converting the selected {@link FlowVariable}s
      * @throws InvalidSettingsException - If any of the settings is incorrect
      */
-    protected DataTableSpec createOutSpec() throws InvalidSettingsException {
+    protected DataTableSpec createOutSpec(final boolean warn) throws InvalidSettingsException {
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
             final DataColumnSpec[] specs = getFilteredVariables().entrySet().stream() //
                 .map(e -> conv.createSpec(e.getKey(), e.getValue())) //
                 .toArray(DataColumnSpec[]::new);
-            // TODO: this check is incorrect here .. probably can be removed
-            if (specs.length == 0) {
-                throw new InvalidSettingsException("No variables selected");
+            if (warn && specs.length == 0) {
+                setWarningMessage("No variables selected");
             }
             return new DataTableSpec(specs);
         }

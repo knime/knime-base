@@ -58,8 +58,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
 import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataColumnConverter;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -122,7 +122,7 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable table = (BufferedDataTable)inData[1];
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
-            final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec(), exec, conv);
+            final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec(), exec, conv, false);
             return new BufferedDataTable[]{exec.createColumnRearrangeTable(table, columnRearranger, exec)};
         }
     }
@@ -130,20 +130,21 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
-            final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[1], null, conv);
+            final ColumnRearranger columnRearranger =
+                createColumnRearranger((DataTableSpec)inSpecs[1], null, conv, true);
             return new DataTableSpec[]{columnRearranger.createSpec()};
         }
     }
 
     private ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ExecutionContext exec,
-        final VariableToDataColumnConverter conv) throws InvalidSettingsException {
+        final VariableToDataColumnConverter conv, final boolean warn) throws InvalidSettingsException {
         final ColumnRearranger columnRearranger = new ColumnRearranger(spec);
         final Set<String> nameHash = spec.stream()//
             .map(DataColumnSpec::getName)//
             .collect(Collectors.toCollection(HashSet::new));
         final Map<String, FlowVariable> vars = getFilteredVariables();
-        if (vars.isEmpty()) {
-            throw new InvalidSettingsException("No variables selected");
+        if (warn && vars.isEmpty()) {
+            setWarningMessage("No variables selected");
         }
 
         final DataColumnSpec[] specs = new DataColumnSpec[vars.size()];
@@ -225,10 +226,9 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
                 throws Exception {
                 final RowInput in = (RowInput)inputs[DATA_INPUT_PORT_IDX];
                 final RowOutput out = (RowOutput)outputs[DATA_OUTPUT_PORT_IDX];
-                try (final VariableToDataColumnConverter conv =
-                    new VariableToDataColumnConverter()) {
+                try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
                     final StreamableFunction streamableFunction =
-                        createColumnRearranger(in.getDataTableSpec(), exec, conv).createStreamableFunction();
+                        createColumnRearranger(in.getDataTableSpec(), exec, conv, false).createStreamableFunction();
                     DataRow row;
                     while ((row = in.poll()) != null) {
                         out.push(streamableFunction.compute(row));

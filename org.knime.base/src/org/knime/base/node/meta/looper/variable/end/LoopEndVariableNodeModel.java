@@ -99,7 +99,7 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final DataTableSpec curSpec = createOutSpec();
+        final DataTableSpec curSpec = createOutSpec(false);
         if (m_container == null) {
             m_container = exec.createDataContainer(curSpec);
             m_converter = new VariableToDataColumnConverter();

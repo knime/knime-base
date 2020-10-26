@@ -85,7 +85,7 @@ final class VariableToTable4NodeModel extends AbstractVariableToTableNodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        final BufferedDataContainer cont = exec.createDataContainer(createOutSpec());
+        final BufferedDataContainer cont = exec.createDataContainer(createOutSpec(false));
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
             cont.addRowToTable(createTableRow(exec, conv, m_rowID.getStringValue()));
             cont.close();
