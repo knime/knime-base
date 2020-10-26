@@ -147,7 +147,7 @@ final class CompressNodeDialog extends NodeDialogPane {
         panel.add(createInputPanel(), gbc.build());
         gbc = gbc.incY();
         panel.add(createOutputPanel(), gbc.build());
-        gbc = gbc.incY().fillNone().setWeightX(0);
+        gbc = gbc.incY().fillHorizontal().setWeightX(1);
         panel.add(createOptionsPanel(), gbc.build());
         gbc = gbc.incY().setWeightY(1).setWeightX(1).fillBoth();
         panel.add(new JPanel(), gbc.build());
@@ -184,7 +184,7 @@ final class CompressNodeDialog extends NodeDialogPane {
         panel.add(m_flattenHierarchyPanel, gbc.build());
         gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
         panel.add(m_statusView.getLabel(), gbc.build());
-        panel.add(new JPanel(), gbc.resetX().setHeight(1).incY().build());
+        panel.add(new JPanel(), gbc.resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());
         return panel;
     }
 
