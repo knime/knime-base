@@ -179,18 +179,29 @@
 			is selected will also be copied otherwise only the files in the
 			folder will be copied.
 		</option>
-		<option name="Delete source files (move)">
+		<option name="Delete source files / folders (move)">
 			If this option is checked all files which have
 			been
-			successfully copied to the destination folder
+			successfully copied
+			to the destination folder
 			will be deleted in
 			the
 			source
-			folder. The output contains an
+			folder. The
+			output contains an
 			additional column indicating
 			if
 			the file
-			has been deleted (true) or not (false).
+			has been
+			deleted (true) or not (false).
+			<b>Note</b>
+			Folders only get deleted when the Folder option is used.
+		</option>
+		<option name="Fail on deletion">
+			If the 'Delete source files (move)' option is
+			activated and something goes wrong during the deletion process the
+			node will fail. This option is only available if the before mentioned
+			option is selected.
 		</option>
 	</fullDescription>
 

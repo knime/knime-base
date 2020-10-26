@@ -50,13 +50,22 @@ package org.knime.base.node.io.filehandling.util.copymovefiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
 import org.knime.base.node.io.filehandling.util.PathRelativizer;
 import org.knime.base.node.io.filehandling.util.PathRelativizerNonTableInput;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -109,7 +118,12 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         m_config.getDestinationFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        return new PortObjectSpec[]{FileCopier.createOutputSpec(m_config)};
+        final ColumnRearranger r = new ColumnRearranger(PathCopier.createOutputSpec(m_config));
+        if (m_config.getDeleteSourceFilesModel().getBooleanValue()) {
+            r.append(new DeletedColumnCellFactory());
+        }
+
+        return new PortObjectSpec[]{r.createSpec()};
     }
 
     @Override
@@ -119,18 +133,18 @@ final class CopyMoveFilesNodeModel extends NodeModel {
                     m_config.getDestinationFileChooserModel().createWritePathAccessor()) {
 
             // Create container for output table
-            final DataTableSpec outputSpec = FileCopier.createOutputSpec(m_config);
+            final DataTableSpec outputSpec = PathCopier.createOutputSpec(m_config);
             final BufferedDataContainer container = exec.createDataContainer(outputSpec);
 
-            final BufferedDataTable outputTable = copyFiles(container, readPathAccessor, writePathAccessor, exec);
+            final BufferedDataTable outputTable = copy(container, readPathAccessor, writePathAccessor, exec);
 
             return new PortObject[]{outputTable};
         }
     }
 
-    private BufferedDataTable copyFiles(final BufferedDataContainer container, final ReadPathAccessor readPathAccessor,
+    private BufferedDataTable copy(final BufferedDataContainer container, final ReadPathAccessor readPathAccessor,
         final WritePathAccessor writePathAccessor, final ExecutionContext exec)
-        throws IOException, CanceledExecutionException, InvalidSettingsException {
+        throws IOException, InvalidSettingsException, CanceledExecutionException {
         //Get paths
         final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
         final FSPath destinationDir = writePathAccessor.getOutputPath(m_statusConsumer);
@@ -139,7 +153,7 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         //Creates output directories if necessary
         if (m_config.getDestinationFileChooserModel().isCreateMissingFolders()) {
-            FileCopier.createOutputDirectories(destinationDir);
+            PathCopier.createDirectories(destinationDir);
         } else {
             CheckUtils.checkSetting(FSFiles.exists(destinationDir),
                 String.format("The specified destination folder %s does not exist.", destinationDir));
@@ -151,23 +165,85 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         createFlowVariables(rootPath, destinationDir);
 
         final FileStoreFactory fileStoreFactory = FileStoreFactory.createFileStoreFactory(exec);
-        final FileCopier fileCopier = new FileCopier(container::addRowToTable, m_config, fileStoreFactory);
+        final PathCopier pathCopier = new PathCopier(container::addRowToTable, m_config, fileStoreFactory);
 
         long rowIdx = 0;
-        final long noOfFiles = sourcePaths.size();
-        for (Path sourceFilePath : sourcePaths) {
-            final Path destinationFilePath = destinationDir.resolve(pathRelativizer.apply(sourceFilePath));
-            fileCopier.copy(sourceFilePath, destinationFilePath, rowIdx);
-            final long copiedFiles = rowIdx + 1;
-            exec.setProgress(copiedFiles / (double)noOfFiles, () -> ("Copied files :" + copiedFiles));
+        final long noPaths = sourcePaths.size();
+        for (final Path sourcePath : sourcePaths) {
+            final Path destinationPath = destinationDir.resolve(pathRelativizer.apply(sourcePath));
+
+            pathCopier.copyPath(sourcePath, destinationPath, rowIdx);
+
+            final long copiedPaths = rowIdx + 1;
+            exec.setProgress(copiedPaths / (double)noPaths, () -> ("Copied files/folder :" + copiedPaths));
             exec.checkCanceled();
             rowIdx++;
         }
 
-        container.close();
-        fileStoreFactory.close();
+        BufferedDataTable table;
+        if (m_config.getDeleteSourceFilesModel().getBooleanValue()) {
+            final ColumnRearranger r = new ColumnRearranger(container.getTableSpec());
+            DeletedColumnCellFactory mr = new DeletedColumnCellFactory();
+            r.append(mr);
+            //delete the files and folders from the source
+            mr.deleteFilesFolders(sourcePaths);
+            container.close();
 
-        return container.getTable();
+            table = exec.createColumnRearrangeTable(container.getTable(), r, exec);
+        } else {
+            container.close();
+            fileStoreFactory.close();
+            table = container.getTable();
+        }
+        return table;
+
+    }
+
+    /**
+     * Cell factory to add boolean column for deleted files / folders.
+     */
+    private class DeletedColumnCellFactory extends SingleCellFactory {
+
+        private int m_i = 0;
+
+        private DataCell[] m_dataCells;
+
+        /**
+         * Constructor.
+         */
+        public DeletedColumnCellFactory() {
+            super(false, new DataColumnSpecCreator("Source deleted", BooleanCell.TYPE).createSpec());
+        }
+
+        /**
+         * Deletes files and folders.
+         *
+         * @param paths
+         * @throws IOException
+         */
+        private void deleteFilesFolders(final List<FSPath> paths) throws IOException {
+            m_dataCells = new DataCell[paths.size()];
+            //Delete in reverse order
+            Collections.reverse(paths);
+            for (final FSPath p : paths) {
+                try {
+                    m_dataCells[m_i] = BooleanCellFactory.create(Files.deleteIfExists(p));
+                    m_i++;
+                } catch (IOException e) {
+                    if (m_config.getFailOnDeletionModel().getBooleanValue()) {
+                        m_dataCells[m_i] = BooleanCellFactory.create(false);
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public DataCell getCell(final DataRow row) {
+            --m_i;
+            return m_dataCells[m_i];
+        }
     }
 
     private List<FSPath> getSourcePaths(final ReadPathAccessor readPathAccessor, final FilterMode filterMode)
@@ -176,7 +252,9 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         CheckUtils.checkSetting(!sourcePaths.isEmpty(),
             "No files available please select a folder which contains files");
         if (filterMode == FilterMode.FOLDER) {
-            final List<FSPath> pathsFromFolder = FSFiles.getFilePathsFromFolder(sourcePaths.get(0));
+            final List<FSPath> pathsFromFolder =
+                FSFiles.getFilesAndFolders(readPathAccessor.getRootPath(m_statusConsumer),
+                    m_config.getSettingsModelIncludeSourceFolder().getBooleanValue());
             sourcePaths = pathsFromFolder;
         }
         return sourcePaths;

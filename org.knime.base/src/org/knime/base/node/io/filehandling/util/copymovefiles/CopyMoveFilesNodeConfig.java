@@ -62,8 +62,11 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
  */
 final class CopyMoveFilesNodeConfig {
 
-    /** Config key for copy/move checkbox. */
+    /** Config key for delete source files checkbox. */
     private static final String CFG_DELETE_SOURCE_FILES = "delete_source_files";
+
+    /** Config key for fail on deletion checkbox */
+    private static final String CFG_FAIL_ON_DELETION = "fail_on_deletion";
 
     /** Config key for include parent folder checkbox. */
     private static final String CFG_INCLUDE_SOURCE_FOLDER = "include_source_folder";
@@ -77,6 +80,9 @@ final class CopyMoveFilesNodeConfig {
     /** The delete source settings model. */
     private final SettingsModelBoolean m_deleteSourceFilesModel =
         new SettingsModelBoolean(CFG_DELETE_SOURCE_FILES, false);
+
+    /** The fail on deletion settings model. */
+    private final SettingsModelBoolean m_failOnDeletionModel = new SettingsModelBoolean(CFG_FAIL_ON_DELETION, false);
 
     /** The include parent folder settings model */
     private final SettingsModelBoolean m_includeSourcetFolderModel =
@@ -116,6 +122,15 @@ final class CopyMoveFilesNodeConfig {
     }
 
     /**
+     * Returns the {@link SettingsModelBoolean} for the fail on deletion option.
+     *
+     * @return the deleteSourceFilesModel
+     */
+    SettingsModelBoolean getFailOnDeletionModel() {
+        return m_failOnDeletionModel;
+    }
+
+    /**
      * Returns the {@link SettingsModelBoolean} for the include parent folder option.
      *
      * @return the includeParentFolderModel
@@ -135,6 +150,7 @@ final class CopyMoveFilesNodeConfig {
         m_destinationFileChooserModel.validateSettings(settings);
         m_deleteSourceFilesModel.validateSettings(settings);
         m_includeSourcetFolderModel.validateSettings(settings);
+        m_failOnDeletionModel.validateSettings(settings);
     }
 
     /**
@@ -147,6 +163,7 @@ final class CopyMoveFilesNodeConfig {
         m_destinationFileChooserModel.saveSettingsTo(settings);
         m_deleteSourceFilesModel.saveSettingsTo(settings);
         m_includeSourcetFolderModel.saveSettingsTo(settings);
+        m_failOnDeletionModel.saveSettingsTo(settings);
     }
 
     /**
@@ -160,5 +177,6 @@ final class CopyMoveFilesNodeConfig {
         m_destinationFileChooserModel.loadSettingsFrom(settings);
         m_deleteSourceFilesModel.loadSettingsFrom(settings);
         m_includeSourcetFolderModel.loadSettingsFrom(settings);
+        m_failOnDeletionModel.loadSettingsFrom(settings);
     }
 }

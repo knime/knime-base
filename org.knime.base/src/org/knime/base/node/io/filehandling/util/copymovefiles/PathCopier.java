@@ -54,6 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.function.Consumer;
 
 import org.knime.core.data.DataCell;
@@ -78,15 +79,19 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOv
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
 
 /**
- * Copies files from a source path to a destination path and creates the respective rows for an output table.
+ * Copies files and folders from a source path to a destination path and creates the respective rows for an output
+ * table.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class FileCopier {
+final class PathCopier {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FileCopier.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathCopier.class);
 
-    private static final int NUMBER_OF_COLS = 5;
+    private static final String ERROR_MESSAGE =
+        "Something went wrong during the copying / moving process. See log for further details.";
+
+    private static final int NUMBER_OF_COLS = 4;
 
     private static final int SOURCE_COL_IDX = 0;
 
@@ -94,9 +99,7 @@ final class FileCopier {
 
     private static final int COPIED_COL_IDX = 2;
 
-    private static final int DELETED_COL_IDX = 3;
-
-    private static final int STATUS_COL_IDX = 4;
+    private static final int STATUS_COL_IDX = 3;
 
     private final Consumer<DataRow> m_rowConsumer;
 
@@ -108,8 +111,6 @@ final class FileCopier {
 
     private final FileOverwritePolicy m_fileOverWritePolicy;
 
-    private final boolean m_isDeleteMode;
-
     private final CopyFunction m_copyFunction;
 
     /**
@@ -120,11 +121,10 @@ final class FileCopier {
      * @param fileStoreFactory the {@link FileStoreFactory}
      * @param numberOfCols the number of columns in the output spec
      */
-    FileCopier(final Consumer<DataRow> rowConsumer, final CopyMoveFilesNodeConfig config,
+    PathCopier(final Consumer<DataRow> rowConsumer, final CopyMoveFilesNodeConfig config,
         final FileStoreFactory fileStoreFactory) {
         m_rowConsumer = rowConsumer;
         m_config = config;
-        m_isDeleteMode = config.getDeleteSourceFilesModel().getBooleanValue();
         m_sourceFSLocationCellFactory =
             new FSLocationCellFactory(fileStoreFactory, m_config.getSourceFileChooserModel().getLocation());
         m_destinationFSLocationCellFactory =
@@ -140,62 +140,139 @@ final class FileCopier {
      * @return the {@link CopyFunction}
      */
     private static CopyFunction getCopyFunction(final FileOverwritePolicy fileOverWritePolicy) {
-        if (fileOverWritePolicy == FileOverwritePolicy.OVERWRITE) {
-            return (s, d) -> {
-                final FileStatus fileStatus = FSFiles.exists(d) ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
-                Files.copy(s, d, StandardCopyOption.REPLACE_EXISTING);
-                return fileStatus;
-            };
-        } else if (fileOverWritePolicy == FileOverwritePolicy.FAIL) {
-            return (s, d) -> {
-                if (FSFiles.exists(d)) {
-                    throw new FileAlreadyExistsException(d.toString());
-                }
-                Files.copy(s, d);
-                return FileStatus.CREATED;
-            };
-        } else if (fileOverWritePolicy == FileOverwritePolicy.IGNORE) {
-            return (s, d) -> {
-                if (FSFiles.exists(d)) {
-                    return FileStatus.UNMODIFIED;
-                } else {
-                    Files.copy(s, d);
-                    return FileStatus.CREATED;
-                }
-            };
+        return (s, d) -> {//NOSONAR
+            final boolean exists = FSFiles.exists(d);
+            if (fileOverWritePolicy == FileOverwritePolicy.OVERWRITE) {
+                return getOverwriteCopyFunction(s, d, exists);
+            } else if (fileOverWritePolicy == FileOverwritePolicy.FAIL) {
+                return getFailCopyFunction(s, d, exists);
+            } else if (fileOverWritePolicy == FileOverwritePolicy.IGNORE) {
+                return getIgnoreCopyFunction(s, d, exists);
+            } else {
+                throw new IllegalArgumentException(
+                    String.format("Unsupported FileOverwritePolicy '%s' encountered.", fileOverWritePolicy));
+            }
+        };
+    }
+
+    /**
+     * The {@link CopyFunction} for the {@link FileOverwritePolicy#OVERWRITE}.
+     *
+     * @param source the source {@link Path}
+     * @param dest the destination {@link Path}
+     * @return the {@link FileStatus}
+     * @throws IOException
+     */
+    private static FileStatus getIgnoreCopyFunction(final Path source, final Path dest, final boolean exists)
+        throws IOException {
+        if (exists) {
+            return FileStatus.UNMODIFIED;
         } else {
-            throw new IllegalArgumentException(
-                String.format("Unsupported FileOverwritePolicy '%s' encountered.", fileOverWritePolicy));
+            Files.copy(source, dest);
+            return FileStatus.CREATED;
         }
     }
 
     /**
-     * Copies the files from the source path to the destination path.
+     * The {@link CopyFunction} for the {@link FileOverwritePolicy#FAIL}.
      *
-     * @param sourcePath the source path of the file
-     * @param destinationPath the destination path of the file
+     * @param source the source {@link Path}
+     * @param dest the destination {@link Path}
+     * @return the {@link FileStatus}
+     * @throws IOException
+     */
+    private static FileStatus getFailCopyFunction(final Path source, final Path dest, final boolean exists)
+        throws IOException {
+        if (exists) {
+            throw new FileAlreadyExistsException(dest.toString());
+        }
+        Files.copy(source, dest);
+        return FileStatus.CREATED;
+    }
+
+    /**
+     * The {@link CopyFunction} for the {@link FileOverwritePolicy#OVERWRITE}.
+     *
+     * @param source the source {@link Path}
+     * @param dest the destination {@link Path}
+     * @return the {@link FileStatus}
+     * @throws IOException
+     */
+    private static FileStatus getOverwriteCopyFunction(final Path source, final Path dest, final boolean exists)
+        throws IOException {
+        final FileStatus fileStatus = exists ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
+        Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
+        return fileStatus;
+    }
+
+    /**
+     * Creates the directory of the passed path if it do not exist already.
+     *
+     * @param path the path to the directory which needs to be created
+     * @throws IOException
+     * @return exists returns if the path already existed or not
+     */
+    static boolean createDirectories(final Path path) throws IOException {
+        final boolean exists = FSFiles.exists(path);
+        if (!exists) {
+            try {
+                FSFiles.createDirectories(path);
+            } catch (IOException e) {
+                LOGGER.warn(ERROR_MESSAGE, e);
+                throw e;
+            }
+        }
+        return exists;
+    }
+
+    /**
+     * Copies a file or folder from a source to a specified destination.
+     *
+     * @param sourcePath the source {@link Path}
+     * @param destinationPath the destination {@link Path}
      * @param rowIdx the current row index
      * @throws IOException
      */
-    void copy(final Path sourcePath, final Path destinationPath, final long rowIdx) throws IOException {
+    void copyPath(final Path sourcePath, final Path destinationPath, final long rowIdx) throws IOException {
+        if (FSFiles.isDirectory(sourcePath)) {
+            copyDirectories(sourcePath, destinationPath, rowIdx);
+        } else {
+            copyFiles(sourcePath, destinationPath, rowIdx);
+        }
+    }
 
-        //Create directories if they do not exist
-        createOutputDirectories(destinationPath.getParent());
-        final FSLocationCell sourcePathCell = m_sourceFSLocationCellFactory.createCell(sourcePath.toString());
-        final FSLocationCell destinationPathCell =
-            m_destinationFSLocationCellFactory.createCell(destinationPath.toString());
+    /**
+     * Copies a directory.
+     *
+     * @param sourcePath the source {@link Path}
+     * @param destinationPath the destination {@link Path}
+     * @param rowIdx the current row index
+     * @throws IOException
+     */
+    private void copyDirectories(final Path sourcePath, final Path destinationPath, final long rowIdx)
+        throws IOException {
+        final boolean existed = createDirectories(destinationPath);
+        final FileStatus fileStatus = existed ? FileStatus.ALREADY_EXISTED : FileStatus.CREATED;
 
+        pushRow(rowIdx, m_sourceFSLocationCellFactory.createCell(sourcePath.toString()),
+            m_destinationFSLocationCellFactory.createCell(destinationPath.toString()), !existed, fileStatus.getText());
+    }
+
+    /**
+     * Copies a file.
+     *
+     * @param sourcePath the source {@link Path}
+     * @param destinationPath the destination {@link Path}
+     * @param rowIdx the current row index
+     * @throws IOException
+     */
+    private void copyFiles(final Path sourcePath, final Path destinationPath, final long rowIdx) throws IOException {
+        createDirectories(destinationPath.getParent());
         try {
             final FileStatus fileStatus = m_copyFunction.apply(sourcePath, destinationPath);
-
-            //Use of Files.deleteIfExists to mimic the behavior of Files.move
-            boolean deleted = false;
-            if (m_isDeleteMode) {
-                deleted = Files.deleteIfExists(sourcePath);
-            }
-
-            pushRow(rowIdx, sourcePathCell, destinationPathCell, fileStatus != FileStatus.UNMODIFIED, deleted,
-                fileStatus.getText());
+            pushRow(rowIdx, m_sourceFSLocationCellFactory.createCell(sourcePath.toString()),
+                m_destinationFSLocationCellFactory.createCell(destinationPath.toString()),
+                EnumSet.of(FileStatus.CREATED, FileStatus.OVERWRITTEN).contains(fileStatus), fileStatus.getText());
         } catch (FileAlreadyExistsException e) {
             if (m_fileOverWritePolicy == FileOverwritePolicy.FAIL) {
                 throw new IOException(
@@ -205,19 +282,8 @@ final class FileCopier {
             //should not occur since we always check if a file exists already
             LOGGER.warn("Unexpected FileAlreadyExistsException has been thrown. See log for further details.", e);
         } catch (IOException e) {
-            LOGGER.warn("Something went wrong during the copying / moving process. See log for further details.", e);
-        }
-    }
-
-    /**
-     * Creates the directory of the passed path if it do not exist already.
-     *
-     * @param path the path to the directory which needs to be created
-     * @throws IOException
-     */
-    static void createOutputDirectories(final Path path) throws IOException {
-        if (!FSFiles.exists(path)) {
-            Files.createDirectories(path);
+            LOGGER.warn(ERROR_MESSAGE, e);
+            throw e;
         }
     }
 
@@ -231,12 +297,11 @@ final class FileCopier {
      * @param deleted the flag whether the file has been deleted or not
      */
     private void pushRow(final long rowIdx, final FSLocationCell sourcePathCell, final DataCell destinationPathCell,
-        final boolean copied, final boolean deleted, final String status) {
+        final boolean copied, final String status) {
         final DataCell[] cells = new DataCell[NUMBER_OF_COLS];
         cells[SOURCE_COL_IDX] = sourcePathCell;
         cells[DESTINATION_COL_IDX] = destinationPathCell;
         cells[COPIED_COL_IDX] = BooleanCellFactory.create(copied);
-        cells[DELETED_COL_IDX] = BooleanCellFactory.create(deleted);
         cells[STATUS_COL_IDX] = StringCellFactory.create(status);
 
         m_rowConsumer.accept(new DefaultRow(RowKey.createRowKey(rowIdx), cells));
@@ -254,7 +319,6 @@ final class FileCopier {
         columnSpecs
             .add(createMetaColumnSpec(config.getDestinationFileChooserModel().getLocation(), "Destination Path"));
         columnSpecs.add(new DataColumnSpecCreator("Copied", BooleanCell.TYPE).createSpec());
-        columnSpecs.add(new DataColumnSpecCreator("Source Deleted", BooleanCell.TYPE).createSpec());
         columnSpecs.add(new DataColumnSpecCreator("Status", StringCell.TYPE).createSpec());
         return new DataTableSpec(columnSpecs.toArray(new DataColumnSpec[0]));
     }

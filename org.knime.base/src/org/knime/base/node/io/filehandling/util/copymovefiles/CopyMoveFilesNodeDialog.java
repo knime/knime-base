@@ -87,6 +87,8 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_includeSourceFolderCheckbox;
 
+    private final DialogComponentBoolean m_failOnDeletion;
+
     private final SwingWorkerManager m_swingWorkerManager;
 
     /**
@@ -112,10 +114,14 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
             FilterMode.FOLDER);
 
         m_deleteSourceFilesCheckbox =
-            new DialogComponentBoolean(config.getDeleteSourceFilesModel(), "Delete source files (move)");
+            new DialogComponentBoolean(config.getDeleteSourceFilesModel(), "Delete source files / folders (move)");
 
         m_includeSourceFolderCheckbox =
             new DialogComponentBoolean(config.getSettingsModelIncludeSourceFolder(), "Include selected source folder");
+
+        m_failOnDeletion = new DialogComponentBoolean(config.getFailOnDeletionModel(), "Fail on deletion");
+
+        m_deleteSourceFilesCheckbox.getModel().addChangeListener(l -> updateFailOnDeletion());
 
         //Update the component in case something changes so that the status message will be updated accordingly
         sourceFileChooserConfig.addChangeListener(l -> m_destinationFilePanel.updateComponent());
@@ -127,6 +133,13 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         sourceFileChooserConfig.addChangeListener(l -> m_swingWorkerManager.startSwingWorker());
 
         createPanel();
+    }
+
+    /**
+     * Listener method for the fail on deletion checkbox.
+     */
+    private void updateFailOnDeletion() {
+        m_failOnDeletion.getModel().setEnabled(m_deleteSourceFilesCheckbox.isSelected());
     }
 
     /**
@@ -169,6 +182,8 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         panel.add(m_includeSourceFolderCheckbox.getComponentPanel(), gbc);
         gbc.gridx++;
         panel.add(m_deleteSourceFilesCheckbox.getComponentPanel(), gbc);
+        gbc.gridx++;
+        panel.add(m_failOnDeletion.getComponentPanel(), gbc);
         gbc.weightx = 1;
         gbc.gridx++;
         panel.add(Box.createHorizontalBox(), gbc);
@@ -216,6 +231,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_sourceFilePanel.saveSettingsTo(settings);
         m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
         m_includeSourceFolderCheckbox.saveSettingsTo(settings);
+        m_failOnDeletion.saveSettingsTo(settings);
     }
 
     @Override
@@ -225,5 +241,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_destinationFilePanel.loadSettingsFrom(settings, specs);
         m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
         m_includeSourceFolderCheckbox.loadSettingsFrom(settings, specs);
+        m_failOnDeletion.loadSettingsFrom(settings, specs);
+        updateFailOnDeletion();
     }
 }
