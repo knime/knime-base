@@ -121,12 +121,4 @@ public class IndexMappingRandomAccessibleDecoratorTest {
         assertEquals(null, testInstance.get(2));
     }
 
-    /**
-     * Test if get fails if nothing is set first.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testGetFailsIfNothingIsSet() {
-        createTestInstance(4).get(2);
-    }
-
 }

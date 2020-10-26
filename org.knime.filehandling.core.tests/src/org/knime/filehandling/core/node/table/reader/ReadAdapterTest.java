@@ -106,14 +106,6 @@ public class ReadAdapterTest {
     }
 
     /**
-     * Tests if the appropriate exception is thrown if no source is set.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testGetFailsIfSetIsNotCalledFirst() {
-        m_readAdapter.get(new ReadAdapterParams<>(0, m_config));
-    }
-
-    /**
      * Tests the toString method of ReadAdapterParams.
      */
     @Test

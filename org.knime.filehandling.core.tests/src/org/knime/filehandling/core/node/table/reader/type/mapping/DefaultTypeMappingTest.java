@@ -128,7 +128,6 @@ public class DefaultTypeMappingTest {
         TypeMapper<String> typeMapper = m_testInstance.createTypeMapper(m_fsFactory);
         final RowKey rowKey = new RowKey("test");
         DataRow expected = new DefaultRow(rowKey, "frieda", "berta");
-        when(m_randomAccessible.size()).thenReturn(2);
         when(m_randomAccessible.get(0)).thenReturn("frieda");
         when(m_randomAccessible.get(1)).thenReturn("berta");
         DataRow actual = typeMapper.map(rowKey, m_randomAccessible);

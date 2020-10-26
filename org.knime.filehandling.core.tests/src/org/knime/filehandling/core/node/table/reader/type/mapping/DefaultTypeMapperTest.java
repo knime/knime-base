@@ -99,44 +99,12 @@ public class DefaultTypeMapperTest {
     }
 
     /**
-     * Tests if the {@code map} method fails if the @{@code key} argument is {@code null}.
-     *
-     * @throws Exception (in this case an {@link IllegalArgumentException}
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMapFailsOnNullKey() throws Exception {
-        m_testInstance.map(null, m_randomAccessible);
-    }
-
-    /**
-     * Tests if the {@code map} method fails if the @{@link RandomAccessible randomAccessible} argument is {@code null}.
-     *
-     * @throws Exception in this case an {@link IllegalArgumentException}
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMapFailsOnNullRandomAccessible() throws Exception {
-        m_testInstance.map(m_key, null);
-    }
-
-    /**
-     * Tests if the {@code map} method fails if it is called with a {@link RandomAccessible} of incompatible size.
-     *
-     * @throws Exception in this case an {@link IllegalArgumentException}
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMapFailsOnRandomAccessibleOfDifferentSize() throws Exception {
-        when(m_randomAccessible.size()).thenReturn(3);
-        m_testInstance.map(m_key, m_randomAccessible);
-    }
-
-    /**
      * Tests the {@code map} implementation.
      *
      * @throws Exception never thrown
      */
     @Test
     public void testMap() throws Exception {
-        when(m_randomAccessible.size()).thenReturn(2);
         when(m_randomAccessible.get(0)).thenReturn("hans");
         when(m_randomAccessible.get(1)).thenReturn("franz");
         DataRow actual = m_testInstance.map(m_key, m_randomAccessible);

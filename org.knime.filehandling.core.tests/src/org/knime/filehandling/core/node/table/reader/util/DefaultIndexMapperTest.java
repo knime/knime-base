@@ -123,14 +123,6 @@ public class DefaultIndexMapperTest {
     }
 
     /**
-     * Tests if {@link DefaultIndexMapper#map(int)} fails if the argument is negative.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testMapFailsIfNoMappingIsAvailable() {
-        DefaultIndexMapper.builder(5).addMapping(0, 0).build().map(1);
-    }
-
-    /**
      * Tests if {@link DefaultIndexMapperBuilder#addMapping(int, int)} fails if the from argument is negative.
      */
     @Test(expected = IllegalArgumentException.class)
