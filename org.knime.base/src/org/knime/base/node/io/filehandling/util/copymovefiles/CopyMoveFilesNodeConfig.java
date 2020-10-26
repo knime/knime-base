@@ -63,10 +63,10 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 final class CopyMoveFilesNodeConfig {
 
     /** Config key for delete source files checkbox. */
-    private static final String CFG_DELETE_SOURCE_FILES = "delete_source_files";
+    private static final String CFG_DELETE_SOURCE_FILES = "delete_source_location";
 
     /** Config key for fail on deletion checkbox */
-    private static final String CFG_FAIL_ON_DELETION = "fail_on_deletion";
+    private static final String CFG_FAIL_ON_UNSUCCESSFUL_DELETION = "fail_unsuccessful_deletion";
 
     /** Config key for include parent folder checkbox. */
     private static final String CFG_INCLUDE_SOURCE_FOLDER = "include_source_folder";
@@ -82,7 +82,7 @@ final class CopyMoveFilesNodeConfig {
         new SettingsModelBoolean(CFG_DELETE_SOURCE_FILES, false);
 
     /** The fail on deletion settings model. */
-    private final SettingsModelBoolean m_failOnDeletionModel = new SettingsModelBoolean(CFG_FAIL_ON_DELETION, false);
+    private final SettingsModelBoolean m_failOnDeletionModel = new SettingsModelBoolean(CFG_FAIL_ON_UNSUCCESSFUL_DELETION, false);
 
     /** The include parent folder settings model */
     private final SettingsModelBoolean m_includeSourcetFolderModel =

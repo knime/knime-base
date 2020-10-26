@@ -117,9 +117,9 @@ public final class CopyMoveFilesNodeFactory extends ConfigurableNodeFactory<Copy
 
     private static CopyMoveFilesNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
         return new CopyMoveFilesNodeConfig(
-            new SettingsModelReaderFileChooser("sourceFileChooser", portsConfiguration, CONNECTION_SOURCE_PORT_GRP_NAME,
+            new SettingsModelReaderFileChooser("source_location", portsConfiguration, CONNECTION_SOURCE_PORT_GRP_NAME,
                 FilterMode.FILE),
-            new SettingsModelWriterFileChooser("destinationFileChooser", portsConfiguration,
+            new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
                 CONNECTION_DESTINATION_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.IGNORE,
                 EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
                 EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));

@@ -119,7 +119,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_includeSourceFolderCheckbox =
             new DialogComponentBoolean(config.getSettingsModelIncludeSourceFolder(), "Include selected source folder");
 
-        m_failOnDeletion = new DialogComponentBoolean(config.getFailOnDeletionModel(), "Fail on deletion");
+        m_failOnDeletion = new DialogComponentBoolean(config.getFailOnDeletionModel(), "Fail on unsuccessful deletion");
 
         m_deleteSourceFilesCheckbox.getModel().addChangeListener(l -> updateFailOnDeletion());
 
@@ -227,10 +227,10 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_destinationFilePanel.saveSettingsTo(settings);
         m_sourceFilePanel.saveSettingsTo(settings);
-        m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
+        m_destinationFilePanel.saveSettingsTo(settings);
         m_includeSourceFolderCheckbox.saveSettingsTo(settings);
+        m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
         m_failOnDeletion.saveSettingsTo(settings);
     }
 
@@ -239,8 +239,8 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_sourceFilePanel.loadSettingsFrom(settings, specs);
         m_destinationFilePanel.loadSettingsFrom(settings, specs);
-        m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
         m_includeSourceFolderCheckbox.loadSettingsFrom(settings, specs);
+        m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
         m_failOnDeletion.loadSettingsFrom(settings, specs);
         updateFailOnDeletion();
     }

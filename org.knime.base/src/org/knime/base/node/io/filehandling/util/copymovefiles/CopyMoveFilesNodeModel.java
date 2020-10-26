@@ -82,7 +82,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -162,7 +161,6 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         final PathRelativizer pathRelativizer = new PathRelativizerNonTableInput(rootPath,
             m_config.getSettingsModelIncludeSourceFolder().getBooleanValue(), filterMode, false);
 
-        createFlowVariables(rootPath, destinationDir);
 
         final FileStoreFactory fileStoreFactory = FileStoreFactory.createFileStoreFactory(exec);
         final PathCopier pathCopier = new PathCopier(container::addRowToTable, m_config, fileStoreFactory);
@@ -258,17 +256,6 @@ final class CopyMoveFilesNodeModel extends NodeModel {
             sourcePaths = pathsFromFolder;
         }
         return sourcePaths;
-    }
-
-    /**
-     * Creates the {@link FSLocationVariableType#INSTANCE} flow variables for the source and target path.
-     *
-     * @param source the {@link FSPath} of the source file chooser
-     * @param target the {@link FSPath} of the target file chooser
-     */
-    private void createFlowVariables(final FSPath source, final FSPath target) {
-        pushFlowVariable("source_path", FSLocationVariableType.INSTANCE, source.toFSLocation());
-        pushFlowVariable("destination_path", FSLocationVariableType.INSTANCE, target.toFSLocation());
     }
 
     @Override

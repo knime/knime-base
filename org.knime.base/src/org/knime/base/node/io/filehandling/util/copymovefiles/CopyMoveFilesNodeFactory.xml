@@ -197,7 +197,7 @@
 			<b>Note</b>
 			Folders only get deleted when the Folder option is used.
 		</option>
-		<option name="Fail on deletion">
+		<option name="Fail on unsuccessful deletion">
 			If the 'Delete source files (move)' option is
 			activated and something goes wrong during the deletion process the
 			node will fail. This option is only available if the before mentioned
