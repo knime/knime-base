@@ -57,7 +57,7 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactoryManager;
+import org.knime.filehandling.core.data.location.cell.MultiFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -67,18 +67,18 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  */
 final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
-    private final FSLocationCellFactoryManager m_factoryMananger;
+    private final MultiFSLocationCellFactory m_multiCellFactory;
 
     /**
      * Constructor.
      */
     FSLocationVarToCellConverter() {
-        m_factoryMananger = new FSLocationCellFactoryManager();
+        m_multiCellFactory = new MultiFSLocationCellFactory();
     }
 
     @Override
     public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
-        return m_factoryMananger.createCell(exec, getFsLocation(flowVar));
+        return m_multiCellFactory.createCell(exec, getFsLocation(flowVar));
     }
 
     @Override
@@ -97,7 +97,7 @@ final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
     @Override
     public void close() {
-        m_factoryMananger.close();
+        m_multiCellFactory.close();
     }
 
 }

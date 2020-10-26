@@ -59,19 +59,19 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
- * A manager class allowing to easily create {@link FSLocationCell}s. This class especially useful when the same column
+ * A factory class allowing to easily create {@link FSLocationCell}s. This class especially useful when the same column
  * contains {@link FSLocationCell}s originating from / pointing to different {@link FileSystem}s.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class FSLocationCellFactoryManager implements AutoCloseable {
+public final class MultiFSLocationCellFactory implements AutoCloseable {
 
     private final Map<FSLocationSpec, Pair<FileStoreFactory, FSLocationCellFactory>> m_factories;
 
     /**
      * Constructor.
      */
-    public FSLocationCellFactoryManager() {
+    public MultiFSLocationCellFactory() {
         m_factories = new HashMap<>();
     }
 

@@ -80,9 +80,6 @@ public final class LoopEndVariableNodeFactory extends NodeFactory<LoopEndVariabl
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return new LoopEndVariableNodeDialog();
