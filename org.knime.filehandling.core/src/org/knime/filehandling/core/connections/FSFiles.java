@@ -303,6 +303,27 @@ public final class FSFiles {
     }
 
     /**
+     * Similar to {@link Files#isDirectory(Path, LinkOption...)} with the important distinction that it doesn't return
+     * {@code false} for paths that it can't access but instead throws an {@link AccessDeniedException}.
+     *
+     * @param path the path to the file to test
+     * @param linkOptions for resolving symbolic links
+     * @return {@code true} if the file is a directory; {@code false} otherwise
+     * @throws AccessDeniedException if the access to <b>path</b> is denied
+     * @throws SecurityException In the case of the default provider, the {@link SecurityManager#checkRead(String)} is
+     *             invoked to check read access to the file.
+     */
+    public static boolean isDirectory(final Path path, final LinkOption... linkOptions) throws AccessDeniedException {
+        try {
+            return Files.readAttributes(path, BasicFileAttributes.class, linkOptions).isDirectory();
+        } catch (AccessDeniedException ade) { // NOSONAR
+            throw ExceptionUtil.createAccessDeniedException(path);
+        } catch (IOException ex) {// NOSONAR
+            return false;
+        }
+    }
+
+    /**
      * Recursively deletes the given directory. When deletion of any of the contained files or directories fails, then
      * recursive deletion will continue, but the exception will be thrown at the end as an {@link IOException}. If the
      * deletion of multiple files fails, then only the exception of the first failed deletion will be thrown.
@@ -361,8 +382,7 @@ public final class FSFiles {
      */
     public static List<FSPath> getFilePathsFromFolder(final FSPath source) throws IOException {
         final List<FSPath> paths = new ArrayList<>();
-        final BasicFileAttributes basicAttrs = Files.readAttributes(source, BasicFileAttributes.class);
-        CheckUtils.checkArgument(basicAttrs.isDirectory(), "%s is not a folder. Please specify a folder.", source);
+        CheckUtils.checkArgument(FSFiles.isDirectory(source), "%s is not a folder. Please specify a folder.", source);
 
         Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
             @Override
@@ -372,6 +392,42 @@ public final class FSFiles {
             }
         });
         paths.sort(Path::compareTo);
+        return paths;
+    }
+
+    /**
+     * Returns a {@link List} of {@link FSPath}s of files and folder in a single folder.
+     *
+     * @param source the {@link Path} of the source folder
+     * @param includeSourceFolder flag to incloude the source path in the output or not
+     * @return a {@link List} of {@link Path} from files and folder in a folder
+     * @throws IOException
+     */
+    public static List<FSPath> getFilesAndFolders(final FSPath source, final boolean includeSourceFolder)
+        throws IOException {
+        final List<FSPath> paths = new ArrayList<>();
+        CheckUtils.checkArgument(FSFiles.isDirectory(source), "%s is not a folder. Please specify a folder.", source);
+
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
+                throws IOException {
+                if (!source.equals(dir) || includeSourceFolder) {
+                    paths.add((FSPath)dir);
+                }
+                return super.preVisitDirectory(dir, attrs);
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                paths.add((FSPath)file);
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
+
+        paths.sort((final Path p1, final Path p2) -> p1.toString().compareTo(p2.toString()));
+
         return paths;
     }
 
