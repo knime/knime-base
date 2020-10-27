@@ -48,11 +48,13 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -63,7 +65,7 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class RelativeToPath extends UnixStylePath {
+public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
 
     /**
      * Creates a path using a given file system and path parts.
@@ -124,5 +126,12 @@ public final class RelativeToPath extends UnixStylePath {
      */
     public Path appendToBaseDir(final Path baseDir) {
         return Paths.get(baseDir.toString(), m_pathParts.toArray(new String[0]));
+    }
+
+    @Override
+    public boolean isWorkflow() throws IOException {
+        @SuppressWarnings("resource")
+        final BaseRelativeToFileSystem fs = (BaseRelativeToFileSystem)getFileSystem();
+        return fs.isWorkflowDirectory(this);
     }
 }

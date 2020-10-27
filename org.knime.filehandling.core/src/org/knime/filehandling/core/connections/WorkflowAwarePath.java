@@ -44,68 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   18.11.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 27, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.base;
+package org.knime.filehandling.core.connections;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.file.Path;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
-import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.filechooser.NioFileView;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
 
 /**
- * FileView that shows a KNIME icon for workflows
+ * Interface implemented by all {@link FSPath}s that can identify, whether or not it points to a KNIME workflow.
  *
- * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
- * @author Sascha Wolke, KNIME GmbH, Konstanz, Germany
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class WorkflowAwareFileView extends NioFileView {
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowAwareFileView.class);
-
-    private Icon m_workflowIcon = null;
-
-    @Override
-    public Icon getIcon(final File f) {
-        try {
-            final Icon workflowIcon = getWorkflowIcon();
-            final Path path = f.toPath();
-            if (path instanceof WorkflowAwarePath && ((WorkflowAwarePath)path).isWorkflow()) {
-                return workflowIcon;
-            }
-        } catch (final IOException e) {
-            // something went wrong, use default icon
-            LOGGER.debug(e);
-            throw new UncheckedIOException(e);
-        }
-        return super.getIcon(f);
-    }
+@FunctionalInterface
+public interface WorkflowAwarePath {
 
     /**
-     * Try to load the workflow icon from the bundle.
+     * Returns {@code true} if the path points to a KNIME workflow and {@code false} otherwise.
      *
-     * @return Workflow icon or {@code null}
+     * @return a flag indicating whether or not the current path points to a KNIME workflow
+     * @throws IOException - If something goes wrong
      */
-    private synchronized Icon getWorkflowIcon() {
-        if (m_workflowIcon == null) {
-            final Bundle currBundle = FrameworkUtil.getBundle(WorkflowAwareFileView.class);
-            final IPath iconPath = new org.eclipse.core.runtime.Path("icons").append("knime_default.png");
-            final URL iconUrl = FileLocator.findEntries(currBundle, iconPath)[0];
-            m_workflowIcon = new ImageIcon(iconUrl);
-        }
-        return m_workflowIcon;
-    }
+    boolean isWorkflow() throws IOException;
 }

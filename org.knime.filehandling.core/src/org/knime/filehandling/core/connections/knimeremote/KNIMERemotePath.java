@@ -55,6 +55,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -63,7 +64,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public final class KNIMERemotePath extends UnixStylePath {
+public final class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
 
     /**
      * Constructs a {@code KNIMERemotePath} from a path string, or a sequence of strings that when joined form a path
@@ -89,7 +90,7 @@ public final class KNIMERemotePath extends UnixStylePath {
 
     @Override
     public KNIMERemoteFileSystem getFileSystem() {
-        return (KNIMERemoteFileSystem) super.getFileSystem();
+        return (KNIMERemoteFileSystem)super.getFileSystem();
     }
 
     URI toKNIMEProtocolURI() {
@@ -126,6 +127,7 @@ public final class KNIMERemotePath extends UnixStylePath {
         return connection;
     }
 
+    @Override
     public boolean isWorkflow() {
         return MountPointFileSystemAccessService.instance().isWorkflow(toKNIMEProtocolURI());
     }
