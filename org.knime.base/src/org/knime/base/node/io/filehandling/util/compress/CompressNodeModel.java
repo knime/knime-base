@@ -51,8 +51,14 @@ package org.knime.base.node.io.filehandling.util.compress;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -62,17 +68,13 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveOutputStream;
-import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
-import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.io.FilenameUtils;
 import org.knime.base.node.io.filehandling.util.PathRelativizer;
 import org.knime.base.node.io.filehandling.util.PathRelativizerNonTableInput;
+import org.knime.base.node.io.filehandling.util.compress.archiver.ArchiveEntryCreator;
+import org.knime.base.node.io.filehandling.util.compress.archiver.ArchiveEntryFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -83,6 +85,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -98,8 +101,6 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  */
 final class CompressNodeModel extends NodeModel {
-
-    private static final String BZ2_EXTENSION = "bz2";
 
     /**
      * The template string for the name collision error. It requires two strings, i.e., the paths to the files causing
@@ -144,15 +145,19 @@ final class CompressNodeModel extends NodeModel {
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
             final FileOverwritePolicy overwritePolicy = m_config.getTargetFileChooserModel().getFileOverwritePolicy();
-            if (!(FSFiles.exists(outputPath) && overwritePolicy == FileOverwritePolicy.IGNORE)) {
+            createParentDirIfRequired(outputPath);
+            compress(outputPath, exec, overwritePolicy);
+        }
+    }
 
-                final Path parentPath = outputPath.getParent();
-                if (parentPath != null && !FSFiles.exists(parentPath)
-                    && m_config.getTargetFileChooserModel().isCreateMissingFolders()) {
-                    Files.createDirectories(parentPath);
-                }
-
-                compress(outputPath, exec, overwritePolicy);
+    private void createParentDirIfRequired(final FSPath outputPath) throws IOException {
+        final Path parentPath = outputPath.getParent();
+        if (parentPath != null && !Files.exists(parentPath)) {
+            if (m_config.getTargetFileChooserModel().isCreateMissingFolders()) {
+                FSFiles.createDirectories(parentPath);
+            } else {
+                throw new IOException(String.format(
+                    "The directory '%s' does not exist and must not be created due to user settings.", parentPath));
             }
         }
     }
@@ -161,11 +166,14 @@ final class CompressNodeModel extends NodeModel {
         final FileOverwritePolicy overwritePolicy)
         throws IOException, CanceledExecutionException, InvalidSettingsException {
 
-        final String fileExtension = FilenameUtils.getExtension(outputPath.toString());
-
+        final String compression = m_config.getCompressionModel().getStringValue().toLowerCase();
+        if (overwritePolicy == FileOverwritePolicy.FAIL && FSFiles.exists(outputPath)) {
+            throw new FileAlreadyExistsException(
+                String.format("The file '%s' already exists and must not be overwritten", outputPath));
+        }
         try (final OutputStream outputStream = FSFiles.newOutputStream(outputPath, overwritePolicy.getOpenOptions())) {
-            try (final OutputStream compressorStream = openCompressorStream(outputStream, fileExtension)) {
-                compress(compressorStream, fileExtension, exec);
+            try (final OutputStream compressorStream = openCompressorStream(outputStream, compression)) {
+                compress(compressorStream, compression, exec);
             } catch (CompressorException e) {
                 throw new InvalidSettingsException("Unsupported compression type", e);
             }
@@ -175,87 +183,99 @@ final class CompressNodeModel extends NodeModel {
     private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor)
         throws IOException, InvalidSettingsException {
         if (m_config.getInputLocationChooserModel().getFilterMode() == FilterMode.FOLDER) {
-            return FSFiles.getFilePathsFromFolder(readAccessor.getRootPath(m_statusConsumer));
+            return getFilesAndEmptyFolders(readAccessor.getRootPath(m_statusConsumer));
         } else {
             return readAccessor.getFSPaths(m_statusConsumer);
         }
     }
 
-    private void compress(final OutputStream compressorStream, final String fileExtension, final ExecutionContext exec)
+    private void compress(final OutputStream compressorStream, final String compression, final ExecutionContext exec)
         throws IOException, CanceledExecutionException, InvalidSettingsException {
-
-        final String archiver = fileExtension.equalsIgnoreCase(BZ2_EXTENSION)
-            || fileExtension.equalsIgnoreCase(CompressorStreamFactory.GZIP) ? ArchiveStreamFactory.TAR : fileExtension;
 
         try (final ReadPathAccessor readAccessor = m_config.getInputLocationChooserModel().createReadPathAccessor()) {
             final List<FSPath> inputPaths = getInputPaths(readAccessor);
             final Path rootPath = readAccessor.getRootPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
+            final String archiver = getArchiver(compression);
             try (ArchiveOutputStream archiveStream =
                 new ArchiveStreamFactory().createArchiveOutputStream(archiver, compressorStream)) {
-
                 // without that only names with 16 chars would be possible, known limitation from the docs
                 if (archiveStream instanceof ArArchiveOutputStream) {
                     ((ArArchiveOutputStream)archiveStream).setLongFileMode(ArArchiveOutputStream.LONGFILE_BSD);
                 }
 
-                final FilterMode filterMode = m_config.getInputLocationChooserModel().getFilterMode();
-                final boolean includeParent = m_config.includeParentFolder();
-
-                final PathRelativizer pathRelativizer =
-                    new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, m_config.flattenHierarchy());
-
+                final ArchiveEntryCreator entryCreator = ArchiveEntryFactory.getArchiveEntryCreator(archiver);
+                final PathRelativizer pathRelativizer = getPathRelativizer(rootPath);
                 final long numOfFiles = inputPaths.size();
                 long fileCounter = 0;
 
                 final Map<String, String> createdEntries = new HashMap<>();
-                for (Path file : inputPaths) {
+                for (Path toCompress : inputPaths) {
                     exec.setProgress((fileCounter / (double)numOfFiles),
-                        () -> ("Compressing file: " + file.toString()));
+                        () -> ("Compressing file: " + toCompress.toString()));
                     exec.checkCanceled();
-                    addEntry(archiver, archiveStream, pathRelativizer, createdEntries, file);
+                    addEntry(archiveStream, pathRelativizer, createdEntries, toCompress, entryCreator);
                     fileCounter++;
                 }
             } catch (ArchiveException e) {
                 throw new IllegalArgumentException("Unsupported archive type", e);
             }
         }
-
     }
 
-    private static void addEntry(final String archiver, final ArchiveOutputStream archiveStream,
-        final PathRelativizer pathRelativizer, final Map<String, String> createdEntries, final Path file)
+    private static String getArchiver(final String compression) {
+        final int archiverDelimiterIdx = compression.indexOf('.');
+        final String archiver;
+        if (archiverDelimiterIdx < 0) {
+            archiver = compression;
+        } else {
+            archiver = compression.substring(0, archiverDelimiterIdx);
+        }
+        return archiver;
+    }
+
+    private PathRelativizer getPathRelativizer(final Path rootPath) {
+        final FilterMode filterMode = m_config.getInputLocationChooserModel().getFilterMode();
+        final boolean includeParent = m_config.includeParentFolder();
+        return new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, m_config.flattenHierarchy());
+    }
+
+    private static void addEntry(final ArchiveOutputStream archiveStream, final PathRelativizer pathRelativizer,
+        final Map<String, String> createdEntries, final Path toCompress, final ArchiveEntryCreator entryCreator)
         throws IOException {
-        final String entryName = pathRelativizer.apply(file);
+        final String entryName = pathRelativizer.apply(toCompress);
         if (!createdEntries.containsKey(entryName)) {
-            createdEntries.put(entryName, file.toString());
-            createArchiveEntry(archiveStream, file, entryName, archiver);
+            createdEntries.put(entryName, toCompress.toString());
+            final ArchiveEntry archiveEntry = entryCreator.apply(toCompress, entryName);
+            createArchiveEntry(archiveStream, toCompress, archiveEntry);
         } else {
             throw new IllegalArgumentException(
-                String.format(NAME_COLLISION_ERROR_TEMPLATE, createdEntries.get(entryName), file.toString()));
+                String.format(NAME_COLLISION_ERROR_TEMPLATE, createdEntries.get(entryName), toCompress.toString()));
         }
     }
 
-    private static void createArchiveEntry(final ArchiveOutputStream archiveStream, final Path file,
-        final String entryName, final String archiver) throws IOException {
-        archiveStream.putArchiveEntry(getArchiveEntry(archiver, file, entryName));
+    private static void createArchiveEntry(final ArchiveOutputStream archiveStream, final Path toCompress,
+        final ArchiveEntry archiveEntry) throws IOException {
+        archiveStream.putArchiveEntry(archiveEntry);
         try {
-            Files.copy(file, archiveStream);
+            if (!archiveEntry.isDirectory()) {
+                Files.copy(toCompress, archiveStream);
+            }
         } finally {
             archiveStream.closeArchiveEntry();
         }
     }
 
     @SuppressWarnings("resource") // closing the stream is the responsibility of the caller
-    private static OutputStream openCompressorStream(final OutputStream outputStream, final String fileExtension)
+    private static OutputStream openCompressorStream(final OutputStream outputStream, final String compression)
         throws CompressorException {
         final OutputStream compressorStream;
 
-        if (fileExtension.equalsIgnoreCase(BZ2_EXTENSION)) {
+        if (compression.endsWith(CompressNodeConfig.BZ2_EXTENSION)) {
             compressorStream =
                 new CompressorStreamFactory().createCompressorOutputStream(CompressorStreamFactory.BZIP2, outputStream);
-        } else if (fileExtension.equalsIgnoreCase(CompressorStreamFactory.GZIP)) {
+        } else if (compression.endsWith(CompressNodeConfig.GZ_EXTENSION)) {
             compressorStream =
                 new CompressorStreamFactory().createCompressorOutputStream(CompressorStreamFactory.GZIP, outputStream);
         } else {
@@ -263,31 +283,6 @@ final class CompressNodeModel extends NodeModel {
         }
 
         return compressorStream;
-    }
-
-    private static ArchiveEntry getArchiveEntry(final String archiver, final Path path, final String entryName)
-        throws IOException {
-
-        final ArchiveEntry archiveEntry;
-        final File file = path.toFile();
-
-        if (archiver.equalsIgnoreCase(ArchiveStreamFactory.AR)) {
-            archiveEntry = new ArArchiveEntry(file, entryName);
-        } else if (archiver.equalsIgnoreCase(ArchiveStreamFactory.CPIO)) {
-            final long fileSize = (long)Files.readAttributes(path, "size").get("size");
-
-            archiveEntry = new CpioArchiveEntry(entryName, fileSize);
-        } else if (archiver.equalsIgnoreCase(ArchiveStreamFactory.JAR)) {
-            archiveEntry = new JarArchiveEntry(entryName);
-        } else if (archiver.equalsIgnoreCase(ArchiveStreamFactory.TAR)) {
-            archiveEntry = new TarArchiveEntry(file, entryName);
-        } else if (archiver.equalsIgnoreCase(ArchiveStreamFactory.ZIP)) {
-            archiveEntry = new ZipArchiveEntry(file, entryName);
-        } else {
-            throw new IllegalArgumentException("Unsupported type: " + archiver);
-        }
-
-        return archiveEntry;
     }
 
     @Override
@@ -320,5 +315,60 @@ final class CompressNodeModel extends NodeModel {
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // Not used
+    }
+
+    /**
+     * Returns a {@link List} of {@link FSPath}s of a all files in a single folder.
+     *
+     * @param folder the {@link Path} of the source folder
+     * @param linkOptions for resolving symbolic links
+     * @return a {@link List} of {@link Path} from files in a folder
+     * @throws IOException
+     */
+    private static List<FSPath> getFilesAndEmptyFolders(final FSPath folder, final LinkOption... linkOptions)// NOSONAR
+        throws IOException {
+        final List<FSPath> paths = new ArrayList<>();
+        CheckUtils.checkArgument(FSFiles.isDirectory(folder, linkOptions),
+            "%s is not a folder. Please specify a folder.", folder);
+        Files.walkFileTree(folder, new FileAndEmptyFolderVisitor(paths));
+        FSFiles.sortPathsLexicographically(paths);
+        return paths;
+    }
+
+    private static class FileAndEmptyFolderVisitor extends SimpleFileVisitor<Path> {
+
+        private final List<FSPath> m_paths;
+
+        int m_visitedFolders = 0;
+
+        boolean m_empty;
+
+        FileAndEmptyFolderVisitor(final List<FSPath> paths) {
+            m_paths = paths;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+            m_empty = true;
+            m_visitedFolders++;
+            return super.preVisitDirectory(dir, attrs);
+        }
+
+        @Override
+        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            m_paths.add((FSPath)file);
+            m_empty = false;
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+            m_visitedFolders--;
+            if (m_empty && m_visitedFolders > 0) {
+                m_paths.add((FSPath)dir);
+            }
+            m_empty = false;
+            return super.postVisitDirectory(dir, exc);
+        }
     }
 }

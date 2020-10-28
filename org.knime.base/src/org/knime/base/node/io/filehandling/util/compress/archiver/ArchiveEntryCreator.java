@@ -44,51 +44,22 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.util.compress;
+package org.knime.base.node.io.filehandling.util.compress.archiver;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DefaultWriterStatusMessageReporter;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 
 /**
- * Verifies that the file extension is valid and then delegates to the {@link DefaultWriterStatusMessageReporter}.
+ * A {@link CheckedExceptionBiFunction} that allows to create an {@link ArchiveEntry} from a given {@link Path} and
+ * entry name.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class CompressDestinationStatusMessageReporter implements StatusMessageReporter {
-
-    private static final StatusMessage INVALID_EXTENSION_ERROR =
-        new DefaultStatusMessage(MessageType.ERROR, CompressNodeConfig.INVALID_EXTENSION_ERROR);
-
-    private final DefaultWriterStatusMessageReporter m_delegate;
-
-    private final SettingsModelWriterFileChooser m_model;
-
-    CompressDestinationStatusMessageReporter(final SettingsModelWriterFileChooser model) {
-        m_delegate = new DefaultWriterStatusMessageReporter(model);
-        m_model = model;
-    }
-
-    @Override
-    public StatusMessage report() throws IOException, InvalidSettingsException {
-        if (pathIsInvalid()) {
-            return INVALID_EXTENSION_ERROR;
-        } else {
-            return m_delegate.report();
-        }
-    }
-
-    private boolean pathIsInvalid() {
-        return !CompressNodeConfig.hasValidFileExtension(m_model.getLocation().getPath());
-    }
-
+public interface ArchiveEntryCreator extends CheckedExceptionBiFunction<Path, String, ArchiveEntry, IOException> {
 
 }

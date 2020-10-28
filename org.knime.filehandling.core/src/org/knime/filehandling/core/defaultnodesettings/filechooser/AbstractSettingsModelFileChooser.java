@@ -65,6 +65,7 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -329,6 +330,16 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      */
     public boolean isLocationValid() {
         return m_fsConfig.isLocationSpecValid();
+    }
+
+    /**
+     * Returns {@code true} if the location is controlled / overwritten by a {@link FlowVariable} and {@code false}
+     * otherwise.
+     *
+     * @return {@code true} if the location is controlled / overwritten by a {@link FlowVariable}
+     */
+    public boolean isOverwrittenByFlowVariable() {
+        return m_fsConfig.isLocationOverwrittenByVar();
     }
 
     @Override

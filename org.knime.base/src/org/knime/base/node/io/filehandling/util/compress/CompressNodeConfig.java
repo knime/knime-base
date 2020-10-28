@@ -48,15 +48,14 @@
  */
 package org.knime.base.node.io.filehandling.util.compress;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
@@ -80,15 +79,33 @@ final class CompressNodeConfig {
 
     private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
 
+    private static final String CFG_COMPRESSION = "compression";
+
     private final SettingsModelReaderFileChooser m_inputLocationChooserModel;
 
     private final SettingsModelWriterFileChooser m_destinationFileChooserModel;
+
+    private final SettingsModelString m_compressionModel;
 
     private boolean m_flattenHierarchy;
 
     private boolean m_includeFolder;
 
-    static final String[] FILE_EXTENSIONS = new String[]{".zip", ".jar", ".tar", ".tar.gz", ".tar.bz2", ".cpio", ".ar"};
+    static final String BZ2_EXTENSION = "bz2";
+
+    static final String GZ_EXTENSION = "gz";
+
+    static final String[] COMPRESSIONS = new String[]{//
+        ArchiveStreamFactory.ZIP, //
+        ArchiveStreamFactory.JAR, //
+        ArchiveStreamFactory.TAR, //
+        ArchiveStreamFactory.TAR + "." + GZ_EXTENSION, //
+        ArchiveStreamFactory.TAR + "." + BZ2_EXTENSION, //
+        ArchiveStreamFactory.CPIO, //
+        ArchiveStreamFactory.AR};
+
+    /** The default compression is zip. */
+    private static final String DEFAULT_COMPRESSION = COMPRESSIONS[0];
 
     /**
      * Constructor
@@ -101,8 +118,8 @@ final class CompressNodeConfig {
 
         m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
             CompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FILE, FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), FILE_EXTENSIONS);
-
+            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
+        m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
         m_includeFolder = false;
         m_flattenHierarchy = false;
     }
@@ -114,7 +131,6 @@ final class CompressNodeConfig {
 
     void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         saveNonSettingModelParameters(settings);
-        validateFileExtension();
     }
 
     private void saveIncludeParentFolder(final NodeSettingsWO settings) {
@@ -128,18 +144,16 @@ final class CompressNodeConfig {
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputLocationChooserModel.validateSettings(settings);
         m_destinationFileChooserModel.validateSettings(settings);
-        final FSLocation destination = m_destinationFileChooserModel.extractLocation(settings);
-        CheckUtils.checkSetting(hasValidFileExtension(destination.getPath()), INVALID_EXTENSION_ERROR);
-
+        m_compressionModel.validateSettings(settings);
         settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER);
         settings.getBoolean(CFG_FLATTEN_HIERARCHY);
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         loadSettingsForDialog(settings);
-
         m_inputLocationChooserModel.loadSettingsFrom(settings);
         m_destinationFileChooserModel.loadSettingsFrom(settings);
+        m_compressionModel.loadSettingsFrom(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -147,6 +161,7 @@ final class CompressNodeConfig {
 
         m_inputLocationChooserModel.saveSettingsTo(settings);
         m_destinationFileChooserModel.saveSettingsTo(settings);
+        m_compressionModel.saveSettingsTo(settings);
     }
 
     private void saveNonSettingModelParameters(final NodeSettingsWO settings) {
@@ -171,6 +186,10 @@ final class CompressNodeConfig {
      */
     SettingsModelReaderFileChooser getInputLocationChooserModel() {
         return m_inputLocationChooserModel;
+    }
+
+    SettingsModelString getCompressionModel() {
+        return m_compressionModel;
     }
 
     boolean includeParentFolder() {
@@ -200,27 +219,4 @@ final class CompressNodeConfig {
         m_flattenHierarchy = flattenHierarchy;
     }
 
-    /**
-     * Checks if a file path ends with a valid file extension
-     *
-     * @param path the file path to check
-     * @return <code>true</code> if path ends with valid file extension, <code>false</code> otherwise
-     */
-    static boolean hasValidFileExtension(final String path) {
-        final String lowerCase = path.toLowerCase();
-        return Arrays.stream(FILE_EXTENSIONS).anyMatch(lowerCase::endsWith);
-    }
-
-    /**
-     * Checks if the selected destination file path ends with a valid file extension
-     *
-     * @return <code>true</code> if path ends with valid file extension, <code>false</code> otherwise
-     */
-    boolean hasValidFileExtension() {
-        return hasValidFileExtension(m_destinationFileChooserModel.getLocation().getPath());
-    }
-
-    private void validateFileExtension() throws InvalidSettingsException {
-        CheckUtils.checkSetting(hasValidFileExtension(), INVALID_EXTENSION_ERROR);
-    }
 }

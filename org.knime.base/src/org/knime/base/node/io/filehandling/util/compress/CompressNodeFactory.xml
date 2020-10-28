@@ -11,9 +11,8 @@
 
 	<fullDescription>
 		<intro>
-			This node compresses files or a folder to an archive. 
-			The archive format is determined by the file extension in the destination file selection. 
-			All supported formats are selectable in the destination file browser. If a format is selected, the file extension gets appended to the entered filename automatically.
+			This node compresses files or a folder to an archive. If the compression format is being changed the 
+			file extension of the archive to create is adapted automatically.
 			<br />
 			<br />
 			Supported archive formats are:
@@ -143,7 +142,7 @@
 				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
 			</option>
 		<option name="File">
-			Enter a valid path where the created archive should get saved. The
+			    Enter a valid path where the created archive should get saved. The
 				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
 				File System on Windows) or  &quot;/path/to/file&quot; (Local
 	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
@@ -177,6 +176,9 @@
 				<li><i>Fail:</i> Will issue an error during the node's execution (to prevent unintentional overwrite).
 				</li>
 			</ul>
+		</option>
+		<option name="Compression">
+			Allows to selected the desired compression.
 		</option>
 		<option name="Include selected source folder">
 			If this option is selected, a folder with the name of the last part of the selected path will get included in the archive, 
