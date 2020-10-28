@@ -133,7 +133,7 @@ final class CompressNodeConfig {
     }
 
     private void saveIncludeParentFolder(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_INCLUDE_SELECTED_FOLDER, includeParentFolder());
+        settings.addBoolean(CFG_INCLUDE_SELECTED_FOLDER, includeSourceFolder());
     }
 
     private void saveFlattenHierarchy(final NodeSettingsWO settings) {
@@ -191,7 +191,7 @@ final class CompressNodeConfig {
         return m_compressionModel;
     }
 
-    boolean includeParentFolder() {
+    boolean includeSourceFolder() {
         return m_includeFolder;
     }
 

@@ -180,9 +180,11 @@
 			Allows to selected the desired compression.
 		</option>
 		<option name="Include selected source folder">
-			If this option is selected, a folder with the name of the last part of the selected path will get included in the archive, 
+			If this option is selected, a folder with the name of the last part of the selected path will get included in the archive,
 			otherwise only the contents of the specified folder will get included in the archive.
-			This option will get disabled if only a single file should get packed into an archive or if the selected folder path ends with <b>..</b> or <b>.</b>.
+			This option does not work if only a single file should get
+			packed into an archive or if the selected folder path ends with	<b>..</b> or <b>.</b>. If it is not possible to include the source folder the dialog will
+			show you an error message and the node will fail during execution.
 		</option>
 		<option name="Flatten hierarchy">
 			This option allows to specify where the files are located if multiple files have to be compressed. If

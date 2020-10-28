@@ -71,6 +71,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.ar.ArArchiveOutputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.knime.base.node.io.filehandling.util.PathHandlingUtils;
 import org.knime.base.node.io.filehandling.util.PathRelativizer;
 import org.knime.base.node.io.filehandling.util.PathRelativizerNonTableInput;
 import org.knime.base.node.io.filehandling.util.compress.archiver.ArchiveEntryCreator;
@@ -147,6 +148,9 @@ final class CompressNodeModel extends NodeModel {
             final List<FSPath> inputPaths = getInputPaths(readAccessor, rootPath);
             // fail if no files/folders need to be compressed as this would create an invalid archive
             CheckUtils.checkSetting(!inputPaths.isEmpty(), "No files and/or folders to compress have been specified");
+
+            PathHandlingUtils.checkSettingsIncludeSourceFolder(m_config.getInputLocationChooserModel().getFilterMode(),
+                m_config.includeSourceFolder(), rootPath);
 
             final PathRelativizer pathRelativizer = getPathRelativizer(rootPath);
             try (final WritePathAccessor writeAccessor =
@@ -242,7 +246,7 @@ final class CompressNodeModel extends NodeModel {
 
     private PathRelativizer getPathRelativizer(final Path rootPath) {
         final FilterMode filterMode = m_config.getInputLocationChooserModel().getFilterMode();
-        final boolean includeParent = m_config.includeParentFolder();
+        final boolean includeParent = m_config.includeSourceFolder();
         return new PathRelativizerNonTableInput(rootPath, includeParent, filterMode, m_config.flattenHierarchy());
     }
 
@@ -337,7 +341,7 @@ final class CompressNodeModel extends NodeModel {
             "%s is not a folder. Please specify a folder.", folder);
         Files.walkFileTree(folder, new FileAndEmptyFolderVisitor(paths));
         // make sure that we include the parent folder if it's empty and the user has selected this option
-        if (paths.isEmpty() && m_config.includeParentFolder() && !m_config.flattenHierarchy()) {
+        if (paths.isEmpty() && m_config.includeSourceFolder() && !m_config.flattenHierarchy()) {
             paths.add(folder);
         }
         FSFiles.sortPathsLexicographically(paths);

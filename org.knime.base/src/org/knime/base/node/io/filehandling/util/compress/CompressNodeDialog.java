@@ -57,7 +57,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
-import org.knime.base.node.io.filehandling.util.IncludeParentFolderAvailableSwingWorker;
+import org.knime.base.node.io.filehandling.util.IncludeSourceFolderSwingWorker;
 import org.knime.base.node.io.filehandling.util.SwingWorkerManager;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -103,15 +103,17 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private final DialogComponentStringSelection m_compressionSelection;
 
-    private final JCheckBox m_includeSelected;
+    private final JCheckBox m_includeSourceFolder;
 
     private final JCheckBox m_flattenHierarchyPanel;
 
     private final CompressNodeConfig m_config;
 
-    private final SwingWorkerManager m_includeParentSwingWorkerManager;
+    private final SwingWorkerManager m_includeSourceFolderSwingWorkerManager;
 
-    private final StatusView m_statusView;
+    private final StatusView m_flattenHierarchyStatusView;
+
+    private final StatusView m_includeSourceFolderStatusView;
 
     private final SwingWorkerManager m_flattenHierarchySwingWorkerManager;
 
@@ -128,12 +130,16 @@ final class CompressNodeDialog extends NodeDialogPane {
         m_inputFileChooserPanel = new DialogComponentReaderFileChooser(sourceLocationChooserModel, FILE_HISTORY_ID,
             readFvm, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
 
-        m_includeSelected = new JCheckBox("Include selected source folder");
+        m_includeSourceFolder = new JCheckBox("Include selected source folder");
+        m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_flattenHierarchyPanel = new JCheckBox("Flatten hierarchy");
-        m_statusView = new StatusView(STATUS_VIEW_WIDTH);
+        m_flattenHierarchyStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_config.getInputLocationChooserModel().addChangeListener(c -> m_flattenHierarchyPanel
+            .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
+
+        m_config.getInputLocationChooserModel().addChangeListener(c -> m_includeSourceFolder
             .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
 
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
@@ -146,14 +152,15 @@ final class CompressNodeDialog extends NodeDialogPane {
             Arrays.asList(CompressNodeConfig.COMPRESSIONS));
         compressionModel.addChangeListener(l -> updateLocation());
 
-        m_includeParentSwingWorkerManager = new SwingWorkerManager(this::createIncludeParentFolderSwingWorker);
+        m_includeSourceFolderSwingWorkerManager = new SwingWorkerManager(this::createIncludeParentFolderSwingWorker);
 
         m_flattenHierarchySwingWorkerManager = new SwingWorkerManager(this::createFlattenSwingWorker);
 
-        sourceLocationChooserModel.addChangeListener(l -> m_includeParentSwingWorkerManager.startSwingWorker());
+        sourceLocationChooserModel.addChangeListener(l -> includeSourceFolder());
         sourceLocationChooserModel.addChangeListener(l -> flattenHierarchy());
 
         m_flattenHierarchyPanel.addActionListener(l -> flattenHierarchy());
+        m_includeSourceFolder.addActionListener(l -> includeSourceFolder());
 
         addTab("Settings", initLayout());
     }
@@ -200,30 +207,28 @@ final class CompressNodeDialog extends NodeDialogPane {
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
         GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
-        panel.add(m_compressionSelection.getComponentPanel(), gbc.build());
-
-        gbc = gbc.incY();
-        panel.add(m_includeSelected, gbc.build());
-
-        gbc = gbc.incY();
-        panel.add(m_flattenHierarchyPanel, gbc.build());
-
+        panel.add(m_includeSourceFolder, gbc.build());
         gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
-        panel.add(m_statusView.getLabel(), gbc.build());
-
-        gbc = gbc.resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2);
-        panel.add(new JPanel(), gbc.build());
-
+        panel.add(m_includeSourceFolderStatusView.getLabel(), gbc.build());
+        gbc = gbc.setHeight(1).fillNone().setWeightY(0).resetX().incY();
+        panel.add(new JPanel());
+        gbc = gbc.incY();
+        gbc.insetTop(10);
+        panel.add(m_flattenHierarchyPanel, gbc.build());
+        gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
+        panel.add(m_flattenHierarchyStatusView.getLabel(), gbc.build());
+        gbc.insetTop(0);
+        panel.add(new JPanel(), gbc.resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());
         return panel;
     }
 
-    private IncludeParentFolderAvailableSwingWorker createIncludeParentFolderSwingWorker() {
-        return new IncludeParentFolderAvailableSwingWorker(m_config.getInputLocationChooserModel().createClone(),
-            m_includeSelected::setEnabled);
+    private StatusSwingWorker createIncludeParentFolderSwingWorker() {
+        return new StatusSwingWorker(m_includeSourceFolderStatusView::setStatus,
+            new IncludeSourceFolderSwingWorker(m_config.getInputLocationChooserModel().createClone()), false);
     }
 
     private StatusSwingWorker createFlattenSwingWorker() {
-        return new StatusSwingWorker(m_statusView::setStatus,
+        return new StatusSwingWorker(m_flattenHierarchyStatusView::setStatus,
             new FlattenHierarchyStatusReporter(m_config.getInputLocationChooserModel().createClone()), false);
     }
 
@@ -235,23 +240,32 @@ final class CompressNodeDialog extends NodeDialogPane {
             final String locPath = location.getPath();
             final String newPath = PATTERN.matcher(locPath).replaceAll(compression);
             if (!newPath.equals(locPath)) {
-                writerModel
-                    .setLocation(new FSLocation(location.getFSCategory(), newPath));
+                writerModel.setLocation(new FSLocation(location.getFSCategory(), newPath));
             }
         }
         writerModel.setFileExtensions(compression);
     }
 
     private void flattenHierarchy() {
-        m_statusView.clearStatus();
+        startCancelSwingWorker(m_flattenHierarchyStatusView, m_flattenHierarchyPanel,
+            m_flattenHierarchySwingWorkerManager);
+    }
+
+    private void includeSourceFolder() {
+        startCancelSwingWorker(m_includeSourceFolderStatusView, m_includeSourceFolder,
+            m_includeSourceFolderSwingWorkerManager);
+    }
+
+    private void startCancelSwingWorker(final StatusView statusView, final JCheckBox checkBox,
+        final SwingWorkerManager swingWorker) {
+        statusView.clearStatus();
         if (m_isLoading) {
             return;
         }
-        if (m_flattenHierarchyPanel.isSelected()
-            && m_config.getInputLocationChooserModel().getFilterMode() != FilterMode.FILE) {
-            m_flattenHierarchySwingWorkerManager.startSwingWorker();
+        if (checkBox.isSelected() && m_config.getInputLocationChooserModel().getFilterMode() != FilterMode.FILE) {
+            swingWorker.startSwingWorker();
         } else {
-            m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
+            swingWorker.cancelSwingWorker();
         }
     }
 
@@ -260,7 +274,7 @@ final class CompressNodeDialog extends NodeDialogPane {
         m_inputFileChooserPanel.saveSettingsTo(settings);
         m_destinationFileChooserPanel.saveSettingsTo(settings);
         m_compressionSelection.saveSettingsTo(settings);
-        m_config.includeSelectedFolder(m_includeSelected.isSelected());
+        m_config.includeSelectedFolder(m_includeSourceFolder.isSelected());
         m_config.flattenHierarchy(m_flattenHierarchyPanel.isSelected());
         m_config.saveSettingsForDialog(settings);
     }
@@ -276,12 +290,13 @@ final class CompressNodeDialog extends NodeDialogPane {
         m_compressionSelection.loadSettingsFrom(settings, specs);
 
         m_config.loadSettingsForDialog(settings);
-        m_includeSelected.setSelected(m_config.includeParentFolder());
+        m_includeSourceFolder.setSelected(m_config.includeSourceFolder());
         m_flattenHierarchyPanel.setSelected(m_config.flattenHierarchy());
 
         // update the flatten hierarchy status
         m_isLoading = false;
         flattenHierarchy();
+        includeSourceFolder();
     }
 
     /**
@@ -289,7 +304,7 @@ final class CompressNodeDialog extends NodeDialogPane {
      */
     @Override
     public void onClose() {
-        m_includeParentSwingWorkerManager.cancelSwingWorker();
+        m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
         m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
     }
 
