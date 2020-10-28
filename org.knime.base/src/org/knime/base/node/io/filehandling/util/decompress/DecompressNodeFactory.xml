@@ -167,7 +167,7 @@
 			The file system connection.
 		</dynInPort>
 		<outPort name="Output table" index="0">
-			Table containing the list of files that have been extracted.
+			Table containing the list of files and folders that have been extracted.
 		</outPort>
 	</ports>
 </knimeNode>

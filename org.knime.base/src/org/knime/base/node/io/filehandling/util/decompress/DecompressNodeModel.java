@@ -52,12 +52,16 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -65,10 +69,12 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.knime.base.node.io.filehandling.util.copymovefiles.FileStatus;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.filestore.FileStoreFactory;
@@ -86,7 +92,6 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
-import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -107,7 +112,9 @@ final class DecompressNodeModel extends NodeModel {
 
     private static final int LOCATION_CELL_IDX = 0;
 
-    private static final int STATUS_CELL_IDX = 1;
+    private static final int DIRECTORY_CELL_IDX = 1;
+
+    private static final int STATUS_CELL_IDX = 2;
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DecompressNodeModel.class);
 
@@ -142,6 +149,7 @@ final class DecompressNodeModel extends NodeModel {
         colCreator.addMetaData(metaData, true);
 
         return new DataTableSpec(colCreator.createSpec(),
+            new DataColumnSpecCreator("Directory", BooleanCellFactory.TYPE).createSpec(),
             new DataColumnSpecCreator("Status", StringCellFactory.TYPE).createSpec());
     }
 
@@ -191,15 +199,7 @@ final class DecompressNodeModel extends NodeModel {
         try (final WritePathAccessor writeAccessor = m_config.getOutputDirChooserModel().createWritePathAccessor()) {
             final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
-
-            if (!FSFiles.exists(outputPath)) {
-                if (m_config.getOutputDirChooserModel().isCreateMissingFolders()) {
-                    Files.createDirectories(outputPath);
-                } else {
-                    throw new InvalidSettingsException( String.format("The specified destination folder %s does not exist.", outputPath));
-                }
-            }
-
+            createParentDirIfRequired(outputPath);
             final FSLocationCellFactory locationCellFactory =
                 new FSLocationCellFactory(fsFac, m_config.getOutputDirChooserModel().getLocation());
 
@@ -224,6 +224,18 @@ final class DecompressNodeModel extends NodeModel {
         }
     }
 
+    private void createParentDirIfRequired(final FSPath outputPath)
+        throws AccessDeniedException, IOException, InvalidSettingsException {
+        if (!FSFiles.exists(outputPath)) {
+            if (m_config.getOutputDirChooserModel().isCreateMissingFolders()) {
+                Files.createDirectories(outputPath);
+            } else {
+                throw new InvalidSettingsException(
+                    String.format("The specified destination folder %s does not exist.", outputPath));
+            }
+        }
+    }
+
     private static void decompress(final ArchiveInputStream archiveInputStream, final FSPath outputPath,
         final FileOverwritePolicy overwritePolicy, final FSLocationCellFactory locationCellFactory,
         final RowOutput rowOutput, final ExecutionContext exec) throws IOException, InterruptedException {
@@ -231,45 +243,98 @@ final class DecompressNodeModel extends NodeModel {
         long rowId = 0;
         ArchiveEntry entry;
 
+        final Set<String> processedDirs = new HashSet<>();
         // Process each archive entry
         while ((entry = archiveInputStream.getNextEntry()) != null) {
             final Path destinationPath = outputPath.resolve(entry.getName());
             exec.setMessage("Decompressing " + destinationPath);
-
-            if (entry.isDirectory()) {
-                Files.createDirectories(destinationPath);
-            } else {
-                if (destinationPath.getParent() != null && !FSFiles.exists(destinationPath.getParent())) {
-                    Files.createDirectories(destinationPath.getParent());
-                }
-
-                final String status = writeToDestination(archiveInputStream, destinationPath, overwritePolicy);
-
-                final DataCell[] row = new DataCell[2];
-                row[LOCATION_CELL_IDX] = locationCellFactory.createCell(destinationPath.toString());
-                row[STATUS_CELL_IDX] = StringCellFactory.create(status);
-                rowOutput.push(new DefaultRow(RowKey.createRowKey(rowId), row));
-
+            rowId = createDirectories(outputPath, locationCellFactory, rowOutput, rowId, entry, processedDirs,
+                destinationPath);
+            if (!entry.isDirectory()) {
+                final FileStatus status = writeToDestination(archiveInputStream, destinationPath, overwritePolicy);
+                pushRow(locationCellFactory, rowOutput, rowId, destinationPath, status, false);
                 rowId++;
             }
         }
     }
 
-    private static String writeToDestination(final ArchiveInputStream archiveInputStream, final Path destinationPath,
-        final FileOverwritePolicy overwritePolicy) throws IOException {
-
-        String status = "unmodified";
-
-        final boolean exists = FSFiles.exists(destinationPath);
-        if (!(exists && overwritePolicy == FileOverwritePolicy.IGNORE)) {
-            status = exists && overwritePolicy == FileOverwritePolicy.OVERWRITE ? "overwritten" : "created";
-
-            try (final OutputStream outputStream =
-                FSFiles.newOutputStream(destinationPath, overwritePolicy.getOpenOptions())) {
-                FileUtil.copy(archiveInputStream, outputStream);
-            }
+    private static long createDirectories(final FSPath outputPath, final FSLocationCellFactory locationCellFactory,
+        final RowOutput rowOutput, long rowId, final ArchiveEntry entry, final Set<String> processedDirs,
+        final Path destinationPath) throws IOException, InterruptedException {
+        final Path relDestPath = outputPath.relativize(destinationPath);
+        if (entry.isDirectory()) {
+            rowId =
+                createDirectories(processedDirs, rowId, rowOutput, relDestPath, destinationPath, locationCellFactory);
+        } else {
+            rowId = createDirectories(processedDirs, rowId, rowOutput, relDestPath.getParent(),
+                destinationPath.getParent(), locationCellFactory);
         }
+        return rowId;
+    }
 
+    private static long createDirectories(final Set<String> processedDirs, final long rowId, final RowOutput rowOutput,
+        final Path relDestPath, final Path destPath, final FSLocationCellFactory locationCellFactory)
+        throws IOException, InterruptedException {
+        if (relDestPath == null) {
+            return rowId;
+        } else {
+            if (!processedDirs.add(relDestPath.toString())) {
+                return rowId;
+            }
+            final long idx;
+            idx = createDirectories(processedDirs, rowId, rowOutput, relDestPath.getParent(), destPath.getParent(),
+                locationCellFactory);
+            final FileStatus status;
+            if (FSFiles.exists(destPath)) {
+                status = FileStatus.ALREADY_EXISTED;
+            } else {
+                FSFiles.createDirectories(destPath);
+                status = FileStatus.CREATED;
+            }
+            pushRow(locationCellFactory, rowOutput, idx, destPath, status, true);
+            return idx + 1;
+        }
+    }
+
+    private static void pushRow(final FSLocationCellFactory locationCellFactory, final RowOutput rowOutput,
+        final long rowId, final Path destinationPath, final FileStatus status, final boolean isDirectory)
+        throws InterruptedException {
+        final DataCell[] row = new DataCell[3];
+        row[LOCATION_CELL_IDX] = locationCellFactory.createCell(destinationPath.toString());
+        row[DIRECTORY_CELL_IDX] = BooleanCellFactory.create(isDirectory);
+        row[STATUS_CELL_IDX] = StringCellFactory.create(status.getText());
+        rowOutput.push(new DefaultRow(RowKey.createRowKey(rowId), row));
+    }
+
+    private static FileStatus writeToDestination(final ArchiveInputStream archiveInputStream,
+        final Path destinationPath, final FileOverwritePolicy overwritePolicy) throws IOException {
+        final boolean exists = FSFiles.exists(destinationPath);
+        final FileStatus status;
+        if (overwritePolicy == FileOverwritePolicy.FAIL) {
+            if (exists) {
+                throw new FileAlreadyExistsException(String
+                    .format("The file '%s' already exists and must not be overwritten", destinationPath.toString()));
+            }
+            status = FileStatus.CREATED;
+            Files.copy(archiveInputStream, destinationPath);
+        } else if (overwritePolicy == FileOverwritePolicy.IGNORE) {
+            if (exists) {
+                status = FileStatus.UNMODIFIED;
+            } else {
+                status = FileStatus.CREATED;
+                Files.copy(archiveInputStream, destinationPath);
+            }
+        } else if (overwritePolicy == FileOverwritePolicy.OVERWRITE) {
+            if (exists) {
+                status = FileStatus.OVERWRITTEN;
+            } else {
+                status = FileStatus.CREATED;
+            }
+            Files.copy(archiveInputStream, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            throw new IllegalArgumentException(
+                String.format("Unsupported FileOverwritePolicy '%s' encountered.", overwritePolicy));
+        }
         return status;
     }
 
