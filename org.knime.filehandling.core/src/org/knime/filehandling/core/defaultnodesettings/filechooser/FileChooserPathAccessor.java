@@ -121,7 +121,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
      * @param portObjectConnection connection retrieved from the file system port object (if the node has one)
      */
     public FileChooserPathAccessor(final AbstractSettingsModelFileChooser<?> settings,
-        final Optional<FSConnection> portObjectConnection) {
+        final Optional<FSConnection> portObjectConnection) { //NOSONAR
         m_rootLocation = settings.getLocation();
         m_portObjectConnection = portObjectConnection;
         m_settings = settings;
@@ -134,8 +134,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
             return m_portObjectConnection.get();
         } else {
             // otherwise we retrieve the connection from the location
-            return FileSystemHelper.retrieveFSConnection(m_portObjectConnection, m_rootLocation)
-                .orElseThrow(() -> new IllegalStateException("No file system connection available. Execute connector node."));
+            return FileSystemHelper.retrieveFSConnection(m_portObjectConnection, m_rootLocation).orElseThrow(
+                () -> new IllegalStateException("No file system connection available. Execute connector node."));
         }
     }
 
@@ -162,7 +162,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
 
         try {
             m_fileSystem.checkCompatibility(m_rootLocation);
-        } catch (Exception ex) {
+        } catch (Exception ex) { // NOSONAR
             statusMessageConsumer.accept(new DefaultStatusMessage(MessageType.ERROR, ex.getMessage()));
         }
 
@@ -195,15 +195,6 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         }
     }
 
-    /**
-     * Retrieves the {@link Path paths} corresponding to the settings provided in the constructor.</br>
-     * Reader nodes should make use of this method.
-     *
-     * @param statusMessageConsumer for communicating non-fatal errors and warnings
-     * @return the list of paths corresponding to the settings
-     * @throws IOException if an I/O problem occurs while listing the files
-     * @throws InvalidSettingsException if the settings are invalid e.g. the root path is invalid
-     */
     @Override
     public final List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
@@ -213,7 +204,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
             return handleSinglePath(rootPath);
         } else {
             List<FSPath> fsPaths = walkFileTree(rootPath);
-            fsPaths.sort(Path::compareTo);
+            FSFiles.sortPathsLexicographically(fsPaths);
             return fsPaths;
         }
     }

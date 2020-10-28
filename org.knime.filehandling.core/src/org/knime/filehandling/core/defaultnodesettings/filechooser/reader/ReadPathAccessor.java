@@ -70,7 +70,8 @@ public interface ReadPathAccessor extends Closeable {
 
     /**
      * Retrieves the {@link FSPath paths} corresponding to the settings provided in the constructor.</br>
-     * Reader nodes should make use of this method.
+     * Reader nodes should make use of this method. This method has to ensure that the list is sorted in lexicographical
+     * order.
      *
      * @param statusMessageConsumer for communicating non-fatal errors and warnings
      * @return the list of paths corresponding to the settings
@@ -82,7 +83,8 @@ public interface ReadPathAccessor extends Closeable {
 
     /**
      * Retrieves the {@link Path paths} corresponding to the settings provided in the constructor.</br>
-     * Reader nodes should make use of this method.
+     * Reader nodes should make use of this method. This method has to ensure that the list is sorted in lexicographical
+     * order.
      *
      * @param statusMessageConsumer for communicating non-fatal errors and warnings
      * @return the list of paths corresponding to the settings

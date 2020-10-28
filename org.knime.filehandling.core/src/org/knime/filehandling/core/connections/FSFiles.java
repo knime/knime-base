@@ -374,6 +374,15 @@ public final class FSFiles {
     }
 
     /**
+     * Sorts the given list of paths in lexicographic order.
+     *
+     * @param paths the list to be sorted
+     */
+    public static void sortPathsLexicographically(final List<FSPath> paths) {
+        paths.sort((final FSPath p1, final FSPath p2) -> p1.toString().compareTo(p2.toString()));
+    }
+
+    /**
      * Returns a {@link List} of {@link FSPath}s of a all files in a single folder.
      *
      * @param source the {@link Path} of the source folder
@@ -391,7 +400,7 @@ public final class FSFiles {
                 return FileVisitResult.CONTINUE;
             }
         });
-        paths.sort(Path::compareTo);
+        sortPathsLexicographically(paths);
         return paths;
     }
 
@@ -425,9 +434,7 @@ public final class FSFiles {
             }
 
         });
-
-        paths.sort((final Path p1, final Path p2) -> p1.toString().compareTo(p2.toString()));
-
+        sortPathsLexicographically(paths);
         return paths;
     }
 
