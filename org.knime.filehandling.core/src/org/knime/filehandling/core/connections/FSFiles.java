@@ -61,6 +61,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -339,6 +340,16 @@ public final class FSFiles {
                 }
             }
         }
+    }
+
+    /**
+     * Sorts the given list of paths in lexicographic order.
+     *
+     * @param paths the list to be sorted
+     */
+    public static void sortPathsLexicographically(final List<FSPath> paths) {
+        paths.sort((final FSPath p1, final FSPath p2) -> p1.toString().compareTo(p2.toString()));
+
     }
 
 }

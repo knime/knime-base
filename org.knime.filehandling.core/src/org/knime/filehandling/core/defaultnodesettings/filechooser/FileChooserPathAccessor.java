@@ -195,15 +195,6 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         }
     }
 
-    /**
-     * Retrieves the {@link Path paths} corresponding to the settings provided in the constructor.</br>
-     * Reader nodes should make use of this method.
-     *
-     * @param statusMessageConsumer for communicating non-fatal errors and warnings
-     * @return the list of paths corresponding to the settings
-     * @throws IOException if an I/O problem occurs while listing the files
-     * @throws InvalidSettingsException if the settings are invalid e.g. the root path is invalid
-     */
     @Override
     public final List<FSPath> getFSPaths(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
@@ -213,7 +204,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
             return handleSinglePath(rootPath);
         } else {
             List<FSPath> fsPaths = walkFileTree(rootPath);
-            fsPaths.sort(Path::compareTo);
+            FSFiles.sortPathsLexicographically(fsPaths);
             return fsPaths;
         }
     }
