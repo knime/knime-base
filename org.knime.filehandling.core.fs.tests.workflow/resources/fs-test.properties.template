@@ -28,6 +28,7 @@
 #   knime-rest
 #   amazon-s3
 #   google-cs
+#	google-drive
 #   hdfs
 #   hdfs-wrapper-wrapper
 #   microsoft-sharepoint
@@ -78,6 +79,11 @@ google-cs.workingDirPrefix = /knime-filehandling-test-bucket
 google-cs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
 google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
 google-cs.projectId = <PROJECT-ID>
+
+################ Google Drive ################
+google-drive.workingDirPrefix = /My Drive
+google-drive.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
+google-drive.keyFilePath = <P12-KEY-FILE-LOCATION>
 
 ################ HDFS ################
 # Example url: webhdfs://test-cluster:50070
