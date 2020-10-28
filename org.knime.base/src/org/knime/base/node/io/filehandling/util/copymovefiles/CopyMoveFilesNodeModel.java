@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.knime.base.node.io.filehandling.util.PathHandlingUtils;
 import org.knime.base.node.io.filehandling.util.PathRelativizer;
 import org.knime.base.node.io.filehandling.util.PathRelativizerNonTableInput;
 import org.knime.core.data.DataCell;
@@ -146,8 +147,12 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         throws IOException, InvalidSettingsException, CanceledExecutionException {
         //Get paths
         final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
-        final FSPath destinationDir = writePathAccessor.getOutputPath(m_statusConsumer);
         final FilterMode filterMode = m_config.getSourceFileChooserModel().getFilterModeModel().getFilterMode();
+        final boolean includeSourceFolder =  m_config.getSettingsModelIncludeSourceFolder().getBooleanValue();
+
+        PathHandlingUtils.checkSettingsIncludeSourceFolder(filterMode, includeSourceFolder, rootPath);
+
+        final FSPath destinationDir = writePathAccessor.getOutputPath(m_statusConsumer);
         final List<FSPath> sourcePaths = getSourcePaths(readPathAccessor, filterMode);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         //Creates output directories if necessary

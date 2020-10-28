@@ -171,13 +171,13 @@
 			</ul>
 		</option>
 		<option name="Include selected source folder">
-			This option is only available if the Folder or
-			Files
-			in Folder mode is selected.
-			If this option is checked the folder
-			which
-			is selected will also be copied otherwise only the files in the
-			folder will be copied.
+			If this option is selected, a folder with the name of the last part
+			of the selected path will get included in the copy process,otherwise
+			only the contents of the specified folder will get included in the
+			archive. This option does not work if only a single file should
+			be copied or if the selected folder path ends with <b>..</b> or <b>.</b>.
+			If it is not possible to include the source folder the dialog will
+			show you an error message and the node will fail during execution.
 		</option>
 		<option name="Delete source files / folders (move)">
 			If this option is checked all files which have
