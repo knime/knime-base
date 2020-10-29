@@ -102,7 +102,7 @@
 				</li>
 				<li>
 					<i>Files in folder:</i>
-					Copies the files in a folder.
+					Copies the files in a folder and creates the necessary folder structure as in the source folder.
 				</li>
 			</ul>
 		</option>
