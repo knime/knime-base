@@ -161,7 +161,6 @@ final class CopyMoveFilesNodeModel extends NodeModel {
         final PathRelativizer pathRelativizer = new PathRelativizerNonTableInput(rootPath,
             m_config.getSettingsModelIncludeSourceFolder().getBooleanValue(), filterMode, false);
 
-
         final FileStoreFactory fileStoreFactory = FileStoreFactory.createFileStoreFactory(exec);
         final PathCopier pathCopier = new PathCopier(container::addRowToTable, m_config, fileStoreFactory);
 
@@ -228,8 +227,9 @@ final class CopyMoveFilesNodeModel extends NodeModel {
                     m_dataCells[m_i] = BooleanCellFactory.create(Files.deleteIfExists(p));
                     m_i++;
                 } catch (IOException e) {
-                    if (m_config.getFailOnDeletionModel().getBooleanValue()) {
+                    if (!m_config.getFailOnDeletionModel().getBooleanValue()) {
                         m_dataCells[m_i] = BooleanCellFactory.create(false);
+                        m_i++;
                     } else {
                         throw e;
                     }
