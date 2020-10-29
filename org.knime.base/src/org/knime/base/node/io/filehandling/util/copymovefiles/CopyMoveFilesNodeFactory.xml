@@ -218,7 +218,7 @@
 			The destination file system connection.
 		</dynInPort>
 		<outPort index="0" name="Copied files table">The files which should be copied with
-			a source path column, destination path column, copied status column
+			a source path column, destination path column, a folder identifier column
 			and a deleted source column.
 		</outPort>
 	</ports>

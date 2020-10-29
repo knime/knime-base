@@ -54,7 +54,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.function.Consumer;
 
 import org.knime.core.data.DataCell;
@@ -97,7 +96,7 @@ final class PathCopier {
 
     private static final int DESTINATION_COL_IDX = 1;
 
-    private static final int COPIED_COL_IDX = 2;
+    private static final int IS_DIR_COL_IDX = 2;
 
     private static final int STATUS_COL_IDX = 3;
 
@@ -255,7 +254,7 @@ final class PathCopier {
         final FileStatus fileStatus = existed ? FileStatus.ALREADY_EXISTED : FileStatus.CREATED;
 
         pushRow(rowIdx, m_sourceFSLocationCellFactory.createCell(sourcePath.toString()),
-            m_destinationFSLocationCellFactory.createCell(destinationPath.toString()), !existed, fileStatus.getText());
+            m_destinationFSLocationCellFactory.createCell(destinationPath.toString()), true, fileStatus.getText());
     }
 
     /**
@@ -271,8 +270,7 @@ final class PathCopier {
         try {
             final FileStatus fileStatus = m_copyFunction.apply(sourcePath, destinationPath);
             pushRow(rowIdx, m_sourceFSLocationCellFactory.createCell(sourcePath.toString()),
-                m_destinationFSLocationCellFactory.createCell(destinationPath.toString()),
-                EnumSet.of(FileStatus.CREATED, FileStatus.OVERWRITTEN).contains(fileStatus), fileStatus.getText());
+                m_destinationFSLocationCellFactory.createCell(destinationPath.toString()), false, fileStatus.getText());
         } catch (FileAlreadyExistsException e) {
             if (m_fileOverWritePolicy == FileOverwritePolicy.FAIL) {
                 throw new IOException(
@@ -293,15 +291,15 @@ final class PathCopier {
      * @param rowIdx the current row index
      * @param sourcePathCell the {@link FSLocationCell} for the source path
      * @param destinationPathCell the {@link FSLocationCell} for the destination path
-     * @param copied the flag whether the file has been copied or not
+     * @param isDirectory the flag whether the path points to a folder or not
      * @param deleted the flag whether the file has been deleted or not
      */
     private void pushRow(final long rowIdx, final FSLocationCell sourcePathCell, final DataCell destinationPathCell,
-        final boolean copied, final String status) {
+        final boolean isDirectory, final String status) {
         final DataCell[] cells = new DataCell[NUMBER_OF_COLS];
         cells[SOURCE_COL_IDX] = sourcePathCell;
         cells[DESTINATION_COL_IDX] = destinationPathCell;
-        cells[COPIED_COL_IDX] = BooleanCellFactory.create(copied);
+        cells[IS_DIR_COL_IDX] = BooleanCellFactory.create(isDirectory);
         cells[STATUS_COL_IDX] = StringCellFactory.create(status);
 
         m_rowConsumer.accept(new DefaultRow(RowKey.createRowKey(rowIdx), cells));
@@ -318,7 +316,7 @@ final class PathCopier {
         columnSpecs.add(createMetaColumnSpec(config.getSourceFileChooserModel().getLocation(), "Source Path"));
         columnSpecs
             .add(createMetaColumnSpec(config.getDestinationFileChooserModel().getLocation(), "Destination Path"));
-        columnSpecs.add(new DataColumnSpecCreator("Copied", BooleanCell.TYPE).createSpec());
+        columnSpecs.add(new DataColumnSpecCreator("Directory", BooleanCell.TYPE).createSpec());
         columnSpecs.add(new DataColumnSpecCreator("Status", StringCell.TYPE).createSpec());
         return new DataTableSpec(columnSpecs.toArray(new DataColumnSpec[0]));
     }
