@@ -79,9 +79,6 @@ public final class ArchiveEntryFactory {
      * @return the concrete instance of {@link ArchiveEntryCreator} associated with the given identifier
      */
     public static ArchiveEntryCreator getArchiveEntryCreator(final String archiver) {
-        if (archiver.equalsIgnoreCase(ArchiveStreamFactory.AR)) {
-            return new ArEntryCreator();
-        }
         if (archiver.equalsIgnoreCase(ArchiveStreamFactory.CPIO)) {
             return new CPIOEntryCreator();
         }

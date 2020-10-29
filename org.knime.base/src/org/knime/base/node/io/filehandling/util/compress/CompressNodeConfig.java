@@ -101,8 +101,7 @@ final class CompressNodeConfig {
         ArchiveStreamFactory.TAR, //
         ArchiveStreamFactory.TAR + "." + GZ_EXTENSION, //
         ArchiveStreamFactory.TAR + "." + BZ2_EXTENSION, //
-        ArchiveStreamFactory.CPIO, //
-        ArchiveStreamFactory.AR};
+        ArchiveStreamFactory.CPIO};
 
     /** The default compression is zip. */
     private static final String DEFAULT_COMPRESSION = COMPRESSIONS[0];
