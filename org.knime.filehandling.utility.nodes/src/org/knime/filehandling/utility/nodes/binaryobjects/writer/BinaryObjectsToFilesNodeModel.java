@@ -50,27 +50,46 @@ package org.knime.filehandling.utility.nodes.binaryobjects.writer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.EnumSet;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.blob.BinaryObjectDataCell;
 import org.knime.core.data.blob.BinaryObjectDataValue;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.MultiFSLocationCellFactory;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 
@@ -93,6 +112,8 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
     private static final String OUTPUT_LOCATION_COL_NAME = "output location";
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(BinaryObjectsToFilesNodeModel.class);
+
     BinaryObjectsToFilesNodeModel(final PortsConfiguration config, final BinaryObjectsToFilesNodeConfig nodeSettings) {
         super(config.getInputPorts(), config.getOutputPorts());
         m_binaryObjectsToFileNodeConfig = nodeSettings;
@@ -101,6 +122,37 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         m_inputTableIdx =
             config.getInputPortLocation().get(BinaryObjectsToFilesNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
+    }
+
+    @Override
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
+
+        final PortObjectSpec[] inSpecs = Arrays.stream(inObjects)//
+            .map(PortObject::getSpec)//
+            .toArray(PortObjectSpec[]::new);
+
+        final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final int binaryObjColIdx = inputTableSpec.findColumnIndex(m_binaryColumn.getStringValue());
+
+        try (final WritePathAccessor writePathAccessor = m_fileWriterSelectionModel.createWritePathAccessor()) {
+
+            final FSPath outputPath = writePathAccessor.getOutputPath(m_statusConsumer);
+            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+
+            //check user settings and create missing folders if required
+            createOutputFoldersIfMissing(outputPath);
+
+            try (final BinaryObjectsToFilesCellFactory binaryObjectsToFilesCellFactory =
+                new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryObjColIdx,
+                    m_fileWriterSelectionModel.getFileOverwritePolicy(), outputPath, exec)) {
+                final ColumnRearranger columnRearrangerObj =
+                    createColumnRearranger(inputTableSpec, binaryObjectsToFilesCellFactory);
+                final BufferedDataTable outputBufferTable = exec.createColumnRearrangeTable(
+                    (BufferedDataTable)inObjects[m_inputTableIdx], columnRearrangerObj, exec);
+
+                return new PortObject[]{outputBufferTable};
+            }
+        }
     }
 
     @Override
@@ -116,11 +168,17 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         m_fileWriterSelectionModel.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        final BinaryObjectsToFilesCellFactory binaryObjectsToFilesCellFactory =
-            new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec));
+        final int binaryColIndx = inputTableSpec.findColumnIndex(m_binaryColumn.getStringValue());
 
-        return new DataTableSpec[]{
-            createColumnRearranger(inputTableSpec, binaryObjectsToFilesCellFactory).createSpec()};
+        try (final BinaryObjectsToFilesCellFactory binaryObjectsToFilesCellFactory =
+            new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryColIndx,
+                m_fileWriterSelectionModel.getFileOverwritePolicy(), null, null)) {
+            return new DataTableSpec[]{
+                createColumnRearranger(inputTableSpec, binaryObjectsToFilesCellFactory).createSpec()};
+        } catch (Exception e) {
+            //Rethrow the exception
+            throw new InvalidSettingsException(e);
+        }
     }
 
     /**
@@ -218,6 +276,24 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         return DataTableSpec.getUniqueColumnName(inputSpec, OUTPUT_LOCATION_COL_NAME);
     }
 
+    /**
+     * Create the missing folders in provided output path, depends on the "Create missing folders" option in settings
+     *
+     * @param outputPath The FSPath for output folder
+     * @throws IOException Throw exception if folder is missing and user has not checked "Create missing folders" option
+     *             in settings
+     */
+    private void createOutputFoldersIfMissing(final FSPath outputPath) throws IOException {
+        if (!Files.exists(outputPath)) {
+            if (m_fileWriterSelectionModel.isCreateMissingFolders()) {
+                FSFiles.createDirectories(outputPath);
+            } else {
+                throw new IOException(String.format(
+                    "The directory '%s' does not exist and must not be created due to user settings.", outputPath));
+            }
+        }
+    }
+
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
@@ -248,6 +324,94 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
     @Override
     protected void reset() {
         // nothing to do here
+    }
+
+    // A Factory that extends SingleCellFactory to create a column with FSLocationCell
+    // Also implements the actual logic of creating Binary files on the filesystem
+    private static final class BinaryObjectsToFilesCellFactory extends SingleCellFactory implements AutoCloseable {
+
+        private final int m_binaryObjColIdx;
+
+        private final MultiFSLocationCellFactory m_multiFSLocationCellFactory;
+
+        private final ExecutionContext m_executionContext;
+
+        private final FSPath m_outputPath;
+
+        private int m_iteratorCount;
+
+        private final FileOverwritePolicy m_overwritePolicy;
+
+        public BinaryObjectsToFilesCellFactory(final DataColumnSpec columnSpec, final int binaryColId,
+            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final ExecutionContext execContext) {
+            super(columnSpec);
+            m_binaryObjColIdx = binaryColId;
+            m_multiFSLocationCellFactory = new MultiFSLocationCellFactory();
+            m_outputPath = outputPath;
+            m_executionContext = execContext;
+            m_iteratorCount = 0;
+            m_overwritePolicy = overwritePolicy;
+        }
+
+        @Override
+        public DataCell getCell(final DataRow row) {
+
+            //Check if the column is missing and return a missing DataCell object
+            if (row.getCell(m_binaryObjColIdx).isMissing()) {
+                return DataType.getMissingCell();
+            }
+
+            final BinaryObjectDataCell binaryObjDataCell = (BinaryObjectDataCell)row.getCell(m_binaryObjColIdx);
+
+            //will introduce dynamic naming convention in future updates
+            final FSPath outputFileFSPath = (FSPath)m_outputPath.resolve("File_" + m_iteratorCount + ".dat");
+            m_iteratorCount++;
+
+            //handles file creation and FileOverwritePolicy settings
+            try {
+                createBinaryFile(binaryObjDataCell, outputFileFSPath);
+            } catch (IOException creatFileException) {
+                LOGGER.error(creatFileException);
+                throw new RuntimeException(creatFileException.getMessage(), creatFileException.getCause()); //NOSONAR
+            }
+
+            return m_multiFSLocationCellFactory.createCell(m_executionContext, outputFileFSPath.toFSLocation());
+        }
+
+        /**
+         * Create the Binary files using NIO library, also responsible for checking FileOverwritePolicy settings
+         *
+         * @param binaryObjDataCell the BinaryObjectDataCell
+         * @param outputFileFSPath the FSPath instance for the output file
+         * @throws IOException Throws IOExceptions most likely FileAlreadyExistsException
+         */
+        private void createBinaryFile(final BinaryObjectDataCell binaryObjDataCell, final FSPath outputFileFSPath)
+            throws IOException {
+            final boolean fileAlreadyExists = Files.exists(outputFileFSPath);
+            try (final InputStream iS = binaryObjDataCell.openInputStream()) {
+                if (m_overwritePolicy == FileOverwritePolicy.OVERWRITE) {
+                    //Might throw FileAlreadyExistsException exception on AWS-S3 FS, follow ticket AP-15466 for resolution
+                    Files.copy(iS, outputFileFSPath, StandardCopyOption.REPLACE_EXISTING);
+                } else if (m_overwritePolicy == FileOverwritePolicy.FAIL) {
+                    if (fileAlreadyExists) {
+                        throw new FileAlreadyExistsException(String.format(
+                            "The file '%s' already exists and must not be overwritten", outputFileFSPath.toString()));
+                    } else {
+                        Files.copy(iS, outputFileFSPath);
+                    }
+                } else if (m_overwritePolicy == FileOverwritePolicy.IGNORE && !fileAlreadyExists) {
+                    Files.copy(iS, outputFileFSPath);
+                }
+            }
+        }
+
+        @Override
+        public void close() throws Exception {
+            if (m_multiFSLocationCellFactory != null) {
+                m_multiFSLocationCellFactory.close();
+            }
+
+        }
     }
 
 }
