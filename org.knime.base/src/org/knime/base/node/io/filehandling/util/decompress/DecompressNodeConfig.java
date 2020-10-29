@@ -68,9 +68,9 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class DecompressNodeConfig {
 
-    private static final String CFG_INPUT_FILE = "input_file";
+    private static final String CFG_INPUT_FILE = "source_location";
 
-    private static final String CFG_OUTPUT_LOCATION = "output_location";
+    private static final String CFG_OUTPUT_LOCATION = "destination_location";
 
     private SettingsModelReaderFileChooser m_inputFileChooserModel;
 

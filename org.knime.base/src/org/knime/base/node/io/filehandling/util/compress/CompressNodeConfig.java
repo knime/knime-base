@@ -71,9 +71,9 @@ final class CompressNodeConfig {
     static final String INVALID_EXTENSION_ERROR =
         "Invalid destination file extension. Please find the valid extensions in the node description.";
 
-    private static final String CFG_INPUT_LOCATION = "input_location";
+    private static final String CFG_INPUT_LOCATION = "source_location";
 
-    private static final String CFG_OUTPUT_LOCATION = "output_location";
+    private static final String CFG_OUTPUT_LOCATION = "destination_location";
 
     private static final String CFG_INCLUDE_SELECTED_FOLDER = "include_selected_source_folder";
 

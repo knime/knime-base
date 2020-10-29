@@ -116,7 +116,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
     private JPanel createInputFilePanel() {
         final JPanel filePanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder().resetX().resetY();
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input file"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
         filePanel.add(m_inputFileChooserPanel.getComponentPanel(), gbc.fillHorizontal().setWeightX(1).build());
         return filePanel;
     }
@@ -124,7 +124,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
     private JPanel createOutputDirPanel() {
         final JPanel filePanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder().resetX().resetY();
-        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output directory"));
+        filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Destination"));
         filePanel.add(m_outputDirChooserPanel.getComponentPanel(), gbc.fillHorizontal().setWeightX(1).build());
         return filePanel;
     }
