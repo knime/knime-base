@@ -124,7 +124,7 @@ public class MultiTableReaderTest {
     @Before
     public void init() {
         m_testInstance = new MultiTableReader<>(m_multiTableReadFactory);
-        m_knimeSpec = TableSpecConfigTestingUtils.createDataTableSpec("Column0", "Column1");
+        m_knimeSpec = TRFTestingUtils.createDataTableSpec("Column0", "Column1");
         m_paths = asList(m_path1, m_path2);
     }
 

@@ -48,27 +48,36 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+
+import com.google.common.collect.Sets;
 
 /**
  * Default implementation of {@code MultiTableReadFactory}.
@@ -80,13 +89,15 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 final class DefaultMultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V>
     implements MultiTableReadFactory<C, T> {
 
-    private final TypeMappingFactory<C, T, V> m_typeMappingFactory;
+    private final Supplier<ReadAdapter<T, V>> m_readAdapterSupplier;
 
-    private final TypeHierarchy<T, T> m_typeHierarchy;
+    private final RawSpecFactory<T> m_rawSpecFactory;
 
     private final RowKeyGeneratorContextFactory<V> m_rowKeyGeneratorFactory;
 
     private final TableReader<C, T, V> m_reader;
+
+    private final TransformationModelFactory<T> m_transformationModelCreator;
 
     /**
      * Constructor.
@@ -95,13 +106,15 @@ final class DefaultMultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V
      * @param typeHierarchy the {@link TypeHierarchy}
      * @param rowKeyGeneratorFactory the {@link RowKeyGeneratorContextFactory}
      */
-    DefaultMultiTableReadFactory(final TypeMappingFactory<C, T, V> typeMappingFactory,
-        final TypeHierarchy<T, T> typeHierarchy, final RowKeyGeneratorContextFactory<V> rowKeyGeneratorFactory,
-        final TableReader<C, T, V> reader) {
-        m_typeMappingFactory = typeMappingFactory;
-        m_typeHierarchy = typeHierarchy;
+    DefaultMultiTableReadFactory(final TypeHierarchy<T, T> typeHierarchy,
+        final RowKeyGeneratorContextFactory<V> rowKeyGeneratorFactory, final TableReader<C, T, V> reader,
+        final ProductionPathProvider<T> productionPathProvider,
+        final Supplier<ReadAdapter<T, V>> readAdpaterSupplier) {
+        m_rawSpecFactory = new RawSpecFactory<>(typeHierarchy);
         m_rowKeyGeneratorFactory = rowKeyGeneratorFactory;
         m_reader = reader;
+        m_transformationModelCreator = new TransformationModelFactory<>(productionPathProvider);
+        m_readAdapterSupplier = readAdpaterSupplier;
     }
 
     @Override
@@ -116,7 +129,7 @@ final class DefaultMultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V
         final Map<Path, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(paths.size());
         for (Path path : paths) {
             final TypedReaderTableSpec<T> spec =
-                    m_reader.readSpec(path, config.getTableReadConfig(), exec.createSubProgress(1.0 / paths.size()));
+                m_reader.readSpec(path, config.getTableReadConfig(), exec.createSubProgress(1.0 / paths.size()));
             specs.put(path, MultiTableUtils.assignNamesIfMissing(spec));
         }
         return specs;
@@ -124,34 +137,61 @@ final class DefaultMultiTableReadFactory<C extends ReaderSpecificConfig<C>, T, V
 
     private StagedMultiTableRead<T> create(final String rootPath,
         final Map<Path, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C> config) {
-        final TypedReaderTableSpec<T> mergedSpec =
-            config.getSpecMergeMode().mergeSpecs(individualSpecs.values(), m_typeHierarchy);
-        final TypeMapping<V> defaultTypeMapping =
-            m_typeMappingFactory.create(mergedSpec, config.getTableReadConfig().getReaderSpecificConfig());
-        final TransformationModel<T> defaultTransformation =
-            new DefaultTransformationModel<>(mergedSpec, defaultTypeMapping.getProductionPaths());
-        return new DefaultStagedMultiTableRead<>(m_reader, rootPath, individualSpecs,
-            m_rowKeyGeneratorFactory, m_typeMappingFactory, defaultTransformation, config.getTableReadConfig());
+        final RawSpec<T> rawSpec = m_rawSpecFactory.create(individualSpecs.values());
+
+        if (config.failOnDifferingSpecs()) {
+            verifySpecEquality(rawSpec);
+        }
+
+        final TransformationModel<T> defaultTransformation = m_transformationModelCreator.create(rawSpec, config);
+        return new DefaultStagedMultiTableRead<>(m_reader, rootPath, individualSpecs, m_rowKeyGeneratorFactory,
+            m_readAdapterSupplier, defaultTransformation, config.getTableReadConfig());
+    }
+
+    private void verifySpecEquality(final RawSpec<T> rawSpec) {
+        final Set<String> unionNames = MultiTableUtils.extractNamesAfterInit(rawSpec.getUnion());
+        final Set<String> intersectionNames = MultiTableUtils.extractNamesAfterInit(rawSpec.getIntersection());
+        final Set<String> difference = Sets.difference(unionNames, intersectionNames);
+        CheckUtils.checkArgument(difference.isEmpty(),
+            "The following columns are not contained in all source files: %s", difference);
     }
 
     @Override
     public StagedMultiTableRead<T> createFromConfig(final String rootPath, final List<Path> paths,
         final MultiTableReadConfig<C> config) {
         final TableSpecConfig tableSpecConfig = config.getTableSpecConfig();
-        final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecs(paths, tableSpecConfig);
+        final Map<Path, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(paths, tableSpecConfig);
         final TransformationModel<T> configuredTransformationModel = tableSpecConfig.getTransformationModel();
         return new DefaultStagedMultiTableRead<>(m_reader, rootPath, individualSpecs, m_rowKeyGeneratorFactory,
-            m_typeMappingFactory, configuredTransformationModel, config.getTableReadConfig());
+            m_readAdapterSupplier, configuredTransformationModel, config.getTableReadConfig());
     }
 
-    private static Map<Path, ReaderTableSpec<?>> getIndividualSpecs(final List<Path> paths,
+    private Map<Path, TypedReaderTableSpec<T>> getIndividualSpecs(final List<Path> paths,
         final TableSpecConfig tableSpecConfig) {
+
+        final TransformationModel<T> transformationModel = tableSpecConfig.getTransformationModel();
+        final Map<String, T> typeMap = extractNameToTypeMap(transformationModel);
+
         return paths.stream()//
             .collect(Collectors.toMap(//
                 Function.identity() //
-                , p -> tableSpecConfig.getSpec(p.toString())//
+                , p -> resolveType(tableSpecConfig.getSpec(p.toString()), typeMap)//
                 , (x, y) -> y // cannot happen
                 , LinkedHashMap::new));
+    }
+
+    private Map<String, T> extractNameToTypeMap(final TransformationModel<T> transformationModel) {
+        return transformationModel.getRawSpec().getUnion().stream()//
+            .collect(toMap(MultiTableUtils::getNameAfterInit, TypedReaderColumnSpec::getType));
+    }
+
+    private TypedReaderTableSpec<T> resolveType(final ReaderTableSpec<?> tableSpec, final Map<String, T> typeMap) {
+        List<TypedReaderColumnSpec<T>> cols = new ArrayList<>(tableSpec.size());
+        for (ReaderColumnSpec column : tableSpec) {
+            final String name = MultiTableUtils.getNameAfterInit(column);
+            cols.add(TypedReaderColumnSpec.createWithName(name, typeMap.get(name), true));
+        }
+        return new TypedReaderTableSpec<>(cols);
     }
 
 }

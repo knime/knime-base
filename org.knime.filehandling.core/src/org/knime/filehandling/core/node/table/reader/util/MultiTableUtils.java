@@ -48,22 +48,22 @@
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
 
 /**
  * Utility class for dealing with {@link TableReader TableReaders}.
@@ -89,31 +89,17 @@ public final class MultiTableUtils {
     }
 
     /**
-     * Creates an {@link IndexMapper} that maps from the indices of the {@link DataTableSpec outputSpec} to the indices
-     * of {@link TypedReaderTableSpec individualSpec}. This is necessary because the columns in the
-     * {@link TypedReaderTableSpec individualSpec} might be in a different order and some columns might even be missing.
+     * Extracts the initialized names from a {@link ReaderTableSpec}.
      *
-     * @param globalSpec {@link DataTableSpec} of the output table
-     * @param individualSpec {@link ReaderTableSpec} of the table stored in a single file
-     * @param config {@link TableReadConfig} containing the user's configuration
-     * @return an {@link IndexMapper} that maps from indices in {@link DataTableSpec globalSpec} to indices in
-     *         {@link TypedReaderTableSpec individualSpec}
+     * @param <T> the type of {@link ReaderColumnSpec} stored in the {@link ReaderTableSpec}
+     * @param spec the {@link ReaderTableSpec}
+     * @return the {@link Set} of names (actually a {@link LinkedHashSet}, so order is preserved)
+     * @throws IllegalStateException if the names haven't been initialized
      */
-    public static IndexMapper createIndexMapper(final DataTableSpec globalSpec, final ReaderTableSpec<?> individualSpec,
-        final TableReadConfig<?> config) {
-        final int rowIDIdx = config.getRowIDIdx();
-        final boolean useRowIDIdx = config.useRowIDIdx();
-        final DefaultIndexMapperBuilder mapperBuilder =
-            useRowIDIdx ? DefaultIndexMapper.builder(globalSpec.getNumColumns(), rowIDIdx)
-                : DefaultIndexMapper.builder(globalSpec.getNumColumns());
-        for (int i = 0; i < individualSpec.size(); i++) {
-            final ReaderColumnSpec colSpec = individualSpec.getColumnSpec(i);
-            final int jointIdx = globalSpec.findColumnIndex(getNameAfterInit(colSpec));
-            if (jointIdx >= 0) {
-                mapperBuilder.addMapping(jointIdx, i);
-            }
-        }
-        return mapperBuilder.build();
+    public static <T extends ReaderColumnSpec> Set<String> extractNamesAfterInit(final ReaderTableSpec<T> spec) {
+        return spec.stream()//
+            .map(MultiTableUtils::getNameAfterInit)//
+            .collect(toCollection(LinkedHashSet::new));
     }
 
     /**

@@ -50,7 +50,7 @@ package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils.createTypedTableSpec;
+import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.createTypedTableSpec;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -60,24 +60,22 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.stream.IntStream;
+import java.util.function.Supplier;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -98,11 +96,10 @@ public class DefaultMultiTableReadFactoryTest {
 
     private static final TypedReaderTableSpec<String> UNION = createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
 
-    @Mock
-    private TypeMappingFactory<DummyReaderSpecificConfig, String, String> m_typeMappingFactory;
+    private static final TypedReaderTableSpec<String> INTERSECTION = createTypedTableSpec(asList("B"), asList("Y"));
 
-    @Mock
-    private TypeMapping<String> m_typeMapping;
+    private static final RawSpec<String> RAW_SPEC = new RawSpec<>(UNION, INTERSECTION);
+
 
     @Mock
     private TypeHierarchy<String, String> m_typeHierarchy;
@@ -129,6 +126,12 @@ public class DefaultMultiTableReadFactoryTest {
     private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
 
     @Mock
+    private ProductionPathProvider<String> m_productionPathProvider;
+
+    @Mock
+    private Supplier<ReadAdapter<String, String>> m_readAdapterSupplier;
+
+    @Mock
     private Path m_path1;
 
     @Mock
@@ -142,8 +145,8 @@ public class DefaultMultiTableReadFactoryTest {
     @Before
     public void init() {
         when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
-        m_testInstance = new DefaultMultiTableReadFactory<>(m_typeMappingFactory, m_typeHierarchy, m_rowKeyGenFactory,
-            m_tableReader);
+        m_testInstance = new DefaultMultiTableReadFactory<>(m_typeHierarchy, m_rowKeyGenFactory,
+            m_tableReader, m_productionPathProvider, m_readAdapterSupplier);
     }
 
     /**
@@ -156,14 +159,6 @@ public class DefaultMultiTableReadFactoryTest {
         when(m_tableReader.readSpec(eq(m_path1), any(), any())).thenReturn(SPEC1);
         when(m_tableReader.readSpec(eq(m_path2), any(), any())).thenReturn(SPEC2);
 
-        when(m_config.getSpecMergeMode()).thenReturn(SpecMergeMode.UNION);
-        when(m_tableReadConfig.getReaderSpecificConfig()).thenReturn(m_readerSpecificConfig);
-
-        when(m_typeMappingFactory.create(eq(UNION), any())).thenReturn(m_typeMapping);
-        ProductionPath[] productionPaths = IntStream.range(0, 3)
-            .mapToObj(i -> TableSpecConfigTestingUtils.mockProductionPath()).toArray(ProductionPath[]::new);
-        when(m_typeMapping.getProductionPaths()).thenReturn(productionPaths);
-
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("X", "Y", "Z");
 
@@ -173,16 +168,17 @@ public class DefaultMultiTableReadFactoryTest {
 
         verify(exec, times(2)).createSubProgress(0.5);
 
-        assertEquals(UNION, smtr.getRawSpec());
+        assertEquals(RAW_SPEC, smtr.getRawSpec());
     }
 
     /**
      * Tests the implementation of {@link MultiTableReadFactory#createFromConfig(String, java.util.List, MultiTableReadConfig)}.
      */
+    @SuppressWarnings({"rawtypes", "unchecked"}) // otherwise Mockito won't work
     @Test
     public void testCreateFromConfig() {
         TransformationModel transformationModel = mock(TransformationModel.class);
-        when(transformationModel.getRawSpec()).thenReturn(UNION);
+        when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         final TableSpecConfig tsc = mock(TableSpecConfig.class);
         when(tsc.getSpec("path1")).thenReturn(SPEC1);
@@ -197,7 +193,7 @@ public class DefaultMultiTableReadFactoryTest {
 
         StagedMultiTableRead<String> smtr = m_testInstance.createFromConfig(ROOT_PATH, asList(m_path1, m_path2), m_config);
 
-        assertEquals(UNION, smtr.getRawSpec());
+        assertEquals(RAW_SPEC, smtr.getRawSpec());
     }
 
 }

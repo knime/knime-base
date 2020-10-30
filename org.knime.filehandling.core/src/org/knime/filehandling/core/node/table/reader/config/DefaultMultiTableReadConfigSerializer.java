@@ -70,6 +70,10 @@ import org.knime.filehandling.core.util.SettingsUtils;
 public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
     implements ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> {
 
+    /**
+     * Only kept for backwards compatibility with 4.2.</br>
+     * Newer versions no longer store the SpecMergeMode here but instead store the ColumnFilterMode.
+     */
     private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
 
     private static final String CFG_TABLE_READ_CONFIG = "table_read_config";
@@ -102,13 +106,11 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         final PortObjectSpec[] specs) throws NotConfigurableException {
         m_tableReadConfigSerializer.loadInDialog(config.getTableReadConfig(),
             SettingsUtils.getOrEmpty(settings, CFG_TABLE_READ_CONFIG), specs);
-        config.setSpecMergeMode(SpecMergeMode
-            .valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS.name())));
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
                 config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                    m_producerRegistry, m_mostGenericExternalType));
+                    m_producerRegistry, m_mostGenericExternalType, loadSpecMergeMode(settings)));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -120,14 +122,32 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         }
     }
 
+    /**
+     * Loads the {@link SpecMergeMode} for backwards compatibility with 4.2. 4.3 onwards will store the ColumnFilterMode
+     * as part of the TableSpecConfig.
+     *
+     * @param settings to load from
+     * @return the {@link SpecMergeMode} for workflows stored with 4.2 or {@code null} for workflows stored with 4.3 or
+     *         later
+     */
+    private static SpecMergeMode loadSpecMergeMode(final NodeSettingsRO settings) {
+        try {
+            // workflows stored with 4.2 save the SpecMergeMode with the MultiTableReadConfig
+            return SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE));
+        } catch (InvalidSettingsException ise) {
+            // workflows stored with 4.3 and later no longer use SpecMergeMode but instead rely
+            // on ColumnFilterMode which is stored as part of the TableSpecConfig
+            return null;
+        }
+    }
+
     @Override
     public void loadInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         m_tableReadConfigSerializer.loadInModel(config.getTableReadConfig(), settings);
-        config.setSpecMergeMode(SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE)));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                m_producerRegistry, m_mostGenericExternalType));
+                m_producerRegistry, m_mostGenericExternalType, loadSpecMergeMode(settings)));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -138,7 +158,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     public void saveInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
         m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(),
             settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
-        settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
+//        settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
 
         if (config.hasTableSpecConfig()) {
             config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
@@ -149,7 +169,6 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_tableReadConfigSerializer.validate(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
-        settings.getString(CFG_SPEC_MERGE_MODE);
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);

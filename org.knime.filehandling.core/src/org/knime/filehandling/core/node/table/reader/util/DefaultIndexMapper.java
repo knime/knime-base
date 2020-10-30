@@ -79,18 +79,6 @@ public final class DefaultIndexMapper implements IndexMapper {
         return new DefaultIndexMapperBuilder(size);
     }
 
-    /**
-     * Creates a {@link DefaultIndexMapperBuilder} that allows to add mapping for indices in the range [0, size). The
-     * second argument identifies the rowID column which is skipped when adding mappings to the builder.
-     *
-     * @param size the maximum number of mappings
-     * @param rowIDIdx the index of the rowID column (skipped when adding mappings)
-     * @return a {@link DefaultIndexMapperBuilder} for building {@link DefaultIndexMapper} objects
-     */
-    public static DefaultIndexMapperBuilder builder(final int size, final int rowIDIdx) {
-        return new DefaultIndexMapperBuilder(size, rowIDIdx);
-    }
-
     @Override
     public int map(final int idx) {
         final int mapped = m_mapping[idx];
@@ -122,16 +110,8 @@ public final class DefaultIndexMapper implements IndexMapper {
 
         private final int[] m_mapping;
 
-        private final int m_rowIDIdx;
+        private int m_rowIDIdx = -1;
 
-        /**
-         * Constructor to use if there is no row id column.
-         *
-         * @param size number of columns of the merged table
-         */
-        private DefaultIndexMapperBuilder(final int size) {
-            this(size, -1);
-        }
 
         /**
          * Constructor to use if there is a row id column.
@@ -139,14 +119,26 @@ public final class DefaultIndexMapper implements IndexMapper {
          * @param size number of columns of the merged table (excluding the row id column)
          * @param rowIDIdx the index of the row id column
          */
-        private DefaultIndexMapperBuilder(final int size, final int rowIDIdx) {
+        private DefaultIndexMapperBuilder(final int size) {
             m_mapping = new int[size];
             Arrays.fill(m_mapping, -1);
-            m_rowIDIdx = rowIDIdx;
         }
 
         private boolean hasRowIdx() {
             return m_rowIDIdx >= 0;
+        }
+
+        /**
+         * Sets the rowIDIdx and returns this builder.
+         *
+         * @param rowIDIdx to set
+         * @return this builder
+         * @throws IllegalArgumentException if the rowIDIdx is negative
+         */
+        public DefaultIndexMapperBuilder setRowIDIdx(final int rowIDIdx) {
+            CheckUtils.checkArgument(rowIDIdx >= 0, "The rowIDIdx must be non-negative but was %s.", rowIDIdx);
+            m_rowIDIdx = rowIDIdx;
+            return this;
         }
 
         /**

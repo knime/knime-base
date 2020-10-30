@@ -44,90 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.List;
-import java.util.Map;
 
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.util.CheckUtils;
 
 /**
- * Creates default {@link ProductionPath ProductionPaths} for external types.
+ * Provides {@link ProductionPath ProductionPaths} for a given external type.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify external data types
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @param <T> The type used to identify external data types
  */
-public final class ProductionPathProvider<T> {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(ProductionPathProvider.class);
-
-    private final ProducerRegistry<T, ?> m_producerRegistry;
-
-    private final Map<T, DataType> m_defaultKnimeTypes;
+public interface ProductionPathProvider<T> {
 
     /**
-     * Constructor.
-     */
-    ProductionPathProvider(final ProducerRegistry<T, ?> producerRegistry, final Map<T, DataType> defaultKnimeTypes) {
-        m_producerRegistry = producerRegistry;
-        m_defaultKnimeTypes = defaultKnimeTypes;
-    }
-
-    /**
-     * Creates a {@link ProductionPathProvider} from a {@link ReadAdapterFactory}.
-     *
-     * @param readAdapterFactory the underlying {@link ReadAdapterFactory}
-     */
-    public ProductionPathProvider(final ReadAdapterFactory<T, ?> readAdapterFactory) {
-        this(readAdapterFactory.getProducerRegistry(), readAdapterFactory.getDefaultTypeMap());
-    }
-
-    /**
-     * Retrieves the default {@link ProductionPath} for <b>externalType</b>.
+     * Provides the default {@link ProductionPath} for <b>externalType</b>.
      *
      * @param externalType the external data type
      * @return the default {@link ProductionPath} for <b>externalType</b>
      */
-    public ProductionPath getDefaultProductionPath(final T externalType) {
-        final DataType knimeType = m_defaultKnimeTypes.get(externalType);
+    ProductionPath getDefaultProductionPath(final T externalType);
 
-        if (knimeType == null) {
-            final ProductionPath productionPath = getFirstPath(externalType);
-            if (productionPath != null) {
-                return productionPath;
-            }
-        }
-
-        CheckUtils.checkState(knimeType != null, "No default KNIME type defined for external type '%s'.", externalType);
-        return getPath(externalType, knimeType);
-    }
-
-    private ProductionPath getFirstPath(final T externalType) {
-        return m_producerRegistry.getAvailableProductionPaths(externalType).stream().findFirst().orElse(null);
-    }
-
-    private ProductionPath getPath(final T externalType, final DataType knimeType) {
-        final List<ProductionPath> paths = m_producerRegistry.getAvailableProductionPaths(externalType).stream()
-            .filter(p -> p.getConverterFactory().getDestinationType().equals(knimeType)).collect(toList());
-        CheckUtils.checkState(!paths.isEmpty(), "No mapping registered from external type '%s' to KNIME type '%s'.",
-            externalType, knimeType);
-        if (paths.size() > 1) {
-            LOGGER.debugWithFormat(
-                "Multiple mappings from external type '%s' to KNIME type '%s' found (%s). Taking the first.",
-                externalType, knimeType, paths);
-        }
-        return paths.get(0);
-    }
-
+    /**
+     * Provides the available {@link ProductionPath ProductionPaths} fot <b>externalType</b>.
+     *
+     * @param externalType the external data type
+     * @return a {@link List} of available {@link ProductionPath ProductionPaths} for <B>externalType</b>
+     */
+    List<ProductionPath> getAvailableProductionPaths(final T externalType);
 
 }

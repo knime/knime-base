@@ -44,98 +44,80 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 19, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
-import java.util.OptionalInt;
+import java.util.Collections;
 
 import org.junit.Test;
-import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
+import org.junit.runner.RunWith;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Contains unit tests for {@link DefaultIndexMapper}.
+ * Unit tests for the the {@link IndexMapperFactory}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class DefaultIndexMapperTest {
+@RunWith(MockitoJUnitRunner.class)
+public class IndexMapperFactoryTest {
+
+    @Mock
+    private TableReadConfig<?> m_tableReadConfig;
 
     /**
-     * Tests the behavior if no RowID column is contained.
+     * Creates a TypedReaderTableSpec that uses the names as types as well.
+     *
+     * @param names names of the columns
+     * @return a {@link TypedReaderTableSpec}
+     */
+    private static TypedReaderTableSpec<String> createIndividualSpec(final String... names) {
+        return TypedReaderTableSpec.create(asList(names), asList(names),
+            Collections.nCopies(names.length, Boolean.TRUE));
+    }
+
+    /**
      */
     @Test
-    public void testNoRowIDIdx() {
-        DefaultIndexMapper idxMapper = DefaultIndexMapper.builder(5)//
-            .addMapping(0, 0)//
-            .addMapping(1, 2)//
-            .addMapping(3, 1)//
-            .addMapping(4, 3)//
-            .build();
-        assertEquals(OptionalInt.of(4), idxMapper.getIndexRangeEnd());
-        assertEquals(OptionalInt.empty(), idxMapper.getRowIDIdx());
+    public void testWithRowID() {
+        when(m_tableReadConfig.useRowIDIdx()).thenReturn(true);
+        when(m_tableReadConfig.getRowIDIdx()).thenReturn(1);
+        final TypedReaderTableSpec<?> individualSpec = createIndividualSpec("bar", "notInGlobal", "foo");
+        final IndexMapperFactory factory = new IndexMapperFactory(asList("foo", "bar", "foobar"), m_tableReadConfig);
+        final IndexMapper idxMapper = factory.createIndexMapper(individualSpec);
+
         assertTrue(idxMapper.hasMapping(0));
         assertTrue(idxMapper.hasMapping(1));
         assertFalse(idxMapper.hasMapping(2));
-        assertTrue(idxMapper.hasMapping(3));
-        assertTrue(idxMapper.hasMapping(4));
-
-        assertEquals(0, idxMapper.map(0));
-        assertEquals(2, idxMapper.map(1));
-        assertEquals(1, idxMapper.map(3));
-        assertEquals(3, idxMapper.map(4));
+        // the index 1 is occupied by the row idx in the underlying read while index 1
+        // in individualSpec is notInGlobal
+        // therefore we need to increase the indices >= 1 when mapping from
+        // individualSpec indices to read indices
+        assertEquals(3, idxMapper.map(0));
+        assertEquals(0, idxMapper.map(1));
     }
 
     /**
-     * Tests the behavior if a RowID column is contained.
      */
     @Test
-    public void testRowIDIdx() {
-        DefaultIndexMapper idxMapper = DefaultIndexMapper.builder(5).setRowIDIdx(2)//
-            .addMapping(0, 0)//
-            .addMapping(1, 2)//
-            .addMapping(3, 1)//
-            .addMapping(4, 3)//
-            .build();
-        assertEquals(OptionalInt.of(4), idxMapper.getIndexRangeEnd());
-        assertEquals(OptionalInt.of(2), idxMapper.getRowIDIdx());
+    public void testWithoutRowID() {
+        final IndexMapperFactory factory = new IndexMapperFactory(asList("foo", "bar", "foobar"), m_tableReadConfig);
+        final TypedReaderTableSpec<String> individualSpec = createIndividualSpec("bar", "foo");
+        IndexMapper idxMapper = factory.createIndexMapper(individualSpec);
         assertTrue(idxMapper.hasMapping(0));
         assertTrue(idxMapper.hasMapping(1));
         assertFalse(idxMapper.hasMapping(2));
-        assertTrue(idxMapper.hasMapping(3));
-        assertTrue(idxMapper.hasMapping(4));
-
-        assertEquals(0, idxMapper.map(0));
-        assertEquals(3, idxMapper.map(1));
-        assertEquals(1, idxMapper.map(3));
-        assertEquals(4, idxMapper.map(4));
-    }
-
-    /**
-     * Tests if {@link DefaultIndexMapper#map(int)} fails if the argument is negative.
-     */
-    @Test(expected = IndexOutOfBoundsException.class)
-    public void testMapFailsOnNegativeIdx() {
-        DefaultIndexMapper.builder(5).addMapping(0, 0).build().map(-1);
-    }
-
-    /**
-     * Tests if {@link DefaultIndexMapperBuilder#addMapping(int, int)} fails if the from argument is negative.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddMappingFailsOnNegativeFrom() {
-        DefaultIndexMapper.builder(5).addMapping(-1, 0);
-    }
-
-    /**
-     * Tests if {@link DefaultIndexMapperBuilder#addMapping(int, int)} fails if the to argument is negative.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddMappingFailsOnNegativeTo() {
-        DefaultIndexMapper.builder(5).addMapping(0, -1);
+        assertEquals(1, idxMapper.map(0));
+        assertEquals(0, idxMapper.map(1));
     }
 
 }

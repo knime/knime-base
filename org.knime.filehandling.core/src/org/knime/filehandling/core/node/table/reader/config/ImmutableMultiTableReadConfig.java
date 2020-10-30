@@ -64,6 +64,8 @@ public final class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<
 
     private final TableSpecConfig m_tableSpecConfig;
 
+    private final boolean m_failOnDifferingSpecs;
+
     private final SpecMergeMode m_specMergeMode;
 
     /**
@@ -75,18 +77,15 @@ public final class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<
         CheckUtils.checkArgumentNotNull(multiTableReadConfig, "The multiTableReadConfig parameter must not be null");
         m_tableReadConfig = new ImmutableTableReadConfig<>(multiTableReadConfig.getTableReadConfig());
         m_tableSpecConfig = multiTableReadConfig.hasTableSpecConfig() ? multiTableReadConfig.getTableSpecConfig() : null;
-        m_specMergeMode = multiTableReadConfig.getSpecMergeMode();
-
+        m_failOnDifferingSpecs = multiTableReadConfig.failOnDifferingSpecs();
+        @SuppressWarnings("deprecation") // yes but we still need it for backwards compatibility
+        SpecMergeMode specMergeMode = multiTableReadConfig.getSpecMergeMode();//NOSONAR
+        m_specMergeMode = specMergeMode;
     }
 
     @Override
     public TableReadConfig<C> getTableReadConfig() {
         return m_tableReadConfig;
-    }
-
-    @Override
-    public SpecMergeMode getSpecMergeMode() {
-        return m_specMergeMode;
     }
 
     @Override
@@ -102,6 +101,20 @@ public final class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<
     @Override
     public void setTableSpecConfig(final TableSpecConfig config) {
         throw new UnsupportedOperationException("ImmutableMultiTableReadConfigs can't be mutated.");
+    }
+
+    @Override
+    public boolean failOnDifferingSpecs() {
+        return m_failOnDifferingSpecs;
+    }
+
+    /**
+     * @deprecated only used as fallback for old nodes
+     */
+    @Deprecated
+    @Override
+    public SpecMergeMode getSpecMergeMode() {
+        return m_specMergeMode;
     }
 
 }

@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,8 +69,10 @@ import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
 import org.knime.core.data.convert.map.Source;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.Transformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -78,17 +81,17 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  *
  */
-public final class TableSpecConfigTestingUtils implements Source<String> {
+public final class TRFTestingUtils implements Source<String> {
 
-    private static ProducerRegistry<String, TableSpecConfigTestingUtils> m_registry;
+    private static ProducerRegistry<String, TRFTestingUtils> m_registry;
 
-    private TableSpecConfigTestingUtils() {
+    private TRFTestingUtils() {
         // static utility class
     }
 
-    public static synchronized ProducerRegistry<String, TableSpecConfigTestingUtils> getProducerRegistry() {
+    public static synchronized ProducerRegistry<String, TRFTestingUtils> getProducerRegistry() {
         if (m_registry == null) {
-            m_registry = MappingFramework.forSourceType(TableSpecConfigTestingUtils.class);
+            m_registry = MappingFramework.forSourceType(TRFTestingUtils.class);
             m_registry.register(new SimpleCellValueProducerFactory<>("foo", String.class, null));
         }
         return m_registry;
@@ -123,5 +126,24 @@ public final class TableSpecConfigTestingUtils implements Source<String> {
 
     public static <T> T[] a(final T...values) {
         return values;
+    }
+
+    /**
+     * Convenience method for checking a {@link Transformation}.
+     *
+     * @param <T> type used to identify external data types
+     * @param transformation to check
+     * @param col1 expected return value of {@link Transformation#getExternalSpec()}
+     * @param name expected return value of {@link Transformation#getName()}
+     * @param prodPath expected return value of {@link Transformation#getProductionPath()}
+     * @param position expected return value of {@link Transformation#getPosition()}
+     * @param keep expected return value of {@link Transformation#keep()}
+     */
+    public static <T> void checkTransformation(final Transformation<T> transformation, final TypedReaderColumnSpec<T> col1, final String name, final ProductionPath prodPath, final int position, final boolean keep) {
+        assertEquals(col1, transformation.getExternalSpec());
+        assertEquals(name, transformation.getName());
+        assertEquals(prodPath, transformation.getProductionPath());
+        assertEquals(position, transformation.getPosition());
+        assertEquals(keep, transformation.keep());
     }
 }

@@ -44,70 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
+import static java.util.stream.Collectors.toList;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapperFactory;
+import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Contains unit tests for {@link MultiTableUtils}.
+ * Creates {@link IndividualTableReader IndividualTableReaders} for particular {@link Path Paths}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@RunWith(MockitoJUnitRunner.class)
-public class MultiTableUtilsTest {
+final class IndividualTableReaderFactory<T, V> {
 
-    @Mock
-    private TableReadConfig<?> m_tableReadConfig;
+    private final IndexMapperFactory m_indexMapperFactory;
 
-    @Mock
-    private TransformationModel<String> m_transformationModel;
+    private final Map<Path, TypedReaderTableSpec<T>> m_specs;
 
-    @Mock
-    private Transformation<String> m_transformation;
+    private final RowKeyGeneratorContext<V> m_rowKeyGenContext;
 
-    /**
-     * Tests the {@link MultiTableUtils#getNameAfterInit(ReaderColumnSpec)} method.
-     */
-    @Test
-    public void testGetNameAfterInit() {
-        assertEquals("test",
-            MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.createWithName("test", "foo", true)));
+    private final ProductionPath[] m_prodPaths;
+
+    private final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> m_typeMapperFactory;
+
+    IndividualTableReaderFactory(final Map<Path, TypedReaderTableSpec<T>> specs, final TableReadConfig<?> config,
+        final List<Transformation<T>> outputTransformations,
+        final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> typeMapperFactory,
+        final RowKeyGeneratorContext<V> rowKeyGenContext) {
+        m_specs = specs;
+        m_indexMapperFactory = new IndexMapperFactory(outputTransformations.stream()//
+            .map(Transformation::getExternalSpec)//
+            .map(MultiTableUtils::getNameAfterInit)//
+            .collect(toList()), config);
+        m_rowKeyGenContext = rowKeyGenContext;
+        m_typeMapperFactory = typeMapperFactory;
+        m_prodPaths = outputTransformations.stream()//
+            .map(Transformation::getProductionPath)//
+            .toArray(ProductionPath[]::new);
     }
 
-    /**
-     * Tests if {@link MultiTableUtils#getNameAfterInit(ReaderColumnSpec)} fails if the provided
-     * {@link TypedReaderColumnSpec} has no name.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testGetNameAfterInitFailsIfSpecHasNoName() {
-        MultiTableUtils.getNameAfterInit(TypedReaderColumnSpec.create("foo", true));
+    IndividualTableReader<V> create(final Path path, final FileStoreFactory fsFactory) {
+        final IndexMapper idxMapper = m_indexMapperFactory.createIndexMapper(m_specs.get(path));
+        final RowKeyGenerator<V> rowKeyGen = m_rowKeyGenContext.createKeyGenerator(path);
+        final TypeMapper<V> typeMapper = m_typeMapperFactory.apply(m_prodPaths, fsFactory);
+        return new DefaultIndividualTableReader<>(typeMapper, idxMapper, rowKeyGen);
     }
-
-    /**
-     * Tests the {@code assingNamesIfMissing} method.
-     */
-    @Test
-    public void testAssignNamesIfMissing() {
-        TypedReaderTableSpec<String> namesMissing = TypedReaderTableSpec.create(asList("hubert", null),
-            asList("berta", "frieda"), asList(Boolean.TRUE, Boolean.TRUE));
-        TypedReaderTableSpec<String> expected = TypedReaderTableSpec.create(asList("hubert", "Column1"),
-            asList("berta", "frieda"), asList(Boolean.TRUE, Boolean.TRUE));
-        TypedReaderTableSpec<String> actual = MultiTableUtils.assignNamesIfMissing(namesMissing);
-        assertEquals(expected, actual);
-    }
-
 }

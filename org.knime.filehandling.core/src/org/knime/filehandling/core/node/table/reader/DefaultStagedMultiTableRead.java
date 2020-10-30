@@ -48,18 +48,15 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
-import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -67,15 +64,13 @@ import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModelUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import org.knime.filehandling.core.node.table.reader.type.mapping.DefaultTypeMapper;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
@@ -88,15 +83,15 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  */
 final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V> implements StagedMultiTableRead<T> {
 
-    private final Map<Path, ? extends ReaderTableSpec<?>> m_individualSpecs;
+    private final Map<Path, TypedReaderTableSpec<T>> m_individualSpecs;
 
     private final String m_rootPath;
 
-    private final TypedReaderTableSpec<T> m_rawSpec;
+    private final RawSpec<T> m_rawSpec;
 
     private final RowKeyGeneratorContextFactory<V> m_rowKeyGenFactory;
 
-    private final TypeMappingFactory<C, T, V> m_defaultTypeMapping;
+    private final Supplier<ReadAdapter<T, V>> m_readAdapterSupplier;
 
     private final TableReadConfig<C> m_tableReadConfig;
 
@@ -105,8 +100,8 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
     private final TableReader<C, T, V> m_reader;
 
     DefaultStagedMultiTableRead(final TableReader<C, T, V> reader, final String rootPath,
-        final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
-        final RowKeyGeneratorContextFactory<V> rowKeyGenFactory, final TypeMappingFactory<C, T, V> typeMappingFactory,
+        final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
+        final RowKeyGeneratorContextFactory<V> rowKeyGenFactory, final Supplier<ReadAdapter<T, V>> readAdapterSupplier,
         final TransformationModel<T> defaultTransformation, final TableReadConfig<C> tableReadConfig) {
         m_rawSpec = defaultTransformation.getRawSpec();
         m_rootPath = rootPath;
@@ -114,8 +109,8 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
         m_rowKeyGenFactory = rowKeyGenFactory;
         m_tableReadConfig = tableReadConfig;
         m_defaultTransformation = defaultTransformation;
-        m_defaultTypeMapping = typeMappingFactory;
         m_reader = reader;
+        m_readAdapterSupplier = readAdapterSupplier;
     }
 
     @Override
@@ -125,21 +120,20 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
 
     @Override
     public MultiTableRead withTransformation(final TransformationModel<T> transformationModel) {
-        final TypedReaderTableSpec<T> filtered = transformRawSpec(transformationModel);
-        final TypeMapping<V> typeMapping =
-            m_defaultTypeMapping.create(filtered, m_tableReadConfig.getReaderSpecificConfig(), transformationModel);
-        final DataTableSpec knimeSpec = typeMapping.map(filtered);
-        final Map<Path, IndexMapper> indexMappers = m_individualSpecs.entrySet()//
-            .stream()//
-            .collect(Collectors.toMap(//
-                Entry::getKey, //
-                e -> MultiTableUtils.createIndexMapper(knimeSpec, e.getValue(), m_tableReadConfig), //
-                (x, y) -> x, // never needed
-                LinkedHashMap::new));
         final TableSpecConfig tableSpecConfig =
             DefaultTableSpecConfig.createFromTransformationModel(m_rootPath, m_individualSpecs, transformationModel);
-        return new DefaultMultiTableRead<>(p -> createRead(p, m_tableReadConfig), tableSpecConfig, typeMapping,
-            m_rowKeyGenFactory.createContext(m_tableReadConfig), indexMappers);
+        final IndividualTableReaderFactory<T, V> individualTableReaderFactory =
+            new IndividualTableReaderFactory<>(m_individualSpecs, m_tableReadConfig,
+                TransformationModelUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
+                m_rowKeyGenFactory.createContext(m_tableReadConfig));
+        return new DefaultMultiTableRead<>(new ArrayList<>(m_individualSpecs.keySet()),
+            p -> createRead(p, m_tableReadConfig), individualTableReaderFactory::create, tableSpecConfig,
+            TransformationModelUtils.toDataTableSpec(transformationModel));
+    }
+
+    private TypeMapper<V> createTypeMapper(final ProductionPath[] prodPaths, final FileStoreFactory fsFactory) {
+        return new DefaultTypeMapper<>(m_readAdapterSupplier.get(), prodPaths, fsFactory,
+            m_tableReadConfig.getReaderSpecificConfig());
     }
 
     // The rawRead will be closed by the decoratedRead which in turn needs to be closed by the caller
@@ -149,17 +143,8 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
         return ReadUtils.decorateForReading(rawRead, config);
     }
 
-    private TypedReaderTableSpec<T> transformRawSpec(final TransformationModel<T> transformation) {
-        final List<TypedReaderColumnSpec<T>> columns = m_rawSpec.stream()//
-            .filter(transformation::keep)//
-            .sorted((c1, c2) -> Integer.compare(transformation.getPosition(c1), transformation.getPosition(c2)))//
-            .map(c -> TypedReaderColumnSpec.createWithName(transformation.getName(c), c.getType(), true))//
-            .collect(toList());
-        return new TypedReaderTableSpec<>(columns);
-    }
-
     @Override
-    public TypedReaderTableSpec<T> getRawSpec() {
+    public RawSpec<T> getRawSpec() {
         return m_rawSpec;
     }
 

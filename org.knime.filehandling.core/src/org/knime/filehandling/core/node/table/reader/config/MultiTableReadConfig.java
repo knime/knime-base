@@ -74,8 +74,17 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      * Returns the merge mode to use for merging multiple table specs.
      *
      * @return the {@link SpecMergeMode} to use (intersection, union or fail)
+     * @deprecated only used as fallback if no {@link TableSpecConfig} is available
      */
+    @Deprecated
     SpecMergeMode getSpecMergeMode();
+
+    /**
+     * Indicates whether the node should fail if the table specs differ.
+     *
+     * @return {@code true} if the node should fail on differing specs
+     */
+    boolean failOnDifferingSpecs();
 
     /**
      * Indicates whether a table spec is already provided, or has to be computed.
@@ -97,6 +106,7 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      *
      * @param config the {@link DefaultTableSpecConfig} to set
      */
+    // TODO create mutable subinterface. The TRF doesn't need this setter.
     void setTableSpecConfig(TableSpecConfig config);
 
     /**

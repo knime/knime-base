@@ -44,56 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 19, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
-import java.nio.file.Path;
-import java.util.Collection;
+import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.getNameAfterInit;
 
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
 
 /**
- * Represents the raw state of a multi table read i.e. before type mapping, renaming, filtering or reordering.
+ * Factory for {@link IndexMapper} that is initialized with a particular {@link TransformationModel}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type representing external types
  */
-public interface StagedMultiTableRead<T> {
+public final class IndexMapperFactory {
+
+    private final Map<String, Integer> m_nameToIdx;
+
+    private final Supplier<DefaultIndexMapperBuilder> m_builderSupplier;
 
     /**
-     * Creates a {@link MultiTableRead} that uses the default settings i.e. the default type mapping, no filtering, no
-     * renaming and no reordering.
+     * Constructor.
      *
-     * @return a {@link MultiTableRead} that uses the defaults
+     * @param originalNamesInOutput the original names that are included in the output (in order)
+     * @param config the {@link TableReadConfig} for the current read
      */
-    MultiTableRead withoutTransformation();
+    public IndexMapperFactory(final List<String> originalNamesInOutput, final TableReadConfig<?> config) {
+        m_nameToIdx = createNameToIndexMap(originalNamesInOutput);
+        final int outputSize = m_nameToIdx.size();
+        m_builderSupplier =
+            config.useRowIDIdx() ? () -> DefaultIndexMapper.builder(outputSize).setRowIDIdx(config.getRowIDIdx())
+                : () -> DefaultIndexMapper.builder(outputSize);
+    }
+
+    private static Map<String, Integer> createNameToIndexMap(final List<String> originalNamesInOutput) {
+        final Map<String, Integer> nameToIdx = new HashMap<>(originalNamesInOutput.size());
+        int idx = 0;
+        for (String column : originalNamesInOutput) {
+            nameToIdx.put(column, idx);
+            idx++;
+        }
+        return nameToIdx;
+    }
 
     /**
-     * Creates a {@link MultiTableRead} using the given {@link TransformationModel}.
+     * Creates an {@link IndexMapper} for the provided {@link ReaderTableSpec}.
      *
-     * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
-     * @return a {@link MultiTableRead} using the provided {@link TransformationModel}
+     * @param individualSpec the {@link ReaderTableSpec} for which to create the {@link IndexMapper}
+     * @return the {@link IndexMapper} for {@link ReaderTableSpec individualSpec}
      */
-    MultiTableRead withTransformation(final TransformationModel<T> selectorModel);
-
-    /**
-     * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type
-     * mapping, column filtering or reordering. To be used to make the mentioned operations configurable.
-     *
-     * @return the raw {@link ReaderTableSpec} i.e. before type mapping, column filtering or reordering
-     */
-    RawSpec<T> getRawSpec();
-
-    /**
-     * Checks if the provided <b>paths</b> match the paths used to instantiate this MultiTableRead.
-     *
-     * @param paths to read from
-     * @return {@code true} if the provided <b>paths</b> are valid
-     */
-    boolean isValidFor(final Collection<Path> paths);
+    public IndexMapper createIndexMapper(final ReaderTableSpec<?> individualSpec) {
+        final DefaultIndexMapperBuilder builder = m_builderSupplier.get();
+        for (int i = 0; i < individualSpec.size(); i++) {
+            final ReaderColumnSpec columnSpec = individualSpec.getColumnSpec(i);
+            final String name = getNameAfterInit(columnSpec);
+            Integer outputIdx = m_nameToIdx.get(name);
+            if (outputIdx != null) {
+                builder.addMapping(outputIdx, i);
+            }
+        }
+        return builder.build();
+    }
 
 }

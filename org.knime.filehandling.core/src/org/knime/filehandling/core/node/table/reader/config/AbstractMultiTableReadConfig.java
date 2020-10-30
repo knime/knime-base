@@ -67,7 +67,13 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
 
     private TableSpecConfig m_tableSpecConfig = null;
 
-    private SpecMergeMode m_specMergeMode = SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
+    private boolean m_failOnDifferingSpecs = true;
+
+    /**
+     * @deprecated Only used as fallback if no TableSpecConfig is available
+     */
+    @Deprecated
+    private SpecMergeMode m_specMergeMode = SpecMergeMode.UNION;
 
     /**
      * Constructor.
@@ -84,17 +90,18 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     }
 
     @Override
-    public SpecMergeMode getSpecMergeMode() {
-        return m_specMergeMode;
+    public boolean failOnDifferingSpecs() {
+        return m_failOnDifferingSpecs;
     }
 
     /**
-     * Sets the {@link SpecMergeMode}.
+     * Allows to set whether the node should fail if the specs differ in case multiple files are read.
      *
-     * @param mode {@link SpecMergeMode} to use
+     * @param failOnDifferingSpecs {@code true} if the node should fail if multiple files are read and they have
+     *            differing specs
      */
-    public void setSpecMergeMode(final SpecMergeMode mode) {
-        m_specMergeMode = mode;
+    public void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
+        m_failOnDifferingSpecs = failOnDifferingSpecs;
     }
 
     @Override
@@ -110,6 +117,27 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     @Override
     public void setTableSpecConfig(final TableSpecConfig config) {
         m_tableSpecConfig = config;
+    }
+
+    /**
+     * @return the specMergeMode
+     * @deprecated only used as fallback if there was no TableSpecConfig
+     */
+    @Override
+    @Deprecated
+    public SpecMergeMode getSpecMergeMode() {
+        return m_specMergeMode;
+    }
+
+    /**
+     * Sets the {@link SpecMergeMode}.
+     *
+     * @param specMergeMode set the spec merge mode
+     * @deprecated only used as fallback if there is no TableSpecConfig
+     */
+    @Deprecated
+    public void setSpecMergeMode(final SpecMergeMode specMergeMode) {
+        m_specMergeMode = specMergeMode;
     }
 
     /**

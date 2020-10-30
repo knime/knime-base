@@ -66,8 +66,12 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values mapped to cells
+ * @param <C> the type of {@link ReaderSpecificConfig}
+ * @noinstantiate non-public API subject to change
+ * @noreference non-public API subject to change
+ * TODO move to different package?
  */
-final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements TypeMapper<V> {
+public final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements TypeMapper<V> {
 
     private final ReadAdapter<?, V> m_readAdapter;
 
@@ -75,7 +79,15 @@ final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements T
 
     private final DataRowProducer<ReadAdapterParams<ReadAdapter<?, V>, C>> m_rowProducer;
 
-    DefaultTypeMapper(final ReadAdapter<?, V> readAdapter, final ProductionPath[] productionPaths,
+    /**
+     * Constructor.
+     *
+     * @param readAdapter {@link ReadAdapter} serves as source for the type mapping framework
+     * @param productionPaths specifying how cells are to be created
+     * @param fsFactory {@link FileStoreFactory}
+     * @param readerSpecificConfig {@link ReaderSpecificConfig}
+     */
+    public DefaultTypeMapper(final ReadAdapter<?, V> readAdapter, final ProductionPath[] productionPaths,
         final FileStoreFactory fsFactory, final C readerSpecificConfig) {
         m_readAdapter = readAdapter;
         m_rowProducer = MappingFramework.createDataRowProducer(fsFactory, m_readAdapter, productionPaths);
@@ -89,11 +101,6 @@ final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements T
 
     @Override
     public DataRow map(final RowKey key, final RandomAccessible<V> randomAccessible) throws Exception {
-//        CheckUtils.checkArgumentNotNull(key != null, "The row key must not be null.");
-//        CheckUtils.checkArgumentNotNull(randomAccessible, "The randomAccessible must not be null.");
-//        final int size = randomAccessible.size();
-//        CheckUtils.checkArgument(size == m_params.length,
-//            "The size of the randomAccessible is wrong. Expected %s but got %s.", size, m_params.length);
         m_readAdapter.setSource(randomAccessible);
         try {
             return m_rowProducer.produceDataRow(key, m_params);
