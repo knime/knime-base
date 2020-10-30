@@ -49,13 +49,12 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -70,23 +69,28 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.util.SerializeUtil;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.DefaultTransformationModel;
+import org.knime.filehandling.core.node.table.reader.ImmutableTransformation;
+import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.Transformation;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TransformationModelUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapping;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 import com.google.common.collect.Iterators;
@@ -100,6 +104,12 @@ import com.google.common.collect.Iterators;
  * @noinstantiate non-public API
  */
 public final class DefaultTableSpecConfig implements TableSpecConfig {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTableSpecConfig.class);
+
+    private static final String CFG_INCLUDE_UNKNOWN = "include_unknown_columns" + SettingsModel.CFGKEY_INTERNAL;
+
+    private static final String CFG_NEW_COLUMN_POSITION = "new_column_position" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_KEEP = "keep" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -123,6 +133,8 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
 
     private static final String CFG_POSITIONAL_MAPPING = "positional_mapping" + SettingsModel.CFGKEY_INTERNAL;
 
+    private static final String CFG_COLUMN_FILTER_MODE = "column_filter_mode" + SettingsModel.CFGKEY_INTERNAL;
+
     private final String m_rootPath;
 
     private final Map<String, ReaderTableSpec<?>> m_individualSpecs;
@@ -144,12 +156,30 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      * {@code m_dataTableSpec.getColumnSpec(m_positionalMapping[0])} and so on. If there are fewer columns in the
      * positional mapping, then those indices not contained are filtered out.
      */
-    private final int[] m_positionalMapping;
+    private final int[] m_positions;
 
     /**
      * Stores for each column in the raw spec whether it's kept or not.
      */
     private final boolean[] m_keep;
+
+    /**
+     * Indicates whether new unknown columns should be in- or excluded.
+     */
+    private final boolean m_includeUnknownColumns;
+
+    /**
+     * The position at which new columns are to be inserted during execution (if they are inserted at all).
+     */
+    private final int m_unknownColPosition;
+
+    /**
+     * Specifies how to deal with new columns. NOTE: This field is not stored by {@link #save(NodeSettingsWO)} for
+     * backwards compatibility (in 4.2 an equivalent setting was stored as part of the MultiTableReadConfig).
+     * Consequently, the {@link #load(NodeSettingsRO, ProducerRegistry, Object, ColumnFilterMode)} function receives it
+     * as parameter.
+     */
+    private final ColumnFilterMode m_columnFilterMode;
 
     /**
      * Contains all columns in original order (i.e. no filtering or reordering)
@@ -171,28 +201,32 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
     public static <T> TableSpecConfig createFromTransformationModel(final String rootPath,
         final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
         final TransformationModel<T> transformationModel) {
-        final TypedReaderTableSpec<T> rawSpec = transformationModel.getRawSpec();
-        final int rawSize = rawSpec.size();
-        final List<DataColumnSpec> columns = new ArrayList<>(rawSize);
-        final List<ProductionPath> productionPaths = new ArrayList<>(rawSize);
-        final List<String> originalNames = new ArrayList<>(rawSize);
-        final int[] positionalMapping = new int[rawSize];
-        final boolean[] keep = new boolean[rawSize];
+        final TypedReaderTableSpec<T> rawSpec = transformationModel.getRawSpec().getUnion();
+        final int unionSize = rawSpec.size();
+        final List<DataColumnSpec> columns = new ArrayList<>(unionSize);
+        final List<ProductionPath> productionPaths = new ArrayList<>(unionSize);
+        final List<String> originalNames = new ArrayList<>(unionSize);
+        final int[] positions = new int[unionSize];
+        final boolean[] keep = new boolean[unionSize];
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : rawSpec) {
-            final ProductionPath productionPath = transformationModel.getProductionPath(column);
+            final Transformation<T> transformation = transformationModel.getTransformation(column);
+            final ProductionPath productionPath = transformation.getProductionPath();
             productionPaths.add(productionPath);
             originalNames.add(MultiTableUtils.getNameAfterInit(column));
-            keep[idx] = transformationModel.keep(column);
-            final int idxInOutput = transformationModel.getPosition(column);
-            positionalMapping[idxInOutput] = idx;
+            keep[idx] = transformation.keep();
+            final int idxInOutput = transformation.getPosition();
+            positions[idx] = idxInOutput;
             final DataType knimeType = productionPath.getConverterFactory().getDestinationType();
-            columns.add(new DataColumnSpecCreator(transformationModel.getName(column), knimeType).createSpec());
+            final String name = transformation.getName();
+            CheckUtils.checkArgument(!name.isEmpty(), "Empty column names are not permitted.");
+            columns.add(new DataColumnSpecCreator(name, knimeType).createSpec());
             idx++;
         }
         return new DefaultTableSpecConfig(rootPath, new DataTableSpec(columns.toArray(new DataColumnSpec[0])),
             individualSpecs, productionPaths.toArray(new ProductionPath[0]), originalNames.toArray(new String[0]),
-            positionalMapping, keep);
+            positions, keep, transformationModel.getPositionForUnknownColumns(),
+            transformationModel.getColumnFilterMode(), transformationModel.keepUnknownColumns());
     }
 
     /**
@@ -212,7 +246,8 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      */
     DefaultTableSpecConfig(final String rootPath, final DataTableSpec outputSpec,
         final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs, final ProductionPath[] productionPaths,
-        final String[] originalNames, final int[] positionalMapping, final boolean[] keep) {
+        final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
         // check for nulls
         CheckUtils.checkNotNull(rootPath, "The rootPath cannot be null");
         CheckUtils.checkNotNull(individualSpecs, "The individual specs cannot be null");
@@ -237,8 +272,11 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
                 , LinkedHashMap::new));
         m_prodPaths = productionPaths.clone();
         m_originalNames = originalNames.clone();
-        m_positionalMapping = positionalMapping.clone();
+        m_positions = positionalMapping.clone();
         m_keep = keep.clone();
+        m_unknownColPosition = newColPosition;
+        m_columnFilterMode = columnFilterMode;
+        m_includeUnknownColumns = includeUnknownColumns;
     }
 
     /**
@@ -254,7 +292,8 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      */
     private DefaultTableSpecConfig(final String rootPath, final DataTableSpec outputSpec, final String[] paths,
         final ReaderTableSpec<?>[] individualSpecs, final ProductionPath[] productionPaths,
-        final String[] originalNames, final int[] positionalMapping, final boolean[] keep) {
+        final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
         m_rootPath = rootPath;
         m_dataTableSpec = outputSpec;
         m_individualSpecs = IntStream.range(0, paths.length)//
@@ -266,8 +305,11 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
                 LinkedHashMap::new));
         m_prodPaths = productionPaths;
         m_originalNames = originalNames;
-        m_positionalMapping = positionalMapping;
+        m_positions = positionalMapping;
         m_keep = keep;
+        m_unknownColPosition = newColPosition;
+        m_columnFilterMode = columnFilterMode;
+        m_includeUnknownColumns = includeUnknownColumns;
     }
 
     /**
@@ -276,7 +318,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      * @param <T> the type used to identify external types
      * @return the raw spec
      */
-    private <T> TypedReaderTableSpec<T> getRawSpec() {
+    private <T> RawSpec<T> getRawSpec() {
         final DataTableSpec rawKnimeSpec = m_dataTableSpec;
         final ProductionPath[] productionPaths = m_prodPaths;
         assert rawKnimeSpec
@@ -288,33 +330,50 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
             final T type = (T)productionPath.getProducerFactory().getSourceType();
             specs.add(TypedReaderColumnSpec.createWithName(m_originalNames[i], type, true));
         }
-        return new TypedReaderTableSpec<>(specs);
+        final TypedReaderTableSpec<T> union = new TypedReaderTableSpec<>(specs);
+        final TypedReaderTableSpec<T> intersection = findIntersection(union);
+        return new RawSpec<>(union, intersection);
+    }
+
+    private <T> TypedReaderTableSpec<T> findIntersection(final TypedReaderTableSpec<T> union) {
+        final Set<String> commonNames = extractNameSet(union);
+        for (ReaderTableSpec<?> individualSpec : m_individualSpecs.values()) {
+            final Set<String> currentCommonNames = new HashSet<>(commonNames);
+            for (ReaderColumnSpec column : individualSpec) {
+                currentCommonNames.remove(MultiTableUtils.getNameAfterInit(column));
+            }
+            currentCommonNames.forEach(commonNames::remove);
+        }
+        return new TypedReaderTableSpec<>(union.stream()//
+            .filter(c -> commonNames.contains(MultiTableUtils.getNameAfterInit(c)))//
+            .collect(Collectors.toList()));
+    }
+
+    private static <T extends ReaderColumnSpec> Set<String> extractNameSet(final ReaderTableSpec<T> spec) {
+        return spec.stream()//
+            .map(MultiTableUtils::getNameAfterInit)//
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
     public <T> TransformationModel<T> getTransformationModel() {
-        final TypedReaderTableSpec<T> rawSpec = getRawSpec();
-        final Map<TypedReaderColumnSpec<T>, Integer> positionalMap = getPositionMap(rawSpec);
-        final Set<TypedReaderColumnSpec<T>> keptColumns = getKeptColumns(rawSpec);
-        final String[] names = m_dataTableSpec.stream().map(DataColumnSpec::getName).toArray(String[]::new);
-        return new DefaultTransformationModel<>(rawSpec, m_prodPaths.clone(), names, positionalMap, keptColumns);
-    }
+        final RawSpec<T> rawSpec = getRawSpec();
+        final TypedReaderTableSpec<T> union = rawSpec.getUnion();
 
-    private <T> Set<TypedReaderColumnSpec<T>> getKeptColumns(final TypedReaderTableSpec<T> rawSpec) {
-        return IntStream.range(0, m_keep.length)//
-            .filter(i -> m_keep[i])//
-            .mapToObj(rawSpec::getColumnSpec)//
-            .collect(toSet());
-    }
-
-    private <T> Map<TypedReaderColumnSpec<T>, Integer> getPositionMap(final TypedReaderTableSpec<T> rawSpec) {
-        final Map<TypedReaderColumnSpec<T>, Integer> positionalMap = new HashMap<>();
-        for (int i = 0; i < m_positionalMapping.length; i++) {
-            final int positionInRawSpec = m_positionalMapping[i];
-            final TypedReaderColumnSpec<T> column = rawSpec.getColumnSpec(positionInRawSpec);
-            positionalMap.put(column, i);
+        final List<Transformation<T>> transformations = new ArrayList<>(m_originalNames.length);
+        for (int i = 0; i < m_originalNames.length; i++) {
+            transformations.add(createTransformation(union.getColumnSpec(i), i));
         }
-        return positionalMap;
+        return new DefaultTransformationModel<>(rawSpec, transformations, m_columnFilterMode, m_includeUnknownColumns,
+            m_unknownColPosition);
+    }
+
+    private <T> Transformation<T> createTransformation(final TypedReaderColumnSpec<T> colSpec, final int idx) {
+        final String name = m_dataTableSpec.getColumnSpec(idx).getName();
+        final int position = m_positions[idx];
+        final boolean keep = m_keep[idx];
+        final ProductionPath prodPath = m_prodPaths[idx];
+        return new ImmutableTransformation<>(colSpec, prodPath, keep, position, name);
     }
 
     @Override
@@ -337,17 +396,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
 
     @Override
     public DataTableSpec getDataTableSpec() {
-        final ColumnRearranger cr = new ColumnRearranger(m_dataTableSpec);
-        // reorders the columns according to m_positionalMapping
-        // and moves all columns that aren't contained to the end
-        cr.permute(m_positionalMapping);
-        // remove the columns that aren't kept
-        cr.remove(IntStream.range(0, m_keep.length)//
-            .filter(i -> !m_keep[i])//
-            .mapToObj(m_dataTableSpec::getColumnSpec)//
-            .map(DataColumnSpec::getName)//
-            .toArray(String[]::new));
-        return cr.createSpec();
+        return TransformationModelUtils.toDataTableSpec(getTransformationModel());
     }
 
     @Override
@@ -365,9 +414,14 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         return IntStream.range(0, m_prodPaths.length)//
             .filter(i -> m_keep[i])//
             .boxed()//
-            .sorted((i, j) -> Integer.compare(m_positionalMapping[i], m_positionalMapping[j]))//
+            .sorted((i, j) -> Integer.compare(m_positions[i], m_positions[j]))//
             .map(i -> m_prodPaths[i])//
             .toArray(ProductionPath[]::new);
+    }
+
+    @Override
+    public ColumnFilterMode getColumnFilterMode() {
+        return m_columnFilterMode;
     }
 
     /**
@@ -411,8 +465,11 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         saveIndividualSpecs(settings.addNodeSettings(CFG_INDIVIDUAL_SPECS));
         saveProductionPaths(settings.addNodeSettings(CFG_PRODUCTION_PATHS));
         settings.addStringArray(CFG_ORIGINAL_NAMES, m_originalNames);
-        settings.addIntArray(CFG_POSITIONAL_MAPPING, m_positionalMapping);
+        settings.addIntArray(CFG_POSITIONAL_MAPPING, m_positions);
         settings.addBooleanArray(CFG_KEEP, m_keep);
+        settings.addInt(CFG_NEW_COLUMN_POSITION, m_unknownColPosition);
+        settings.addBoolean(CFG_INCLUDE_UNKNOWN, m_includeUnknownColumns);
+        settings.addString(CFG_COLUMN_FILTER_MODE, m_columnFilterMode.name());
     }
 
     private void saveProductionPaths(final NodeSettingsWO settings) {
@@ -442,16 +499,20 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      * @param settings containing the serialized {@link DefaultTableSpecConfig}
      * @param registry the {@link ProducerRegistry}
      * @param mostGenericExternalType used as default type for columns that were previously (4.2) filtered out
+     * @param specMergeModeOld for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
+     *            later
      * @return the de-serialized {@link DefaultTableSpecConfig}
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
     public static TableSpecConfig load(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry,
-        final Object mostGenericExternalType) throws InvalidSettingsException {
+        final Object mostGenericExternalType, final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
         final String rootPath = settings.getString(CFG_ROOT_PATH);
         final String[] paths = settings.getStringArray(CFG_FILE_PATHS);
         final ReaderTableSpec<?>[] individualSpecs =
             loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), paths.length);
         final Set<String> allColumns = union(individualSpecs);
+
+        final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN, true);
 
         // For old workflows (created with 4.2), the spec might not contain all columns contained in union if
         // SpecMergeMode#INTERSECTION was used to create the final spec
@@ -464,8 +525,25 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         final String[] originalNames = loadOriginalNames(fullKnimeSpec, settings);
         final int[] positionalMapping = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);
         final boolean[] keep = loadKeep(loadedKnimeSpec, allColumns, settings);
+        final int newColPosition = settings.getInt(CFG_NEW_COLUMN_POSITION, allProdPaths.length);
+        final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
+
         return new DefaultTableSpecConfig(rootPath, fullKnimeSpec, paths, individualSpecs, allProdPaths, originalNames,
-            positionalMapping, keep);
+            positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns);
+    }
+
+    private static ColumnFilterMode loadColumnFilterMode(final NodeSettingsRO settings,
+        final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
+        try {
+            return ColumnFilterMode.valueOf(settings.getString(CFG_COLUMN_FILTER_MODE));
+        } catch (InvalidSettingsException ise) {
+            LOGGER.debug("The settings contained no ColumnFilterMode.", ise);
+            CheckUtils.checkSetting(specMergeModeOld != null,
+                "The settings are missing both the SpecMergeMode (4.2) and the ColumnFilterMode (4.3 and later).");
+            @SuppressWarnings("null") // checked above
+            final ColumnFilterMode columnFilterMode = specMergeModeOld.getColumnFilterMode();
+            return columnFilterMode;
+        }
     }
 
     private static Set<String> union(final ReaderTableSpec<?>[] individualSpecs) {
@@ -514,12 +592,13 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
     }
 
     /**
-     * In KAP 4.2 we only stored the {@link ProductionPath ProductionPaths} for the columns that were in the KNIME output spec.
-     * If the user read in multiple files and selected intersection as spec merge mode, this meant that we didn't store the ProductionPath
-     * for those columns that were not part of the intersection.</br>
-     * In KAP 4.3, we introduce the Transformation tab which allows to manipulate all columns of the union of the read files, so we need
-     * ProductionPaths for the left-out columns as well. To this end we will assume that those columns had the most generic type (typically String)
-     * and use the default ProductionPath to convert them into a String column.
+     * In KAP 4.2 we only stored the {@link ProductionPath ProductionPaths} for the columns that were in the KNIME
+     * output spec. If the user read in multiple files and selected intersection as spec merge mode, this meant that we
+     * didn't store the ProductionPath for those columns that were not part of the intersection.</br>
+     * In KAP 4.3, we introduce the Transformation tab which allows to manipulate all columns of the union of the read
+     * files, so we need ProductionPaths for the left-out columns as well. To this end we will assume that those columns
+     * had the most generic type (typically String) and use the default ProductionPath to convert them into a String
+     * column.
      *
      * @param registry {@link ProducerRegistry}
      * @param mostGenericExternalType typically String
@@ -642,8 +721,11 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         result = prime * result + Arrays.hashCode(m_prodPaths);
         result = prime * result + ((m_rootPath == null) ? 0 : m_rootPath.hashCode());
         result = prime * result + Arrays.hashCode(m_originalNames);
-        result = prime * result + Arrays.hashCode(m_positionalMapping);
+        result = prime * result + Arrays.hashCode(m_positions);
         result = prime * result + Arrays.hashCode(m_keep);
+        result = prime * result + Integer.hashCode(m_unknownColPosition);
+        result = prime * result + Boolean.hashCode(m_includeUnknownColumns);
+        result = prime * result + m_columnFilterMode.hashCode();
         return result;
     }
 
@@ -654,12 +736,15 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         }
         if (obj != null && getClass() == obj.getClass()) {
             DefaultTableSpecConfig other = (DefaultTableSpecConfig)obj;
-            return m_dataTableSpec.equals(other.m_dataTableSpec)//
+            return m_includeUnknownColumns == other.m_includeUnknownColumns//
+                && m_unknownColPosition == other.m_unknownColPosition//
+                && m_columnFilterMode == other.m_columnFilterMode //
+                && m_dataTableSpec.equals(other.m_dataTableSpec)//
                 && m_individualSpecs.equals(other.m_individualSpecs)//
                 && Arrays.equals(m_prodPaths, other.m_prodPaths)//
                 && m_rootPath.equals(other.m_rootPath)//
                 && Arrays.equals(m_originalNames, other.m_originalNames)//
-                && Arrays.equals(m_positionalMapping, other.m_positionalMapping)//
+                && Arrays.equals(m_positions, other.m_positions)//
                 && Arrays.equals(m_keep, other.m_keep);
         }
         return false;
@@ -684,12 +769,18 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
             .append(Arrays.stream(m_originalNames)//
                 .collect(joining(", ", "[", "]")))//
             .append("\n Positions: ")//
-            .append(Arrays.stream(m_positionalMapping)//
+            .append(Arrays.stream(m_positions)//
                 .mapToObj(Integer::toString)//
                 .collect(joining(", ", "[", "]")))//
             .append("\n Keep: ")//
             .append(Arrays.toString(m_keep))//
-            .append("]").toString();
+            .append("\n Keep unknown: ")//
+            .append(m_includeUnknownColumns)//
+            .append("\n Position for unknown columns: ")//
+            .append(m_unknownColPosition)//
+            .append("\n ColumnFilterMode: ")//
+            .append(m_columnFilterMode)//
+            .append("]\n").toString();
     }
 
 }

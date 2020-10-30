@@ -55,6 +55,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
@@ -132,6 +133,13 @@ public interface TableSpecConfig {
      * @return the {@link ProductionPath ProductionPaths} used for the type mapping
      */
     ProductionPath[] getProductionPaths();
+
+    /**
+     * Returns the configured {@link ColumnFilterMode}.
+     *
+     * @return the configured {@link ColumnFilterMode}
+     */
+    ColumnFilterMode getColumnFilterMode();
 
     /**
      * Saves the configuration to settings.

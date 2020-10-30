@@ -56,7 +56,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils.a;
+import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.a;
+import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.checkTransformation;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,6 +72,7 @@ import java.util.stream.IntStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -88,13 +90,19 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.node.table.reader.TableSpecConfigTestingUtils;
+import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.Transformation;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  *
@@ -104,6 +112,7 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DefaultTableSpecConfigTest {
 
     private static class DummySource implements Source<String> {
@@ -119,6 +128,12 @@ public class DefaultTableSpecConfigTest {
 
     private static final TypedReaderTableSpec<String> SPEC2 = new TypedReaderTableSpec<>(asList(COL2, COL3));
 
+    private static final TypedReaderTableSpec<String> UNION = new TypedReaderTableSpec<>(asList(COL1, COL2, COL3));
+
+    private static final TypedReaderTableSpec<String> INTERSECTION = new TypedReaderTableSpec<>(asList(COL2));
+
+    private static final RawSpec<String> RAW_SPEC = new RawSpec<>(UNION, INTERSECTION);
+
     private static final String[] ORIGINAL_NAMES = {"A", "B", "C"};
 
     private static final String MOST_GENERIC_EXTERNAL_TYPE = "X";
@@ -132,6 +147,15 @@ public class DefaultTableSpecConfigTest {
     private Path m_path1;
 
     private Path m_path2;
+
+    @Mock
+    private Transformation<String> m_trans1;
+
+    @Mock
+    private Transformation<String> m_trans2;
+
+    @Mock
+    private Transformation<String> m_trans3;
 
     private static ProducerRegistry<String, DummySource> createTestingRegistry() {
         final ProducerRegistry<String, DummySource> registry = MappingFramework.forSourceType(DummySource.class);
@@ -147,8 +171,8 @@ public class DefaultTableSpecConfigTest {
      */
     @Before
     public void init() {
-        m_path1 = TableSpecConfigTestingUtils.mockPath("first");
-        m_path2 = TableSpecConfigTestingUtils.mockPath("second");
+        m_path1 = TRFTestingUtils.mockPath("first");
+        m_path2 = TRFTestingUtils.mockPath("second");
         m_individualSpecs = new LinkedHashMap<>();
         m_individualSpecs.put(m_path1, SPEC1);
         m_individualSpecs.put(m_path2, SPEC2);
@@ -162,47 +186,81 @@ public class DefaultTableSpecConfigTest {
         @SuppressWarnings("unchecked")
         final TransformationModel<String> transformationModel = mock(TransformationModel.class);
 
-        TypedReaderTableSpec<String> rawSpec = new TypedReaderTableSpec<>(asList(COL1, COL2, COL3));
+        RawSpec<String> rawSpec = new RawSpec<>(new TypedReaderTableSpec<>(asList(COL1, COL2, COL3)),
+            new TypedReaderTableSpec<>(asList(COL1, COL3)));
 
         when(transformationModel.getRawSpec()).thenReturn(rawSpec);
 
-        when(transformationModel.getName(COL1)).thenReturn("A");
-        when(transformationModel.getName(COL2)).thenReturn("B");
-        when(transformationModel.getName(COL3)).thenReturn("G");
+        when(transformationModel.getTransformation(COL1)).thenReturn(m_trans1);
+        when(transformationModel.getTransformation(COL2)).thenReturn(m_trans2);
+        when(transformationModel.getTransformation(COL3)).thenReturn(m_trans3);
 
-        when(transformationModel.keep(COL1)).thenReturn(true);
-        when(transformationModel.keep(COL2)).thenReturn(false);
-        when(transformationModel.keep(COL3)).thenReturn(true);
+        when(transformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
+        when(transformationModel.keepUnknownColumns()).thenReturn(true);
+        when(transformationModel.getPositionForUnknownColumns()).thenReturn(3);
 
-        when(transformationModel.getPosition(COL1)).thenReturn(2);
-        when(transformationModel.getPosition(COL2)).thenReturn(0);
-        when(transformationModel.getPosition(COL3)).thenReturn(1);
 
-        final ProductionPath p1 = TableSpecConfigTestingUtils.mockProductionPath();
+        final ProductionPath p1 = TRFTestingUtils.mockProductionPath();
         when(p1.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
-        final ProductionPath p2 = TableSpecConfigTestingUtils.mockProductionPath();
+        final ProductionPath p2 = TRFTestingUtils.mockProductionPath();
         when(p2.getConverterFactory().getDestinationType()).thenReturn(IntCell.TYPE);
-        final ProductionPath p3 = TableSpecConfigTestingUtils.mockProductionPath();
+        final ProductionPath p3 = TRFTestingUtils.mockProductionPath();
         when(p3.getConverterFactory().getDestinationType()).thenReturn(DoubleCell.TYPE);
 
-        when(transformationModel.getProductionPath(COL1)).thenReturn(p1);
-        when(transformationModel.getProductionPath(COL2)).thenReturn(p2);
-        when(transformationModel.getProductionPath(COL3)).thenReturn(p3);
+        new TransformationStubber<>(m_trans1).withName("A").withKeep(true).withPosition(2).withProductionPath(p1);
+        new TransformationStubber<>(m_trans2).withName("B").withKeep(false).withPosition(0).withProductionPath(p2);
+        new TransformationStubber<>(m_trans3).withName("G").withKeep(true).withPosition(1).withProductionPath(p3);
 
         final TableSpecConfig config =
             DefaultTableSpecConfig.createFromTransformationModel(ROOT_PATH, m_individualSpecs, transformationModel);
 
         final String[] expectedOriginalNames = {"A", "B", "C"};
-        final int[] expectedPositionalMapping = {1, 2, 0};
+        final int[] expectedPositionalMapping = {2, 0, 1};
         final boolean[] expectedKeep = {true, false, true};
         final DataTableSpec expectedOutputSpec = new DataTableSpec("default", new String[]{"A", "B", "G"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
         final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, expectedOutputSpec, m_individualSpecs,
-            new ProductionPath[]{p1, p2, p3}, expectedOriginalNames, expectedPositionalMapping, expectedKeep);
+            new ProductionPath[]{p1, p2, p3}, expectedOriginalNames, expectedPositionalMapping, expectedKeep,
+            expectedKeep.length, ColumnFilterMode.UNION, true);
         assertEquals(expected, config);
     }
 
-    // TODO test loading pre 4.3 settings i.e. no names, no positions and no keep
+    private static final class TransformationStubber<T> {
+        private final Transformation<T> m_mockTransformation;
+
+        TransformationStubber(final Transformation<T> mockTransformation) {
+            m_mockTransformation = mockTransformation;
+        }
+
+        TransformationStubber<T> withName(final String name) {
+            when(m_mockTransformation.getName()).thenReturn(name);
+            return this;
+        }
+
+        TransformationStubber<T> withProductionPath(final ProductionPath prodPath) {
+            when(m_mockTransformation.getProductionPath()).thenReturn(prodPath);
+            return this;
+        }
+
+        TransformationStubber<T> withExternalSpec(final TypedReaderColumnSpec<T> spec) {
+            when(m_mockTransformation.getExternalSpec()).thenReturn(spec);
+            return this;
+        }
+
+        TransformationStubber<T> withPosition(final int position) {
+            when(m_mockTransformation.getPosition()).thenReturn(position);
+            return this;
+        }
+
+        TransformationStubber<T> withKeep(final boolean keep) {
+            when(m_mockTransformation.keep()).thenReturn(keep);
+            return this;
+        }
+
+        Transformation<T> getTransformation() {
+            return m_mockTransformation;
+        }
+    }
 
     /**
      * Tests that a {@link DefaultTableSpecConfig} can be correctly loaded after it has been saved to
@@ -214,7 +272,7 @@ public class DefaultTableSpecConfigTest {
     public void testSaveLoad() throws InvalidSettingsException {
         // create a TableSpecConfig
 
-        final DataTableSpec outputSpec = TableSpecConfigTestingUtils.createDataTableSpec("a", "b", "c");
+        final DataTableSpec outputSpec = new DataTableSpec("default", a("a", "b", "c"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
 
         final ProductionPath[] prodPaths =
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
@@ -224,13 +282,14 @@ public class DefaultTableSpecConfigTest {
 
         LinkedHashMap<Path, ReaderTableSpec<?>> individualSpecsWithoutTypes = getIndividualSpecsWithoutTypes();
         final TableSpecConfig cfg = new DefaultTableSpecConfig(ROOT_PATH, outputSpec, individualSpecsWithoutTypes,
-            prodPaths, originalNames, positionalMapping, keep);
+            prodPaths, originalNames, positionalMapping, keep, originalNames.length, ColumnFilterMode.UNION, true);
 
         // tests save / load
         final NodeSettings s = new NodeSettings("origin");
         cfg.save(s);
         DefaultTableSpecConfig.validate(s, REGISTRY);
-        final TableSpecConfig load = DefaultTableSpecConfig.load(s, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE);
+        final TableSpecConfig load =
+            DefaultTableSpecConfig.load(s, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
 
         assertEquals(cfg, load);
 
@@ -239,9 +298,10 @@ public class DefaultTableSpecConfigTest {
         assertFalse(load.isConfiguredWith("foo"));
 
         // test specs
-        assertEquals(outputSpec, load.getDataTableSpec());
+        DataTableSpec loadedDataTableSpec = load.getDataTableSpec();
+        assertEquals(outputSpec, loadedDataTableSpec);
         assertNotEquals(new DataTableSpec(new DataColumnSpecCreator("Blub", IntCell.TYPE).createSpec()),
-            load.getDataTableSpec());
+            loadedDataTableSpec);
 
         // test production paths
         assertArrayEquals(prodPaths, load.getProductionPaths());
@@ -265,31 +325,19 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "G"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{2, 0, 1}, new boolean[]{true, false, true});
+            new int[]{1, 2, 0}, new boolean[]{true, false, true}, 3, ColumnFilterMode.UNION, true);
 
         final TransformationModel<String> tm = tsc.getTransformationModel();
-        final TypedReaderTableSpec<String> expectedRawSpec =
-            TableSpecConfigTestingUtils.createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
-        assertEquals(expectedRawSpec, tm.getRawSpec());
-
-        assertEquals("A", tm.getName(COL1));
-        assertEquals("B", tm.getName(COL2));
-        assertEquals("G", tm.getName(COL3));
-
-        assertEquals(1, tm.getPosition(COL1));
-        assertEquals(2, tm.getPosition(COL2));
-        assertEquals(0, tm.getPosition(COL3));
+        assertEquals(RAW_SPEC, tm.getRawSpec());
 
         final ProductionPath[] expectedProdPaths =
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
-        assertEquals(expectedProdPaths[0], tm.getProductionPath(COL1));
-        assertEquals(expectedProdPaths[1], tm.getProductionPath(COL2));
-        assertEquals(expectedProdPaths[2], tm.getProductionPath(COL3));
 
-        assertEquals(true, tm.keep(COL1));
-        assertEquals(false, tm.keep(COL2));
-        assertEquals(true, tm.keep(COL3));
+        checkTransformation(tm.getTransformation(COL1), COL1, "A", expectedProdPaths[0], 1, true);
+        checkTransformation(tm.getTransformation(COL2), COL2, "B", expectedProdPaths[1], 2, false);
+        checkTransformation(tm.getTransformation(COL3), COL3, "G", expectedProdPaths[2], 0, true);
     }
+
 
     private static ProductionPath[] getProductionPaths(final String[] externalTypes, final DataType[] knimeTypes) {
         return IntStream.range(0, externalTypes.length)
@@ -311,8 +359,9 @@ public class DefaultTableSpecConfigTest {
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final int[] positionalMapping = {1, 0, 2};
         final boolean[] keep = {true, false, true};
-        final DefaultTableSpecConfig config = new DefaultTableSpecConfig(ROOT_PATH, expectedOutputSpec,
-            m_individualSpecs, productionPaths, ORIGINAL_NAMES, positionalMapping, keep);
+        final DefaultTableSpecConfig config =
+            new DefaultTableSpecConfig(ROOT_PATH, expectedOutputSpec, m_individualSpecs, productionPaths,
+                ORIGINAL_NAMES, positionalMapping, keep, keep.length, ColumnFilterMode.UNION, true);
 
         final NodeSettings settings = new NodeSettings("test");
         config.save(settings);
@@ -340,7 +389,8 @@ public class DefaultTableSpecConfigTest {
     public void testLoadPre43() throws InvalidSettingsException {
         final NodeSettings settings = create42Settings();
 
-        final TableSpecConfig loaded = DefaultTableSpecConfig.load(settings, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE);
+        final TableSpecConfig loaded = DefaultTableSpecConfig.load(settings, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE,
+            SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
 
         final DataTableSpec fullKnimeSpec =
             new DataTableSpec("default", a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, StringCell.TYPE));
@@ -353,7 +403,7 @@ public class DefaultTableSpecConfigTest {
         // TODO extract method
         final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
         final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, fullKnimeSpec, individualSpecs,
-            prodPaths, originalNames, positions, keep);
+            prodPaths, originalNames, positions, keep, keep.length, ColumnFilterMode.UNION, true);
         assertEquals(expected, loaded);
     }
 
@@ -400,7 +450,7 @@ public class DefaultTableSpecConfigTest {
      */
     @Test
     public void testLoad() throws InvalidSettingsException {
-        final ProductionPath[] productionPaths = getProductionPaths(a("Y"), a(IntCell.TYPE));
+        final ProductionPath[] productionPaths = getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         String[] originalNames = a("A", "B", "C");
         final DataTableSpec tableSpec =
             new DataTableSpec(originalNames, a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
@@ -410,11 +460,12 @@ public class DefaultTableSpecConfigTest {
         final NodeSettings settings =
             createSettings(tableSpec, productionPaths, m_individualSpecs, originalNames, positions, keep);
 
-        final TableSpecConfig loaded = DefaultTableSpecConfig.load(settings, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE);
+        final TableSpecConfig loaded = DefaultTableSpecConfig.load(settings, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE,
+            SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
 
         final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
         final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, individualSpecs,
-            productionPaths, originalNames, positions, keep);
+            productionPaths, originalNames, positions, keep, keep.length, ColumnFilterMode.UNION, true);
         assertEquals(expected, loaded);
     }
 
@@ -429,7 +480,7 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{0, 1, 2}, new boolean[]{true, true, true});
+            new int[]{0, 1, 2}, new boolean[]{true, true, true}, 3, ColumnFilterMode.UNION, true);
         assertTrue(tsc.isConfiguredWith(ROOT_PATH));
         assertFalse(tsc.isConfiguredWith("foobar"));
 
@@ -451,7 +502,7 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{2, 0, 1}, new boolean[]{true, false, true});
+            new int[]{2, 0, 1}, new boolean[]{true, false, true}, 3, ColumnFilterMode.UNION, true);
 
         final DataTableSpec expected = new DataTableSpec("default", a("C", "A"), a(DoubleCell.TYPE, StringCell.TYPE));
         assertEquals(expected, tsc.getDataTableSpec());
@@ -463,7 +514,7 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{0, 1, 2}, new boolean[]{true, true, true});
+            new int[]{0, 1, 2}, new boolean[]{true, true, true}, 3, ColumnFilterMode.UNION, true);
         assertEquals(asList("first", "second"), tsc.getPaths());
     }
 
@@ -473,7 +524,7 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{0, 1, 2}, new boolean[]{true, true, true});
+            new int[]{0, 1, 2}, new boolean[]{true, true, true}, 3, ColumnFilterMode.UNION, true);
 
         assertEquals(m_individualSpecs.get(m_path1), tsc.getSpec("first"));
         assertEquals(m_individualSpecs.get(m_path2), tsc.getSpec("second"));
@@ -485,7 +536,7 @@ public class DefaultTableSpecConfigTest {
             new DataTableSpec(a("A", "B", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
-            new int[]{2, 0, 1}, new boolean[]{true, false, true});
+            new int[]{2, 0, 1}, new boolean[]{true, false, true}, 3, ColumnFilterMode.UNION, true);
 
         final ProductionPath[] expected = getProductionPaths(a("Z", "X"), a(DoubleCell.TYPE, StringCell.TYPE));
 
@@ -560,7 +611,7 @@ public class DefaultTableSpecConfigTest {
         boolean[] keep = new boolean[]{true, false, true};
 
         final DefaultTableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs,
-            productionPaths, originalNames, positions, keep);
+            productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
 
         assertTrue(tsc.equals(tsc));
         assertFalse(tsc.equals(null));
@@ -569,25 +620,25 @@ public class DefaultTableSpecConfigTest {
         assertFalse(tsc.equals("SomeString"));
 
         final DefaultTableSpecConfig equal = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs,
-            productionPaths, originalNames, positions, keep);
+            productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
 
         assertTrue(tsc.equals(equal));
         assertEquals(tsc.hashCode(), equal.hashCode());
 
         final DefaultTableSpecConfig differentRoot = new DefaultTableSpecConfig("different_root", tableSpec,
-            m_individualSpecs, productionPaths, originalNames, positions, keep);
+            m_individualSpecs, productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
         assertFalse(tsc.equals(differentRoot));
 
         final DefaultTableSpecConfig differentNames = new DefaultTableSpecConfig(ROOT_PATH,
             new DataTableSpec(a("K", "L", "C"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), m_individualSpecs,
-            productionPaths, originalNames, positions, keep);
+            productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
 
         assertFalse(tsc.equals(differentNames));
 
         DataType[] types = a(LongCell.TYPE, IntCell.TYPE, DoubleCell.TYPE);
-        final DefaultTableSpecConfig differentTypes =
-            new DefaultTableSpecConfig(ROOT_PATH, new DataTableSpec(a("A", "B", "C"), types), m_individualSpecs,
-                getProductionPaths(a("X", "Y", "Z"), types), originalNames, positions, keep);
+        final DefaultTableSpecConfig differentTypes = new DefaultTableSpecConfig(ROOT_PATH,
+            new DataTableSpec(a("A", "B", "C"), types), m_individualSpecs, getProductionPaths(a("X", "Y", "Z"), types),
+            originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
         assertFalse(tsc.equals(differentTypes));
 
         Map<Path, ReaderTableSpec<?>> differentPathMap = new LinkedHashMap<>();
@@ -595,24 +646,28 @@ public class DefaultTableSpecConfigTest {
         differentPathMap.put(m_path2, SPEC2);
 
         final DefaultTableSpecConfig differentPaths = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentPathMap,
-            productionPaths, originalNames, positions, keep);
+            productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true);
         assertFalse(tsc.equals(differentPaths));
 
-        final TypedReaderTableSpec<String> diffIndividualSpec = TableSpecConfigTestingUtils.createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
+        final TypedReaderTableSpec<String> diffIndividualSpec =
+            TRFTestingUtils.createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
         Map<Path, ReaderTableSpec<?>> differentIndividualSpecMap = new LinkedHashMap<>();
         differentIndividualSpecMap.put(m_path1, diffIndividualSpec);
         differentIndividualSpecMap.put(m_path2, SPEC2);
-        final DefaultTableSpecConfig differentIndividualSpec = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentIndividualSpecMap,
-            productionPaths, originalNames, positions, keep);
+        final DefaultTableSpecConfig differentIndividualSpec =
+            new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentIndividualSpecMap, productionPaths, originalNames,
+                positions, keep, 3, ColumnFilterMode.UNION, true);
 
         assertFalse(tsc.equals(differentIndividualSpec));
 
-        final DefaultTableSpecConfig differentPositions = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs,
-            productionPaths, originalNames, new int[] {0, 1, 2}, keep);
+        final DefaultTableSpecConfig differentPositions =
+            new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs, productionPaths, originalNames,
+                new int[]{0, 1, 2}, keep, 3, ColumnFilterMode.UNION, true);
         assertFalse(tsc.equals(differentPositions));
 
-        final DefaultTableSpecConfig differentKeep = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs,
-            productionPaths, originalNames, positions, new boolean[] {true, true, true});
+        final DefaultTableSpecConfig differentKeep =
+            new DefaultTableSpecConfig(ROOT_PATH, tableSpec, m_individualSpecs, productionPaths, originalNames,
+                positions, new boolean[]{true, true, true}, 3, ColumnFilterMode.UNION, true);
         assertFalse(tsc.equals(differentKeep));
     }
 

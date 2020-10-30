@@ -48,125 +48,91 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.Transformation;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Default implementation of a {@link TransformationModel} that holds the information for each column in a separate
- * tuple object.
+ * Default implementation of a {@link TransformationModel}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify external types
  */
 public final class DefaultTransformationModel<T> implements TransformationModel<T> {
 
-    private final Map<TypedReaderColumnSpec<T>, ColumnTransformation> m_transformations;
+    private final Map<TypedReaderColumnSpec<T>, Transformation<T>> m_transformations;
 
-    private final TypedReaderTableSpec<T> m_rawSpec;
+    private final RawSpec<T> m_rawSpec;
+
+    private final ColumnFilterMode m_columnFilterMode;
+
+    private final int m_unknownColumnPosition;
+
+    private final boolean m_includeUnknownColumns;
 
     /**
      * Constructor.
      *
-     * @param rawSpec the raw {@link TypedReaderTableSpec}
-     * @param productionPaths the {@link ProductionPath ProductionPaths} for type mapping
-     * @param names contains the name for each column in the output
-     * @param positions the position of each column in the output table
-     * @param kept which columns are to be kept in the output
+     * @param rawSpec the {@link RawSpec}
+     * @param transformations the transformations
+     * @param columnFilterMode indicating which columns should be included
+     * @param includeUnknownColumns flag indicating if new columns should be included or not
+     * @param unknownColumnPosition the positions at which new columns should be inserted
      */
-    public DefaultTransformationModel(final TypedReaderTableSpec<T> rawSpec, final ProductionPath[] productionPaths,
-        final String[] names, final Map<TypedReaderColumnSpec<T>, Integer> positions,
-        final Set<TypedReaderColumnSpec<T>> kept) {
+    public DefaultTransformationModel(final RawSpec<T> rawSpec, final Collection<Transformation<T>> transformations,
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final int unknownColumnPosition) {
         m_rawSpec = rawSpec;
-        m_transformations = new HashMap<>(rawSpec.size());
-        for (int i = 0; i < rawSpec.size(); i++) {
-            TypedReaderColumnSpec<T> columnSpec = rawSpec.getColumnSpec(i);
-            m_transformations.put(columnSpec, new ColumnTransformation(productionPaths[i], kept.contains(columnSpec),
-                positions.get(columnSpec), names[i]));
-        }
-    }
-
-    /**
-     * Constructor that keeps the column order and doesn't remove or rename any columns.
-     *
-     * @param rawSpec the raw {@link TypedReaderTableSpec}
-     * @param productionPaths the {@link ProductionPath ProductionPaths} for type mapping
-     */
-    public DefaultTransformationModel(final TypedReaderTableSpec<T> rawSpec, final ProductionPath[] productionPaths) {
-        this(rawSpec, //
-            productionPaths, //
-            rawSpec.stream().map(MultiTableUtils::getNameAfterInit).toArray(String[]::new), //
-            IntStream.range(0, rawSpec.size())//
-                .boxed()//
-                .collect(toMap(rawSpec::getColumnSpec, Function.identity())), //
-            rawSpec.stream().collect(toSet()));
+        m_transformations =
+            transformations.stream().collect(Collectors.toMap(Transformation::getExternalSpec, Function.identity()));
+        m_columnFilterMode = columnFilterMode;
+        m_includeUnknownColumns = includeUnknownColumns;
+        m_unknownColumnPosition = unknownColumnPosition;
     }
 
     @Override
-    public TypedReaderTableSpec<T> getRawSpec() {
+    public RawSpec<T> getRawSpec() {
         return m_rawSpec;
     }
 
-    private ColumnTransformation getTransformation(final TypedReaderColumnSpec<T> column) {
-        final ColumnTransformation transformation = m_transformations.get(column);
+    @Override
+    public boolean hasTransformationFor(final TypedReaderColumnSpec<T> column) {
+        return m_transformations.containsKey(column);
+    }
+
+    @Override
+    public Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column) {
+        final Transformation<T> transformation = m_transformations.get(column);
         CheckUtils.checkArgument(transformation != null, "No transformation for unknown column '%s' found.", column);
         return transformation;
     }
 
     @Override
-    public ProductionPath getProductionPath(final TypedReaderColumnSpec<T> column) {
-        return getTransformation(column).m_productionPath;
+    public int getPositionForUnknownColumns() {
+        return m_unknownColumnPosition;
     }
 
     @Override
-    public String getName(final TypedReaderColumnSpec<T> column) {
-        return getTransformation(column).m_name;
+    public ColumnFilterMode getColumnFilterMode() {
+        return m_columnFilterMode;
     }
 
     @Override
-    public boolean keep(final TypedReaderColumnSpec<T> column) {
-        return getTransformation(column).m_keep;
+    public boolean keepUnknownColumns() {
+        return m_includeUnknownColumns;
     }
 
     @Override
-    public int getPosition(final TypedReaderColumnSpec<T> column) {
-        return getTransformation(column).m_position;
-    }
-
-    /**
-     * Tuple holding the transformation for an individual column.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    private static final class ColumnTransformation {
-
-        private final ProductionPath m_productionPath;
-
-        private final boolean m_keep;
-
-        private final int m_position;
-
-        private final String m_name;
-
-        ColumnTransformation(final ProductionPath productionPath, final boolean keep, final int position,
-            final String name) {
-            m_productionPath = productionPath;
-            m_keep = keep;
-            m_position = position;
-            m_name = name;
-        }
+    public Stream<Transformation<T>> stream() {
+        return m_transformations.values().stream().map(Function.identity());
     }
 
 }
