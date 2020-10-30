@@ -49,17 +49,19 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.io.IOException;
-import java.util.function.Function;
 
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationPanel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationTableModel;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 
 /**
@@ -76,23 +78,29 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
 
     private final TableReaderPreviewView m_preview;
 
+    private final TransformationPanel m_specTransformer;
+
     private boolean m_ignoreEvents = false;
 
     /**
      * Constructor.
      *
      * @param readFactory the {@link MultiTableReadFactory} to use for reading
-     * @param defaultProductionPathProvider provides the default production paths for every external type
+     * @param productionPathProvider provides the default production paths for every external type
+     * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
      */
+    @SuppressWarnings("unchecked")
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<C, T> readFactory,
-        final Function<T, ProductionPath> defaultProductionPathProvider) {
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_preview = new TableReaderPreviewView(previewModel);
         final TransformationTableModel<T> transformationModel =
-            new TransformationTableModel<>(defaultProductionPathProvider);
+            new TransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
+        m_specTransformer = new TransformationPanel(transformationModel,
+            t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
     }
 
     /**
@@ -102,6 +110,15 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      */
     protected final TableReaderPreviewView getPreview() {
         return m_preview;
+    }
+
+    /**
+     * Returns the {@link TransformationPanel} that allows to alter the table structure.
+     *
+     * @return the {@link TransformationPanel}
+     */
+    protected final TransformationPanel getTransformationPanel() {
+        return m_specTransformer;
     }
 
     /**
@@ -143,9 +160,14 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         m_coordinator.load(transformationModel);
     }
 
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_specTransformer.commitChanges();
+    }
+
     /**
-     * Retrieves the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available e.g. if the
-     * current settings are invalid and thus no preview could be loaded.
+     * Retrieves the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available e.g. if
+     * the current settings are invalid and thus no preview could be loaded.
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
@@ -176,6 +198,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     @Override
     public void onClose() {
         m_coordinator.onClose();
+        m_specTransformer.onClose();
         super.onClose();
     }
 }

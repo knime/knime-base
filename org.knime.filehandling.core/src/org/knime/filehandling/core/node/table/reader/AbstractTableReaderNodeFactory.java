@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -69,8 +68,6 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTabl
 import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.mapping.DefaultTypeMappingFactory;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMappingFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
@@ -143,13 +140,13 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     @Override
     protected final NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadFactory<C, T> readFactory = createMultiTableReadFactory();
-        final ProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
-        return createNodeDialogPane(creationConfig, readFactory, productionPathProvider::getDefaultProductionPath);
+        final DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
+        return createNodeDialogPane(creationConfig, readFactory, productionPathProvider);
     }
 
-    private ProductionPathProvider<T> createProductionPathProvider() {
+    private DefaultProductionPathProvider<T> createProductionPathProvider() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        return new ProductionPathProvider<>(readAdapterFactory.getProducerRegistry(),
+        return new DefaultProductionPathProvider<>(readAdapterFactory.getProducerRegistry(),
             readAdapterFactory.getDefaultTypeMap());
     }
 
@@ -163,7 +160,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      */
     protected abstract AbstractTableReaderNodeDialog<C, T> createNodeDialogPane(
         final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<C, T> readFactory,
-        final Function<T, ProductionPath> defaultProductionPathFn);
+        final ProductionPathProvider<T> defaultProductionPathFn);
 
     /**
      * Creates a new @link MultiTableReader and returns it.
@@ -176,13 +173,11 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
 
     private MultiTableReadFactory<C, T> createMultiTableReadFactory() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        ProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
-        final TypeMappingFactory<C, T, V> typeMappingFactory =
-            new DefaultTypeMappingFactory<>(readAdapterFactory, productionPathProvider::getDefaultProductionPath);
+        DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         final RowKeyGeneratorContextFactory<V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
-        return new DefaultMultiTableReadFactory<>(typeMappingFactory,
-            getTypeHierarchy(), rowKeyGenFactory, createReader());
+        return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory,
+            createReader(), productionPathProvider, readAdapterFactory::createReadAdapter);
     }
 
     @Override
@@ -197,8 +192,8 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     /**
      * Creates a {@link MultiTableReadConfig} for use in a reader node model.</br>
      * An easy way to create an initial config for prototyping is
-     * {@link DefaultMultiTableReadConfig#create(ReaderSpecificConfig, ConfigSerializer, ProducerRegistry, Object)} but it is
-     * highly recommended to adjust the settings structure to fit the dialog of your reader node.
+     * {@link DefaultMultiTableReadConfig#create(ReaderSpecificConfig, ConfigSerializer, ProducerRegistry, Object)} but
+     * it is highly recommended to adjust the settings structure to fit the dialog of your reader node.
      *
      * @return {@link MultiTableReadConfig} for a node model
      */

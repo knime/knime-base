@@ -60,7 +60,6 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Optional;
-import java.util.function.Function;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -95,6 +94,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
@@ -201,13 +201,14 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * @param pathSettings the path settings
      * @param config the config
      * @param multiReader the multi reader
-     * @param defaultProductionPathFn provides the default {@link ProductionPath} for a specific column type
+     * @param productionPathProvider provides the default {@link ProductionPath} for a specific column type
+     * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
-        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
-        super(multiReader, defaultProductionPathFn);
+        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
+        super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
         init(pathSettings);
         m_pathSettings = pathSettings;
         m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
@@ -275,6 +276,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
         addTab("Settings", initLayout());
+        addTab("Transformation", getTransformationPanel());
         addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
@@ -730,10 +732,21 @@ public abstract class AbstractCSVTableReaderNodeDialog
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected final void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        super.saveSettingsTo(settings);
+        saveAdditionalSettingsTo(settings);
         saveConfig();
         m_config.saveInModel(settings);
     }
+
+    /**
+     * Allows to save additional settings in subclasses.
+     *
+     * @param settings to save to
+     * @throws InvalidSettingsException if the additional settings can't be saved
+     */
+    protected abstract void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException;
+
 
     /**
      * Fill in the setting values in {@link TableReadConfig} using values from dialog.
