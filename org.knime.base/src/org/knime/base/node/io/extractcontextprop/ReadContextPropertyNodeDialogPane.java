@@ -77,16 +77,19 @@ final class ReadContextPropertyNodeDialogPane extends NodeDialogPane {
 
     private final ColumnFilterPanel m_filterPanel;
     private final JCheckBox m_extractAllPropertiesChecker;
+    private final boolean m_allowNullValues;
 
     /**
      *
      */
-    ReadContextPropertyNodeDialogPane() {
+    ReadContextPropertyNodeDialogPane(final boolean allowNullValues) {
+        m_allowNullValues = allowNullValues;
         m_filterPanel = new ColumnFilterPanel(false);
         m_extractAllPropertiesChecker = new JCheckBox(
                 "Extract all available properties");
         m_extractAllPropertiesChecker.addItemListener(new ItemListener() {
             /** {@inheritDoc} */
+            @Override
             public void itemStateChanged(final ItemEvent e) {
                 onExtractAllChange();
             }
@@ -110,7 +113,7 @@ final class ReadContextPropertyNodeDialogPane extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
-        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration();
+        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration(m_allowNullValues);
         c.setExtractAllProps(m_extractAllPropertiesChecker.isSelected());
         Set<String> ins = m_filterPanel.getIncludedColumnSet();
         String[] included = ins.toArray(new String[ins.size()]);
@@ -123,10 +126,10 @@ final class ReadContextPropertyNodeDialogPane extends NodeDialogPane {
     @SuppressWarnings("unchecked")
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
-        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration();
+        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration(m_allowNullValues);
         c.loadSettingsNoFail(settings);
         Map<String, String> allProps =
-            ReadContextPropertyConfiguration.readAllProps();
+            ReadContextPropertyConfiguration.readAllProps(m_allowNullValues);
         DataColumnSpec[] propsAsCols = new DataColumnSpec[allProps.size()];
         int index = 0;
         for (String s : allProps.keySet()) {
