@@ -90,6 +90,29 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#gridx} and {@link GridBagConstraints#gridy} properties to the provided
+     * <b>x</b> and <b>y</b> coordinates.
+     *
+     * @param x coordinate
+     * @param y coordinate
+     * @return this builder
+     */
+    public GBCBuilder pos(final int x, final int y) {
+        setX(x);
+        setY(y);
+        return this;
+    }
+
+    /**
+     * Resets the {@link GridBagConstraints#gridx} and {@link GridBagConstraints#gridy} properties to {@code 0}.
+     *
+     * @return this builder
+     */
+    public GBCBuilder resetPos() {
+        return resetX().resetY();
+    }
+
+    /**
      * Sets the {@link GridBagConstraints#gridx} property to <b>x</b>.
      *
      * @param x the horizontal position in the grid
@@ -173,6 +196,17 @@ public final class GBCBuilder {
     }
 
     /**
+     * Sets the {@link GridBagConstraints#weightx} property to <b>weightX</b> and the {@link GridBagConstraints#weighty} to <b>weightY</b>.
+     *
+     * @param weightX the horizontal weight
+     * @param weightY the vertical weight
+     * @return this builder
+     */
+    public GBCBuilder weight(final double weightX, final double weightY) {
+        return setWeightX(weightX).setWeightY(weightY);
+    }
+
+    /**
      * Sets the {@link GridBagConstraints#weighty} property to <b>weight</b>.
      *
      * @param weight the weight for vertical resizing
@@ -213,8 +247,7 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder widthRemainder() {
-        m_gbc.gridwidth = GridBagConstraints.REMAINDER;
-        return this;
+        return setWidth(GridBagConstraints.REMAINDER);
     }
 
     /**
@@ -223,8 +256,7 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder fillHorizontal() {
-        m_gbc.fill = GridBagConstraints.HORIZONTAL;
-        return this;
+        return fill(GridBagConstraints.HORIZONTAL);
     }
 
     /**
@@ -233,8 +265,7 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder fillVertical() {
-        m_gbc.fill = GridBagConstraints.VERTICAL;
-        return this;
+        return fill(GridBagConstraints.VERTICAL);
     }
 
     /**
@@ -243,8 +274,7 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder fillBoth() {
-        m_gbc.fill = GridBagConstraints.BOTH;
-        return this;
+        return fill(GridBagConstraints.BOTH);
     }
 
     /**
@@ -253,7 +283,11 @@ public final class GBCBuilder {
      * @return this builder
      */
     public GBCBuilder fillNone() {
-        m_gbc.fill = GridBagConstraints.NONE;
+        return fill(GridBagConstraints.NONE);
+    }
+
+    private GBCBuilder fill(final int fill) {
+        m_gbc.fill = fill;
         return this;
     }
 
