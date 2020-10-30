@@ -73,10 +73,12 @@ final class ReadContextPropertyNodeModel extends NodeModel {
 
     private ReadContextPropertyConfiguration m_config;
 
-    /** No input, one output. */
-    public ReadContextPropertyNodeModel() {
-        super(new PortType[]{},
-            new PortType[]{FlowVariablePortObject.TYPE});
+    /** Came into existence as part of AP-15364 -- null (old) vs. "" (new). */
+    private final boolean m_allowNullValues;
+
+    ReadContextPropertyNodeModel(final boolean allowNullValues) {
+        super(new PortType[]{}, new PortType[]{FlowVariablePortObject.TYPE});
+        m_allowNullValues = allowNullValues;
     }
 
     /** {@inheritDoc} */
@@ -84,7 +86,7 @@ final class ReadContextPropertyNodeModel extends NodeModel {
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
         if (m_config == null) {
-            m_config = new ReadContextPropertyConfiguration();
+            m_config = new ReadContextPropertyConfiguration(m_allowNullValues);
             m_config.loadSettingsNoFail(new NodeSettings("empty"));
             setWarningMessage("Auto-configuration: "
                     + "extracting all available properties");
@@ -131,14 +133,14 @@ final class ReadContextPropertyNodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        new ReadContextPropertyConfiguration().loadSettings(settings);
+        new ReadContextPropertyConfiguration(m_allowNullValues).loadSettings(settings);
     }
 
     /** {@inheritDoc} */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration();
+        ReadContextPropertyConfiguration c = new ReadContextPropertyConfiguration(m_allowNullValues);
         c.loadSettings(settings);
         m_config = c;
     }

@@ -70,6 +70,12 @@ final class ReadContextPropertyConfiguration {
 
     private String[] m_selectedProps;
 
+    private final boolean m_allowNullValues;
+
+    ReadContextPropertyConfiguration(final boolean allowNullValues) {
+        m_allowNullValues = allowNullValues;
+    }
+
     /** @return the isExtractAllProps */
     boolean isExtractAllProps() {
         return m_isExtractAllProps;
@@ -127,7 +133,7 @@ final class ReadContextPropertyConfiguration {
     void loadSettingsNoFail(final NodeSettingsRO settings) {
         m_isExtractAllProps = settings.getBoolean("isExtractAllProps", true);
         if (!m_isExtractAllProps) {
-            Set<String> allPropKeys = readAllProps().keySet();
+            Set<String> allPropKeys = readAllProps(m_allowNullValues).keySet();
             String[] defSelProps = allPropKeys.toArray(new String[allPropKeys.size()]);
             m_selectedProps = settings.getStringArray("selectedProps", defSelProps);
             boolean isNothingSelected = m_selectedProps == null || m_selectedProps.length == 0;
@@ -142,14 +148,21 @@ final class ReadContextPropertyConfiguration {
      *
      * @return A new map of string containing all system properties.
      */
-    static Map<String, String> readAllProps() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
+    static Map<String, String> readAllProps(final boolean allowNullValues) {
+        Map<String, String> result = new LinkedHashMap<>();
 
         for (String property : getContextProperties()) {
-            String value = extractContextProperty(property);
+            String value = handleNull(extractContextProperty(property), allowNullValues);
             result.put(property, value);
         }
         return result;
+    }
+
+    private static String handleNull(final String value, final boolean allowNullValues) {
+        if (!allowNullValues && value == null) {
+            return "";
+        }
+        return value;
     }
 
     /**
@@ -162,19 +175,21 @@ final class ReadContextPropertyConfiguration {
         Map<String, String> props;
         String message = null;
         if (isExtractAllProps()) {
-            props = readAllProps();
+            props = readAllProps(m_allowNullValues);
         } else {
             props = new LinkedHashMap<String, String>();
             String[] selectedProps = getSelectedProps();
             if (selectedProps == null || selectedProps.length == 0) {
                 throw new InvalidSettingsException("No properties selected");
             }
-            List<String> ignored = new ArrayList<String>();
+            // this code is ignored in the "newer" version of the code (since 4.2.3) -- null values are
+            // no longer permitted and will be represented by an empty string ;
+            List<String> ignored = new ArrayList<>();
             for (String s : selectedProps) {
                 final String value;
                 try {
-                    value = extractContextProperty(s);
-                } catch (final IllegalArgumentException argumentException) {
+                    value = handleNull(extractContextProperty(s), m_allowNullValues);
+                } catch (final IllegalArgumentException ex) { // NOSONAR
                     ignored.add(s);
                     continue;
                 }

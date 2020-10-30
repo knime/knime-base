@@ -52,22 +52,25 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
+ * "Newer" version of {@link ReadContextPropertyNodeFactory}, which will use a empty string ("") instead of null for
+ * "context.job.id". See also AP-15364 (Extract Context Properties: inconsistent output of context.job.id when running
+ * on AP).
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-public class ReadContextPropertyNodeFactory extends
+public class ReadContextProperty2NodeFactory extends
         NodeFactory<ReadContextPropertyNodeModel> {
 
     /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ReadContextPropertyNodeDialogPane(true);
+        return new ReadContextPropertyNodeDialogPane(false);
     }
 
     /** {@inheritDoc} */
     @Override
     public ReadContextPropertyNodeModel createNodeModel() {
-        return new ReadContextPropertyNodeModel(true);
+        return new ReadContextPropertyNodeModel(false);
     }
 
     /** {@inheritDoc} */

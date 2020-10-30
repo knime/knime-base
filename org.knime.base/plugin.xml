@@ -1683,7 +1683,14 @@
       <node
             after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
             category-path="/io/io-other"
+            deprecated="true"
             factory-class="org.knime.base.node.io.extractcontextprop.ReadContextPropertyNodeFactory"
+            >
+      </node>
+      <node
+            after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
+            category-path="/io/io-other"
+            factory-class="org.knime.base.node.io.extractcontextprop.ReadContextProperty2NodeFactory"
             >
       </node>
       <node
