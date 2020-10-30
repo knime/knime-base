@@ -44,84 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.selector;
 
-import java.util.stream.Stream;
-
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * The model of a selector. </br>
- * Specifies type mapping, column filtering and reordering information.
+ * A Transformation represents changes to a particular column, such as its name, its {@link ProductionPath}, whether it
+ * is part of the output and its position in the output.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify external types
+ * @param <T> The type used to identify external data types
  */
-public interface TransformationModel<T> {
+public interface Transformation<T> extends Comparable<Transformation<T>> {
 
     /**
-     * Indicates whether there exists a {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Returns the name the column should have in the output.
      *
-     * @param column in question
-     * @return {@code true} if there is a {@link Transformation} available for {@link TypedReaderColumnSpec column}
+     * @return the output name
      */
-    boolean hasTransformationFor(final TypedReaderColumnSpec<T> column);
+    String getName();
 
     /**
-     * Retrieves the {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Convenience method to access the name of the {@link #getExternalSpec() external spec}.
      *
-     * @param column for which to retrieve the {@link Transformation}
-     * @return the {@link Transformation} for {@link TypedReaderColumnSpec column}
+     * @return the name of the external spec
      */
-    Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column);
-
-    /**
-     * Creates a {@link Stream} of the contained {@link Transformation Transformations}.</br>
-     * The stream does not provide any guarantees on the order of the transformations it contains.
-     *
-     * @return a {@link Stream} of the contained {@link Transformation Transformations}
-     */
-    Stream<Transformation<T>> stream();
-
-    /**
-     * Returns the number of {@link Transformation Transformations} stored in this model.</br>
-     * Must be equal to the number of columns in the union of {@link #getRawSpec()}.
-     *
-     * @return the number of {@link Transformation Transformations} stored in this model
-     */
-    default int size() {
-        return getRawSpec().getUnion().size();
+    default String getOriginalName() {
+        return MultiTableUtils.getNameAfterInit(getExternalSpec());
     }
 
     /**
-     * Returns the position at which new unknown columns should be inserted.
+     * Returns the {@link ProductionPath} for mapping the column to a KNIME type.
      *
-     * @return the position where new unknown columns should be inserted
+     * @return the {@link ProductionPath}
      */
-    int getPositionForUnknownColumns();
+    ProductionPath getProductionPath();
 
     /**
-     * Indicates whether unknown columns should be kept or ignored.
+     * Indicates whether the column should be part of the output or not.
      *
-     * @return {@code true} if unknown columns should be part of the output
+     * @return {@code true} if the column should be kept, otherwise {@code false}
      */
-    boolean keepUnknownColumns();
+    boolean keep();
 
     /**
-     * The {@link ColumnFilterMode} indicates which columns should be taken into account for the output.
+     * The position of the column in the output.</br>
+     * Note that it has to be assumed that this position is with respect to all columns even those that are filtered out.
+     * Hence the final output position has to be determined by taking filtered out columns into account.
      *
-     * @return the {@link ColumnFilterMode}
+     * @return the position in the unfiltered output table
      */
-    ColumnFilterMode getColumnFilterMode();
+    int getPosition();
+
+    @Override
+    default int compareTo(final Transformation<T> o) {
+        return Integer.compare(getPosition(), o.getPosition());
+    }
 
     /**
-     * Retrieves the {@link TypedReaderTableSpec} this {@link TransformationModel} operates on.
+     * Returns the {@link TypedReaderColumnSpec} this instance refers to.
      *
-     * @return the {@link TypedReaderTableSpec} underlying this {@link TransformationModel}
+     * @return the {@link TypedReaderColumnSpec} this instance refers to
      */
-    RawSpec<T> getRawSpec();
+    TypedReaderColumnSpec<T> getExternalSpec();
 
 }

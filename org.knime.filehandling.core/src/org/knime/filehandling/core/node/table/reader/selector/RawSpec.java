@@ -44,84 +44,89 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.selector;
 
-import java.util.stream.Stream;
-
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * The model of a selector. </br>
- * Specifies type mapping, column filtering and reordering information.
+ * Represents the tuple of the union and intersection of all individual specs.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify external types
+ * @param <T> type used to identify external data types
  */
-public interface TransformationModel<T> {
+public final class RawSpec<T> {
+
+    private final TypedReaderTableSpec<T> m_union;
+
+    private final TypedReaderTableSpec<T> m_intersection;
+
+    private final int m_hashCode;
 
     /**
-     * Indicates whether there exists a {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Constructor.
      *
-     * @param column in question
-     * @return {@code true} if there is a {@link Transformation} available for {@link TypedReaderColumnSpec column}
+     * @param union of all {@link TypedReaderTableSpec individual specs}
+     * @param intersection of all {@link TypedReaderTableSpec individual specs}
      */
-    boolean hasTransformationFor(final TypedReaderColumnSpec<T> column);
-
-    /**
-     * Retrieves the {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
-     *
-     * @param column for which to retrieve the {@link Transformation}
-     * @return the {@link Transformation} for {@link TypedReaderColumnSpec column}
-     */
-    Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column);
-
-    /**
-     * Creates a {@link Stream} of the contained {@link Transformation Transformations}.</br>
-     * The stream does not provide any guarantees on the order of the transformations it contains.
-     *
-     * @return a {@link Stream} of the contained {@link Transformation Transformations}
-     */
-    Stream<Transformation<T>> stream();
-
-    /**
-     * Returns the number of {@link Transformation Transformations} stored in this model.</br>
-     * Must be equal to the number of columns in the union of {@link #getRawSpec()}.
-     *
-     * @return the number of {@link Transformation Transformations} stored in this model
-     */
-    default int size() {
-        return getRawSpec().getUnion().size();
+    public RawSpec(final TypedReaderTableSpec<T> union, final TypedReaderTableSpec<T> intersection) {
+        m_union = union;
+        m_intersection = intersection;
+        m_hashCode = new HashCodeBuilder().append(union).append(intersection).build();
     }
 
     /**
-     * Returns the position at which new unknown columns should be inserted.
+     * Returns the union {@link TypedReaderTableSpec}.
      *
-     * @return the position where new unknown columns should be inserted
+     * @return the union {@link TypedReaderTableSpec}
      */
-    int getPositionForUnknownColumns();
+    public TypedReaderTableSpec<T> getUnion() {
+        return m_union;
+    }
 
     /**
-     * Indicates whether unknown columns should be kept or ignored.
+     * Returns the intersection {@link TypedReaderTableSpec}.
      *
-     * @return {@code true} if unknown columns should be part of the output
+     * @return the intersection {@link TypedReaderTableSpec}
      */
-    boolean keepUnknownColumns();
+    public TypedReaderTableSpec<T> getIntersection() {
+        return m_intersection;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("<Union: %s Intersection: %s>", m_union, m_intersection);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(final Object obj) { // NOSONAR
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() == getClass()) {
+            return equals((RawSpec<T>) obj);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return m_hashCode;
+    }
 
     /**
-     * The {@link ColumnFilterMode} indicates which columns should be taken into account for the output.
+     * Checks if {@link RawSpec rawSpec} is equal to this instance.
      *
-     * @return the {@link ColumnFilterMode}
+     * @param rawSpec the {@link RawSpec} to test for equality
+     * @return {@code true} if {@link RawSpec rawSpec} is equal to this instance
      */
-    ColumnFilterMode getColumnFilterMode();
-
-    /**
-     * Retrieves the {@link TypedReaderTableSpec} this {@link TransformationModel} operates on.
-     *
-     * @return the {@link TypedReaderTableSpec} underlying this {@link TransformationModel}
-     */
-    RawSpec<T> getRawSpec();
-
+    public boolean equals(final RawSpec<T> rawSpec) {
+        return m_union.equals(rawSpec.getUnion()) && m_intersection.equals(rawSpec.getIntersection());
+    }
 }

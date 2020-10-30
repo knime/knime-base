@@ -44,84 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.selector;
 
-import java.util.stream.Stream;
-
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * The model of a selector. </br>
- * Specifies type mapping, column filtering and reordering information.
+ * Enum of column filter modes specifying how new columns are to be handled.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type used to identify external types
  */
-public interface TransformationModel<T> {
+public enum ColumnFilterMode {
+        /**
+         * All columns in the union of tables are kept. That is if a column is present in any file, it is part of the
+         * output table.
+         */
+        UNION() {
+
+            @Override
+            public <T> TypedReaderTableSpec<T> getRelevantSpec(final RawSpec<T> spec) {
+                return spec.getUnion();
+            }
+
+        },
+        /**
+         * All columns that are contained in all tables are kept. That means a column is kept only if it is present in
+         * all files.
+         */
+        INTERSECTION() {
+
+            @Override
+            public <T> TypedReaderTableSpec<T> getRelevantSpec(final RawSpec<T> spec) {
+                return spec.getIntersection();
+            }
+
+        };
 
     /**
-     * Indicates whether there exists a {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Returns the {@link TypedReaderTableSpec} contained in {@link RawSpec} that is relevant for this
+     * {@link ColumnFilterMode}.
      *
-     * @param column in question
-     * @return {@code true} if there is a {@link Transformation} available for {@link TypedReaderColumnSpec column}
+     * @param <T> the type used to identify external data types
+     * @param rawSpec {@link RawSpec} from which to extract the relevant {@link TypedReaderTableSpec}
+     * @return the relevant {@link TypedReaderTableSpec} extracted from {@link RawSpec rawSpec}
      */
-    boolean hasTransformationFor(final TypedReaderColumnSpec<T> column);
-
-    /**
-     * Retrieves the {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
-     *
-     * @param column for which to retrieve the {@link Transformation}
-     * @return the {@link Transformation} for {@link TypedReaderColumnSpec column}
-     */
-    Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column);
-
-    /**
-     * Creates a {@link Stream} of the contained {@link Transformation Transformations}.</br>
-     * The stream does not provide any guarantees on the order of the transformations it contains.
-     *
-     * @return a {@link Stream} of the contained {@link Transformation Transformations}
-     */
-    Stream<Transformation<T>> stream();
-
-    /**
-     * Returns the number of {@link Transformation Transformations} stored in this model.</br>
-     * Must be equal to the number of columns in the union of {@link #getRawSpec()}.
-     *
-     * @return the number of {@link Transformation Transformations} stored in this model
-     */
-    default int size() {
-        return getRawSpec().getUnion().size();
-    }
-
-    /**
-     * Returns the position at which new unknown columns should be inserted.
-     *
-     * @return the position where new unknown columns should be inserted
-     */
-    int getPositionForUnknownColumns();
-
-    /**
-     * Indicates whether unknown columns should be kept or ignored.
-     *
-     * @return {@code true} if unknown columns should be part of the output
-     */
-    boolean keepUnknownColumns();
-
-    /**
-     * The {@link ColumnFilterMode} indicates which columns should be taken into account for the output.
-     *
-     * @return the {@link ColumnFilterMode}
-     */
-    ColumnFilterMode getColumnFilterMode();
-
-    /**
-     * Retrieves the {@link TypedReaderTableSpec} this {@link TransformationModel} operates on.
-     *
-     * @return the {@link TypedReaderTableSpec} underlying this {@link TransformationModel}
-     */
-    RawSpec<T> getRawSpec();
-
+    public abstract <T> TypedReaderTableSpec<T> getRelevantSpec(final RawSpec<T> rawSpec);
 }
