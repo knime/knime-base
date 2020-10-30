@@ -56,13 +56,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.DefaultIndexMapper.DefaultIndexMapperBuilder;
 
 /**
- * Factory for {@link IndexMapper} that is initialized with a particular {@link TransformationModel}.
+ * Factory for {@link IndexMapper} that is initialized with a particular {@link TableTransformation}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */

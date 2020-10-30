@@ -74,9 +74,9 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -127,7 +127,7 @@ public class DefaultStagedMultiTableReadTest {
     private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
 
     @Mock
-    private TransformationModel<String> m_defaultTransformationModel;
+    private TableTransformation<String> m_defaultTransformationModel;
 
     @Mock
     private Path m_path1;
@@ -139,13 +139,13 @@ public class DefaultStagedMultiTableReadTest {
     private Supplier<ReadAdapter<String, String>> m_readAdapterSupplier;
 
     @Mock
-    private Transformation<String> m_transformation1;
+    private ColumnTransformation<String> m_transformation1;
 
     @Mock
-    private Transformation<String> m_transformation2;
+    private ColumnTransformation<String> m_transformation2;
 
     @Mock
-    private Transformation<String> m_transformation3;
+    private ColumnTransformation<String> m_transformation3;
 
     private ProductionPath m_pp1;
 
@@ -194,11 +194,11 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(TransformationModel)}.
+     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(TableTransformation)}.
      */
     @Test
     public void testWithTransformationTypeMapping() {
-        TransformationModel<String> lastColumnToString = mockTransformationModel();
+        TableTransformation<String> lastColumnToString = mockTransformationModel();
         when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, StringCell.TYPE});
@@ -211,7 +211,7 @@ public class DefaultStagedMultiTableReadTest {
      */
     @Test
     public void testWithTransformationFiltering() {
-        TransformationModel<String> filterSecondColumn = mockTransformationModel();
+        TableTransformation<String> filterSecondColumn = mockTransformationModel();
         when(m_transformation2.keep()).thenReturn(false);
         final DataTableSpec knimeSpec =
             new DataTableSpec(TABLE_NAME, new String[]{"A", "C"}, new DataType[]{StringCell.TYPE, DoubleCell.TYPE});
@@ -224,7 +224,7 @@ public class DefaultStagedMultiTableReadTest {
      */
     @Test
     public void testWithTransformationRenaming() {
-        TransformationModel<String> renameSecondColumn = mockTransformationModel();
+        TableTransformation<String> renameSecondColumn = mockTransformationModel();
         when(renameSecondColumn.getTransformation(COL2)).thenReturn(m_transformation2);
         when(m_transformation2.getName()).thenReturn("M");
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
@@ -238,7 +238,7 @@ public class DefaultStagedMultiTableReadTest {
      */
     @Test
     public void testWithTransformationReordering() {
-        TransformationModel<String> reorderColumns = mockTransformationModel();
+        TableTransformation<String> reorderColumns = mockTransformationModel();
         when(m_transformation2.getPosition()).thenReturn(2);
         when(m_transformation3.getPosition()).thenReturn(1);
         when(m_transformation2.compareTo(ArgumentMatchers.any())).thenReturn(1);
@@ -251,15 +251,16 @@ public class DefaultStagedMultiTableReadTest {
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
-    private TransformationModel<String> mockTransformationModel() {
+    private TableTransformation<String> mockTransformationModel() {
         @SuppressWarnings("unchecked")
-        TransformationModel<String> transformationModel = mock(TransformationModel.class);
+        TableTransformation<String> transformationModel = mock(TableTransformation.class);
         stubTransformationModel(transformationModel);
         return transformationModel;
     }
 
-    private static void stubTransformation(final Transformation<String> mock, final TypedReaderColumnSpec<String> spec,
-        final String name, final ProductionPath prodPath, final int position, final boolean keep) {
+    private static void stubTransformation(final ColumnTransformation<String> mock,
+        final TypedReaderColumnSpec<String> spec, final String name, final ProductionPath prodPath, final int position,
+        final boolean keep) {
         when(mock.getExternalSpec()).thenReturn(spec);
         when(mock.getName()).thenReturn(name);
         when(mock.getProductionPath()).thenReturn(prodPath);
@@ -267,7 +268,7 @@ public class DefaultStagedMultiTableReadTest {
         when(mock.keep()).thenReturn(keep);
     }
 
-    private void stubTransformationModel(final TransformationModel<String> transformationModel) {
+    private void stubTransformationModel(final TableTransformation<String> transformationModel) {
         stubTransformation(m_transformation1, COL1, "A", m_pp1, 0, true);
         stubTransformation(m_transformation2, COL2, "B", m_pp2, 1, true);
         stubTransformation(m_transformation3, COL3, "C", m_pp3, 2, true);

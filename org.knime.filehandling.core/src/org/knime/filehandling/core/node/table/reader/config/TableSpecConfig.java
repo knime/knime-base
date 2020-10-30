@@ -56,7 +56,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
@@ -67,12 +67,12 @@ import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 public interface TableSpecConfig {
 
     /**
-     * Returns the {@link TransformationModel} that allows to map the raw spec to the final KNIME spec.
+     * Returns the {@link TableTransformation} that allows to map the raw spec to the final KNIME spec.
      *
      * @param <T> the type used to identify external types
-     * @return the {@link TransformationModel}
+     * @return the {@link TableTransformation}
      */
-    <T> TransformationModel<T> getTransformationModel();
+    <T> TableTransformation<T> getTransformationModel();
 
     /**
      * Returns {@code true} if this config has been created with the provided <b>rootPath</b> and {@link List} of

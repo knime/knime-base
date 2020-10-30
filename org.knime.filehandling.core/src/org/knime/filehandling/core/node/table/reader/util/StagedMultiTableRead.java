@@ -52,7 +52,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
@@ -73,12 +73,12 @@ public interface StagedMultiTableRead<T> {
     MultiTableRead withoutTransformation();
 
     /**
-     * Creates a {@link MultiTableRead} using the given {@link TransformationModel}.
+     * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.
      *
      * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
-     * @return a {@link MultiTableRead} using the provided {@link TransformationModel}
+     * @return a {@link MultiTableRead} using the provided {@link TableTransformation}
      */
-    MultiTableRead withTransformation(final TransformationModel<T> selectorModel);
+    MultiTableRead withTransformation(final TableTransformation<T> selectorModel);
 
     /**
      * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type

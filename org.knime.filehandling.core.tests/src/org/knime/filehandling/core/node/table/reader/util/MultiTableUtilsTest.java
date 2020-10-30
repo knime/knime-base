@@ -54,8 +54,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -74,10 +74,10 @@ public class MultiTableUtilsTest {
     private TableReadConfig<?> m_tableReadConfig;
 
     @Mock
-    private TransformationModel<String> m_transformationModel;
+    private TableTransformation<String> m_transformationModel;
 
     @Mock
-    private Transformation<String> m_transformation;
+    private ColumnTransformation<String> m_transformation;
 
     /**
      * Tests the {@link MultiTableUtils#getNameAfterInit(ReaderColumnSpec)} method.

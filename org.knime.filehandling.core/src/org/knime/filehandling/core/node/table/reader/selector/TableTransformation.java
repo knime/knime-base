@@ -60,37 +60,38 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type used to identify external types
  */
-public interface TransformationModel<T> {
+public interface TableTransformation<T> {
 
     /**
-     * Indicates whether there exists a {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Indicates whether there exists a {@link ColumnTransformation} for the provided {@link TypedReaderColumnSpec}.
      *
      * @param column in question
-     * @return {@code true} if there is a {@link Transformation} available for {@link TypedReaderColumnSpec column}
+     * @return {@code true} if there is a {@link ColumnTransformation} available for {@link TypedReaderColumnSpec
+     *         column}
      */
     boolean hasTransformationFor(final TypedReaderColumnSpec<T> column);
 
     /**
-     * Retrieves the {@link Transformation} for the provided {@link TypedReaderColumnSpec}.
+     * Retrieves the {@link ColumnTransformation} for the provided {@link TypedReaderColumnSpec}.
      *
-     * @param column for which to retrieve the {@link Transformation}
-     * @return the {@link Transformation} for {@link TypedReaderColumnSpec column}
+     * @param column for which to retrieve the {@link ColumnTransformation}
+     * @return the {@link ColumnTransformation} for {@link TypedReaderColumnSpec column}
      */
-    Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column);
+    ColumnTransformation<T> getTransformation(final TypedReaderColumnSpec<T> column);
 
     /**
-     * Creates a {@link Stream} of the contained {@link Transformation Transformations}.</br>
+     * Creates a {@link Stream} of the contained {@link ColumnTransformation Transformations}.</br>
      * The stream does not provide any guarantees on the order of the transformations it contains.
      *
-     * @return a {@link Stream} of the contained {@link Transformation Transformations}
+     * @return a {@link Stream} of the contained {@link ColumnTransformation Transformations}
      */
-    Stream<Transformation<T>> stream();
+    Stream<ColumnTransformation<T>> stream();
 
     /**
-     * Returns the number of {@link Transformation Transformations} stored in this model.</br>
+     * Returns the number of {@link ColumnTransformation Transformations} stored in this model.</br>
      * Must be equal to the number of columns in the union of {@link #getRawSpec()}.
      *
-     * @return the number of {@link Transformation Transformations} stored in this model
+     * @return the number of {@link ColumnTransformation Transformations} stored in this model
      */
     default int size() {
         return getRawSpec().getUnion().size();
@@ -118,9 +119,9 @@ public interface TransformationModel<T> {
     ColumnFilterMode getColumnFilterMode();
 
     /**
-     * Retrieves the {@link TypedReaderTableSpec} this {@link TransformationModel} operates on.
+     * Retrieves the {@link TypedReaderTableSpec} this {@link TableTransformation} operates on.
      *
-     * @return the {@link TypedReaderTableSpec} underlying this {@link TransformationModel}
+     * @return the {@link TypedReaderTableSpec} underlying this {@link TableTransformation}
      */
     RawSpec<T> getRawSpec();
 

@@ -42,7 +42,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
@@ -57,8 +57,8 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.util.DataColumnSpecTableCellRenderer;
 
 /**
- * Renderer for a {@link DataColumnSpec} that checks if the row is valid and marks the cell as red if it isn't
- * (usually because of duplicate names).
+ * Renderer for a {@link DataColumnSpec} that checks if the row is valid and marks the cell as red if it isn't (usually
+ * because of duplicate names).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -70,7 +70,7 @@ class SpecCellRenderer extends DataColumnSpecTableCellRenderer { // NOSONAR, Swi
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
         final boolean hasFocus, final int row, final int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        final TransformationTableModel<?> model = (TransformationTableModel<?>)table.getModel();
+        final TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
         if (isSelected) {
             // use color from superclass
         } else {

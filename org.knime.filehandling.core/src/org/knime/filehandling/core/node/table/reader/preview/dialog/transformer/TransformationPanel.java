@@ -82,7 +82,7 @@ public final class TransformationPanel extends JPanel {
 
     private final JTable m_transformationTable;
 
-    private final TransformationTableModel<?> m_tableModel;
+    private final TableTransformationTableModel<?> m_tableModel;
 
     private final JButton m_resetBtn = new JButton("Reset");
 
@@ -99,11 +99,11 @@ public final class TransformationPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param model the underlying {@link TransformationTableModel}
+     * @param model the underlying {@link TableTransformationTableModel}
      * @param productionPathProvider provides a list of {@link ProductionPath} for a given external type
      * @param includeColumnFilterButtons {@code true} if the column filter buttons should be included
      */
-    public TransformationPanel(final TransformationTableModel<?> model,
+    public TransformationPanel(final TableTransformationTableModel<?> model,
         final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons) {
         super(new GridBagLayout());
         if (includeColumnFilterButtons) {
@@ -139,7 +139,7 @@ public final class TransformationPanel extends JPanel {
         add(new JScrollPane(m_transformationTable), gbc.resetX().incY().widthRemainder().setWeightY(1.0).build());
     }
 
-    private void setupTable(final TransformationTableModel<?> model,
+    private void setupTable(final TableTransformationTableModel<?> model,
         final Function<Object, List<ProductionPath>> productionPathProvider) {
         TableColumnModel columnModel = m_transformationTable.getColumnModel();
         columnModel.getColumn(0).setMaxWidth(30);

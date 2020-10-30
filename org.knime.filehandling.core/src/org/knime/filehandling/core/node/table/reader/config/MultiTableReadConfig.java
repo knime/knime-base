@@ -94,8 +94,8 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
     boolean hasTableSpecConfig();
 
     /**
-     * Returns the {@link DefaultTableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()} returned
-     * {@code true}
+     * Returns the {@link DefaultTableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()}
+     * returned {@code true}
      *
      * @return the {@link DefaultTableSpecConfig}
      */
@@ -106,7 +106,6 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      *
      * @param config the {@link DefaultTableSpecConfig} to set
      */
-    // TODO create mutable subinterface. The TRF doesn't need this setter.
     void setTableSpecConfig(TableSpecConfig config);
 
     /**
@@ -115,7 +114,8 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      *
      * @param rootPath string representation of the root path
      * @param paths the paths for which the {@link DefaultTableSpecConfig} has been configured
-     * @return {@code true} if the {@link DefaultTableSpecConfig} is present and has been created with the provided parameters
+     * @return {@code true} if the {@link DefaultTableSpecConfig} is present and has been created with the provided
+     *         parameters
      */
     default boolean isConfiguredWith(final String rootPath, final List<Path> paths) {
         return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(rootPath, paths);

@@ -66,8 +66,8 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.mockito.Mock;
@@ -75,13 +75,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Contains unit tests for the {@link TransformationModelFactory}.
+ * Contains unit tests for the {@link TableTransformationFactory}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("javadoc") // keeping the link is more useful
 @RunWith(MockitoJUnitRunner.class)
-public class TransformationModelFactoryTest {
+public class TableTransformationFactoryTest {
 
     private static final String SIEGFRIEDA = "siegfrieda";
 
@@ -123,13 +123,13 @@ public class TransformationModelFactoryTest {
 
     @SuppressWarnings("rawtypes") // unfortunately that's necessary to satisfy the compiler
     @Mock
-    private TransformationModel m_configuredTransformationModel;//NOSONAR
+    private TableTransformation m_configuredTransformationModel;//NOSONAR
 
-    private TransformationModelFactory<String> m_testInstance;
+    private TableTransformationFactory<String> m_testInstance;
 
     @Before
     public void init() {
-        m_testInstance = new TransformationModelFactory<>(m_prodPathProvider);
+        m_testInstance = new TableTransformationFactory<>(m_prodPathProvider);
     }
 
     @SuppressWarnings("unchecked") // unfortunately that's necessary to satisfy the compiler
@@ -149,7 +149,7 @@ public class TransformationModelFactoryTest {
         RawSpec<String> newRawSpec = new RawSpec<>(newHansByHimself, newHansByHimself);
 
         ProductionPath oldHansPath = mockProductionPath(DoubleCell.TYPE);
-        Transformation<String> hansTrans = mockTransformation(HANS, "hans", oldHansPath, 0, true);
+        ColumnTransformation<String> hansTrans = mockTransformation(HANS, "hans", oldHansPath, 0, true);
         when(m_configuredTransformationModel.getTransformation(HANS)).thenReturn(hansTrans);
         when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
         when(m_configuredTransformationModel.getRawSpec()).thenReturn(new RawSpec<>(hansByHimself, hansByHimself));
@@ -161,7 +161,7 @@ public class TransformationModelFactoryTest {
         when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
         when(m_tableSpecConfig.getTransformationModel()).thenReturn(m_configuredTransformationModel);
 
-        TransformationModel<String> result = m_testInstance.create(newRawSpec, m_config);
+        TableTransformation<String> result = m_testInstance.create(newRawSpec, m_config);
 
         checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
             siegfriedaProdPath, 0, true);
@@ -203,8 +203,8 @@ public class TransformationModelFactoryTest {
 
         TypedReaderTableSpec<String> oldUnion = createTableSpec(configuredHans, RUDIGER);
         final RawSpec<String> oldRawSpec = new RawSpec<>(oldUnion, oldUnion);
-        Transformation<String> hansTrans = mockTransformation(configuredHans, "franz", hansProdPath, 1, true);
-        Transformation<String> rudigerTrans = mockTransformation(RUDIGER, "sepp", rudigerProdPath, 0, true);
+        ColumnTransformation<String> hansTrans = mockTransformation(configuredHans, "franz", hansProdPath, 1, true);
+        ColumnTransformation<String> rudigerTrans = mockTransformation(RUDIGER, "sepp", rudigerProdPath, 0, true);
         when(rudigerTrans.compareTo(hansTrans)).thenReturn(-1);
         when(m_configuredTransformationModel.stream()).thenReturn(Stream.of(hansTrans, rudigerTrans));
         when(m_configuredTransformationModel.keepUnknownColumns()).thenReturn(keepUnknown);
@@ -219,7 +219,7 @@ public class TransformationModelFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
         when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(asList(ulfProdPath));
 
-        final TransformationModel<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
 
         final boolean union = colFilterMode == ColumnFilterMode.UNION;
 
@@ -267,10 +267,10 @@ public class TransformationModelFactoryTest {
             union ? actualUnknownPos : actualUnknownPos + 1, keepUnknown);
     }
 
-    private static Transformation<String> mockTransformation(final TypedReaderColumnSpec<String> externalSpec,
+    private static ColumnTransformation<String> mockTransformation(final TypedReaderColumnSpec<String> externalSpec,
         final String name, final ProductionPath prodPath, final int position, final boolean keep) {
         @SuppressWarnings("unchecked")
-        final Transformation<String> trans = Mockito.mock(Transformation.class);
+        final ColumnTransformation<String> trans = Mockito.mock(ColumnTransformation.class);
         when(trans.getExternalSpec()).thenReturn(externalSpec);
         when(trans.getName()).thenReturn(name);
         when(trans.getOriginalName()).thenReturn(externalSpec.getName().get());
@@ -290,7 +290,7 @@ public class TransformationModelFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(FRIEDA)).thenReturn(rudigerProdPath);
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
 
-        final TransformationModel<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
 
         checkTransformation(transformationModel.getTransformation(HANS), HANS, "hans", hansProdPath, 0, true);
         checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "rudiger", rudigerProdPath, 1,
@@ -310,7 +310,7 @@ public class TransformationModelFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(FRIEDA)).thenReturn(rudigerProdPath);
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
 
-        final TransformationModel<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
 
         checkTransformation(transformationModel.getTransformation(HANS), HANS, "hans", hansProdPath, 0, true);
         checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "rudiger", rudigerProdPath, 1,

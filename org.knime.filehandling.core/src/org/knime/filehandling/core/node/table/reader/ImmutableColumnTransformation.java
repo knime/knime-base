@@ -49,16 +49,16 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
- * A immutable {@link Transformation}.
+ * A immutable {@link ColumnTransformation}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> Type used to identify external data types
  */
-public final class ImmutableTransformation<T> implements Transformation<T> {
+public final class ImmutableColumnTransformation<T> implements ColumnTransformation<T> {
 
     private final ProductionPath m_productionPath;
 
@@ -79,8 +79,8 @@ public final class ImmutableTransformation<T> implements Transformation<T> {
      * @param position in the output
      * @param name in the output
      */
-    public ImmutableTransformation(final TypedReaderColumnSpec<T> externalSpec, final ProductionPath productionPath,
-        final boolean keep, final int position, final String name) {
+    public ImmutableColumnTransformation(final TypedReaderColumnSpec<T> externalSpec,
+        final ProductionPath productionPath, final boolean keep, final int position, final String name) {
         m_externalSpec = externalSpec;
         m_productionPath = productionPath;
         m_keep = keep;

@@ -56,20 +56,20 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
- * Default implementation of a {@link TransformationModel}.
+ * Default implementation of a {@link TableTransformation}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify external types
  */
-public final class DefaultTransformationModel<T> implements TransformationModel<T> {
+public final class DefaultTableTransformation<T> implements TableTransformation<T> {
 
-    private final Map<TypedReaderColumnSpec<T>, Transformation<T>> m_transformations;
+    private final Map<TypedReaderColumnSpec<T>, ColumnTransformation<T>> m_transformations;
 
     private final RawSpec<T> m_rawSpec;
 
@@ -88,11 +88,12 @@ public final class DefaultTransformationModel<T> implements TransformationModel<
      * @param includeUnknownColumns flag indicating if new columns should be included or not
      * @param unknownColumnPosition the positions at which new columns should be inserted
      */
-    public DefaultTransformationModel(final RawSpec<T> rawSpec, final Collection<Transformation<T>> transformations,
-        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final int unknownColumnPosition) {
+    public DefaultTableTransformation(final RawSpec<T> rawSpec,
+        final Collection<ColumnTransformation<T>> transformations, final ColumnFilterMode columnFilterMode,
+        final boolean includeUnknownColumns, final int unknownColumnPosition) {
         m_rawSpec = rawSpec;
-        m_transformations =
-            transformations.stream().collect(Collectors.toMap(Transformation::getExternalSpec, Function.identity()));
+        m_transformations = transformations.stream()
+            .collect(Collectors.toMap(ColumnTransformation::getExternalSpec, Function.identity()));
         m_columnFilterMode = columnFilterMode;
         m_includeUnknownColumns = includeUnknownColumns;
         m_unknownColumnPosition = unknownColumnPosition;
@@ -109,8 +110,8 @@ public final class DefaultTransformationModel<T> implements TransformationModel<
     }
 
     @Override
-    public Transformation<T> getTransformation(final TypedReaderColumnSpec<T> column) {
-        final Transformation<T> transformation = m_transformations.get(column);
+    public ColumnTransformation<T> getTransformation(final TypedReaderColumnSpec<T> column) {
+        final ColumnTransformation<T> transformation = m_transformations.get(column);
         CheckUtils.checkArgument(transformation != null, "No transformation for unknown column '%s' found.", column);
         return transformation;
     }
@@ -131,7 +132,7 @@ public final class DefaultTransformationModel<T> implements TransformationModel<
     }
 
     @Override
-    public Stream<Transformation<T>> stream() {
+    public Stream<ColumnTransformation<T>> stream() {
         return m_transformations.values().stream().map(Function.identity());
     }
 

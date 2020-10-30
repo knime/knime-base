@@ -59,7 +59,7 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The type used to identify external data types
  */
-public interface Transformation<T> extends Comparable<Transformation<T>> {
+public interface ColumnTransformation<T> extends Comparable<ColumnTransformation<T>> {
 
     /**
      * Returns the name the column should have in the output.
@@ -93,15 +93,15 @@ public interface Transformation<T> extends Comparable<Transformation<T>> {
 
     /**
      * The position of the column in the output.</br>
-     * Note that it has to be assumed that this position is with respect to all columns even those that are filtered out.
-     * Hence the final output position has to be determined by taking filtered out columns into account.
+     * Note that it has to be assumed that this position is with respect to all columns even those that are filtered
+     * out. Hence the final output position has to be determined by taking filtered out columns into account.
      *
      * @return the position in the unfiltered output table
      */
     int getPosition();
 
     @Override
-    default int compareTo(final Transformation<T> o) {
+    default int compareTo(final ColumnTransformation<T> o) {
         return Integer.compare(getPosition(), o.getPosition());
     }
 

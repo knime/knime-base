@@ -61,8 +61,8 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationPanel;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationTableModel;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 
 /**
  * Abstract implementation of a {@link NodeDialogPane} for table reader nodes.</br>
@@ -95,8 +95,8 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_preview = new TableReaderPreviewView(previewModel);
-        final TransformationTableModel<T> transformationModel =
-            new TransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
+        final TableTransformationTableModel<T> transformationModel =
+            new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
         m_specTransformer = new TransformationPanel(transformationModel,
@@ -156,7 +156,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      * @param tableSpecConfig to load from
      */
     protected final void loadFromTableSpecConfig(final TableSpecConfig tableSpecConfig) {
-        final TransformationModel<T> transformationModel = tableSpecConfig.getTransformationModel();
+        final TableTransformation<T> transformationModel = tableSpecConfig.getTransformationModel();
         m_coordinator.load(transformationModel);
     }
 

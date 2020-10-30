@@ -79,14 +79,14 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.DefaultTransformationModel;
-import org.knime.filehandling.core.node.table.reader.ImmutableTransformation;
+import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModelUtils;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
@@ -109,7 +109,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
 
     private static final String CFG_INCLUDE_UNKNOWN = "include_unknown_columns" + SettingsModel.CFGKEY_INTERNAL;
 
-    private static final String CFG_NEW_COLUMN_POSITION = "new_column_position" + SettingsModel.CFGKEY_INTERNAL;
+    private static final String CFG_NEW_COLUMN_POSITION = "unknown_column_position" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_KEEP = "keep" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -200,7 +200,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      */
     public static <T> TableSpecConfig createFromTransformationModel(final String rootPath,
         final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
-        final TransformationModel<T> transformationModel) {
+        final TableTransformation<T> transformationModel) {
         final TypedReaderTableSpec<T> rawSpec = transformationModel.getRawSpec().getUnion();
         final int unionSize = rawSpec.size();
         final List<DataColumnSpec> columns = new ArrayList<>(unionSize);
@@ -210,7 +210,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
         final boolean[] keep = new boolean[unionSize];
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : rawSpec) {
-            final Transformation<T> transformation = transformationModel.getTransformation(column);
+            final ColumnTransformation<T> transformation = transformationModel.getTransformation(column);
             final ProductionPath productionPath = transformation.getProductionPath();
             productionPaths.add(productionPath);
             originalNames.add(MultiTableUtils.getNameAfterInit(column));
@@ -231,7 +231,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
 
     /**
      * Constructor for testing.</br>
-     * Clients should use {@link #createFromTransformationModel(String, Map, TransformationModel)}.
+     * Clients should use {@link #createFromTransformationModel(String, Map, TableTransformation)}.
      *
      * @param rootPath if it represents a folder then all keys in the <b>individualSpecs<b> must be contained in this
      *            folder, otherwise the <b>rootPath</b> equals the {@link Path#toString()} version of the
@@ -356,24 +356,24 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
     }
 
     @Override
-    public <T> TransformationModel<T> getTransformationModel() {
+    public <T> TableTransformation<T> getTransformationModel() {
         final RawSpec<T> rawSpec = getRawSpec();
         final TypedReaderTableSpec<T> union = rawSpec.getUnion();
 
-        final List<Transformation<T>> transformations = new ArrayList<>(m_originalNames.length);
+        final List<ColumnTransformation<T>> transformations = new ArrayList<>(m_originalNames.length);
         for (int i = 0; i < m_originalNames.length; i++) {
             transformations.add(createTransformation(union.getColumnSpec(i), i));
         }
-        return new DefaultTransformationModel<>(rawSpec, transformations, m_columnFilterMode, m_includeUnknownColumns,
+        return new DefaultTableTransformation<>(rawSpec, transformations, m_columnFilterMode, m_includeUnknownColumns,
             m_unknownColPosition);
     }
 
-    private <T> Transformation<T> createTransformation(final TypedReaderColumnSpec<T> colSpec, final int idx) {
+    private <T> ColumnTransformation<T> createTransformation(final TypedReaderColumnSpec<T> colSpec, final int idx) {
         final String name = m_dataTableSpec.getColumnSpec(idx).getName();
         final int position = m_positions[idx];
         final boolean keep = m_keep[idx];
         final ProductionPath prodPath = m_prodPaths[idx];
-        return new ImmutableTransformation<>(colSpec, prodPath, keep, position, name);
+        return new ImmutableColumnTransformation<>(colSpec, prodPath, keep, position, name);
     }
 
     @Override
@@ -396,7 +396,7 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
 
     @Override
     public DataTableSpec getDataTableSpec() {
-        return TransformationModelUtils.toDataTableSpec(getTransformationModel());
+        return TableTransformationUtils.toDataTableSpec(getTransformationModel());
     }
 
     @Override

@@ -53,7 +53,7 @@ import javax.swing.event.ChangeListener;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * A {@link TransformationModel} that allows to register {@link ChangeListener ChangeListeners} that are notified
+ * A {@link TableTransformation} that allows to register {@link ChangeListener ChangeListeners} that are notified
  * whenever the model changes.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -62,11 +62,11 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 public interface ObservableTransformationModelProvider<T> {
 
     /**
-     * Returns the current {@link TransformationModel}
+     * Returns the current {@link TableTransformation}
      *
-     * @return the current {@link TransformationModel}
+     * @return the current {@link TableTransformation}
      */
-    TransformationModel<T> getTransformationModel();
+    TableTransformation<T> getTransformationModel();
 
     /**
      * Adds the provided {@link ChangeListener}.
@@ -90,11 +90,11 @@ public interface ObservableTransformationModelProvider<T> {
     void updateRawSpec(final RawSpec<T> rawSpec);
 
     /**
-     * Adapts this instance so that behaves exactly the same as the provided {@link TransformationModel}.
+     * Adapts this instance so that behaves exactly the same as the provided {@link TableTransformation}.
      *
      * @param transformationModel to imitate
      */
-    void load(final TransformationModel<T> transformationModel);
+    void load(final TableTransformation<T> transformationModel);
 
     /**
      * Enables or disables this instance, depending on the value of {@code enabled}.

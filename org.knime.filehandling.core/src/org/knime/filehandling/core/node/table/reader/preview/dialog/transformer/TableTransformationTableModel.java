@@ -76,13 +76,13 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.SharedIcons;
-import org.knime.filehandling.core.node.table.reader.DefaultTransformationModel;
-import org.knime.filehandling.core.node.table.reader.ImmutableTransformation;
+import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
@@ -90,12 +90,12 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 
 /**
- * A {@link TransformationModel} that is based on an {@link AbstractTableModel}.
+ * A {@link TableTransformation} that is based on an {@link AbstractTableModel}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify external data types
  */
-public final class TransformationTableModel<T> extends AbstractTableModel
+public final class TableTransformationTableModel<T> extends AbstractTableModel
     implements ObservableTransformationModelProvider<T> {
 
     private static final int REORDER = 0;
@@ -113,8 +113,8 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     private static final DataColumnSpec NEW_COL_SPEC =
         new DataColumnSpecCreator("<any unknown new column>", DataType.getType(DataCell.class)).createSpec();
 
-    private final transient MutableTransformation<T> m_newColTransformationPlaceholder =
-        new MutableTransformation<T>(NEW_COL_SPEC, TypedReaderColumnSpec.getNull(), -1, "<no-name>", null, -1,
+    private final transient MutableColumnTransformation<T> m_newColTransformationPlaceholder =
+        new MutableColumnTransformation<T>(NEW_COL_SPEC, TypedReaderColumnSpec.getNull(), -1, "<no-name>", null, -1,
             true) {
 
             @Override
@@ -132,14 +132,14 @@ public final class TransformationTableModel<T> extends AbstractTableModel
 
     private final transient Function<T, ProductionPath> m_defaultProductionPathFn;
 
-    private final transient Map<TypedReaderColumnSpec<T>, MutableTransformation<T>> m_bySpec = new HashMap<>();
+    private final transient Map<TypedReaderColumnSpec<T>, MutableColumnTransformation<T>> m_bySpec = new HashMap<>();
 
-    private final transient SetMultimap<String, MutableTransformation<T>> m_byName =
+    private final transient SetMultimap<String, MutableColumnTransformation<T>> m_byName =
         MultimapBuilder.hashKeys().hashSetValues().build();
 
-    private final transient List<MutableTransformation<T>> m_union = new ArrayList<>();
+    private final transient List<MutableColumnTransformation<T>> m_union = new ArrayList<>();
 
-    private final transient List<MutableTransformation<T>> m_intersection = new ArrayList<>();
+    private final transient List<MutableColumnTransformation<T>> m_intersection = new ArrayList<>();
 
     private final transient CopyOnWriteArraySet<ChangeListener> m_changeListeners = new CopyOnWriteArraySet<>();
 
@@ -162,7 +162,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
      *
      * @param defaultProductionPathFn provides default {@link ProductionPath ProductionPaths} for external types.
      */
-    public TransformationTableModel(final Function<T, ProductionPath> defaultProductionPathFn) {
+    public TableTransformationTableModel(final Function<T, ProductionPath> defaultProductionPathFn) {
         m_defaultProductionPathFn = defaultProductionPathFn;
         addTableModelListener(e -> notifyChangeListeners());
         m_byName.put(m_newColTransformationPlaceholder.getName(), m_newColTransformationPlaceholder);
@@ -175,7 +175,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         fireTableDataChanged();
     }
 
-    private interface TransformationResetter<T> extends Predicate<MutableTransformation<T>> {
+    private interface TransformationResetter<T> extends Predicate<MutableColumnTransformation<T>> {
 
         default boolean canRequireSort() {
             return false;
@@ -186,7 +186,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     private final void resetTransformations(final TransformationResetter<T>... resetters) {
         boolean tableChanged = false;
         boolean requiresSort = false;
-        for (MutableTransformation<T> transformation : m_union) {
+        for (MutableColumnTransformation<T> transformation : m_union) {
             for (TransformationResetter<T> resetter : resetters) {
                 final boolean resetHappened = resetter.test(transformation);
                 tableChanged |= resetHappened;
@@ -234,7 +234,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         return t -> t.setKeep(true);
     }
 
-    private boolean resetName(final MutableTransformation<T> transformation) {
+    private boolean resetName(final MutableColumnTransformation<T> transformation) {
         final String defaultName = transformation.getOriginalName();
         if (!transformation.getName().equals(defaultName)) {
             m_byName.remove(transformation.getName(), transformation);
@@ -249,7 +249,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         return new TransformationResetter<T>() {
 
             @Override
-            public boolean test(final MutableTransformation<T> transformation) {
+            public boolean test(final MutableColumnTransformation<T> transformation) {
                 return transformation.resetPosition();
             }
 
@@ -261,7 +261,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     // the unused parameter is necessary because resetKeep has to satisfy the TransformationResetter interface
-    private boolean resetProductionPath(final MutableTransformation<T> transformation) {
+    private boolean resetProductionPath(final MutableColumnTransformation<T> transformation) {
         if (transformation == m_newColTransformationPlaceholder) {
             return false;
         }
@@ -288,7 +288,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     private void updateTransformations() {
-        final LinkedHashMap<TypedReaderColumnSpec<T>, MutableTransformation<T>> newColumns =
+        final LinkedHashMap<TypedReaderColumnSpec<T>, MutableColumnTransformation<T>> newColumns =
             new LinkedHashMap<>();
         final Set<TypedReaderColumnSpec<T>> knownColumns = new HashSet<>();
         // the null spec corresponds to the placeholder for new columns and thus is always known
@@ -301,7 +301,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         m_intersection.add(m_newColTransformationPlaceholder);
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
-            MutableTransformation<T> transformation = m_bySpec.get(column);
+            MutableColumnTransformation<T> transformation = m_bySpec.get(column);
             final boolean isInIntersection = intersection.contains(column);
             if (transformation != null) {
                 knownColumns.add(column);
@@ -309,7 +309,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
                 transformation.setOriginalPosition(idx);
             } else {
                 final ProductionPath productionPath = m_defaultProductionPathFn.apply(column.getType());
-                transformation = new MutableTransformation<>(createDefaultSpec(column), column, idx,
+                transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
                     getNameAfterInit(column), productionPath, idx, keepUnknownColumns());
                 newColumns.put(column, transformation);
                 m_byName.put(transformation.getName(), transformation);
@@ -351,7 +351,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     @Override
-    public void load(final TransformationModel<T> transformationModel) {
+    public void load(final TableTransformation<T> transformationModel) {
         m_rawSpec = transformationModel.getRawSpec();
         m_union.clear();
         m_intersection.clear();
@@ -366,13 +366,13 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
-            final MutableTransformation<T> transformation;
+            final MutableColumnTransformation<T> transformation;
             // in case we are in intersection mode, the TranformationModel might not have a
             // Transformation for all columns in the union
             if (transformationModel.hasTransformationFor(column)) {
                 transformation = createMutableTransformation(transformationModel.getTransformation(column), idx);
             } else {
-                transformation = new MutableTransformation<>(createDefaultSpec(column), column, idx,
+                transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
                     getNameAfterInit(column), m_defaultProductionPathFn.apply(column.getType()),
                     getPositionForUnknownColumns(), keepUnknownColumns());
             }
@@ -392,9 +392,9 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         fireTableDataChanged();
     }
 
-    private MutableTransformation<T> createMutableTransformation(final Transformation<T> transformation,
+    private MutableColumnTransformation<T> createMutableTransformation(final ColumnTransformation<T> transformation,
         final int idx) {
-        return new MutableTransformation<>(createDefaultSpec(transformation.getExternalSpec()),
+        return new MutableColumnTransformation<>(createDefaultSpec(transformation.getExternalSpec()),
             transformation.getExternalSpec(), idx, transformation.getName(), transformation.getProductionPath(),
             transformation.getPosition(), transformation.keep());
     }
@@ -407,14 +407,14 @@ public final class TransformationTableModel<T> extends AbstractTableModel
 
     Set<String> getCurrentNames() {
         return m_bySpec.values().stream()//
-            .map(MutableTransformation::getName)//
+            .map(MutableColumnTransformation::getName)//
             .collect(Collectors.toSet());
     }
 
     Set<String> getNamesExcept(final int rowIndex) {
         return m_bySpec.values().stream()//
             .filter(c -> c.getPosition() != rowIndex)//
-            .map(MutableTransformation::getName)//
+            .map(MutableColumnTransformation::getName)//
             .collect(toSet());
     }
 
@@ -454,7 +454,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
 
     @Override
     public Object getValueAt(final int rowIndex, final int columnIndex) {//NOSONAR, stupid rule
-        final MutableTransformation<T> transformation = getTransformation(rowIndex);
+        final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
         if (columnIndex == REORDER) {
             return SharedIcons.DRAG_HANDLE.get();
         } else if (columnIndex == KEEP) {
@@ -475,7 +475,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
 
     @Override
     public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-        final MutableTransformation<T> transformation = getTransformation(rowIndex);
+        final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
         final Object oldValue = getValueAt(rowIndex, columnIndex);
         boolean alreadyFiredTableDataChange = false;
         if (columnIndex == REORDER) {
@@ -503,7 +503,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
      * @param transformation the transformation to update
      * @return {@code true} if we already fired a table event
      */
-    private boolean updateName(final Object aValue, final MutableTransformation<T> transformation) {
+    private boolean updateName(final Object aValue, final MutableColumnTransformation<T> transformation) {
         final String stringValue = (String)aValue;
         final String newName =
             stringValue.isEmpty() ? MultiTableUtils.getNameAfterInit(transformation.getExternalSpec()) : stringValue;
@@ -511,13 +511,13 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         boolean fireEventForOtherRows = false;
         if (!newName.equals(oldName)) {
             m_byName.remove(oldName, transformation);
-            final Set<MutableTransformation<T>> colsWithOldName = m_byName.get(oldName);
+            final Set<MutableColumnTransformation<T>> colsWithOldName = m_byName.get(oldName);
             if (!oldName.isEmpty() && colsWithOldName.size() == 1) {
                 colsWithOldName.forEach(t -> t.setIsValid(true));
                 fireEventForOtherRows = true;
             }
             m_byName.put(newName, transformation);
-            final Set<MutableTransformation<T>> colsWithNewName = m_byName.get(newName);
+            final Set<MutableColumnTransformation<T>> colsWithNewName = m_byName.get(newName);
             if (colsWithNewName.size() > 1) {
                 colsWithNewName.forEach(t -> t.setIsValid(false));
                 fireEventForOtherRows = true;
@@ -546,7 +546,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     boolean isNameValid(final int rowIndex) {
-        final MutableTransformation<T> transformation = getTransformation(rowIndex);
+        final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
         if (transformation == m_newColTransformationPlaceholder) {
             return true;
         }
@@ -554,7 +554,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     boolean isSpecValid(final int rowIndex) {
-        final MutableTransformation<T> transformation = getTransformation(rowIndex);
+        final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
         if (transformation == m_newColTransformationPlaceholder) {
             return true;
         }
@@ -569,19 +569,19 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         if (fromIndex == toIndex) {
             return; // nothing changes
         }
-        final MutableTransformation<T> moved = getTransformation(fromIndex);
+        final MutableColumnTransformation<T> moved = getTransformation(fromIndex);
         final int unionFromIndex = moved.getPosition();
         if (fromIndex < toIndex) {
             final int unionToIndex = getTransformation(toIndex - 1).getPosition();
             for (int i = unionFromIndex; i < unionToIndex; i++) {
-                final MutableTransformation<T> k = m_union.get(i + 1);
+                final MutableColumnTransformation<T> k = m_union.get(i + 1);
                 k.setPosition(i);
             }
             moved.setPosition(unionToIndex);
         } else {
             final int unionToIndex = getTransformation(toIndex).getPosition();
             for (int i = unionFromIndex; i >= unionToIndex; i--) {
-                final MutableTransformation<T> k = m_union.get(i);
+                final MutableColumnTransformation<T> k = m_union.get(i);
                 k.setPosition(i + 1);
             }
             moved.setPosition(unionToIndex);
@@ -590,7 +590,7 @@ public final class TransformationTableModel<T> extends AbstractTableModel
         fireTableDataChanged();
     }
 
-    private MutableTransformation<T> getTransformation(final int rowIndex) {
+    private MutableColumnTransformation<T> getTransformation(final int rowIndex) {
         return getColumnFilterMode() == ColumnFilterMode.UNION ? m_union.get(rowIndex) : m_intersection.get(rowIndex);
     }
 
@@ -636,19 +636,19 @@ public final class TransformationTableModel<T> extends AbstractTableModel
     }
 
     @Override
-    public TransformationModel<T> getTransformationModel() {
+    public TableTransformation<T> getTransformationModel() {
         int idx = 0;
-        List<Transformation<T>> transformations = new ArrayList<>();
-        for (Transformation<T> t : m_union) {
+        List<ColumnTransformation<T>> transformations = new ArrayList<>();
+        for (ColumnTransformation<T> t : m_union) {
             if (t == m_newColTransformationPlaceholder) {
                 // the placeholder is not added as transformation
                 continue;
             }
-            transformations.add(
-                new ImmutableTransformation<>(t.getExternalSpec(), t.getProductionPath(), t.keep(), idx, t.getName()));
+            transformations.add(new ImmutableColumnTransformation<>(t.getExternalSpec(), t.getProductionPath(),
+                t.keep(), idx, t.getName()));
             idx++;
         }
-        return new DefaultTransformationModel<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
+        return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
             getPositionForUnknownColumns());
     }
 

@@ -52,16 +52,16 @@ import java.util.Objects;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
- * A mutable {@link Transformation}.</br>
+ * A mutable {@link ColumnTransformation}.</br>
  * Provides setters for the different properties that return a boolean indicating whether the value changed or not.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class MutableTransformation<T> implements Transformation<T> {
+class MutableColumnTransformation<T> implements ColumnTransformation<T> {
 
     private boolean m_isValid = true;
 
@@ -79,8 +79,9 @@ class MutableTransformation<T> implements Transformation<T> {
 
     private final TypedReaderColumnSpec<T> m_colSpec;
 
-    MutableTransformation(final DataColumnSpec defaultSpec, final TypedReaderColumnSpec<T> colSpec, final int originalPosition, final String name,
-        final ProductionPath productionPath, final int positionInOutput, final boolean keep) {
+    MutableColumnTransformation(final DataColumnSpec defaultSpec, final TypedReaderColumnSpec<T> colSpec,
+        final int originalPosition, final String name, final ProductionPath productionPath, final int positionInOutput,
+        final boolean keep) {
         m_defaultSpec = defaultSpec;
         m_originalPosition = originalPosition;
         m_name = name;
@@ -195,7 +196,7 @@ class MutableTransformation<T> implements Transformation<T> {
             .toString();
     }
 
-    static <T> boolean areEqual(final MutableTransformation<T> left, final MutableTransformation<T> right) {
+    static <T> boolean areEqual(final MutableColumnTransformation<T> left, final MutableColumnTransformation<T> right) {
         if (left == right) {
             return true;
         }

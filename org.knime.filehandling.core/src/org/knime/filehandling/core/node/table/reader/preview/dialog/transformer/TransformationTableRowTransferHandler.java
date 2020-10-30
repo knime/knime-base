@@ -108,7 +108,7 @@ final class TransformationTableRowTransferHandler extends TransferHandler {
         try {
             Integer rowFrom = (Integer)info.getTransferable().getTransferData(ROW_INDEX_FLAVOR);
             if (rowFrom != -1 && rowFrom != index) {
-                ((TransformationTableModel<?>)m_table.getModel()).reorder(rowFrom, index);
+                ((TableTransformationTableModel<?>)m_table.getModel()).reorder(rowFrom, index);
                 if (index > rowFrom) {
                     index--;
                 }

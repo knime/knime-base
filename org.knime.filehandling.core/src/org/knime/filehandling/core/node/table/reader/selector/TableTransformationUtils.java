@@ -61,46 +61,46 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Utility class for dealing with {@link TransformationModel TransformationModels}.
+ * Utility class for dealing with {@link TableTransformation TransformationModels}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class TransformationModelUtils {
+public final class TableTransformationUtils {
 
-    private TransformationModelUtils() {
+    private TableTransformationUtils() {
         // static utility class
     }
 
     /**
-     * Extracts the {@link Transformation Transformations} that are actually part of the output table.</br>
-     * The returned {@link Transformation Transformations} are sorted according to
-     * {@link Transformation#compareTo(Transformation)}.
+     * Extracts the {@link ColumnTransformation Transformations} that are actually part of the output table.</br>
+     * The returned {@link ColumnTransformation Transformations} are sorted according to
+     * {@link ColumnTransformation#compareTo(ColumnTransformation)}.
      *
      * @param <T> the type used to identify external data types
      * @param transformationModel from which to extract the transformations
-     * @return the output relevant {@link Transformation Transformations} from the provided {@link TransformationModel}
-     *         (in output order)
+     * @return the output relevant {@link ColumnTransformation Transformations} from the provided
+     *         {@link TableTransformation} (in output order)
      */
-    public static <T> List<Transformation<T>>
-        getOutputTransformations(final TransformationModel<T> transformationModel) {
+    public static <T> List<ColumnTransformation<T>>
+        getOutputTransformations(final TableTransformation<T> transformationModel) {
         return getOutputTransformationStream(transformationModel).collect(toList());
     }
 
     /**
-     * Creates the {@link DataTableSpec} corresponding to the provided {@link TransformationModel}.
+     * Creates the {@link DataTableSpec} corresponding to the provided {@link TableTransformation}.
      *
      * @param <T> the type used to identify external data types
      * @param transformationModel specifying the output
-     * @return the {@link DataTableSpec} corresponding to {@link TransformationModel transformationModel}
+     * @return the {@link DataTableSpec} corresponding to {@link TableTransformation transformationModel}
      */
-    public static <T> DataTableSpec toDataTableSpec(final TransformationModel<T> transformationModel) {
+    public static <T> DataTableSpec toDataTableSpec(final TableTransformation<T> transformationModel) {
         return new DataTableSpec(//
             getOutputTransformationStream(transformationModel)//
-                .map(TransformationModelUtils::toDataColumnSpec)//
+                .map(TableTransformationUtils::toDataColumnSpec)//
                 .toArray(DataColumnSpec[]::new));
     }
 
-    private static <T> TypedReaderTableSpec<T> getCandidates(final TransformationModel<T> transformationModel) {
+    private static <T> TypedReaderTableSpec<T> getCandidates(final TableTransformation<T> transformationModel) {
         final RawSpec<T> rawSpec = transformationModel.getRawSpec();
         final TypedReaderTableSpec<T> candidates;
         switch (transformationModel.getColumnFilterMode()) {
@@ -118,29 +118,29 @@ public final class TransformationModelUtils {
     }
 
     /**
-     * Extracts the relevant {@link ProductionPath ProductionPaths} from the provided {@link TransformationModel} and
+     * Extracts the relevant {@link ProductionPath ProductionPaths} from the provided {@link TableTransformation} and
      * returns them in order of the output.
      *
      * @param <T> the type used to identify external data types
      * @param transformationModel specifying the output {@link ProductionPath ProductionPaths}
      * @return the {@link ProductionPath ProductionPaths} in output order
      */
-    public static <T> ProductionPath[] getOutputProductionPaths(final TransformationModel<T> transformationModel) {
+    public static <T> ProductionPath[] getOutputProductionPaths(final TableTransformation<T> transformationModel) {
         return getOutputTransformationStream(transformationModel)//
-            .map(Transformation::getProductionPath)//
+            .map(ColumnTransformation::getProductionPath)//
             .toArray(ProductionPath[]::new);
     }
 
-    private static DataColumnSpec toDataColumnSpec(final Transformation<?> transformation) {
+    private static DataColumnSpec toDataColumnSpec(final ColumnTransformation<?> transformation) {
         final DataType type = transformation.getProductionPath().getConverterFactory().getDestinationType();
         return new DataColumnSpecCreator(transformation.getName(), type).createSpec();
     }
 
-    private static <T> Stream<Transformation<T>>
-        getOutputTransformationStream(final TransformationModel<T> transformationModel) {
+    private static <T> Stream<ColumnTransformation<T>>
+        getOutputTransformationStream(final TableTransformation<T> transformationModel) {
         return getCandidates(transformationModel).stream()//
             .map(transformationModel::getTransformation)//
-            .filter(Transformation::keep)//
+            .filter(ColumnTransformation::keep)//
             .sorted();
     }
 
@@ -151,9 +151,9 @@ public final class TransformationModelUtils {
      * @param transformationModel from which to extract the original names
      * @return the original names of the columns in the output in output order
      */
-    public static <T> List<String> getOriginalOutputNames(final TransformationModel<T> transformationModel) {
+    public static <T> List<String> getOriginalOutputNames(final TableTransformation<T> transformationModel) {
         return getOutputTransformationStream(transformationModel)//
-            .map(Transformation::getOriginalName)//
+            .map(ColumnTransformation::getOriginalName)//
             .collect(toList());
     }
 

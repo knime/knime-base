@@ -72,7 +72,6 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
     /**
      * Only kept for backwards compatibility with 4.2.</br>
-     * Newer versions no longer store the SpecMergeMode here but instead store the ColumnFilterMode.
      */
     private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
 
@@ -158,7 +157,6 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     public void saveInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
         m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(),
             settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
-//        settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
 
         if (config.hasTableSpecConfig()) {
             config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));

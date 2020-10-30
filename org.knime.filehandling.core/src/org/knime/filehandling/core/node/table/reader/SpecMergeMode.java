@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -56,7 +57,9 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @noreference non-public API
+ * @deprecated replaced by {@link ColumnFilterMode} and {@link MultiTableReadConfig#failOnDifferingSpecs()}
  */
+@Deprecated
 public enum SpecMergeMode {
 
         /**

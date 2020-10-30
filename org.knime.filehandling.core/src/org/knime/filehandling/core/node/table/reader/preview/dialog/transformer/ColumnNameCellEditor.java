@@ -69,11 +69,11 @@ final class ColumnNameCellEditor extends DefaultCellEditor {
 
     private final JTextField m_editor;
 
-    private final TransformationTableModel<?> m_transformationTableModel;
+    private final TableTransformationTableModel<?> m_transformationTableModel;
 
     private int m_currentRow;
 
-    public ColumnNameCellEditor(final TransformationTableModel<?> transformationTableModel) {
+    public ColumnNameCellEditor(final TableTransformationTableModel<?> transformationTableModel) {
         super(new JTextField());
         m_transformationTableModel = transformationTableModel;
         m_editor = (JTextField)getComponent();

@@ -66,7 +66,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.knime.filehandling.core.util.CheckedExceptionSupplier;
@@ -128,7 +128,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
         }
     }
 
-    void load(final TransformationModel<T> transformationModel) {
+    void load(final TableTransformation<T> transformationModel) {
         m_transformationModel.load(transformationModel);
     }
 
@@ -249,7 +249,6 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
             m_currentRead = stagedMultiTableRead;
             // we disable the transformation view during this update to avoid concurrent manipulation
             m_transformationModel.setEnabled(false);
-            //            m_transformationModel.load(m_currentRead.getTransformationModel());
             m_transformationModel.updateRawSpec(m_currentRead.getRawSpec());
             // the table spec might not change but the read accessor will be closed therefore we need to
             // update the preview table otherwise we risk IOExceptions because the paths are no longer valid

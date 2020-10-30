@@ -69,7 +69,7 @@ import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
 import org.knime.core.data.convert.map.Source;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
@@ -124,22 +124,24 @@ public final class TRFTestingUtils implements Source<String> {
         return TypedReaderTableSpec.create(names, types, types.stream().map(t -> true).collect(toList()));
     }
 
-    public static <T> T[] a(final T...values) {
+    public static <T> T[] a(final T... values) {
         return values;
     }
 
     /**
-     * Convenience method for checking a {@link Transformation}.
+     * Convenience method for checking a {@link ColumnTransformation}.
      *
      * @param <T> type used to identify external data types
      * @param transformation to check
-     * @param col1 expected return value of {@link Transformation#getExternalSpec()}
-     * @param name expected return value of {@link Transformation#getName()}
-     * @param prodPath expected return value of {@link Transformation#getProductionPath()}
-     * @param position expected return value of {@link Transformation#getPosition()}
-     * @param keep expected return value of {@link Transformation#keep()}
+     * @param col1 expected return value of {@link ColumnTransformation#getExternalSpec()}
+     * @param name expected return value of {@link ColumnTransformation#getName()}
+     * @param prodPath expected return value of {@link ColumnTransformation#getProductionPath()}
+     * @param position expected return value of {@link ColumnTransformation#getPosition()}
+     * @param keep expected return value of {@link ColumnTransformation#keep()}
      */
-    public static <T> void checkTransformation(final Transformation<T> transformation, final TypedReaderColumnSpec<T> col1, final String name, final ProductionPath prodPath, final int position, final boolean keep) {
+    public static <T> void checkTransformation(final ColumnTransformation<T> transformation,
+        final TypedReaderColumnSpec<T> col1, final String name, final ProductionPath prodPath, final int position,
+        final boolean keep) {
         assertEquals(col1, transformation.getExternalSpec());
         assertEquals(name, transformation.getName());
         assertEquals(prodPath, transformation.getProductionPath());

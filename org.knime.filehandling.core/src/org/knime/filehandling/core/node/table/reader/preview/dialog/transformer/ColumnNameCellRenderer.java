@@ -55,8 +55,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- * Renders the column name and highlights it red if the name is invalid (i.e. a duplicate) provided the row is
- * currently not selected.
+ * Renders the column name and highlights it red if the name is invalid (i.e. a duplicate) provided the row is currently
+ * not selected.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -69,7 +69,7 @@ class ColumnNameCellRenderer extends DefaultTableCellRenderer {//NOSONAR
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
         final boolean hasFocus, final int row, final int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        final TransformationTableModel<?> model = (TransformationTableModel<?>)table.getModel();
+        final TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
 
         if (isSelected) {
             // use color from super type

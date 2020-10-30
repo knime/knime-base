@@ -64,19 +64,20 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Takes a {@link RawSpec} and a {@link MultiTableReadConfig} and creates a {@link TransformationModel} compatible with
- * the {@link RawSpec} by either incorporating an existing {@link TransformationModel} or generating a new one.</br>
+ * Takes a {@link RawSpec} and a {@link MultiTableReadConfig} and creates a {@link TableTransformation} compatible with
+ * the {@link RawSpec} by either incorporating an existing {@link TableTransformation} or generating a new one.</br>
  * </br>
- * NOTE: If the old TransformationModel has {@link ColumnFilterMode#INTERSECTION} then all columns that are new to the new intersection are considered to be new even if they were already part of the old union.
- * Example:
+ * NOTE: If the old TransformationModel has {@link ColumnFilterMode#INTERSECTION} then all columns that are new to the
+ * new intersection are considered to be new even if they were already part of the old union. Example:
+ *
  * <pre>
  * Incoming TransformationModel:
  *      ColumnFilterMode: Intersection
@@ -90,21 +91,22 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * New TransformationModel:
  *      Positions: [B:0, A:1, D:2, C:3]
  * </pre>
+ *
  * Note how all positions change.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class TransformationModelFactory<T> {
+final class TableTransformationFactory<T> {
 
     private final ProductionPathProvider<T> m_prodPathProvider;
 
-    TransformationModelFactory(final ProductionPathProvider<T> productionPathProvider) {
+    TableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
         m_prodPathProvider = productionPathProvider;
     }
 
-    TransformationModel<T> create(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config) {
+    TableTransformation<T> create(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config) {
         if (config.hasTableSpecConfig()) {
-            final TransformationModel<T> configuredTransformationModel =
+            final TableTransformation<T> configuredTransformationModel =
                 config.getTableSpecConfig().getTransformationModel();
             return createFromExisting(rawSpec, configuredTransformationModel);
         } else {
@@ -112,7 +114,7 @@ final class TransformationModelFactory<T> {
         }
     }
 
-    private TransformationModel<T> createDefaultTransformationModel(final RawSpec<T> rawSpec,
+    private TableTransformation<T> createDefaultTransformationModel(final RawSpec<T> rawSpec,
         final MultiTableReadConfig<?> config) {
         // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
         // so we need to fallback to the old SpecMergeMode if available or default to UNION
@@ -123,21 +125,22 @@ final class TransformationModelFactory<T> {
             CheckUtils.checkArgument(rawSpec.getIntersection().size() > 0, "The intersection of all specs is empty.");
         }
         TypedReaderTableSpec<T> union = rawSpec.getUnion();
-        final List<Transformation<T>> transformations = new ArrayList<>(union.size());
+        final List<ColumnTransformation<T>> transformations = new ArrayList<>(union.size());
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : union) {
-            transformations.add(new ImmutableTransformation<>(column,
+            transformations.add(new ImmutableColumnTransformation<>(column,
                 m_prodPathProvider.getDefaultProductionPath(column.getType()), true, idx, getNameAfterInit(column)));
             idx++;
         }
-        return new DefaultTransformationModel<>(rawSpec, transformations, columnFilterMode, true,
+        return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
             transformations.size());
     }
 
-    private int calculateNewPosForUnknown(final Collection<Transformation<T>> relevantTransformations,
+    private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
         final int storedPositionForUnknown) {
+        // relevantTransformations are sorted by position so we can iterate over them to find the new insert position
         int idx = 0;
-        for (Transformation<T> transformation : relevantTransformations) {
+        for (ColumnTransformation<T> transformation : relevantTransformations) {
             if (transformation.getPosition() >= storedPositionForUnknown) {
                 return idx;
             }
@@ -146,62 +149,75 @@ final class TransformationModelFactory<T> {
         return idx;
     }
 
-    private TransformationModel<T> createFromExisting(final RawSpec<T> newRawSpec,
-        final TransformationModel<T> existingModel) {
+    private TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
+        final TableTransformation<T> existingModel) {
         final ColumnFilterMode colFilterMode = existingModel.getColumnFilterMode();
-        LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns =
+        // The columns that are potentially in the output i.e. the union or intersection of all columns
+        // depending on the ColumnFilterMode
+        final LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns =
             colFilterMode.getRelevantSpec(newRawSpec).stream().collect(//
                 toMap(MultiTableUtils::getNameAfterInit, //
                     Function.identity(), //
                     (c1, c2) -> c1, // never used because the spec doesn't contain duplicates
                     LinkedHashMap::new));
-        LinkedHashMap<String, Transformation<T>> relevantTransformations = colFilterMode
+        // The transformations for which a column is present in the new input
+        // IMPORTANT: For ColumnFilterMode.INTERSECTION a transformation is also dropped if it is no longer
+        // in the intersection but still in the union.
+        final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations = colFilterMode
             .getRelevantSpec(existingModel.getRawSpec()).stream().map(existingModel::getTransformation)//
-            .filter(t -> relevantColumns.containsKey(t.getOriginalName()))// only keep transformations that are relevant for the new spec
+            .filter(t -> relevantColumns.containsKey(t.getOriginalName()))//
             .sorted()// sort by position in output
-            .collect(toMap(Transformation::getOriginalName, Function.identity(), (t1, t2) -> t1, LinkedHashMap::new));
+            .collect(
+                toMap(ColumnTransformation::getOriginalName, Function.identity(), (t1, t2) -> t1, LinkedHashMap::new));
 
-        final int unknownPos =
+        // The position at which all unknown columns are inserted
+        final int insertUnknownsAt =
             calculateNewPosForUnknown(relevantTransformations.values(), existingModel.getPositionForUnknownColumns());
 
+        // All columns that are either new or are no longer relevant
+        // (i.e. they dropped out of the intersection if ColumnFilterMode==INTERSECTION)
         final List<TypedReaderColumnSpec<T>> unknowns = newRawSpec.getUnion().stream()//
             .filter(e -> !relevantTransformations.containsKey(getNameAfterInit(e)))//
             .collect(toList());
 
-        final List<Transformation<T>> newTransformations = new ArrayList<>();
+        final List<ColumnTransformation<T>> newTransformations = new ArrayList<>();
         final boolean keepUnknownColumns = existingModel.keepUnknownColumns();
         int idx = 0;
-        final Iterator<Transformation<T>> existingTransformationIterator = relevantTransformations.values().iterator();
-        for (; idx < unknownPos; idx++) {
+        final Iterator<ColumnTransformation<T>> existingTransformationIterator =
+            relevantTransformations.values().iterator();
+        // fill the new transformations up with the (updated) existing ones until we reach insertUnknownsAt
+        for (; idx < insertUnknownsAt; idx++) {
             assert existingTransformationIterator.hasNext();
-            final Transformation<T> existingTransformation = existingTransformationIterator.next();
+            final ColumnTransformation<T> existingTransformation = existingTransformationIterator.next();
             final TypedReaderColumnSpec<T> newSpec = relevantColumns.get(existingTransformation.getOriginalName());
             newTransformations.add(createFromExisting(existingTransformation, newSpec, idx));
         }
+        // insert all new ColumnTransformations
         for (TypedReaderColumnSpec<T> unknownColumn : unknowns) {
-            newTransformations.add(new ImmutableTransformation<>(unknownColumn,
+            newTransformations.add(new ImmutableColumnTransformation<>(unknownColumn,
                 m_prodPathProvider.getDefaultProductionPath(unknownColumn.getType()), keepUnknownColumns, idx,
                 getNameAfterInit(unknownColumn)));
             idx++;
         }
+        // add the remaining (updated) old transformations
         for (; existingTransformationIterator.hasNext(); idx++) {
-            final Transformation<T> existingTransformation = existingTransformationIterator.next();
-            newTransformations.add(
-                createFromExisting(existingTransformation, relevantColumns.get(existingTransformation.getOriginalName()), idx));
+            final ColumnTransformation<T> existingTransformation = existingTransformationIterator.next();
+            newTransformations.add(createFromExisting(existingTransformation,
+                relevantColumns.get(existingTransformation.getOriginalName()), idx));
         }
-        return new DefaultTransformationModel<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
-            unknownPos + unknowns.size());
+        return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
+            insertUnknownsAt + unknowns.size());
     }
 
-    private ImmutableTransformation<T> createFromExisting(final Transformation<T> existingTransformation,
+    private ImmutableColumnTransformation<T> createFromExisting(final ColumnTransformation<T> existingTransformation,
         final TypedReaderColumnSpec<T> newSpec, final int newPos) {
         final ProductionPath prodPath = determineProductionPath(newSpec, existingTransformation);
-        return new ImmutableTransformation<>(newSpec, prodPath, existingTransformation.keep(), newPos,
+        return new ImmutableColumnTransformation<>(newSpec, prodPath, existingTransformation.keep(), newPos,
             existingTransformation.getName());
     }
 
     private ProductionPath determineProductionPath(final TypedReaderColumnSpec<T> column,
-        final Transformation<T> transformation) {
+        final ColumnTransformation<T> transformation) {
         ProductionPath prodPath;
         final T externalType = column.getType();
         if (externalType.equals(transformation.getExternalSpec().getType())) {

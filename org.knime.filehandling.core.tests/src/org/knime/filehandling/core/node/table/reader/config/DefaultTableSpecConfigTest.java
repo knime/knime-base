@@ -94,8 +94,8 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
@@ -149,13 +149,13 @@ public class DefaultTableSpecConfigTest {
     private Path m_path2;
 
     @Mock
-    private Transformation<String> m_trans1;
+    private ColumnTransformation<String> m_trans1;
 
     @Mock
-    private Transformation<String> m_trans2;
+    private ColumnTransformation<String> m_trans2;
 
     @Mock
-    private Transformation<String> m_trans3;
+    private ColumnTransformation<String> m_trans3;
 
     private static ProducerRegistry<String, DummySource> createTestingRegistry() {
         final ProducerRegistry<String, DummySource> registry = MappingFramework.forSourceType(DummySource.class);
@@ -179,12 +179,12 @@ public class DefaultTableSpecConfigTest {
     }
 
     /**
-     * Tests {@link DefaultTableSpecConfig#createFromTransformationModel(String, Map, TransformationModel)}.
+     * Tests {@link DefaultTableSpecConfig#createFromTransformationModel(String, Map, TableTransformation)}.
      */
     @Test
     public void testCreateFromTransformationModel() {
         @SuppressWarnings("unchecked")
-        final TransformationModel<String> transformationModel = mock(TransformationModel.class);
+        final TableTransformation<String> transformationModel = mock(TableTransformation.class);
 
         RawSpec<String> rawSpec = new RawSpec<>(new TypedReaderTableSpec<>(asList(COL1, COL2, COL3)),
             new TypedReaderTableSpec<>(asList(COL1, COL3)));
@@ -226,9 +226,9 @@ public class DefaultTableSpecConfigTest {
     }
 
     private static final class TransformationStubber<T> {
-        private final Transformation<T> m_mockTransformation;
+        private final ColumnTransformation<T> m_mockTransformation;
 
-        TransformationStubber(final Transformation<T> mockTransformation) {
+        TransformationStubber(final ColumnTransformation<T> mockTransformation) {
             m_mockTransformation = mockTransformation;
         }
 
@@ -257,7 +257,7 @@ public class DefaultTableSpecConfigTest {
             return this;
         }
 
-        Transformation<T> getTransformation() {
+        ColumnTransformation<T> getTransformation() {
             return m_mockTransformation;
         }
     }
@@ -327,7 +327,7 @@ public class DefaultTableSpecConfigTest {
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
             new int[]{1, 2, 0}, new boolean[]{true, false, true}, 3, ColumnFilterMode.UNION, true);
 
-        final TransformationModel<String> tm = tsc.getTransformationModel();
+        final TableTransformation<String> tm = tsc.getTransformationModel();
         assertEquals(RAW_SPEC, tm.getRawSpec());
 
         final ProductionPath[] expectedProdPaths =

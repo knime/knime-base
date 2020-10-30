@@ -60,7 +60,7 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
-import org.knime.filehandling.core.node.table.reader.selector.Transformation;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
@@ -86,18 +86,18 @@ final class IndividualTableReaderFactory<T, V> {
     private final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> m_typeMapperFactory;
 
     IndividualTableReaderFactory(final Map<Path, TypedReaderTableSpec<T>> specs, final TableReadConfig<?> config,
-        final List<Transformation<T>> outputTransformations,
+        final List<ColumnTransformation<T>> outputTransformations,
         final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> typeMapperFactory,
         final RowKeyGeneratorContext<V> rowKeyGenContext) {
         m_specs = specs;
         m_indexMapperFactory = new IndexMapperFactory(outputTransformations.stream()//
-            .map(Transformation::getExternalSpec)//
+            .map(ColumnTransformation::getExternalSpec)//
             .map(MultiTableUtils::getNameAfterInit)//
             .collect(toList()), config);
         m_rowKeyGenContext = rowKeyGenContext;
         m_typeMapperFactory = typeMapperFactory;
         m_prodPaths = outputTransformations.stream()//
-            .map(Transformation::getProductionPath)//
+            .map(ColumnTransformation::getProductionPath)//
             .toArray(ProductionPath[]::new);
     }
 

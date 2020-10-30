@@ -72,7 +72,7 @@ import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy.TypeResolver;
@@ -94,12 +94,12 @@ public class DefaultMultiTableReadFactoryTest {
 
     private static final TypedReaderTableSpec<String> SPEC2 = createTypedTableSpec(asList("B", "C"), asList("Y", "Z"));
 
-    private static final TypedReaderTableSpec<String> UNION = createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
+    private static final TypedReaderTableSpec<String> UNION =
+        createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
 
     private static final TypedReaderTableSpec<String> INTERSECTION = createTypedTableSpec(asList("B"), asList("Y"));
 
     private static final RawSpec<String> RAW_SPEC = new RawSpec<>(UNION, INTERSECTION);
-
 
     @Mock
     private TypeHierarchy<String, String> m_typeHierarchy;
@@ -145,12 +145,13 @@ public class DefaultMultiTableReadFactoryTest {
     @Before
     public void init() {
         when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
-        m_testInstance = new DefaultMultiTableReadFactory<>(m_typeHierarchy, m_rowKeyGenFactory,
-            m_tableReader, m_productionPathProvider, m_readAdapterSupplier);
+        m_testInstance = new DefaultMultiTableReadFactory<>(m_typeHierarchy, m_rowKeyGenFactory, m_tableReader,
+            m_productionPathProvider, m_readAdapterSupplier);
     }
 
     /**
-     * Tests the implementation of {@link MultiTableReadFactory#create(String, java.util.List, MultiTableReadConfig, ExecutionMonitor)}.
+     * Tests the implementation of
+     * {@link MultiTableReadFactory#create(String, java.util.List, MultiTableReadConfig, ExecutionMonitor)}.
      *
      * @throws IOException
      */
@@ -172,12 +173,13 @@ public class DefaultMultiTableReadFactoryTest {
     }
 
     /**
-     * Tests the implementation of {@link MultiTableReadFactory#createFromConfig(String, java.util.List, MultiTableReadConfig)}.
+     * Tests the implementation of
+     * {@link MultiTableReadFactory#createFromConfig(String, java.util.List, MultiTableReadConfig)}.
      */
     @SuppressWarnings({"rawtypes", "unchecked"}) // otherwise Mockito won't work
     @Test
     public void testCreateFromConfig() {
-        TransformationModel transformationModel = mock(TransformationModel.class);
+        TableTransformation transformationModel = mock(TableTransformation.class);
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         final TableSpecConfig tsc = mock(TableSpecConfig.class);
@@ -185,13 +187,13 @@ public class DefaultMultiTableReadFactoryTest {
         when(tsc.getSpec("path2")).thenReturn(SPEC2);
         when(tsc.getTransformationModel()).thenReturn(transformationModel);
 
-
         when(m_config.getTableSpecConfig()).thenReturn(tsc);
 
         when(m_path1.toString()).thenReturn("path1");
         when(m_path2.toString()).thenReturn("path2");
 
-        StagedMultiTableRead<String> smtr = m_testInstance.createFromConfig(ROOT_PATH, asList(m_path1, m_path2), m_config);
+        StagedMultiTableRead<String> smtr =
+            m_testInstance.createFromConfig(ROOT_PATH, asList(m_path1, m_path2), m_config);
 
         assertEquals(RAW_SPEC, smtr.getRawSpec());
     }
