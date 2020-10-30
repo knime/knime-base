@@ -99,6 +99,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * Node Model for the "Compress Files/Folder" node
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class CompressNodeModel extends NodeModel {
 
@@ -140,13 +141,24 @@ final class CompressNodeModel extends NodeModel {
 
     private void compress(final ExecutionContext exec)
         throws IOException, InvalidSettingsException, CanceledExecutionException {
-        try (final WritePathAccessor writeAccessor = m_config.getTargetFileChooserModel().createWritePathAccessor()) {
-            final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
+        try (final ReadPathAccessor readAccessor = m_config.getInputLocationChooserModel().createReadPathAccessor()) {
+            final FSPath rootPath = readAccessor.getRootPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+            final List<FSPath> inputPaths = getInputPaths(readAccessor, rootPath);
+            // fail if no files/folders need to be compressed as this would create an invalid archive
+            CheckUtils.checkSetting(!inputPaths.isEmpty(), "No files and/or folders to compress have been specified");
 
-            final FileOverwritePolicy overwritePolicy = m_config.getTargetFileChooserModel().getFileOverwritePolicy();
-            createParentDirIfRequired(outputPath);
-            compress(outputPath, exec, overwritePolicy);
+            final PathRelativizer pathRelativizer = getPathRelativizer(rootPath);
+            try (final WritePathAccessor writeAccessor =
+                m_config.getTargetFileChooserModel().createWritePathAccessor()) {
+                final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
+                m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+
+                final FileOverwritePolicy overwritePolicy =
+                    m_config.getTargetFileChooserModel().getFileOverwritePolicy();
+                createParentDirIfRequired(outputPath);
+                compress(exec, inputPaths, pathRelativizer, outputPath, overwritePolicy);
+            }
         }
     }
 
@@ -162,8 +174,8 @@ final class CompressNodeModel extends NodeModel {
         }
     }
 
-    private void compress(final FSPath outputPath, final ExecutionContext exec,
-        final FileOverwritePolicy overwritePolicy)
+    private void compress(final ExecutionContext exec, final List<FSPath> inputPaths,
+        final PathRelativizer pathRelativizer, final FSPath outputPath, final FileOverwritePolicy overwritePolicy)
         throws IOException, CanceledExecutionException, InvalidSettingsException {
 
         final String compression = m_config.getCompressionModel().getStringValue().toLowerCase();
@@ -173,54 +185,47 @@ final class CompressNodeModel extends NodeModel {
         }
         try (final OutputStream outputStream = FSFiles.newOutputStream(outputPath, overwritePolicy.getOpenOptions())) {
             try (final OutputStream compressorStream = openCompressorStream(outputStream, compression)) {
-                compress(compressorStream, compression, exec);
+                compress(exec, inputPaths, pathRelativizer, compressorStream, compression);
             } catch (CompressorException e) {
                 throw new InvalidSettingsException("Unsupported compression type", e);
             }
         }
     }
 
-    private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor)
-        throws IOException, InvalidSettingsException {
-        if (m_config.getInputLocationChooserModel().getFilterMode() == FilterMode.FOLDER) {
-            return getFilesAndEmptyFolders(readAccessor.getRootPath(m_statusConsumer));
-        } else {
-            return readAccessor.getFSPaths(m_statusConsumer);
+    private static void compress(final ExecutionContext exec, final List<FSPath> inputPaths,
+        final PathRelativizer pathRelativizer, final OutputStream compressorStream, final String compression)
+        throws IOException, CanceledExecutionException {
+        final String archiver = getArchiver(compression);
+        try (ArchiveOutputStream archiveStream =
+            new ArchiveStreamFactory().createArchiveOutputStream(archiver, compressorStream)) {
+            // without that only names with 16 chars would be possible, known limitation from the docs
+            if (archiveStream instanceof ArArchiveOutputStream) {
+                ((ArArchiveOutputStream)archiveStream).setLongFileMode(ArArchiveOutputStream.LONGFILE_BSD);
+            }
+
+            final ArchiveEntryCreator entryCreator = ArchiveEntryFactory.getArchiveEntryCreator(archiver);
+            final long numOfFiles = inputPaths.size();
+            long fileCounter = 0;
+
+            final Map<String, String> createdEntries = new HashMap<>();
+            for (Path toCompress : inputPaths) {
+                exec.setProgress((fileCounter / (double)numOfFiles),
+                    () -> ("Compressing file: " + toCompress.toString()));
+                exec.checkCanceled();
+                addEntry(archiveStream, pathRelativizer, createdEntries, toCompress, entryCreator);
+                fileCounter++;
+            }
+        } catch (ArchiveException e) {
+            throw new IllegalArgumentException("Unsupported archive type", e);
         }
     }
 
-    private void compress(final OutputStream compressorStream, final String compression, final ExecutionContext exec)
-        throws IOException, CanceledExecutionException, InvalidSettingsException {
-
-        try (final ReadPathAccessor readAccessor = m_config.getInputLocationChooserModel().createReadPathAccessor()) {
-            final List<FSPath> inputPaths = getInputPaths(readAccessor);
-            final Path rootPath = readAccessor.getRootPath(m_statusConsumer);
-            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
-
-            final String archiver = getArchiver(compression);
-            try (ArchiveOutputStream archiveStream =
-                new ArchiveStreamFactory().createArchiveOutputStream(archiver, compressorStream)) {
-                // without that only names with 16 chars would be possible, known limitation from the docs
-                if (archiveStream instanceof ArArchiveOutputStream) {
-                    ((ArArchiveOutputStream)archiveStream).setLongFileMode(ArArchiveOutputStream.LONGFILE_BSD);
-                }
-
-                final ArchiveEntryCreator entryCreator = ArchiveEntryFactory.getArchiveEntryCreator(archiver);
-                final PathRelativizer pathRelativizer = getPathRelativizer(rootPath);
-                final long numOfFiles = inputPaths.size();
-                long fileCounter = 0;
-
-                final Map<String, String> createdEntries = new HashMap<>();
-                for (Path toCompress : inputPaths) {
-                    exec.setProgress((fileCounter / (double)numOfFiles),
-                        () -> ("Compressing file: " + toCompress.toString()));
-                    exec.checkCanceled();
-                    addEntry(archiveStream, pathRelativizer, createdEntries, toCompress, entryCreator);
-                    fileCounter++;
-                }
-            } catch (ArchiveException e) {
-                throw new IllegalArgumentException("Unsupported archive type", e);
-            }
+    private List<FSPath> getInputPaths(final ReadPathAccessor readAccessor, final FSPath rootPath)
+        throws IOException, InvalidSettingsException {
+        if (m_config.getInputLocationChooserModel().getFilterMode() == FilterMode.FOLDER) {
+            return getFilesAndEmptyFolders(rootPath);
+        } else {
+            return readAccessor.getFSPaths(m_statusConsumer);
         }
     }
 
@@ -325,12 +330,16 @@ final class CompressNodeModel extends NodeModel {
      * @return a {@link List} of {@link Path} from files in a folder
      * @throws IOException
      */
-    private static List<FSPath> getFilesAndEmptyFolders(final FSPath folder, final LinkOption... linkOptions)// NOSONAR
+    private List<FSPath> getFilesAndEmptyFolders(final FSPath folder, final LinkOption... linkOptions)// NOSONAR
         throws IOException {
         final List<FSPath> paths = new ArrayList<>();
         CheckUtils.checkArgument(FSFiles.isDirectory(folder, linkOptions),
             "%s is not a folder. Please specify a folder.", folder);
         Files.walkFileTree(folder, new FileAndEmptyFolderVisitor(paths));
+        // make sure that we include the parent folder if it's empty and the user has selected this option
+        if (paths.isEmpty() && m_config.includeParentFolder() && !m_config.flattenHierarchy()) {
+            paths.add(folder);
+        }
         FSFiles.sortPathsLexicographically(paths);
         return paths;
     }
