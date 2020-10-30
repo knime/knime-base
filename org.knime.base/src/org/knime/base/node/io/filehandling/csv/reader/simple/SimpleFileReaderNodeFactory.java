@@ -49,14 +49,13 @@
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeFactory;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 
 /**
@@ -84,9 +83,9 @@ public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNod
     @Override
     protected AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
         final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> readFactory,
-        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
+        final ProductionPathProvider<Class<?>> productionPathProvider) {
         return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(),
-            readFactory, defaultProductionPathFn);
+            readFactory, productionPathProvider);
     }
 
 }

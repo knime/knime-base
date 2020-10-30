@@ -54,18 +54,15 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -78,7 +75,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Dialog
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -93,17 +90,13 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     private DialogComponentReaderFileChooser m_filePanel;
 
-    private JRadioButton m_failOnDifferingSpecs;
-
-    private JRadioButton m_union;
-
-    private JRadioButton m_intersection;
+    private JCheckBox m_failOnDifferingSpecs;
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
-        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
-        super(fileChooserModel, config, multiReader, defaultProductionPathFn);
+        final ProductionPathProvider<Class<?>> productionPathProvider) {
+        super(fileChooserModel, config, multiReader, productionPathProvider, true);
     }
 
     private JPanel createFilePanel() {
@@ -120,7 +113,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     private JPanel createSpecMergePanel() {
         final JPanel specMergePanel = new JPanel(new GridBagLayout());
         specMergePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            "Spec merge options (multiple files)"));
+            "Options for multiple files"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;
@@ -128,10 +121,6 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         gbc.weighty = 0;
         gbc.insets = new Insets(5, 5, 5, 5);
         specMergePanel.add(m_failOnDifferingSpecs, gbc);
-        ++gbc.gridx;
-        specMergePanel.add(m_intersection, gbc);
-        ++gbc.gridx;
-        specMergePanel.add(m_union, gbc);
         ++gbc.gridx;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -148,21 +137,13 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         m_filePanel = new DialogComponentReaderFileChooser((SettingsModelReaderFileChooser)fileChooserModel,
             "csv_reader_writer", readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
 
-        m_failOnDifferingSpecs = new JRadioButton("Fail if specs differ");
-        m_union = new JRadioButton("Union");
-        m_intersection = new JRadioButton("Intersection");
-        ButtonGroup specMergeGroup = new ButtonGroup();
-        specMergeGroup.add(m_failOnDifferingSpecs);
-        specMergeGroup.add(m_intersection);
-        specMergeGroup.add(m_union);
-        m_filePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> toggleSpecMergeButtonGrp());
+        m_failOnDifferingSpecs = new JCheckBox("Fail if specs differ");
+        m_filePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> toggleFailOnDifferingCheckBox());
     }
 
-    private void toggleSpecMergeButtonGrp() {
-        final boolean enable = m_filePanel.getSettingsModel().getFilterModeModel().getFilterMode() != FilterMode.FILE;
+    private void toggleFailOnDifferingCheckBox() {
+        final boolean enable = m_filePanel.getSettingsModel().getFilterMode() != FilterMode.FILE;
         m_failOnDifferingSpecs.setEnabled(enable);
-        m_union.setEnabled(enable);
-        m_intersection.setEnabled(enable);
     }
 
     @Override
@@ -181,8 +162,6 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         final ActionListener actionListener = l -> configChanged();
 
         m_failOnDifferingSpecs.addActionListener(actionListener);
-        m_intersection.addActionListener(actionListener);
-        m_union.addActionListener(actionListener);
         m_filePanel.getModel().addChangeListener(l -> configChanged());
     }
 
@@ -192,10 +171,9 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         // FIXME: saving of the file panel should be handled by the config (AP-14460 & AP-14462)
         m_filePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
-        super.saveSettingsTo(settings);
     }
 
     @Override
@@ -203,7 +181,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         throws NotConfigurableException {
         // FIXME: loading should be handled by the config (AP-14460 & AP-14462)
         m_filePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
-        setSpecMergeMode();
+        m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
+        toggleFailOnDifferingCheckBox();
     }
 
     @Override
@@ -215,47 +194,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     @Override
     protected void saveConfig() throws InvalidSettingsException {
         super.saveConfig();
-        m_config.setSpecMergeMode(getSpecMergeMode());
-    }
-
-    /**
-     * get the selected {@link SpecMergeMode} from the dialog.
-     *
-     * @return the selected {@link SpecMergeMode}
-     * @throws InvalidSettingsException
-     */
-    private SpecMergeMode getSpecMergeMode() throws InvalidSettingsException {
-        if (m_failOnDifferingSpecs.isSelected()) {
-            return SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
-        } else if (m_intersection.isSelected()) {
-            return SpecMergeMode.INTERSECTION;
-        } else if (m_union.isSelected()) {
-            return SpecMergeMode.UNION;
-        } else {
-            throw new InvalidSettingsException("No spec merge mode selected!");
-        }
-    }
-
-    /**
-     * sets the Spec merge options in the dialog.
-     *
-     * @throws NotConfigurableException
-     */
-    private void setSpecMergeMode() throws NotConfigurableException {
-        switch (m_config.getSpecMergeMode()) {
-            case FAIL_ON_DIFFERING_SPECS:
-                m_failOnDifferingSpecs.setSelected(true);
-                break;
-            case INTERSECTION:
-                m_intersection.setSelected(true);
-                break;
-            case UNION:
-                m_union.setSelected(true);
-                break;
-            default:
-                throw new NotConfigurableException("Unknown spec merge mode " + m_config.getSpecMergeMode());
-        }
-        toggleSpecMergeButtonGrp();
+        m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
     }
 
     SettingsModelFileChooser2 getFileChooserSettingsModel() {

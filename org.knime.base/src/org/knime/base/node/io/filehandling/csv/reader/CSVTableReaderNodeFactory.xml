@@ -128,6 +128,33 @@
 	          Select this box if some rows may be shorter than others (filled with missing values).
 			</option>
 		</tab>
+		<tab name="Transformation">
+			<option name="Transformations">
+				This tab displays every column as a row in a table that allows modifying the structure of the output table.
+				It supports reordering, filtering and renaming columns. It is also possible to change the type of the columns.
+				Reordering is done via drag-and-drop. Just drag a column to the position it should have in the output table.
+				Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown new column&gt;.
+				Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+			</option>
+			<option name="Reset">Resets all transformations.</option>
+			<option name="Reset filter">Clicking this button will reset the filters i.e. all columns will be included.</option>
+			<option name="Reset names">Resets the names to the names that are read from file or created if the file/folder doesn't contain column names.</option>
+			<option name="Reset types">Resets the output types to the default types guessed from the input file/folder.</option>
+			<option name="Reset order">Resets the order of columns to the order in the input file/folder.</option>
+			<option name="Take columns from">Specifies which columns are considered for the output table.
+				<ul>
+					<li>Union: Any column that is part of any input file is considered. If a file is missing a column, it's filled up with missing values.</li>
+					<li>Intersection: Only columns that appear in all files are considered for the output table.</li>
+				</ul>
+				<b>NOTE:</b> This setting has special implications if you are controlling the input location with a flow variable. 
+				If Intersection is selected any column that moves into the intersection during execution will be considered to be new, even if it was previously part of the union of columns.
+				It is also important to note that the transformation matching during execution is based on name.
+				That means if there was a column [A, Integer] during configuration in the dialog and this column becomes [A, String] during execution, then the stored transformation is applied
+				to it. For filtering, ordering and renaming, this is straight forward. For type mapping the following is done: If there is an alternative converter to the specified KNIME type, then this converter is used,
+				otherwise we default to the default KNIME type for the new type. In our example we might have specified that [A, Integer] should be mapped to Long.
+				For the changed column [A, String] there is no converter to Long, so we default back to String and A becomes a String column in the output table.
+			</option>
+		</tab>
 		<tab name="Advanced Settings">
 			<option name="Limit memory per column">
 				If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
@@ -162,19 +189,8 @@
 			  Note that the two must differ.
 			  While it is possible to leave the thousands separator unspecified, you must always provide a decimal separator.
 			</option>
-			<option name="Spec merge options">
-			This option is used when reading multiple CSV files via the Files in folder option. It allows you to control
-			how differing table structures are handled.
-				<ul>
-	                <li><i>Fail if specs differ:</i> The execution of the nodes will fail, if all tables do not have 
-	                the same column count and each datatype. 
-	                </li>
-	                <li><i>Intersection:</i> The intersection of the columns among the files will be used. Columns that 
-	                do not exist in all files will be left out
-	                </li>
-	                <li><i>Union:</i> The union of the columns in the files will be used. 
-	                </li>
-	        	</ul>
+			<option name="Fail on differing specs">
+				If checked, the node will fail if multiple files are read via the Files in folder option and not all files have the same table structure i.e. the same columns.
 			</option>	
 		</tab>
 	    <tab name="Limit Rows">

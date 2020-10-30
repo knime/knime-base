@@ -48,13 +48,10 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
-import java.util.function.Function;
-
 import javax.swing.JPanel;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeDialog;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -62,6 +59,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
@@ -81,8 +79,8 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
-        final Function<Class<?>, ProductionPath> defaultProductionPathFn) {
-        super(pathSettings, config, multiReader, defaultProductionPathFn);
+        final ProductionPathProvider<Class<?>> productionPathProvider) {
+        super(pathSettings, config, multiReader, productionPathProvider, false);
         m_disableComponentsRemoteContext = false;
     }
 
@@ -113,10 +111,9 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         // FIXME: saving of the file panel should be handled by the config (AP-14460 & AP-14462)
         m_filePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
-        super.saveSettingsTo(settings);
     }
 
     @Override

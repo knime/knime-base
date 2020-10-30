@@ -48,11 +48,13 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader;
 
+import static org.knime.filehandling.core.util.SettingsUtils.getOrEmpty;
+
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -74,10 +76,14 @@ import org.knime.filehandling.core.util.SettingsUtils;
 enum CSVMultiTableReadConfigSerializer implements
     ConfigSerializer<DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>> {
 
-    /**
-     * Singleton instance.
-     */
-    INSTANCE;
+        /**
+         * Singleton instance.
+         */
+        INSTANCE;
+
+    private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
+
+    private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
 
     private static final Class<String> MOST_GENERIC_EXTERNAL_TYPE = String.class;
 
@@ -111,7 +117,9 @@ enum CSVMultiTableReadConfigSerializer implements
 
     private static final String CFG_LIMIT_DATA_ROWS_SCANNED = "limit_data_rows_scanned";
 
-    private static final String CFG_SPEC_MERGE_MODE = "spec_merge_mode";
+    private static final String CFG_SPEC_MERGE_MODE_OLD = "spec_merge_mode";
+
+    private static final String CFG_SPEC_MERGE_MODE_NEW = CFG_SPEC_MERGE_MODE_OLD + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_AUTODETECT_BUFFER_SIZE = "autodetect_buffer_size";
 
@@ -153,13 +161,15 @@ enum CSVMultiTableReadConfigSerializer implements
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
-        loadAdvancedSettingsTabInDialog(config, getOrEmpty(settings, CFG_ADVANCED_SETTINGS_TAB));
+        NodeSettingsRO advancedSettings = getOrEmpty(settings, CFG_ADVANCED_SETTINGS_TAB);
+        loadAdvancedSettingsTabInDialog(config, advancedSettings);
         loadLimitRowsTabInDialog(config, getOrEmpty(settings, CFG_LIMIT_ROWS_TAB));
         loadEncodingTabInDialog(config, getOrEmpty(settings, CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
                 config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                    StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE));
+                    StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE,
+                    loadSpecMergeModeForOldWorkflows(advancedSettings)));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -171,11 +181,23 @@ enum CSVMultiTableReadConfigSerializer implements
         }
     }
 
-    private static NodeSettingsRO getOrEmpty(final NodeSettingsRO settings, final String key) {
+    private static SpecMergeMode loadSpecMergeModeForOldWorkflows(final NodeSettingsRO advancedSettings) {// NOSONAR, stupid rule
         try {
-            return settings.getNodeSettings(key);
+            if (advancedSettings.containsKey(CFG_SPEC_MERGE_MODE_OLD)) {
+                // Settings stored with 4.2 hold the SpecMergeMode as part of the advanced settings
+                return SpecMergeMode.valueOf(advancedSettings.getString(CFG_SPEC_MERGE_MODE_OLD));
+            } else if (advancedSettings.containsKey(CFG_SPEC_MERGE_MODE_NEW)) {
+                // settings originated from 4.2 and were stored in 4.3
+                return SpecMergeMode.valueOf(advancedSettings.getString(CFG_SPEC_MERGE_MODE_NEW));
+            } else {
+                // Settings stored with 4.3 or later, no longer store the SpecMergeMode in the advanced tab
+                // but instead store the ColumnFilterMode as part of the TableSpecConfig
+                return null;
+            }
         } catch (InvalidSettingsException ise) {
-            return new NodeSettings(key);
+            NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class)
+                .debug("Loading the SpecMergeMode failed unexpectedly, falling back to null.", ise);
+            return null;
         }
     }
 
@@ -200,17 +222,40 @@ enum CSVMultiTableReadConfigSerializer implements
         csvConfig.setComment(settings.getString(CFG_COMMENT_CHAR, "\0"));
     }
 
+    private static boolean loadFailOnDifferingSpecsInModel(final NodeSettingsRO advancedSettings)
+        throws InvalidSettingsException {
+        try {
+            // As of 4.3, we store this setting
+            return advancedSettings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS);
+        } catch (final InvalidSettingsException ise) {
+            // In 4.2 we stored the SpecMergeMode instead
+            final SpecMergeMode specMergeMode = loadSpecMergeModeForOldWorkflows(advancedSettings);
+            if (specMergeMode != null) {
+                return specMergeMode == SpecMergeMode.FAIL_ON_DIFFERING_SPECS;
+            } else {
+                // if there was no SpecMergeMode, then we have incomplete settings and need to fail
+                throw ise;
+            }
+        }
+    }
+
+    private static boolean loadFailOnDifferingSpecsInDialog(final NodeSettingsRO advancedSettings) {
+        try {
+            return loadFailOnDifferingSpecsInModel(advancedSettings);
+        } catch (InvalidSettingsException ise) {
+            NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class)
+                .debug(String.format("An error occurred while loading %s", CFG_FAIL_ON_DIFFERING_SPECS), ise);
+            return DEFAULT_FAIL_ON_DIFFERING_SPECS;
+        }
+    }
+
     private static void loadAdvancedSettingsTabInDialog(
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsRO settings) {
-        SpecMergeMode specMergeMode;
-        try {
-            specMergeMode =
-                SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.INTERSECTION.name()));
-        } catch (Exception ex) {
-            specMergeMode = SpecMergeMode.INTERSECTION;
-        }
-        config.setSpecMergeMode(specMergeMode);
+
+        config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInDialog(settings));
+
+        config.setSpecMergeMode(loadSpecMergeModeForOldWorkflows(settings));
 
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setLimitRowsForSpec(settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, true));
@@ -259,12 +304,14 @@ enum CSVMultiTableReadConfigSerializer implements
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
-        loadAdvancedSettingsTabInModel(config, settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
+        final NodeSettingsRO advancedSettings = settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB);
+        loadAdvancedSettingsTabInModel(config, advancedSettings);
         loadLimitRowsTabInModel(config, settings.getNodeSettings(CFG_LIMIT_ROWS_TAB));
         loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE));
+                StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE,
+                loadSpecMergeModeForOldWorkflows(advancedSettings)));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -293,14 +340,8 @@ enum CSVMultiTableReadConfigSerializer implements
     private static void loadAdvancedSettingsTabInModel(
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
-        SpecMergeMode specMergeMode;
-        try {
-            specMergeMode =
-                SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.INTERSECTION.name()));
-        } catch (IllegalArgumentException ex) {
-            throw new InvalidSettingsException(ex);
-        }
-        config.setSpecMergeMode(specMergeMode);
+        config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInModel(settings));
+        config.setSpecMergeMode(loadSpecMergeModeForOldWorkflows(settings));
 
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setLimitRowsForSpec(settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED));
@@ -379,7 +420,17 @@ enum CSVMultiTableReadConfigSerializer implements
     private static void saveAdvancedSettingsTab(
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final NodeSettingsWO settings) {
-        settings.addString(CFG_SPEC_MERGE_MODE, config.getSpecMergeMode().name());
+
+        if (config.getSpecMergeMode() != null) {
+            // We have an old SpecMergeMode stored, so we need to carry it along
+            // otherwise a node might change its behavior without having been reconfigured
+            // Example: Node was stored with SpecMergeMode.INTERSECTION, then stored in 4.3
+            // In that case if we don't store the SpecMergeMode, there won't be one in the
+            // settings which means that we default to SpecMergeMode.UNION
+            settings.addString(CFG_SPEC_MERGE_MODE_NEW, config.getSpecMergeMode().name());
+        }
+
+        settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
 
         final TableReadConfig<?> tc = config.getTableReadConfig();
         settings.addBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, tc.limitRowsForSpec());
@@ -445,7 +496,7 @@ enum CSVMultiTableReadConfigSerializer implements
 
     public static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE, SpecMergeMode.INTERSECTION.name()));
+            SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE_OLD, SpecMergeMode.INTERSECTION.name()));
         } catch (IllegalArgumentException ex) {
             throw new InvalidSettingsException(ex);
         }
