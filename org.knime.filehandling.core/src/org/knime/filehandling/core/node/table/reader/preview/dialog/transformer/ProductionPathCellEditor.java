@@ -44,54 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview.dialog;
+package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.Component;
+import java.util.List;
+import java.util.function.Function;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
+import javax.swing.AbstractCellEditor;
+import javax.swing.JComboBox;
+import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
 
-import org.knime.core.node.tableview.TableView;
-import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.core.data.convert.map.ProductionPath;
 
 /**
- * View of the table reader preview.</br>
- * Displays a {@link TableView} with additional components for progress and error reporting.
+ * {@link TableCellEditor} that allows to pick a {@link ProductionPath} from a combo box.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not part of public API
- * @noinstantiate not part of public API
  */
-public final class TableReaderPreviewView extends JPanel {
+final class ProductionPathCellEditor extends AbstractCellEditor implements TableCellEditor {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int PREVIEW_WIDTH = 750;
+    private final JComboBox<ProductionPath> m_productionPaths = new JComboBox<>();
 
-    private static final int PREVIEW_HEIGHT = 250;
+    private final transient Function<Object, List<ProductionPath>> m_productionPathProvider;
 
-    private final AnalysisComponentView m_analysisComponentView;
-
-    private final TableView m_tableView;
-
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
-        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
-        m_tableView = new TableView(model.getPreviewTableModel());
-        // reordering the columns might give the impression that the order in the output changes too
-        m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
-        createPanel();
+    ProductionPathCellEditor(final Function<Object, List<ProductionPath>> productionPathProvider) {
+        m_productionPathProvider = productionPathProvider;
+        m_productionPaths.setRenderer(new KnimeTypeProductionPathListCellRenderer());
     }
 
-    private void createPanel() {
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
-        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+    @Override
+    public Object getCellEditorValue() {
+        return m_productionPaths.getSelectedItem();
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+        final ProductionPath currentProdPath = (ProductionPath)value;
+        final Object externalType = currentProdPath.getProducerFactory().getSourceType();
+        final List<ProductionPath> availablePaths = m_productionPathProvider.apply(externalType);
+        m_productionPaths.removeAllItems();
+        availablePaths.forEach(m_productionPaths::addItem);
+        m_productionPaths.setSelectedItem(currentProdPath);
+        return m_productionPaths;
     }
 
 }

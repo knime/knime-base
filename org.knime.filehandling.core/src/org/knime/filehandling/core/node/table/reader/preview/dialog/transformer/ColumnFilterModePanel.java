@@ -44,54 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview.dialog;
+package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Dimension;
 import java.awt.GridBagLayout;
+import java.util.EnumMap;
+import java.util.Map.Entry;
 
-import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
-import org.knime.core.node.tableview.TableView;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
- * View of the table reader preview.</br>
- * Displays a {@link TableView} with additional components for progress and error reporting.
+ * Panel for selecting the {@link ColumnFilterMode}.</br>
+ * It consists of three radio buttons aligned horizontally.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not part of public API
- * @noinstantiate not part of public API
  */
-public final class TableReaderPreviewView extends JPanel {
+final class ColumnFilterModePanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int PREVIEW_WIDTH = 750;
+    private final EnumMap<ColumnFilterMode, JRadioButton> m_btns = new EnumMap<>(ColumnFilterMode.class);
 
-    private static final int PREVIEW_HEIGHT = 250;
+    private final transient ColumnFilterModeModel m_model;
 
-    private final AnalysisComponentView m_analysisComponentView;
+    ColumnFilterModePanel(final ColumnFilterModeModel model) {
+        super(new GridBagLayout());
 
-    private final TableView m_tableView;
+        m_btns.put(ColumnFilterMode.UNION, new JRadioButton("Union", true));
+        m_btns.put(ColumnFilterMode.INTERSECTION, new JRadioButton("Intersection"));
 
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
-        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
-        m_tableView = new TableView(model.getPreviewTableModel());
-        // reordering the columns might give the impression that the order in the output changes too
-        m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
-        createPanel();
+        m_model = model;
+        final ButtonGroup btnGrp = new ButtonGroup();
+        final GBCBuilder gbc = new GBCBuilder().resetY();
+        for (JRadioButton btn : m_btns.values()) {
+            add(btn, gbc.incX().build());
+            btn.addActionListener(e -> handleButtonChange());
+            btnGrp.add(btn);
+        }
+        add(new JPanel(), gbc.fillHorizontal().setWeightX(1).incX().build());
+        m_model.addChangeListener(e -> handleModelChange());
     }
 
-    private void createPanel() {
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
-        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+    private void handleButtonChange() {
+        m_model.setColumnFilterModel(getColumnFilterMode());
+    }
+
+    private void handleModelChange() {
+        m_btns.get(m_model.getColumnFilterMode()).setSelected(true);
+    }
+
+    private ColumnFilterMode getColumnFilterMode() {
+        return m_btns.entrySet().stream()//
+                .filter(e -> e.getValue().isSelected())//
+                .map(Entry::getKey)//
+                .findFirst()//
+                .orElseThrow(() -> new IllegalStateException("No column filter mode selected."));
     }
 
 }

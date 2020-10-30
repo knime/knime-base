@@ -42,56 +42,75 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview.dialog;
+package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.Color;
+import java.awt.Component;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-
-import org.knime.core.node.tableview.TableView;
-import org.knime.filehandling.core.util.GBCBuilder;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
- * View of the table reader preview.</br>
- * Displays a {@link TableView} with additional components for progress and error reporting.
+ * Editor for the column name column.</br>
+ * Checks if the current name is valid (i.e. no duplicate) and highlights the cell red if it is invalid.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not part of public API
- * @noinstantiate not part of public API
  */
-public final class TableReaderPreviewView extends JPanel {
+final class ColumnNameCellEditor extends DefaultCellEditor {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int PREVIEW_WIDTH = 750;
+    private final JTextField m_editor;
 
-    private static final int PREVIEW_HEIGHT = 250;
+    private final TransformationTableModel<?> m_transformationTableModel;
 
-    private final AnalysisComponentView m_analysisComponentView;
+    private int m_currentRow;
 
-    private final TableView m_tableView;
+    public ColumnNameCellEditor(final TransformationTableModel<?> transformationTableModel) {
+        super(new JTextField());
+        m_transformationTableModel = transformationTableModel;
+        m_editor = (JTextField)getComponent();
+        m_editor.getDocument().addDocumentListener(new DocumentListener() {
 
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
-        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
-        m_tableView = new TableView(model.getPreviewTableModel());
-        // reordering the columns might give the impression that the order in the output changes too
-        m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
-        createPanel();
+            @Override
+            public void insertUpdate(final DocumentEvent e) {
+                checkChange();
+            }
+
+            @Override
+            public void removeUpdate(final DocumentEvent e) {
+                checkChange();
+            }
+
+            @Override
+            public void changedUpdate(final DocumentEvent e) {
+                // won't be called
+            }
+
+        });
     }
 
-    private void createPanel() {
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
-        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+    private void checkChange() {
+        final String newName = m_editor.getText();
+        if (m_transformationTableModel.isValidNameForRow(m_currentRow, newName)) {
+            m_editor.setBackground(Color.WHITE);
+        } else {
+            m_editor.setBackground(Color.RED);
+        }
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
+        final int row, final int column) {
+        m_currentRow = row;
+        return super.getTableCellEditorComponent(table, value, isSelected, row, column);
     }
 
 }

@@ -42,56 +42,56 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview.dialog;
+package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.Color;
+import java.awt.Component;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
+import javax.swing.Icon;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
-import org.knime.core.node.tableview.TableView;
-import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.node.util.SharedIcons;
 
 /**
- * View of the table reader preview.</br>
- * Displays a {@link TableView} with additional components for progress and error reporting.
+ * Renderer for cells containing a {@link ProductionPath}.</br>
+ * Represents a {@link ProductionPath} by its destination {@link DataType}.</br>
+ * If {@code null} is provided (i.e. for the placeholder row for unknown columns) only the unknown icon is displayed.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not part of public API
- * @noinstantiate not part of public API
  */
-public final class TableReaderPreviewView extends JPanel {
+// This Sonar rule is impossible to satisfy when dealing with Swing
+final class KnimeTypeProductionPathTableCellRenderer extends DefaultTableCellRenderer {//NOSONAR
 
     private static final long serialVersionUID = 1L;
 
-    private static final int PREVIEW_WIDTH = 750;
+    private static final Icon UNKNOWN = SharedIcons.TYPE_DEFAULT.get();
 
-    private static final int PREVIEW_HEIGHT = 250;
+    @Override
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+        final boolean hasFocus, final int row, final int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        final ProductionPath prodPath = (ProductionPath)value;
+        if (isSelected) {
+            // use selection color from parent
+        } else {
+            setBackground(Color.WHITE);
+        }
+        if (prodPath == null) {
+            setText("");
+            setIcon(UNKNOWN);
+            return this;
+        }
+        final DataType knimeType = prodPath.getConverterFactory().getDestinationType();
+        setText(knimeType.getName());
+        setIcon(knimeType.getIcon());
 
-    private final AnalysisComponentView m_analysisComponentView;
-
-    private final TableView m_tableView;
-
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
-        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
-        m_tableView = new TableView(model.getPreviewTableModel());
-        // reordering the columns might give the impression that the order in the output changes too
-        m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
-        createPanel();
+        return this;
     }
-
-    private void createPanel() {
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
-        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
-    }
-
 }

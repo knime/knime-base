@@ -44,54 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview.dialog;
+package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-
-import org.knime.core.node.tableview.TableView;
-import org.knime.filehandling.core.util.GBCBuilder;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
 
 /**
- * View of the table reader preview.</br>
- * Displays a {@link TableView} with additional components for progress and error reporting.
+ * Header for the transformation table.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference not part of public API
- * @noinstantiate not part of public API
  */
-public final class TableReaderPreviewView extends JPanel {
+final class TransformationTableHeader extends JTableHeader {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int PREVIEW_WIDTH = 750;
+    private static final String[] TOOLTIPS = {"Drag and drop to change column order",
+        "Uncheck to remove a column from the output table", "The original column name and type",
+        "Double-click to edit the column name", "Click to select a different type"};
 
-    private static final int PREVIEW_HEIGHT = 250;
-
-    private final AnalysisComponentView m_analysisComponentView;
-
-    private final TableView m_tableView;
-
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
-        m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
-        m_tableView = new TableView(model.getPreviewTableModel());
-        // reordering the columns might give the impression that the order in the output changes too
-        m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
-        createPanel();
+    TransformationTableHeader(final TableColumnModel cm) {
+        super(cm);
     }
 
-    private void createPanel() {
-        setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
-        m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+    @Override
+    public String getToolTipText(final MouseEvent e) {
+        java.awt.Point p = e.getPoint();
+        int index = columnModel.getColumnIndexAtX(p.x);
+        int realIndex = columnModel.getColumn(index).getModelIndex();
+        return TOOLTIPS[realIndex];
     }
 
 }
