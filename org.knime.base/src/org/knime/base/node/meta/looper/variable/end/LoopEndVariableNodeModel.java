@@ -59,6 +59,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.LoopEndNode;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
@@ -87,15 +88,9 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        hasValidCounterpart();
+        CheckUtils.checkSetting(this.getLoopStartNode() instanceof LoopStartNodeTerminator, "Loop End is not connected"
+            + " with a matching/compatible Loop Start node. You are trying to create an infinite loop!");
         return super.configure(inSpecs);
-    }
-
-    private void hasValidCounterpart() {
-        if (!(this.getLoopStartNode() instanceof LoopStartNodeTerminator)) {
-            throw new IllegalStateException("Loop End is not connected"
-                + " with a matching/compatible Loop Start node. You are trying to create an infinite loop!");
-        }
     }
 
     @Override
