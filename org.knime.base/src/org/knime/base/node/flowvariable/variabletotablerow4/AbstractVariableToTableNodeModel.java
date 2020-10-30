@@ -74,7 +74,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
@@ -93,9 +92,11 @@ public abstract class AbstractVariableToTableNodeModel extends NodeModel {
 
     /**
      * Constructor.
+     *
+     * @param inputPortType the input port type
      */
-    protected AbstractVariableToTableNodeModel() {
-        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{BufferedDataTable.TYPE});
+    protected AbstractVariableToTableNodeModel(final PortType inputPortType) {
+        super(new PortType[]{inputPortType}, new PortType[]{BufferedDataTable.TYPE});
         m_filter = new FlowVariableFilterConfiguration(CFG_KEY_FILTER);
         m_filter.loadDefaults(getAvailableFlowVariables(VariableToCellConverterFactory.getSupportedTypes()), false);
     }

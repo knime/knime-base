@@ -58,6 +58,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.LoopEndNode;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
@@ -81,7 +82,7 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
     private long m_rowCount = 0;
 
     LoopEndVariableNodeModel() {
-        super();
+        super(FlowVariablePortObject.TYPE);
     }
 
     @Override
