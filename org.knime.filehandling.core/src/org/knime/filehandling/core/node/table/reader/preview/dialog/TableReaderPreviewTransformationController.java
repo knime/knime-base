@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -64,7 +65,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
-import org.knime.filehandling.core.node.table.reader.selector.MutableTransformationModel;
+import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.TransformationModel;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
@@ -86,7 +87,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
 
     private final TableReaderPreviewModel m_previewModel;
 
-    private final MutableTransformationModel<T> m_transformationModel;
+    private final ObservableTransformationModelProvider<T> m_transformationModel;
 
     private final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> m_configSupplier;
 
@@ -95,8 +96,8 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
     private PreviewRun m_currentRun;
 
     TableReaderPreviewTransformationController(final MultiTableReadFactory<C, T> readFactory,
-        final MutableTransformationModel<T> transformationModel, final AnalysisComponentModel analysisComponentModel,
-        final TableReaderPreviewModel tableReaderPreviewModel,
+        final ObservableTransformationModelProvider<T> transformationModel,
+        final AnalysisComponentModel analysisComponentModel, final TableReaderPreviewModel tableReaderPreviewModel,
         final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> configSupplier,
         final Supplier<ReadPathAccessor> readPathAccessorSupplier) {
         m_readFactory = readFactory;
@@ -116,6 +117,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
         } catch (InvalidSettingsException ex) {// NOSONAR, the exception is displayed in the dialog
             m_analysisComponent.setError(ex.getMessage());
             m_previewModel.setDataTable(null);
+            m_transformationModel.updateRawSpec(null);
         }
     }
 
@@ -127,7 +129,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
     }
 
     void load(final TransformationModel<T> transformationModel) {
-        m_transformationModel.imitate(transformationModel);
+        m_transformationModel.load(transformationModel);
     }
 
     TableSpecConfig getTableSpecConfig() {
@@ -143,9 +145,15 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
     }
 
     private void handleTransformationModelChange() {
-        // changes to the model while we are updating can only be caused by us in #consumeNeStagedMultiRead
-        // and are therefore handled
+        // changes to the model while we are updating can only be caused by us in #consumeNewStagedMultiRead
+        // and are therefore handled in PreviewRun#consumeNewStagedMultiRead
         if (m_currentRun != null && !m_currentRun.isUpdatingPreview()) {
+            /* if a previous user-specified transformation caused an error
+            * (e.g. if the selected converter is not applicable for the column)
+            * then this error needs to be cleared, otherwise it will still be displayed
+            * even though the new transformation is valid
+            */
+            m_analysisComponent.resetErrorLabel();
             m_currentRun.updatePreviewTable();
         }
     }
@@ -206,6 +214,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
         private void displayPathError(final ExecutionException exception) {
             m_analysisComponent.setError(exception.getCause().getMessage());
             m_previewModel.setDataTable(null);
+            m_transformationModel.updateRawSpec(null);
         }
 
         boolean isUpdatingPreview() {
@@ -240,6 +249,7 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
             m_currentRead = stagedMultiTableRead;
             // we disable the transformation view during this update to avoid concurrent manipulation
             m_transformationModel.setEnabled(false);
+            //            m_transformationModel.load(m_currentRead.getTransformationModel());
             m_transformationModel.updateRawSpec(m_currentRead.getRawSpec());
             // the table spec might not change but the read accessor will be closed therefore we need to
             // update the preview table otherwise we risk IOExceptions because the paths are no longer valid
@@ -254,12 +264,19 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
             if (m_closed.get()) {
                 return;
             }
-            final MultiTableRead mtr = m_currentRead.withTransformation(m_transformationModel);
-            m_currentTableSpecConfig = mtr.getTableSpecConfig();
-            @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
-            final PreviewDataTable pdt =
-                new PreviewDataTable(() -> mtr.createPreviewIterator(), mtr.getOutputSpec());
-            m_previewModel.setDataTable(pdt);
+            try {
+                final MultiTableRead mtr =
+                    m_currentRead.withTransformation(m_transformationModel.getTransformationModel());
+                m_currentTableSpecConfig = mtr.getTableSpecConfig();
+                @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
+                final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
+                m_previewModel.setDataTable(pdt);
+            } catch (Exception ex) {// NOSONAR we need to handle all exceptions in the same way
+                NodeLogger.getLogger(TableReaderPreviewTransformationController.class).debug(ex);
+                m_analysisComponent.setError(ex.getMessage());
+                m_previewModel.setDataTable(null);
+                m_transformationModel.updateRawSpec(null);
+            }
         }
 
     }

@@ -59,7 +59,14 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The type used to identify external data types
  */
-public interface MutableTransformationModel<T> extends TransformationModel<T> {
+public interface ObservableTransformationModelProvider<T> {
+
+    /**
+     * Returns the current {@link TransformationModel}
+     *
+     * @return the current {@link TransformationModel}
+     */
+    TransformationModel<T> getTransformationModel();
 
     /**
      * Adds the provided {@link ChangeListener}.
@@ -80,14 +87,14 @@ public interface MutableTransformationModel<T> extends TransformationModel<T> {
      *
      * @param rawSpec the raw {@link TypedReaderTableSpec}
      */
-    void updateRawSpec(final TypedReaderTableSpec<T> rawSpec);
+    void updateRawSpec(final RawSpec<T> rawSpec);
 
     /**
      * Adapts this instance so that behaves exactly the same as the provided {@link TransformationModel}.
      *
      * @param transformationModel to imitate
      */
-    void imitate(final TransformationModel<T> transformationModel);
+    void load(final TransformationModel<T> transformationModel);
 
     /**
      * Enables or disables this instance, depending on the value of {@code enabled}.
@@ -95,4 +102,5 @@ public interface MutableTransformationModel<T> extends TransformationModel<T> {
      * @param enabled {@code true} if the model should be enabled, {@code false} otherwise
      */
     void setEnabled(boolean enabled);
+
 }

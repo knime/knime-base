@@ -63,6 +63,20 @@ import java.util.Objects;
  */
 public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
 
+    @SuppressWarnings("rawtypes")
+    private static final TypedReaderColumnSpec NULL = new TypedReaderColumnSpec<>(null, null, false);
+
+    /**
+     * Returns a null-object.
+     *
+     * @param <T> the type used to represent external data types
+     * @return the null-object
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> TypedReaderColumnSpec<T> getNull() {
+        return NULL;
+    }
+
     private final T m_type;
 
     private final int m_hashCode;
