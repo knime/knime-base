@@ -212,6 +212,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE) {
+            CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
             CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
             m_fileFilterStatistic = new FileFilterStatistic(0, 0, 1, 0, 0, 0);
         } else if (m_filterMode == FilterMode.FOLDER) {
@@ -282,7 +283,6 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         throws IOException, InvalidSettingsException {
         final FSPath rootPath = getOutputPath(statusMessageConsumer);
 
-        // FIXME files exist fails for empty paths. Shouldn't we have a working directory?
         CheckUtils.checkSetting(FSFiles.exists(rootPath), "The specified %s %s does not exist.",
             m_filterMode == FilterMode.FILE ? "file" : "folder", rootPath);
         if (!Files.isReadable(rootPath)) {
