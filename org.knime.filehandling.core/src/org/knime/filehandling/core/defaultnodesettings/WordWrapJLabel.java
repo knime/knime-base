@@ -92,7 +92,7 @@ public final class WordWrapJLabel extends JLabel {
     }
 
     private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
+        return "<html><body style='width: " + widthInPixel + "px; height:20px'><p>%s</p></body></html>";
     }
 
     @Override
