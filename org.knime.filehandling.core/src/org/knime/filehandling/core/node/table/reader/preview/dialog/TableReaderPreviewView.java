@@ -50,9 +50,13 @@ package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.tableview.TableView;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -77,12 +81,24 @@ public final class TableReaderPreviewView extends JPanel {
 
     private final TableView m_tableView;
 
+    private final transient CopyOnWriteArraySet<ChangeListener> m_scrollListeners = new CopyOnWriteArraySet<>();
+
+    private final ChangeEvent m_changeEvent = new ChangeEvent(this);
+
     TableReaderPreviewView(final TableReaderPreviewModel model) {
         m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
         m_tableView = new TableView(model.getPreviewTableModel());
         // reordering the columns might give the impression that the order in the output changes too
         m_tableView.getContentTable().getTableHeader().setReorderingAllowed(false);
+        // tell listeners that the scrolling changed
+        m_tableView.getViewport().addChangeListener(e -> notifyListeners());
         createPanel();
+    }
+
+    private void notifyListeners() {
+        for (ChangeListener listener : m_scrollListeners) {
+            listener.stateChanged(m_changeEvent);
+        }
     }
 
     private void createPanel() {
@@ -92,6 +108,15 @@ public final class TableReaderPreviewView extends JPanel {
         add(m_analysisComponentView, gbc.build());
         m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
         add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+    }
+
+    void updateViewport(final TableReaderPreviewView other) {
+        final Rectangle visibleRect = other.m_tableView.getViewport().getViewRect();
+        m_tableView.getViewport().setViewPosition(visibleRect.getLocation());
+    }
+
+    void addScrollListener(final ChangeListener scrollListener) {
+        m_scrollListeners.add(scrollListener);
     }
 
 }

@@ -49,6 +49,11 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JSplitPane;
+import javax.swing.event.ChangeEvent;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -60,8 +65,8 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConf
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationPanel;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 
 /**
@@ -76,7 +81,9 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
 
     private final TableReaderPreviewTransformationController<C, T> m_coordinator;
 
-    private final TableReaderPreviewView m_preview;
+    private final List<TableReaderPreviewView> m_previews = new ArrayList<>();
+
+    private final TableReaderPreviewModel m_previewModel;
 
     private final TransformationPanel m_specTransformer;
 
@@ -94,7 +101,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
-        m_preview = new TableReaderPreviewView(previewModel);
+        m_previewModel = previewModel;
         final TableTransformationTableModel<T> transformationModel =
             new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
@@ -104,12 +111,52 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     }
 
     /**
-     * Returns the {@link TableReaderPreviewView}.
+     * Enables/disables all previews created with {@link #createPreview()}.
      *
-     * @return the {@link TableReaderPreviewView}
+     * @param enabled {@code true} if enabled, {@code false} otherwise
      */
-    protected final TableReaderPreviewView getPreview() {
-        return m_preview;
+    protected final void setPreviewEnabled(final boolean enabled) {
+        for (TableReaderPreviewView preview : m_previews) {
+            preview.setEnabled(enabled);
+        }
+    }
+
+    /**
+     * Creates a {@link TableReaderPreviewView} that is synchronized with all other previews created by this method.
+     * This means that scrolling in one preview will scroll to the same position in all other previews.
+     *
+     * @return a {@link TableReaderPreviewView}
+     */
+    protected final TableReaderPreviewView createPreview() {
+        final TableReaderPreviewView preview = new TableReaderPreviewView(m_previewModel);
+        m_previews.add(preview);
+        preview.addScrollListener(this::updateScrolling);
+        return preview;
+    }
+
+    /**
+     * Convenience method that creates a {@link JSplitPane} containing the {@link TransformationPanel} and a
+     * {@link TableReaderPreviewView}. NOTE: If this method is called multiple times, then the
+     * {@link TransformationPanel} will only be shown in the {@link JSplitPane} created by the latest call.
+     *
+     * @return a {@link JSplitPane} containing the {@link TransformationPanel} and a {@link TableReaderPreviewView}
+     */
+    protected final JSplitPane createTransformationTab() {
+        final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setLeftComponent(getTransformationPanel());
+        splitPane.setRightComponent(createPreview());
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setDividerSize(15);
+        return splitPane;
+    }
+
+    private void updateScrolling(final ChangeEvent changeEvent) {
+        final TableReaderPreviewView updatedView = (TableReaderPreviewView)changeEvent.getSource();
+        for (TableReaderPreviewView preview : m_previews) {
+            if (preview != updatedView) {
+                preview.updateViewport(updatedView);
+            }
+        }
     }
 
     /**
