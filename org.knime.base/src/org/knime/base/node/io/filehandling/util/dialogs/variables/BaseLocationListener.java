@@ -62,7 +62,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSetti
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class BaseLocationListener implements ChangeListener {
+public class BaseLocationListener implements ChangeListener {
 
     private final FSLocationVariableTableModel m_tableModel;
 
@@ -91,13 +91,38 @@ public final class BaseLocationListener implements ChangeListener {
 
     @Override
     public void stateChanged(final ChangeEvent e) {
+        updateLocation();
+    }
+
+    /**
+     * Triggers the update in the {@link FSLocationVariableTableModel}.
+     */
+    protected final void updateLocation() {
         m_tableModel.setPathBaseLocation(getBaseLocation());
     }
 
     private String getBaseLocation() {
         updateSeperator();
-        final String base = m_baseLocationModel.getLocation().getPath();
-        return base.endsWith(m_pathSeparator) ? base : (base + m_pathSeparator);
+        final String base = getLocation();
+        return base.endsWith(getSeparator()) ? base : (base + getSeparator());
+    }
+
+    /**
+     * Returns the location.
+     *
+     * @return the location
+     */
+    protected String getLocation() {
+        return m_baseLocationModel.getLocation().getPath();
+    }
+
+    /**
+     * Returns the path separator.
+     *
+     * @return the path separator
+     */
+    protected final String getSeparator() {
+        return m_pathSeparator;
     }
 
     private void updateSeperator() {

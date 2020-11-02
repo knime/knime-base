@@ -60,7 +60,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
+import org.knime.base.node.io.filehandling.util.dialogs.variables.BaseLocationListener;
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariablePanel;
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariableTableModel;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -69,16 +74,17 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.KeyValuePanel;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 
 /**
  * The NodeDialog for the "Create Temp Dir" Node.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-class CreateTempDir2NodeDialog extends NodeDialogPane {
+final class CreateTempDir2NodeDialog extends NodeDialogPane {
 
     private static final String FILE_HISTORY_ID = "create_temp_dir_history";
 
@@ -90,28 +96,32 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
 
     private final JCheckBox m_deleteDirOnResetChecker;
 
-    private final KeyValuePanel m_additionalVariablePathPairPanel;
-
     private final DialogComponentWriterFileChooser m_parentDirChooserPanel;
 
     private final CreateTempDir2NodeConfig m_config;
 
+    private final FSLocationVariablePanel m_locationPanel;
+
     public CreateTempDir2NodeDialog(final PortsConfiguration portsConfig) {
         m_config = new CreateTempDir2NodeConfig(portsConfig);
 
-        final FlowVariableModel writeFvm = createFlowVariableModel(
-            m_config.getParentDirChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_parentDirChooserPanel =
-            new DialogComponentWriterFileChooser(m_config.getParentDirChooserModel(), FILE_HISTORY_ID, writeFvm);
+        final SettingsModelWriterFileChooser baseLocationModel = m_config.getParentDirChooserModel();
+        final FlowVariableModel writeFvm =
+            createFlowVariableModel(baseLocationModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_parentDirChooserPanel = new DialogComponentWriterFileChooser(baseLocationModel, FILE_HISTORY_ID, writeFvm);
 
         m_deleteDirOnResetChecker = new JCheckBox("Delete temp dir on reset");
 
         m_tempDirPrefixField = new JTextField(TEXT_FIELD_WIDTH);
         m_tempDirPathVariableNameField = new JTextField(TEXT_FIELD_WIDTH);
 
-        m_additionalVariablePathPairPanel = new KeyValuePanel();
-        m_additionalVariablePathPairPanel.setKeyColumnLabel("Variable Name");
-        m_additionalVariablePathPairPanel.setValueColumnLabel("Filename");
+        final FSLocationVariableTableModel varTableModel = m_config.getFSLocationTableModel();
+        m_locationPanel = new FSLocationVariablePanel(varTableModel);
+
+        final TempDirLocationListener l =
+            new TempDirLocationListener(varTableModel, baseLocationModel, m_tempDirPrefixField);
+        baseLocationModel.addChangeListener(l);
+        m_tempDirPrefixField.getDocument().addDocumentListener(l);
 
         addTab("Settings", initLayout());
     }
@@ -190,16 +200,15 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
     private JPanel createAdditionalVariablesPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel additionalVarPanel = new JPanel(new GridBagLayout());
-        additionalVarPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "More path variables"));
+        additionalVarPanel.setBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Additional path variables"));
 
         gbc.insets = new Insets(5, 0, 3, 0);
         gbc.weighty = 1;
         gbc.weightx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.BOTH;
-        m_additionalVariablePathPairPanel.getTable().setPreferredScrollableViewportSize(null);
-        additionalVarPanel.add(m_additionalVariablePathPairPanel, gbc);
+        additionalVarPanel.add(m_locationPanel, gbc);
         return additionalVarPanel;
     }
 
@@ -214,8 +223,7 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
         m_tempDirPrefixField.setText(m_config.getTempDirPrefix());
         m_tempDirPathVariableNameField.setText(m_config.getTempDirVariableName());
 
-        m_additionalVariablePathPairPanel.setTableData(m_config.getAdditionalVarNames(),
-            m_config.getAdditionalVarValues());
+        m_locationPanel.loadSettings(settings);
     }
 
     @Override
@@ -223,11 +231,55 @@ class CreateTempDir2NodeDialog extends NodeDialogPane {
         m_config.setTempDirPrefix(m_tempDirPrefixField.getText());
         m_config.setTempDirVariableName(m_tempDirPathVariableNameField.getText());
         m_config.setDeleteDirOnReset(m_deleteDirOnResetChecker.isSelected());
-        m_config.setAdditionalVarNames(m_additionalVariablePathPairPanel.getKeys());
-        m_config.setAdditionalVarValues(m_additionalVariablePathPairPanel.getValues());
-
         m_parentDirChooserPanel.saveSettingsTo(settings);
         m_config.saveSettingsForDialog(settings);
+        m_locationPanel.saveSettings(settings);
     }
 
+    @Override
+    public void onClose() {
+        m_locationPanel.onClose();
+    }
+
+    private static class TempDirLocationListener extends BaseLocationListener implements DocumentListener {
+
+        private static final String UNIQUE_ID = "<unique_id>";
+
+        private final JTextField m_tempDirPrefix;
+
+        /**
+         * Constructor.
+         *
+         * @param varTableModel the {@link FSLocationVariableTableModel}
+         * @param baseLocationModel the {@link AbstractSettingsModelFileChooser}
+         * @param textField the {@link JTextField} holding the temporary directory name prefix
+         */
+        public TempDirLocationListener(final FSLocationVariableTableModel varTableModel,
+            final AbstractSettingsModelFileChooser<?> baseLocationModel, final JTextField textField) {
+            super(varTableModel, baseLocationModel);
+            m_tempDirPrefix = textField;
+        }
+
+        @Override
+        public void insertUpdate(final DocumentEvent e) {
+            updateLocation();
+        }
+
+        @Override
+        public void removeUpdate(final DocumentEvent e) {
+            updateLocation();
+        }
+
+        @Override
+        public void changedUpdate(final DocumentEvent e) {
+            updateLocation();
+        }
+
+        @Override
+        protected String getLocation() {
+            String base = super.getLocation();
+            base = base.endsWith(getSeparator()) ? base : (base + getSeparator());
+            return base + m_tempDirPrefix.getText() + UNIQUE_ID;
+        }
+    }
 }

@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.util.tempdir;
 
 import java.util.EnumSet;
 
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariableTableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -83,11 +84,9 @@ final class CreateTempDir2NodeConfig {
 
     private static final String CFG_DELETE_ON_RESET = "delete_on_reset";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_NAMES = "additional_variable_names";
+    private static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_VALUES = "additional_variable_values";
-
-    private SettingsModelWriterFileChooser m_parentDirChooserModel;
+    private final SettingsModelWriterFileChooser m_parentDirChooserModel;
 
     private String m_tempDirPrefix;
 
@@ -95,9 +94,7 @@ final class CreateTempDir2NodeConfig {
 
     private boolean m_deleteDirOnReset;
 
-    private String[] m_additionalVarNames;
-
-    private String[] m_additionalVarValues;
+    private final FSLocationVariableTableModel m_fsLocationTableModel;
 
     /**
      * Constructor
@@ -120,36 +117,24 @@ final class CreateTempDir2NodeConfig {
         m_tempDirPrefix = DEFAULT_TEMP_DIR_PREFIX;
         m_tempDirPathVariableName = DEFAULT_TEMP_PATH_VAR_NAME;
 
-        m_additionalVarNames = new String[0];
-        m_additionalVarValues = new String[0];
+        m_fsLocationTableModel = new FSLocationVariableTableModel(CFG_ADDITIONAL_PATH_VARIABLES);
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.validateSettings(settings);
-
         settings.getBoolean(CFG_DELETE_ON_RESET);
-
-        settings.getString(CFG_TEMP_DIR_PREFIX);
-        settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME);
-
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
-
-        validateSettings();
+        m_fsLocationTableModel.validateSettingsForModel(settings, true);
+        validateSettings(settings);
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
         m_deleteDirOnReset = settings.getBoolean(CFG_DELETE_ON_RESET, DEFAULT_ON_RESET);
 
-        m_tempDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX, DEFAULT_TEMP_DIR_PREFIX);
-        m_tempDirPathVariableName = settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME, DEFAULT_TEMP_PATH_VAR_NAME);
-
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, new String[0]);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, new String[0]);
-
+        setTempDirPrefix(settings.getString(CFG_TEMP_DIR_PREFIX, DEFAULT_TEMP_DIR_PREFIX));
+        setTempDirVariableName(settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME, DEFAULT_TEMP_PATH_VAR_NAME));
     }
 
-    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    void saveSettingsForDialog(final NodeSettingsWO settings) {
         save(settings);
     }
 
@@ -161,13 +146,13 @@ final class CreateTempDir2NodeConfig {
         m_tempDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX);
         m_tempDirPathVariableName = settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME);
 
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
+        m_fsLocationTableModel.loadSettingsForModel(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_parentDirChooserModel.saveSettingsTo(settings);
         save(settings);
+        m_fsLocationTableModel.saveSettingsForModel(settings);
     }
 
     private void save(final NodeSettingsWO settings) {
@@ -175,19 +160,16 @@ final class CreateTempDir2NodeConfig {
 
         settings.addString(CFG_TEMP_DIR_PREFIX, m_tempDirPrefix);
         settings.addString(CFG_TEMP_DIR_PATH_VARIABLE_NAME, m_tempDirPathVariableName);
-
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, m_additionalVarNames);
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, m_additionalVarValues);
     }
 
-    private void validateSettings() {
-        CheckUtils.checkArgument(
-            (m_tempDirPathVariableName.trim() != null) && (m_tempDirPathVariableName.trim().length() > 0),
+    private static void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final String tmpDirPathVarName = settings.getString(CFG_TEMP_DIR_PATH_VARIABLE_NAME);
+        CheckUtils.checkArgument((tmpDirPathVarName != null && !tmpDirPathVarName.trim().isEmpty()),
             "The path variable name must not be empty!");
-        CheckUtils.checkArgument((m_tempDirPrefix.trim() != null) && (m_tempDirPrefix.trim().length() > 0),
+
+        final String tmpDirPrefix = settings.getString(CFG_TEMP_DIR_PREFIX);
+        CheckUtils.checkArgument((tmpDirPrefix != null && !tmpDirPrefix.trim().isEmpty()),
             "The prefix for temporary directory to be created must not be empty!");
-        CheckUtils.checkArgument(m_additionalVarNames.length == m_additionalVarValues.length,
-            "The number of names for addtional variables must be equal to that of values!");
     }
 
     /**
@@ -197,15 +179,6 @@ final class CreateTempDir2NodeConfig {
      */
     SettingsModelWriterFileChooser getParentDirChooserModel() {
         return m_parentDirChooserModel;
-    }
-
-    /**
-     * Sets the {@link SettingsModelWriterFileChooser} used to select a directory where the created directory lives.
-     *
-     * @param the {@link SettingsModelWriterFileChooser} used to select a directory
-     */
-    void setParentDirChooserModel(final SettingsModelWriterFileChooser dirChooserModel) {
-        m_parentDirChooserModel = dirChooserModel;
     }
 
     /**
@@ -263,23 +236,22 @@ final class CreateTempDir2NodeConfig {
     }
 
     /**
+     * Returns the {@link FSLocationVariableTableModel}.
+     *
+     * @return the {@link FSLocationVariableTableModel}
+     */
+    FSLocationVariableTableModel getFSLocationTableModel() {
+        return m_fsLocationTableModel;
+    }
+
+    /**
      * Returns an array of variable names that are exported together with a variable holding the temporary directory to
      * be created. The array should always be of same length as {@link #getAdditionalVarValues()}.
      *
      * @return an array of variable names that are exported
      */
     String[] getAdditionalVarNames() {
-        return m_additionalVarNames;
-    }
-
-    /**
-     * Sets an array of variable names that are exported together with a variable holding the temporary directory to be
-     * created. The array should always be of same length as {@link #getAdditionalVarValues()}.
-     *
-     * @param varNames an array of variable names that are exported
-     */
-    void setAdditionalVarNames(final String[] varNames) {
-        m_additionalVarNames = varNames;
+        return getFSLocationTableModel().getVarNames();
     }
 
     /**
@@ -289,17 +261,7 @@ final class CreateTempDir2NodeConfig {
      * @return an array of filenames that are exported as variables values
      */
     String[] getAdditionalVarValues() {
-        return m_additionalVarValues;
-    }
-
-    /**
-     * Sets an array of strings used as filenames of files that are going to be created. The array should always be of
-     * same length as {@link #getAdditionalVarName()}.
-     *
-     * @param varNames an array of filenames that are exported as variables values
-     */
-    void setAdditionalVarValues(final String[] varNames) {
-        m_additionalVarValues = varNames;
+        return getFSLocationTableModel().getLocations();
     }
 
 }
