@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.util.dir;
 
 import java.util.EnumSet;
 
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariableTableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -75,19 +76,13 @@ final class CreateDirectory2NodeConfig {
 
     private static final String CFG_DIR_PATH_VARIABLE_NAME = "dir_path_variable_name";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_NAMES = "additional_variable_names";
+    private static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
 
-    private static final String CFG_ADDITIONAL_VARIABLE_VALUES = "additional_variable_values";
-
-    private static final String[] EMPTY_STRING_ARRAY = new String[0];
-
-    private SettingsModelWriterFileChooser m_parentDirChooserModel;
+    private final SettingsModelWriterFileChooser m_parentDirChooserModel;
 
     private String m_dirPathVariableName;
 
-    private String[] m_additionalVarNames;
-
-    private String[] m_additionalVarValues;
+    private final FSLocationVariableTableModel m_fsLocationTableModel;
 
     /**
      * Constructor
@@ -97,36 +92,26 @@ final class CreateDirectory2NodeConfig {
     CreateDirectory2NodeConfig(final PortsConfiguration portsConfig) {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_DIR_PARENT, portsConfig,
             CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.APPEND,
-            EnumSet.of(FileOverwritePolicy.APPEND), EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            EnumSet.of(FileOverwritePolicy.APPEND),
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> New Folder)
         if (!portsConfig.getInputPortLocation()
             .containsKey(CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
-            m_parentDirChooserModel
-                .setLocation(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "New Folder"));
+            m_parentDirChooserModel.setLocation(
+                new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "New Folder"));
         }
-
         m_dirPathVariableName = DEFAULT_DIR_PATH_VAR_NAME;
-
-        m_additionalVarNames = EMPTY_STRING_ARRAY;
-        m_additionalVarValues = EMPTY_STRING_ARRAY;
+        m_fsLocationTableModel = new FSLocationVariableTableModel(CFG_ADDITIONAL_PATH_VARIABLES);
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.validateSettings(settings);
-
-        settings.getString(CFG_DIR_PATH_VARIABLE_NAME);
-
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
-
-        validateSettings();
+        m_fsLocationTableModel.validateSettingsForModel(settings, true);
+        validateSettings(settings);
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_dirPathVariableName = settings.getString(CFG_DIR_PATH_VARIABLE_NAME, DEFAULT_DIR_PATH_VAR_NAME);
-
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, EMPTY_STRING_ARRAY);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, EMPTY_STRING_ARRAY);
+        setDirVariableName(settings.getString(CFG_DIR_PATH_VARIABLE_NAME, DEFAULT_DIR_PATH_VAR_NAME));
     }
 
     void saveSettingsForDialog(final NodeSettingsWO settings) {
@@ -135,30 +120,24 @@ final class CreateDirectory2NodeConfig {
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.loadSettingsFrom(settings);
-
         m_dirPathVariableName = settings.getString(CFG_DIR_PATH_VARIABLE_NAME);
-
-        m_additionalVarNames = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_NAMES);
-        m_additionalVarValues = settings.getStringArray(CFG_ADDITIONAL_VARIABLE_VALUES);
+        m_fsLocationTableModel.loadSettingsForModel(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_parentDirChooserModel.saveSettingsTo(settings);
         save(settings);
+        m_fsLocationTableModel.saveSettingsForModel(settings);
     }
 
     private void save(final NodeSettingsWO settings) {
-        settings.addString(CFG_DIR_PATH_VARIABLE_NAME, m_dirPathVariableName);
-
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_NAMES, m_additionalVarNames);
-        settings.addStringArray(CFG_ADDITIONAL_VARIABLE_VALUES, m_additionalVarValues);
+        settings.addString(CFG_DIR_PATH_VARIABLE_NAME, getDirVariableName());
     }
 
-    private void validateSettings() {
-        CheckUtils.checkArgument((m_dirPathVariableName != null) && (m_dirPathVariableName.trim().length() > 0),
+    private static void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final String dirPathVarName = settings.getString(CFG_DIR_PATH_VARIABLE_NAME);
+        CheckUtils.checkArgument(dirPathVarName != null && !dirPathVarName.trim().isEmpty(),
             "The path variable name must not be empty!");
-        CheckUtils.checkArgument(m_additionalVarNames.length == m_additionalVarValues.length,
-            "The number of names for addtional variables must be equal to that of values!");
     }
 
     /**
@@ -171,12 +150,12 @@ final class CreateDirectory2NodeConfig {
     }
 
     /**
-     * Sets the {@link SettingsModelWriterFileChooser} used to select a directory where the created directory lives.
+     * Returns the {@link FSLocationVariableTableModel}.
      *
-     * @param the {@link SettingsModelWriterFileChooser} used to select a directory
+     * @return the {@link FSLocationVariableTableModel}
      */
-    void setParentDirChooserModel(final SettingsModelWriterFileChooser dirChooserModel) {
-        m_parentDirChooserModel = dirChooserModel;
+    FSLocationVariableTableModel getFSLocationTableModel() {
+        return m_fsLocationTableModel;
     }
 
     /**
@@ -198,23 +177,13 @@ final class CreateDirectory2NodeConfig {
     }
 
     /**
-     * Returns an array of variable names that are exported together with a variable holding the directory to
-     * be created. The array should always be of same length as {@link #getAdditionalVarValues()}.
+     * Returns an array of variable names that are exported together with a variable holding the directory to be
+     * created. The array should always be of same length as {@link #getAdditionalVarValues()}.
      *
      * @return an array of variable names that are exported
      */
     String[] getAdditionalVarNames() {
-        return m_additionalVarNames;
-    }
-
-    /**
-     * Sets an array of variable names that are exported together with a variable holding the directory to be
-     * created. The array should always be of same length as {@link #getAdditionalVarValues()}.
-     *
-     * @param varNames an array of variable names that are exported
-     */
-    void setAdditionalVarNames(final String[] varNames) {
-        m_additionalVarNames = varNames;
+        return getFSLocationTableModel().getVarNames();
     }
 
     /**
@@ -224,17 +193,7 @@ final class CreateDirectory2NodeConfig {
      * @return an array of filenames that are exported as variables values
      */
     String[] getAdditionalVarValues() {
-        return m_additionalVarValues;
-    }
-
-    /**
-     * Sets an array of strings used as filenames of files that are going to be created. The array should always be of
-     * same length as {@link #getAdditionalVarName()}.
-     *
-     * @param varNames an array of filenames that are exported as variables values
-     */
-    void setAdditionalVarValues(final String[] varNames) {
-        m_additionalVarValues = varNames;
+        return getFSLocationTableModel().getLocations();
     }
 
 }

@@ -71,13 +71,14 @@
 		<option name="Export path as (variable name)">The name of the exported variable denoting the
 			actual path of the created directory.
 		</option>
-		<option name="More path variables">A list of additional variables that will be
-			created by the node. Each variable will denote a path to a file (as
-			opposed to a directory path), whereby the file name is given in the
-			second (Filename) column
+		<option name="Additional path variables">A list of additional variables that will be
+			created by the node. Each variable will denote a path to a file or directory.
 		</option>
 	</fullDescription>
 	<ports>
+		<inPort name="Input variables (optional)" index="0">
+			Input variables (optional).
+		</inPort>
 		<dynInPort group-identifier="File System Connection"
 			insert-before="0" name="File system connection">The file system connection.
 		</dynInPort>

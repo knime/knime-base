@@ -60,6 +60,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.knime.base.node.io.filehandling.util.dialogs.variables.BaseLocationListener;
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariablePanel;
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariableTableModel;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -68,9 +71,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.KeyValuePanel;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 
 /**
  * The NodeDialog for the "Create Directory" Node.
@@ -85,26 +88,26 @@ final class CreateDirectory2NodeDialog extends NodeDialogPane {
 
     private final JTextField m_dirPathVariableNameField;
 
-    private final KeyValuePanel m_additionalVariablePathPairPanel;
-
     private final DialogComponentWriterFileChooser m_parentDirChooserPanel;
 
     private final CreateDirectory2NodeConfig m_config;
 
+    private final FSLocationVariablePanel m_locationPanel;
+
     public CreateDirectory2NodeDialog(final PortsConfiguration portsConfig) {
         m_config = new CreateDirectory2NodeConfig(portsConfig);
 
-        final FlowVariableModel writeFvm = createFlowVariableModel(
-            m_config.getParentDirChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_parentDirChooserPanel =
-            new DialogComponentWriterFileChooser(m_config.getParentDirChooserModel(), FILE_HISTORY_ID, writeFvm);
+        SettingsModelWriterFileChooser baseLocationModel = m_config.getParentDirChooserModel();
+        final FlowVariableModel writeFvm =
+            createFlowVariableModel(baseLocationModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_parentDirChooserPanel = new DialogComponentWriterFileChooser(baseLocationModel, FILE_HISTORY_ID, writeFvm);
 
         m_dirPathVariableNameField = new JTextField(TEXT_FIELD_WIDTH);
 
-        m_additionalVariablePathPairPanel = new KeyValuePanel();
-        m_additionalVariablePathPairPanel.setKeyColumnLabel("Variable Name");
-        m_additionalVariablePathPairPanel.setValueColumnLabel("Filename");
+        final FSLocationVariableTableModel varTableModel = m_config.getFSLocationTableModel();
+        m_locationPanel = new FSLocationVariablePanel(varTableModel);
 
+        baseLocationModel.addChangeListener(new BaseLocationListener(varTableModel, baseLocationModel));
         addTab("Settings", initLayout());
     }
 
@@ -175,16 +178,15 @@ final class CreateDirectory2NodeDialog extends NodeDialogPane {
     private JPanel createAdditionalVariablesPanel() {
         final GridBagConstraints gbc = createAndInitGBC();
         final JPanel additionalVarPanel = new JPanel(new GridBagLayout());
-        additionalVarPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "More path variables"));
+        additionalVarPanel.setBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Additional path variables"));
 
         gbc.insets = new Insets(5, 0, 3, 0);
         gbc.weighty = 1;
         gbc.weightx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.BOTH;
-        m_additionalVariablePathPairPanel.getTable().setPreferredScrollableViewportSize(null);
-        additionalVarPanel.add(m_additionalVariablePathPairPanel, gbc);
+        additionalVarPanel.add(m_locationPanel, gbc);
         return additionalVarPanel;
     }
 
@@ -195,18 +197,20 @@ final class CreateDirectory2NodeDialog extends NodeDialogPane {
         m_config.loadSettingsForDialog(settings);
 
         m_dirPathVariableNameField.setText(m_config.getDirVariableName());
-
-        m_additionalVariablePathPairPanel.setTableData(m_config.getAdditionalVarNames(),
-            m_config.getAdditionalVarValues());
+        m_locationPanel.loadSettings(settings);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_config.setDirVariableName(m_dirPathVariableNameField.getText());
-        m_config.setAdditionalVarNames(m_additionalVariablePathPairPanel.getKeys());
-        m_config.setAdditionalVarValues(m_additionalVariablePathPairPanel.getValues());
-
         m_parentDirChooserPanel.saveSettingsTo(settings);
         m_config.saveSettingsForDialog(settings);
+        m_locationPanel.saveSettings(settings);
     }
+
+    @Override
+    public void onClose() {
+        m_locationPanel.onClose();
+    }
+
 }
