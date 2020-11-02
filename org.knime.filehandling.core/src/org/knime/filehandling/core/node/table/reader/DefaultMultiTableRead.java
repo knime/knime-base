@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
@@ -79,7 +80,7 @@ final class DefaultMultiTableRead<V> implements MultiTableRead {
 
     private final CheckedExceptionFunction<Path, Read<V>, IOException> m_readFn;
 
-    private final BiFunction<Path, FileStoreFactory, IndividualTableReader<V>> m_individualTableReaderFactory;
+    private final Supplier<BiFunction<Path, FileStoreFactory, IndividualTableReader<V>>> m_individualTableReaderFactorySupplier;
 
     /**
      * Constructor.
@@ -92,13 +93,13 @@ final class DefaultMultiTableRead<V> implements MultiTableRead {
      * @param outputSpec {@link DataTableSpec} of the output table
      */
     DefaultMultiTableRead(final List<Path> paths, final CheckedExceptionFunction<Path, Read<V>, IOException> readFn,
-        final BiFunction<Path, FileStoreFactory, IndividualTableReader<V>> individualTableReaderFactory,
+        final Supplier<BiFunction<Path, FileStoreFactory, IndividualTableReader<V>>> individualTableReaderFactorySupplier,
         final TableSpecConfig tableSpecConfig, final DataTableSpec outputSpec) {
         m_outputSpec = outputSpec;
         m_tableSpecConfig = tableSpecConfig;
         m_readFn = readFn;
         m_paths = paths;
-        m_individualTableReaderFactory = individualTableReaderFactory;
+        m_individualTableReaderFactorySupplier = individualTableReaderFactorySupplier;
     }
 
     @Override
@@ -114,10 +115,12 @@ final class DefaultMultiTableRead<V> implements MultiTableRead {
     @Override
     public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
         throws Exception {
+        final BiFunction<Path, FileStoreFactory, IndividualTableReader<V>> individualTableReaderFactory =
+            m_individualTableReaderFactorySupplier.get();
         for (Path path : m_paths) {
             exec.checkCanceled();
             final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_paths.size());
-            final IndividualTableReader<V> reader = m_individualTableReaderFactory.apply(path, fsFactory);
+            final IndividualTableReader<V> reader = individualTableReaderFactory.apply(path, fsFactory);
             try (final Read<V> read = m_readFn.apply(path)) {
                 reader.fillOutput(read, output, progress);
             }
@@ -126,16 +129,15 @@ final class DefaultMultiTableRead<V> implements MultiTableRead {
         output.close();
     }
 
+    @SuppressWarnings("resource") // the PreviewRowIterator manages the opened read
     @Override
     public PreviewRowIterator createPreviewIterator() {
-        return new MultiTablePreviewRowIterator(m_paths.iterator(), this::createIndividualTableIterator);
-    }
-
-    @SuppressWarnings("resource") // the read is closed by the IndividualTablePreviewRowIterator
-    private PreviewRowIterator createIndividualTableIterator(final Path path, final FileStoreFactory fsFactory)
-        throws IOException {
-        final IndividualTableReader<V> reader = m_individualTableReaderFactory.apply(path, fsFactory);
-        return new IndividualTablePreviewRowIterator<V>(m_readFn.apply(path), reader::toRow);
+        final BiFunction<Path, FileStoreFactory, IndividualTableReader<V>> individualTableReaderFactory =
+            m_individualTableReaderFactorySupplier.get();
+        return new MultiTablePreviewRowIterator(m_paths.iterator(), (p, f) -> {
+            final IndividualTableReader<V> reader = individualTableReaderFactory.apply(p, f);
+            return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
+        });
     }
 
 }

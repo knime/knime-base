@@ -261,7 +261,6 @@ public class DefaultStagedMultiTableReadTest {
     private static void stubTransformation(final ColumnTransformation<String> mock,
         final TypedReaderColumnSpec<String> spec, final String name, final ProductionPath prodPath, final int position,
         final boolean keep) {
-        when(mock.getExternalSpec()).thenReturn(spec);
         when(mock.getName()).thenReturn(name);
         when(mock.getProductionPath()).thenReturn(prodPath);
         when(mock.getPosition()).thenReturn(position);

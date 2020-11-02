@@ -122,13 +122,18 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
     public MultiTableRead withTransformation(final TableTransformation<T> transformationModel) {
         final TableSpecConfig tableSpecConfig =
             DefaultTableSpecConfig.createFromTransformationModel(m_rootPath, m_individualSpecs, transformationModel);
-        final IndividualTableReaderFactory<T, V> individualTableReaderFactory =
-            new IndividualTableReaderFactory<>(m_individualSpecs, m_tableReadConfig,
-                TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
-                m_rowKeyGenFactory.createContext(m_tableReadConfig));
         return new DefaultMultiTableRead<>(new ArrayList<>(m_individualSpecs.keySet()),
-            p -> createRead(p, m_tableReadConfig), individualTableReaderFactory::create, tableSpecConfig,
-            TableTransformationUtils.toDataTableSpec(transformationModel));
+            p -> createRead(p, m_tableReadConfig), () -> {
+                IndividualTableReaderFactory<T, V> factory = createIndividualTableReaderFactory(transformationModel);
+                return factory::create;
+            }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
+    }
+
+    private IndividualTableReaderFactory<T, V>
+        createIndividualTableReaderFactory(final TableTransformation<T> transformationModel) {
+        return new IndividualTableReaderFactory<>(m_individualSpecs, m_tableReadConfig,
+            TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
+            m_rowKeyGenFactory.createContext(m_tableReadConfig));
     }
 
     private TypeMapper<V> createTypeMapper(final ProductionPath[] prodPaths, final FileStoreFactory fsFactory) {

@@ -187,7 +187,7 @@ public class DefaultMultiTableReadTest {
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
         m_testInstance = new DefaultMultiTableRead<>(asList(m_path1, m_path2), m_readFn,
-            m_individualTableReaderFactory, m_tableSpecConfig, m_outputSpec);
+            () -> m_individualTableReaderFactory, m_tableSpecConfig, m_outputSpec);
     }
 
     /**
