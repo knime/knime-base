@@ -274,7 +274,11 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
                 NodeLogger.getLogger(TableReaderPreviewTransformationController.class).debug(ex);
                 m_analysisComponent.setError(ex.getMessage());
                 m_previewModel.setDataTable(null);
-                m_transformationModel.updateRawSpec(null);
+                if (isUpdatingPreview()) {
+                    // if we aren't updating the preview, then the breaking change must be due to the user specified
+                    // TableTransformation and they must be able to correct their mistake (e.g. duplicate names)
+                    m_transformationModel.updateRawSpec(null);
+                }
             }
         }
 

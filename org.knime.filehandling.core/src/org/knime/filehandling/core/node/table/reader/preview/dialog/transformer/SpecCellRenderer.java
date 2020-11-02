@@ -74,7 +74,7 @@ class SpecCellRenderer extends DataColumnSpecTableCellRenderer { // NOSONAR, Swi
         if (isSelected) {
             // use color from superclass
         } else {
-            if (!model.isNameValid(row)) {
+            if (!model.isSpecValid(row)) {
                 setBackground(Color.RED);
             } else {
                 setBackground(Color.WHITE);

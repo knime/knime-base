@@ -506,7 +506,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private boolean updateName(final Object aValue, final MutableColumnTransformation<T> transformation) {
         final String stringValue = (String)aValue;
         final String newName =
-            stringValue.isEmpty() ? MultiTableUtils.getNameAfterInit(transformation.getExternalSpec()) : stringValue;
+            stringValue.isEmpty() ? transformation.getOriginalName() : stringValue;
         final String oldName = transformation.getName();
         boolean fireEventForOtherRows = false;
         if (!newName.equals(oldName)) {
