@@ -102,6 +102,7 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
+import org.knime.filehandling.core.util.GBCBuilder;
 
 import com.univocity.parsers.csv.CsvFormat;
 
@@ -276,16 +277,24 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
         addTab("Settings", initLayout());
-        addTab("Transformation", getTransformationPanel());
+        addTab("Transformation", createTransformationTab());
         addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
-        addTab("Encoding", m_encodingPanel);
+        addTab("Encoding", createEncodingPanel());
 
         m_config = config;
         registerPreviewChangeListeners();
         hookUpNumberFormatWithColumnDelimiter();
+    }
+
+    private JPanel createEncodingPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbc = new GBCBuilder().resetPos().anchorFirstLineStart().fillHorizontal();
+        panel.add(m_encodingPanel, gbc.build());
+        panel.add(createPreview(), gbc.incY().fillBoth().weight(1, 1).build());
+        return panel;
     }
 
     @Override
@@ -441,7 +450,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         panel.add(createOptionsPanel(), gbc);
         gbc.gridy++;
         gbc.weighty = 1;
-        panel.add(getPreview(), gbc);
+        panel.add(createPreview(), gbc);
         return panel;
     }
 
@@ -469,7 +478,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1;
         gbc.weighty = 1;
-        outerPanel.add(Box.createVerticalBox(), gbc);
+        outerPanel.add(createPreview(), gbc);
         return outerPanel;
     }
 
@@ -708,8 +717,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
         gbc.weightx = 1;
         optionsPanel.add(m_limitRowsSpinner, gbc);
         gbc.weighty = 1;
+        gbc.gridx = 0;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridy += 1;
         gbc.fill = GridBagConstraints.BOTH;
-        optionsPanel.add(new JPanel(), gbc);
+        optionsPanel.add(createPreview(), gbc);
 
         return optionsPanel;
     }
@@ -825,7 +837,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         ignoreEvents(true);
-        getPreview().setEnabled(false);
+        setPreviewEnabled(false);
         m_config.loadInDialog(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
@@ -929,7 +941,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private void startFormatAutoDetection() {
         m_formatAutoDetectionSwingWorker = new CSVFormatAutoDetectionSwingWorker(this, m_pathSettings);
 
-        getPreview().setEnabled(false);
+        setPreviewEnabled(false);
 
         setAutodetectComponentsEnabled(false);
         showCardInCardLayout(PROGRESS_BAR_CARD);
@@ -1028,7 +1040,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     }
 
     void refreshPreview(final boolean refreshPreview) {
-        getPreview().setEnabled(!m_disableComponentsRemoteContext);
+        setPreviewEnabled(!m_disableComponentsRemoteContext);
         if (refreshPreview) {
             configChanged();
         }
