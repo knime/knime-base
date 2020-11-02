@@ -69,8 +69,8 @@
 		</option>
 		<option name="File/Folder variables">
 			A list of file/folder locations that will form a path with the selected base folder. Enter the name of
-			the flow variable in the first column and the file/folder location relative to the base location in the
-			second column.
+			the flow variable in the first column and the file/folder location (and file extention) relative to the base
+			location in the remaining columns.
 		</option>
 		<link
 			href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
@@ -79,6 +79,9 @@
 		</link>
 	</fullDescription>
 	<ports>
+		<inPort name="Input variables (optional)" index="0">
+			Input variables (optional).
+		</inPort>
 		<dynInPort group-identifier="File System Connection"
 			insert-before="0" name="File system connection">The file system connection.
 		</dynInPort>

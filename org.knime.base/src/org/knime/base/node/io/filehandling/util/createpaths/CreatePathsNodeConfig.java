@@ -50,11 +50,11 @@ package org.knime.base.node.io.filehandling.util.createpaths;
 
 import java.util.EnumSet;
 
+import org.knime.base.node.io.filehandling.util.dialogs.variables.FSLocationVariableTableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
@@ -68,22 +68,17 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class CreatePathsNodeConfig {
 
-    // If we change the cfg key we need to ensure that the DEFAULT_VAR_NAMES stays as before
+
+    // If we change the config key we need to ensure that the DEFAULT_VAR_NAME stays as before
     private static final String CFG_DIR_PARENT = "base_folder";
 
-    private static final String CFG_VARIABLE_NAMES = "variable_names";
+    private static final String CFG_FILE_FOLDER_VARIABLES = "file_folder_variables";
 
-    private static final String CFG_VARIABLE_VALUES = "variable_values";
+    private static final String DEFAULT_VAR_NAME = CFG_DIR_PARENT;
 
-    private static final String[] DEFAULT_VAR_NAMES = new String[]{CFG_DIR_PARENT};
-
-    private static final String[] DEFAULT_VAR_VALUES = new String[]{""};
+    private final FSLocationVariableTableModel m_fsLocationTableModel;
 
     private SettingsModelCreatorFileChooser m_dirChooserModel;
-
-    private String[] m_VarNames;
-
-    private String[] m_VarValues;
 
     CreatePathsNodeConfig(final PortsConfiguration portsConfig) {
         m_dirChooserModel = new SettingsModelCreatorFileChooser(CFG_DIR_PARENT, portsConfig,
@@ -95,51 +90,22 @@ final class CreatePathsNodeConfig {
                 .setLocation(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "."));
         }
 
-        m_VarNames = DEFAULT_VAR_NAMES;
-        m_VarValues = DEFAULT_VAR_VALUES;
+        m_fsLocationTableModel = new FSLocationVariableTableModel(CFG_FILE_FOLDER_VARIABLES, DEFAULT_VAR_NAME, "", "");
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_dirChooserModel.validateSettings(settings);
-        checkVariableSettings(settings.getStringArray(CFG_VARIABLE_NAMES),
-            settings.getStringArray(CFG_VARIABLE_VALUES));
-
-    }
-
-    private static void checkVariableSettings(final String[] varNames, final String[] varValues)
-        throws InvalidSettingsException {
-        CheckUtils.checkSetting(varNames.length == varValues.length,
-            "The number of names for variables must be equal to that of values");
-        CheckUtils.checkSetting(varNames.length > 0, "Please specify at least one variable to be created");
-        for (final String varName : varNames) {
-            CheckUtils.checkSetting(!varName.isEmpty(), "Please assign names for each flow variable to be created");
-        }
-    }
-
-    void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_VarNames = settings.getStringArray(CFG_VARIABLE_NAMES, DEFAULT_VAR_NAMES);
-        m_VarValues = settings.getStringArray(CFG_VARIABLE_VALUES, DEFAULT_VAR_VALUES);
-    }
-
-    void saveSettingsForDialog(final NodeSettingsWO settings) {
-        save(settings);
+        m_fsLocationTableModel.validateSettingsForModel(settings, false);
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_dirChooserModel.loadSettingsFrom(settings);
-
-        m_VarNames = settings.getStringArray(CFG_VARIABLE_NAMES);
-        m_VarValues = settings.getStringArray(CFG_VARIABLE_VALUES);
+        m_fsLocationTableModel.loadSettingsForModel(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_dirChooserModel.saveSettingsTo(settings);
-        save(settings);
-    }
-
-    private void save(final NodeSettingsWO settings) {
-        settings.addStringArray(CFG_VARIABLE_NAMES, m_VarNames);
-        settings.addStringArray(CFG_VARIABLE_VALUES, m_VarValues);
+        m_fsLocationTableModel.saveSettingsForModel(settings);
     }
 
     /**
@@ -158,17 +124,7 @@ final class CreatePathsNodeConfig {
      * @return an array of variable names that are exported
      */
     String[] getAdditionalVarNames() {
-        return m_VarNames;
-    }
-
-    /**
-     * Sets an array of variable names that are exported containing the file paths. The array should always be of same
-     * length as {@link #getAdditionalVarValues()}.
-     *
-     * @param varNames an array of variable names that are exported
-     */
-    void setAdditionalVarNames(final String[] varNames) {
-        m_VarNames = varNames;
+        return getFSLocationTableModel().getVarNames();
     }
 
     /**
@@ -178,16 +134,15 @@ final class CreatePathsNodeConfig {
      * @return an array of filenames that are exported as variables values
      */
     String[] getAdditionalVarValues() {
-        return m_VarValues;
+        return getFSLocationTableModel().getLocations();
     }
 
     /**
-     * Sets an array of strings used as filenames of files that are going to be created. The array should always be of
-     * same length as {@link #getAdditionalVarName()}.
+     * Returns the {@link FSLocationVariableTableModel}.
      *
-     * @param varNames an array of filenames that are exported as variables values
+     * @return the {@link FSLocationVariableTableModel}
      */
-    void setAdditionalVarValues(final String[] varNames) {
-        m_VarValues = varNames;
+    FSLocationVariableTableModel getFSLocationTableModel() {
+        return m_fsLocationTableModel;
     }
 }

@@ -64,7 +64,9 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  */
 public final class CreatePathsNodeFactory extends ConfigurableNodeFactory<CreatePathsNodeModel> {
 
-    private static final String VARIABLE_OUTPUT_PORT_GRP_NAME = "Variable Output Ports";
+    private static final String VARIABLE_INPUT_PORT_GRP_NAME = "Variable Input Port";
+
+    private static final String VARIABLE_OUTPUT_PORT_GRP_NAME = "Variable Output Port";
 
     static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
@@ -72,6 +74,7 @@ public final class CreatePathsNodeFactory extends ConfigurableNodeFactory<Create
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
         builder.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        builder.addFixedInputPortGroup(VARIABLE_INPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE_OPTIONAL);
         builder.addFixedOutputPortGroup(VARIABLE_OUTPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE);
 
         return Optional.of(builder);

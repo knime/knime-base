@@ -107,9 +107,11 @@ final class CreatePathsNodeModel extends NodeModel {
     }
 
     private void createFlowVariables(final FSPath rootFSPath) {
-        for (int i = 0; i < m_config.getAdditionalVarNames().length; i++) {
-            final FSPath additionalPath = (FSPath)rootFSPath.resolve(m_config.getAdditionalVarValues()[i]);
-            pushFSLocationVariable(m_config.getAdditionalVarNames()[i], additionalPath.toFSLocation());
+        final String[] varNames = m_config.getAdditionalVarNames();
+        final String[] varValues = m_config.getAdditionalVarValues();
+        for (int i = 0; i < varNames.length; i++) {
+            final FSPath additionalPath = (FSPath)rootFSPath.resolve(varValues[i]);
+            pushFSLocationVariable(varNames[i], additionalPath.toFSLocation());
         }
     }
 
