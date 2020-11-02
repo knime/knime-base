@@ -11,82 +11,48 @@
 
 	<fullDescription>
 		<intro>
-			This node copies or moves files from a source (folder or file)
-			to another folder. The node offers options to either copy or move a
-			single file,
-			a
-			complete folder or the files in a selected folder, with
-			the option
-			to
-			include subfolders, to a specified folder.
-			If the "Delete
-			source files
-			(move)" option is checked the node performs
-			a move
-			operation for which
-			the source files will be deleted after the
-			copying
-			process is done.
+			This node copies or moves files from a source (folder or file) to another folder. The node offers options to
+			either copy or move a single file, a complete folder or the files in a selected folder, with the option to
+			include subfolders, to a specified folder. If the "Delete source files (move)" option is checked the node
+			performs a move operation for which the source files will be deleted after the copying process is done.
 		</intro>
 		<option name="Read from">
-			Select a file system which stores the files/folders you want to
-			copy/move.
-			There are
-			four default file system options to choose from:
+			Select a file system which stores the files/folders you want to copy/move. There are four default file
+			system options to choose from:
 			<br />
 			<ul>
 				<li>
 					<i>Local File System:</i>
-					Allows you to select a file/folder from your
-					local system.
+					Allows you to select a file/folder from your local system.
 				</li>
 				<li>
 					<i>Mountpoint:</i>
-					Allows you to read from a mountpoint.When selected, a new drop-down
-					menu appears to choose the mountpoint. Unconnected mountpoints are
-					greyed out but can still be selected (note that browsing is
-					disabled in this case). Go to the KNIME Explorer and connect to the
-					mountpoint to enable browsing. A mountpoint is displayed in red if
-					it was previously selected but is no longer available. You won't be
-					able to save the dialog as long as you don't select a valid i.e.
-					known mountpoint.
+					Allows you to read from a mountpoint.When selected, a new drop-down menu appears to choose the
+					mountpoint. Unconnected mountpoints are greyed out but can still be selected (note that browsing is
+					disabled in this case). Go to the KNIME Explorer and connect to the mountpoint to enable browsing. A
+					mountpoint is displayed in red if it was previously selected but is no longer available. You won't
+					be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
 				</li>
 				<li>
 					<i>Relative to:</i>
-					Allows you to choose whether to resolve the path
-					relative to the
-					current mountpoint, current workflow or the current
-					workflow's data
-					area.
-					When selected a new drop-down menu appears to choose which of
-					the three
-					options to use.
+					Allows you to choose whether to resolve the path relative to the current mountpoint, current
+					workflow or the current workflow's data area. When selected a new drop-down menu appears to choose
+					which of the three options to use.
 				</li>
 				<li>
 					<i>Custom/KNIME URL:</i>
-					Allows to specify a URL (e.g. file://, http:// or knime://
-					protocol). When selected, a spinner appears that allows you to
-					specify the desired connection and read timeout in milliseconds. In
-					case it takes longer to connect to the host / read the file, the
-					node fails to execute.Browsing is disabled for this option.
+					Allows to specify a URL (e.g. file://, http:// or knime://protocol). When selected, a spinner
+					appears that allows you to specify the desired connection and read timeout in milliseconds. In case
+					it takes longer to connect to the host / read the file, the node fails to execute.Browsing is
+					disabled for this option.
 				</li>
 			</ul>
-			To copy/move a file/folder from other file systems, click on
-			<b>...</b>
-			in the bottom left corner of the node icon followed by
-			<i>Add File System Connection port</i>
-			. Afterwards, connect the desired file system connector
-			node to the
-			newly added input port.
-			The file system connection will then be shown
-			in the drop-down menu.
-			It is greyed out if the file system is not
-			connected in which case you
-			have to (re)execute the connector node
-			first.
-			Note: The default file systems listed above can't be selected
-			if a file
-			system is provided via the input port.
+			To copy/move a file/folder from other file systems, click on <b>...</b> in the bottom left corner of the
+			node icon followed by <i>Add File System Connection port</i>. Afterwards, connect the desired file system
+			connector node to the newly added input port. The file system connection will then be shown in the drop-down
+			menu. It is greyed out if the file system is not connected in which case you have to (re)execute the
+			connector node first. Note: The default file systems listed above can't be selected if a file system is
+			provided via the input port.
 		</option>
 		<option name="Mode">
 			There are three different file/folder modes available:
@@ -97,8 +63,7 @@
 				</li>
 				<li>
 					<i>Folder:</i>
-					Copies a single folder with all its files and the underlying folder
-					structure.
+					Copies a single folder with all its files and the underlying folder structure.
 				</li>
 				<li>
 					<i>Files in folder:</i>
@@ -107,50 +72,24 @@
 			</ul>
 		</option>
 		<option name="Filter options">
-			Only displayed if the mode Files in folder is
-			selected. Allows to specify
-			which files should be included according
-			to
-			their file extension
-			and/or name.It is also possible to include
-			hidden
-			files. The folder
-			filter options enable you to specify which
-			folders
-			should be included
-			based on their name and hidden status. Note
-			that the
-			folders
-			themselves will not be included, only the files they
-			contain.
+			Only displayed if the mode Files in folder is selected. Allows to specify which files should be included
+			according to their file extension and/or name.It is also possible to include hidden files. The folder
+			filter options enable you to specify which folders should be included based on their name and hidden status.
+			Note that only folders in the file paths of the selected files will be copied.
 		</option>
 		<option name="Include subfolders">
-			If this option is checked, the node will include
-			all files from
-			subfolders that satisfy the specified filter options.
-			If left
-			unchecked,
-			only the files in the selected folder will be
-			included and all files
-			from subfolders are ignored.
+			If this option is checked, the node will include all files from subfolders that satisfy the specified filter
+			options. If left unchecked, only the files in the selected folder will be included and all files from
+			subfolders are ignored.
 		</option>
 		<option name="Write to">
-			This option allows you to specify a folder where
-			you want to copy
-			your file, files or folder in the end.
-			This option has
-			got the
-			same options, except for the custom URL option, as the Read
-			from option with regards
-			to the file system
-			options.
+			This option allows you to specify a folder where you want to copy your file, files or folder in the end.
+			This option has got the same options, except for the custom URL option, as the Read from option with regards
+			to the file system options.
 		</option>
 		<option name="Create missing folders">
-			Select if the folders of the selected output
-			location should be created if
-			they do not already exist. If this
-			option is unchecked, the node
-			will fail if a folder does not exist.
+			Select if the folders of the selected output location should be created if they do not already exist. If
+			this option is unchecked, the node will fail if a folder does not exist.
 		</option>
 		<option name="If exists">
 			<ul>
@@ -160,66 +99,44 @@
 				</li>
 				<li>
 					<i>Ignore:</i>
-					Will ignore if a file already exists and continues the copying
-					process.
+					Will ignore if a file already exists and continues the copying process.
 				</li>
 				<li>
 					<i>Fail:</i>
-					Will issue an error during the node's execution (to prevent
-					unintentional overwrite).
+					Will issue an error during the node's execution (to prevent unintentional overwrite).
 				</li>
 			</ul>
 		</option>
 		<option name="Include selected source folder">
-			If this option is selected, a folder with the name of the last part
-			of the selected path will get included in the copy process,otherwise
-			only the contents of the specified folder will get included in the
-			archive. This option does not work if only a single file should
-			be copied or if the selected folder path ends with <b>..</b> or <b>.</b>.
-			If it is not possible to include the source folder the dialog will
+			If this option is selected, a folder with the name of the last part of the selected path will get included
+			in the copy process,otherwise only the contents of the specified folder will get included in the archive.
+			This option does not work if only a single file should be copied or if the selected folder path ends with
+			<b>..</b> or <b>.</b>. For example copying the complete workflow data area by specifying the source path
+			with a <b>.</b>. If it is not possible to include the source folder the dialog will
 			show you an error message and the node will fail during execution.
 		</option>
 		<option name="Delete source files / folders (move)">
-			If this option is checked all files which have
-			been
-			successfully copied
-			to the destination folder
-			will be deleted in
-			the
-			source
-			folder. The
-			output contains an
-			additional column indicating
-			if
-			the file
-			has been
-			deleted (true) or not (false).
-			<b>Note</b>
-			Folders only get deleted when the Folder option is used.
+			If this option is checked all files which have been successfully copied to the destination folder
+			will be deleted in the source folder. The output contains an additional column indicating if the file has
+			been deleted (true) or not (false). <b>Note</b> Folders only get deleted when the Folder option is used.
 		</option>
 		<option name="Fail on unsuccessful deletion">
-			If the 'Delete source files (move)' option is
-			activated and something goes wrong during the deletion process the
-			node will fail. This option is only available if the before mentioned
-			option is selected.
+			If the 'Delete source files (move)' option is activated and something goes wrong during the deletion process
+			the node will fail. This option is only available if the before mentioned option is selected.
 		</option>
 	</fullDescription>
-
-
 	<ports>
-		<dynInPort insert-before="0"
-			name="Source file system connection"
-			group-identifier="Source File System Connection">
+		<dynInPort insert-before="0" name="Source file system connection" 
+		group-identifier="Source File System Connection">
 			The source file system connection.
 		</dynInPort>
-		<dynInPort insert-before="0"
-			name="Destination file system connection"
+		<dynInPort insert-before="0" name="Destination file system connection"
 			group-identifier="Destination File System Connection">
 			The destination file system connection.
 		</dynInPort>
-		<outPort index="0" name="Copied files table">The files which should be copied with
-			a source path column, destination path column, a folder identifier column
-			and a deleted source column.
+		<outPort index="0" name="Copied files table">
+			The files which should be copied with a source path column, destination path column, a folder identifier
+			column, a copy status column and a deleted source column.
 		</outPort>
 	</ports>
 </knimeNode>
