@@ -92,7 +92,7 @@ public final class WordWrapJLabel extends JLabel {
     }
 
     private static String createHtmlTemplate(final int widthInPixel) {
-        return "<html><body style='width: " + widthInPixel + "px; height:20px'><p>%s</p></body></html>";
+        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
     }
 
     @Override
@@ -100,6 +100,8 @@ public final class WordWrapJLabel extends JLabel {
         if (m_html == null) {
             // only happens during the call of the super constructor
             super.setText(text);
+        } else if (text.trim().isEmpty()) {
+            super.setText(" ");
         } else {
             super.setText(String.format(m_html, addWordBreakHints(text)));
         }
