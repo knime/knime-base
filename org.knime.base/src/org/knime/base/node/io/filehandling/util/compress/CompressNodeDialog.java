@@ -247,7 +247,8 @@ final class CompressNodeDialog extends NodeDialogPane {
             final String locPath = location.getPath();
             final String newPath = PATTERN.matcher(locPath).replaceAll(compression);
             if (!newPath.equals(locPath)) {
-                writerModel.setLocation(new FSLocation(location.getFSCategory(), newPath));
+                writerModel.setLocation(
+                    new FSLocation(location.getFSCategory(), location.getFileSystemSpecifier().orElse(null), newPath));
             }
         }
         writerModel.setFileExtensions(compression);
