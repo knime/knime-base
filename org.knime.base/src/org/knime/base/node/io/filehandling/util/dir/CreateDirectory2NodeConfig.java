@@ -106,7 +106,11 @@ final class CreateDirectory2NodeConfig {
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.validateSettings(settings);
-        m_fsLocationTableModel.validateSettingsForModel(settings, true);
+
+        // ensure backwards compatibility AP-15025
+        if (settings.containsKey(CFG_ADDITIONAL_PATH_VARIABLES)) {
+            m_fsLocationTableModel.validateSettingsForModel(settings, true);
+        }
         validateSettings(settings);
     }
 
@@ -121,7 +125,14 @@ final class CreateDirectory2NodeConfig {
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_parentDirChooserModel.loadSettingsFrom(settings);
         m_dirPathVariableName = settings.getString(CFG_DIR_PATH_VARIABLE_NAME);
-        m_fsLocationTableModel.loadSettingsForModel(settings);
+
+        // ensure backwards compatibility AP-15025
+        if (settings.containsKey(CFG_ADDITIONAL_PATH_VARIABLES)) {
+            m_fsLocationTableModel.loadSettingsForModel(settings);
+        } else {
+            m_fsLocationTableModel.loadBackwardsComptabile(settings, "additional_variable_names",
+                "additional_variable_values");
+        }
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {

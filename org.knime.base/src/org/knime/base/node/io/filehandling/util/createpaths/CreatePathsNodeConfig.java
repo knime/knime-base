@@ -68,7 +68,6 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class CreatePathsNodeConfig {
 
-
     // If we change the config key we need to ensure that the DEFAULT_VAR_NAME stays as before
     private static final String CFG_DIR_PARENT = "base_folder";
 
@@ -90,7 +89,8 @@ final class CreatePathsNodeConfig {
                 .setLocation(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "."));
         }
 
-        m_fsLocationTableModel = new FSLocationVariableTableModel(CFG_FILE_FOLDER_VARIABLES, DEFAULT_VAR_NAME, "", "");
+        m_fsLocationTableModel = new FSLocationVariableTableModel(CFG_FILE_FOLDER_VARIABLES);
+        m_fsLocationTableModel.setEntries(new String[]{DEFAULT_VAR_NAME}, new String[]{""}, new String[]{""});
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {

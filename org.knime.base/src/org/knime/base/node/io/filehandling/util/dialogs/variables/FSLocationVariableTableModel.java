@@ -60,6 +60,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.KeyValuePanel;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -107,22 +108,6 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     public FSLocationVariableTableModel(final String cfgKey) {
         m_cfgKey = cfgKey;
         initDefaults();
-    }
-
-    /**
-     * Constructor that already creates a single entry.
-     *
-     * @param cfgKey the key of the sub-settings storing the individual entries
-     * @param varName the variable name of the first entry
-     * @param pathValue the path value of the first entry
-     * @param fileExtension the file extension of the first entry
-     */
-    public FSLocationVariableTableModel(final String cfgKey, final String varName, final String pathValue,
-        final String fileExtension) {
-        this(cfgKey);
-        m_varNames.add(varName);
-        m_varPathValues.add(pathValue);
-        m_varFileExtension.add(fileExtension);
     }
 
     private void initDefaults() {
@@ -201,9 +186,47 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         NodeSettingsRO varSettings = settings.getNodeSettings(m_cfgKey);
-        m_varNames = Arrays.asList(varSettings.getStringArray(CFG_VAR_NAMES));
-        m_varPathValues = Arrays.asList(varSettings.getStringArray(CFG_VAR_PATH_VALUE));
-        m_varFileExtension = Arrays.asList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION));
+        m_varNames = arrayToList(varSettings.getStringArray(CFG_VAR_NAMES));
+        m_varPathValues = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_VALUE));
+        m_varFileExtension = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION));
+    }
+
+    /**
+     * Loads the settings that were initially stored using the {@link KeyValuePanel}.
+     *
+     * @param settings the {@link NodeSettingsRO} to read from
+     * @param namesCfgKey the variables names config key
+     * @param valuesCfgKey the variable values config key
+     * @throws InvalidSettingsException - If the settings are invalid
+     */
+    public void loadBackwardsComptabile(final NodeSettingsRO settings, final String namesCfgKey,
+        final String valuesCfgKey) throws InvalidSettingsException {
+        try {
+            final String[] varNames = settings.getStringArray(namesCfgKey);
+            final String[] varValues = settings.getStringArray(valuesCfgKey);
+            final String[] fileExtension = new String[varValues.length];
+            splitValuesAndExtension(varValues, fileExtension);
+            setEntries(varNames, varValues, fileExtension);
+        } catch (final InvalidSettingsException e) { //NOSONAR
+            throw new InvalidSettingsException(String.format("Config for key \"%s\" not found.", m_cfgKey));
+        }
+    }
+
+    private static void splitValuesAndExtension(final String[] varValues, final String[] fileExtension) {
+        for (int i = 0; i < varValues.length; i++) {
+            final int delIdx = varValues[i].lastIndexOf('.');
+            final String body;
+            final String extension;
+            if (delIdx > 0) {
+                body = varValues[i].substring(0, delIdx);
+                extension = varValues[i].substring(delIdx, varValues[i].length());
+            } else {
+                body = varValues[i];
+                extension = "";
+            }
+            varValues[i] = body;
+            fileExtension[i] = extension;
+        }
     }
 
     /**
@@ -222,9 +245,9 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
         NodeSettingsRO varSettings;
         try {
             varSettings = settings.getNodeSettings(m_cfgKey);
-            m_varNames = new ArrayList<>(Arrays.asList(varSettings.getStringArray(CFG_VAR_NAMES)));
-            m_varPathValues = new ArrayList<>(Arrays.asList(varSettings.getStringArray(CFG_VAR_PATH_VALUE)));
-            m_varFileExtension = new ArrayList<>(Arrays.asList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION)));
+            m_varNames = arrayToList(varSettings.getStringArray(CFG_VAR_NAMES));
+            m_varPathValues = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_VALUE));
+            m_varFileExtension = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION));
         } catch (InvalidSettingsException e) { //NOSONAR
             initDefaults();
         }
@@ -313,5 +336,22 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(final int columnIndex) {
         return COL_NAMES[columnIndex];
+    }
+
+    /**
+     * Sets the given values.
+     *
+     * @param varNames the variable names
+     * @param varValues the variable values
+     * @param fileExtension the file extensions
+     */
+    public void setEntries(final String[] varNames, final String[] varValues, final String[] fileExtension) {
+        m_varNames = arrayToList(varNames);
+        m_varPathValues = arrayToList(varValues);
+        m_varFileExtension = arrayToList(fileExtension);
+    }
+
+    private static ArrayList<String> arrayToList(final String[] arr) {
+        return new ArrayList<>(Arrays.asList(arr));
     }
 }
