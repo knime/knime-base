@@ -130,6 +130,8 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         setCharSetName(toCopy.getCharSetName());
         setQuoteOption(toCopy.getQuoteOption());
         setAutoDetectionBufferSize(toCopy.getAutoDetectionBufferSize());
+        m_decimalSeparator = toCopy.getDecimalSeparatorChar();
+        m_thousandsSeparator = toCopy.getThousandsSeparatorChar();
     }
 
     /**
