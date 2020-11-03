@@ -3,10 +3,10 @@
 <schema targetNamespace="org.knime.filehandling.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.knime.filehandling.core" id="org.knime.filehandling.FSTestInitializerProvider" name="FSTestInitializerProvider"/>
+         <meta.schema plugin="org.knime.filehandling.core" id="org.knime.filehandling.core.MountPointFileSystemAccess" name="MountPointFileSystemAccess"/>
       </appinfo>
       <documentation>
-         Extension point for registering FSTestInitializer instances
+         Extension point for registering MountPointFileSystemAccess instances
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="FSTestInitializerProvider"/>
+            <element ref="MountPointFileSystemAccess"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,15 +47,15 @@
       </complexType>
    </element>
 
-   <element name="FSTestInitializerProvider">
+   <element name="MountPointFileSystemAccess">
       <complexType>
-         <attribute name="ProviderClass" type="string">
+         <attribute name="MountPointFileSystemAccess" type="string">
             <annotation>
                <documentation>
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.filehandling.core.testing.FSTestInitializerProvider"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.filehandling.core.util.MountPointFileSystemAccess"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -67,7 +67,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         4.2.0
+         4.1.0
       </documentation>
    </annotation>
 

@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.knime.filehandling.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.knime.filehandling.core.fs" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.knime.filehandling.core" id="org.knime.filehandling.core.MountPointIDProvider" name="MountPointIDProvider"/>
+         <meta.schema plugin="org.knime.filehandling.core.fs" id="org.knime.filehandling.FSTestInitializerProvider" name="FSTestInitializerProvider"/>
       </appinfo>
       <documentation>
-         Extension point for registering MountPointIDProvider instances
+         Extension point for registering FSTestInitializer instances
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="MountPointIDProvider"/>
+            <element ref="FSTestInitializerProvider"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,15 +47,15 @@
       </complexType>
    </element>
 
-   <element name="MountPointIDProvider">
+   <element name="FSTestInitializerProvider">
       <complexType>
-         <attribute name="MountPointIDProvider" type="string">
+         <attribute name="ProviderClass" type="string">
             <annotation>
                <documentation>
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.filehandling.core.util.MountPointIDProvider"/>
+                  <meta.attribute kind="java" basedOn=":org.knime.filehandling.core.testing.FSTestInitializerProvider"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -67,7 +67,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         4.1.0
+         4.2.0
       </documentation>
    </annotation>
 
