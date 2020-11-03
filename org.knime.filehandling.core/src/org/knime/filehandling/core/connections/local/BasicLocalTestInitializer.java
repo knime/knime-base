@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.connections.local;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -115,7 +114,7 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
     // protected abstract Path toLocalPath(final FSPath path);
 
     @Override
-    public P createFileWithContent(final String content, final String... pathComponents) {
+    public P createFileWithContent(final String content, final String... pathComponents) throws IOException {
         return toFSPath(createLocalFileWithContent(content, pathComponents));
     }
 
@@ -125,22 +124,19 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
      * @param content
      * @param pathComponents
      * @return the path (from default FS provider) to the created file.
+     * @throws IOException
      */
-    protected Path createLocalFileWithContent(final String content, final String... pathComponents) {
+    protected Path createLocalFileWithContent(final String content, final String... pathComponents) throws IOException {
         if (pathComponents == null || pathComponents.length == 0) {
             throw new IllegalArgumentException("path components can not be empty or null");
         }
 
         final Path file = Paths.get(getLocalTestCaseScratchDir().toString(), pathComponents);
 
-        try {
-            Files.createDirectories(file.getParent());
-            Files.write(file, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.createDirectories(file.getParent());
+        Files.write(file, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            return file;
-        } catch (final IOException e) {
-            throw new UncheckedIOException("Exception while creating a file at ." + file.toString(), e);
-        }
+        return file;
     }
 
     @Override
