@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -72,9 +73,13 @@ final class BinaryObjectsToFilesNodeConfig {
 
     private static final String CFG_WRITER_FILE_CHOOSER_NAME = "output_location";
 
+    private static final String CFG_REMOVE_BINARY_COLUMN_NAME = "remove_binary_object_column";
+
     private final SettingsModelString m_binaryObjectsSelectionColumnModel;
 
     private final SettingsModelWriterFileChooser m_fileWriterSelectionModel;
+
+    private final SettingsModelBoolean m_removeBinaryObjColumnModel;
 
     /**
      * Constructor for the Configuration class
@@ -83,6 +88,7 @@ final class BinaryObjectsToFilesNodeConfig {
      */
     BinaryObjectsToFilesNodeConfig(final PortsConfiguration portsConfiguration) {
         m_binaryObjectsSelectionColumnModel = new SettingsModelString(CFG_BINARY_COLUMN_NAME, null);
+        m_removeBinaryObjColumnModel = new SettingsModelBoolean(CFG_REMOVE_BINARY_COLUMN_NAME, false);
         m_fileWriterSelectionModel = new SettingsModelWriterFileChooser(CFG_WRITER_FILE_CHOOSER_NAME,
             portsConfiguration, BinaryObjectsToFilesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER,
             FileOverwritePolicy.IGNORE,
@@ -98,6 +104,10 @@ final class BinaryObjectsToFilesNodeConfig {
         return m_fileWriterSelectionModel;
     }
 
+    SettingsModelBoolean getRemoveBinaryObjColumnModel() {
+        return m_removeBinaryObjColumnModel;
+    }
+
     /**
      * Implements save settings on each individual settings model
      *
@@ -105,6 +115,7 @@ final class BinaryObjectsToFilesNodeConfig {
      */
     void saveSettingsTo(final NodeSettingsWO settings) {
         m_binaryObjectsSelectionColumnModel.saveSettingsTo(settings);
+        m_removeBinaryObjColumnModel.saveSettingsTo(settings);
         m_fileWriterSelectionModel.saveSettingsTo(settings);
     }
 
@@ -115,6 +126,7 @@ final class BinaryObjectsToFilesNodeConfig {
      */
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_binaryObjectsSelectionColumnModel.validateSettings(settings);
+        m_removeBinaryObjColumnModel.validateSettings(settings);
         m_fileWriterSelectionModel.validateSettings(settings);
     }
 
@@ -125,6 +137,7 @@ final class BinaryObjectsToFilesNodeConfig {
      */
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_binaryObjectsSelectionColumnModel.loadSettingsFrom(settings);
+        m_removeBinaryObjColumnModel.loadSettingsFrom(settings);
         m_fileWriterSelectionModel.loadSettingsFrom(settings);
     }
 

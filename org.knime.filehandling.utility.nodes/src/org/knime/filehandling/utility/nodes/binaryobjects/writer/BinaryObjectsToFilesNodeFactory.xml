@@ -16,8 +16,11 @@
 		<option name="Binary object column">
 			Column with binary objects.
 		</option>
+        <option name="Remove binary object column">
+            Removes the column with the binary objects from the output table.
+        </option>
 		<option name="Write to">
-			Select a file system which stores the files you want to genrate.
+			Select a file system which stores the files you want to generate.
 			There are three default file system options to choose from:
 			<br />
 			<ul>

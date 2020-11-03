@@ -66,6 +66,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -85,7 +86,11 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
 
     private final DialogComponentWriterFileChooser m_destinationFolderSelection;
 
+    private final DialogComponentBoolean m_removeBinaryObjectColumn;
+
     private static final String BINARY_OBJ_COLUMN_LABEL = "Binary object column";
+
+    private static final String REMOVE_BINARY_OBJ_COLUMN_LABEL = "Remove binary object column";
 
     private static final String OUTPUT_LOC_PANEL_LABEL = "Output location";
 
@@ -113,6 +118,9 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
         m_destinationFolderSelection =
             new DialogComponentWriterFileChooser(destionationFolderChooser, FILE_HISTORY_ID, writeFvm);
 
+        m_removeBinaryObjectColumn = new DialogComponentBoolean(
+            m_binaryObjectsToFilesNodeSettings.getRemoveBinaryObjColumnModel(), REMOVE_BINARY_OBJ_COLUMN_LABEL);
+
         addTab("Settings", createSettingsDialog());
     }
 
@@ -126,6 +134,8 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
         final GridBagConstraints gbc = getGbc();
 
         p.add(m_binaryColSelection.getComponentPanel(), gbc);
+        ++gbc.gridy;
+        p.add(m_removeBinaryObjectColumn.getComponentPanel(), gbc);
         ++gbc.gridy;
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -161,12 +171,14 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_binaryColSelection.loadSettingsFrom(settings, specs);
+        m_removeBinaryObjectColumn.loadSettingsFrom(settings, specs);
         m_destinationFolderSelection.loadSettingsFrom(settings, specs);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_binaryColSelection.saveSettingsTo(settings);
+        m_removeBinaryObjectColumn.saveSettingsTo(settings);
         m_destinationFolderSelection.saveSettingsTo(settings);
     }
 

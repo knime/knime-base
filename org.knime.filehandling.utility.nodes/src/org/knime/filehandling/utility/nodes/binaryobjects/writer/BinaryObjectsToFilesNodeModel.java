@@ -77,6 +77,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -106,6 +107,8 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
     private final SettingsModelWriterFileChooser m_fileWriterSelectionModel;
 
+    private final SettingsModelBoolean m_removeBinaryColumnModel;
+
     private int m_inputTableIdx;
 
     private final NodeModelStatusConsumer m_statusConsumer;
@@ -118,6 +121,7 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         super(config.getInputPorts(), config.getOutputPorts());
         m_binaryObjectsToFileNodeConfig = nodeSettings;
         m_binaryColumn = m_binaryObjectsToFileNodeConfig.getBinaryObjectsSelectionColumnModel();
+        m_removeBinaryColumnModel = m_binaryObjectsToFileNodeConfig.getRemoveBinaryObjColumnModel();
         m_fileWriterSelectionModel = m_binaryObjectsToFileNodeConfig.getFileSettingsModelWriterFileChooser();
         m_inputTableIdx =
             config.getInputPortLocation().get(BinaryObjectsToFilesNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
@@ -256,13 +260,17 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
      * @param factory A object of {@link BinaryObjectsToFilesCellFactory}
      * @return An instance of ColumnRearranger
      */
-    private static ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
+    private ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
         final BinaryObjectsToFilesCellFactory factory) {
 
         // now create output spec using a ColumnRearranger
         final ColumnRearranger colRearranger = new ColumnRearranger(inSpec);
         colRearranger.append(factory);
 
+        if (m_removeBinaryColumnModel.getBooleanValue()) {
+            // remove the binary column from ouput
+            colRearranger.remove(m_binaryColumn.getStringValue());
+        }
         return colRearranger;
     }
 
