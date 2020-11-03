@@ -167,16 +167,16 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private JPanel initLayout() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        GBCBuilder gbc = new GBCBuilder().resetX().resetY().fillHorizontal().setWeightX(1).anchorLineStart();
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().fillHorizontal().setWeightX(1).anchorLineStart();
         panel.add(createInputPanel(), gbc.build());
 
-        gbc = gbc.incY();
+        gbc.incY();
         panel.add(createOutputPanel(), gbc.build());
 
-        gbc = gbc.incY().fillHorizontal().setWeightX(1);
+        gbc.incY().fillHorizontal().setWeightX(1);
         panel.add(createOptionsPanel(), gbc.build());
 
-        gbc = gbc.incY().setWeightY(1).setWeightX(1).fillBoth();
+        gbc.incY().setWeightY(1).setWeightX(1).fillBoth();
         panel.add(new JPanel(), gbc.build());
 
         return panel;
@@ -206,19 +206,26 @@ final class CompressNodeDialog extends NodeDialogPane {
     private JPanel createOptionsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
-        GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
+        panel.add(m_compressionSelection.getComponentPanel(), gbc.build());
+
+        gbc.incY();
         panel.add(m_includeSourceFolder, gbc.build());
-        gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
+
+        gbc.incX().setWeightY(1).fillVertical().setHeight(2);
         panel.add(m_includeSourceFolderStatusView.getLabel(), gbc.build());
-        gbc = gbc.setHeight(1).fillNone().setWeightY(0).resetX().incY();
+
+        gbc.setHeight(1).fillNone().setWeightY(0).resetX().incY();
         panel.add(new JPanel());
-        gbc = gbc.incY();
-        gbc.insetTop(10);
+
+        gbc.incY();
         panel.add(m_flattenHierarchyPanel, gbc.build());
-        gbc = gbc.incX().setWeightY(1).fillVertical().setHeight(2);
+
+        gbc.incX().setWeightY(1).fillVertical().setHeight(2);
         panel.add(m_flattenHierarchyStatusView.getLabel(), gbc.build());
-        gbc.insetTop(0);
-        panel.add(new JPanel(), gbc.resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());
+
+        panel.add(new JPanel(),
+            gbc.insetTop(0).resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());
         return panel;
     }
 

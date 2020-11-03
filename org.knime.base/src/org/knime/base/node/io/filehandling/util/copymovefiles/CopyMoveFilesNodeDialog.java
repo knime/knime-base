@@ -50,7 +50,6 @@ package org.knime.base.node.io.filehandling.util.copymovefiles;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -231,7 +230,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.LINE_START;
-
+        gbc.weighty = 0;
         gbc.weightx = 0;
         panel.add(m_includeSourceFolderCheckbox.getComponentPanel(), gbc);
         gbc.gridx++;
@@ -242,22 +241,18 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         gbc.gridheight = 1;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weighty = 0;
-        gbc.gridy++;
-        gbc.gridx=0;
-        panel.add(new JPanel());
-        gbc.insets = new Insets(10, 0, 0, 0);
-        gbc.gridy++;
         gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridy++;
         panel.add(m_deleteSourceFilesCheckbox.getComponentPanel(), gbc);
         gbc.gridx++;
         panel.add(m_failOnDeletion.getComponentPanel(), gbc);
-        gbc.fill=GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = 2;
         gbc.weighty = 1;
         gbc.weightx = 1;
         gbc.gridx = 0;
         gbc.gridy++;
-        gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(new JPanel(), gbc);
         return panel;
     }
