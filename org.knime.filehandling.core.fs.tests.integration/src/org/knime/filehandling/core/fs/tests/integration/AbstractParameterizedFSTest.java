@@ -82,6 +82,7 @@ public abstract class AbstractParameterizedFSTest {
     protected static final String AMAZON_S3 = "amazon-s3";
     protected static final String GOOGLE_CS = "google-cs";
     protected static final String HDFS = "hdfs";
+    protected static final String HDFS_KNOX = "hdfs-knox";
     protected static final String HDFS_WRAPPER_WRAPPER = "hdfs-wrapper-wrapper";
     protected static final String MICROSOFT_BLOBSTORAGE = "microsoft-blobstorage";
 

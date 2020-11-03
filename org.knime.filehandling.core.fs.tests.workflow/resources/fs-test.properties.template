@@ -30,6 +30,7 @@
 #   google-cs
 #	google-drive
 #   hdfs
+#   hdfs-knox
 #   hdfs-wrapper-wrapper
 #   microsoft-sharepoint
 #   microsoft-blobstorage
@@ -92,6 +93,12 @@ hdfs.url = <PROTOCOL>://<HOST>:<PORT>
 # authentication type: simple or kerberos
 hdfs.auth = simple
 hdfs.user = <YOUR-USERNAME>
+
+################ HDFS via KNOX ################
+hdfs-knox.url = https://<HOST>:<PORT>/gateway/<TOPOLOGY>
+hdfs-knox.workingDirPrefix = /tmp/file-handling-tests
+hdfs-knox.user = <YOUR-USERNAME>
+hdfs-knox.pass = <YOUR-PASSWORD>
 
 ################ Microsoft SharePoint Online ################
 microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
