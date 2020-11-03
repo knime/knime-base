@@ -256,11 +256,12 @@ public abstract class BlobStorePath extends UnixStylePath {
 
         final List<String> normalized = getNormalizedPathParts();
 
+        if(normalized.size() == m_pathParts.size()) {
+            return this;
+        }
+
         if (isDirectory() && !normalized.isEmpty()) {
             normalized.add(m_pathSeparator);
-        }
-        if (normalized.isEmpty() && !m_isAbsolute) {
-            return getFileSystem().getPath("");
         }
 
         //Ensure absolute paths stay absolute
