@@ -127,7 +127,7 @@ final class CopyMoveFilesNodeDialog extends NodeDialogPane {
         m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_deleteSourceFilesCheckbox =
-            new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders (move)");
+            new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders");
 
         m_includeSourceFolderCheckbox = new DialogComponentBoolean(m_config.getSettingsModelIncludeSourceFolder(),
             "Include selected source folder");

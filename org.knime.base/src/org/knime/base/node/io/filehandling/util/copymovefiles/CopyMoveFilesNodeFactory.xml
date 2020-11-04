@@ -3,10 +3,10 @@
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>Copy/Move Files (Labs)</name>
+	<name>Transfer Files (Labs)</name>
 
 	<shortDescription>
-		Copies or moves files from a source (folder or file) to a specified destination folder.
+		Transfer files from a source (folder or file) to a specified destination folder.
 	</shortDescription>
 
 	<fullDescription>
@@ -115,7 +115,7 @@
 			with a <b>.</b>. If it is not possible to include the source folder the dialog will
 			show you an error message and the node will fail during execution.
 		</option>
-		<option name="Delete source files / folders (move)">
+		<option name="Delete source files / folders">
 			If this option is checked all files which have been successfully copied to the destination folder
 			will be deleted in the source folder. The output contains an additional column indicating if the file has
 			been deleted (true) or not (false). <b>Note</b> Folders only get deleted when the Folder option is used.
