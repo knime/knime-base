@@ -84,7 +84,7 @@ public final class TableTransformationPanel extends JPanel {
 
     private final TableTransformationTableModel<?> m_tableModel;
 
-    private final JButton m_resetBtn = new JButton("Reset");
+    private final JButton m_resetAllBtn = new JButton("Reset all");
 
     private final JButton m_resetNames = new JButton("Reset names");
 
@@ -93,6 +93,8 @@ public final class TableTransformationPanel extends JPanel {
     private final JButton m_resetTypes = new JButton("Reset types");
 
     private final JButton m_includeAll = new JButton("Reset filter");
+
+    private final JLabel m_colFilterModeLabel = new JLabel("Take columns from:");
 
     private final ColumnFilterModePanel m_columnFilterModePanel;
 
@@ -115,7 +117,7 @@ public final class TableTransformationPanel extends JPanel {
         m_tableModel = model;
         setupTable(model, productionPathProvider);
 
-        m_resetBtn.addActionListener(l -> m_tableModel.resetToRawSpec());
+        m_resetAllBtn.addActionListener(l -> m_tableModel.resetAll());
         m_resetNames.addActionListener(l -> m_tableModel.resetNames());
         m_resetPositions.addActionListener(l -> m_tableModel.resetPositions());
         m_resetTypes.addActionListener(l -> m_tableModel.resetProductionPaths());
@@ -125,14 +127,14 @@ public final class TableTransformationPanel extends JPanel {
 
         final GBCBuilder gbc = new GBCBuilder()//
             .resetPos()//
-            .anchorPageStart().insets(0, 0, 0, 5);
-        add(m_resetBtn, gbc.build());
+            .anchorPageStart().insets(0, 0, 5, 5);
+        add(m_resetAllBtn, gbc.build());
         add(m_includeAll, gbc.incX().build());
         add(m_resetNames, gbc.incX().build());
         add(m_resetTypes, gbc.incX().build());
         add(m_resetPositions, gbc.incX().build());
         if (includeColumnFilterButtons) {
-            add(new JLabel("Take columns from:"), gbc.incX().insetTop(3).build());
+            add(m_colFilterModeLabel, gbc.incX().insetTop(3).build());
             add(m_columnFilterModePanel, gbc.incX().insetTop(0).build());
         }
         add(new JPanel(), gbc.incX().fillBoth().setWeightX(1.0).build());
@@ -162,6 +164,18 @@ public final class TableTransformationPanel extends JPanel {
         m_transformationTable.setDragEnabled(true);
         m_transformationTable.setDropMode(DropMode.INSERT_ROWS);
         m_transformationTable.setTransferHandler(new TransformationTableRowTransferHandler(m_transformationTable));
+    }
+
+    /**
+     * Sets whether the radio buttons for the table transformation panel are enabled or disabled.
+     *
+     * @param enabled {@code true} if the buttons should be enabled
+     */
+    public void setColumnFilterModeEnabled(final boolean enabled) {
+        if (m_columnFilterModePanel != null) {
+            m_colFilterModeLabel.setEnabled(enabled);
+            m_columnFilterModePanel.setEnabled(enabled);
+        }
     }
 
     /**

@@ -65,8 +65,8 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConf
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 
 /**
@@ -108,6 +108,15 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
             analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
+    }
+
+    /**
+     * Use this method to notify the dialog that the reading switched from single file to multiple files or vice versa.
+     *
+     * @param readingMultipleFiles {@code true} if potentially multiple files are read
+     */
+    protected final void setReadingMultipleFiles(final boolean readingMultipleFiles) {
+        m_specTransformer.setColumnFilterModeEnabled(readingMultipleFiles);
     }
 
     /**

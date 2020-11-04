@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JTable;
@@ -61,7 +60,7 @@ import javax.swing.table.DefaultTableCellRenderer;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 // This Sonar rule is impossible to satisfy when dealing with Swing
-class ColumnNameCellRenderer extends DefaultTableCellRenderer {//NOSONAR
+final class ColumnNameCellRenderer extends DefaultTableCellRenderer {//NOSONAR
 
     private static final long serialVersionUID = 1L;
 
@@ -71,14 +70,10 @@ class ColumnNameCellRenderer extends DefaultTableCellRenderer {//NOSONAR
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         final TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
 
-        if (isSelected) {
-            // use color from super type
+        if (model.isNameValid(row)) {
+            setBorder(null);
         } else {
-            if (!model.isNameValid(row)) {
-                setBackground(Color.RED);
-            } else {
-                setBackground(Color.WHITE);
-            }
+            setBorder(RendererConstants.ERROR_BORDER);
         }
         return this;
     }

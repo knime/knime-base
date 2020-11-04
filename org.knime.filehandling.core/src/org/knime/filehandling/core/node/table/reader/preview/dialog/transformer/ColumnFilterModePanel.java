@@ -99,6 +99,11 @@ final class ColumnFilterModePanel extends JPanel {
         m_btns.get(m_model.getColumnFilterMode()).setSelected(true);
     }
 
+    @Override
+    public void setEnabled(final boolean enabled) {
+        m_btns.values().forEach(b -> b.setEnabled(enabled));
+    }
+
     private ColumnFilterMode getColumnFilterMode() {
         return m_btns.entrySet().stream()//
                 .filter(e -> e.getValue().isSelected())//

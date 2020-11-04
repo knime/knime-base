@@ -136,6 +136,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         final FlowVariableModel readFvm = createFlowVariableModel(keyChain, FSLocationVariableType.INSTANCE);
         m_filePanel = new DialogComponentReaderFileChooser((SettingsModelReaderFileChooser)fileChooserModel,
             "csv_reader_writer", readFvm, FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
+        sm.addChangeListener(e -> setReadingMultipleFiles(sm.getFilterMode() != FilterMode.FILE));
 
         m_failOnDifferingSpecs = new JCheckBox("Fail if specs differ");
         m_filePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> toggleFailOnDifferingCheckBox());

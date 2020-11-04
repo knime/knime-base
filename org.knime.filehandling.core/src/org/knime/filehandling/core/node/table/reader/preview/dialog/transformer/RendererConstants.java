@@ -44,72 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 4, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Component;
+import java.awt.Color;
 
-import javax.swing.DefaultCellEditor;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.BorderFactory;
+import javax.swing.border.Border;
 
 /**
- * Editor for the column name column.</br>
- * Checks if the current name is valid (i.e. no duplicate) and highlights the cell red if it is invalid.
+ * Holds constants shared by multiple renderers/editors.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ColumnNameCellEditor extends DefaultCellEditor {
+final class RendererConstants {
 
-    private static final long serialVersionUID = 1L;
+    static final Border ERROR_BORDER = BorderFactory.createLineBorder(Color.RED, 3);
 
-    private final JTextField m_editor;
-
-    private final TableTransformationTableModel<?> m_transformationTableModel;
-
-    private int m_currentRow;
-
-    public ColumnNameCellEditor(final TableTransformationTableModel<?> transformationTableModel) {
-        super(new JTextField());
-        m_transformationTableModel = transformationTableModel;
-        m_editor = (JTextField)getComponent();
-        m_editor.getDocument().addDocumentListener(new DocumentListener() {
-
-            @Override
-            public void insertUpdate(final DocumentEvent e) {
-                checkChange();
-            }
-
-            @Override
-            public void removeUpdate(final DocumentEvent e) {
-                checkChange();
-            }
-
-            @Override
-            public void changedUpdate(final DocumentEvent e) {
-                // won't be called
-            }
-
-        });
+    private RendererConstants() {
+        // static class for constants
     }
-
-    private void checkChange() {
-        final String newName = m_editor.getText();
-        if (m_transformationTableModel.isValidNameForRow(m_currentRow, newName)) {
-            m_editor.setBorder(null);
-        } else {
-            m_editor.setBorder(RendererConstants.ERROR_BORDER);
-        }
-    }
-
-    @Override
-    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
-        final int row, final int column) {
-        m_currentRow = row;
-        return super.getTableCellEditorComponent(table, value, isSelected, row, column);
-    }
-
 }

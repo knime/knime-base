@@ -108,7 +108,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
     private static final int TYPE = 4;
 
-    private static final String[] COLUMN_NAMES = {"", "", "Column", "Name", "Type"};
+    private static final String[] COLUMN_NAMES = {"", "", "Column", "New name", "Type"};
 
     private static final DataColumnSpec NEW_COL_SPEC =
         new DataColumnSpecCreator("<any unknown new column>", DataType.getType(DataCell.class)).createSpec();
@@ -206,7 +206,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_intersection.sort(Comparator.naturalOrder());
     }
 
-    void resetToRawSpec() {
+    void resetAll() {
         resetTransformations(//
             this::resetName, //
             createPositionResetter(), //
@@ -236,6 +236,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
     private boolean resetName(final MutableColumnTransformation<T> transformation) {
         final String defaultName = transformation.getOriginalName();
+        // when names are reset, all columns are valid again because there can't be duplicates in the original names
+        transformation.setIsValid(true);
         if (!transformation.getName().equals(defaultName)) {
             m_byName.remove(transformation.getName(), transformation);
             transformation.setName(defaultName);
