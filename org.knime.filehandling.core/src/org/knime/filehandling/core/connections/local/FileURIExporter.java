@@ -42,65 +42,55 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.util.Collections;
-import java.util.Map;
+import java.net.URI;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * Wraps the platform default file system.
+ * {@link URIExporter} implementation using file scheme.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalFSConnection implements FSConnection {
+public final class FileURIExporter implements URIExporter {
 
-    private static final String WORKSPACE_PATH = System.getProperty("user.home");
+    /**
+     * Unique identifier of this exporter.
+     */
+    public static final URIExporterID ID = new URIExporterID("file");
 
-    private final LocalFileSystem m_fileSystem;
+    private static final FileURIExporter INSTANCE = new FileURIExporter();
 
-    public LocalFSConnection() {
-        this(WORKSPACE_PATH, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
-    }
+    private FileURIExporter() {}
 
-    public LocalFSConnection(final String workingDir, final FSLocationSpec fsLocationSpec) {
-        final LocalFileSystemProvider provider = new LocalFileSystemProvider();
-        m_fileSystem = provider.getOrCreateFileSystem(workingDir, fsLocationSpec);
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_fileSystem;
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
-            return new LocalFileSystemBrowser(new NioFileSystemView(this));
-        } else {
-            return new LocalFileSystemBrowser();
-        }
+    /**
+     * @return singleton instance of this exporter
+     */
+    public static FileURIExporter getInstance() {
+        return INSTANCE;
     }
 
     @Override
-    public URIExporter getDefaultURIExporter() {
-        return FileURIExporter.getInstance();
+    public URIExporterID getID() {
+        return ID;
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return Collections.singletonMap(FileURIExporter.ID, FileURIExporter.getInstance());
+    public String getLabel() {
+        return "File URI";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Exports the path as file URI.";
+    }
+
+    @Override
+    public URI toUri(final FSPath path) {
+        return ((LocalPath)path).getWrappedPath().toUri();
     }
 }

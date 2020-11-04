@@ -42,65 +42,59 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.local;
-
-import java.util.Collections;
-import java.util.Map;
-
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+package org.knime.filehandling.core.connections.uriexport;
 
 /**
- * Wraps the platform default file system.
+ * Unique URI exporter identifier.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalFSConnection implements FSConnection {
+public class URIExporterID {
 
-    private static final String WORKSPACE_PATH = System.getProperty("user.home");
+    private final String m_id;
 
-    private final LocalFileSystem m_fileSystem;
-
-    public LocalFSConnection() {
-        this(WORKSPACE_PATH, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
-    }
-
-    public LocalFSConnection(final String workingDir, final FSLocationSpec fsLocationSpec) {
-        final LocalFileSystemProvider provider = new LocalFileSystemProvider();
-        m_fileSystem = provider.getOrCreateFileSystem(workingDir, fsLocationSpec);
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_fileSystem;
+    /**
+     * Create a new URI exporter identifier.
+     *
+     * @param id the unique exporter identifier
+     */
+    public URIExporterID(final String id) {
+        m_id = id;
     }
 
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
-            return new LocalFileSystemBrowser(new NioFileSystemView(this));
-        } else {
-            return new LocalFileSystemBrowser();
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
         }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        URIExporterID other = (URIExporterID)obj;
+        if (m_id == null) {
+            if (other.m_id != null) {
+                return false;
+            }
+        } else if (!m_id.equals(other.m_id)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public URIExporter getDefaultURIExporter() {
-        return FileURIExporter.getInstance();
-    }
-
-    @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return Collections.singletonMap(FileURIExporter.ID, FileURIExporter.getInstance());
+    public String toString() {
+        return "URIExporterID( " + m_id + ")";
     }
 }
