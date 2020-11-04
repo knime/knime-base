@@ -155,7 +155,7 @@ final class StringToPathNodeModel extends NodeModel {
     }
 
     static SettingsModelString createSettingsModelColumnName() {
-        return new SettingsModelString(CFG_SELECTED_COLUMN_NAME, "");
+        return new SettingsModelString(CFG_SELECTED_COLUMN_NAME, null);
     }
 
     static SettingsModelString createSettingsModelColumnMode() {
