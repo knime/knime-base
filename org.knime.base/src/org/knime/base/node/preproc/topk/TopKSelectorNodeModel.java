@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.topk;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -61,7 +60,6 @@ import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -132,7 +130,7 @@ final class TopKSelectorNodeModel extends NodeModel {
         final BufferedDataTable execTable = preprocessor.preprocessSelectionTable(table,
             exec.createSubExecutionContext(preprocessor.getProgressRequired()));
         fillElementSelector(exec.createSubExecutionContext(0.9 - preprocessor.getProgressRequired()), execTable,
-            indices, elementSelector);
+            elementSelector);
         final Collection<DataRow> topK =
             outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rowComparator);
         final BufferedDataTable outputTable = createOutputTable(topK, spec, exec.createSubExecutionContext(0.1));
@@ -195,16 +193,15 @@ final class TopKSelectorNodeModel extends NodeModel {
     }
 
     private static void fillElementSelector(final ExecutionContext exec, final BufferedDataTable table,
-        final int[] indices, final TopKSelector elementSelector) throws CanceledExecutionException {
+        final TopKSelector elementSelector) throws CanceledExecutionException {
         final double nrRows = table.size();
-        try (CloseableRowIterator iterator = table
-            .filter(TableFilter.materializeCols(Arrays.stream(indices).filter(i -> i > -1).toArray())).iterator()) {
+        try (CloseableRowIterator iterator = table.iterator()) {
             for (long i = 1; iterator.hasNext(); i++) {
                 exec.checkCanceled();
                 final DataRow row = iterator.next();
                 final long iFinal = i;
-                exec.setProgress(i / nrRows, () ->
-                    String.format("Consuming row %s (%s of %s).", row.getKey(), iFinal, (long)nrRows));
+                exec.setProgress(i / nrRows,
+                    () -> String.format("Consuming row %s (%s of %s).", row.getKey(), iFinal, (long)nrRows));
                 elementSelector.consume(row);
             }
         }
