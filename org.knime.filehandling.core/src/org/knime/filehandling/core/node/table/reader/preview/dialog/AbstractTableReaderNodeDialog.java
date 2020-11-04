@@ -66,7 +66,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TransformationPanel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 
 /**
@@ -85,7 +85,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
 
     private final TableReaderPreviewModel m_previewModel;
 
-    private final TransformationPanel m_specTransformer;
+    private final TableTransformationPanel m_specTransformer;
 
     private boolean m_ignoreEvents = false;
 
@@ -106,7 +106,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
             new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
-        m_specTransformer = new TransformationPanel(transformationModel,
+        m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
     }
 
@@ -135,11 +135,11 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     }
 
     /**
-     * Convenience method that creates a {@link JSplitPane} containing the {@link TransformationPanel} and a
+     * Convenience method that creates a {@link JSplitPane} containing the {@link TableTransformationPanel} and a
      * {@link TableReaderPreviewView}. NOTE: If this method is called multiple times, then the
-     * {@link TransformationPanel} will only be shown in the {@link JSplitPane} created by the latest call.
+     * {@link TableTransformationPanel} will only be shown in the {@link JSplitPane} created by the latest call.
      *
-     * @return a {@link JSplitPane} containing the {@link TransformationPanel} and a {@link TableReaderPreviewView}
+     * @return a {@link JSplitPane} containing the {@link TableTransformationPanel} and a {@link TableReaderPreviewView}
      */
     protected final JSplitPane createTransformationTab() {
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -160,11 +160,11 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     }
 
     /**
-     * Returns the {@link TransformationPanel} that allows to alter the table structure.
+     * Returns the {@link TableTransformationPanel} that allows to alter the table structure.
      *
-     * @return the {@link TransformationPanel}
+     * @return the {@link TableTransformationPanel}
      */
-    protected final TransformationPanel getTransformationPanel() {
+    protected final TableTransformationPanel getTransformationPanel() {
         return m_specTransformer;
     }
 

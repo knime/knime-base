@@ -76,7 +76,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class TransformationPanel extends JPanel {
+public final class TableTransformationPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -103,7 +103,7 @@ public final class TransformationPanel extends JPanel {
      * @param productionPathProvider provides a list of {@link ProductionPath} for a given external type
      * @param includeColumnFilterButtons {@code true} if the column filter buttons should be included
      */
-    public TransformationPanel(final TableTransformationTableModel<?> model,
+    public TableTransformationPanel(final TableTransformationTableModel<?> model,
         final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons) {
         super(new GridBagLayout());
         if (includeColumnFilterButtons) {
