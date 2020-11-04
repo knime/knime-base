@@ -199,7 +199,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      * @param valuesCfgKey the variable values config key
      * @throws InvalidSettingsException - If the settings are invalid
      */
-    public void loadBackwardsComptabile(final NodeSettingsRO settings, final String namesCfgKey,
+    public void loadBackwardsCompatible(final NodeSettingsRO settings, final String namesCfgKey,
         final String valuesCfgKey) throws InvalidSettingsException {
         try {
             final String[] varNames = settings.getStringArray(namesCfgKey);

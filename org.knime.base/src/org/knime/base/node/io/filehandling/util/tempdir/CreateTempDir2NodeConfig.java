@@ -153,7 +153,7 @@ final class CreateTempDir2NodeConfig {
         if (settings.containsKey(CFG_ADDITIONAL_PATH_VARIABLES)) {
             m_fsLocationTableModel.loadSettingsForModel(settings);
         } else {
-            m_fsLocationTableModel.loadBackwardsComptabile(settings, "additional_variable_names",
+            m_fsLocationTableModel.loadBackwardsCompatible(settings, "additional_variable_names",
                 "additional_variable_values");
         }
     }
