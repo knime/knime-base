@@ -1989,6 +1989,10 @@
       <node
             category-path="/manipulation/column/column-transform"
             factory-class="org.knime.base.node.preproc.extractmissingvaluecause.ExtractMissingValueCauseNodeFactory">
+      </node>      
+      <node
+            category-path="/manipulation/column"
+            factory-class="org.knime.base.node.preproc.manipulator.TableManipulatorNodeFactory">
       </node>
       <node
             category-path="/manipulation/column/column-convert+replace"
