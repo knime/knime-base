@@ -209,7 +209,8 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
                     cells = new DataCell[]{locationCell};
                 }
                 rowOutput.push(new DefaultRow(RowKey.createRowKey(rec), cells));
-                final long curEntry = ++rec;
+                rec++;
+                final long curEntry = rec;
                 exec.checkCanceled();
                 exec.setProgress(rec / (double)numEntries,
                     () -> String.format("Processing entry %d out of %d", curEntry, numEntries));

@@ -52,7 +52,6 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -224,8 +223,7 @@ final class DecompressNodeModel extends NodeModel {
         }
     }
 
-    private void createParentDirIfRequired(final FSPath outputPath)
-        throws AccessDeniedException, IOException, InvalidSettingsException {
+    private void createParentDirIfRequired(final FSPath outputPath) throws IOException, InvalidSettingsException {
         if (!FSFiles.exists(outputPath)) {
             if (m_config.getOutputDirChooserModel().isCreateMissingFolders()) {
                 Files.createDirectories(outputPath);

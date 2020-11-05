@@ -48,19 +48,7 @@
  */
 package org.knime.filehandling.utility.nodes.compress.archiver;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
-import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
-import org.apache.commons.compress.archivers.cpio.CpioConstants;
-import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.knime.filehandling.core.connections.FSFiles;
 
 /**
  * Factory to create {@link ArchiveEntryCreator}s.
@@ -92,89 +80,6 @@ public final class ArchiveEntryFactory {
             return new ZIPEntryCreator();
         }
         throw new IllegalArgumentException("Unsupported type: " + archiver);
-    }
-
-}
-
-abstract class EntryCreator implements ArchiveEntryCreator {
-
-    @Override
-    public ArchiveEntry apply(final Path p, final String entryName) throws IOException {
-        final String newEntryName;
-        if (FSFiles.isDirectory(p)) {
-            if (entryName.endsWith("/") || entryName.endsWith("\\")) {
-                newEntryName = entryName;
-            } else {
-                newEntryName = entryName + "/";
-            }
-        } else {
-            newEntryName = entryName;
-        }
-        return createEntry(p, newEntryName);
-    }
-
-    long getSize(final Path p) throws IOException {
-        return Files.size(p);
-    }
-
-    abstract ArchiveEntry createEntry(Path p, String entryName) throws IOException;
-
-}
-
-final class ArEntryCreator extends EntryCreator {
-
-    @Override
-    ArArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
-        return new ArArchiveEntry(entryName, getSize(p));
-    }
-
-}
-
-final class CPIOEntryCreator extends EntryCreator {
-
-    @Override
-    CpioArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
-        final long size;
-        final int mode;
-        if (FSFiles.isDirectory(p)) {
-            size = 0;
-            mode = CpioConstants.C_ISDIR;
-        } else {
-            size = getSize(p);
-            mode = CpioConstants.C_ISREG;
-        }
-        CpioArchiveEntry cpioArchiveEntry = new CpioArchiveEntry(entryName, size);
-        cpioArchiveEntry.setMode(mode);
-        return cpioArchiveEntry;
-    }
-
-}
-
-final class JarEntryCreator extends EntryCreator {
-
-    @Override
-    JarArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
-        return new JarArchiveEntry(entryName);
-    }
-
-}
-
-final class TarEntryCreator extends EntryCreator {
-
-    @Override
-    TarArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
-        final TarArchiveEntry tarArchiveEntry = new TarArchiveEntry(entryName);
-        tarArchiveEntry.setSize(getSize(p));
-        return tarArchiveEntry;
-    }
-
-}
-
-final class ZIPEntryCreator extends EntryCreator {
-
-    @Override
-    ZipArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
-        return new ZipArchiveEntry(entryName);
     }
 
 }

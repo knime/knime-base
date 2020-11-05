@@ -207,15 +207,19 @@ final class CreateTempDir2NodeModel extends NodeModel {
         if (!m_onResetTempDirs.isEmpty()) {
             for (final Entry<FSLocationSpec, List<FSLocation>> entry : m_onResetTempDirs.entrySet()) {
                 if (m_onDisposeTempDirs.containsKey(entry.getKey())) {
-                    final List<FSLocation> onDisposePaths = m_onDisposeTempDirs.get(entry.getKey());
-                    onDisposePaths.removeAll(entry.getValue());
-                    if (onDisposePaths.isEmpty()) {
-                        m_onDisposeTempDirs.remove(entry.getKey());
-                    }
+                    removeEntry(entry);
                 }
             }
             deleteTempDirs(m_onResetTempDirs);
             m_onResetTempDirs.clear();
+        }
+    }
+
+    private void removeEntry(final Entry<FSLocationSpec, List<FSLocation>> entry) {
+        final List<FSLocation> onDisposePaths = m_onDisposeTempDirs.get(entry.getKey());
+        onDisposePaths.removeAll(entry.getValue());
+        if (onDisposePaths.isEmpty()) {
+            m_onDisposeTempDirs.remove(entry.getKey());
         }
     }
 

@@ -128,7 +128,7 @@ final class CompressNodeConfig {
         flattenHierarchy(settings.getBoolean(CFG_FLATTEN_HIERARCHY, false));
     }
 
-    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    void saveSettingsForDialog(final NodeSettingsWO settings) {
         saveNonSettingModelParameters(settings);
     }
 
