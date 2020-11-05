@@ -59,7 +59,7 @@ public final class DefaultURIExporter implements URIExporter {
     /**
      * Unique identifier of this exporter.
      */
-    public static final URIExporterID ID = new URIExporterID("path");
+    public static final URIExporterID ID = new URIExporterID("default");
 
     private static final DefaultURIExporter INSTANCE = new DefaultURIExporter();
 
