@@ -90,11 +90,11 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WriteP
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-import org.knime.filehandling.utility.nodes.PathHandlingUtils;
-import org.knime.filehandling.utility.nodes.PathRelativizer;
-import org.knime.filehandling.utility.nodes.PathRelativizerNonTableInput;
 import org.knime.filehandling.utility.nodes.compress.archiver.ArchiveEntryCreator;
 import org.knime.filehandling.utility.nodes.compress.archiver.ArchiveEntryFactory;
+import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizer;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizerNonTableInput;
 
 /**
  * Node Model for the "Compress Files/Folder" node

@@ -44,55 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 27, 2020 (lars.schweikardt): created
+ *   Sep 3, 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.utils;
 
-import java.io.IOException;
-import java.util.Optional;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
+import java.nio.file.Path;
+import java.util.function.Function;
 
 /**
- * Swingworker to check whether a path ends with ".",  "..", has no parent or is empty and returns a corresponding {@link StatusMessage}.
+ * A {@link Function} which accepts a {@link Path} and returns a {@link String}. This interface will be used to
+ * relativize file {@link Path}s based on another path i.e. a source folder {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-
-public final class IncludeSourceFolderSwingWorker implements StatusMessageReporter {
-
-    private final SettingsModelReaderFileChooser m_readerModel;
+@FunctionalInterface
+public interface PathRelativizer extends Function<Path, String> {
 
     /**
-     * Constructor.
+     * Applies the function to the input {@link Path} and returns a {@link String}.
      *
-     * @param readerModel the {@link SettingsModelReaderFileChooser}
+     * @param path input of type {@link Path}
+     * @return a {@link String}
      */
-    public IncludeSourceFolderSwingWorker(final SettingsModelReaderFileChooser readerModel) {
-        m_readerModel = readerModel;
-    }
-
     @Override
-    public StatusMessage report() throws IOException, InvalidSettingsException {
-        return hasParentFolder().orElse(DefaultStatusMessage.SUCCESS_MSG);
-    }
-
-    private Optional<StatusMessage> hasParentFolder() throws IOException, InvalidSettingsException {
-        try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
-            final FSPath rootPath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
-
-            return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
-                ? Optional.of(DefaultStatusMessage.SUCCESS_MSG)
-                : Optional.of(DefaultStatusMessage.mkError(PathHandlingUtils.createErrorMessage(rootPath)));
-        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
-            return Optional.empty();
-        }
-    }
+    public String apply(final Path path);
 }

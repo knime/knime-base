@@ -46,26 +46,63 @@
  * History
  *   Sep 3, 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.utils;
 
 import java.nio.file.Path;
-import java.util.function.Function;
+
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
- * A {@link Function} which accepts a {@link Path} and returns a {@link String}. This interface will be used to
- * relativize file {@link Path}s based on another path i.e. a source folder {@link Path}.
+ * The {@link PathRelativizer} for non table input nodes relativizes a path based on the {@link FilterMode} and whether
+ * the includeParentFolder is checked or not and returns a relativized string representation of a file {@link Path}
+ * based on a root {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-@FunctionalInterface
-public interface PathRelativizer extends Function<Path, String> {
+public final class PathRelativizerNonTableInput implements PathRelativizer {
+
+    private final boolean m_includeParentFolder;
+
+    private final Path m_rootPath;
+
+    private final FilterMode m_filterMode;
+
+    private final boolean m_flattenHierarchy;
 
     /**
-     * Applies the function to the input {@link Path} and returns a {@link String}.
+     * Constructor.
      *
-     * @param path input of type {@link Path}
-     * @return a {@link String}
+     * @param rootPath the root path
+     * @param includeParentFolder flag indicating whether or not the parent folder of the rootPath has to be included
+     *            when applying the operation
+     * @param filterMode the {@link FilterMode}
+     * @param flattenHierarchy flag indicating whether or not the hierarchy has to be flattened
      */
+    public PathRelativizerNonTableInput(final Path rootPath, final boolean includeParentFolder,
+        final FilterMode filterMode, final boolean flattenHierarchy) {
+        m_rootPath = rootPath.toAbsolutePath().normalize();
+        m_includeParentFolder = includeParentFolder;
+        m_filterMode = filterMode;
+        m_flattenHierarchy = flattenHierarchy;
+    }
+
     @Override
-    public String apply(final Path path);
+    public String apply(final Path sourceFilePath) {
+        if (m_filterMode == FilterMode.FILE) {
+            return m_rootPath.getFileName().toString();
+        } else {
+            final Path sourcePath;
+            if (m_flattenHierarchy) {
+                sourcePath = m_rootPath.resolve(sourceFilePath.getFileName());
+            } else {
+                sourcePath = sourceFilePath.toAbsolutePath().normalize();
+            }
+            if (m_includeParentFolder) {
+                return m_rootPath.getParent() == null ? m_rootPath.getRoot().relativize(sourcePath).toString()
+                    : m_rootPath.getParent().relativize(sourcePath).toString();
+            } else {
+                return m_rootPath.relativize(sourcePath).toString();
+            }
+        }
+    }
 }

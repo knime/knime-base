@@ -44,71 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 1, 2020 (lars.schweikardt): created
+ *   Aug 27, 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.dialog.swingworker;
 
-import java.nio.file.Path;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
+import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
 
 /**
- * Utility class providing methods to handle different tasks related to paths.
+ * Swingworker to check whether a path ends with ".",  "..", has no parent or is empty and returns a corresponding {@link StatusMessage}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  */
-public final class PathHandlingUtils {
 
-    private static final Pattern POINT_PATTERN = Pattern.compile(".*\\.{1,2}(\\/|\\\\){0,1}$");
+public final class IncludeSourceFolderSwingWorker implements StatusMessageReporter {
 
-    private PathHandlingUtils() {
-        // static utility class
-    }
+    private final SettingsModelReaderFileChooser m_readerModel;
 
     /**
-     * Checks whether the path ends with ".", "..", has no parent or is empty as well as the passed {@link FilterMode}.
+     * Constructor.
      *
-     * @param rootPath the passed {@link FSPath} to be checked
-     * @return true if the path does not end with ".", "..", has parent or is not empty and not a file, false otherwise
+     * @param readerModel the {@link SettingsModelReaderFileChooser}
      */
-    public static boolean isIncludeSourceFolderAvailable(final FSPath rootPath) {
-        final Path absoluteRootPath = rootPath.toAbsolutePath();
-        final Path root = absoluteRootPath.getRoot();
-        final String path = absoluteRootPath.toString();
-
-        return !(path.isEmpty() || root == null || root.equals(absoluteRootPath)
-            || POINT_PATTERN.matcher(path).matches());
+    public IncludeSourceFolderSwingWorker(final SettingsModelReaderFileChooser readerModel) {
+        m_readerModel = readerModel;
     }
 
-    /**
-     * Creates error message in case include source folder is not possible.
-     *
-     * @param path the {@link Path} which can not be included.
-     * @return the error message for the node dialog
-     */
-    public static String createErrorMessage(final Path path) {
-        return String.format("The source folder '%s' can not be included.", path);
+    @Override
+    public StatusMessage report() throws IOException, InvalidSettingsException {
+        return hasParentFolder().orElse(DefaultStatusMessage.SUCCESS_MSG);
     }
 
-    /**
-     * Checks the settings in terms of {@link FilterMode},the includeSourceFolder flag and a path and throws a
-     * {@link InvalidSettingsException} in case the source folder can not be included.
-     *
-     * @param filterMode the {@link FilterMode}
-     * @param includeSourceFolder the flag whether the option is checked or not
-     * @param rootPath the {@link Path} to check
-     * @throws InvalidSettingsException
-     */
-    public static void checkSettingsIncludeSourceFolder(final FilterMode filterMode, final boolean includeSourceFolder,
-        final FSPath rootPath) throws InvalidSettingsException {
-        if (filterMode != FilterMode.FILE && includeSourceFolder) {
-            CheckUtils.checkSetting(isIncludeSourceFolderAvailable(rootPath),
-                PathHandlingUtils.createErrorMessage(rootPath), rootPath);
+    private Optional<StatusMessage> hasParentFolder() throws IOException, InvalidSettingsException {
+        try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
+            final FSPath rootPath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
+
+            return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
+                ? Optional.of(DefaultStatusMessage.SUCCESS_MSG)
+                : Optional.of(DefaultStatusMessage.mkError(PathHandlingUtils.createErrorMessage(rootPath)));
+        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
+            return Optional.empty();
         }
     }
 }

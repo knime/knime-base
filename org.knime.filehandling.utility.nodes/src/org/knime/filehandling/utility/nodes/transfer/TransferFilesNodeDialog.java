@@ -70,8 +70,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
-import org.knime.filehandling.utility.nodes.IncludeSourceFolderSwingWorker;
-import org.knime.filehandling.utility.nodes.SwingWorkerManager;
+import org.knime.filehandling.utility.nodes.dialog.swingworker.IncludeSourceFolderSwingWorker;
+import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManager;
 
 /**
  * Node dialog of the Transfer Files node.

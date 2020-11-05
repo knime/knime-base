@@ -73,8 +73,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
-import org.knime.filehandling.utility.nodes.PathRelativizer;
-import org.knime.filehandling.utility.nodes.PathRelativizerNonTableInput;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizer;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizerNonTableInput;
 
 /**
  * Computes the status message for the destination {@link DialogComponentWriterFileChooser} of the copy move dialog .

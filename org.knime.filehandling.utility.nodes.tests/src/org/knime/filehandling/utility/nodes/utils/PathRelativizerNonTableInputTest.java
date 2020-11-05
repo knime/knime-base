@@ -46,7 +46,7 @@
  * History
  *   Sep 8, 2020 (lars.schweikardt): created
  */
-package org.knime.base.node.io.filehandling.util;
+package org.knime.filehandling.utility.nodes.utils;
 
 import static org.junit.Assert.assertEquals;
 
@@ -56,8 +56,8 @@ import java.nio.file.Path;
 
 import org.junit.Test;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.PathRelativizer;
-import org.knime.filehandling.utility.nodes.PathRelativizerNonTableInput;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizer;
+import org.knime.filehandling.utility.nodes.utils.PathRelativizerNonTableInput;
 
 /**
  * Tests for the {@link PathRelativizer}.

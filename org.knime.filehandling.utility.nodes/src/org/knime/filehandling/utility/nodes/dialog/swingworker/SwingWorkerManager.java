@@ -46,7 +46,7 @@
  * History
  *   Sep 2, 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.dialog.swingworker;
 
 import java.util.function.Supplier;
 

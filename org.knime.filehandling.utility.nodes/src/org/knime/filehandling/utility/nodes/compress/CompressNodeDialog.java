@@ -77,8 +77,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.IncludeSourceFolderSwingWorker;
-import org.knime.filehandling.utility.nodes.SwingWorkerManager;
+import org.knime.filehandling.utility.nodes.dialog.swingworker.IncludeSourceFolderSwingWorker;
+import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManager;
 
 /**
  * Node Dialog for the "Compress Files/Folder" node
