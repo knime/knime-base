@@ -19,21 +19,23 @@
 #
 
 # Limits the integration tests to only one file system. The currently available file systems are:
-#   local
-#   knime-local-relative-workflow
-#   knime-local-relative-mountpoint
-#   knime-relative-workflow-data
-#   knime-rest-relative-workflow
-#   knime-rest-relative-mountpoint
-#   knime-rest
 #   amazon-s3
+#   dbfs
+#   local
+#   ftp
 #   google-cs
-#	google-drive
+#   google-drive
 #   hdfs
 #   hdfs-knox
-#   hdfs-wrapper-wrapper
-#   microsoft-sharepoint
+#   hdfs-local-nio-wrapper
+#   knime-local-relative-mountpoint
+#   knime-local-relative-workflow
+#   knime-relative-workflow-data
+#   knime-rest
+#   knime-rest-relative-mountpoint
+#   knime-rest-relative-workflow
 #   microsoft-blobstorage
+#   microsoft-sharepoint
 #   ssh
 # test-fs = local
 
@@ -46,7 +48,60 @@
 # fixture-dir = 
 
 
-################ KNIME: REST file system (connects to Server and Hub) ################
+################ Amazon S3 ################ 
+amazon-s3.workingDirPrefix = /knime-s3-file-handling-v2-test-temp
+amazon-s3.region = eu-west-1
+amazon-s3.accessKeyId = <YOUR-ACCESS_KEY-ID>
+amazon-s3.accessKeySecret = <SECRET-FOR-YOUR-ACCESS-KEY>
+amazon-s3.roleSwitchAccount = <YOUR-S3-SWITCH_ROLE-ACCOUNT>
+amazon-s3.roleSwitchName = <ROLE-TO-SWITCH-TO>
+
+################ Databricks DBFS ################
+dbfs.workingDirPrefix = /knime-filehandling-test-dir
+dbfs.host = <DATABRICKS-DEPLOYMENT>
+dbfs.token = <TOKEN>
+
+################ FTP ###################
+ftp.workingDirPrefix = <PATH-ON-SSH-SERVER>
+ftp.host = <HOST>
+# port is optional
+# ftp.port = 21
+# ssl is optional
+# ftp.ssl = false
+# timeZoneOffset is optional
+# ftp.timeZoneOffset = 0
+ftp.username = <USERNAME>
+ftp.password = <PASSWORD>
+
+################ Google CS (Cloud Storage) ################
+google-cs.workingDirPrefix = /knime-filehandling-test-bucket
+google-cs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
+google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
+google-cs.projectId = <PROJECT-ID>
+
+################ Google Drive ################
+google-drive.workingDirPrefix = /My Drive
+google-drive.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
+google-drive.keyFilePath = <P12-KEY-FILE-LOCATION>
+
+################ HDFS ################
+# Example url: webhdfs://test-cluster:50070
+hdfs.workingDirPrefix = /tmp/
+# <PROTOCOL> must be one of HDFS, WEBHDFS, WEBHDFS_SSL, HTTPFS, HTTPFS_SSL
+hdfs.protocol = HTTPFS
+hdfs.host = <HOST>
+# hdfs.port = <PORT> (optional)
+# authentication type: simple or kerberos
+hdfs.auth = simple
+hdfs.user = <YOUR-USERNAME>
+
+################ HDFS via KNOX ################
+hdfs-knox.url = https://<HOST>:<PORT>/gateway/<TOPOLOGY>
+hdfs-knox.workingDirPrefix = /tmp/file-handling-tests
+hdfs-knox.user = <YOUR-USERNAME>
+hdfs-knox.pass = <YOUR-PASSWORD>
+
+################ KNIME: REST file system (connects to Server) ################
 knime-rest.workingDirPrefix = <PATH-IN-SERVER-REPO>
 # Example url: http://localhost:8080/knime/rest/v4/repository
 knime-rest.url = <REST-URL>
@@ -67,38 +122,10 @@ knime-rest-relative-workflow.url = <REST-URL>
 knime-rest-relative-workflow.user = <USERNAME>
 knime-rest-relative-workflow.pass = <PASSWORD>
 
-################ Amazon S3 ################ 
-amazon-s3.workingDirPrefix = /knime-s3-file-handling-v2-test-temp
-amazon-s3.region = eu-west-1
-amazon-s3.accessKeyId = <YOUR-ACCESS_KEY-ID>
-amazon-s3.accessKeySecret = <SECRET-FOR-YOUR-ACCESS-KEY>
-amazon-s3.roleSwitchAccount = <YOUR-S3-SWITCH_ROLE-ACCOUNT>
-amazon-s3.roleSwitchName = <ROLE-TO-SWITCH-TO>
-
-################ Google Cloud Storage ################
-google-cs.workingDirPrefix = /knime-filehandling-test-bucket
-google-cs.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
-google-cs.keyFilePath = <P12-KEY-FILE-LOCATION>
-google-cs.projectId = <PROJECT-ID>
-
-################ Google Drive ################
-google-drive.workingDirPrefix = /My Drive
-google-drive.email = <YOUR-SERVICE-ACCOUNT-EMAIL>
-google-drive.keyFilePath = <P12-KEY-FILE-LOCATION>
-
-################ HDFS ################
-# Example url: webhdfs://test-cluster:50070
-hdfs.workingDirPrefix = /tmp/file-handling-tests
-hdfs.url = <PROTOCOL>://<HOST>:<PORT>
-# authentication type: simple or kerberos
-hdfs.auth = simple
-hdfs.user = <YOUR-USERNAME>
-
-################ HDFS via KNOX ################
-hdfs-knox.url = https://<HOST>:<PORT>/gateway/<TOPOLOGY>
-hdfs-knox.workingDirPrefix = /tmp/file-handling-tests
-hdfs-knox.user = <YOUR-USERNAME>
-hdfs-knox.pass = <YOUR-PASSWORD>
+################ Microsoft Azure Blob Storage  ################
+microsoft-blobstorage.workingDirPrefix = /knime-filehandling-test-container
+microsoft-blobstorage.account = <STORAGE-ACCOUNT>
+microsoft-blobstorage.key = <STORAGE-ACCOUNT-KEY>
 
 ################ Microsoft SharePoint Online ################
 microsoft-sharepoint.workingDirPrefix = /knime-filehandling-test-drive
@@ -107,11 +134,6 @@ microsoft-sharepoint.username = <USERNAME>
 microsoft-sharepoint.password = <PASSWORD>
 microsoft-sharepoint.tenant = <TENANT-ID>
 
-################ Microsoft Azure Blob Storage  ################
-microsoft-blobstorage.workingDirPrefix = /knime-filehandling-test-container
-microsoft-blobstorage.account = <STORAGE-ACCOUNT>
-microsoft-blobstorage.key = <STORAGE-ACCOUNT-KEY>
-
 ################ SSH ###################
 ssh.workingDirPrefix = <PATH-ON-SSH-SERVER>
 ssh.host = <HOST>
@@ -119,8 +141,3 @@ ssh.username = <USERNAME>
 ssh.password = <PASSWORD>
 # password and keyFile authentication are mutually exclusive
 # ssh.keyFile = <PATH-TO-PRIVATE-KEY>
-
-################ Databricks DBFS ################
-dbfs.host = <DATABRICKS-DEPLOYMENT>
-dbfs.token = <TOKEN>
-dbfs.workingDirPrefix = /knime-filehandling-test-dir
