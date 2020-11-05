@@ -278,15 +278,23 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
+     * Returns the {@link FSConnection} or throws an IllegalStateException if the connection can not be retrieved.
+     *
      * @return the selected FSConnection or {@link Optional#empty()} if the file system isn't connected
+     * @see #canCreateConnection()
      */
-    FSConnection getConnection() {
+    public FSConnection getConnection() {
         final Optional<FSConnection> connection = m_fsConfig.getConnection();
         return FileSystemHelper.retrieveFSConnection(connection, getLocation())
             .orElseThrow(() -> new IllegalStateException("Can't retrieve connection."));
     }
 
-    boolean canCreateConnection() {
+    /**
+     * Returns <code>true</code> if the {@link FSConnection} can be created otherwise <code>false</code>.
+     * @return <code>true</code> if the FSConnection can be created
+     * @see #getConnection()
+     */
+    public boolean canCreateConnection() {
         return FileSystemHelper.canRetrieveFSConnection(m_fsConfig.getConnection(), getLocation());
     }
 
