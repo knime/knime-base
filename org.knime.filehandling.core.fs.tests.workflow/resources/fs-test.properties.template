@@ -119,3 +119,8 @@ ssh.username = <USERNAME>
 ssh.password = <PASSWORD>
 # password and keyFile authentication are mutually exclusive
 # ssh.keyFile = <PATH-TO-PRIVATE-KEY>
+
+################ Databricks DBFS ################
+dbfs.host = <DATABRICKS-DEPLOYMENT>
+dbfs.token = <TOKEN>
+dbfs.workingDirPrefix = /knime-filehandling-test-dir

@@ -104,7 +104,7 @@ public abstract class DefaultFSTestInitializer<P extends FSPath, F extends FSFil
     }
 
     @Override
-    public F getFileSystem() {
+    public final F getFileSystem() {
         return m_fileSystem;
     }
 

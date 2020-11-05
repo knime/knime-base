@@ -85,6 +85,7 @@ public abstract class AbstractParameterizedFSTest {
     protected static final String HDFS_KNOX = "hdfs-knox";
     protected static final String HDFS_WRAPPER_WRAPPER = "hdfs-wrapper-wrapper";
     protected static final String MICROSOFT_BLOBSTORAGE = "microsoft-blobstorage";
+    protected static final String DATABRICKS_DBFS = "dbfs";
 
     protected static final String KNIME_LOCAL_RELATIVE_WORKFLOW = "knime-local-relative-workflow";
     protected static final String KNIME_LOCAL_RELATIVE_MOUNTPOINT = "knime-local-relative-mountpoint";
