@@ -1357,11 +1357,6 @@
             >
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.createpaths.CreatePathsNodeFactory"
-            >
-      </node>
-      <node
             after="org.knime.base.node.preproc.lowvarfilter2.LowVarFilter2NodeFactory"
             category-path="/analytics/mining/featureselection"
             deprecated="true"
@@ -1691,30 +1686,6 @@
             after="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
             category-path="/io/io-other"
             factory-class="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
-            />
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory"
-            />
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory"
-            />
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory"
-            />
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory"
-            />
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.decompress.DecompressNodeFactory"
-            />
-	  <node
-	  		category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            factory-class="org.knime.base.node.io.filehandling.util.compress.CompressNodeFactory"
             />
       <node
             after="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
@@ -2359,18 +2330,6 @@
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
-            hidden="false">
-      </node>
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory"
-            hidden="false">
-      </node>
-      <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.util.copymovefiles.CopyMoveFilesNodeFactory"
             hidden="false">
       </node>
    </extension>
