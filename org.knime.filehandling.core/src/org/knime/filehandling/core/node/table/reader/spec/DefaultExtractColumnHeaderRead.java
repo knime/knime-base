@@ -170,13 +170,13 @@ final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead
     }
 
     @Override
-    public OptionalLong getEstimatedSizeInBytes() {
-        return m_read.getEstimatedSizeInBytes();
+    public OptionalLong getMaxProgress() {
+        return m_read.getMaxProgress();
     }
 
     @Override
-    public long readBytes() {
-        return m_read.readBytes();
+    public long getProgress() {
+        return m_read.getProgress();
     }
 
     @Override

@@ -57,7 +57,7 @@ import org.knime.core.node.util.CheckUtils;
 
 /**
  * An abstract implementation of a decorator for {@link Read} objects.</br>
- * Handles methods like {@link Read#getEstimatedSizeInBytes()}, {@link Read#readBytes()} and {@link Read#close()} by
+ * Handles methods like {@link Read#getMaxProgress()}, {@link Read#getProgress()} and {@link Read#close()} by
  * delegating to the underlying read object.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -88,13 +88,13 @@ public abstract class AbstractReadDecorator<V> implements Read<V> {
     }
 
     @Override
-    public OptionalLong getEstimatedSizeInBytes() {
-        return m_source.getEstimatedSizeInBytes();
+    public OptionalLong getMaxProgress() {
+        return m_source.getMaxProgress();
     }
 
     @Override
-    public long readBytes() {
-        return m_source.readBytes();
+    public long getProgress() {
+        return m_source.getProgress();
     }
 
     @Override

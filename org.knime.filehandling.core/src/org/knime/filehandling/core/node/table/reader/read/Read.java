@@ -79,19 +79,21 @@ public interface Read<V> extends AutoCloseable {
     RandomAccessible<V> next() throws IOException;
 
     /**
-     * Returns the estimated number of bytes stored in the file that this {@code Read} reads from.
+     * Returns the max progress which could be, e.g., the maximum number of rows or an estimated number of bytes stored
+     * in the file that this {@code Read} reads from.
      *
-     * @return the estimated number of bytes this Read is going to read or {@link OptionalLong#empty()} if the size
-     *         can't be estimated
+     * @return the maximum progress this {@code Read} is going to make or {@link OptionalLong#empty()} if the maximum
+     *         progress can't be estimated
      */
-    OptionalLong getEstimatedSizeInBytes();
+    OptionalLong getMaxProgress();
 
     /**
-     * Returns the number of bytes this Read already read.
+     * Returns the current progress which could be, e.g., the current number of rows or the number of bytes this
+     * {@code Read} already read.
      *
-     * @return the number of bytes this Read already read
+     * @return the current progress this {@code Read} already made
      */
-    long readBytes();
+    long getProgress();
 
     /**
      * Returns the path of the underlying source.

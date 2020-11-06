@@ -304,12 +304,12 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         }
 
         @Override
-        public OptionalLong getEstimatedSizeInBytes() {
+        public OptionalLong getMaxProgress() {
             return m_size < 0 ? OptionalLong.empty() : OptionalLong.of(m_size);
         }
 
         @Override
-        public long readBytes() {
+        public long getProgress() {
             return m_countingStream.getCount();
         }
 

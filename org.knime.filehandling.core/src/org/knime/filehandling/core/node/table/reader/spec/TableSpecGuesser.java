@@ -198,14 +198,14 @@ public final class TableSpecGuesser<T, V> {
         final ExecutionMonitor exec) throws IOException {
         final TypeGuesser<T, V> typeGuesser = new TypeGuesser<>(m_typeHierarchy, !allowShortRows);
         final PreviewExecutionMonitor previewExec;
-        final OptionalLong estimatedSizeInBytes = source.getEstimatedSizeInBytes();
-        final long estimatedSize;
-        if (estimatedSizeInBytes.isPresent()) {
-            estimatedSize = estimatedSizeInBytes.getAsLong();
+        final OptionalLong maxProgress = source.getMaxProgress();
+        final long maxProgressAsLong;
+        if (maxProgress.isPresent()) {
+            maxProgressAsLong = maxProgress.getAsLong();
         } else {
-            estimatedSize = -1L;
+            maxProgressAsLong = -1L;
         }
-        previewExec = getPreviewExecutionMonitor(source, exec, estimatedSizeInBytes);
+        previewExec = getPreviewExecutionMonitor(source, exec, maxProgress);
         RandomAccessible<V> row;
         long rowCount = 0;
         try {
@@ -214,7 +214,7 @@ public final class TableSpecGuesser<T, V> {
                 typeGuesser.update(row);
                 rowCount++;
                 final double progress =
-                    estimatedSizeInBytes.isPresent() ? ((double)source.readBytes() / estimatedSize) : 0;
+                    maxProgress.isPresent() ? ((double)source.getProgress() / maxProgressAsLong) : 0;
                 setProgress(exec, previewExec, rowCount, progress);
 
             }

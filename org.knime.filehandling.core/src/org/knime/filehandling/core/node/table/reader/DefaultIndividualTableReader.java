@@ -101,9 +101,9 @@ final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> 
     @Override
     public void fillOutput(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
         throws Exception {
-        final OptionalLong estimatedSizeInBytes = read.getEstimatedSizeInBytes();
-        if (estimatedSizeInBytes.isPresent()) {
-            fillOutputWithProgress(read, output, progress, estimatedSizeInBytes.getAsLong());
+        final OptionalLong maxProgress = read.getMaxProgress();
+        if (maxProgress.isPresent()) {
+            fillOutputWithProgress(read, output, progress, maxProgress.getAsLong());
         } else {
             fillOutputWithoutProgress(read, output, progress);
         }
@@ -128,7 +128,7 @@ final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> 
             progress.checkCanceled();
             final long finalI = i;
             // TODO discuss how to report progress if rows are filtered
-            progress.setProgress(read.readBytes() / doubleSize, () -> String.format("Reading row %s", finalI));
+            progress.setProgress(read.getProgress() / doubleSize, () -> String.format("Reading row %s", finalI));
             output.push(toRow(next));
         }
     }
