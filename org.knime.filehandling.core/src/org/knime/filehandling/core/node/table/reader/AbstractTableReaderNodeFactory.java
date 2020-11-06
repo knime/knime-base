@@ -138,13 +138,19 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     }
 
     @Override
-    protected final NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final MultiTableReadFactory<C, T> readFactory = createMultiTableReadFactory();
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        final MultiTableReadFactory<C, T> readFactory = createMultiTableReadFactory(createReader());
         final DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         return createNodeDialogPane(creationConfig, readFactory, productionPathProvider);
     }
 
-    private DefaultProductionPathProvider<T> createProductionPathProvider() {
+    /**
+     * Creates and returns a new {@link DefaultProductionPathProvider} using the {@link ReadAdapterFactory} returned by
+     * {@link #getReadAdapterFactory()}.
+     *
+     * @return the default production path provider
+     */
+    protected final DefaultProductionPathProvider<T> createProductionPathProvider() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         return new DefaultProductionPathProvider<>(readAdapterFactory.getProducerRegistry(),
             readAdapterFactory.getDefaultTypeMap());
@@ -168,16 +174,23 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @return a new multi table reader
      */
     private MultiTableReader<C> createMultiTableReader() {
-        return new MultiTableReader<>(createMultiTableReadFactory());
+        return new MultiTableReader<>(createMultiTableReadFactory(createReader()));
     }
 
-    private MultiTableReadFactory<C, T> createMultiTableReadFactory() {
+    /**
+     * Creates a new @link MultiTableReader with the given {@link TableReader} and returns it.
+     *
+     * @param reader the table reader used to create the multi table reader
+     *
+     * @return a new multi table reader
+     */
+    protected final MultiTableReadFactory<C, T> createMultiTableReadFactory(final TableReader<C, T, V> reader) {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         final RowKeyGeneratorContextFactory<V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
-        return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory,
-            createReader(), productionPathProvider, readAdapterFactory::createReadAdapter);
+        return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory, reader, productionPathProvider,
+            readAdapterFactory::createReadAdapter);
     }
 
     @Override
