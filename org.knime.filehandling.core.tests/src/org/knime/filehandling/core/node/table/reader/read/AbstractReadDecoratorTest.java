@@ -105,22 +105,22 @@ public class AbstractReadDecoratorTest {
     }
 
     /**
-     * Tests if the {@code getEstimatedSizeInBytes} method properly delegates to the underlying read.
+     * Tests if the {@code getMaxProgress} method properly delegates to the underlying read.
      */
     @Test
     public void testGetEstimatedSizeInBytes() {
         OptionalLong estimatedSize = OptionalLong.of(3);
-        when(m_source.getEstimatedSizeInBytes()).thenReturn(estimatedSize);
-        assertEquals(estimatedSize, m_testInstance.getEstimatedSizeInBytes());
+        when(m_source.getMaxProgress()).thenReturn(estimatedSize);
+        assertEquals(estimatedSize, m_testInstance.getMaxProgress());
     }
 
     /**
-     * Tests if the {@code readBytes} method properly delegates to the underlying read.
+     * Tests if the {@code getProgress} method properly delegates to the underlying read.
      */
     @Test
     public void testReadBytes() {
-        when(m_source.readBytes()).thenReturn(3L);
-        assertEquals(3L, m_testInstance.readBytes());
+        when(m_source.getProgress()).thenReturn(3L);
+        assertEquals(3L, m_testInstance.getProgress());
     }
 
     /**

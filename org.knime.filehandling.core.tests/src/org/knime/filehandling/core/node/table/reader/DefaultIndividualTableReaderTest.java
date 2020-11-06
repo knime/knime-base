@@ -110,7 +110,7 @@ public class DefaultIndividualTableReaderTest {
 
     /**
      * Initializes the test instance.
-     * 
+     *
      * @throws Exception never thrown
      */
     @SuppressWarnings("unchecked")
@@ -126,28 +126,28 @@ public class DefaultIndividualTableReaderTest {
     }
 
     /**
-     * Tests the {@code fillOutput} method if the read knows its size.
+     * Tests the {@code fillOutput} method if the read knows its max progress.
      *
      * @throws Exception never thrown
      */
     @Test
     public void testFillRowOutputWithPogress() throws Exception {
-        when(m_read.getEstimatedSizeInBytes()).thenReturn(OptionalLong.of(10));
+        when(m_read.getMaxProgress()).thenReturn(OptionalLong.of(10));
         m_testInstance.fillOutput(m_read, m_output, m_monitor);
         verify(m_read, times(3)).next();
-        verify(m_read, times(2)).readBytes();
+        verify(m_read, times(2)).getProgress();
         verify(m_output).push(m_first);
         verify(m_output).push(m_second);
     }
 
     /**
-     * Tests the {@code fillOutput} method if the read doesn't know its size.
+     * Tests the {@code fillOutput} method if the read doesn't know its max progress.
      *
      * @throws Exception never thrown
      */
     @Test
     public void testFillRowOutputWithoutPogress() throws Exception {
-        when(m_read.getEstimatedSizeInBytes()).thenReturn(OptionalLong.empty());
+        when(m_read.getMaxProgress()).thenReturn(OptionalLong.empty());
         m_testInstance.fillOutput(m_read, m_output, m_monitor);
         verify(m_read, times(3)).next();
         verify(m_output).push(m_first);
