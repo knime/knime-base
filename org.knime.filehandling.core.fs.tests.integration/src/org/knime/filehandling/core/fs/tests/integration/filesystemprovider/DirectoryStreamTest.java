@@ -171,15 +171,12 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         // force creation of scratch dir
         m_testInitializer.createFile("file");
 
-        final Path[] dirList;
-        try (final Stream<Path> stream = Files.list(getFileSystem().getPath("."))) {
-            dirList = stream.toArray(Path[]::new);
-        }
-        assertEquals(1, dirList.length);
-
-        final Path expectedPath =
+        // list "." and validate that it contains the scratch directory
+        final Path scratchDir =
             getFileSystem().getPath(".").resolve(m_testInitializer.getTestCaseScratchDir().getFileName());
-        assertEquals(expectedPath, dirList[0]);
+        try (final Stream<Path> stream = Files.list(getFileSystem().getPath("."))) {
+            assertTrue("Listing of '.' contains current scratch directory.", stream.anyMatch((p) -> p.equals(scratchDir)));
+        }
     }
 
     @Test
