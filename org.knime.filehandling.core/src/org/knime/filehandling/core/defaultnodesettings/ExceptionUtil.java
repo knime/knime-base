@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * FIXME: this code is copied from org.knime.kerberos and should be moved to org.knime.core so that it is usable
@@ -93,6 +95,24 @@ public class ExceptionUtil {
         }
     }
 
+    /**
+     * Returns an {@link Optional} with either the first {@link Throwable} that is evaluated as {@code true} by the
+     * passed {@link Predicate} or empty if none is evaluated as {@code true}.
+     *
+     * @param t a throwable, possibly with cause chain.
+     * @param predicate a predicate, used to test the throwable
+     * @return optional with the first throwable accepted by the predicate or empty if none is accepted
+     */
+    public static Optional<Throwable> getFirstThrowable(final Throwable t, final Predicate<Throwable> predicate) {
+        if (predicate.test(t)) {
+            return Optional.of(t);
+        } else if (t.getCause() == null) {
+            return Optional.empty();
+        } else {
+            return getFirstThrowable(t.getCause(), predicate);
+        }
+    }
+
     public static String getDeepestNIOErrorMessage(final Throwable t) {
         String deeperMsg = null;
         if (t.getCause() != null && t.getCause() != t) {
@@ -109,7 +129,6 @@ public class ExceptionUtil {
             return null;
         }
     }
-
 
     /**
      * Returns deepest exeption cause from the cause stack o fthe given exception.
@@ -190,7 +209,8 @@ public class ExceptionUtil {
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
      */
-    private static final class FormattedAccessDeniedException extends AccessDeniedException implements FormattedNIOException {
+    private static final class FormattedAccessDeniedException extends AccessDeniedException
+        implements FormattedNIOException {
 
         private static final String MSG_PREFIX = "Unable to access";
 

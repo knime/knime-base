@@ -185,7 +185,9 @@ final class SpecGuessingSwingWorker<C extends ReaderSpecificConfig<C>, T>
     }
 
     private void displayExecutionException(final ExecutionException ex) {
-        m_analysisComponent.setError(ExceptionUtil.getDeepestErrorMessage(ex, false));
+        final Optional<Throwable> firstThrowable = ExceptionUtil.getFirstThrowable(ex,
+            t -> !(t instanceof ExecutionException) && t.getMessage() != null && !t.getMessage().isEmpty());
+        m_analysisComponent.setError(firstThrowable.map(Throwable::getMessage).orElse("An error occurred."));
     }
 
     private void reportAnalysisStatus() {
