@@ -1339,6 +1339,9 @@
             factory-class="org.knime.base.node.meta.looper.condition.LoopEndConditionNodeFactory"
             >
       </node>
+      <node category-path="/flowcontrol/variables"
+            factory-class="org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeFactory">
+      </node>
       <node
             after="org.knime.base.node.flowvariable.injectvariables.InjectVariablesDBNodeFactory"
             category-path="/flowcontrol/variables"
