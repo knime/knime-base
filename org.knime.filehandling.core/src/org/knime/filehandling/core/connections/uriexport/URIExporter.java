@@ -46,6 +46,7 @@
 package org.knime.filehandling.core.connections.uriexport;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.knime.filehandling.core.connections.FSPath;
 
@@ -83,6 +84,7 @@ public interface URIExporter {
      *
      * @param path the path to export
      * @return URI representation of the path
+     * @throws URISyntaxException on invalid URIs
      */
-    public URI toUri(FSPath path);
+    public URI toUri(FSPath path) throws URISyntaxException;
 }

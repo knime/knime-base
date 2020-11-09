@@ -46,6 +46,7 @@
 package org.knime.filehandling.core.connections.uriexport;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.knime.filehandling.core.connections.FSPath;
 
@@ -88,7 +89,7 @@ public final class PathURIExporter implements URIExporter {
     }
 
     @Override
-    public URI toUri(final FSPath path) {
-        return URI.create(path.toUri().getPath());
+    public URI toUri(final FSPath path) throws URISyntaxException {
+        return new URI(null, null, path.toUri().getPath(), null);
     }
 }
