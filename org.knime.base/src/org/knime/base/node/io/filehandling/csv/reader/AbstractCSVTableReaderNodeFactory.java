@@ -70,11 +70,6 @@ public abstract class AbstractCSVTableReaderNodeFactory
         CSVTableReader.TYPE_HIERARCHY.createTypeFocusedHierarchy();
 
     @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
         return StringReadAdapterFactory.INSTANCE;
     }

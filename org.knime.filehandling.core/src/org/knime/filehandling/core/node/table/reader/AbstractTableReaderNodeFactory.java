@@ -231,4 +231,9 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     protected ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry() {
         return getReadAdapterFactory().getProducerRegistry();
     }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
 }
