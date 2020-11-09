@@ -176,7 +176,7 @@ public final class WorkingDirectoryChooser extends JPanel {
      */
     @Override
     public void setEnabled(final boolean enabled) {
-        m_label.setEnabled(false);
+        m_label.setEnabled(enabled);
         m_fileSelector.setEnabled(enabled);
     }
 

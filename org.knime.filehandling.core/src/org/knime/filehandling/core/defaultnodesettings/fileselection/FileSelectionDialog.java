@@ -90,6 +90,8 @@ import org.knime.filehandling.core.util.IOESupplier;
  * combo box stores files/folders that are selected via the browse button in its history.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FileSelectionDialog {
 
