@@ -97,14 +97,14 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
      * @return the password model
      */
     static SettingsModelString createPwdModel() {
-        return new SettingsModelString("password", ""); // NOSONAR
+        return new SettingsModelString("passwordVarName", ""); // NOSONAR
     }
 
     /**
      * @return the user model.
      */
     static SettingsModelString createUserModel() {
-        return new SettingsModelString("username", ""); // NOSONAR
+        return new SettingsModelString("usernameVarName", ""); // NOSONAR
     }
 
     VariableToCredentialsNodeModel() {
