@@ -50,8 +50,11 @@ package org.knime.filehandling.core.node.table.reader.spec;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.core.node.util.CheckUtils;
 
@@ -144,6 +147,60 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
             colSpecs.add(TypedReaderColumnSpec.create(type, hasType));
         }
         return new TypedReaderTableSpec<>(colSpecs, false);
+    }
+
+    /**
+     * Builder for {@link TypedReaderTableSpec}.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     * @param <T> the type used identify external data types
+     */
+    public static final class TypedReaderTableSpecBuilder<T> {
+
+        private final LinkedHashSet<TypedReaderColumnSpec<T>> m_columns = new LinkedHashSet<>();
+
+        private final Set<String> m_names = new HashSet<>();
+
+        /**
+         * Adds a named column.
+         *
+         * @param name of the column
+         * @param type of the column
+         * @param hasType {@code true} if the type is definitive, {@code false} if the type couldn't be determined
+         *            definitively e.g. because only missing values were present
+         * @return this builder
+         * @throws IllegalArgumentException if the name is already taken
+         */
+        public TypedReaderTableSpecBuilder<T> addColumn(final String name, final T type, final boolean hasType) {
+            CheckUtils.checkArgument(!m_names.contains(name), "The name '%s' is already taken.");
+            final TypedReaderColumnSpec<T> column = TypedReaderColumnSpec.createWithName(name, type, hasType);
+            m_columns.add(column);
+            m_names.add(name);
+            return this;
+        }
+
+        /**
+         * Adds a column without name.
+         *
+         * @param type of the column
+         * @param hasType {@code true} if the type is definitive, {@code false} if the type couldn't be determined
+         *            definitively e.g. because only missing values were present
+         * @return this builder
+         */
+        public TypedReaderTableSpecBuilder<T> addColumn(final T type, final boolean hasType) {
+            final TypedReaderColumnSpec<T> column = TypedReaderColumnSpec.create(type, hasType);
+            m_columns.add(column);
+            return this;
+        }
+
+        /**
+         * Builds a {@link TypedReaderTableSpec} containing the set of columns added so far.
+         *
+         * @return a {@link TypedReaderTableSpec} corresponding to the current state of the builder
+         */
+        public TypedReaderTableSpec<T> build() {
+            return new TypedReaderTableSpec<>(m_columns);
+        }
     }
 
 }
