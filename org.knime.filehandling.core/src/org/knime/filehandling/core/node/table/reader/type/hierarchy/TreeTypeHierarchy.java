@@ -99,6 +99,15 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
         return new TreeTypeResolver();
     }
 
+    /**
+     * Returns the root of this tree.
+     *
+     * @return the root {@link TreeNode}
+     */
+    public TreeNode<T, V> getRootNode() {
+        return m_root;
+    }
+
     @Override
     public TreeTypeHierarchy<T, T> createTypeFocusedHierarchy() {
         final Map<TreeNode<T, ?>, Set<T>> childTypes = collectChildTypes();
@@ -330,8 +339,10 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
      * Represents an individual type in the type hierarchy.
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     * @param <T> the type used to identify types
+     * @param <V> the value type
      */
-    static class TreeNode<T, V> implements TypeTester<T, V> {
+    public static final class TreeNode<T, V> implements TypeTester<T, V> {
 
         private final TreeNode<T, V> m_parent;
 
@@ -352,7 +363,7 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
         TreeNode(final TreeNode<T, V> parent, final TypeTester<T, V> tester) {
             m_parent = parent;
             m_tester = tester;
-            m_depth = parent == null ? 0 : m_parent.m_depth + 1;
+            m_depth = parent == null ? 0 : (m_parent.m_depth + 1);
             m_hashCode = new HashCodeBuilder().append(m_depth).append(m_tester).append(m_parent).toHashCode();
             if (m_parent != null) {
                 m_parent.registerChild(this);
@@ -374,12 +385,31 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
             return m_tester.getType();
         }
 
-        private boolean hasParent() {
+        /**
+         * Indicates whether this node has a parent.
+         *
+         * @return {@code true} if this node has a parent
+         */
+        public boolean hasParent() {
             return m_parent != null;
         }
 
-        private TreeNode<T, V> getParent() {
+        /**
+         * Returns the parent of this node.
+         *
+         * @return the parent of this node or {@code null} if this is the root node
+         */
+        public TreeNode<T, V> getParent() {
             return m_parent;
+        }
+
+        /**
+         * Returns an {@link Iterable} over the children of this node.
+         *
+         * @return an {@link Iterable} over the children of this node
+         */
+        public Iterable<TreeNode<T, V>> getChildren() {
+            return Collections.unmodifiableList(m_children);
         }
 
         private int getDepth() {
