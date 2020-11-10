@@ -57,7 +57,10 @@ import javax.swing.event.ChangeEvent;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -68,6 +71,7 @@ import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * Abstract implementation of a {@link NodeDialogPane} for table reader nodes.</br>
@@ -86,6 +90,8 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     private final TableReaderPreviewModel m_previewModel;
 
     private final TableTransformationPanel m_specTransformer;
+
+    private final boolean m_disableIOComponents;
 
     private boolean m_ignoreEvents = false;
 
@@ -108,6 +114,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
             analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
+        m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
     }
 
     /**
@@ -181,7 +188,9 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      * Should be called by inheriting classes whenever the config changed i.e. if the user interacts with the dialog.
      */
     protected final void configChanged() {
-        if (!areEventsIgnored()) {
+        if (areIOComponentsDisabled()) {
+            m_coordinator.setDisabledInRemoteJobViewInfo();
+        } else if (!areEventsIgnored()) {
             m_coordinator.configChanged();
         }
     }
@@ -207,6 +216,16 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     }
 
     /**
+     * Indicates whether the components doing IO, such as the preview, are disabled (by default when opened in remote
+     * job view).
+     *
+     * @return if IO components are disabled
+     */
+    protected boolean areIOComponentsDisabled() {
+        return m_disableIOComponents;
+    }
+
+    /**
      * Method to load the preview from the stored {@link DefaultTableSpecConfig}.
      *
      * @param tableSpecConfig to load from
@@ -220,6 +239,27 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_specTransformer.commitChanges();
     }
+
+    @Override
+    protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        ignoreEvents(true);
+        setPreviewEnabled(false);
+        loadSettings(settings, specs);
+        ignoreEvents(false);
+        refreshPreview(true);
+    }
+
+    /**
+     * See {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}.
+     *
+     * @param settings the settings
+     * @param specs the specs
+     * @throws NotConfigurableException if a component cannot be configured
+     * @see #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])
+     */
+    protected abstract void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException;
 
     /**
      * Retrieves the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available e.g. if
@@ -256,5 +296,19 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         m_coordinator.onClose();
         m_specTransformer.onClose();
         super.onClose();
+    }
+
+    /**
+     * Enables/disables the preview depending on what {@link #areIOComponentsDisabled()} returns. Refreshes the preview
+     * if the passed parameter is {@code true} and the preview enabled.
+     *
+     * @param refreshPreview whether the preview should be refreshed
+     */
+    public void refreshPreview(final boolean refreshPreview) {
+        final boolean enabled = !areIOComponentsDisabled();
+        setPreviewEnabled(enabled);
+        if (enabled && refreshPreview) {
+            configChanged();
+        }
     }
 }

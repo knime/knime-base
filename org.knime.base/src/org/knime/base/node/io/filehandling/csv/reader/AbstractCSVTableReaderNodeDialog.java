@@ -101,7 +101,6 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
-import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 import com.univocity.parsers.csv.CsvFormat;
@@ -191,12 +190,6 @@ public abstract class AbstractCSVTableReaderNodeDialog
     protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> m_config;
 
     /**
-     * If the preview, autodetection, etc. components should be disabled (by default when opened in remote job view).
-     * Might be overridden.
-     */
-    protected boolean m_disableComponentsRemoteContext;
-
-    /**
      * Create new CsvTableReader dialog.
      *
      * @param pathSettings the path settings
@@ -212,7 +205,6 @@ public abstract class AbstractCSVTableReaderNodeDialog
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
         init(pathSettings);
         m_pathSettings = pathSettings;
-        m_disableComponentsRemoteContext = CheckNodeContextUtil.isRemoteWorkflowContext();
 
         Long stepSize = Long.valueOf(1);
         Long rowStart = Long.valueOf(0);
@@ -228,7 +220,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
 
         // disable auto-detection for remote view
-        if (m_disableComponentsRemoteContext) {
+        if (areIOComponentsDisabled()) {
             m_startAutodetection.setEnabled(false);
             m_autoDetectionSettings.setEnabled(false);
         }
@@ -759,7 +751,6 @@ public abstract class AbstractCSVTableReaderNodeDialog
      */
     protected abstract void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException;
 
-
     /**
      * Fill in the setting values in {@link TableReadConfig} using values from dialog.
      */
@@ -834,10 +825,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * {@inheritDoc}
      */
     @Override
-    protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected final void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        ignoreEvents(true);
-        setPreviewEnabled(false);
         m_config.loadInDialog(settings, specs);
         loadTableReadSettings();
         loadCSVSettings();
@@ -853,8 +842,6 @@ public abstract class AbstractCSVTableReaderNodeDialog
         if (m_config.hasTableSpecConfig()) {
             loadFromTableSpecConfig(m_config.getTableSpecConfig());
         }
-        ignoreEvents(false);
-        refreshPreview(true);
     }
 
     /**
@@ -1037,13 +1024,6 @@ public abstract class AbstractCSVTableReaderNodeDialog
         settingsDialog.setVisible(true);
 
         m_autoDetectionBufferSize = settingsDialog.getBufferSize();
-    }
-
-    void refreshPreview(final boolean refreshPreview) {
-        setPreviewEnabled(!m_disableComponentsRemoteContext);
-        if (refreshPreview) {
-            configChanged();
-        }
     }
 
     @Override

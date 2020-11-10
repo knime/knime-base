@@ -121,6 +121,10 @@ final class TableReaderPreviewTransformationController<C extends ReaderSpecificC
         }
     }
 
+    void setDisabledInRemoteJobViewInfo() {
+        m_analysisComponent.setInfo("Preview is disabled in remote job view.");
+    }
+
     private void cancelCurrentRun() {
         if (m_currentRun != null) {
             m_currentRun.close();

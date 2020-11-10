@@ -119,7 +119,6 @@ final class AnalysisComponentModel {
         return false;
     }
 
-
     void setProgress(final int progress) {
         m_progress.setValue(progress);
     }
@@ -187,6 +186,12 @@ final class AnalysisComponentModel {
 
     void setError(final String text) {
         setError(-1, text);
+    }
+
+    void setInfo(final String text) {
+        m_errorIcon = SharedIcons.INFO_BALLOON.get();
+        m_errorText = text;
+        notifyListeners();
     }
 
     void reset() {

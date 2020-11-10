@@ -81,7 +81,11 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(pathSettings, config, multiReader, productionPathProvider, false);
-        m_disableComponentsRemoteContext = false;
+    }
+
+    @Override
+    protected boolean areIOComponentsDisabled() {
+        return false;
     }
 
     @Override
