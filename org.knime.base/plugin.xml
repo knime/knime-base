@@ -2272,6 +2272,7 @@
       <node
             after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
       </node>
       <node

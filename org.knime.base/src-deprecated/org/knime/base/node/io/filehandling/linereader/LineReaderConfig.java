@@ -69,7 +69,9 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  * Configuration for the {@link LineReaderNodeModel}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 final class LineReaderConfig {
 
     static final String DEFAULT_ENCODING = "default";

@@ -53,7 +53,9 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
 /**
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 enum CustomColumnHeader implements ButtonGroupEnumInterface {
         Custom("Use fix column header", true), FirstLine("Use first line as column header", false);
 

@@ -69,7 +69,9 @@ import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
  * NodeModel for the Line Reader node.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 final class LineReaderNodeModel extends AbstractSimpleFileReaderNodeModel {
 
     /** LineReaderConfig containing all necessary information how to process specified file(s). */

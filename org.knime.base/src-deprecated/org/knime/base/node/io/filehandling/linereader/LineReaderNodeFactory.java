@@ -62,7 +62,9 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * Creates a Line Reader node that uses {@link FSConnection}
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 public class LineReaderNodeFactory extends ConfigurableNodeFactory<LineReaderNodeModel> {
 
     @Override

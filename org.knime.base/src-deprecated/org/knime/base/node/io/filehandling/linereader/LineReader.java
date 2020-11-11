@@ -77,7 +77,9 @@ import org.knime.filehandling.core.util.FileCompressionUtils;
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
+ * @deprecated
  */
+@Deprecated
 final class LineReader implements FilesToDataTableReader {
 
     private boolean m_readColHeader;
