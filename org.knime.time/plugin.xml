@@ -234,7 +234,8 @@
          point="org.knime.core.DataType">
       <DataType
             cellClass="org.knime.core.data.time.localtime.LocalTimeCell"
-            factoryClass="org.knime.core.data.time.localtime.LocalTimeCellFactory">
+            factoryClass="org.knime.core.data.time.localtime.LocalTimeCellFactory"
+            factoryValue="org.knime.core.data.v2.time.LocalTimeValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.localtime.LocalTimeCell"
                serializerClass="org.knime.core.data.time.localtime.LocalTimeCellSerializer">
@@ -242,7 +243,8 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.localdate.LocalDateCell"
-            factoryClass="org.knime.core.data.time.localdate.LocalDateCellFactory">
+            factoryClass="org.knime.core.data.time.localdate.LocalDateCellFactory"
+            factoryValue="org.knime.core.data.v2.time.LocalDateValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.localdate.LocalDateCell"
                serializerClass="org.knime.core.data.time.localdate.LocalDateCellSerializer">
@@ -250,7 +252,8 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.localdatetime.LocalDateTimeCell"
-            factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory">
+            factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory"
+            factoryValue="org.knime.core.data.v2.time.LocalDateTimeValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.localdatetime.LocalDateTimeCell"
                serializerClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellSerializer">
@@ -258,7 +261,8 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell"
-            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory">
+            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory"
+            factoryValue="org.knime.core.data.v2.time.ZonedDateTimeValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell"
                serializerClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellSerializer">
@@ -266,7 +270,8 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.duration.DurationCell"
-            factoryClass="org.knime.core.data.time.duration.DurationCellFactory">
+            factoryClass="org.knime.core.data.time.duration.DurationCellFactory"
+            factoryValue="org.knime.core.data.v2.time.DurationValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.duration.DurationCell"
                serializerClass="org.knime.core.data.time.duration.DurationCellSerializer">
@@ -274,7 +279,8 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.period.PeriodCell"
-            factoryClass="org.knime.core.data.time.period.PeriodCellFactory">
+            factoryClass="org.knime.core.data.time.period.PeriodCellFactory"
+            factoryValue="org.knime.core.data.v2.time.PeriodValueFactory">
          <serializer
                cellClass="org.knime.core.data.time.period.PeriodCell"
                serializerClass="org.knime.core.data.time.period.PeriodCellSerializer">
