@@ -13,11 +13,25 @@
 			This node writes files from a table with binary objects. It will append the URIs of the files to the output 
 			table.
 		</intro>
-		<option name="Binary object column">
+		<option name="Binary object">
+			<b>Column</b>
+			<br />
 			Column with binary objects.
+			<br />
+			<b>Remove column</b>
+			<br />
+			Removes the column with the binary objects from the output table.
+			<br />
 		</option>
-        <option name="Remove binary object column">
-            Removes the column with the binary objects from the output table.
+        <option name="File names">
+            <b>Generate</b>
+            <br />
+			The names will be generated using a user provided pattern. The "?" symbol
+			in the pattern will be replaced with a count
+			<br />
+            <b>From column</b>
+            <br />
+            The names can be found in a column of the input table.
         </option>
 		<option name="Write to">
 			Select a file system which stores the files you want to generate.

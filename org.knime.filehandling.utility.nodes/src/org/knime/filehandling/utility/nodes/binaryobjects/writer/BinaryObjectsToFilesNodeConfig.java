@@ -49,6 +49,8 @@
 package org.knime.filehandling.utility.nodes.binaryobjects.writer;
 
 import java.util.EnumSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -75,11 +77,26 @@ final class BinaryObjectsToFilesNodeConfig {
 
     private static final String CFG_REMOVE_BINARY_COLUMN_NAME = "remove_binary_object_column";
 
+    private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
+
+    private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
+
+    private static final String CFG_USER_DEFINED_OUTPUT_FILENAME_NAME = "filename_pattern";
+
     private final SettingsModelString m_binaryObjectsSelectionColumnModel;
 
     private final SettingsModelWriterFileChooser m_fileWriterSelectionModel;
 
     private final SettingsModelBoolean m_removeBinaryObjColumnModel;
+
+    private boolean m_generateFileNames;
+
+    private final SettingsModelString m_outputFilenameColumnModel;
+
+    private final SettingsModelString m_userDefinedOutputFilename;
+
+    // Allows one instance of ? and a file extension of at least 1 character, no spaces are allowed in filenames
+    private static final Pattern userDefinedFilenamePattern = Pattern.compile("^[\\w,-]*\\?{1}[\\w,-]*\\.[A-Za-z]+$");
 
     /**
      * Constructor for the Configuration class
@@ -94,6 +111,22 @@ final class BinaryObjectsToFilesNodeConfig {
             FileOverwritePolicy.IGNORE,
             EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+        m_generateFileNames = true;
+        m_outputFilenameColumnModel = new SettingsModelString(CFG_OUTPUT_FILENAME_COLUMN_NAME, null);
+        m_outputFilenameColumnModel.setEnabled(!m_generateFileNames);
+        m_userDefinedOutputFilename = new SettingsModelString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME, "File_?.dat") {
+
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                super.validateSettingsForModel(settings);
+                //check if user input matches the regex for a valid filename, otherwise throw InvalidSettingsException
+                if (!BinaryObjectsToFilesNodeConfig
+                    .isValidUserDefinedFilename(settings.getString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME))) {
+                    throw new InvalidSettingsException("The file name pattern field is not valid");
+                }
+            }
+        };
+        m_userDefinedOutputFilename.setEnabled(m_generateFileNames);
     }
 
     SettingsModelString getBinaryObjectsSelectionColumnModel() {
@@ -108,6 +141,46 @@ final class BinaryObjectsToFilesNodeConfig {
         return m_removeBinaryObjColumnModel;
     }
 
+    SettingsModelString getOutputFilenameColumnModel() {
+        return m_outputFilenameColumnModel;
+    }
+
+    SettingsModelString getUserDefinedOutputFilename() {
+        return m_userDefinedOutputFilename;
+    }
+
+    String getStringValSelectedBinaryObjectColumnModel() {
+        return m_binaryObjectsSelectionColumnModel.getStringValue();
+    }
+
+    void setStringValSelectedBinaryObjectColumnModel(final String inputStr) {
+        m_binaryObjectsSelectionColumnModel.setStringValue(inputStr);
+    }
+
+    String getStringValOutputFilenameColumnModel() {
+        return m_outputFilenameColumnModel.getStringValue();
+    }
+
+    void setStringValOutputFilenameColumnModel(final String inputStr) {
+        m_outputFilenameColumnModel.setStringValue(inputStr);
+    }
+
+    String getStringValUserDefinedOutputFilenameModel() {
+        return m_userDefinedOutputFilename.getStringValue();
+    }
+
+    boolean isRemoveBinaryColumnModelEnabled() {
+        return m_removeBinaryObjColumnModel.getBooleanValue();
+    }
+
+    private void generateFileNames(final boolean generateFileNames) {
+        m_generateFileNames = generateFileNames;
+    }
+
+    boolean generateFileNames() {
+        return m_generateFileNames;
+    }
+
     /**
      * Implements save settings on each individual settings model
      *
@@ -117,6 +190,9 @@ final class BinaryObjectsToFilesNodeConfig {
         m_binaryObjectsSelectionColumnModel.saveSettingsTo(settings);
         m_removeBinaryObjColumnModel.saveSettingsTo(settings);
         m_fileWriterSelectionModel.saveSettingsTo(settings);
+        saveGenerateFileNames(settings);
+        m_outputFilenameColumnModel.saveSettingsTo(settings);
+        m_userDefinedOutputFilename.saveSettingsTo(settings);
     }
 
     /**
@@ -128,6 +204,9 @@ final class BinaryObjectsToFilesNodeConfig {
         m_binaryObjectsSelectionColumnModel.validateSettings(settings);
         m_removeBinaryObjColumnModel.validateSettings(settings);
         m_fileWriterSelectionModel.validateSettings(settings);
+        settings.getBoolean(CFG_GENERATE_FILE_NAMES);
+        m_outputFilenameColumnModel.validateSettings(settings);
+        m_userDefinedOutputFilename.validateSettings(settings);
     }
 
     /**
@@ -139,6 +218,33 @@ final class BinaryObjectsToFilesNodeConfig {
         m_binaryObjectsSelectionColumnModel.loadSettingsFrom(settings);
         m_removeBinaryObjColumnModel.loadSettingsFrom(settings);
         m_fileWriterSelectionModel.loadSettingsFrom(settings);
+        generateFileNames(settings.getBoolean(CFG_GENERATE_FILE_NAMES));
+        m_outputFilenameColumnModel.loadSettingsFrom(settings);
+        m_userDefinedOutputFilename.loadSettingsFrom(settings);
+    }
+
+    void loadGenerateFileNamesForDialog(final NodeSettingsRO settings) {
+        generateFileNames(settings.getBoolean(CFG_GENERATE_FILE_NAMES, true));
+    }
+
+    void saveGenerateFileNamesForDialog(final NodeSettingsWO settings, final boolean generateFileNames) {
+        generateFileNames(generateFileNames);
+        saveGenerateFileNames(settings);
+    }
+
+    private void saveGenerateFileNames(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_GENERATE_FILE_NAMES, generateFileNames());
+    }
+
+    /**
+     * Returns bool if enclosed string matches the regex for valid filename
+     *
+     * @param String A string value of the user input field
+     * @return true or false value
+     */
+    static boolean isValidUserDefinedFilename(final String incomingFilename) {
+        Matcher regexPatternMatcher = userDefinedFilenamePattern.matcher(incomingFilename);
+        return regexPatternMatcher.matches();
     }
 
 }

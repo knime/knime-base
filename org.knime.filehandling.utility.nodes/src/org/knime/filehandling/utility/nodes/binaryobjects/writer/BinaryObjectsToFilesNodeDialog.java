@@ -49,14 +49,14 @@
 package org.knime.filehandling.utility.nodes.binaryobjects.writer;
 
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
+import org.knime.core.data.StringValue;
 import org.knime.core.data.blob.BinaryObjectDataValue;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -68,10 +68,12 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
  * The {@link NodeModel} for converting Binary Objects to files.
@@ -79,6 +81,18 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
 final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
+
+    private static final String BINARY_OBJ_BORDER_LABEL = "Binary object";
+
+    private static final String BINARY_OBJ_COLUMN_LABEL = "Column";
+
+    private static final String REMOVE_BINARY_OBJ_COLUMN_LABEL = "Remove column";
+
+    private static final String OUTPUT_LOC_PANEL_LABEL = "Output location";
+
+    private static final String FILE_NAMES_LABEL = "File names";
+
+    private static final String FILE_HISTORY_ID = "binary_objects_to_files_reader_writer";
 
     private final BinaryObjectsToFilesNodeConfig m_binaryObjectsToFilesNodeSettings;
 
@@ -88,13 +102,13 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_removeBinaryObjectColumn;
 
-    private static final String BINARY_OBJ_COLUMN_LABEL = "Binary object column";
+    private final DialogComponentColumnNameSelection m_outputFilenameColSelection;
 
-    private static final String REMOVE_BINARY_OBJ_COLUMN_LABEL = "Remove binary object column";
+    private final DialogComponentString m_userDefinedOutputFilename;
 
-    private static final String OUTPUT_LOC_PANEL_LABEL = "Output location";
+    private final JRadioButton m_generateRadio;
 
-    private static final String FILE_HISTORY_ID = "binary_objects_to_files_reader_writer";
+    private final JRadioButton m_columnRadio;
 
     @SuppressWarnings("unchecked")
     BinaryObjectsToFilesNodeDialog(final PortsConfiguration portsConfiguration,
@@ -109,6 +123,11 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
                     .get(BinaryObjectsToFilesNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0],
                 BinaryObjectDataValue.class);
 
+        m_outputFilenameColSelection = new DialogComponentColumnNameSelection(
+            m_binaryObjectsToFilesNodeSettings.getOutputFilenameColumnModel(), "", portsConfiguration
+                .getInputPortLocation().get(BinaryObjectsToFilesNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0],
+            false, StringValue.class);
+
         SettingsModelWriterFileChooser destionationFolderChooser =
             m_binaryObjectsToFilesNodeSettings.getFileSettingsModelWriterFileChooser();
 
@@ -121,7 +140,25 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
         m_removeBinaryObjectColumn = new DialogComponentBoolean(
             m_binaryObjectsToFilesNodeSettings.getRemoveBinaryObjColumnModel(), REMOVE_BINARY_OBJ_COLUMN_LABEL);
 
+        m_userDefinedOutputFilename =
+            new DialogComponentString(m_binaryObjectsToFilesNodeSettings.getUserDefinedOutputFilename(), "", true, 25);
+
+        m_generateRadio = new JRadioButton("Generate");
+        m_columnRadio = new JRadioButton("From column");
+
+        final ButtonGroup buttonGrp = new ButtonGroup();
+        buttonGrp.add(m_generateRadio);
+        buttonGrp.add(m_columnRadio);
+
+        m_generateRadio.addActionListener(l -> toggleGenerateMode());
+        m_columnRadio.addActionListener(l -> toggleGenerateMode());
+
         addTab("Settings", createSettingsDialog());
+    }
+
+    private void toggleGenerateMode() {
+        m_outputFilenameColSelection.getModel().setEnabled(m_columnRadio.isSelected());
+        m_userDefinedOutputFilename.getModel().setEnabled(m_generateRadio.isSelected());
     }
 
     /**
@@ -131,21 +168,65 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
      */
     private Component createSettingsDialog() {
         final JPanel p = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = getGbc();
 
-        p.add(m_binaryColSelection.getComponentPanel(), gbc);
-        ++gbc.gridy;
-        p.add(m_removeBinaryObjectColumn.getComponentPanel(), gbc);
-        ++gbc.gridy;
-        gbc.weightx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        final GBCBuilder gbc = new GBCBuilder().resetPos().setWeightX(1).setWeightY(0).fillHorizontal();
+        p.add(createBinaryObjectPanel(), gbc.build());
 
-        p.add(createFileWriterDialog(), gbc);
+        gbc.incY();
+        p.add(createFileNameSettingsDialog(), gbc.build());
 
-        ++gbc.gridy;
-        gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        p.add(new JPanel(), gbc);
+        gbc.incY();
+        p.add(createFileWriterDialog(), gbc.build());
+
+        gbc.incY().setWeightY(1).fillBoth();
+        p.add(new JPanel(), gbc.build());
+
+        return p;
+    }
+
+    private Component createBinaryObjectPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), BINARY_OBJ_BORDER_LABEL));
+
+        final GBCBuilder gbc =
+            new GBCBuilder().resetPos().setWeightX(0).setWeightY(0).anchorLineStart().fillNone().insetLeft(3);
+
+        p.add(m_binaryColSelection.getComponentPanel(), gbc.build());
+
+        gbc.incY().insetLeft(0);
+        p.add(m_removeBinaryObjectColumn.getComponentPanel(), gbc.build());
+
+        gbc.incY().setWeightX(1).fillHorizontal().insetTop(-10);
+        p.add(new JPanel(), gbc.build());
+
+        return p;
+    }
+
+    /**
+     * Creates the file names panel.
+     *
+     * @return JPanel A new JPanel with the enclosed components
+     */
+    private JPanel createFileNameSettingsDialog() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), FILE_NAMES_LABEL));
+
+        final GBCBuilder gbc =
+            new GBCBuilder().anchorLineStart().resetX().resetY().setWeightX(0).setWeightY(0).fillNone();
+
+        p.add(m_generateRadio, gbc.build());
+
+        gbc.incX();
+        p.add(m_userDefinedOutputFilename.getComponentPanel(), gbc.build());
+
+        gbc.incY().resetX();
+        p.add(m_columnRadio, gbc.build());
+
+        gbc.incX();
+        p.add(m_outputFilenameColSelection.getComponentPanel(), gbc.build());
+
+        gbc.resetX().incY().setWeightX(1).setWidth(2).fillHorizontal().insetTop(-10);
+        p.add(new JPanel(), gbc.build());
 
         return p;
     }
@@ -156,14 +237,14 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
      * @return JPanel which encloses DialogComponentWriterFileChooser
      */
     private JPanel createFileWriterDialog() {
-        final JPanel filePanel = new JPanel();
-        filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
+        final JPanel filePanel = new JPanel(new GridBagLayout());
         filePanel
             .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), OUTPUT_LOC_PANEL_LABEL));
-        filePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-            m_destinationFolderSelection.getComponentPanel().getPreferredSize().height));
 
-        filePanel.add(m_destinationFolderSelection.getComponentPanel());
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1)
+            .insetRight(7).insetLeft(4);
+        filePanel.add(m_destinationFolderSelection.getComponentPanel(), gbc.build());
+
         return filePanel;
     }
 
@@ -172,28 +253,22 @@ final class BinaryObjectsToFilesNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_binaryColSelection.loadSettingsFrom(settings, specs);
         m_removeBinaryObjectColumn.loadSettingsFrom(settings, specs);
+        m_binaryObjectsToFilesNodeSettings.loadGenerateFileNamesForDialog(settings);
+        m_userDefinedOutputFilename.loadSettingsFrom(settings, specs);
+        m_outputFilenameColSelection.loadSettingsFrom(settings, specs);
         m_destinationFolderSelection.loadSettingsFrom(settings, specs);
+        m_generateRadio.setSelected(m_binaryObjectsToFilesNodeSettings.generateFileNames());
+        m_columnRadio.setSelected(!m_binaryObjectsToFilesNodeSettings.generateFileNames());
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_binaryColSelection.saveSettingsTo(settings);
         m_removeBinaryObjectColumn.saveSettingsTo(settings);
+        m_binaryObjectsToFilesNodeSettings.saveGenerateFileNamesForDialog(settings, m_generateRadio.isSelected());
+        m_userDefinedOutputFilename.saveSettingsTo(settings);
+        m_outputFilenameColSelection.saveSettingsTo(settings);
         m_destinationFolderSelection.saveSettingsTo(settings);
     }
 
-    /**
-     * Create and configure the GridBagConstraints object for Settings dialog
-     *
-     * @return A GridBagConstraints object
-     */
-    private static GridBagConstraints getGbc() {
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.gridy = 0;
-        return gbc;
-    }
 }

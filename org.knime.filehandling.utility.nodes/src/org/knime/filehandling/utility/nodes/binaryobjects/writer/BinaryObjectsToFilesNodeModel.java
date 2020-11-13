@@ -63,10 +63,13 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.blob.BinaryObjectDataCell;
 import org.knime.core.data.blob.BinaryObjectDataValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -77,8 +80,6 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
@@ -103,11 +104,7 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
     final BinaryObjectsToFilesNodeConfig m_binaryObjectsToFileNodeConfig;
 
-    private final SettingsModelString m_binaryColumn;
-
     private final SettingsModelWriterFileChooser m_fileWriterSelectionModel;
-
-    private final SettingsModelBoolean m_removeBinaryColumnModel;
 
     private int m_inputTableIdx;
 
@@ -120,9 +117,8 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
     BinaryObjectsToFilesNodeModel(final PortsConfiguration config, final BinaryObjectsToFilesNodeConfig nodeSettings) {
         super(config.getInputPorts(), config.getOutputPorts());
         m_binaryObjectsToFileNodeConfig = nodeSettings;
-        m_binaryColumn = m_binaryObjectsToFileNodeConfig.getBinaryObjectsSelectionColumnModel();
-        m_removeBinaryColumnModel = m_binaryObjectsToFileNodeConfig.getRemoveBinaryObjColumnModel();
         m_fileWriterSelectionModel = m_binaryObjectsToFileNodeConfig.getFileSettingsModelWriterFileChooser();
+
         m_inputTableIdx =
             config.getInputPortLocation().get(BinaryObjectsToFilesNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
@@ -136,7 +132,8 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
             .toArray(PortObjectSpec[]::new);
 
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        final int binaryObjColIdx = inputTableSpec.findColumnIndex(m_binaryColumn.getStringValue());
+        final int binaryObjColIdx = inputTableSpec
+            .findColumnIndex(m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel());
 
         try (final WritePathAccessor writePathAccessor = m_fileWriterSelectionModel.createWritePathAccessor()) {
 
@@ -147,8 +144,14 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
             createOutputFoldersIfMissing(outputPath);
 
             try (final BinaryObjectsToFilesCellFactory binaryObjectsToFilesCellFactory =
-                new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryObjColIdx,
-                    m_fileWriterSelectionModel.getFileOverwritePolicy(), outputPath, exec)) {
+                m_binaryObjectsToFileNodeConfig.generateFileNames()
+                    ? new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryObjColIdx,
+                        m_binaryObjectsToFileNodeConfig.getStringValUserDefinedOutputFilenameModel(),
+                        m_fileWriterSelectionModel.getFileOverwritePolicy(), outputPath, exec)
+                    : new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryObjColIdx,
+                        inputTableSpec
+                            .findColumnIndex(m_binaryObjectsToFileNodeConfig.getStringValOutputFilenameColumnModel()),
+                        m_fileWriterSelectionModel.getFileOverwritePolicy(), outputPath, exec)) {
                 final ColumnRearranger columnRearrangerObj =
                     createColumnRearranger(inputTableSpec, binaryObjectsToFilesCellFactory);
                 final BufferedDataTable outputBufferTable = exec.createColumnRearrangeTable(
@@ -162,7 +165,7 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        if (m_binaryColumn.getStringValue() == null) {
+        if (m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel() == null) {
             autoGuess(inSpecs);
         }
 
@@ -172,10 +175,11 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         m_fileWriterSelectionModel.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        final int binaryColIndx = inputTableSpec.findColumnIndex(m_binaryColumn.getStringValue());
+        final int binaryColIndx = inputTableSpec
+            .findColumnIndex(m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel());
 
         try (final BinaryObjectsToFilesCellFactory binaryObjectsToFilesCellFactory =
-            new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryColIndx,
+            new BinaryObjectsToFilesCellFactory(getNewColumnSpec(inputTableSpec), binaryColIndx, null,
                 m_fileWriterSelectionModel.getFileOverwritePolicy(), null, null)) {
             return new DataTableSpec[]{
                 createColumnRearranger(inputTableSpec, binaryObjectsToFilesCellFactory).createSpec()};
@@ -193,13 +197,25 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
      */
     private void autoGuess(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        m_binaryColumn.setStringValue(inputTableSpec.stream()//
+        m_binaryObjectsToFileNodeConfig.setStringValSelectedBinaryObjectColumnModel(inputTableSpec.stream()//
             .filter(dcs -> dcs.getType().isCompatible(BinaryObjectDataValue.class))//
             .map(DataColumnSpec::getName)//
             .findFirst()//
             .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
         );
-        setWarningMessage(String.format("Auto-guessed column to convert '%s'", m_binaryColumn.getStringValue()));
+        setWarningMessage(String.format("Auto-guessed column to convert '%s'",
+            m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel()));
+
+        if (!m_binaryObjectsToFileNodeConfig.generateFileNames()) {
+            m_binaryObjectsToFileNodeConfig.setStringValOutputFilenameColumnModel(inputTableSpec.stream()//
+                .filter(dcs -> dcs.getType().isCompatible(StringValue.class))//
+                .map(DataColumnSpec::getName)//
+                .findFirst()//
+                .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
+            );
+            setWarningMessage(String.format("Auto-guessed column to convert '%s'",
+                m_binaryObjectsToFileNodeConfig.getStringValOutputFilenameColumnModel()));
+        }
     }
 
     /**
@@ -211,24 +227,47 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
      */
     private void validate(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        final String pathColName = m_binaryColumn.getStringValue();
-        final int colIndex = inSpec.findColumnIndex(pathColName);
+        final String binaryObjColName = m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel();
+        final int colIndex = inSpec.findColumnIndex(binaryObjColName);
 
-        // check column existence
-        CheckUtils.checkSetting(colIndex >= 0, "The selected column '%s' is not part of the input", pathColName);
-
-        // check column type
-        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(colIndex);
-        if (!pathColSpec.getType().isCompatible(BinaryObjectDataValue.class)) {
-            throw new InvalidSettingsException(
-                String.format("The selected column '%s' has the wrong type", pathColName));
-        }
+        //check if column exists and is of compatible BinaryObjectDataValue type
+        validateColumnExistenceAndTypeComptability(inSpec, binaryObjColName, colIndex, BinaryObjectDataValue.class);
 
         if (inSpec.containsName(OUTPUT_LOCATION_COL_NAME)) {
             setWarningMessage(String.format("The name of the column to create is already taken, using '%s' instead.",
                 getUniqueColumnName(inSpec)));
         }
 
+        // Validate m_outputFilenameColumnModel only if this option is selected in m_filenameSettingsModel
+        if (!m_binaryObjectsToFileNodeConfig.generateFileNames()) {
+            final String outputFilenameColName =
+                m_binaryObjectsToFileNodeConfig.getStringValOutputFilenameColumnModel();
+            final int outputFilenameColIndex = inSpec.findColumnIndex(outputFilenameColName);
+
+            //check if column exists and is of compatible StringValue type
+            validateColumnExistenceAndTypeComptability(inSpec, outputFilenameColName, outputFilenameColIndex,
+                StringValue.class);
+        }
+
+    }
+
+    /**
+     * Checks if the column exists and is compatible with the provided DataValue class
+     *
+     * @param inSpec A DataTableSpec object
+     * @param columnName Name of the column to be checked
+     * @param colIndex Index of the column to be checked
+     * @throws InvalidSettingsException
+     */
+    private static void validateColumnExistenceAndTypeComptability(final DataTableSpec inSpec, final String columnName,
+        final int colIndex, final Class<? extends DataValue> valueClass) throws InvalidSettingsException {
+        // check column existence
+        CheckUtils.checkSetting(colIndex >= 0, "The selected column '%s' is not part of the input", columnName);
+
+        // check column type
+        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(colIndex);
+        CheckUtils.checkSetting(pathColSpec.getType().isCompatible(valueClass),
+            "The selected column '%s' has the wrong type", columnName);
     }
 
     /**
@@ -267,9 +306,9 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
         final ColumnRearranger colRearranger = new ColumnRearranger(inSpec);
         colRearranger.append(factory);
 
-        if (m_removeBinaryColumnModel.getBooleanValue()) {
+        if (m_binaryObjectsToFileNodeConfig.isRemoveBinaryColumnModelEnabled()) {
             // remove the binary column from ouput
-            colRearranger.remove(m_binaryColumn.getStringValue());
+            colRearranger.remove(m_binaryObjectsToFileNodeConfig.getStringValSelectedBinaryObjectColumnModel());
         }
         return colRearranger;
     }
@@ -350,7 +389,12 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
         private final FileOverwritePolicy m_overwritePolicy;
 
-        public BinaryObjectsToFilesCellFactory(final DataColumnSpec columnSpec, final int binaryColId,
+        private final int m_outputFilenameColIdx;
+
+        private final String m_userDefinedFilename;
+
+        private BinaryObjectsToFilesCellFactory(final DataColumnSpec columnSpec, final int binaryColId,
+            final int outputFilenameColdId, final String userDefinedFilenamePattern,
             final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final ExecutionContext execContext) {
             super(columnSpec);
             m_binaryObjColIdx = binaryColId;
@@ -359,6 +403,21 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
             m_executionContext = execContext;
             m_iteratorCount = 0;
             m_overwritePolicy = overwritePolicy;
+            m_outputFilenameColIdx = outputFilenameColdId;
+            m_userDefinedFilename = userDefinedFilenamePattern;
+        }
+
+        BinaryObjectsToFilesCellFactory(final DataColumnSpec columnSpec, final int binaryColId,
+            final String userDefinedFilenamePattern, final FileOverwritePolicy overwritePolicy, final FSPath outputPath,
+            final ExecutionContext execContext) {
+            this(columnSpec, binaryColId, -1, userDefinedFilenamePattern, overwritePolicy, outputPath, execContext);
+        }
+
+        BinaryObjectsToFilesCellFactory(final DataColumnSpec columnSpec, final int binaryColId,
+            final int outputFilenameColdId, final FileOverwritePolicy overwritePolicy, final FSPath outputPath,
+            final ExecutionContext execContext) {
+            this(columnSpec, binaryColId, outputFilenameColdId, null, overwritePolicy, outputPath, execContext);
+
         }
 
         @Override
@@ -371,8 +430,10 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
             final BinaryObjectDataCell binaryObjDataCell = (BinaryObjectDataCell)row.getCell(m_binaryObjColIdx);
 
+            final String outputFilename = getOutputFilename(row);
+
             //will introduce dynamic naming convention in future updates
-            final FSPath outputFileFSPath = (FSPath)m_outputPath.resolve("File_" + m_iteratorCount + ".dat");
+            final FSPath outputFileFSPath = (FSPath)m_outputPath.resolve(outputFilename);
             m_iteratorCount++;
 
             //handles file creation and FileOverwritePolicy settings
@@ -384,6 +445,30 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
             }
 
             return m_multiFSLocationCellFactory.createCell(m_executionContext, outputFileFSPath.toFSLocation());
+        }
+
+        /**
+         * Check factory options whether to get filename from output column or user defined pattern and formulate an
+         * output filename
+         *
+         * @param A DataRow object for the current row
+         * @return a string value for output filename
+         */
+        private String getOutputFilename(final DataRow row) {
+            final String outputFilename;
+            // -1 indicates this option is not selected
+            if (m_outputFilenameColIdx != -1) {
+                //Throw exception is filename needs comes from selected column but found Missing value
+                if (row.getCell(m_outputFilenameColIdx).isMissing()) {
+                    throw new RuntimeException("Output filename in row \"" + row.getKey() + "\" is missing"); //NOSONAR
+                }
+                final StringCell outputFilenameDataCell = (StringCell)row.getCell(m_outputFilenameColIdx);
+                outputFilename = outputFilenameDataCell.getStringValue();
+            } else {
+                //Replace ? in the user defined input string with m_iteratorCount to generate unique names
+                outputFilename = m_userDefinedFilename.replace("?", Integer.toString(m_iteratorCount));
+            }
+            return outputFilename;
         }
 
         /**
@@ -421,5 +506,4 @@ final class BinaryObjectsToFilesNodeModel extends NodeModel {
 
         }
     }
-
 }
