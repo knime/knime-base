@@ -99,6 +99,13 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
         return new TreeTypeResolver();
     }
 
+    @Override
+    public boolean supports(final V value) {
+        // by definition the root corresponds to the most generic value
+        // hence if it doesn't accept value, then no other node does
+        return m_root.test(value);
+    }
+
     /**
      * Returns the root of this tree.
      *
@@ -111,8 +118,7 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
     @Override
     public TreeTypeHierarchy<T, T> createTypeFocusedHierarchy() {
         final Map<TreeNode<T, ?>, Set<T>> childTypes = collectChildTypes();
-        final TreeNode<T, T> root =
-            new TreeNode<>(null, TypeTester.createTypeTester(m_root.getType(), t -> true));
+        final TreeNode<T, T> root = new TreeNode<>(null, TypeTester.createTypeTester(m_root.getType(), t -> true));
         final List<TreeNode<T, T>> leaves = createNodesAndCollectLeaves(childTypes, root);
         return new TreeTypeHierarchy<>(root, leaves);
     }
@@ -224,8 +230,8 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
 
     /**
      * Builder for {@link TreeTypeHierarchy} objects.</br>
-     * Assuming we have instances of {@code TypeTester<Class<?>, String>} {@code stringTester},
-     * {@code doubleTester}, {@code integerTester}, {@code booleanTester} and want to create the hierarchy:
+     * Assuming we have instances of {@code TypeTester<Class<?>, String>} {@code stringTester}, {@code doubleTester},
+     * {@code integerTester}, {@code booleanTester} and want to create the hierarchy:
      *
      * <pre>
      *        String
@@ -234,7 +240,9 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
      *     /
      * Integer
      * </pre>
+     *
      * The necessary code to create this hierarchy is:
+     *
      * <pre>
      * TreeTypeHierarchy<Class, String> hierarchy = TreeTypeHierarchy.builder(stringTester)
      *                                                .addType(String.class, doubleTester)
@@ -324,10 +332,9 @@ public final class TreeTypeHierarchy<T, V> implements TypeFocusableTypeHierarchy
 
         private TreeWalker<T, V> advanceUntilMatch(final V value) {
             while (!m_current.test(value)) {
-                CheckUtils.checkState(!reachedTop(),
-                    "No match found for %s. "
-                        + "This is illegal because the top most type in a hierarchy (%s) must match everything.",
-                    value, m_current);
+                if (reachedTop()) {
+                    throw new NoCompatibleTypeException(String.format("No match found for %s.", value));
+                }
                 advanceOneNode();
             }
             return this;

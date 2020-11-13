@@ -44,78 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 16, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 18, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.type.hierarchy;
 
-import java.util.function.Consumer;
-
 /**
- * Defines how different types relate to each other.
+ * A {@link RuntimeException} indicating that no compatible type could be found for a value.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> type that is used to identify types (e.g. Class)
- * @param <V> type of values that are tested for being of a certain type
  * @noreference non-public API
- * @noimplement non-public API
+ * @noinstantiate non-public API
+ * @noextend non-public API
  */
-public interface TypeHierarchy<T, V> {
+public class NoCompatibleTypeException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Creates a {@link TypeResolver resolver} that is based on this {@link TypeHierarchy hierarchy}.
+     * Constructor with message and cause.
      *
-     * @return a resolver that is based on this hierarchy
+     * @param message of the exception
+     * @param cause the causing {@link Throwable}
      */
-    TypeResolver<T, V> createResolver();
+    public NoCompatibleTypeException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 
     /**
-     * Checks if any of the types in the hierarchy accepts <b>value</b>.
+     * Constructor with a message.
      *
-     * @param value to check
-     * @return {@code true} if any type in the hierarchy is compatible with <b>value</b>
+     * @param message of the exception
      */
-    boolean supports(final V value);
-
-    /**
-     * Allows to find the common supertype of values by following a type hierarchy.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     * @param <T> type that is used to identify types (e.g. Class)
-     * @param <V> type of values that are tested for being of a certain type
-     */
-    public interface TypeResolver<T, V> extends Consumer<V> {
-
-        /**
-         * @return the preferred type of this hierarchy
-         */
-        T getMostSpecificType();
-
-        /**
-         * Observes the given value.
-         * If <b>value</b> is compatible with the currently most specific type nothing changes,
-         * otherwise the hierarchy is traversed until a type is found that is compatible with <b>value</b>
-         *
-         * @param value to observe
-         * @throws NoCompatibleTypeException if the value isn't supported by any type in the hierarchy
-         */
-        @Override
-        void accept(V value);
-
-        /**
-         * Indicates whether the top of the hierarchy i.e. the most generic type has been reached.
-         * Once the top of the hierarchy is reached, there is no point in further
-         * search since there is no more generic type.
-         *
-         * @return true if the top of the hierarchy is reached
-         */
-        boolean reachedTop();
-
-        /**
-         * Indicates whether a type is available, i.e., if at least one value has ever been observed.
-         *
-         * @return {@code true} if a type is available
-         */
-        boolean hasType();
+    public NoCompatibleTypeException(final String message) {
+        super(message);
     }
 
 }
