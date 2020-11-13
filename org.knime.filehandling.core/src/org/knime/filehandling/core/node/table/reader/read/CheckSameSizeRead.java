@@ -48,9 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
@@ -59,10 +59,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class CheckSameSizeRead<V> extends AbstractReadDecorator<V> {
-
-    private int m_size = -1;
-
+final class CheckSameSizeRead<V> extends GenericCheckSameSizeRead<Path, V> implements Read<V> {
     /**
      * Constructor.
      *
@@ -73,18 +70,7 @@ final class CheckSameSizeRead<V> extends AbstractReadDecorator<V> {
     }
 
     @Override
-    public RandomAccessible<V> next() throws IOException {
-        final RandomAccessible<V> current = getSource().next();
-        if (m_size == -1 && current != null) {
-            m_size = current.size();
-        } else if (current != null) {
-            final int size = current.size();
-            CheckUtils.checkArgument(m_size <= size, "The data row has too few data elements.");
-            CheckUtils.checkArgument(m_size >= size, "The data row has too many data elements.");
-        } else {
-            // either we are at the end of the read or the size matched
-        }
-        return current;
+    public Optional<Path> getPath() {
+        return getItem();
     }
-
 }

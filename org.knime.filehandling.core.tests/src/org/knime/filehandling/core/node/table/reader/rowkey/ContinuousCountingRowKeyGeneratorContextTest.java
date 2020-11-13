@@ -78,7 +78,7 @@ public class ContinuousCountingRowKeyGeneratorContextTest {
     @Mock
     private Path m_path2 = null;
 
-    private ContinuousCountingRowKeyGeneratorContext<String> m_testInstance;
+    private ContinuousCountingRowKeyGeneratorContext<Path, String> m_testInstance;
 
     /**
      * Initializes the test instance.

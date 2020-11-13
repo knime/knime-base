@@ -49,8 +49,10 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
@@ -62,9 +64,11 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
@@ -83,7 +87,7 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
  */
 public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConfig<C>, T> extends NodeDialogPane {
 
-    private final TableReaderPreviewTransformationController<C, T> m_coordinator;
+    private final TableReaderPreviewTransformationController<Path, C, T> m_coordinator;
 
     private final List<TableReaderPreviewView> m_previews = new ArrayList<>();
 
@@ -111,7 +115,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         final TableTransformationTableModel<T> transformationModel =
             new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
-            analysisComponentModel, previewModel, this::getConfig, this::createReadPathAccessor);
+            analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
@@ -267,7 +271,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
-    protected final TableSpecConfig getTableSpecConfig() {
+    protected final GenericTableSpecConfig<Path> getTableSpecConfig() {
         return m_coordinator.getTableSpecConfig();
     }
 
@@ -281,6 +285,30 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      * @throws InvalidSettingsException if the settings are invalid
      */
     protected abstract MultiTableReadConfig<C> getConfig() throws InvalidSettingsException;
+
+    @SuppressWarnings("resource")
+    private GenericItemAccessor<Path> createItemAccessor() {
+        final ReadPathAccessor pathAccessor = createReadPathAccessor();
+        return new GenericItemAccessor<Path>() {
+
+            @Override
+            public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
+                throws IOException, InvalidSettingsException {
+                return pathAccessor.getPaths(statusMessageConsumer);
+            }
+
+            @Override
+            public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
+                throws IOException, InvalidSettingsException {
+                return pathAccessor.getRootPath(statusMessageConsumer);
+            }
+
+            @Override
+            public void close() throws IOException {
+                pathAccessor.close();
+            }
+        };
+    }
 
     /**
      * Creates a <b>new</b> {@link ReadPathAccessor} that corresponds to the current file selection.</br>

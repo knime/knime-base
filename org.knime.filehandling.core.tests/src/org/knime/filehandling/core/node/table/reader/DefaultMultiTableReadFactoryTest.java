@@ -69,8 +69,8 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -108,7 +108,7 @@ public class DefaultMultiTableReadFactoryTest {
     private TypeResolver<String, String> m_typeResolver;
 
     @Mock
-    private RowKeyGeneratorContextFactory<String> m_rowKeyGenFactory;
+    private GenericRowKeyGeneratorContextFactory<Path, String> m_rowKeyGenFactory;
 
     @Mock
     private RowKeyGenerator<String> m_rowKeyGen;

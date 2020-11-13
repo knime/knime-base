@@ -49,12 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.util;
 
 import java.nio.file.Path;
-import java.util.Collection;
-
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
  * Represents the raw state of a multi table read i.e. before type mapping, renaming, filtering or reordering.
@@ -62,38 +56,6 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type representing external types
  */
-public interface StagedMultiTableRead<T> {
-
-    /**
-     * Creates a {@link MultiTableRead} that uses the default settings i.e. the default type mapping, no filtering, no
-     * renaming and no reordering.
-     *
-     * @return a {@link MultiTableRead} that uses the defaults
-     */
-    MultiTableRead withoutTransformation();
-
-    /**
-     * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.
-     *
-     * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
-     * @return a {@link MultiTableRead} using the provided {@link TableTransformation}
-     */
-    MultiTableRead withTransformation(final TableTransformation<T> selectorModel);
-
-    /**
-     * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type
-     * mapping, column filtering or reordering. To be used to make the mentioned operations configurable.
-     *
-     * @return the raw {@link ReaderTableSpec} i.e. before type mapping, column filtering or reordering
-     */
-    RawSpec<T> getRawSpec();
-
-    /**
-     * Checks if the provided <b>paths</b> match the paths used to instantiate this MultiTableRead.
-     *
-     * @param paths to read from
-     * @return {@code true} if the provided <b>paths</b> are valid
-     */
-    boolean isValidFor(final Collection<Path> paths);
+public interface StagedMultiTableRead<T> extends GenericStagedMultiTableRead<Path, T> {
 
 }

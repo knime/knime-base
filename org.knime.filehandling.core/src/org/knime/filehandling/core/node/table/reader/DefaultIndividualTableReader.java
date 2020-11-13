@@ -48,14 +48,11 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.util.OptionalLong;
+import java.nio.file.Path;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
@@ -67,13 +64,8 @@ import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type representing values
  */
-final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> {
-
-    private final RowKeyGenerator<V> m_rowKeyGenerator;
-
-    private final IndexMappingRandomAccessibleDecorator<V> m_mapper;
-
-    private final TypeMapper<V> m_typeMapper;
+final class DefaultIndividualTableReader<V> extends GenericDefaultIndividualTableReader<Path, V>
+implements IndividualTableReader<V> {
 
     /**
      * Constructor.
@@ -85,52 +77,7 @@ final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> 
      */
     DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final IndexMapper idxMapper,
         final RowKeyGenerator<V> rowKeyGenerator) {
-        m_mapper = new IndexMappingRandomAccessibleDecorator<>(idxMapper);
-        m_rowKeyGenerator = rowKeyGenerator;
-        m_typeMapper = typeMapper;
-    }
-
-    @Override
-    public DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception {
-        m_mapper.set(randomAccessible);
-        final RowKey key = m_rowKeyGenerator.createKey(randomAccessible);
-        // reads the tokens from m_readAdapter and converts them into a DataRow
-        return m_typeMapper.map(key, m_mapper);
-    }
-
-    @Override
-    public void fillOutput(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
-        throws Exception {
-        final OptionalLong maxProgress = read.getMaxProgress();
-        if (maxProgress.isPresent()) {
-            fillOutputWithProgress(read, output, progress, maxProgress.getAsLong());
-        } else {
-            fillOutputWithoutProgress(read, output, progress);
-        }
-    }
-
-    private void fillOutputWithoutProgress(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
-        throws Exception {
-        RandomAccessible<V> next;
-        for (long i = 1; (next = read.next()) != null; i++) {
-            progress.checkCanceled();
-            final long finalI = i;
-            progress.setMessage(() -> String.format("Reading row %s", finalI));
-            output.push(toRow(next));
-        }
-    }
-
-    private void fillOutputWithProgress(final Read<V> read, final RowOutput output, final ExecutionMonitor progress,
-        final double size) throws Exception {
-        final double doubleSize = size;
-        RandomAccessible<V> next;
-        for (long i = 1; (next = read.next()) != null; i++) {
-            progress.checkCanceled();
-            final long finalI = i;
-            // TODO discuss how to report progress if rows are filtered
-            progress.setProgress(read.getProgress() / doubleSize, () -> String.format("Reading row %s", finalI));
-            output.push(toRow(next));
-        }
+        super(typeMapper, idxMapper, rowKeyGenerator);
     }
 
 }

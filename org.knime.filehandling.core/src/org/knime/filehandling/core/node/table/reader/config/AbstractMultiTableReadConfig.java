@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import java.nio.file.Path;
 
 /**
  * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and setters but doesn't implement
@@ -61,19 +61,7 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @noextend non-public API
  */
 public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    implements MultiTableReadConfig<C> {
-
-    private final TC m_tableReadConfig;
-
-    private TableSpecConfig m_tableSpecConfig = null;
-
-    private boolean m_failOnDifferingSpecs = true;
-
-    /**
-     * @deprecated Only used as fallback if no TableSpecConfig is available
-     */
-    @Deprecated
-    private SpecMergeMode m_specMergeMode = SpecMergeMode.UNION;
+extends GenericAbstractMultiTableReadConfig<Path, C, TC> implements MultiTableReadConfig<C> {
 
     /**
      * Constructor.
@@ -81,72 +69,11 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      * @param tableReadConfig holding settings for reading a single table
      */
     protected AbstractMultiTableReadConfig(final TC tableReadConfig) {
-        m_tableReadConfig = tableReadConfig;
-    }
-
-    @Override
-    public TC getTableReadConfig() {
-        return m_tableReadConfig;
-    }
-
-    @Override
-    public boolean failOnDifferingSpecs() {
-        return m_failOnDifferingSpecs;
-    }
-
-    /**
-     * Allows to set whether the node should fail if the specs differ in case multiple files are read.
-     *
-     * @param failOnDifferingSpecs {@code true} if the node should fail if multiple files are read and they have
-     *            differing specs
-     */
-    public void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
-        m_failOnDifferingSpecs = failOnDifferingSpecs;
+        super(tableReadConfig);
     }
 
     @Override
     public TableSpecConfig getTableSpecConfig() {
-        return m_tableSpecConfig;
+        return (TableSpecConfig)super.getTableSpecConfig();
     }
-
-    @Override
-    public boolean hasTableSpecConfig() {
-        return m_tableSpecConfig != null;
-    }
-
-    @Override
-    public void setTableSpecConfig(final TableSpecConfig config) {
-        m_tableSpecConfig = config;
-    }
-
-    /**
-     * @return the specMergeMode
-     * @deprecated only used as fallback if there was no TableSpecConfig
-     */
-    @Override
-    @Deprecated
-    public SpecMergeMode getSpecMergeMode() {
-        return m_specMergeMode;
-    }
-
-    /**
-     * Sets the {@link SpecMergeMode}.
-     *
-     * @param specMergeMode set the spec merge mode
-     * @deprecated only used as fallback if there is no TableSpecConfig
-     */
-    @Deprecated
-    public void setSpecMergeMode(final SpecMergeMode specMergeMode) {
-        m_specMergeMode = specMergeMode;
-    }
-
-    /**
-     * Convenience getter for the {@link ReaderSpecificConfig}.
-     *
-     * @return the {@link ReaderSpecificConfig}
-     */
-    public C getReaderSpecificConfig() {
-        return m_tableReadConfig.getReaderSpecificConfig();
-    }
-
 }

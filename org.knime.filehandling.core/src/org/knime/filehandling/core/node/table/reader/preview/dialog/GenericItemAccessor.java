@@ -44,65 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 12, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 16, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
-import java.nio.file.Path;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.util.Pair;
-import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * A {@link SwingWorkerWithContext} that retrieves the paths of a {@link ReadPathAccessor} asynchronously.
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * Generic item accessor interface.
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  */
-final class PathAccessSwingWorker extends SwingWorkerWithContext<Pair<Path, List<Path>>, Void> {
+public interface GenericItemAccessor<I> extends Closeable {
 
-    private static final int DELAY = 200;
+    /**
+     * Retrieves the items corresponding to the settings provided in the constructor.</br>
+     * Reader nodes should make use of this method. This method has to ensure that the list is sorted in lexicographical
+     * order.
+     *
+     * @param statusMessageConsumer for communicating non-fatal errors and warnings
+     * @return the list of items corresponding to the settings
+     * @throws IOException if an I/O problem occurs while listing the files
+     * @throws InvalidSettingsException if the settings are invalid e.g. the root item is invalid
+     */
+    List<I> getItems(Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException;
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathAccessSwingWorker.class);
-
-    private final ReadPathAccessor m_pathAccessor;
-
-    private final Consumer<Pair<Path, List<Path>>> m_pathsConsumer;
-
-    private final Consumer<ExecutionException> m_exceptionConsumer;
-
-    PathAccessSwingWorker(final ReadPathAccessor pathAccessor, final Consumer<Pair<Path, List<Path>>> pathsConsumer, final Consumer<ExecutionException> exceptionConsumer) {
-        m_pathAccessor = pathAccessor;
-        m_pathsConsumer = pathsConsumer;
-        m_exceptionConsumer = exceptionConsumer;
-    }
-
-    @Override
-    protected Pair<Path, List<Path>> doInBackgroundWithContext() throws Exception {
-        Thread.sleep(DELAY);
-        final Path rootPath = m_pathAccessor.getRootPath(s -> {});
-        final List<Path> paths = m_pathAccessor.getPaths(s -> {});
-        return new Pair<>(rootPath, paths);
-    }
-
-    @Override
-    protected void doneWithContext() {
-        if (!isCancelled()) {
-            try {
-                final Pair<Path, List<Path>> rootPathAndPaths = get();
-                m_pathsConsumer.accept(rootPathAndPaths);
-            } catch (InterruptedException ex) {// NOSONAR
-                // shouldn't happen because doneWithContext is only called when doInBackgroundWithContext is done
-                // therefore get() doesn't block and we can't be interrupted
-                LOGGER.error("InterruptedException encountered even though isCancelled() returned false.", ex);
-            } catch (ExecutionException ex) {
-                m_exceptionConsumer.accept(ex);
-            }
-        }
-    }
+    /**
+     * Returns the root item from which the search starts.
+     *
+     * @param statusMessageConsumer consumer for status messages
+     * @return the root item
+     * @throws IOException if an I/O problem occurs while accessing the root item
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    I getRootItem(Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException;
 
 }

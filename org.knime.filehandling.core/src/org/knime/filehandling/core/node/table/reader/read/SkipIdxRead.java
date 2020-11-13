@@ -48,9 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * A {@link Read} that skips the provided index in the underlying read.
@@ -58,11 +57,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of value
  */
-public final class SkipIdxRead<V> extends AbstractReadDecorator<V> {
-
-    private final long m_idxToSkip;
-
-    private long m_current = -1;
+public final class SkipIdxRead<V> extends GenericSkipIdxRead<Path, V> implements Read<V> {
 
     /**
      * Constructor.
@@ -71,18 +66,11 @@ public final class SkipIdxRead<V> extends AbstractReadDecorator<V> {
      * @param idxToSkip the index to skip (0 based indexing i.e. the first row has index 0)
      */
     public SkipIdxRead(final Read<V> source, final long idxToSkip) {
-        super(source);
-        m_idxToSkip = idxToSkip;
+        super(source, idxToSkip);
     }
 
-    @SuppressWarnings("resource") // the source is closed in AbstractReadDecorator#close
     @Override
-    public RandomAccessible<V> next() throws IOException {
-        m_current++;
-        if (m_current == m_idxToSkip) {
-            getSource().next();
-        }
-        return getSource().next();
+    public Optional<Path> getPath() {
+        return getItem();
     }
-
 }

@@ -48,11 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
 
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.AbstractReadDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
@@ -61,9 +59,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of tokens making up a row in the read
  */
-final class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
-
-    private final ColumnFilterRandomAccessible<V> m_filterDecorator;
+final class ColumnFilterRead<V> extends GenericColumnFilterRead<Path, V> implements Read<V> {
 
     /**
      * Constructor.
@@ -73,20 +69,11 @@ final class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
      *            is smaller than columnToFilter, then no column is filtered)
      */
     ColumnFilterRead(final Read<V> source, final int columnToFilter) {
-        super(source);
-        CheckUtils.checkArgument(columnToFilter >= 0, "The columnToFilter argument must be >= 0.");
-        m_filterDecorator = new ColumnFilterRandomAccessible<>(columnToFilter);
+        super(source, columnToFilter);
     }
 
     @Override
-    public RandomAccessible<V> next() throws IOException {
-        RandomAccessible<V> next = getSource().next();
-        if (next != null) {
-            m_filterDecorator.setDecoratee(next);
-            return m_filterDecorator;
-        } else {
-            return null;
-        }
+    public Optional<Path> getPath() {
+        return getItem();
     }
-
 }

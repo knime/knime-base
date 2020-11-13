@@ -65,12 +65,13 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.config.ImmutableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.GenericMultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.config.GenericImmutableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
+import org.knime.filehandling.core.node.table.reader.util.GenericStagedMultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
@@ -79,39 +80,39 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class SpecGuessingSwingWorker<C extends ReaderSpecificConfig<C>, T>
-    extends SwingWorkerWithContext<StagedMultiTableRead<T>, AnalysisUpdate> {
+final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>, T>
+    extends SwingWorkerWithContext<GenericStagedMultiTableRead<I, T>, AnalysisUpdate> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SpecGuessingSwingWorker.class);
 
     private final String m_rootPath;
 
-    private final List<Path> m_paths;
+    private final List<I> m_paths;
 
-    private final MultiTableReadFactory<C, T> m_reader;
+    private final GenericMultiTableReadFactory<I, C, T> m_reader;
 
-    private final MultiTableReadConfig<C> m_config;
+    private final GenericMultiTableReadConfig<I, C> m_config;
 
     private final AnalysisComponentModel m_analysisComponent;
 
     private final PreviewExecutionMonitor m_exec = new PreviewExecutionMonitor();
 
-    private final Consumer<StagedMultiTableRead<T>> m_resultConsumer;
+    private final Consumer<GenericStagedMultiTableRead<I, T>> m_resultConsumer;
 
-    SpecGuessingSwingWorker(final MultiTableReadFactory<C, T> reader,
-        final String rootPath, final List<Path> paths, final ImmutableMultiTableReadConfig<C> config,
-        final AnalysisComponentModel analysisComponent, final Consumer<StagedMultiTableRead<T>> resultConsumer) {
+    SpecGuessingSwingWorker(final GenericMultiTableReadFactory<I, C, T> reader,
+        final String rootPath, final List<I> paths, final GenericImmutableMultiTableReadConfig<I, C> config,
+        final AnalysisComponentModel analysisComponent, final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer) {
         m_rootPath = rootPath;
         m_reader = reader;
         m_config = config;
         m_paths = paths;
         m_analysisComponent = analysisComponent;
         m_resultConsumer = resultConsumer;
-        m_exec.setNumPathsToRead(paths.size());
+        m_exec.setNumItemsToRead(paths.size());
     }
 
     @Override
-    protected StagedMultiTableRead<T> doInBackgroundWithContext() throws Exception {
+    protected GenericStagedMultiTableRead<I, T> doInBackgroundWithContext() throws Exception {
         // Since we do the spec guessing in a background thread, we need to use the publish method
         // to forward any updates to the process method which is called in the UI thread
         final NodeProgressMonitor progressMonitor = m_exec.getProgressMonitor();
@@ -122,17 +123,17 @@ final class SpecGuessingSwingWorker<C extends ReaderSpecificConfig<C>, T>
             progressMonitor.setExecuteCanceled();
         };
         quickScanModel.addActionListener(listener);
-        final StagedMultiTableRead<T> read = m_reader.create(m_rootPath, m_paths, m_config, m_exec);
+        final GenericStagedMultiTableRead<I, T> read = m_reader.create(m_rootPath, m_paths, m_config, m_exec);
         quickScanModel.removeActionListener(listener);
         return read;
     }
 
     private AnalysisUpdate createAnalysisUpdate(final NodeProgressEvent progressEvent) {
-        final Optional<Path> currentPath = m_exec.getCurrentPath();
-        final StringBuilder sb = new StringBuilder("Reading file ")//
-            .append(m_exec.getCurrentlyReadingPathIdx())//
+        final Optional<Path> currentPath = m_exec.getCurrenttem();
+        final StringBuilder sb = new StringBuilder("Reading input data ")//
+            .append(m_exec.getCurrentlyReadingItemIdx())//
             .append(" of ")//
-            .append(m_exec.getNumPathsToRead());
+            .append(m_exec.getNumItemsToRead());
         if (currentPath.isPresent()) {
             sb.append(": ")//
                 .append(currentPath.get().toString());
@@ -200,7 +201,7 @@ final class SpecGuessingSwingWorker<C extends ReaderSpecificConfig<C>, T>
         } catch (CanceledExecutionException ex) {
             LOGGER.info("Spec analysis has been cancelled.", ex);
             m_analysisComponent.setProgressLabel(SharedIcons.WARNING_YELLOW.get(),
-                "The suggested column types are based on a partial file analysis only!");
+                "The suggested column types are based on a partial input data analysis only!");
         }
     }
 
@@ -213,7 +214,7 @@ final class SpecGuessingSwingWorker<C extends ReaderSpecificConfig<C>, T>
                         + " rows only. See 'Advanced Settings' tab.");
             } else {
                 m_analysisComponent.setProgressLabel(SharedIcons.SUCCESS.get(),
-                    "File analysis successfully completed.");
+                    "Data analysis successfully completed.");
             }
         } else {
             m_analysisComponent.setProgressLabel(null, " ");

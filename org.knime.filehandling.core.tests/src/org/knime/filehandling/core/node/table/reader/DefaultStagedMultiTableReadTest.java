@@ -71,8 +71,8 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -118,10 +118,10 @@ public class DefaultStagedMultiTableReadTest {
     private TableReader<DummyReaderSpecificConfig, String, String> m_tableReader;
 
     @Mock
-    private RowKeyGeneratorContextFactory<String> m_rowKeyGenContextFactory;
+    private GenericRowKeyGeneratorContextFactory<Path, String> m_rowKeyGenContextFactory;
 
     @Mock
-    private RowKeyGeneratorContext<String> m_rowKeyGenContext;
+    private GenericRowKeyGeneratorContext<Path, String> m_rowKeyGenContext;
 
     @Mock
     private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;

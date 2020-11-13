@@ -48,12 +48,10 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.io.IOException;
-import java.util.NoSuchElementException;
+import java.nio.file.Path;
 import java.util.function.Function;
 
 import org.knime.core.data.DataRow;
-import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -65,57 +63,16 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndividualTablePreviewRowIterator<V> extends PreviewRowIterator {
+public final class IndividualTablePreviewRowIterator<V> extends GenericIndividualTablePreviewRowIterator<Path, V> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(IndividualTablePreviewRowIterator.class);
-
-    private final Read<V> m_read;
-
-    private final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> m_rowMapper;
-
-    private DataRow m_next;
-
-    IndividualTablePreviewRowIterator(final Read<V> read,
+    /**
+     * Constructor.
+     *
+     * @param read the {@link Read} to use
+     * @param rowMapper the row mapper
+     */
+    public IndividualTablePreviewRowIterator(final Read<V> read,
         final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> rowMapper) {
-        m_rowMapper = rowMapper;
-        m_read = read;
-    }
-
-    @Override
-    public DataRow next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        final DataRow next = m_next;
-        m_next = null;
-        return next;
-    }
-
-    @Override
-    public boolean hasNext() {
-        if (m_next != null) {
-            return true;
-        }
-        return fetchNext();
-    }
-
-    private boolean fetchNext() {
-        try {
-            final RandomAccessible<V> next = m_read.next();
-            m_next = next == null ? null : m_rowMapper.apply(next);
-        } catch (Exception e) {
-            throw new PreviewIteratorException(e.getMessage(), e);
-        }
-        return m_next != null;
-    }
-
-    @Override
-    public void close() {
-        try {
-            m_read.close();
-        } catch (IOException ex) {
-            // then don't close it
-            LOGGER.debug("Failed to close read.", ex);
-        }
+        super(read, rowMapper);
     }
 }

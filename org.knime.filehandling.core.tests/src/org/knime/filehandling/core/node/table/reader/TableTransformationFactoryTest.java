@@ -53,6 +53,7 @@ import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.chec
 import static org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec.createWithName;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import org.junit.Before;
@@ -65,8 +66,8 @@ import org.knime.core.data.def.IntCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -125,7 +126,7 @@ public class TableTransformationFactoryTest {
     @Mock
     private TableTransformation m_configuredTransformationModel;//NOSONAR
 
-    private TableTransformationFactory<String> m_testInstance;
+    private TableTransformationFactory<Path, String> m_testInstance;
 
     @Before
     public void init() {

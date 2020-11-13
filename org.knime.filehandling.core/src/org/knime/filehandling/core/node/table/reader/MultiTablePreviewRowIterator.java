@@ -51,9 +51,7 @@ package org.knime.filehandling.core.node.table.reader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
-import org.knime.core.data.DataRow;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 
@@ -68,61 +66,11 @@ import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("javadoc")
-final class MultiTablePreviewRowIterator extends PreviewRowIterator {
-
-    private final Iterator<Path> m_pathIterator;
-
-    private final FileStoreFactory m_fileStoreFactory;
-
-    private final CheckedExceptionBiFunction<Path, FileStoreFactory, PreviewRowIterator, IOException> m_iteratorFn;
-
-    private PreviewRowIterator m_currentIterator;
+final class MultiTablePreviewRowIterator extends GenericMultiTablePreviewRowIterator<Path> {
 
     MultiTablePreviewRowIterator(final Iterator<Path> pathIterator,
         final CheckedExceptionBiFunction<Path, FileStoreFactory, PreviewRowIterator, IOException> iteratorFn) {
-        m_iteratorFn = iteratorFn;
-        m_pathIterator = pathIterator;
-        m_fileStoreFactory = FileStoreFactory.createNotInWorkflowFileStoreFactory();
-    }
-
-    @Override
-    public boolean hasNext() {
-        assignCurrentIterator();
-        return m_currentIterator != null && m_currentIterator.hasNext();
-    }
-
-    private void assignCurrentIterator() {
-        // if no iterator is yet assigned or the current iterator does not have further elements,
-        // take the next iterator if possible and check if it #hasNext
-        while ((m_currentIterator == null || !m_currentIterator.hasNext()) && m_pathIterator.hasNext()) {
-            if (m_currentIterator != null) {
-                m_currentIterator.close();
-                m_currentIterator = null;
-            }
-            final Path path = m_pathIterator.next();
-            try {
-                m_currentIterator = m_iteratorFn.apply(path, m_fileStoreFactory);
-            } catch (IOException e) {
-                final String msg = "Error during reading of '" + path.toString() + "': " + e.getMessage();
-                throw new PreviewIteratorException(msg, e);
-            }
-        }
-    }
-
-    @Override
-    public DataRow next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        return m_currentIterator.next();
-    }
-
-    @Override
-    public void close() {
-        m_fileStoreFactory.close();
-        if (m_currentIterator != null) {
-            m_currentIterator.close();
-        }
+        super(pathIterator, iteratorFn);
     }
 
 }

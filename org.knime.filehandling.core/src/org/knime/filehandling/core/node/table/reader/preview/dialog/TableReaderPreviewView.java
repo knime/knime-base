@@ -85,7 +85,7 @@ public final class TableReaderPreviewView extends JPanel {
 
     private final ChangeEvent m_changeEvent = new ChangeEvent(this);
 
-    TableReaderPreviewView(final TableReaderPreviewModel model) {
+    public TableReaderPreviewView(final TableReaderPreviewModel model) {
         m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
         m_tableView = new TableView(model.getPreviewTableModel());
         // reordering the columns might give the impression that the order in the output changes too
@@ -110,12 +110,12 @@ public final class TableReaderPreviewView extends JPanel {
         add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
     }
 
-    void updateViewport(final TableReaderPreviewView other) {
+    public void updateViewport(final TableReaderPreviewView other) {
         final Rectangle visibleRect = other.m_tableView.getViewport().getViewRect();
         m_tableView.getViewport().setViewPosition(visibleRect.getLocation());
     }
 
-    void addScrollListener(final ChangeListener scrollListener) {
+    public void addScrollListener(final ChangeListener scrollListener) {
         m_scrollListeners.add(scrollListener);
     }
 

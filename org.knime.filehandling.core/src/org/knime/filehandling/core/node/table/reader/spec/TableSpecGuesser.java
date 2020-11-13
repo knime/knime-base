@@ -48,22 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.OptionalLong;
+import java.nio.file.Path;
 import java.util.function.Function;
 
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.util.UniqueNameGenerator;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
@@ -76,13 +63,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class TableSpecGuesser<T, V> {
-
-    private static final int PROGRESS_UPDATE_INTERVAL = 1000;
-
-    private final TypeHierarchy<T, V> m_typeHierarchy;
-
-    private final Function<V, String> m_valueToString;
+public final class TableSpecGuesser<T, V> extends GenericTableSpecGuesser<Path, T, V> {
 
     /**
      * Constructor.
@@ -91,169 +72,7 @@ public final class TableSpecGuesser<T, V> {
      * @param columnNameExtractor used to extract column names from values
      */
     public TableSpecGuesser(final TypeHierarchy<T, V> typeHierarchy, final Function<V, String> columnNameExtractor) {
-        m_typeHierarchy = CheckUtils.checkArgumentNotNull(typeHierarchy, "The typeHierarchy must not be null.");
-        m_valueToString =
-            CheckUtils.checkArgumentNotNull(columnNameExtractor, "The columnNameExtractor must not be null.");
-    }
-
-    /**
-     * Guesses the {@link TypedReaderTableSpec} from the rows provided by the {@link Read read}.</br>
-     *
-     * @param read providing the rows to guess the spec from
-     * @param config providing the user settings
-     * @param exec the execution monitor
-     * @return the guessed spec
-     * @throws IOException if I/O problems occur
-     */
-    public TypedReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config,
-        final ExecutionMonitor exec) throws IOException {
-        try (final ExtractColumnHeaderRead<V> source = wrap(read, config)) {
-            return guessSpec(source, config, exec);
-        }
-    }
-
-    /**
-     * Guesses the {@link TypedReaderTableSpec} from the rows provided by the {@link ExtractColumnHeaderRead read}.</br>
-     * <i>Note:</i> The contract of this method is that the read obeys the settings, i.e., it is only processing the
-     * proper data rows.
-     *
-     * @param read providing the rows to guess the spec from
-     * @param config providing the user settings
-     * @param exec the execution monitor
-     * @return the guessed spec
-     * @throws IOException if I/O problems occur
-     */
-    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config,
-        final ExecutionMonitor exec) throws IOException {
-        try (Read<V> filtered = filterColIdx(read, config)) {
-            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows(), exec);
-            final String[] headerArray = read.getColumnHeaders()//
-                .map(val -> extractColumnHeaders(val, config))//
-                .orElse(null);
-            CheckUtils.checkArgument(headerArray != null || !config.useColumnHeaderIdx(),
-                "The row containing the table headers (row number %s) was not part of the table.",
-                config.getColumnHeaderIdx());
-            return createTableSpec(typeGuesser, headerArray);
-        }
-    }
-
-    @SuppressWarnings("resource") // the caller uses a try-with scope to ensure that the read is closed
-    private ExtractColumnHeaderRead<V> wrap(final Read<V> read, final TableReadConfig<?> config) {
-        final Read<V> filtered = ReadUtils.decorateForSpecGuessing(read, config);
-        return new DefaultExtractColumnHeaderRead<>(filtered, config);
-    }
-
-    private Read<V> filterColIdx(final ExtractColumnHeaderRead<V> read, final TableReadConfig<?> config) {
-        if (config.useRowIDIdx()) {
-            return new ColumnFilterRead<>(read, config.getRowIDIdx());
-        }
-        return read;
-    }
-
-    private String[] extractColumnHeaders(final RandomAccessible<V> values, final TableReadConfig<?> config) {
-        return convertToStringArray(filterColIdx(values, config));
-    }
-
-    private RandomAccessible<V> filterColIdx(final RandomAccessible<V> values, final TableReadConfig<?> config) {
-        if (config.useRowIDIdx()) {
-            final ColumnFilterRandomAccessible<V> colHeader = new ColumnFilterRandomAccessible<>(config.getRowIDIdx());
-            colHeader.setDecoratee(values);
-            return colHeader;
-        }
-        return values;
-    }
-
-    private String[] convertToStringArray(final RandomAccessible<V> randomAccessible) {
-        return randomAccessible.stream()//
-            .map(val -> val != null //
-                ? m_valueToString.apply(val) //
-                : null)//
-            .toArray(String[]::new);
-    }
-
-    private TypedReaderTableSpec<T> createTableSpec(final TypeGuesser<T, V> typeGuesser, final String[] columnNames) {
-        if (columnNames != null) {
-            String[] headerArray = uniquify(columnNames);
-            // make sure that we have at least as many types as names
-            final List<T> types = typeGuesser.getMostSpecificTypes(headerArray.length);
-            final List<Boolean> hasTypes = typeGuesser.getHasTypes(headerArray.length);
-            if (types.size() != headerArray.length) {
-                // make sure that we have the same number of names as types
-                headerArray = Arrays.copyOf(headerArray, types.size());
-            }
-            return TypedReaderTableSpec.create(Arrays.asList(headerArray), types, hasTypes);
-        } else {
-            return TypedReaderTableSpec.create(typeGuesser.getMostSpecificTypes(0), typeGuesser.getHasTypes(0));
-        }
-    }
-
-    private static String[] uniquify(final String[] columnNames) {
-        final UniqueNameGenerator nameGen = new UniqueNameGenerator(Collections.emptySet());
-        return Arrays.stream(columnNames)//
-            .map(n -> n == null ? null : nameGen.newName(n))//
-            .toArray(String[]::new);
-    }
-
-    private TypeGuesser<T, V> guessTypes(final Read<V> source, final boolean allowShortRows,
-        final ExecutionMonitor exec) throws IOException {
-        final TypeGuesser<T, V> typeGuesser = new TypeGuesser<>(m_typeHierarchy, !allowShortRows);
-        final PreviewExecutionMonitor previewExec;
-        final OptionalLong maxProgress = source.getMaxProgress();
-        final long maxProgressAsLong;
-        if (maxProgress.isPresent()) {
-            maxProgressAsLong = maxProgress.getAsLong();
-        } else {
-            maxProgressAsLong = -1L;
-        }
-        previewExec = getPreviewExecutionMonitor(source, exec, maxProgress);
-        RandomAccessible<V> row;
-        long rowCount = 0;
-        try {
-            while (!typeGuesser.canStop() && (row = source.next()) != null) {
-                exec.checkCanceled();
-                typeGuesser.update(row);
-                rowCount++;
-                final double progress =
-                    maxProgress.isPresent() ? ((double)source.getProgress() / maxProgressAsLong) : 0;
-                setProgress(exec, previewExec, rowCount, progress);
-
-            }
-        } catch (CanceledExecutionException es) {
-            // do nothing, just stop
-        } catch (Exception e) {
-            if (previewExec != null) {
-                previewExec.setSpecGuessingError(rowCount, e.getMessage());
-            } else {
-                throw e;
-            }
-        }
-        return typeGuesser;
-    }
-
-    private static void setProgress(final ExecutionMonitor exec, final PreviewExecutionMonitor previewExec,
-        final long rowCount, final double progress) {
-        if (rowCount == 1 || rowCount % PROGRESS_UPDATE_INTERVAL == 0) {
-            if (previewExec != null) {
-                previewExec.setProgress(progress, rowCount);
-            } else {
-                final long finalRowCount = rowCount; // variable needs to be effective final
-                exec.setProgress(progress, () -> "Analyzed " + finalRowCount + " rows");
-            }
-        }
-    }
-
-    private PreviewExecutionMonitor getPreviewExecutionMonitor(final Read<V> source, final ExecutionMonitor exec,
-        final OptionalLong estimatedSizeInBytes) {
-        final PreviewExecutionMonitor previewExec;
-        if (exec instanceof PreviewExecutionMonitor) {
-            previewExec = (PreviewExecutionMonitor)exec;
-            previewExec.setSizeAssessable(estimatedSizeInBytes.isPresent());
-            previewExec.setCurrentPath(source.getPath());
-            previewExec.incrementCurrentlyReadingPathIdx();
-        } else {
-            previewExec = null;
-        }
-        return previewExec;
+        super(typeHierarchy, columnNameExtractor);
     }
 
 }

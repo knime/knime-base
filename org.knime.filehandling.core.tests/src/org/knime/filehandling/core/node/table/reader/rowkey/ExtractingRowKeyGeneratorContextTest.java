@@ -51,8 +51,6 @@ package org.knime.filehandling.core.node.table.reader.rowkey;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Paths;
-
 import org.eclipse.core.runtime.Path;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,8 +58,6 @@ import org.knime.core.data.RowKey;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import junit.runner.Version;
 
 /**
  * Contains unit tests for ExtractingRowKeyGeneratorContext.
@@ -73,7 +69,7 @@ public class ExtractingRowKeyGeneratorContextTest {
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
-    
+
     /**
      * Tests the {@code createKey} implementation.
      */
@@ -81,11 +77,11 @@ public class ExtractingRowKeyGeneratorContextTest {
     public void testCreateKey() {
         when(m_randomAccessible.get(3)).thenReturn("foo", "bar", "foobar", null);
         when(m_randomAccessible.size()).thenReturn(4);
-        
+
         // test the case that the rowKeyColIndex is out of bounds
-        ExtractingRowKeyGeneratorContext<String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 6);
+        ExtractingRowKeyGeneratorContext<Path, String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 6);
         assertEquals(new RowKey("test_?0"), keyGen.createKey(m_randomAccessible));
-        
+
         // test different RowKeys including null
         keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
         assertEquals(new RowKey("test_foo"), keyGen.createKey(m_randomAccessible));
@@ -93,10 +89,10 @@ public class ExtractingRowKeyGeneratorContextTest {
         assertEquals(new RowKey("test_foobar"), keyGen.createKey(m_randomAccessible));
         assertEquals(new RowKey("test_?3"), keyGen.createKey(m_randomAccessible));
     }
-    
+
     @Test
     public void testCreateKeyGenerator() {
-        ExtractingRowKeyGeneratorContext<String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
-        assertEquals(keyGen, keyGen.createKeyGenerator(null)); 
+        ExtractingRowKeyGeneratorContext<Path, String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
+        assertEquals(keyGen, keyGen.createKeyGenerator(null));
     }
 }

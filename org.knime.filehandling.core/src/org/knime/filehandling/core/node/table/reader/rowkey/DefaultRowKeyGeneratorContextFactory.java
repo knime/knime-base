@@ -53,12 +53,14 @@ import java.util.function.Function;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 
 /**
- * Default implementation of {@link RowKeyGeneratorContextFactory}.
+ * Default implementation of {@link GenericRowKeyGeneratorContextFactory}.
  *
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type of values
  */
-public final class DefaultRowKeyGeneratorContextFactory<V> implements RowKeyGeneratorContextFactory<V> {
+public final class DefaultRowKeyGeneratorContextFactory<I, V> implements GenericRowKeyGeneratorContextFactory<I, V> {
 
     private final Function<V, String> m_rowKeyExtractor;
 
@@ -72,7 +74,7 @@ public final class DefaultRowKeyGeneratorContextFactory<V> implements RowKeyGene
     }
 
     @Override
-    public RowKeyGeneratorContext<V> createContext(final TableReadConfig<?> config) {
+    public GenericRowKeyGeneratorContext<I, V> createContext(final TableReadConfig<?> config) {
         if (config.useRowIDIdx()) {
             return new ExtractingRowKeyGeneratorContext<>("", m_rowKeyExtractor, config.getRowIDIdx());
         } else {

@@ -48,10 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.Path;
 
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
@@ -62,14 +60,6 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface ExtractColumnHeaderRead<V> extends Read<V> {
-
-    /**
-     * Returns the extracted column headers and if necessary keeps reading until the headers are read.
-     *
-     * @return the {@link RandomAccessible} containing the column headers, empty if no column header has been found
-     * @throws IOException if there I/O problems while reading the headers
-     */
-    Optional<RandomAccessible<V>> getColumnHeaders() throws IOException;
+public interface ExtractColumnHeaderRead<V> extends Read<V>, GenericExtractColumnHeaderRead<Path, V> {
 
 }

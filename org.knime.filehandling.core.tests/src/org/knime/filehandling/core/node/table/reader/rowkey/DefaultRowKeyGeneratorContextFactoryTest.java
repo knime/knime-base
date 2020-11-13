@@ -82,7 +82,7 @@ public class DefaultRowKeyGeneratorContextFactoryTest {
     @Mock
     private Path m_path;
 
-    private DefaultRowKeyGeneratorContextFactory<String> m_testInstance;
+    private DefaultRowKeyGeneratorContextFactory<Path, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -100,7 +100,7 @@ public class DefaultRowKeyGeneratorContextFactoryTest {
     public void testCreateExtractingContext() {
         when(m_config.useRowIDIdx()).thenReturn(true);
         when(m_config.getRowIDIdx()).thenReturn(1);
-        RowKeyGeneratorContext<String> context = m_testInstance.createContext(m_config);
+        GenericRowKeyGeneratorContext<Path, String> context = m_testInstance.createContext(m_config);
         when(m_randomAccessible.get(1)).thenReturn("foo");
         when(m_randomAccessible.size()).thenReturn(3);
         RowKeyGenerator<String> keyGen = context.createKeyGenerator(m_path);
@@ -113,7 +113,7 @@ public class DefaultRowKeyGeneratorContextFactoryTest {
      */
     @Test
     public void testCreateCountingContext() {
-        RowKeyGeneratorContext<String> context = m_testInstance.createContext(m_config);
+        GenericRowKeyGeneratorContext<Path, String> context = m_testInstance.createContext(m_config);
         assertTrue(context instanceof ContinuousCountingRowKeyGeneratorContext);
     }
 }

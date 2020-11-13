@@ -48,12 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.OptionalLong;
-
-import org.knime.core.node.util.CheckUtils;
 
 /**
  * An abstract implementation of a decorator for {@link Read} objects.</br>
@@ -65,9 +61,7 @@ import org.knime.core.node.util.CheckUtils;
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractReadDecorator<V> implements Read<V> {
-
-    private final Read<V> m_source;
+public abstract class AbstractReadDecorator<V> extends GenericAbstractReadDecorator<Path, V> implements Read<V> {
 
     /**
      * Constructor.
@@ -75,35 +69,14 @@ public abstract class AbstractReadDecorator<V> implements Read<V> {
      * @param source the {@link Read} to decorate
      */
     protected AbstractReadDecorator(final Read<V> source) {
-        m_source = CheckUtils.checkArgumentNotNull(source, "The source must not be null.");
+        super(source);
     }
 
     /**
-     * Returns the decorated {@link Read}.
-     *
-     * @return the decorated {@link Read}
+     * {@inheritDoc}
      */
-    protected final Read<V> getSource() {
-        return m_source;
-    }
-
-    @Override
-    public OptionalLong getMaxProgress() {
-        return m_source.getMaxProgress();
-    }
-
-    @Override
-    public long getProgress() {
-        return m_source.getProgress();
-    }
-
-    @Override
-    public void close() throws IOException {
-        m_source.close();
-    }
-
     @Override
     public Optional<Path> getPath() {
-        return m_source.getPath();
+        return getItem();
     }
 }

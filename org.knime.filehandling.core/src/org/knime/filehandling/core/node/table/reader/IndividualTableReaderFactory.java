@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.stream.Collectors.toList;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -58,53 +56,23 @@ import java.util.function.BiFunction;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
-import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapperFactory;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
  * Creates {@link IndividualTableReader IndividualTableReaders} for particular {@link Path Paths}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndividualTableReaderFactory<T, V> {
-
-    private final IndexMapperFactory m_indexMapperFactory;
-
-    private final Map<Path, TypedReaderTableSpec<T>> m_specs;
-
-    private final RowKeyGeneratorContext<V> m_rowKeyGenContext;
-
-    private final ProductionPath[] m_prodPaths;
-
-    private final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> m_typeMapperFactory;
+final class IndividualTableReaderFactory<T, V> extends GenericIndividualTableReaderFactory<Path, T, V> {
 
     IndividualTableReaderFactory(final Map<Path, TypedReaderTableSpec<T>> specs, final TableReadConfig<?> config,
         final List<ColumnTransformation<T>> outputTransformations,
         final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> typeMapperFactory,
-        final RowKeyGeneratorContext<V> rowKeyGenContext) {
-        m_specs = specs;
-        m_indexMapperFactory = new IndexMapperFactory(outputTransformations.stream()//
-            .map(ColumnTransformation::getExternalSpec)//
-            .map(MultiTableUtils::getNameAfterInit)//
-            .collect(toList()), config);
-        m_rowKeyGenContext = rowKeyGenContext;
-        m_typeMapperFactory = typeMapperFactory;
-        m_prodPaths = outputTransformations.stream()//
-            .map(ColumnTransformation::getProductionPath)//
-            .toArray(ProductionPath[]::new);
-    }
-
-    IndividualTableReader<V> create(final Path path, final FileStoreFactory fsFactory) {
-        final IndexMapper idxMapper = m_indexMapperFactory.createIndexMapper(m_specs.get(path));
-        final RowKeyGenerator<V> rowKeyGen = m_rowKeyGenContext.createKeyGenerator(path);
-        final TypeMapper<V> typeMapper = m_typeMapperFactory.apply(m_prodPaths, fsFactory);
-        return new DefaultIndividualTableReader<>(typeMapper, idxMapper, rowKeyGen);
+        final GenericRowKeyGeneratorContext<Path, V> rowKeyGenContext) {
+        super(specs, config, outputTransformations, typeMapperFactory, rowKeyGenContext);
     }
 }

@@ -48,11 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
-import org.knime.core.data.DataRow;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
+import java.nio.file.Path;
 
 /**
  * Performs the actual reading of an individual table.
@@ -60,26 +56,6 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type representing values
  */
-public interface IndividualTableReader<V> {
-
-    /**
-     * Reads all {@link RandomAccessible randomAccessibles} in {@link Read read}, converts them to {@link DataRow
-     * DataRows} and pushes them to {@link RowOutput output}.
-     *
-     * @param read to read from
-     * @param output to push to (must be compatible i.e. have the same spec)
-     * @param progress used for cancellation and progress reporting (provided the size of the read is known)
-     * @throws Exception if something goes astray
-     */
-    void fillOutput(Read<V> read, RowOutput output, ExecutionMonitor progress) throws Exception;
-
-    /**
-     * Converts the random accessible to a data row.
-     *
-     * @param randomAccessible the random accessible to convert
-     * @return the converted data row
-     * @throws Exception if something goes astray
-     */
-    DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception;
+public interface IndividualTableReader<V> extends GenericIndividualTableReader<Path, V> {
 
 }

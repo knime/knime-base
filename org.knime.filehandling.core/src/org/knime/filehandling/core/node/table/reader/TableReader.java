@@ -67,30 +67,11 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> {
+public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> extends GenericTableReader<Path, C, T, V> {
 
-    /**
-     * Creates a read object that can be used to read the table in {@link Path path} row by row.
-     *
-     * @param path of the table
-     * @param config for reading the table
-     * @return a {@link Read} that reads from {@link Path filePath} using the provided {@link TableReadConfig config}
-     * @throws IOException if creating the read fails due to IO problems
-     */
-    // TODO add separate parameter for doing pushdown e.g. filtering
-    Read<V> read(final Path path, final TableReadConfig<C> config) throws IOException;
+    @Override
+    Read<V> read(Path path, TableReadConfig<C> config) throws IOException;
 
-    /**
-     * Reads the spec of the table stored at {@link Path path}. Note that the spec should not be filtered i.e. any
-     * column filter should be ignored.
-     *
-     * @param path to read from
-     * @param config specifying the read settings
-     * @param exec the execution monitor
-     * @return a {@link TypedReaderTableSpec} representing the data stored in <b>source</b>
-     * @throws IOException if reading fails due to IO problems
-     */
-    TypedReaderTableSpec<T> readSpec(final Path path, final TableReadConfig<C> config, final ExecutionMonitor exec)
-        throws IOException;
-
+    @Override
+    TypedReaderTableSpec<T> readSpec(Path path, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
 }

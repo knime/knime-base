@@ -94,16 +94,15 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
      * @param mostGenericExternalType the identifier for the most generic external type
      * @return a {@link DefaultMultiTableReadConfig} with default serialization
      */
-    public static <C extends ReaderSpecificConfig<C>> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>> create(
-        final C readerSpecificConfig, final ConfigSerializer<C> specificConfigSerializer,
-        final ProducerRegistry<?, ?> producerRegistry, final Object mostGenericExternalType) {
-        final DefaultTableReadConfig<C> tc = new DefaultTableReadConfig<>(readerSpecificConfig);
-        final DefaultTableReadConfigSerializer<C> tcSerializer =
-            new DefaultTableReadConfigSerializer<>(specificConfigSerializer);
-        final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>> serializer =
-            new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry, mostGenericExternalType);
-        return new DefaultMultiTableReadConfig<>(tc, serializer);
-    }
+    public static <C extends ReaderSpecificConfig<C>> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>> create(final C readerSpecificConfig, final ConfigSerializer<C> specificConfigSerializer, final ProducerRegistry<?, ?> producerRegistry,
+        final Object mostGenericExternalType) {
+            final DefaultTableReadConfig<C> tc = new DefaultTableReadConfig<>(readerSpecificConfig);
+            final DefaultTableReadConfigSerializer<C> tcSerializer =
+                new DefaultTableReadConfigSerializer<>(specificConfigSerializer);
+            final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>> serializer =
+                new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry, mostGenericExternalType);
+            return new DefaultMultiTableReadConfig<>(tc, serializer);
+        }
 
     @Override
     public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -111,8 +110,7 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
     }
 
     @Override
-    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
+    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         m_serializer.loadInDialog(this, settings, specs);
     }
 

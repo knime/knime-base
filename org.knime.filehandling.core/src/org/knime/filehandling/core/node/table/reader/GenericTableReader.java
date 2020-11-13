@@ -44,26 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader;
 
+import java.io.IOException;
+
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.read.GenericRead;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Creates the {@link RowKeyGeneratorContext} for an individual reader node execution.
+ * A row-wise reader for data in table format.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of value to extract the row keys from
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item to read from
+ * @param <C> the type of the {@link ReaderSpecificConfig}
+ * @param <T> the type used to identify individual data types
+ * @param <V> the type of tokens a row read in consists of
+ * @noreference non-public API
+ * @noimplement non-public API
  */
-@FunctionalInterface
-public interface RowKeyGeneratorContextFactory<V> {
+public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> {
 
     /**
-     * Creates a {@link RowKeyGeneratorContext} that corresponds to the provided user settings.
+     * Creates a read object that can be used to read the table in an input item row by row.
      *
-     * @param config {@link TableReadConfig} provided by the user
-     * @return a {@link RowKeyGeneratorContext}
+     * @param item of the table
+     * @param config for reading the table
+     * @return a {@link Read} that reads from an input item using the provided {@link TableReadConfig config}
+     * @throws IOException if creating the read fails due to IO problems
      */
-    RowKeyGeneratorContext<V> createContext(TableReadConfig<?> config);
+    // TODO add separate parameter for doing pushdown e.g. filtering
+    GenericRead<I, V> read(I item, TableReadConfig<C> config) throws IOException;
+
+    /**
+     * Reads the spec of the table stored at the input item. Note that the spec should not be filtered i.e. any
+     * column filter should be ignored.
+     *
+     * @param item to read from
+     * @param config specifying the read settings
+     * @param exec the execution monitor
+     * @return a {@link TypedReaderTableSpec} representing the data stored in <b>source</b>
+     * @throws IOException if reading fails due to IO problems
+     */
+    TypedReaderTableSpec<T> readSpec(I item, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
+
 }

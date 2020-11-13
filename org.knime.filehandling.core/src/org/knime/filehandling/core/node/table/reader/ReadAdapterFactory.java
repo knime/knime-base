@@ -82,10 +82,19 @@ public interface ReadAdapterFactory<T, V> {
     ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();
 
     /**
+     * @param type
+     * @return
+     */
+    default DataType getDefaultType(final T type) {
+        return getDefaultTypeMap().get(type);
+    }
+
+    /**
      * Returns the map of default {@link DataType DataTypes}.
      *
      * @return the map of default types
      */
     Map<T, DataType> getDefaultTypeMap();
+    //TODO: Remove once we have finished the generic implementation
 
 }

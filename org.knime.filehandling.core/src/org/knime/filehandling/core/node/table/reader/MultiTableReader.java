@@ -48,21 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.BufferedDataTableRowOutput;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
  * Uses a {@link TableReader} to read tables from multiple paths, combines them according to the user settings and
@@ -74,115 +62,15 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-final class MultiTableReader<C extends ReaderSpecificConfig<C>> {
-
-    private final MultiTableReadFactory<C, ?> m_multiTableReadFactory;
-
-    private StagedMultiTableRead<?> m_currentMultiRead;
+final class MultiTableReader<C extends ReaderSpecificConfig<C>> extends GenericMultiTableReader<Path, C> {
 
     /**
      * Constructor.
      *
-     * @param reader the {@link TableReader} implementation to use for reading
      * @param multiTableReadFactory for creating MultiTableRead objects
      */
     MultiTableReader(final MultiTableReadFactory<C, ?> multiTableReadFactory) {
-        m_multiTableReadFactory = multiTableReadFactory;
-    }
-
-    /**
-     * Resets the spec read by {@code createSpec}, {@code fillRowOutput} or {@code readTable} i.e. a subsequent call to
-     * {@code fillRowOutput} or {@code readTable} will read the spec again.
-     */
-    public void reset() {
-        m_currentMultiRead = null;
-    }
-
-    /**
-     * Creates the {@link DataTableSpec} corresponding to the tables stored in <b>paths</b> combined according to the
-     * provided {@link MultiTableReadConfig config}.
-     *
-     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
-     * @param paths to read from
-     * @param config for reading
-     * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>paths</b>
-     * @throws IOException if reading the specs from {@link Path paths} fails
-     */
-    public DataTableSpec createTableSpec(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config) throws IOException {
-        StagedMultiTableRead<?> stagedMultiRead = createMultiRead(rootPath, paths, config, new ExecutionMonitor());
-        MultiTableRead multiRead = stagedMultiRead.withoutTransformation();
-        return multiRead.getOutputSpec();
-    }
-
-    private StagedMultiTableRead<?> createMultiRead(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
-        if (config.isConfiguredWith(rootPath, paths)) {
-            m_currentMultiRead = m_multiTableReadFactory.createFromConfig(rootPath, paths, config);
-        } else {
-            m_currentMultiRead = m_multiTableReadFactory.create(rootPath, paths, config, exec);
-        }
-        return m_currentMultiRead;
-    }
-
-    /**
-     * Reads a table from the provided {@link Path paths} according to the provided {@link MultiTableReadConfig config}.
-     *
-     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
-     * @param paths to read from
-     * @param config for reading
-     * @param exec for table creation and reporting progress
-     * @return the read table
-     * @throws Exception
-     */
-    public BufferedDataTable readTable(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
-        exec.setMessage("Creating table spec");
-        final boolean specConfigured = config.isConfiguredWith(rootPath, paths);
-        final StagedMultiTableRead<?> runConfig =
-            getMultiRead(rootPath, paths, config, exec.createSubExecutionContext(specConfigured ? 0 : 0.5));
-        exec.setMessage("Reading table");
-        final MultiTableRead multiTableRead = runConfig.withoutTransformation();
-        final BufferedDataTableRowOutput output =
-            new BufferedDataTableRowOutput(exec.createDataContainer(multiTableRead.getOutputSpec()));
-        fillRowOutput(multiTableRead, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
-        return output.getDataTable();
-    }
-
-    /**
-     * Fills the {@link RowOutput output} with the tables stored in <b>paths</b> using the provided
-     * {@link MultiTableReadConfig config}. The {@link ExecutionContext} is required for type mapping and reporting
-     * progress. Note: The {@link RowOutput output} must have a {@link DataTableSpec} compatible with the
-     * {@link DataTableSpec} returned by createTableSpec(List, MultiTableReadConfig).
-     *
-     * @param rootPath the root path of all {@link Path Paths} in the <b>paths</b>
-     * @param paths to read from
-     * @param config for reading
-     * @param output the {@link RowOutput} to fill
-     * @param exec needed by the mapping framework
-     * @throws Exception
-     */
-    public void fillRowOutput(final String rootPath, final List<Path> paths, final MultiTableReadConfig<C> config,
-        final RowOutput output, final ExecutionContext exec) throws Exception {
-        exec.setMessage("Creating table spec");
-        final StagedMultiTableRead<?> multiRead = getMultiRead(rootPath, paths, config, exec);
-        exec.setMessage("Reading table");
-        fillRowOutput(multiRead.withoutTransformation(), output, exec);
-    }
-
-    private StagedMultiTableRead<?> getMultiRead(final String rootPath, final List<Path> paths,
-        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws IOException {
-        if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(paths)) {
-            return createMultiRead(rootPath, paths, config, exec);
-        } else {
-            return m_currentMultiRead;
-        }
-    }
-
-    private static void fillRowOutput(final MultiTableRead multiTableRead, final RowOutput output, final ExecutionContext exec)
-        throws Exception {
-        final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
-        multiTableRead.fillRowOutput(output, exec, fsFactory);
+        super(multiTableReadFactory);
     }
 
 }

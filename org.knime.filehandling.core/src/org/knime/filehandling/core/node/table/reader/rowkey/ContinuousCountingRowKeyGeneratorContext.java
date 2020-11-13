@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.knime.core.data.RowKey;
@@ -61,12 +60,12 @@ import org.knime.core.data.RowKey;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ContinuousCountingRowKeyGeneratorContext<V> implements RowKeyGeneratorContext<V> {
+final class ContinuousCountingRowKeyGeneratorContext<I, V> implements GenericRowKeyGeneratorContext<I, V> {
 
     private AtomicLong m_currentIdx = new AtomicLong(-1);
 
     @Override
-    public RowKeyGenerator<V> createKeyGenerator(final Path path) {
+    public RowKeyGenerator<V> createKeyGenerator(final I path) {
         return r -> RowKey.createRowKey(m_currentIdx.incrementAndGet());
     }
 

@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.rowkey;
 
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -60,8 +59,8 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGeneratorContext<V> extends AbstractRowKeyGenerator<V>
-    implements RowKeyGeneratorContext<V> {
+final class ExtractingRowKeyGeneratorContext<I, V> extends AbstractRowKeyGenerator<V>
+    implements GenericRowKeyGeneratorContext<I, V> {
 
     private static final String MISSING_ROW_KEY_PREFIX = "?";
 
@@ -93,7 +92,7 @@ final class ExtractingRowKeyGeneratorContext<V> extends AbstractRowKeyGenerator<
     }
 
     @Override
-    public RowKeyGenerator<V> createKeyGenerator(final Path path) {
+    public RowKeyGenerator<V> createKeyGenerator(final I path) {
         return this;
     }
 }

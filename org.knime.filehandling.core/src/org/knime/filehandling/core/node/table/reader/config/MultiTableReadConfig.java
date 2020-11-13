@@ -51,72 +51,20 @@ package org.knime.filehandling.core.node.table.reader.config;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
-
-/**
- * Configuration for the table readers that can jointly read tables from multiple sources.
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <C> the type of the {@link ReaderSpecificConfig}
- * @noreference non-public API
- * @noimplement non-public API
- */
-public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
+    /**
+     * Configuration for the table readers that can jointly read tables from multiple sources.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     * @param <C> the type of the {@link ReaderSpecificConfig}
+     * @noreference non-public API
+     * @noimplement non-public API
+     */
+public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends GenericMultiTableReadConfig<Path, C> {
 
     /**
-     * Returns the configuration for reading an individual table.
-     *
-     * @return the configuration for an individual table
+     * {@inheritDoc}
      */
-    TableReadConfig<C> getTableReadConfig();
-
-    /**
-     * Returns the merge mode to use for merging multiple table specs.
-     *
-     * @return the {@link SpecMergeMode} to use (intersection, union or fail)
-     * @deprecated only used as fallback if no {@link TableSpecConfig} is available
-     */
-    @Deprecated
-    SpecMergeMode getSpecMergeMode();
-
-    /**
-     * Indicates whether the node should fail if the table specs differ.
-     *
-     * @return {@code true} if the node should fail on differing specs
-     */
-    boolean failOnDifferingSpecs();
-
-    /**
-     * Indicates whether a table spec is already provided, or has to be computed.
-     *
-     * @return <code>true</code> if the {@link DefaultTableSpecConfig} is available, {@code false} otherwise
-     */
-    boolean hasTableSpecConfig();
-
-    /**
-     * Returns the {@link DefaultTableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()}
-     * returned {@code true}
-     *
-     * @return the {@link DefaultTableSpecConfig}
-     */
-    TableSpecConfig getTableSpecConfig();
-
-    /**
-     * Sets the {@link DefaultTableSpecConfig}
-     *
-     * @param config the {@link DefaultTableSpecConfig} to set
-     */
-    void setTableSpecConfig(TableSpecConfig config);
-
-    /**
-     * Returns {@code true} if the {@link DefaultTableSpecConfig} has been created with the provided <b>rootPath</b> and
-     * {@link List} of {@link Path Paths}.
-     *
-     * @param rootPath string representation of the root path
-     * @param paths the paths for which the {@link DefaultTableSpecConfig} has been configured
-     * @return {@code true} if the {@link DefaultTableSpecConfig} is present and has been created with the provided
-     *         parameters
-     */
+    @Override
     default boolean isConfiguredWith(final String rootPath, final List<Path> paths) {
         return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(rootPath, paths);
     }

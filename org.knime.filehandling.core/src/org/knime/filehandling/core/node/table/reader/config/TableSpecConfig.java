@@ -49,103 +49,14 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
 /**
  * Configuration storing all the information needed to create a {@link DataTableSpec}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface TableSpecConfig {
-
-    /**
-     * Returns the {@link TableTransformation} that allows to map the raw spec to the final KNIME spec.
-     *
-     * @param <T> the type used to identify external types
-     * @return the {@link TableTransformation}
-     */
-    <T> TableTransformation<T> getTransformationModel();
-
-    /**
-     * Returns {@code true} if this config has been created with the provided <b>rootPath</b> and {@link List} of
-     * {@link Path Paths}.
-     *
-     * @param rootPath string representation of the root path
-     * @param paths the paths for which this {@link DefaultTableSpecConfig} has been configured
-     * @return {@code true} if this config has been created with the provided parameters
-     */
-    boolean isConfiguredWith(String rootPath, List<Path> paths);
-
-    /**
-     * Returns {@code true} if this {@link DefaultTableSpecConfig} has been created using the provided <b>rootPath</b>,
-     * {@code false} otherwise.
-     *
-     * @param rootPath the path to test if it has been used to create this {@link DefaultTableSpecConfig}
-     * @return {@code true} if the {@link DefaultTableSpecConfig} has been created using the provded <b>rootPath</b>,
-     *         {@code false} otherwise
-     */
-    boolean isConfiguredWith(String rootPath);
-
-    /**
-     * Returns {@code true} if this {@link DefaultTableSpecConfig} has been created using the provided <b>paths</b>,
-     * {@code false} otherwise.
-     *
-     * @param paths the paths to test if they have been used to create this {@link DefaultTableSpecConfig}
-     * @return {@code true} if the {@link DefaultTableSpecConfig} has been created using the provded <b>paths</b>,
-     *         {@code false} otherwise
-     */
-    boolean isConfiguredWith(List<Path> paths);
-
-    /**
-     * Returns the {@link DataTableSpec}.
-     *
-     * @return the {@link DataTableSpec}
-     */
-    DataTableSpec getDataTableSpec();
-
-    /**
-     * Returns the {@link String} representation of the paths associated with each of the individual specs.
-     *
-     * @return the {@link String} representation of the paths to be read
-     */
-    List<String> getPaths();
-
-    /**
-     * Returns the {@link ReaderTableSpec} associated with the given path.
-     *
-     * @param path the path identifying the {@link ReaderTableSpec}
-     * @return the associated {@link ReaderTableSpec}
-     */
-    ReaderTableSpec<?> getSpec(String path);//NOSONAR
-
-    /**
-     * Returns the {@link ProductionPath ProductionPaths} used to map the individual columns to their corresponding
-     * {@link DataType DataTypes}.
-     *
-     * @return the {@link ProductionPath ProductionPaths} used for the type mapping
-     */
-    ProductionPath[] getProductionPaths();
-
-    /**
-     * Returns the configured {@link ColumnFilterMode}.
-     *
-     * @return the configured {@link ColumnFilterMode}
-     */
-    ColumnFilterMode getColumnFilterMode();
-
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(NodeSettingsWO settings);
+public interface TableSpecConfig extends GenericTableSpecConfig<Path> {
 
 }

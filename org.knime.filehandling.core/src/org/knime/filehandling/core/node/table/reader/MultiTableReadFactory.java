@@ -48,18 +48,13 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
  * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
@@ -69,34 +64,7 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type representing external data types
  */
-public interface MultiTableReadFactory<C extends ReaderSpecificConfig<C>, T> {
-
-    /**
-     * Creates a {@link StagedMultiTableRead} for the provided parameters.</br>
-     * Note that a {@link TableSpecConfig} stored in {@link MultiTableReadConfig} will be ignored i.e. the table spec is
-     * always calculated.
-     *
-     * @param rootPath string representation of the root path
-     * @param paths {@link List} of {@link Path Paths} to read
-     * @param config contains the user configuration
-     * @param exec used to monitor the spec creation
-     * @return a {@link StagedMultiTableRead} for the provided parameters
-     * @throws IOException if an {@link IOException} occurs while creating the table spec
-     */
-    StagedMultiTableRead<T> create(String rootPath, List<Path> paths, MultiTableReadConfig<C> config,
-        ExecutionMonitor exec) throws IOException;
-
-    /**
-     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
-     * {@link MultiTableReadConfig config}.<br>
-     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpecConfig()} is {@code true}.
-     *
-     * @param rootPath the root directory of all {@link Path Paths} in the <b>individualSpecs</b>
-     * @param paths the list of paths/files to be read
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables from the given paths
-     */
-    StagedMultiTableRead<T> createFromConfig(final String rootPath, final List<Path> paths,
-        MultiTableReadConfig<C> config);
+public interface MultiTableReadFactory<C extends ReaderSpecificConfig<C>, T>
+    extends GenericMultiTableReadFactory<Path, C, T> {
 
 }

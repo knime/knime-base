@@ -67,7 +67,7 @@ import com.google.common.base.Objects;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class AnalysisComponentModel {
+public final class AnalysisComponentModel {
 
     private static final String EMPTY_SPACE_RESERVING_LABEL_TEXT = " ";
 

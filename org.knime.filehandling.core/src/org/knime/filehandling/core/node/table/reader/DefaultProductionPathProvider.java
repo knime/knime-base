@@ -51,7 +51,7 @@ package org.knime.filehandling.core.node.table.reader;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
@@ -71,18 +71,18 @@ public final class DefaultProductionPathProvider<T> implements ProductionPathPro
 
     private final ProducerRegistry<T, ?> m_producerRegistry;
 
-    private final Map<T, DataType> m_defaultKnimeTypes;
+    private final Function<T, DataType> m_defaultKnimeTypes;
 
     /**
      * Constructor.
      *
      * @param producerRegistry {@link ProducerRegistry} for retrieving {@link ProductionPath ProductionPaths}
-     * @param defaultKnimeTypes {@link Map} providing for each external type a KNIME {@link DataType}
+     * @param defaultKnimeFunction {@link Function} providing for each external type a KNIME {@link DataType}
      */
     public DefaultProductionPathProvider(final ProducerRegistry<T, ?> producerRegistry,
-        final Map<T, DataType> defaultKnimeTypes) {
+        final Function<T, DataType> defaultKnimeFunction) {
         m_producerRegistry = producerRegistry;
-        m_defaultKnimeTypes = defaultKnimeTypes;
+        m_defaultKnimeTypes = defaultKnimeFunction;
     }
 
     /**
@@ -91,12 +91,12 @@ public final class DefaultProductionPathProvider<T> implements ProductionPathPro
      * @param readAdapterFactory providing the {@link ProducerRegistry} and default type map
      */
     public DefaultProductionPathProvider(final ReadAdapterFactory<T, ?> readAdapterFactory) {
-        this(readAdapterFactory.getProducerRegistry(), readAdapterFactory.getDefaultTypeMap());
+        this(readAdapterFactory.getProducerRegistry(), readAdapterFactory::getDefaultType);
     }
 
     @Override
     public ProductionPath getDefaultProductionPath(final T externalType) {
-        final DataType knimeType = m_defaultKnimeTypes.get(externalType);
+        final DataType knimeType = m_defaultKnimeTypes.apply(externalType);
 
         if (knimeType == null) {
             final ProductionPath productionPath = getFirstPath(externalType);

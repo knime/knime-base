@@ -44,28 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 10, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.rowkey;
+package org.knime.filehandling.core.node.table.reader.read;
 
-import java.nio.file.Path;
+import java.io.IOException;
 
-import org.knime.core.data.RowKey;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Represents the context for key generators concerned with reading a single table reader node execution.
+ * A decorator for a {@link Read} that limits it to the provided interval.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of values to turn into {@link RowKey}
+ * @param <V> the type of value
  */
-@FunctionalInterface
-public interface RowKeyGeneratorContext<V> {
+class GenericIntervalRead<I, V> extends GenericAbstractReadDecorator<I, V> {
+
+    private final long m_startIdx;
+
+    private final long m_endIdx;
+
+    private long m_current = 0;
 
     /**
-     * Creates a {@link RowKeyGenerator} for the provided {@link Path path}.
+     * Constructor.
      *
-     * @param path the path the created {@link RowKeyGenerator} receives rows from
-     * @return a {@link RowKeyGenerator} for path
+     * @param source the {@link Read} to limit
+     * @param startIdx the index to start reading at (zero based)
+     * @param endIdx the index to stop reading at (zero based, exclusive)
      */
-    RowKeyGenerator<V> createKeyGenerator(final Path path);
+    GenericIntervalRead(final GenericRead<I, V> source, final long startIdx, final long endIdx) {
+        super(source);
+        m_startIdx = startIdx;
+        m_endIdx = endIdx;
+    }
+
+    @Override
+    public RandomAccessible<V> next() throws IOException {
+        moveToStartIdx();
+        if (m_current < m_endIdx) {
+            m_current++;
+            // source will return null if we reached the end
+            return getSource().next();
+        } else {
+            return null;
+        }
+    }
+
+    private void moveToStartIdx() throws IOException {
+        for (; m_current < m_startIdx && getSource().next() != null; m_current++) {
+            // all the action happens in the header
+        }
+    }
+
 }

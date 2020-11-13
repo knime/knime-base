@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import java.nio.file.Path;
+
 import org.knime.core.node.NodeSettings;
 
 /**
@@ -58,6 +60,7 @@ import org.knime.core.node.NodeSettings;
  * @noreference this interface is not part of the public API
  * @noimplement this interface is not part of the public API
  */
-public interface StorableMultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends MultiTableReadConfig<C>, StorableReaderConfig {
+public interface StorableMultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends GenericStorableMultiTableReadConfig<Path, C>,
+MultiTableReadConfig<C> {
     // Marker interface
 }

@@ -515,7 +515,7 @@ public class DefaultTableSpecConfigTest {
         final TableSpecConfig tsc = new DefaultTableSpecConfig(ROOT_PATH, knimeSpec, m_individualSpecs,
             getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE)), a("A", "B", "C"),
             new int[]{0, 1, 2}, new boolean[]{true, true, true}, 3, ColumnFilterMode.UNION, true);
-        assertEquals(asList("first", "second"), tsc.getPaths());
+        assertEquals(asList("first", "second"), tsc.getItems());
     }
 
     @Test
