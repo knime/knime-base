@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="linereader.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Line Reader</name>
+
+	<shortDescription>
+		Read lines from a file or URL.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			Read lines from a file or URL. Each line will be represented by a
+			single string data cell in a single row. The row prefix and column header 
+			can be specified in the dialog.
+		</intro>
+		<tab name="Settings">
+				<option name="Read from">
+				Select a file system which stores the data you want to read. There are
+				four default file system options to choose from:
+				<br />
+				<ul>
+	                <li><i>Local File System:</i> Allows you to select a file/folder from your
+	                    local system.
+	                </li>
+	                <li><i>Mountpoint:</i> Allows you to read from a mountpoint.
+	                	When selected, a new drop-down menu appears to choose the mountpoint.
+	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
+	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
+	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
+	                </li>
+	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
+	                </li>
+	                <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+	                    When selected, a spinner appears that allows you to specify the desired connection and read timeout in milliseconds.
+	                    In case it takes longer to connect to the host / read the file, the node fails to execute.
+	                    Browsing is disabled for this option.
+	                </li>
+				</ul>
+				To read from other file systems, click on
+	            <b>...</b> in the bottom left corner of the node icon followed by
+	            <i>Add File System Connection port</i>. Afterwards, connect the desired file system connector
+	            node to the newly added input port. The file system connection will then be shown in the drop-down menu.
+	            It is greyed out if the file system is not connected in which case you have to (re)execute the connector node first.
+				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
+			</option>
+			<option name="Mode">
+				Select whether you want to read a single file or multiple files in a folder.
+				When reading files in a folder, you can set filters to specify which
+				files and subfolders to include (see below).
+			</option>
+			<option name="Filter options">
+				Only displayed if the mode <i>Files in folder</i> is selected.
+				Allows to specify which files should be included according to their file extension and/or name.
+				It is also possible to include hidden files.
+				The folder filter options enable you to specify which folders should be included based on their name and hidden status.
+				Note that the folders themselves will not be included, only the files they contain.
+			</option>
+			<option name="Include subfolders">
+				If this option is checked, the node will include all files from subfolders that satisfy the specified filter options.
+				If left unchecked, only the files in the selected folder will be included and all files from subfolders are ignored.
+			</option>
+			
+			
+			<option name="File, Folder or URL">
+				Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file or folder. The
+				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	            description of the respective connector node describes the required path format.
+				You can also choose a previously selected file/folder from the drop-down list, or select a location
+				from the &quot;Browse...&quot; dialog.
+				Note that browsing is disabled in some cases:
+				<ul>
+					<li><i>Custom/KNIME URL:</i> Browsing is always disabled.</li>
+					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
+					<li><i>File systems provided via input port:</i>
+					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
+					(Re)execute the connector node to enable browsing.</li>
+				</ul>
+			</option>
+			<option name="Fail on differing specs">
+			This option is only available if the 'Files in folder' option is selected. If the option is select and the specs of the files are different the node will fail. 
+			</option>
+			<option name="Column Header">
+			If the option 'Use fix column header' is checked the name you the output column can be set
+			manually in the text field, which is only active
+			if the option is checked. The default name is 'Column'. If the option 'Use first line as column header' is checked 
+			the name of the output column equals the first row of the read file.
+			</option>
+		</tab>
+		<tab name="Advanced Settings">
+	        <option name="Match input against regex">
+	           If this option is checked every line will be checked against the regular expression in the text field.
+	           For example '12.*' will only match lines starting with 12 and have zero or more characters afterwards.
+	        </option>
+	        <option name="Skip empty lines">
+	           If this option is checked empty lines will be skipped and are not added to the output.
+	            When the option is inactive, empty lines will be displayed as missing cells. 
+	        </option>
+	        <option name="Replace empty lines">
+	           This option can only be activated when the 'Skip empty lines' option is disabled. 
+	           This option allows to specify a text by which an empty line will be replaced.
+	        </option>
+	        <option name="Limit data rows">
+	           With this option you can limit the number of rows which will be read and be output by the node.
+	        </option>
+        </tab>
+		<tab name="Encoding">
+	        <option name="Encoding">
+	            To read a file that contains characters in a different encoding, you can select the character set in this tab (UTF-8, 
+	            UTF-16, etc.), or specify any other encoding supported by your Java VM. The default value uses the default
+	            encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;
+	        </option>
+        </tab>	
+	</fullDescription>
+
+	<ports>
+		<dynInPort insert-before="0" name="File system connection" group-identifier="File System Connection"> 
+			The file system connection.
+		</dynInPort>
+		<outPort index="0" name="Lines from the file(s)">The lines as read from the
+			file(s), each line represented by a single cell in a data row.</outPort>
+	</ports>
+</knimeNode>

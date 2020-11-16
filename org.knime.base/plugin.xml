@@ -2276,6 +2276,11 @@
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
       </node>
       <node
+            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            category-path="/io/read"
+            factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory2">
+      </node>
+      <node
             category-path="/manipulation/column/column-split+combine"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.probability.nominal.creator.NominalDistributionCreatorNodeFactory">
