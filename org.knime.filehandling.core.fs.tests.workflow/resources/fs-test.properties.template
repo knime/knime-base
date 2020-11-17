@@ -66,9 +66,9 @@ ftp.workingDirPrefix = <PATH-ON-SSH-SERVER>
 ftp.host = <HOST>
 # port is optional
 # ftp.port = 21
-# ssl is optional
-# ftp.ssl = false
-# timeZoneOffset is optional
+# ftps (TLS-encrypted FTP) is optional
+# ftp.ftps = false
+# timeZoneOffset (in minutes) is optional
 # ftp.timeZoneOffset = 0
 ftp.username = <USERNAME>
 ftp.password = <PASSWORD>
