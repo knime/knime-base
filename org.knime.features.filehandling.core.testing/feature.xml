@@ -727,12 +727,10 @@
  propagated with or for interoperation with KNIME.
    </license>
 
-   <plugin
-         id="org.knime.filehandling.core"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+   <requires>
+      <import plugin="org.knime.filehandling.core" version="0.0.0" match="greaterOrEqual"/>
+      <import plugin="org.knime.filehandling.core.fs" version="0.0.0" match="greaterOrEqual"/>
+   </requires>
 
    <plugin
          id="org.knime.filehandling.core.tests"
@@ -741,14 +739,7 @@
          version="0.0.0"
          fragment="true"
          unpack="false"/>
-         
-   <plugin
-         id="org.knime.filehandling.core.fs"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-         
+
    <plugin
          id="org.knime.filehandling.core.fs.tests.integration"
          download-size="0"
@@ -756,7 +747,7 @@
          version="0.0.0"
          fragment="true"
          unpack="false"/>
-         
+
    <plugin
          id="org.knime.filehandling.core.fs.tests.workflow"
          download-size="0"
