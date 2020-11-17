@@ -39,7 +39,7 @@ public interface FSConnection extends AutoCloseable {
             try {
                 FSConnection.this.close();
             } catch (Exception ex) {
-                logger.error(String.format("Exception closing %s: %s", fsName, ex.getMessage()));
+                logger.error(String.format("Exception closing %s: %s", fsName, ex.getMessage()), ex);
             }
         };
 
