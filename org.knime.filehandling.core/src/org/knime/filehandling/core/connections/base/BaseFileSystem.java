@@ -208,7 +208,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     public Set<String> supportedFileAttributeViews() {
         final Set<String> supportedViews = new HashSet<>();
         supportedViews.add("basic");
-        supportedViews.add("posix");
         return supportedViews;
     }
 
