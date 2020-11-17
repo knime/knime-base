@@ -42,7 +42,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
@@ -89,7 +89,7 @@ final class KnimeTypeProductionPathTableCellRenderer extends DefaultTableCellRen
             return this;
         }
         final DataType knimeType = prodPath.getConverterFactory().getDestinationType();
-        setText(knimeType.getName());
+        setText(knimeType.toPrettyString());
         setIcon(knimeType.getIcon());
 
         return this;
