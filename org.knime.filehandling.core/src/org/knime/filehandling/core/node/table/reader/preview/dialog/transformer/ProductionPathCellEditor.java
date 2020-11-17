@@ -87,10 +87,19 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
         final ProductionPath currentProdPath = (ProductionPath)value;
         final Object externalType = currentProdPath.getProducerFactory().getSourceType();
         final List<ProductionPath> availablePaths = m_productionPathProvider.apply(externalType);
+        availablePaths.sort(ProductionPathCellEditor::compare);
         m_productionPaths.removeAllItems();
         availablePaths.forEach(m_productionPaths::addItem);
         m_productionPaths.setSelectedItem(currentProdPath);
         return m_productionPaths;
+    }
+
+    private static int compare(final ProductionPath p1, final ProductionPath p2) {
+        return extractDataTypeName(p1).compareTo(extractDataTypeName(p2));
+    }
+
+    private static String extractDataTypeName(final ProductionPath p) {
+        return p.getConverterFactory().getDestinationType().toPrettyString();
     }
 
 }
