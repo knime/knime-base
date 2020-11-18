@@ -78,6 +78,8 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
      */
     protected boolean m_useRowIDIdx = false;
 
+    protected String m_prefixForGeneratedRowIds = "Row";
+
     /**
      * Indicates if short rows are supported.
      */
@@ -145,6 +147,7 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
         m_rowIDIdx = toCopy.m_rowIDIdx;
         m_useColumnHeaderIdx = toCopy.m_useColumnHeaderIdx;
         m_useRowIDIdx = toCopy.m_useRowIDIdx;
+        m_prefixForGeneratedRowIds = toCopy.m_prefixForGeneratedRowIds;
         m_allowShortRows = toCopy.m_allowShortRows;
         m_skipEmptyRows = toCopy.m_skipEmptyRows;
         m_skipRows = toCopy.m_skipRows;
@@ -174,6 +177,11 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
     @Override
     public boolean useRowIDIdx() {
         return m_useRowIDIdx;
+    }
+
+    @Override
+    public String getPrefixForGeneratedRowIDs() {
+        return m_prefixForGeneratedRowIds;
     }
 
     @Override

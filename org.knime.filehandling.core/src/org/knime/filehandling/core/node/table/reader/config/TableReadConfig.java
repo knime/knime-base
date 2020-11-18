@@ -104,6 +104,14 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     boolean useRowIDIdx();
 
     /**
+     * Returns the prefix to use for generating row ids.
+     * Only used if {@link #useRowIDIdx()} returns {@code false}.
+     *
+     * @return the prefix for generated row ids
+     */
+    String getPrefixForGeneratedRowIDs();
+
+    /**
      * Returns whether empty rows should be skipped.
      *
      * @return {@code true} if empty rows should be skipped

@@ -78,7 +78,7 @@ public final class DefaultRowKeyGeneratorContextFactory<I, V> implements Generic
         if (config.useRowIDIdx()) {
             return new ExtractingRowKeyGeneratorContext<>("", m_rowKeyExtractor, config.getRowIDIdx());
         } else {
-            return new ContinuousCountingRowKeyGeneratorContext<>();
+            return new ContinuousCountingRowKeyGeneratorContext<>(config.getPrefixForGeneratedRowIDs());
         }
     }
 }

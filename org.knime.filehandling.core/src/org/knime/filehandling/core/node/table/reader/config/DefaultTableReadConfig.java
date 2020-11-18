@@ -97,6 +97,15 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> ext
     }
 
     /**
+     * Sets the prefix for generated row ids.
+     *
+     * @param prefixForGeneratedRowIds prefix for generated row ids
+     */
+    public void setPrefixForGeneratedRowIds(final String prefixForGeneratedRowIds) {
+        m_prefixForGeneratedRowIds = prefixForGeneratedRowIds;
+    }
+
+    /**
      * Sets the index of the column containing the row ids. Set a negative value to indicate that there is no such
      * column.
      *

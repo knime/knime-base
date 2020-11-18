@@ -62,11 +62,17 @@ import org.knime.core.data.RowKey;
  */
 final class ContinuousCountingRowKeyGeneratorContext<I, V> implements GenericRowKeyGeneratorContext<I, V> {
 
-    private AtomicLong m_currentIdx = new AtomicLong(-1);
+    private final AtomicLong m_currentIdx = new AtomicLong(-1);
+
+    private final String m_prefix;
+
+    ContinuousCountingRowKeyGeneratorContext(final String prefix) {
+        m_prefix = prefix;
+    }
 
     @Override
     public RowKeyGenerator<V> createKeyGenerator(final I path) {
-        return r -> RowKey.createRowKey(m_currentIdx.incrementAndGet());
+        return r -> new RowKey(m_prefix + m_currentIdx.incrementAndGet());
     }
 
 }
