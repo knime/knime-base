@@ -65,6 +65,7 @@ import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.GenericDefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -126,6 +127,8 @@ enum CSVMultiTableReadConfigSerializer implements
     private static final String CFG_SKIP_EMPTY_DATA_ROWS = "skip_empty_data_rows";
 
     private static final String CFG_HAS_ROW_ID = "has_row_id";
+
+    private static final String CFG_PREPEND_FILE_IDX_TO_ROWID = "prepend_file_idx_to_row_id";
 
     private static final String CFG_HAS_COLUMN_HEADER = "has_column_header";
 
@@ -206,6 +209,7 @@ enum CSVMultiTableReadConfigSerializer implements
         final NodeSettingsRO settings) {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setAllowShortRows(settings.getBoolean(CFG_SUPPORT_SHORT_DATA_ROWS, true));
+        tc.setPrependSourceIdxToRowId(settings.getBoolean(CFG_PREPEND_FILE_IDX_TO_ROWID, false));
         tc.setColumnHeaderIdx(0);
         tc.setUseColumnHeaderIdx(settings.getBoolean(CFG_HAS_COLUMN_HEADER, true));
         tc.setRowIDIdx(0);
@@ -326,6 +330,8 @@ enum CSVMultiTableReadConfigSerializer implements
         tc.setUseColumnHeaderIdx(settings.getBoolean(CFG_HAS_COLUMN_HEADER));
         tc.setRowIDIdx(0);
         tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID));
+        // Added in 4.3
+        tc.setPrependSourceIdxToRowId(settings.getBoolean(CFG_PREPEND_FILE_IDX_TO_ROWID, false));
         tc.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS));
 
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
@@ -407,6 +413,7 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.addBoolean(CFG_HAS_ROW_ID, tc.useRowIDIdx());
         settings.addBoolean(CFG_SUPPORT_SHORT_DATA_ROWS, tc.allowShortRows());
         settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, tc.skipEmptyRows());
+        settings.addBoolean(CFG_PREPEND_FILE_IDX_TO_ROWID, tc.prependSourceIdxToRowID());
 
         final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
         settings.addString(CFG_COMMENT_CHAR, cc.getComment());
@@ -471,7 +478,7 @@ enum CSVMultiTableReadConfigSerializer implements
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+            GenericDefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
                 StringReadAdapterFactory.INSTANCE.getProducerRegistry());
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));

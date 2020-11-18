@@ -85,7 +85,7 @@ public class ContinuousCountingRowKeyGeneratorContextTest {
      */
     @Before
     public void init() {
-        m_testInstance = new ContinuousCountingRowKeyGeneratorContext<>();
+        m_testInstance = new ContinuousCountingRowKeyGeneratorContext<>("Row");
     }
 
     /**

@@ -136,6 +136,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
     private final JCheckBox m_hasRowIDChecker;
 
+    private final JCheckBox m_prependSourceIdxToRowId;
+
     private final JCheckBox m_hasColHeaderChecker;
 
     private final JCheckBox m_allowShortDataRowsChecker;
@@ -215,6 +217,15 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_hasRowIDChecker = new JCheckBox("Has row ID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
         m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
+
+        if (allowsReadingMultipleFiles) {
+            m_prependSourceIdxToRowId = new JCheckBox("Prepend file index to row ID");
+            m_hasRowIDChecker.addActionListener(e -> m_prependSourceIdxToRowId.setEnabled(m_hasRowIDChecker.isSelected()));
+        } else {
+            m_prependSourceIdxToRowId = null;
+        }
+
+
         m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
         m_startAutodetection = new JButton(START_AUTODETECT_LABEL);
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
@@ -268,7 +279,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
-        addTab("Settings", initLayout());
+        addTab("Settings", createSettingsTab());
         addTab("Transformation", createTransformationTab());
         addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
@@ -358,6 +369,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_commentStartField.getDocument().addDocumentListener(documentListener);
 
         m_hasRowIDChecker.addActionListener(actionListener);
+        if (m_prependSourceIdxToRowId != null) {
+            m_prependSourceIdxToRowId.addActionListener(actionListener);
+        }
         m_hasColHeaderChecker.addActionListener(actionListener);
         m_allowShortDataRowsChecker.addActionListener(actionListener);
         m_replaceQuotedEmptyStringChecker.addActionListener(actionListener);
@@ -430,7 +444,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      *
      * @return a {@link JPanel} filled with dialog components.
      */
-    private JPanel initLayout() {
+    private JPanel createSettingsTab() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.BOTH;
@@ -676,6 +690,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
         gbc.gridy += 1;
         gbc.insets = new Insets(5, 0, 5, 5);
         readerOptions.add(m_allowShortDataRowsChecker, gbc);
+        if (m_prependSourceIdxToRowId != null) {
+            gbc.gridx++;
+            gbc.insets = new Insets(5, 26, 5, 5);
+            readerOptions.add(m_prependSourceIdxToRowId, gbc);
+        }
         return readerOptions;
     }
 
@@ -759,6 +778,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         tableReadConfig.setUseRowIDIdx(m_hasRowIDChecker.isSelected());
         tableReadConfig.setRowIDIdx(0);
+        if (m_prependSourceIdxToRowId != null) {
+            tableReadConfig.setPrependSourceIdxToRowId(m_prependSourceIdxToRowId.isSelected());
+        }
 
         tableReadConfig.setUseColumnHeaderIdx(m_hasColHeaderChecker.isSelected());
         tableReadConfig.setColumnHeaderIdx(0);
@@ -865,6 +887,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         m_hasColHeaderChecker.setSelected(tableReadConfig.useColumnHeaderIdx());
         m_hasRowIDChecker.setSelected(tableReadConfig.useRowIDIdx());
+
+        if (m_prependSourceIdxToRowId != null) {
+            m_prependSourceIdxToRowId.setSelected(tableReadConfig.prependSourceIdxToRowID());
+            m_prependSourceIdxToRowId.setEnabled(tableReadConfig.useRowIDIdx());
+        }
 
         m_allowShortDataRowsChecker.setSelected(tableReadConfig.allowShortRows());
 
