@@ -89,7 +89,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
                 return createFilterMessage(stats);
             }
         } catch (Exception ex) {
-            return DefaultStatusMessage.mkError(ex.getMessage());
+            return DefaultStatusMessage.mkError("%s", ex.getMessage());
         }
     }
 

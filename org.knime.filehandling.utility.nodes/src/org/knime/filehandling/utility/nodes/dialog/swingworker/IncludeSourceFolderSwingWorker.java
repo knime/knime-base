@@ -91,7 +91,7 @@ public final class IncludeSourceFolderSwingWorker implements StatusMessageReport
 
             return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
                 ? Optional.of(DefaultStatusMessage.SUCCESS_MSG)
-                : Optional.of(DefaultStatusMessage.mkError(PathHandlingUtils.createErrorMessage(rootPath)));
+                : Optional.of(DefaultStatusMessage.mkError("%s", PathHandlingUtils.createErrorMessage(rootPath)));
         } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
             return Optional.empty();
         }
