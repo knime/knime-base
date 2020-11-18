@@ -2,7 +2,9 @@ package org.knime.core.data.v2.time;
 
 import java.time.Duration;
 
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.duration.DurationCell;
 import org.knime.core.data.time.duration.DurationCellFactory;
@@ -45,7 +47,7 @@ public final class DurationValueFactory implements ValueFactory<DurationReadAcce
      *
      * @since 4.3
      */
-    public static interface DurationReadValue extends ReadValue, DurationValue {
+    public static interface DurationReadValue extends ReadValue, DurationValue, BoundedValue, StringValue {
     }
 
     /**
@@ -77,6 +79,11 @@ public final class DurationValueFactory implements ValueFactory<DurationReadAcce
         @Override
         public Duration getDuration() {
             return m_access.getDuration();
+        }
+
+        @Override
+        public String getStringValue() {
+            return m_access.getDuration().toString();
         }
     }
 

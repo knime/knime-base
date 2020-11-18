@@ -2,7 +2,9 @@ package org.knime.core.data.v2.time;
 
 import java.time.Period;
 
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.data.time.period.PeriodCellFactory;
@@ -45,7 +47,7 @@ public final class PeriodValueFactory implements ValueFactory<PeriodReadAccess, 
      *
      * @since 4.3
      */
-    public static interface PeriodReadValue extends ReadValue, PeriodValue {
+    public static interface PeriodReadValue extends ReadValue, PeriodValue, StringValue, BoundedValue {
     }
 
     /**
@@ -77,6 +79,11 @@ public final class PeriodValueFactory implements ValueFactory<PeriodReadAccess, 
         @Override
         public Period getPeriod() {
             return m_access.getPeriod();
+        }
+
+        @Override
+        public String getStringValue() {
+            return m_access.getPeriod().toString();
         }
     }
 

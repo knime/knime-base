@@ -2,7 +2,9 @@ package org.knime.core.data.v2.time;
 
 import java.time.LocalTime;
 
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.localtime.LocalTimeCell;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
@@ -45,7 +47,7 @@ public final class LocalTimeValueFactory implements ValueFactory<LocalTimeReadAc
      *
      * @since 4.3
      */
-    public static interface LocalTimeReadValue extends ReadValue, LocalTimeValue {
+    public static interface LocalTimeReadValue extends ReadValue, LocalTimeValue, BoundedValue, StringValue {
     }
 
     /**
@@ -77,6 +79,11 @@ public final class LocalTimeValueFactory implements ValueFactory<LocalTimeReadAc
         @Override
         public LocalTime getLocalTime() {
             return m_access.getLocalTime();
+        }
+
+        @Override
+        public String getStringValue() {
+            return m_access.getLocalTime().toString();
         }
     }
 
