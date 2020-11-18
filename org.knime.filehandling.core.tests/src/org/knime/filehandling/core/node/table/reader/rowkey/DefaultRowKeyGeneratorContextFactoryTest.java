@@ -89,7 +89,7 @@ public class DefaultRowKeyGeneratorContextFactoryTest {
      */
     @Before
     public void init() {
-        m_testInstance = new DefaultRowKeyGeneratorContextFactory<>(Object::toString);
+        m_testInstance = new DefaultRowKeyGeneratorContextFactory<>(Object::toString, "File");
     }
 
     /**

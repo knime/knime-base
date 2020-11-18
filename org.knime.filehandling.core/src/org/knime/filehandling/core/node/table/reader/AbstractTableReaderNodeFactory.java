@@ -117,7 +117,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         final GenericRowKeyGeneratorContextFactory<Path, V> rowKeyGenFactory =
-            new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey);
+            new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey, "File");
         return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory, (TableReader<C, T, V>)reader,
                 productionPathProvider, readAdapterFactory::createReadAdapter);
     }

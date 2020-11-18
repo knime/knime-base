@@ -51,7 +51,8 @@ package org.knime.filehandling.core.node.table.reader.rowkey;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import org.eclipse.core.runtime.Path;
+import java.nio.file.Path;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.core.data.RowKey;
@@ -70,6 +71,9 @@ public class ExtractingRowKeyGeneratorContextTest {
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
 
+    @Mock
+    private Path m_path;
+
     /**
      * Tests the {@code createKey} implementation.
      */
@@ -79,20 +83,15 @@ public class ExtractingRowKeyGeneratorContextTest {
         when(m_randomAccessible.size()).thenReturn(4);
 
         // test the case that the rowKeyColIndex is out of bounds
-        ExtractingRowKeyGeneratorContext<Path, String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 6);
-        assertEquals(new RowKey("test_?0"), keyGen.createKey(m_randomAccessible));
+        ExtractingRowKeyGeneratorContext<Path, String> keyGenContext = new ExtractingRowKeyGeneratorContext<>(Object::toString, 6, "File", false);
+        assertEquals(new RowKey("?0"), keyGenContext.createKeyGenerator(m_path).createKey(m_randomAccessible));
 
         // test different RowKeys including null
-        keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
-        assertEquals(new RowKey("test_foo"), keyGen.createKey(m_randomAccessible));
-        assertEquals(new RowKey("test_bar"), keyGen.createKey(m_randomAccessible));
-        assertEquals(new RowKey("test_foobar"), keyGen.createKey(m_randomAccessible));
-        assertEquals(new RowKey("test_?3"), keyGen.createKey(m_randomAccessible));
-    }
-
-    @Test
-    public void testCreateKeyGenerator() {
-        ExtractingRowKeyGeneratorContext<Path, String> keyGen = new ExtractingRowKeyGeneratorContext<>("test_", Object::toString, 3);
-        assertEquals(keyGen, keyGen.createKeyGenerator(null));
+        keyGenContext = new ExtractingRowKeyGeneratorContext<>(Object::toString, 3, "File", false);
+        final RowKeyGenerator<String> keyGen = keyGenContext.createKeyGenerator(m_path);
+        assertEquals(new RowKey("foo"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("bar"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("foobar"), keyGen.createKey(m_randomAccessible));
+        assertEquals(new RowKey("?3"), keyGen.createKey(m_randomAccessible));
     }
 }

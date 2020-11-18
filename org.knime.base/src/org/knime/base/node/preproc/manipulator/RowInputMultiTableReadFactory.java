@@ -81,7 +81,7 @@ public class RowInputMultiTableReadFactory
         final RowInputTableReader reader,
         final ProductionPathProvider<DataType> productionPathProvider,
         final Supplier<ReadAdapter<DataType, DataValue>> readAdpaterSupplier) {
-        super(typeHierarchy, new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString), reader,
+        super(typeHierarchy, new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString, "Table"), reader,
             productionPathProvider, readAdpaterSupplier);
     }
 

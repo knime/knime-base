@@ -97,6 +97,16 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> ext
     }
 
     /**
+     * Sets whether a prefix consisting of an application dependent String and the index of the source should be
+     * prepended to the read row ids.
+     *
+     * @param prependSourceIdxToRowId {@code true} if the source idx should be appended
+     */
+    public void setPrependSourceIdxToRowId(final boolean prependSourceIdxToRowId) {
+        m_prependSourcePrefixToRowIDs = prependSourceIdxToRowId;
+    }
+
+    /**
      * Sets the prefix for generated row ids.
      *
      * @param prefixForGeneratedRowIds prefix for generated row ids

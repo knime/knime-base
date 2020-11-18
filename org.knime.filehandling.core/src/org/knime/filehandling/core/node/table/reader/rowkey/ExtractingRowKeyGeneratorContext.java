@@ -59,8 +59,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractingRowKeyGeneratorContext<I, V> extends AbstractRowKeyGenerator<V>
-    implements GenericRowKeyGeneratorContext<I, V> {
+final class ExtractingRowKeyGeneratorContext<I, V> implements GenericRowKeyGeneratorContext<I, V> {
 
     private static final String MISSING_ROW_KEY_PREFIX = "?";
 
@@ -70,6 +69,12 @@ final class ExtractingRowKeyGeneratorContext<I, V> extends AbstractRowKeyGenerat
 
     private final AtomicLong m_rowIndex = new AtomicLong(-1);
 
+    private final boolean m_prependSourcePrefix;
+
+    private final String m_sourcePrefix;
+
+    private int m_generatorCounter = -1;
+
     /**
      * Constructor.
      *
@@ -77,22 +82,38 @@ final class ExtractingRowKeyGeneratorContext<I, V> extends AbstractRowKeyGenerat
      * @param rowKeyExtractor converts a V into a String
      * @param colIdx index of the column containing the row keys
      */
-    ExtractingRowKeyGeneratorContext(final String prefix, final Function<V, String> rowKeyExtractor, final int colIdx) {
-        super(prefix);
+    ExtractingRowKeyGeneratorContext(final Function<V, String> rowKeyExtractor, final int colIdx,
+        final String sourcePrefix, final boolean prependSourcePrefix) {
         m_rowKeyExtractor = rowKeyExtractor;
         m_colIdx = colIdx;
-    }
-
-    @Override
-    public RowKey createKey(final RandomAccessible<V> tokens) {
-        final long idx = m_rowIndex.incrementAndGet();
-        final V key = tokens.size() < m_colIdx ? null : tokens.get(m_colIdx);
-        final String rowKey = key != null ? m_rowKeyExtractor.apply(key) : MISSING_ROW_KEY_PREFIX + idx;
-        return new RowKey(getPrefix() + rowKey);
+        m_prependSourcePrefix = prependSourcePrefix;
+        m_sourcePrefix = sourcePrefix;
     }
 
     @Override
     public RowKeyGenerator<V> createKeyGenerator(final I path) {
-        return this;
+        m_generatorCounter++;
+        return new SourceRowKeyGenerator(m_generatorCounter);
+    }
+
+    private class SourceRowKeyGenerator implements RowKeyGenerator<V> {
+
+        private final String m_sourceIdxSuffix;
+
+        SourceRowKeyGenerator(final int sourceIdx) {
+            m_sourceIdxSuffix = m_sourcePrefix + "_" + sourceIdx + "_";
+        }
+
+        @Override
+        public RowKey createKey(final RandomAccessible<V> values) {
+            final long idx = m_rowIndex.incrementAndGet();
+            final V key = values.size() < m_colIdx ? null : values.get(m_colIdx);
+            String rowKey = key != null ? m_rowKeyExtractor.apply(key) : (MISSING_ROW_KEY_PREFIX + idx);
+            if (m_prependSourcePrefix) {
+                rowKey = m_sourceIdxSuffix + rowKey;
+            }
+            return new RowKey(rowKey);
+        }
+
     }
 }

@@ -112,6 +112,16 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
     String getPrefixForGeneratedRowIDs();
 
     /**
+     * Indicates whether a prefix consisting of an application dependent prefix and the index of the source should be prepended to the row IDs.
+     * This is useful because it avoids duplicate row keys if the same key is used in multiple tables.
+     * (It doesn't alleviate the problem of within table duplicates though)
+     * Only used if {@link #useRowIDIdx()} returns {@code true}.
+     *
+     * @return {@code true} if the source index should be appended to row keys read from the source
+     */
+    boolean prependSourceIdxToRowID();
+
+    /**
      * Returns whether empty rows should be skipped.
      *
      * @return {@code true} if empty rows should be skipped

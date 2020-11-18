@@ -86,6 +86,11 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
     private final String m_prefixForGeneratedRowIds;
 
     /**
+     * Flag indicating whether the source index should be appended to read row ids.
+     */
+    private final boolean m_appendSourceIdxToRowIds;
+
+    /**
      * Indicates if short rows are supported.
      */
     private final boolean m_allowShortRows;
@@ -141,6 +146,7 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
         m_useColumnHeaderIdx = tableReadConfig.useColumnHeaderIdx();
         m_useRowIDIdx = tableReadConfig.useRowIDIdx();
         m_prefixForGeneratedRowIds = tableReadConfig.getPrefixForGeneratedRowIDs();
+        m_appendSourceIdxToRowIds = tableReadConfig.prependSourceIdxToRowID();
         m_allowShortRows = tableReadConfig.allowShortRows();
         m_skipEmptyRows = tableReadConfig.skipEmptyRows();
         m_skipRows = tableReadConfig.skipRows();
@@ -183,6 +189,11 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
     @Override
     public String getPrefixForGeneratedRowIDs() {
         return m_prefixForGeneratedRowIds;
+    }
+
+    @Override
+    public boolean prependSourceIdxToRowID() {
+        return m_appendSourceIdxToRowIds;
     }
 
     @Override

@@ -59,24 +59,31 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <I> the item type to read from
  * @param <V> the type of values
+ * @noinstantiate non-public API
+ * @noreference non-public API
  */
 public final class DefaultRowKeyGeneratorContextFactory<I, V> implements GenericRowKeyGeneratorContextFactory<I, V> {
 
     private final Function<V, String> m_rowKeyExtractor;
 
+    private final String m_sourcePrefix;
+
     /**
      * Constructor.
      *
      * @param rowKeyExtractor for extracting row keys from values
+     * @param sourcePrefix prefix for the source index
      */
-    public DefaultRowKeyGeneratorContextFactory(final Function<V, String> rowKeyExtractor) {
+    public DefaultRowKeyGeneratorContextFactory(final Function<V, String> rowKeyExtractor, final String sourcePrefix) {
         m_rowKeyExtractor = rowKeyExtractor;
+        m_sourcePrefix = sourcePrefix;
     }
 
     @Override
     public GenericRowKeyGeneratorContext<I, V> createContext(final TableReadConfig<?> config) {
         if (config.useRowIDIdx()) {
-            return new ExtractingRowKeyGeneratorContext<>("", m_rowKeyExtractor, config.getRowIDIdx());
+            return new ExtractingRowKeyGeneratorContext<>(m_rowKeyExtractor, config.getRowIDIdx(), m_sourcePrefix,
+                config.prependSourceIdxToRowID());
         } else {
             return new ContinuousCountingRowKeyGeneratorContext<>(config.getPrefixForGeneratedRowIDs());
         }

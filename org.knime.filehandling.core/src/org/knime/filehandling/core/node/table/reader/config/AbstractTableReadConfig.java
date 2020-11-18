@@ -81,6 +81,12 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
     protected String m_prefixForGeneratedRowIds = "Row";
 
     /**
+     * Indicates whether a source prefix (consisting of an application dependent prefix and the index of the source)
+     * should be prepended to row ids read from the source. Not used if new row keys are generated.
+     */
+    protected boolean m_prependSourcePrefixToRowIDs = false;
+
+    /**
      * Indicates if short rows are supported.
      */
     protected boolean m_allowShortRows;
@@ -148,6 +154,7 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
         m_useColumnHeaderIdx = toCopy.m_useColumnHeaderIdx;
         m_useRowIDIdx = toCopy.m_useRowIDIdx;
         m_prefixForGeneratedRowIds = toCopy.m_prefixForGeneratedRowIds;
+        m_prependSourcePrefixToRowIDs = toCopy.m_prependSourcePrefixToRowIDs;
         m_allowShortRows = toCopy.m_allowShortRows;
         m_skipEmptyRows = toCopy.m_skipEmptyRows;
         m_skipRows = toCopy.m_skipRows;
@@ -182,6 +189,11 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
     @Override
     public String getPrefixForGeneratedRowIDs() {
         return m_prefixForGeneratedRowIds;
+    }
+
+    @Override
+    public boolean prependSourceIdxToRowID() {
+        return m_prependSourcePrefixToRowIDs;
     }
 
     @Override
