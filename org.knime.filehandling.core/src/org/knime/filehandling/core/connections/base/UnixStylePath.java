@@ -50,8 +50,6 @@ package org.knime.filehandling.core.connections.base;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
@@ -66,6 +64,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.filechooser.NioFile;
 
@@ -88,7 +87,7 @@ public abstract class UnixStylePath extends FSPath {
     protected final ArrayList<String> m_pathParts;
 
     /** The file system the path belongs to */
-    protected final BaseFileSystem<? extends UnixStylePath> m_fileSystem;
+    protected final FSFileSystem<? extends UnixStylePath> m_fileSystem;
 
     /** Whether the path is absolute */
     protected final boolean m_isAbsolute;
@@ -100,10 +99,10 @@ public abstract class UnixStylePath extends FSPath {
      * @param pathString path String
      */
     @SuppressWarnings({"unchecked", "resource"})
-    protected UnixStylePath(final BaseFileSystem<?> fileSystem, final String pathString) {
+    protected UnixStylePath(final FSFileSystem<?> fileSystem, final String pathString) {
         CheckUtils.checkNotNull(fileSystem, "FileSystem must not be null.");
         CheckUtils.checkNotNull(pathString, "Path string must not be null.");
-        m_fileSystem = (BaseFileSystem<? extends UnixStylePath>)fileSystem;
+        m_fileSystem = (FSFileSystem<? extends UnixStylePath>)fileSystem;
         m_pathSeparator = m_fileSystem.getSeparator();
         m_isAbsolute = pathString.startsWith(m_pathSeparator);
         m_pathParts = getPathSplits(pathString);
@@ -116,7 +115,7 @@ public abstract class UnixStylePath extends FSPath {
      * @param first first part of the path
      * @param more subsequent parts of the path
      */
-    protected UnixStylePath(final BaseFileSystem<?> fileSystem, final String first, final String... more) {
+    protected UnixStylePath(final FSFileSystem<?> fileSystem, final String first, final String... more) {
         this(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
     }
 
@@ -168,7 +167,7 @@ public abstract class UnixStylePath extends FSPath {
     }
 
     @Override
-    public BaseFileSystem<? extends UnixStylePath> getFileSystem() {
+    public FSFileSystem<? extends UnixStylePath> getFileSystem() {
         return m_fileSystem;
     }
 
@@ -485,18 +484,6 @@ public abstract class UnixStylePath extends FSPath {
 
         sb.append(unixOther.subpath(r, unixOther.getNameCount()));
         return getFileSystem().getPath(sb.toString());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public URI toUri() {
-        try {
-            return new URI(m_fileSystem.getSchemeString(), m_fileSystem.getHostString(), toAbsolutePath().toString(), null, null);
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException(ex);
-        }
     }
 
     @Override

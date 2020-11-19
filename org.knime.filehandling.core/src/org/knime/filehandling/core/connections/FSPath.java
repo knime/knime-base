@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -73,7 +75,7 @@ public abstract class FSPath implements Path {
      * @return a {@link Stream} over the stringified name components of this path.
      */
     public Stream<String> stringStream() {
-        return pathStream().map((p) -> p.toString());
+        return pathStream().map(Path::toString);
     }
 
     /**
@@ -100,5 +102,16 @@ public abstract class FSPath implements Path {
         final FSFileSystem<?> fs = getFileSystem();
         return new FSLocation(fs.getFileSystemCategory().toString(), fs.getFileSystemSpecifier().orElseGet(() -> null),
             toString());
+    }
+
+    @Override
+    public final URI toUri() {
+        try {
+            @SuppressWarnings("resource")
+            final URI baseURI = getFileSystem().getFileSystemBaseURI();
+            return new URI(baseURI.getScheme(), baseURI.getAuthority(), toAbsolutePath().toString(), null, null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 }

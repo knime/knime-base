@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
@@ -93,6 +94,11 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      */
     private final Set<Closeable> m_closeables = new HashSet<>();
 
+    /**
+     * A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}.
+     */
+    private final URI m_fsBaseUri;
+
     private boolean m_isOpen = true;
 
     private boolean m_isClosing = false;
@@ -100,10 +106,14 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     /**
      * Creates a new instance.
      *
+     * @param fsBaseUri A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}. It's path, query or
+     *            fragment will be ignored.
      * @param fsLocationSpec An {@link FSLocationSpec} that characterizes this file system.
      * @param workingDir The working directory to use (see {@link #getWorkingDirectory()}).
      */
-    public FSFileSystem(final FSLocationSpec fsLocationSpec, final String workingDir) {
+    public FSFileSystem(final URI fsBaseUri, final FSLocationSpec fsLocationSpec, final String workingDir) {
+        CheckUtils.checkArgument(fsBaseUri.getScheme() != null, "scheme of base URI must not be null");
+        m_fsBaseUri = fsBaseUri;
         m_fsLocationSpec = fsLocationSpec;
         m_workingDirectory = workingDir;
     }
@@ -165,7 +175,7 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      *
      * @throws IOException when something went wrong while closing the file system.
      */
-    synchronized final void ensureClosed() throws IOException {
+    final synchronized void ensureClosed() throws IOException {
         if (m_isOpen) {
             try {
                 m_isClosing = true;
@@ -191,8 +201,7 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     private static void closeSafely(final Closeable closeable) {
         try {
             closeable.close();
-        } catch (final IOException ex) {
-            // Nothing we could do here.
+        } catch (final IOException ex) { // NOSONAR nothing we could do here
         }
     }
 
@@ -280,6 +289,13 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      */
     public T getPath(final FSLocation fsLocation) {
         return getPath(fsLocation.getPath());
+    }
+
+    /**
+     * @return this file system's base URI, which is used to construct the URI when invoking {@link FSPath#toUri()}.
+     */
+    public final URI getFileSystemBaseURI() {
+        return m_fsBaseUri;
     }
 
     @Override

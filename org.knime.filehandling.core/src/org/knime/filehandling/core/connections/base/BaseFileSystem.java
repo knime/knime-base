@@ -85,8 +85,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
     private final BaseFileSystemProvider<?, ?> m_fileSystemProvider;
 
-    private final URI m_uri;
-
     private final AttributesCache m_cache;
 
     private final List<FileStore> m_fileStores;
@@ -96,16 +94,17 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * system.
      *
      * @param fileSystemProvider the provider that the file system belongs to
-     * @param uri the uri identifying the file system
+     * @param fsBaseUri A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}. It's path, query or
+     *            fragment will be ignored.
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      * @param workingDirectory the working directory
      * @param fsLocationSpec the {@link FSLocationSpec}
      */
-    protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, final URI uri, final long cacheTTL,
+    protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, final URI fsBaseUri, final long cacheTTL,
         final String workingDirectory, final FSLocationSpec fsLocationSpec) {
 
-        this(fileSystemProvider, uri, cacheTTL, workingDirectory, fsLocationSpec, null);
+        this(fileSystemProvider, fsBaseUri, cacheTTL, workingDirectory, fsLocationSpec, null);
     }
 
     /**
@@ -113,7 +112,8 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * system.
      *
      * @param fileSystemProvider the provider that the file system belongs to
-     * @param uri the uri identifying the file system
+     * @param fsBaseUri A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}. It's path, query or
+     *            fragment will be ignored.
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      * @param workingDirectory The working directory of this file system.
@@ -122,21 +122,19 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      *            {@link #createDefaultFileStore()} will be called to instantiate a file store.
      */
     public BaseFileSystem(final BaseFileSystemProvider<?,?> fileSystemProvider,
-        final URI uri,
+        final URI fsBaseUri,
         final long cacheTTL,
         final String workingDirectory,
         final FSLocationSpec fsLocationSpec,
         final List<FileStore> fileStores) {
 
-        super(fsLocationSpec, workingDirectory);
+        super(fsBaseUri, fsLocationSpec, workingDirectory);
 
         fileSystemProvider.setFileSystem(this);
 
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
-        Validate.notNull(uri, "URI must not be null.");
 
         m_fileSystemProvider = fileSystemProvider;
-        m_uri = uri;
         if (cacheTTL > 0) {
             m_cache = new BaseAttributesCache(cacheTTL);
         } else {
@@ -151,7 +149,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     }
 
     protected FileStore createDefaultFileStore() {
-        return new BaseFileStore(getSchemeString(), "default_file_store");
+        return new BaseFileStore(getFileSystemBaseURI().getScheme(), "default_file_store");
     }
 
     @SuppressWarnings("unchecked")
@@ -318,19 +316,4 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
     protected String getCachedAttributesKey(final Path path) {
         return path.toAbsolutePath().normalize().toString();
     }
-
-    /**
-     * @return a String for the scheme to build a URI for this path
-     */
-    public String getSchemeString() {
-        return m_uri.getScheme();
-    }
-
-    /**
-     * @return a String for the host to build a URI for this path may be null
-     */
-    public String getHostString() {
-        return m_uri.getAuthority();
-    }
-
 }

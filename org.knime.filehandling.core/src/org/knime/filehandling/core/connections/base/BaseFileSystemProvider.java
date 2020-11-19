@@ -823,8 +823,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public P getPath(final URI uri) {
         final F fileSystem = getFileSystemInternal();
 
-        if (fileSystem.getSchemeString().equalsIgnoreCase(uri.getScheme())
-            && fileSystem.getHostString().equalsIgnoreCase(uri.getHost())) {
+        if (fileSystem.getFileSystemBaseURI().getScheme().equalsIgnoreCase(uri.getScheme())
+            && fileSystem.getFileSystemBaseURI().getAuthority().equalsIgnoreCase(uri.getAuthority())) {
             return fileSystem.getPath(uri.getPath());
         } else {
             throw new IllegalArgumentException(String.format("Cannot create path for URI: %s", uri.toString()));
@@ -857,5 +857,10 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     public void setAttribute(final Path arg0, final String arg1, final Object arg2, final LinkOption... arg3)
         throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public final String getScheme() {
+        return getFileSystemInternal().getFileSystemBaseURI().getScheme();
     }
 }
