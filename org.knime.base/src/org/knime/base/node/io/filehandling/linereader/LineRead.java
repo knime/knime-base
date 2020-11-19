@@ -140,7 +140,9 @@ final class LineRead implements Read<String> {
             m_linesRead++;
         } else {
             nextRow = getNextLine();
-            m_linesRead++;
+            if(nextRow != null && nextRow.size() != 0) {
+                m_linesRead++;
+            }
         }
         return nextRow;
     }
@@ -174,9 +176,9 @@ final class LineRead implements Read<String> {
      * @return a {@link RandomAccessible}
      * @throws IOException
      */
-    private RandomAccessible<String> replaceEmptyRows() throws IOException {
+    private RandomAccessible<String> replaceEmptyRows(){
         if (m_config.skipEmptyRows()) {
-            return getNextLine();
+            return RandomAccessibleUtils.createFromArray();
         } else {
             return createRandomAccessible(m_replaceEmpty ? m_emptyLineReplacement : null);
         }
@@ -189,13 +191,17 @@ final class LineRead implements Read<String> {
      * @throws IOException
      */
     private String getNextLineRegex() throws IOException {
-        final String line = m_reader.readLine();
-
-        if (line == null) {
-            return null;
-        } else {
-            return m_regexPattern.matcher(line).matches() ? line : getNextLineRegex();
+        boolean hasNext = true;
+        boolean isNull = false;
+        String line = "";
+        while (hasNext) {
+            line = m_reader.readLine();
+            isNull = line == null;
+            if (isNull || m_regexPattern.matcher(line).matches()) {
+                hasNext = false;
+            }
         }
+        return isNull ? null : line;
     }
 
     /**
