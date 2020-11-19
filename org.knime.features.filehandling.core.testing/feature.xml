@@ -729,8 +729,14 @@
 
    <requires>
       <import plugin="org.knime.filehandling.core" version="0.0.0" match="greaterOrEqual"/>
-      <import plugin="org.knime.filehandling.core.fs" version="0.0.0" match="greaterOrEqual"/>
    </requires>
+
+   <plugin
+         id="org.knime.filehandling.core.fs"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.knime.filehandling.core.tests"
