@@ -10,28 +10,39 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			This node writes files from a table with binary objects. It will append the URIs of the files to the output 
-			table.
+			This node writes files from a table with binary objects. It will append the Paths of binary files to the 
+			output table and the corresponding Status (created, unmodified, overwritten).
 		</intro>
 		<option name="Binary object">
-			<b>Column</b>
-			<br />
-			Column with binary objects.
-			<br />
-			<b>Remove column</b>
-			<br />
-			Removes the column with the binary objects from the output table.
-			<br />
+			Options for selecting a column with binary data from input table. And whether the original binary column 
+			should be included in the output.
+			<ul>
+				<li>
+					<b>Column: </b>
+					Column with binary objects.
+					<br />
+				</li>
+				<li>
+					<b>Remove column: </b>
+					Removes the column with the binary objects from the output table.
+				</li>
+			</ul>
 		</option>
         <option name="File names">
-            <b>Generate</b>
-            <br />
-			The names will be generated using a user provided pattern. The "?" symbol
-			in the pattern will be replaced with a count
-			<br />
-            <b>From column</b>
-            <br />
-            The names can be found in a column of the input table.
+        	Select an option for the binary file names, by default files will be  generated using "File_?.dat" pattern. 
+        	There are two options to choose from. 
+			<ul>
+				<li>
+					<b>Generate: </b>
+					The names will be generated using a user provided pattern. The pattern should contain "?" symbol 
+					which will be replaced with an incrementing number to make the filenames unique.
+					<br />
+				</li>
+				<li>
+					<b>From column: </b>
+					The file names for output binary files can be found in a column of the input table.
+				</li>
+			</ul>
         </option>
 		<option name="Write to">
 			Select a file system which stores the files you want to generate.
@@ -93,16 +104,16 @@
 
     <ports>
         <inPort name="Input table" index="0">
-            Table that contains the binary objects that will be written. Target paths for the output files can also be
-            used, if they are available in the table.
+            Table that contains the binary objects that will be written to files. User defined names for binary files 
+            can also be used, if they are available in the table.
         </inPort>
         <dynInPort insert-before="0" name="File system connection"
 			group-identifier="File System Connection">
 			The file system connection.
 		</dynInPort>
         <outPort name="Output table" index="0">
-            Input table with the URI to each file. The URI will only be appended if it is not already present in the
-            table.
+            Output table with the Path to binary files and their corresponding Status (created, unmodified, overwritten) 
+            for the binary objects in input table.
         </outPort>
     </ports>
 </knimeNode>
