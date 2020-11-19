@@ -82,13 +82,6 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemotePath, KNIMERemoteFileSystem>
     implements WorkflowAware {
 
-    private static final String SCHEME = "knime";
-
-    @Override
-    public String getScheme() {
-        return SCHEME;
-    }
-
     @Override
     protected SeekableByteChannel newByteChannelInternal(final KNIMERemotePath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {

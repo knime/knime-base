@@ -50,8 +50,6 @@ package org.knime.filehandling.core.connections.local;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -216,17 +214,6 @@ public class LocalPath extends FSPath {
      */
     public boolean isEmptyPath() {
         return !isAbsolute() && m_wrappedPath.getNameCount() == 1 && m_wrappedPath.getName(0).toString().isEmpty();
-    }
-
-
-    @Override
-    public URI toUri() {
-        try {
-            final URI wrappedPathUri = ((LocalPath)toAbsolutePath()).m_wrappedPath.toUri();
-            return new URI(LocalFileSystem.FS_TYPE.getTypeId(), null, wrappedPathUri.getPath(), null);
-        } catch (URISyntaxException ex) {
-            throw new IllegalStateException(ex);
-        }
     }
 
     @SuppressWarnings("resource")

@@ -71,7 +71,7 @@ public class URIPath extends UnixStylePath {
     /**
      * Constructs a new URIPath. Note that URL query and fragment can be passed through
      * if included in the first/more arguments. If so, they not become part of the name components,
-     * but are part of the URI returned by {@link #toUri()}.
+     * but are part of the URI returned by {@link #getURI()}.
      *
      * @param fileSystem the paths file system.
      * @param first First name component (may contain URL query and fragment in encoded form, if "more" is empty).
@@ -114,14 +114,16 @@ public class URIPath extends UnixStylePath {
     }
 
 
-    @Override
-    public URIFileSystem getFileSystem() {
-        return (URIFileSystem) super.getFileSystem();
+    /**
+     * @return the underlying URI of this path, including query and fragment.
+     */
+    public URI getURI() {
+        return m_uri;
     }
 
     @Override
-    public URI toUri() {
-        return m_uri;
+    public URIFileSystem getFileSystem() {
+        return (URIFileSystem) super.getFileSystem();
     }
 
     /**
@@ -142,7 +144,7 @@ public class URIPath extends UnixStylePath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = FileUtil.toURL(toUri().toString());
+        final URL url = FileUtil.toURL(m_uri.toString());
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);

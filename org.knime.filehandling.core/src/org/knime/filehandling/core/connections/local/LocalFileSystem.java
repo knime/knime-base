@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.local;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -75,10 +76,13 @@ public class LocalFileSystem extends FSFileSystem<LocalPath> {
 
     private static final FileSystem PLATFORM_DEFAULT_FS = FileSystems.getDefault();
 
+
     /**
      * The file system type of the local file system.
      */
-    public final static FSType FS_TYPE = FSType.LOCAL_FS;
+    public static final  FSType FS_TYPE = FSType.LOCAL_FS;
+
+    private static final URI BASE_URI = URI.create(FS_TYPE.getTypeId() + ":///");
 
     /**
      * The {@link FSLocationSpec} for the local convenience file system.
@@ -93,7 +97,7 @@ public class LocalFileSystem extends FSFileSystem<LocalPath> {
     private final LocalFileSystemProvider m_provider;
 
     LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir, final FSLocationSpec fsLocationSpec) {
-        super(fsLocationSpec, workingDir);
+        super(BASE_URI, fsLocationSpec, workingDir);
         m_provider = provider;
     }
 

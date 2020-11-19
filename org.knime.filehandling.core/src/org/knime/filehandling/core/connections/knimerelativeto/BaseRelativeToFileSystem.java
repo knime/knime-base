@@ -108,10 +108,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
 
     private final Type m_type;
 
-    private final String m_scheme;
-
-    private final String m_hostString;
-
     /**
      * Default constructor.
      *
@@ -135,16 +131,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
             createFileStores(type));
 
         m_type = type;
-        if (m_type == Type.MOUNTPOINT_RELATIVE) {
-            m_scheme = MOUNTPOINT_REL_SCHEME;
-        } else if (m_type == Type.WORKFLOW_RELATIVE) {
-            m_scheme = WORKFLOW_REL_SCHEME;
-        } else if (m_type == Type.WORKFLOW_DATA_RELATIVE) {
-            m_scheme = WORKFLOW_DATA_REL_SCHEME;
-        } else {
-            throw new IllegalArgumentException("Illegal type " + m_type);
-        }
-        m_hostString = uri.getHost();
     }
 
     private static List<FileStore> createFileStores(final Type type) {
@@ -316,15 +302,5 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      */
     protected String getFileStoreType() {
         return isWorkflowRelativeFileSystem() ? WORKFLOW_REL_SCHEME : MOUNTPOINT_REL_SCHEME;
-    }
-
-    @Override
-    public String getSchemeString() {
-        return m_scheme;
-    }
-
-    @Override
-    public String getHostString() {
-        return "";
     }
 }

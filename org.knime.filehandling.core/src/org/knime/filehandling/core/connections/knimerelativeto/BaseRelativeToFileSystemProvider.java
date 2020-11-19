@@ -79,8 +79,6 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
 public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToFileSystem>
     extends BaseFileSystemProvider<RelativeToPath, F> {
 
-    private static final String SCHEME = "knime";
-
     private Path toRealPathWithAccessibilityCheck(final RelativeToPath path) throws IOException {
         return getFileSystemInternal().toRealPathWithAccessibilityCheck(path);
     }
@@ -124,11 +122,6 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
         }
 
         Files.delete(toRealPathWithAccessibilityCheck(path));
-    }
-
-    @Override
-    public String getScheme() {
-        return SCHEME;
     }
 
     @Override

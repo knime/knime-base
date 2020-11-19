@@ -177,14 +177,4 @@ public class URIFileSystem extends BaseFileSystem<URIPath> {
     public void prepareClose() {
         // Nothing to do
     }
-
-    @Override
-    public String getSchemeString() {
-        return FS_TYPE;
-    }
-
-    @Override
-    public String getHostString() {
-        return "";
-    }
 }

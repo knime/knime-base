@@ -103,18 +103,15 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
         return m_timeoutInMillis;
     }
 
-    @Override
-    public String getScheme() {
-        return "*";
-    }
-
     @SuppressWarnings("resource")
     @Override
     public URIPath getPath(final URI uri) {
         final URIFileSystem fileSystem = getFileSystemInternal();
 
-        if (fileSystem.getSchemeString().equalsIgnoreCase(uri.getScheme())
-            && fileSystem.getHostString().equalsIgnoreCase(uri.getHost())) {
+        final URI fsUri = fileSystem.getFileSystemBaseURI();
+
+        if (fsUri.getScheme().equalsIgnoreCase(uri.getScheme())
+            && fsUri.getAuthority().equalsIgnoreCase(uri.getHost())) {
             return fileSystem.getPath(getURIPathQueryAndFragment(uri));
         } else {
             throw new IllegalArgumentException(String.format("Cannot create path for uri: %s", uri.toString()));
@@ -249,11 +246,11 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     protected OutputStream newOutputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            final Path localURL = FileUtil.resolveToPath(path.toUri().toURL());
+            final Path localURL = FileUtil.resolveToPath(path.getURI().toURL());
             if (localURL != null) {
                 return Files.newOutputStream(localURL, options);
             } else {
-                return FileUtil.openOutputStream(path.toUri().toURL(), "PUT");
+                return FileUtil.openOutputStream(path.getURI().toURL(), "PUT");
             }
         } catch (final URISyntaxException ex) {
             throw new IOException(ex);
