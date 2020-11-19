@@ -333,7 +333,7 @@ class ConcatenateTableFactory {
     }
 
     /** Compares the given specs and fails with an IllegalArgException if not equal*/
-    private void compareSpecsAndFail(final DataTableSpec firstIterSpec, final DataTableSpec newTableSpec) {
+    private static void compareSpecsAndFail(final DataTableSpec firstIterSpec, final DataTableSpec newTableSpec) {
         if (!newTableSpec.equalStructure(firstIterSpec)) {
             StringBuilder error =
                 new StringBuilder("Input table's structure differs from reference (first iteration) table: ");

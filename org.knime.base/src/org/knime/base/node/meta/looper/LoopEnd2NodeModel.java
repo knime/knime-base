@@ -96,8 +96,6 @@ public class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
         if (m_settings.ignoreEmptyTables1() || m_settings.tolerateColumnTypes1() || m_settings.tolerateChangingTableSpecs1()) {
             spec0 = null;
         } else {
-            ConcatenateTableFactory fac = new ConcatenateTableFactory(m_settings.ignoreEmptyTables1(),
-                m_settings.tolerateColumnTypes1(), m_settings.addIterationColumn(), false, Optional.empty());
             spec0 = ConcatenateTableFactory.createSpec(inSpecs[0], m_settings.addIterationColumn(), false);
         }
         final DataTableSpec spec1;
