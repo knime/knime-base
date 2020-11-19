@@ -64,8 +64,9 @@ import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @param <V> the type of value
  */
-final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead<V> {
+public final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead<V> {
 
     /** The underlying read. */
     private final Read<V> m_read;
@@ -91,7 +92,7 @@ final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead
      * @param source the underlying {@link Read}
      * @param config the {@link TableReadConfig}
      */
-    DefaultExtractColumnHeaderRead(final Read<V> source, final TableReadConfig<?> config) {
+    public DefaultExtractColumnHeaderRead(final Read<V> source, final TableReadConfig<?> config) {
         // get the column index
         long colHeaderIdx;
         if (config.useColumnHeaderIdx()) {

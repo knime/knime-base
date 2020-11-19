@@ -142,10 +142,12 @@ final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
     }
 
     // The rawRead will be closed by the decoratedRead which in turn needs to be closed by the caller
-    @SuppressWarnings("resource")
     private Read<V> createRead(final Path path, final TableReadConfig<C> config) throws IOException {
         final Read<V> rawRead = m_reader.read(path, config);
-        return ReadUtils.decorateForReading(rawRead, config);
+        if (config.decorateRead()) {
+            return ReadUtils.decorateForReading(rawRead, config);
+        }
+        return rawRead;
     }
 
     @Override

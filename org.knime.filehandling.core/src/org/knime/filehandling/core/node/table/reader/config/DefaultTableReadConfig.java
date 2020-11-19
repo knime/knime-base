@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import org.knime.filehandling.core.node.table.reader.read.Read;
+
 /**
  * Default implementation of {@link TableReadConfig}.
  *
@@ -167,6 +169,15 @@ public final class DefaultTableReadConfig<C extends ReaderSpecificConfig<C>> ext
      */
     public void setAllowShortRows(final boolean allowShortRows) {
         m_allowShortRows = allowShortRows;
+    }
+
+    /**
+     * Sets whether the {@link Read} needs to be decorated by the framework.
+     *
+     * @param decorateRead whether the framework should decorate the {@link Read}
+     */
+    public void setDecorateRead(final boolean decorateRead) {
+        m_decorateRead = decorateRead;
     }
 
 }

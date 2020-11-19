@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import org.knime.filehandling.core.node.table.reader.read.Read;
+
 /**
  * Abstract implementation of a {@link TableReadConfig}
  *
@@ -116,6 +118,11 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
      */
     protected long m_maxRowsForSpec = 50;
 
+    /**
+     * Indicates if the {@link Read} should be decorated by the framework.
+     */
+    protected boolean m_decorateRead = true;
+
     private final C m_readerSpecificConfig;
 
     /**
@@ -146,6 +153,7 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
         m_maxRows = toCopy.m_maxRows;
         m_limitRowsForSpec = toCopy.m_limitRowsForSpec;
         m_maxRowsForSpec = toCopy.m_maxRowsForSpec;
+        m_decorateRead = toCopy.m_decorateRead;
     }
 
     @Override
@@ -230,6 +238,11 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
     @Override
     public long getMaxRowsForSpec() {
         return m_maxRowsForSpec;
+    }
+
+    @Override
+    public boolean decorateRead() {
+        return m_decorateRead;
     }
 
 }

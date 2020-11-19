@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
  * An immutable implementation of {@link TableReadConfig}, i.e. it is guaranteed that instances of this class don't
@@ -119,6 +120,11 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
      */
     private final long m_maxRowsForSpec;
 
+    /**
+     * Indicates if the {@link Read} should be decorated by the framework.
+     */
+    private final boolean m_decorateRead;
+
     private final C m_readerSpecificConfig;
 
     /**
@@ -137,6 +143,7 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
         m_maxRows = tableReadConfig.getMaxRows();
         m_limitRowsForSpec = tableReadConfig.limitRowsForSpec();
         m_maxRowsForSpec = tableReadConfig.getMaxRowsForSpec();
+        m_decorateRead = tableReadConfig.decorateRead();
         m_readerSpecificConfig =
             CheckUtils.checkArgumentNotNull(tableReadConfig, "The tableReadConfig must not be null")
                 .getReaderSpecificConfig().copy();
@@ -202,7 +209,6 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
         return m_maxRows;
     }
 
-
     @Override
     public boolean limitRowsForSpec() {
         return m_limitRowsForSpec;
@@ -211,6 +217,11 @@ public final class ImmutableTableReadConfig<C extends ReaderSpecificConfig<C>> i
     @Override
     public long getMaxRowsForSpec() {
         return m_maxRowsForSpec;
+    }
+
+    @Override
+    public boolean decorateRead() {
+        return m_decorateRead;
     }
 
 }

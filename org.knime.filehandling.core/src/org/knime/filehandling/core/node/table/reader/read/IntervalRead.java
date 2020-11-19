@@ -58,7 +58,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of value
  */
-final class IntervalRead<V> extends AbstractReadDecorator<V> {
+public final class IntervalRead<V> extends AbstractReadDecorator<V> {
 
     private final long m_startIdx;
 
@@ -73,7 +73,7 @@ final class IntervalRead<V> extends AbstractReadDecorator<V> {
      * @param startIdx the index to start reading at (zero based)
      * @param endIdx the index to stop reading at (zero based, exclusive)
      */
-    IntervalRead(final Read<V> source, final long startIdx, final long endIdx) {
+    public IntervalRead(final Read<V> source, final long startIdx, final long endIdx) {
         super(source);
         m_startIdx = startIdx;
         m_endIdx = endIdx;
