@@ -199,6 +199,11 @@ public class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
         m_count1 = 0;
         m_count2 = 0;
         m_iteration = 0;
+        for (final ConcatenateTableFactory factory : m_tableFactories) {
+            if (factory != null) {
+                factory.clear(true);
+            }
+        }
         Arrays.fill(m_tableFactories, null);
     }
 

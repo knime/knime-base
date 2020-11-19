@@ -234,24 +234,28 @@ class ConcatenateTableFactory {
         }
 
         //add rows of the table to the newly created data container
-        do {
-            exec.checkCanceled();
-            //change row key if desired
-            if (m_rowKeyCreator != null) {
-                //change row key
-                row = new BlobSupportDataRow(m_rowKeyCreator.apply(row.getKey()),row);
-            }
-            m_duplicateChecker.addKey(row.getKey().toString());
+        try {
+            do {
+                exec.checkCanceled();
+                //change row key if desired
+                if (m_rowKeyCreator != null) {
+                    //change row key
+                    row = new BlobSupportDataRow(m_rowKeyCreator.apply(row.getKey()), row);
+                }
+                m_duplicateChecker.addKey(row.getKey().toString());
 
-            //add additional iteration column if desired
-            if(m_addIterationColumn) {
-                IntCell currIterCell = new IntCell(m_iterationCount);
-                row = new org.knime.core.data.append.AppendedColumnRow(row, currIterCell);
-            }
-            con.addRowToTable(row);
-        } while ((row = table.poll()) != null);
-
-        m_iterationCount++;
+                //add additional iteration column if desired
+                if (m_addIterationColumn) {
+                    IntCell currIterCell = new IntCell(m_iterationCount);
+                    row = new org.knime.core.data.append.AppendedColumnRow(row, currIterCell);
+                }
+                con.addRowToTable(row);
+            } while ((row = table.poll()) != null);
+            m_iterationCount++;
+        } catch (CanceledExecutionException e) {
+            // clean-up all ressources
+            clear(true);
+        }
     }
 
     /**
@@ -287,7 +291,7 @@ class ConcatenateTableFactory {
         }
 
         // AP-13760: clear everything after we're done
-        clear();
+        clear(false);
 
         return result;
     }
@@ -376,8 +380,16 @@ class ConcatenateTableFactory {
 
     /**
      * AP-13760: Make sure any trace of this table is deleted.
+     *
+     * @param clearData <source>true</source> if all created tables should be cleared.
      */
-    void clear() {
+    void clear(final boolean clearData) {
+        if (clearData) {
+            for (final BufferedDataContainer container : m_tables) {
+                container.close();
+                container.getCloseableTable().close();
+            }
+        }
         m_tables.clear();
         if (m_emptyTable != null) {
             // remove all temporary data.
