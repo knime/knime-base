@@ -2,5 +2,5 @@
 target/
 */build/
 */.polyglot.build.properties
-.flattened-pom.xml
-*/**.flattened-pom.xml
+**/.flattened-pom.xml
+**/CHANGELOG.md
