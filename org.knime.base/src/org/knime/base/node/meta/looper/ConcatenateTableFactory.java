@@ -255,6 +255,7 @@ class ConcatenateTableFactory {
         } catch (CanceledExecutionException e) {
             // clean-up all ressources
             clear(true);
+            throw e;
         }
     }
 
