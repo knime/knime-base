@@ -533,26 +533,6 @@
             name="Logistic Regression"
             path="/analytics/mining/">
       </category>
-      <category
-            description="nodes for loops, switches and other flow control operations"
-            icon="icons/16x16/flow_control.png"
-            level-id="flowcontrol_labs"
-            name="Workflow Control"
-            path="/labs/file-handling-prototype/">
-      </category>
-      <category
-            icon="icons/16x16/variables.png"
-            level-id="variables_labs"
-            name="Variables"
-            path="/labs/file-handling-prototype/flowcontrol_labs/">
-      </category>
-      <category
-            description="Nodes for manual assembly of loops"
-            icon="icons/16x16/category_loop_support.png"
-            level-id="loopsupport_labs"
-            name="Loop Support"
-            path="/labs/file-handling-prototype/flowcontrol_labs/">
-      </category>
    </extension>
             
      <extension
