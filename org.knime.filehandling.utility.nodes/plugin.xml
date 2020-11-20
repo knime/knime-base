@@ -4,12 +4,14 @@
    <extension
          point="org.knime.workbench.repository.categories">
       <category
+            description="Utility nodes to work with files and folders"
             icon="icons/c_fileFolderUtility16x16.png"
             level-id="f-f-util"
             name="File Folder Utility"
             path="/io/">
       </category>
       <category
+            description="Nodes to handle archives"
             icon="icons/c_archive16x16.png"
             level-id="archive"
             name="Archive"
