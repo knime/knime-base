@@ -58,6 +58,7 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 final class CreateTempDirectoryConfiguration {
 
     private String m_baseName;

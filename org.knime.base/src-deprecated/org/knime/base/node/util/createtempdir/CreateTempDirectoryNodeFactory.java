@@ -53,6 +53,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 public final class CreateTempDirectoryNodeFactory extends
         NodeFactory<CreateTempDirectoryNodeModel> {
 

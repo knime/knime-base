@@ -82,6 +82,7 @@ import org.knime.core.util.pathresolve.ResolverUtil;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 final class CreateTempDirectoryNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateTempDirectoryNodeModel.class);

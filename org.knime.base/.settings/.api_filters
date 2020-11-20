@@ -40,41 +40,11 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel">
-        <filter id="642777099">
+    <resource path="src-deprecated/org/knime/base/node/util/createtempdir/CreateTempDirectoryNodeFactory.java" type="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="NodeModel"/>
-                <message_argument value="StringToPathNodeModel"/>
-                <message_argument value="createStreamableOperator(PartitionInfo, PortObjectSpec[])"/>
-            </message_arguments>
-        </filter>
-        <filter id="642777099">
-            <message_arguments>
-                <message_argument value="NodeModel"/>
-                <message_argument value="StringToPathNodeModel"/>
-                <message_argument value="getInputPortRoles()"/>
-            </message_arguments>
-        </filter>
-        <filter id="642777099">
-            <message_arguments>
-                <message_argument value="NodeModel"/>
-                <message_argument value="StringToPathNodeModel"/>
-                <message_argument value="getOutputPortRoles()"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/io/filehandling/util/stringtopath/StringToPathNodeModel.java" type="org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeModel$StringToPathStreamableOperator">
-        <filter id="571473929">
-            <message_arguments>
-                <message_argument value="StreamableOperator"/>
-                <message_argument value="StringToPathStreamableOperator"/>
-            </message_arguments>
-        </filter>
-        <filter id="640712815">
-            <message_arguments>
-                <message_argument value="ColumnRearranger"/>
-                <message_argument value="StringToPathStreamableOperator"/>
-                <message_argument value="createStreamableFunction()"/>
+                <message_argument value="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"/>
+                <message_argument value="org.knime.base_4.3.0"/>
             </message_arguments>
         </filter>
     </resource>

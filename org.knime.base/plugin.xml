@@ -1688,10 +1688,11 @@
       <node
             after="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
             category-path="/io/io-other"
+            deprecated="true"
             factory-class="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
             />
       <node
-            after="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
+            after="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
             category-path="/io/io-other"
             factory-class="org.knime.base.node.util.sendmail.SendMailNodeFactory"
             >

@@ -68,6 +68,7 @@ import org.knime.core.node.util.KeyValuePanel;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 class CreateTempDirectoryNodeDialogPane extends NodeDialogPane {
 
     private final JTextField m_baseNameField;
