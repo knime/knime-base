@@ -85,13 +85,13 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
 
                 assertEquals("/path/index.html", path.toString());
                 assertEquals(loc, path.toFSLocation());
-                assertEquals(URI.create(url), path.toUri());
+                assertEquals(URI.create(url), ((URIPath)path).getURI());
 
 
                 final FSPath samePath = path.getFileSystem().getPath("/path/index.html?bla=%2B%3D%2F#%2B%3D%2F");
                 assertEquals("/path/index.html", samePath.toString());
                 assertEquals(loc, samePath.toFSLocation());
-                assertEquals(URI.create(url), samePath.toUri());
+                assertEquals(URI.create(url), ((URIPath)samePath).getURI());
             }
         }
     }
