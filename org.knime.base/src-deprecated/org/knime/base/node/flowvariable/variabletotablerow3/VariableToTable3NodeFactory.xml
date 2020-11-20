@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./variable2table.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+<knimeNode icon="./variable2table.png" type="Other" deprecated="true" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
 	<name>Variable to Table Row</name>
 	
 	<shortDescription>
@@ -10,11 +10,9 @@
 		<intro>		
 	    Extracts scope variables and puts them into a single row table.
 		</intro>
-		<option name="Row name">The name of the RowID used for the resulting row.</option>
-		<option name="Variable Filter">
-			Include list contains all variables that are converted into a column of the resulting row, excluded 
-			variables are not used. All variables remain on the variable stack. Enforce exclusion and inclusion
-			options can be used to force all new variables to be included or excluded, resp.</option>
+		<option name="Variable Filter">Include list contains all variables that are converted into a column of the resulting row, excluded variables are not used. All variables remain on the variable stack. Enforce exclusion and 
+		inclusion options can be used to force all new variables to be included or excluded, resp.</option>
+		<option name="Generated RowID">The name of the RowID used for the resulting row.</option>
 		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson2">
 			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables &amp; Components
 		</link>

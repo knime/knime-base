@@ -3,7 +3,7 @@
 	xmlns="http://knime.org/node/v3.6"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Table Row To Variable Loop Start (Labs)</name>
+	<name>Table Row To Variable Loop Start</name>
 	<shortDescription>
         Iterates over an input data table, whereby each row defines an iteration with variable settings taken from the
         values in that row  

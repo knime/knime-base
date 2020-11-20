@@ -40,6 +40,22 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/node/flowvariable/variableloophead/LoopStartVariableNodeFactory.java" type="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeFactory"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/flowvariable/variableloophead/LoopStartVariableNodeModel.java" type="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeModel"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src-deprecated/org/knime/base/node/io/csvreader/CSVReaderConfig.java" type="org.knime.base.node.io.csvreader.CSVReaderConfig">
         <filter id="305365105">
             <message_arguments>

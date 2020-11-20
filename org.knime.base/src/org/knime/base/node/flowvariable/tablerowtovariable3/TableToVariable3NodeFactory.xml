@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="table2variable.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Table Row to Variable (Labs)</name>
+	<name>Table Row to Variable</name>
 	
 	<shortDescription>
 		Defines new flow variables based on the first row of the input table 
