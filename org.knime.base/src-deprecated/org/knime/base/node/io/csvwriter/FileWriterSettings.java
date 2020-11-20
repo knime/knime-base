@@ -58,6 +58,7 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 public class FileWriterSettings {
 
     /** mode specifying how to quote the data. */

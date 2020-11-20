@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Mar 8, 2007 (ohl): created
  */
@@ -66,9 +66,10 @@ import javax.swing.event.ChangeListener;
 import org.knime.base.node.io.csvwriter.FileWriterSettings.quoteMode;
 
 /**
- * 
+ *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 class QuotePanel extends JPanel {
 
     private static final Dimension TEXTFIELDDIM = new Dimension(100, 25);
@@ -90,7 +91,7 @@ class QuotePanel extends JPanel {
     private JRadioButton m_never;
 
     /**
-     * 
+     *
      */
     public QuotePanel() {
 
@@ -158,6 +159,7 @@ class QuotePanel extends JPanel {
         m_always.setToolTipText("The missing value pattern is never put"
                 + " into quotes");
         m_always.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
@@ -167,6 +169,7 @@ class QuotePanel extends JPanel {
                 + " equals the missing value pattern."
                 + " Right quotes inside the data must be replaced.");
         m_ifNeeded.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
@@ -177,6 +180,7 @@ class QuotePanel extends JPanel {
                 + " without quotes");
         m_string.setSelected(true);
         m_string.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
@@ -186,6 +190,7 @@ class QuotePanel extends JPanel {
         m_never.setToolTipText("The separator must be replaced, if it occurs "
                 + "in the data written.");
         m_never.addChangeListener(new ChangeListener() {
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 selectionChanged();
             }
@@ -263,7 +268,7 @@ class QuotePanel extends JPanel {
 
     /**
      * Updates the values in the components from the passed settings object.
-     * 
+     *
      * @param settings the object holding the values to load.
      */
     void loadValuesIntoPanel(final FileWriterSettings settings) {
@@ -297,7 +302,7 @@ class QuotePanel extends JPanel {
 
     /**
      * Saves the current values from the panel into the passed object.
-     * 
+     *
      * @param settings the object to write the values into
      */
     void saveValuesFromPanelInto(final FileWriterSettings settings) {

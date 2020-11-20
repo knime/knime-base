@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.io.csvwriter;
 
@@ -52,9 +52,10 @@ import org.knime.core.node.NodeView;
 
 /**
  * Factory to create a CSV (comma separated) writer node.
- * 
+ *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class CSVWriterNodeFactory extends NodeFactory {
     /**
      * Creates new factory proposing a default file in the user's home directory

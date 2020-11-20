@@ -631,9 +631,10 @@
             factory-class="org.knime.base.node.mine.bfn.radial.RadialBasisFunctionPredictorNodeFactory"/>
       <node
             category-path="/io/write"
+            deprecated="true"
             factory-class="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"/>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
+            category-path="/io/write"
             factory-class="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
@@ -665,7 +666,7 @@
             factory-class="org.knime.base.node.preproc.columnappend2.ColumnAppender2NodeFactory"
             after="org.knime.base.node.preproc.split2.SplitNodeFactory2"/>
       <node
-            after="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"
+            after="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"
             factory-class="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
             category-path="/io/write"/>
       <node
@@ -678,13 +679,15 @@
       <node
             after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"/>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Read"
+            after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+            category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
       <node
-            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="true"
             factory-class="org.knime.base.node.io.linereader.LineReaderNodeFactory">
@@ -2275,13 +2278,13 @@
             factory-class="org.knime.base.node.preproc.topk.TopKSelectorNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="true"
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.filehandling.linereader.LineReaderNodeFactory2">
       </node>

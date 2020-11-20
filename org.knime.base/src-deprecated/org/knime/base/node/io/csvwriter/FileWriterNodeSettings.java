@@ -55,6 +55,7 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 class FileWriterNodeSettings extends FileWriterSettings {
 
     /** Policy how to proceed when output file exists

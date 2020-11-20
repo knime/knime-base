@@ -65,6 +65,7 @@ import org.knime.base.node.io.csvwriter.FileWriterSettings.LineEnding;
  *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 class AdvancedPanel extends JPanel {
 
     private static final Dimension TEXTFIELDDIM = new Dimension(75, 25);

@@ -97,6 +97,7 @@ import org.knime.core.util.SimpleFileFilter;
  * @see org.knime.core.node.util.StringHistory
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public final class CSVFilesHistoryPanel extends JPanel {
 
     private final JComboBox<String> m_textBox;

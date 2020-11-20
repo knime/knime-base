@@ -56,6 +56,7 @@ import org.knime.core.node.NodeView;
  * Factory for CSV Reader node.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 public class CSVReaderNodeFactory
     extends ContextAwareNodeFactory<CSVReaderNodeModel> {
 

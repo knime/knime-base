@@ -71,6 +71,7 @@ import org.knime.core.node.streamable.RowInput;
  *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class CSVWriter extends BufferedWriter {
 
     private final FileWriterSettings m_settings;

@@ -79,6 +79,7 @@ import org.knime.core.util.tokenizer.SettingsStatus;
  * @noreference This class is not intended to be referenced by clients.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 // extended in wide data plug-in
 public class CSVReaderNodeModel extends NodeModel {
 

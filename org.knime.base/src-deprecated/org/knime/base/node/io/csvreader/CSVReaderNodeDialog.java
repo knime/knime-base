@@ -88,6 +88,7 @@ import org.knime.core.node.workflow.FlowVariable;
  */
 // this class is also used in the wide data extension. Once it's moved to the base bundle the scope if this class
 // should be limited again.
+@Deprecated
 public final class CSVReaderNodeDialog extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;

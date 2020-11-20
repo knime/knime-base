@@ -95,6 +95,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class CSVWriterNodeModel extends NodeModel {
 
     /** The node logger for this class. */

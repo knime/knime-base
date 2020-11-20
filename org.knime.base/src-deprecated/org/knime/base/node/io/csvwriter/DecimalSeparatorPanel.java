@@ -66,6 +66,7 @@ import javax.swing.event.DocumentListener;
  *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 public class DecimalSeparatorPanel extends JPanel {
 
     private final JTextField m_decSeparator = new JTextField();

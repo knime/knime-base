@@ -59,6 +59,7 @@ import org.knime.core.node.NodeSettingsWO;
  * @noreference This class is not intended to be referenced by clients.
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 // public scope as it's used in the widedata bundle. Scope to be reduced once both bundles are merged.
 public final class CSVReaderConfig {
 

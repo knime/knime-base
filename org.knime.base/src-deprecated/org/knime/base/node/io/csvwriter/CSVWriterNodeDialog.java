@@ -88,6 +88,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, University of Konstanz
  */
+@Deprecated
 public class CSVWriterNodeDialog extends NodeDialogPane {
 
     /** textfield to enter file name. */

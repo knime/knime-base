@@ -40,6 +40,94 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvreader/CSVReaderConfig.java" type="org.knime.base.node.io.csvreader.CSVReaderConfig">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvreader.CSVReaderConfig"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvreader/CSVReaderNodeDialog.java" type="org.knime.base.node.io.csvreader.CSVReaderNodeDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvreader.CSVReaderNodeDialog"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvreader/CSVReaderNodeFactory.java" type="org.knime.base.node.io.csvreader.CSVReaderNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvreader/CSVReaderNodeModel.java" type="org.knime.base.node.io.csvreader.CSVReaderNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvreader.CSVReaderNodeModel"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/CSVFilesHistoryPanel.java" type="org.knime.base.node.io.csvwriter.CSVFilesHistoryPanel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.CSVFilesHistoryPanel"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/CSVWriter.java" type="org.knime.base.node.io.csvwriter.CSVWriter">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.CSVWriter"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/CSVWriterNodeDialog.java" type="org.knime.base.node.io.csvwriter.CSVWriterNodeDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.CSVWriterNodeDialog"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/CSVWriterNodeFactory.java" type="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/CSVWriterNodeModel.java" type="org.knime.base.node.io.csvwriter.CSVWriterNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.CSVWriterNodeModel"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/DecimalSeparatorPanel.java" type="org.knime.base.node.io.csvwriter.DecimalSeparatorPanel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.DecimalSeparatorPanel"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/io/csvwriter/FileWriterSettings.java" type="org.knime.base.node.io.csvwriter.FileWriterSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.csvwriter.FileWriterSettings"/>
+                <message_argument value="org.knime.base_4.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src-deprecated/org/knime/base/node/util/createtempdir/CreateTempDirectoryNodeFactory.java" type="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory">
         <filter id="305365105">
             <message_arguments>

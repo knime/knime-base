@@ -64,6 +64,7 @@ import javax.swing.event.ChangeListener;
  *
  * @author ohl, University of Konstanz
  */
+@Deprecated
 class CommentPanel extends JPanel {
 
     private static final Dimension TEXTFIELDDIM = new Dimension(100, 25);
