@@ -787,7 +787,7 @@
             category-path="/analytics/mining/nn/mlp"
             factory-class="org.knime.base.node.mine.neural.mlp.MLPPredictorNodeFactory"/>
       <node
-            after="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2"
+            after="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3"
             deprecated="false"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.predictor.PredictorReaderNodeFactory"/>
@@ -1235,12 +1235,12 @@
       <node
             after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
             category-path="/io/write"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
             >
       </node>
       <node
-            after="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
+            after="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2"
             category-path="/io/write"
             deprecated="false"
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
@@ -2169,7 +2169,7 @@
       <node
             after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
             category-path="/io/read"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2">
       </node>
       <node
@@ -2319,7 +2319,8 @@
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Read"
+            after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
+            category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
       </node>
@@ -2329,7 +2330,8 @@
             factory-class="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
+            after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
+            category-path="/io/write"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2">
       </node>
