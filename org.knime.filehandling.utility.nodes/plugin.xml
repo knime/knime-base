@@ -2,6 +2,21 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            icon="icons/c_fileFolderUtility16x16.png"
+            level-id="f-f-util"
+            name="File Folder Utility"
+            path="/io/">
+      </category>
+      <category
+            icon="icons/c_archive16x16.png"
+            level-id="archive"
+            name="Archive"
+            path="/io/f-f-util">
+      </category>
+   </extension>
+   <extension
          point="org.knime.workbench.repository.nodes">
       <node
             category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
