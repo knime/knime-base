@@ -12,6 +12,13 @@
             name="File Handling (Labs)"
             path="/labs/">
       </category>
+      <category
+            icon="icons/file_system_connector.png"
+            level-id="connectors"
+            locked="true"
+            name="Connectors"
+            path="/io/">
+      </category>
    </extension>
    <extension
          point="org.knime.core.PortType">
