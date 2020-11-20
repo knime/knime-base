@@ -75,6 +75,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 public class ListFiles {
     /** (Static) output spec. */
     public static final DataTableSpec SPEC =

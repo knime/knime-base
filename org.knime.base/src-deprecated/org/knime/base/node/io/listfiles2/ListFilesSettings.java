@@ -67,6 +67,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@Deprecated
 class ListFilesSettings {
 
     /** ID for the file history. */

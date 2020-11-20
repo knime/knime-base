@@ -63,6 +63,7 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author Peter
  */
+@Deprecated
 public class ListFilesNodeModel extends NodeModel {
 
     private ListFilesSettings m_settings;

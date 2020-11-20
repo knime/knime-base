@@ -1672,6 +1672,7 @@
       </node>
       <node
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.listfiles2.ListFilesNodeFactory"
             >
       </node>

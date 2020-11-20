@@ -93,6 +93,7 @@ import org.knime.core.node.workflow.FlowVariable;
  * @author Peter
  * @author Tim-Oliver Buchholz (replaced locationpanel in 2.11)
  */
+@Deprecated
 public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener {
 
     private static final int HORIZ_SPACE = 10;

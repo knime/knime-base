@@ -54,6 +54,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Peter
  */
+@Deprecated
 public class ListFilesNodeFactory
         extends NodeFactory<ListFilesNodeModel> {
 
