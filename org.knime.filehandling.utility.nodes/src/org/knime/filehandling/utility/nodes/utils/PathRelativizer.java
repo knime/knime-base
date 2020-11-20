@@ -56,6 +56,8 @@ import java.util.function.Function;
  * relativize file {@link Path}s based on another path i.e. a source folder {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 @FunctionalInterface
 public interface PathRelativizer extends Function<Path, String> {

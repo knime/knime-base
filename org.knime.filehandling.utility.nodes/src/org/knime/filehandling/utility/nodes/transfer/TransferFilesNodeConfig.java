@@ -82,7 +82,8 @@ final class TransferFilesNodeConfig {
         new SettingsModelBoolean(CFG_DELETE_SOURCE_FILES, false);
 
     /** The fail on deletion settings model. */
-    private final SettingsModelBoolean m_failOnDeletionModel = new SettingsModelBoolean(CFG_FAIL_ON_UNSUCCESSFUL_DELETION, false);
+    private final SettingsModelBoolean m_failOnDeletionModel =
+        new SettingsModelBoolean(CFG_FAIL_ON_UNSUCCESSFUL_DELETION, false);
 
     /** The include parent folder settings model */
     private final SettingsModelBoolean m_includeSourcetFolderModel =

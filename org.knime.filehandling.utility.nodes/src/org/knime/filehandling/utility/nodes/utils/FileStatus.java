@@ -46,7 +46,7 @@
  * History
  *   7 Oct 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes.transfer;
+package org.knime.filehandling.utility.nodes.utils;
 
 /**
  * {@link Enum} for the status of moved / copied files or folder.

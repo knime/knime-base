@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
+import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
  * Interface which extends {@link CheckedExceptionBiFunction} to be used with two {@link Path} as parameters and

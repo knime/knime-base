@@ -58,6 +58,8 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  * based on a root {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class PathRelativizerNonTableInput implements PathRelativizer {
 

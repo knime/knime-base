@@ -61,6 +61,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
  */
 public final class PathHandlingUtils {
 

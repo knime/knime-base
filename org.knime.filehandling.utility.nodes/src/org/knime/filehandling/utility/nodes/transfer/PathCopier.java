@@ -76,6 +76,7 @@ import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
+import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
  * Copies files and folders from a source path to a destination path and creates the respective rows for an output

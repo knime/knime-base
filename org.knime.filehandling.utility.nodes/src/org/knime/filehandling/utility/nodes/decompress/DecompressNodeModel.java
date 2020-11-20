@@ -100,7 +100,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOv
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-import org.knime.filehandling.utility.nodes.transfer.FileStatus;
+import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
  * Node Model for the "Decompress Files" node

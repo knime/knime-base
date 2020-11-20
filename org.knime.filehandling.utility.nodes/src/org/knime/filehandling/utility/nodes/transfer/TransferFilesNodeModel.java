@@ -148,7 +148,7 @@ final class TransferFilesNodeModel extends NodeModel {
         //Get paths
         final FSPath rootPath = readPathAccessor.getRootPath(m_statusConsumer);
         final FilterMode filterMode = m_config.getSourceFileChooserModel().getFilterModeModel().getFilterMode();
-        final boolean includeSourceFolder =  m_config.getSettingsModelIncludeSourceFolder().getBooleanValue();
+        final boolean includeSourceFolder = m_config.getSettingsModelIncludeSourceFolder().getBooleanValue();
 
         PathHandlingUtils.checkSettingsIncludeSourceFolder(filterMode, includeSourceFolder, rootPath);
 
