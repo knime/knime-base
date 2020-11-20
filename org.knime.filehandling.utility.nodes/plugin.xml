@@ -19,67 +19,67 @@
    <extension
          point="org.knime.workbench.repository.nodes">
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util/archive"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.compress.CompressNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.createpaths.CreatePathVariablesNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util/archive"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.decompress.DecompressNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.metainfo.FileFolderMetaInfoNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.pathtostring.PathToStringNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory"
             hidden="false">
       </node>
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Other"
+            category-path="/io/f-f-util"
             deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.transfer.TransferFilesNodeFactory"
             hidden="false">

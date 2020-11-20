@@ -3,7 +3,7 @@
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>List Files/Folders (Labs) </name>
+	<name>List Files/Folders</name>
 	<shortDescription>
 		List files and/or folders contained in the selected folder.
 	</shortDescription>
