@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.swing.JComponent;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 
@@ -164,10 +165,19 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     protected final JSplitPane createTransformationTab() {
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setLeftComponent(getTransformationPanel());
-        splitPane.setRightComponent(createPreview());
+        splitPane.setRightComponent(createPreviewComponent());
         splitPane.setOneTouchExpandable(true);
         splitPane.setDividerSize(15);
         return splitPane;
+    }
+
+    /**
+     * Returns the the component containing the preview.
+     *
+     * @return the component containing the preview
+     */
+    protected JComponent createPreviewComponent() {
+        return createPreview();
     }
 
     private void updateScrolling(final ChangeEvent changeEvent) {
@@ -286,8 +296,13 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      */
     protected abstract MultiTableReadConfig<C> getConfig() throws InvalidSettingsException;
 
+    /**
+     * Creates and returns a {@link GenericItemAccessor}.
+     *
+     * @return an item accessor
+     */
     @SuppressWarnings("resource")
-    private GenericItemAccessor<Path> createItemAccessor() {
+    protected GenericItemAccessor<Path> createItemAccessor() {
         final ReadPathAccessor pathAccessor = createReadPathAccessor();
         return new GenericItemAccessor<Path>() {
 

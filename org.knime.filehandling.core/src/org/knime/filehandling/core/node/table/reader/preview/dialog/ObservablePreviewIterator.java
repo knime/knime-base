@@ -46,7 +46,7 @@
  * History
  *   Aug 13, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview;
+package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArraySet;

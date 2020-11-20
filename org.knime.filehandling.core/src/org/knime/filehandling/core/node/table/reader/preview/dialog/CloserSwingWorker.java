@@ -56,13 +56,18 @@ import org.knime.core.util.SwingWorkerWithContext;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class CloserSwingWorker extends SwingWorkerWithContext<Void, Void> {
+public final class CloserSwingWorker extends SwingWorkerWithContext<Void, Void> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CloserSwingWorker.class);
 
     private final AutoCloseable m_closeable;
 
-    CloserSwingWorker(final AutoCloseable closeable) {
+    /**
+     * Constructor.
+     *
+     * @param closeable the {@link AutoCloseable} to close
+     */
+    public CloserSwingWorker(final AutoCloseable closeable) {
         m_closeable = closeable;
     }
 

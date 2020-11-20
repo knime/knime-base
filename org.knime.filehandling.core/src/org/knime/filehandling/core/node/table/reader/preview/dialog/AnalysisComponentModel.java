@@ -164,7 +164,10 @@ public final class AnalysisComponentModel {
         m_quickScan.setEnabled(true);
     }
 
-    void resetErrorLabel() {
+    /**
+     * Resets the error label.
+     */
+    public void resetErrorLabel() {
         resetErrorLabelInternal();
         notifyListeners();
     }
@@ -184,23 +187,41 @@ public final class AnalysisComponentModel {
         }
     }
 
-    void setError(final String text) {
+    /**
+     * Sets an error text to be displayed.
+     *
+     * @param text the error text
+     */
+    public void setError(final String text) {
         setError(-1, text);
     }
 
-    void setInfo(final String text) {
+    /**
+     * Sets an info text to be displayed.
+     *
+     * @param text the info text
+     */
+    public void setInfo(final String text) {
         m_errorIcon = SharedIcons.INFO_BALLOON.get();
         m_errorText = text;
         notifyListeners();
     }
 
-    void reset() {
+    /**
+     * Reset the model.
+     */
+    public void reset() {
         resetAnalysisComponentsInternal();
         resetErrorLabelInternal();
         notifyListeners();
     }
 
-    void setVisible(final boolean visible) {
+    /**
+     * Sets the visibility of this {@link AnalysisComponentModel}
+     *
+     * @param visible whether it should be visible or not
+     */
+    public void setVisible(final boolean visible) {
         if (setVisibleInternal(visible)) {
             m_progress.setValue(0);
             notifyListeners();

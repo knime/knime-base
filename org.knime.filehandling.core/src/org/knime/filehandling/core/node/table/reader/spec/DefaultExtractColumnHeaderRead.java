@@ -76,7 +76,7 @@ public final class DefaultExtractColumnHeaderRead<V> extends GenericDefaultExtra
 
     @Override
     public Optional<Path> getPath() {
-        return ((Read<V>)m_read).getPath();
+        return m_read.getItem();
     }
 
 }

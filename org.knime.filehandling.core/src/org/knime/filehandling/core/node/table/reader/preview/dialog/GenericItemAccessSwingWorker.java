@@ -63,7 +63,7 @@ import org.knime.core.util.SwingWorkerWithContext;
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <I> the item type to read from
  */
-class GenericItemAccessSwingWorker<I> extends SwingWorkerWithContext<Pair<I, List<I>>, Void> {
+public class GenericItemAccessSwingWorker<I> extends SwingWorkerWithContext<Pair<I, List<I>>, Void> {
 
     private static final int DELAY = 200;
     private static final NodeLogger LOGGER = NodeLogger.getLogger(GenericItemAccessSwingWorker.class);
@@ -71,7 +71,14 @@ class GenericItemAccessSwingWorker<I> extends SwingWorkerWithContext<Pair<I, Lis
     private final Consumer<Pair<I, List<I>>> m_itemConsumer;
     private final Consumer<ExecutionException> m_exceptionConsumer;
 
-    protected GenericItemAccessSwingWorker(final GenericItemAccessor<I> itemAccessor,
+    /**
+     * Constructor.
+     *
+     * @param itemAccessor the item accessor
+     * @param itemConsumer the item consumer
+     * @param exceptionConsumer the exception consumer
+     */
+    public GenericItemAccessSwingWorker(final GenericItemAccessor<I> itemAccessor,
         final Consumer<Pair<I, List<I>>> itemConsumer, final Consumer<ExecutionException> exceptionConsumer) {
         m_itemAccessor = itemAccessor;
         m_itemConsumer = itemConsumer;

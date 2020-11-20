@@ -79,8 +79,11 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * AnalysisComponent and feeds the {@link StagedMultiTableRead} to a {@link Consumer} once it is ready.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
+ * @param <C> the type of {@link ReaderSpecificConfig}
+ * @param <T> the type representing external data types
  */
-final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>, T>
+public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>, T>
     extends SwingWorkerWithContext<GenericStagedMultiTableRead<I, T>, AnalysisUpdate> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SpecGuessingSwingWorker.class);
@@ -99,9 +102,20 @@ final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>, T>
 
     private final Consumer<GenericStagedMultiTableRead<I, T>> m_resultConsumer;
 
-    SpecGuessingSwingWorker(final GenericMultiTableReadFactory<I, C, T> reader,
-        final String rootPath, final List<I> paths, final GenericImmutableMultiTableReadConfig<I, C> config,
-        final AnalysisComponentModel analysisComponent, final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer) {
+    /**
+     * Constructor.
+     *
+     * @param reader the reader
+     * @param rootPath the root path
+     * @param paths the paths to read
+     * @param config the config
+     * @param analysisComponent the analysis component
+     * @param resultConsumer the result consumer
+     */
+    public SpecGuessingSwingWorker(final GenericMultiTableReadFactory<I, C, T> reader, final String rootPath,
+        final List<I> paths, final GenericImmutableMultiTableReadConfig<I, C> config,
+        final AnalysisComponentModel analysisComponent,
+        final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer) {
         m_rootPath = rootPath;
         m_reader = reader;
         m_config = config;

@@ -119,4 +119,13 @@ public final class TableReaderPreviewView extends JPanel {
         m_scrollListeners.add(scrollListener);
     }
 
+    /**
+     * Returns the table view.
+     *
+     * @return the table view
+     */
+    public TableView getTableView() {
+        return m_tableView;
+    }
+
 }

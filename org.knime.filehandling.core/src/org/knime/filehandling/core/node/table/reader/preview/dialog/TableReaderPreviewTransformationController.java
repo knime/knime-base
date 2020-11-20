@@ -64,7 +64,6 @@ import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableRea
 import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.util.GenericMultiTableRead;

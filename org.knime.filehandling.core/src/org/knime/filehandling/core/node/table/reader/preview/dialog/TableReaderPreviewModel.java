@@ -50,7 +50,6 @@ package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import org.knime.core.node.tableview.TableContentModel;
 import org.knime.core.node.util.ViewUtils;
-import org.knime.filehandling.core.node.table.reader.preview.PreviewDataTable;
 
 /**
  * The model of the table reader preview.</br>
@@ -83,7 +82,12 @@ public final class TableReaderPreviewModel {
         return m_previewTableModel;
     }
 
-    void setDataTable(final PreviewDataTable previewTable) {
+    /**
+     * Set a data table.
+     *
+     * @param previewTable the table to set
+     */
+    public void setDataTable(final PreviewDataTable previewTable) {
         final PreviewDataTable oldTable = m_previewTable;
         m_previewTable = previewTable;
 
@@ -113,6 +117,15 @@ public final class TableReaderPreviewModel {
             m_previewTable = null;
         }
         m_analysisComponentModel.reset();
+    }
+
+    /**
+     * Indicates whether a data table has been set.
+     *
+     * @return true if a data table is set
+     */
+    public boolean isDataTableSet() {
+        return m_previewTable != null;
     }
 
 }

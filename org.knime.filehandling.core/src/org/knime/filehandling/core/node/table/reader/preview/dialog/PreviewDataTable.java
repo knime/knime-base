@@ -46,7 +46,7 @@
  * History
  *   May 14, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.preview;
+package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
@@ -58,6 +58,7 @@ import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.CloseableTable;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
+import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 
 /**
  * A data table holding a preview of potentially multiple files to read in. If an error occurs, a

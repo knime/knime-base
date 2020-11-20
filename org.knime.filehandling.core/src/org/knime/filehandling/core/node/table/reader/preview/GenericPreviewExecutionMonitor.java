@@ -59,6 +59,7 @@ import javax.swing.event.ChangeListener;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeProgressMonitor;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.PreviewDataTable;
 
 /**
  * // TODO AP-14295: we need sth like our own TableReadExecutionMonitor (from that PreviewExecutionMonitor inherits)
