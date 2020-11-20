@@ -1246,19 +1246,21 @@
             factory-class="org.knime.base.node.io.predictor.PredictorWriterNodeFactory"
             />
       <node
-            category-path="/labs/file-handling-prototype/file-handling-IO/file-handling-Write"
+      		after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
+            category-path="/io/write"
+            deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
             >
       </node>
       <node
       		after="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory"
-            deprecated="false"
+            deprecated="true"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
             >
       </node>
       <node
-      		after="org.knime.base.node.image.writeimage.WriteImageNodeFactory"
+      		after="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
             category-path="/io/write"
             factory-class="org.knime.base.node.image.imagecolwriter.ImageColumnWriterNodeFactory"
             >
