@@ -129,6 +129,7 @@ public class TableManipulatorNodeModel extends NodeModel {
         final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config =
             new GenericDefaultMultiTableReadConfig<>(tc, TableManipulatorConfigSerializer.INSTANCE);
         config.setFailOnDifferingSpecs(false);
+        config.getTableReadConfig().setRowIDIdx(0);
         return config;
     }
 
