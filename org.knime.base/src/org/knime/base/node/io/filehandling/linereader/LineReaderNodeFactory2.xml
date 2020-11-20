@@ -87,6 +87,9 @@
 			<option name="Fail on differing specs">
 			This option is only available if the 'Files in folder' option is selected. If the option is select and the specs of the files are different the node will fail. 
 			</option>
+			<option name="Row header prefix">
+			  This option allows you to specify the prefix of the row header. The default is "Row" and the resulting row headers are "Row0", "Row1" and so on.
+			</option>
 			<option name="Column Header">
 			If the option 'Use fix column header' is checked the name you the output column can be set
 			manually in the text field, which is only active

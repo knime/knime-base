@@ -72,6 +72,8 @@ enum LineReaderMultiTableReadConfigSerializer implements
          */
         INSTANCE;
 
+    private static final String CFG_ROW_HEADER_PREFIX = "row_header_prefix";
+
     private static final String CFG_CHARSET = "charset";
 
     private static final String CFG_HAS_COL_HEADER = "use_column_header";
@@ -87,8 +89,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
     private static final String CFG_REGEX = "regex";
 
     private static final String CFG_USE_REGEX = "use_regex";
-
-    private static final String CFG_HAS_ROW_ID = "has_row_id";
 
     private static final String CFG_REPLACE_MISSSING_LINE = "replace_missing";
 
@@ -119,10 +119,10 @@ enum LineReaderMultiTableReadConfigSerializer implements
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_DIFFERING_SPECS, true));
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
-        tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID, false));
         tc.setRowIDIdx(-1);
         tc.setUseColumnHeaderIdx(settings.getBoolean(CFG_HAS_COL_HEADER, false));
         tc.setLimitRowsForSpec(false);
+        tc.setPrefixForGeneratedRowIds(settings.getString(CFG_ROW_HEADER_PREFIX, "Row"));
 
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
         lineReaderCfg.setColumnHeaderName(settings.getString(CFG_CUSTOM_COL_HEADER, "Column"));
@@ -166,6 +166,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         tc.setRowIDIdx(-1);
         tc.setColumnHeaderIdx(0);
         tc.setLimitRowsForSpec(false);
+        tc.setPrefixForGeneratedRowIds(settings.getString(CFG_ROW_HEADER_PREFIX));
 
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
         lineReaderCfg.setColumnHeaderName(settings.getString(CFG_CUSTOM_COL_HEADER));
@@ -204,11 +205,12 @@ enum LineReaderMultiTableReadConfigSerializer implements
         settings.addBoolean(CFG_FAIL_DIFFERING_SPECS, config.failOnDifferingSpecs());
 
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
-        settings.addBoolean(CFG_HAS_ROW_ID, false);
         settings.addBoolean(CFG_HAS_COL_HEADER, tc.useColumnHeaderIdx());
 
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
         settings.addString(CFG_CUSTOM_COL_HEADER, lineReaderCfg.getColumnHeaderName());
+
+        settings.addString(CFG_ROW_HEADER_PREFIX, tc.getPrefixForGeneratedRowIDs());
     }
 
     private static void saveAdvancedSettingsTab(
@@ -260,7 +262,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         settings.getBoolean(CFG_FAIL_DIFFERING_SPECS);
         settings.getBoolean(CFG_HAS_COL_HEADER);
         settings.getString(CFG_CUSTOM_COL_HEADER);
-        settings.getBoolean(CFG_HAS_ROW_ID);
+        settings.getString(CFG_ROW_HEADER_PREFIX);
     }
 
     public static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {

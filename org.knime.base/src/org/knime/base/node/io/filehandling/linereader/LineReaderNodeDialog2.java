@@ -54,6 +54,7 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
@@ -115,6 +116,8 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
     private final JTextField m_regexField = new JTextField("##########", 10);
 
     private final JTextField m_replaceEmptyField = new JTextField("##########", 10);
+
+    private final JTextField m_rowHeaderPrefix = new JTextField("######", 6);
 
     private final JCheckBox m_regexChecker;
 
@@ -228,6 +231,8 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         m_useFixColHeader.addActionListener(actionListener);
         m_useFirstLineColHeader.addActionListener(actionListener);
         m_columnHeaderField.getDocument().addDocumentListener(documentListener);
+
+        m_rowHeaderPrefix.getDocument().addDocumentListener(documentListener);
 
         m_replaceEmpty.addActionListener(actionListener);
         m_replaceEmptyField.getDocument().addDocumentListener(documentListener);
@@ -352,6 +357,16 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         return colHeaderPanel;
     }
 
+    private JPanel createRowHeaderPrefixPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        GBCBuilder gbc = createGBCBuilder().insetBottom(5);
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Row Header"));
+        panel.add(new JLabel("Row header prefix"), gbc.insetTop(3).build());
+        panel.add(m_rowHeaderPrefix, gbc.incX().insetTop(0).insetLeft(10).build());
+        panel.add(new JPanel(), gbc.incX().setWeightX(1.0).build());
+        return panel;
+    }
+
     /**
      * Creates the {@link JPanel} for the Settings tab.
      *
@@ -361,10 +376,9 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         final JPanel panel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal().setWeightX(1).anchorPageStart();
         panel.add(createSourcePanel(), gbc.build());
-        gbc.incY();
-        panel.add(createFailOnDifferingPanel(), gbc.build());
-        gbc.incY();
-        panel.add(createColHeaderPanel(), gbc.build());
+        panel.add(createFailOnDifferingPanel(), gbc.incY().build());
+        panel.add(createRowHeaderPrefixPanel(), gbc.incY().build());
+        panel.add(createColHeaderPanel(), gbc.incY().build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().fillBoth();
         panel.add(createPreview(), gbc.build());
 
@@ -453,6 +467,7 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
 
         m_useFirstLineColHeader.setSelected(tableReadConfig.useColumnHeaderIdx());
         m_useFixColHeader.setSelected(!tableReadConfig.useColumnHeaderIdx());
+        m_rowHeaderPrefix.setText(tableReadConfig.getPrefixForGeneratedRowIDs());
         m_skipEmptyLines.setSelected(tableReadConfig.skipEmptyRows());
         m_limitRowsChecker.setSelected(tableReadConfig.limitRows());
         m_limitRowsSpinner.setValue(tableReadConfig.getMaxRows());
@@ -495,6 +510,7 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
     private void saveTableReadSettings(final DefaultTableReadConfig<LineReaderConfig2> config) {
         config.setUseRowIDIdx(false);
         config.setRowIDIdx(-1);
+        config.setPrefixForGeneratedRowIds(m_rowHeaderPrefix.getText());
         config.setUseColumnHeaderIdx(m_useFirstLineColHeader.isSelected());
         config.setColumnHeaderIdx(0);
         config.setSkipEmptyRows(m_skipEmptyLines.isSelected());
