@@ -109,6 +109,8 @@ enum TableManipulatorConfigSerializer implements
 
     private static final String CFG_HAS_ROW_ID = "has_row_id";
 
+    private static final String CFG_PREPEND_TABLE_IDX_TO_ROWID = "prepend_table_index_to_row_id";
+
     private static final String CFG_HAS_COLUMN_HEADER = "has_column_header";
 
     private static final String CFG_SUPPORT_SHORT_DATA_ROWS = "support_short_data_rows";
@@ -229,6 +231,7 @@ enum TableManipulatorConfigSerializer implements
         tc.setRowIDIdx(0);
         tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID, true));
         tc.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS, true));
+        tc.setPrependSourceIdxToRowId(settings.getBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID, false));
     }
 
     private static boolean loadFailOnDifferingSpecsInModel(final NodeSettingsRO advancedSettings)
@@ -291,6 +294,7 @@ enum TableManipulatorConfigSerializer implements
         tc.setRowIDIdx(0);
         tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID));
         tc.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS));
+        tc.setPrependSourceIdxToRowId(settings.getBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID));
     }
 
     private static void loadAdvancedSettingsTabInModel(
@@ -322,6 +326,7 @@ enum TableManipulatorConfigSerializer implements
         settings.addBoolean(CFG_HAS_ROW_ID, tc.useRowIDIdx());
         settings.addBoolean(CFG_SUPPORT_SHORT_DATA_ROWS, tc.allowShortRows());
         settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, tc.skipEmptyRows());
+        settings.addBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID, tc.prependSourceIdxToRowID());
     }
 
     private static void saveAdvancedSettingsTab(
@@ -358,6 +363,7 @@ enum TableManipulatorConfigSerializer implements
         settings.getBoolean(CFG_SUPPORT_SHORT_DATA_ROWS);
         settings.getBoolean(CFG_HAS_COLUMN_HEADER);
         settings.getBoolean(CFG_HAS_ROW_ID);
+        settings.getBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID);
         settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS);
 
     }

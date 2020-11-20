@@ -12,6 +12,14 @@ xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<intro>
 		Allows to perform several column transformations such as renaming, filtering, re-ordering and type changing.		
 	</intro>
+	<option name="Use existing row ID">
+		Check this box if the row IDs from the input tables should be used for the output tables. If unchecked, a new row ID is generated.
+		The generated row ID follows the schema "Row0", "Row1" and so on.
+	</option>
+	<option name="Prepend table index to row ID">
+		Only enabled if the existing row IDs are used. If checked, a prefix is prepended to the row IDs that indicates which table the row came from.
+		The format of the prefix is "Table_0_", "Table_1_" and so on.
+	</option>
 	
 </fullDescription>
 

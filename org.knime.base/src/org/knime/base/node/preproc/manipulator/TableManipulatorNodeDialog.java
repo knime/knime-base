@@ -156,6 +156,8 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
     private final JCheckBox m_useRowID;
 
+    private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to row ID");
+
     TableManipulatorNodeDialog() {
         m_config = TableManipulatorNodeModel.createConfig();
         final GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> readFactory =
@@ -174,6 +176,8 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
         m_useRowID = new JCheckBox("Use existing row ID");
         m_useRowID.addActionListener(l -> configChanged());
+        m_useRowID.addActionListener(l -> m_prependTableIdxToRowID.setEnabled(m_useRowID.isSelected()));
+        m_prependTableIdxToRowID.addActionListener(l -> configChanged());
         addTab("Settings", createSettingsPanel());
     }
 
@@ -192,8 +196,10 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
     private JComponent createRowIDPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Row ID handling"));
-        final GBCBuilder gbc = new GBCBuilder().resetPos().anchorFirstLineStart().fillHorizontal().setWeightX(1.0);
+        final GBCBuilder gbc = new GBCBuilder().resetPos().anchorFirstLineStart().fillHorizontal();
         panel.add(m_useRowID, gbc.incY().build());
+        panel.add(m_prependTableIdxToRowID, gbc.incX().insetLeft(10).build());
+        panel.add(new JPanel(), gbc.setWeightX(1.0).incX().build());
         return panel;
     }
 
@@ -345,6 +351,8 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         tableReadConfig.setUseRowIDIdx(m_useRowID.isSelected());
         tableReadConfig.setRowIDIdx(0);
 
+        tableReadConfig.setPrependSourceIdxToRowId(m_prependTableIdxToRowID.isSelected());
+
         tableReadConfig.setUseColumnHeaderIdx(false);
         tableReadConfig.setColumnHeaderIdx(0);
 
@@ -392,7 +400,10 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         if (m_config.hasTableSpecConfig()) {
             loadFromTableSpecConfig(m_config.getTableSpecConfig());
         }
-        m_useRowID.setSelected(m_config.getTableReadConfig().useRowIDIdx());
+        final boolean useRowIDIdx = m_config.getTableReadConfig().useRowIDIdx();
+        m_useRowID.setSelected(useRowIDIdx);
+        m_prependTableIdxToRowID.setSelected(m_config.getTableReadConfig().prependSourceIdxToRowID());
+        m_prependTableIdxToRowID.setEnabled(useRowIDIdx);
         final List<Table> rowInputs = new ArrayList<>(specs.length);
         if (input != null ) {
             for (BufferedDataTable table : input) {
