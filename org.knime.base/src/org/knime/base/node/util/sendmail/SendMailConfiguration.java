@@ -178,7 +178,9 @@ final class SendMailConfiguration {
             settings.addBoolean("useCredentials", m_useCredentials);
             settings.addString("credentialsId", m_credentialsId);
             settings.addString("smtpUser", m_smtpUser);
-            settings.addPassword("smtpPasswordWeaklyEncrypted", "0=d#Fs64h", m_smtpPassword);
+            if (!m_useCredentials) { // only save password as needed, see AP-15442
+                settings.addPassword("smtpPasswordWeaklyEncrypted", "0=d#Fs64h", m_smtpPassword);
+            }
             settings.addString("connectionSecurity", m_connectionSecurity.name());
             settings.addString("emailFormat", m_format.name());
             settings.addString("emailPriority", m_priority.name());
@@ -286,11 +288,15 @@ final class SendMailConfiguration {
         m_useCredentials = settings.getBoolean("useCredentials");
         m_credentialsId = settings.getString("credentialsId");
         m_smtpUser = settings.getString("smtpUser");
-        try {
-            // until v2.11 (excl)
-            m_smtpPassword = settings.getString("smtpPassword");
-        } catch (InvalidSettingsException ise) {
-            m_smtpPassword = settings.getPassword("smtpPasswordWeaklyEncrypted", "0=d#Fs64h");
+        if (m_useAuthentication && !m_useCredentials) {
+            try {
+                // until v2.11 (excl)
+                m_smtpPassword = settings.getString("smtpPassword");
+            } catch (InvalidSettingsException ise) { // NOSONAR
+                m_smtpPassword = settings.getPassword("smtpPasswordWeaklyEncrypted", "0=d#Fs64h");
+            }
+        } else {
+            m_smtpPassword = "";
         }
         m_from = settings.getString("from");
         String connectionSecurityS = settings.getString("connectionSecurity");
