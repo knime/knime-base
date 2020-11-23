@@ -49,7 +49,11 @@
 package org.knime.filehandling.utility.nodes.tempdir;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -59,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -66,6 +71,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
@@ -73,13 +79,16 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.ThreadUtils.ThreadWithContext;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -97,6 +106,11 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateTempDir2NodeModel.class);
 
+    private static final String INTERNAL_FILE_NAME = "internals.xml";
+
+    private static final DefaultFSLocationSpec DATA_AREA_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
+
     private static final int MISSING_FS_PORT_IDX = -1;
 
     private final CreateTempDir2NodeConfig m_config;
@@ -108,6 +122,8 @@ final class CreateTempDir2NodeModel extends NodeModel {
     private final Map<FSLocationSpec, List<FSLocation>> m_onResetTempDirs;
 
     private final Map<FSLocationSpec, List<FSLocation>> m_onDisposeTempDirs;
+
+    private final List<String> m_dataAreaTempDir;
 
     private FSConnection m_fsConnection;
 
@@ -127,6 +143,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
         m_statusConumser = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
         m_onResetTempDirs = new HashMap<>();
         m_onDisposeTempDirs = new HashMap<>();
+        m_dataAreaTempDir = new ArrayList<>();
     }
 
     @Override
@@ -162,6 +179,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 tempDirFSPath = FSFiles.createRandomizedDirectory(parentPath, m_config.getTempDirPrefix(), "");
                 markForDeletion(tempDirFSPath);
             }
+            storeInDataAreaPath(tempDirFSPath);
             createFlowVariables(tempDirFSPath);
             return new PortObject[]{FlowVariablePortObject.INSTANCE};
         }
@@ -181,6 +199,12 @@ final class CreateTempDir2NodeModel extends NodeModel {
             .computeIfAbsent(new DefaultFSLocationSpec(fsLocation.getFileSystemCategory(),
                 fsLocation.getFileSystemSpecifier().orElse(null)), k -> new ArrayList<>())//
             .add(fsLocation);
+    }
+
+    private void storeInDataAreaPath(final FSPath tempDirFSPath) {
+        if (FSLocationSpec.areEqual(tempDirFSPath.toFSLocation(), DATA_AREA_LOCATION_SPEC)) {
+            m_dataAreaTempDir.add(tempDirFSPath.toString());
+        }
     }
 
     private void createFlowVariables(final FSPath tempDirFSPath) {
@@ -206,8 +230,14 @@ final class CreateTempDir2NodeModel extends NodeModel {
     protected void reset() {
         if (!m_onResetTempDirs.isEmpty()) {
             for (final Entry<FSLocationSpec, List<FSLocation>> entry : m_onResetTempDirs.entrySet()) {
-                if (m_onDisposeTempDirs.containsKey(entry.getKey())) {
+                final FSLocationSpec fsLocationSpec = entry.getKey();
+                if (m_onDisposeTempDirs.containsKey(fsLocationSpec)) {
                     removeEntry(entry);
+                }
+                if (FSLocationSpec.areEqual(fsLocationSpec, DATA_AREA_LOCATION_SPEC)) {
+                    m_dataAreaTempDir.removeAll(entry.getValue().stream()//
+                        .map(FSLocation::getPath)//
+                        .collect(Collectors.toList()));
                 }
             }
             deleteTempDirs(m_onResetTempDirs);
@@ -241,13 +271,58 @@ final class CreateTempDir2NodeModel extends NodeModel {
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        setWarningMessage("Temporary directory has been deleted. Please re-execute the node.");
+        final File internalFile = new File(nodeInternDir, INTERNAL_FILE_NAME);
+        final boolean issueWarning;
+        m_dataAreaTempDir.clear();
+        if (internalFile.exists()) {
+            try (InputStream in = new FileInputStream(internalFile);
+                    final FSPathProviderFactory pathFac =
+                        FSPathProviderFactory.newFactory(Optional.empty(), DATA_AREA_LOCATION_SPEC)) {
+                issueWarning = readInDataAreaPaths(in, pathFac);
+            } catch (InvalidSettingsException e) {
+                throw new IOException(e.getMessage(), e);
+            }
+        } else {
+            issueWarning = true;
+        }
+        if (issueWarning) {
+            setWarningMessage("Temporary folder has been deleted. Please re-execute the node.");
+        }
+    }
+
+    private boolean readInDataAreaPaths(final InputStream in, final FSPathProviderFactory pathFac)
+        throws IOException, InvalidSettingsException {
+        NodeSettingsRO s = NodeSettings.loadFromXML(in);
+        boolean issueWarning = false;
+        for (final String path : CheckUtils.checkSettingNotNull(s.getStringArray("temp-folder-paths"),
+            "Data area temp folder must not be null")) {
+            final FSLocation fsLoc = new FSLocation(DATA_AREA_LOCATION_SPEC.getFileSystemCategory(),
+                DATA_AREA_LOCATION_SPEC.getFileSystemSpecifier().orElse(null), path);
+            try (final FSPathProvider prov = pathFac.create(fsLoc)) {
+                final FSPath fsPath = prov.getPath();
+                final boolean fileExists = FSFiles.exists(fsPath);
+                if (fileExists) {
+                    markForDeletion(fsPath);
+                    m_dataAreaTempDir.add(path);
+                } else {
+                    issueWarning = true;
+                }
+            }
+        }
+        return issueWarning;
     }
 
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // Nothing to do here
+        if (!m_dataAreaTempDir.isEmpty()) {
+            try (OutputStream w = new FileOutputStream(new File(nodeInternDir, INTERNAL_FILE_NAME))) {
+                NodeSettings s = new NodeSettings("temp-folder-node");
+                s.addStringArray("temp-folder-paths", m_dataAreaTempDir.stream()//
+                    .toArray(String[]::new));
+                s.saveToXML(w);
+            }
+        }
     }
 
     private void deleteTempDirs(final Map<FSLocationSpec, List<FSLocation>> tempDirs) {
@@ -288,7 +363,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
             try (FSPathProvider pathProvider = factory.create(loc)) {
                 FSFiles.deleteRecursively(pathProvider.getPath());
             } catch (final IOException provE) {
-                LOGGER.debug("Unable to delete temp directory: " + provE.getMessage(), provE);
+                LOGGER.debug("Unable to delete temp folder: " + provE.getMessage(), provE);
             }
         }
     }
