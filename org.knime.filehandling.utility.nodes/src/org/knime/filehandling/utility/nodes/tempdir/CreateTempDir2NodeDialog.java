@@ -110,7 +110,7 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
             createFlowVariableModel(baseLocationModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
         m_parentDirChooserPanel = new DialogComponentWriterFileChooser(baseLocationModel, FILE_HISTORY_ID, writeFvm);
 
-        m_deleteDirOnResetChecker = new JCheckBox("Delete temp dir on reset");
+        m_deleteDirOnResetChecker = new JCheckBox("Delete temp folder on reset");
 
         m_tempDirPrefixField = new JTextField(TEXT_FIELD_WIDTH);
         m_tempDirPathVariableNameField = new JTextField(TEXT_FIELD_WIDTH);
@@ -181,7 +181,7 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
         fileOptionsPanel.add(m_deleteDirOnResetChecker, gbc);
 
         gbc.gridy++;
-        fileOptionsPanel.add(new JLabel("Temp dir prefix"), gbc);
+        fileOptionsPanel.add(new JLabel("Temp folder prefix"), gbc);
         gbc.gridx++;
         fileOptionsPanel.add(m_tempDirPrefixField, gbc);
 

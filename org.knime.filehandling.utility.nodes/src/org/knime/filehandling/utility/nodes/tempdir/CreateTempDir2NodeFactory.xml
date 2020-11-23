@@ -4,22 +4,22 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Create Temp Folder</name>
-	<shortDescription>Creates a temporary directory upon execute and exposes its path as flow variable.      </shortDescription>
+	<shortDescription>Creates a temporary folder upon execute and exposes its path as flow variable.      </shortDescription>
 	<fullDescription>
-		<intro>Creates a temporary directory upon execute and exposes its path
+		<intro>Creates a temporary folder upon execute and exposes its path
 			as flow variable. This can be useful in (a) demo applications where
 			the actual path of the output is not all that relevant, e.g. the
 			KNIME public workflow server and (b) KNIME WebPortal and quickform
 			flows, where some data is written, which is later downloaded by means
-			of, e.g. a web link. The directory is deleted upon closing the
+			of, e.g. a web link. The folder is deleted upon closing the
 			workflow. The node can be also configured in a way that the created
-			temporary directory is deleted upon reset.
+			temporary folder is deleted upon reset.
 			<br/>
-			<i>Note:</i> By default the temporary directory is created directly in the workflow data area,
+			<i>Note:</i> By default the temporary folder is created directly in the workflow data area,
 			as defined by “.“ in the Folder field
 		</intro>
 		<option name="Write to">
-				Select a file system in which you want to create the temporary directory.
+				Select a file system in which you want to create the temporary folder.
 				There are three default file system options to choose from:
 				<br />
 				<ul>
@@ -53,7 +53,7 @@
 				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
 			</option>
 		<option name="Folder">
-			Enter a valid location where the temporary directory
+			Enter a valid location where the temporary folder
 			will be created at. The
 				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
 				File System on Windows) or  &quot;/path/to/file&quot; (Local
@@ -75,17 +75,17 @@
 			option is unchecked, the node will fail if a folder does not
 			exist.
 		</option>
-		<option name="Delete temp directory on reset">Check this box to delete the directory and all its
+		<option name="Delete temp folder on reset">Check this box to delete the folder and all its
 			content when the node is reset.
 		</option>
-		<option name="Temp directory prefix">Name prefix of the temporary directory. It will be
+		<option name="Temp folder prefix">Name prefix of the temporary folder. It will be
 			amended by some random number to ensure uniqueness.
 		</option>
 		<option name="Export path as (variable name)">The name of the exported variable denoting the
-			actual path of the created temporary directory.
+			actual path of the created temporary folder.
 		</option>
 		<option name="Additional path variables">A list of additional variables that will be
-			created by the node. Each variable will denote a path to a file or directory.
+			created by the node. Each variable will denote a path to a file or folder.
 		</option>
 	</fullDescription>
 	<ports>

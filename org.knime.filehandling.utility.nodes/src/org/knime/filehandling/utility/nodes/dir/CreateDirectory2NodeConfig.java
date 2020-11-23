@@ -70,7 +70,7 @@ import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableT
  */
 final class CreateDirectory2NodeConfig {
 
-    private static final String DEFAULT_DIR_PATH_VAR_NAME = "dir_path";
+    private static final String DEFAULT_DIR_PATH_VAR_NAME = "folder_path";
 
     private static final String CFG_DIR_PARENT = "dir_location";
 
