@@ -283,10 +283,12 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 m_rawSpec = null;
                 fireTableDataChanged();
             }
-            return;
+        } else if (!rawSpec.equals(m_rawSpec)) {
+            m_rawSpec = rawSpec;
+            updateTransformations();
+        } else {
+            // nothing changes
         }
-        m_rawSpec = rawSpec;
-        updateTransformations();
     }
 
     private void updateTransformations() {
