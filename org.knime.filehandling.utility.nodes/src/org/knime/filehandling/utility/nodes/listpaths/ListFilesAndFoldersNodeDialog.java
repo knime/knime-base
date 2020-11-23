@@ -131,4 +131,9 @@ final class ListFilesAndFoldersNodeDialog extends NodeDialogPane {
         m_includeRootDir.setSelected(m_config.includeRootDir());
     }
 
+    @Override
+    public void onClose() {
+        m_dialog.onClose();
+    }
+
 }

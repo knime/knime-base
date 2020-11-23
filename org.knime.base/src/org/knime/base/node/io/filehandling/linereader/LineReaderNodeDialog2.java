@@ -530,4 +530,9 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         config.setLimitRows(m_limitRowsChecker.isSelected());
         config.setMaxRows((Long)m_limitRowsSpinner.getValue());
     }
+
+    @Override
+    public void onClose() {
+        m_sourceFilePanel.onClose();
+    }
 }

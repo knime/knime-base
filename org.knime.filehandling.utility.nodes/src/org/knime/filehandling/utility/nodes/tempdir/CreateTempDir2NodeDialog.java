@@ -249,6 +249,7 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
     @Override
     public void onClose() {
         m_locationPanel.onClose();
+        m_parentDirChooserPanel.onClose();
     }
 
     private static class TempDirLocationListener extends BaseLocationListener implements DocumentListener {

@@ -192,4 +192,9 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>
         m_filePanel.loadSettingsFrom(settings, specs);
     }
 
+    @Override
+    public void onClose() {
+        m_filePanel.onClose();
+    }
+
 }

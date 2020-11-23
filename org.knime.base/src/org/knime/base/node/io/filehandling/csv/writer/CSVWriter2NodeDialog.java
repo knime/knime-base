@@ -333,4 +333,9 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_writerConfig.saveSettingsForDialog(settings);
 
     }
+
+    @Override
+    public void onClose() {
+        m_filePanel.onClose();
+    }
 }

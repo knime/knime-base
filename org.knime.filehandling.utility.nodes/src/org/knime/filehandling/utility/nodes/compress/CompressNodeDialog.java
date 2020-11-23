@@ -314,6 +314,7 @@ final class CompressNodeDialog extends NodeDialogPane {
     public void onClose() {
         m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
         m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
+        m_destinationFileChooserPanel.onClose();
+        m_inputFileChooserPanel.onClose();
     }
-
 }

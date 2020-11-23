@@ -211,6 +211,7 @@ final class CreateDirectory2NodeDialog extends NodeDialogPane {
     @Override
     public void onClose() {
         m_locationPanel.onClose();
+        m_parentDirChooserPanel.onClose();
     }
 
 }

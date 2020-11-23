@@ -168,4 +168,9 @@ final class DeleteFilesAndFoldersNodeDialog extends NodeDialogPane {
         m_abortIfFails.setSelected(m_config.isAbortedIfFails());
         m_config.loadSettingsForDialog(settings);
     }
+
+    @Override
+    public void onClose() {
+        m_fileChooser.onClose();
+    }
 }

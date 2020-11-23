@@ -63,6 +63,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
@@ -285,11 +286,14 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
     /**
      * {@inheritDoc}
      *
-     * Cancels the {@link IncludeSourceFolderSwingWorker} when the dialog will be closed.
+     * Cancels the {@link IncludeSourceFolderSwingWorker} when the dialog will be closed. And the
+     * {@link StatusSwingWorker} of the source and destination {@link AbstractDialogComponentFileChooser}.
      */
     @Override
     public void onClose() {
         m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
+        m_sourceFilePanel.onClose();
+        m_destinationFilePanel.onClose();
     }
 
     @Override

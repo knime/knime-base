@@ -202,4 +202,10 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         return ((SettingsModelFileChooser2)m_filePanel.getModel()).clone();
     }
 
+    @Override
+    public void onClose() {
+        super.onClose();
+        m_filePanel.onClose();
+    }
+
 }

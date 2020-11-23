@@ -175,6 +175,7 @@ final class CreatePathVariablesNodeDialog extends NodeDialogPane {
     @Override
     public void onClose() {
         m_locationPanel.onClose();
+        m_filePanel.onClose();
     }
 
 }
