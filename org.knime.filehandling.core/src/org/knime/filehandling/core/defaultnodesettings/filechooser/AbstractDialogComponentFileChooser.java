@@ -370,12 +370,26 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     @Override
     protected void validateSettingsBeforeSave() throws InvalidSettingsException {
+        cancelStatusSwingWorker();
+        getSettingsModel().validateConfig();
+        m_fileSelection.addCurrentSelectionToHistory();
+    }
+
+    /**
+     * This method cancels the {@link StatusSwingWorker}. This method must be called in the onClose method of a dialog.
+     */
+    public void onClose() {
+        cancelStatusSwingWorker();
+    }
+
+    /**
+     * This method cancels the {@link StatusSwingWorker}.
+     */
+    private void cancelStatusSwingWorker() {
         if (m_statusMessageWorker != null) {
             m_statusMessageWorker.cancel(true);
             m_statusMessageWorker = null;
         }
-        getSettingsModel().validateConfig();
-        m_fileSelection.addCurrentSelectionToHistory();
     }
 
     @Override
