@@ -117,6 +117,9 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
         m_transformationModel.addChangeListener(e -> handleTransformationModelChange());
     }
 
+    /**
+     * Updates the transformation model and consequently the preview if the config changed.
+     */
     public void configChanged() {
         m_analysisComponent.reset();
         cancelCurrentRun();
@@ -129,6 +132,9 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
         }
     }
 
+    /**
+     * Sets the info message displayed when opened in remote job view.
+     */
     public void setDisabledInRemoteJobViewInfo() {
         m_analysisComponent.setInfo("Preview is disabled in remote job view.");
     }
@@ -140,10 +146,21 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
         }
     }
 
+    /**
+     * Loads the given {@link TableTransformation} into the {@link ObservableTransformationModelProvider}
+     * that is managed by this controller.
+     *
+     * @param transformationModel to load
+     */
     public void load(final TableTransformation<T> transformationModel) {
         m_transformationModel.load(transformationModel);
     }
 
+    /**
+     * Returns the {@link GenericTableSpecConfig} for the current settings
+     *
+     * @return the {@link GenericTableSpecConfig} for the current settings
+     */
     public GenericTableSpecConfig<I> getTableSpecConfig() {
         return m_currentRun != null ? m_currentRun.getTableSpecConfig() : null;
     }
