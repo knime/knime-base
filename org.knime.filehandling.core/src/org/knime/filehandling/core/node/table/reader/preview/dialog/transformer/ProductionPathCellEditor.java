@@ -75,6 +75,7 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
     ProductionPathCellEditor(final Function<Object, List<ProductionPath>> productionPathProvider) {
         m_productionPathProvider = productionPathProvider;
         m_productionPaths.setRenderer(new KnimeTypeProductionPathListCellRenderer());
+        m_productionPaths.addActionListener(e -> stopCellEditing());
     }
 
     @Override
