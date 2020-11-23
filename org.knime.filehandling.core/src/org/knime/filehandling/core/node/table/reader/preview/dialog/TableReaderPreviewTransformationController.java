@@ -147,8 +147,8 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
     }
 
     /**
-     * Loads the given {@link TableTransformation} into the {@link ObservableTransformationModelProvider}
-     * that is managed by this controller.
+     * Loads the given {@link TableTransformation} into the {@link ObservableTransformationModelProvider} that is
+     * managed by this controller.
      *
      * @param transformationModel to load
      */
@@ -214,8 +214,8 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
         PreviewRun(final GenericMultiTableReadConfig<I, C> config) {
             m_config = new GenericImmutableMultiTableReadConfig<>(config);
             m_readPathAccessor = m_readPathAccessorSupplier.get();
-            m_pathAccessWorker = new GenericItemAccessSwingWorker<>(m_readPathAccessor,
-                    this::startSpecGuessingWorker, this::displayPathError);
+            m_pathAccessWorker = new GenericItemAccessSwingWorker<>(m_readPathAccessor, this::startSpecGuessingWorker,
+                this::displayPathError);
             m_pathAccessWorker.execute();
         }
 
@@ -263,9 +263,16 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
                 return;
             }
             m_analysisComponent.setVisible(true);
-            m_specGuessingWorker = new SpecGuessingSwingWorker<I,C,T>(m_readFactory, rootPathAndPaths.getFirst().toString(),
-                rootPathAndPaths.getSecond(), m_config, m_analysisComponent, this::consumeNewStagedMultiRead);
+            m_specGuessingWorker = new SpecGuessingSwingWorker<>(m_readFactory, rootPathAndPaths.getFirst().toString(),
+                rootPathAndPaths.getSecond(), m_config, m_analysisComponent, this::consumeNewStagedMultiRead,
+                e -> calculatingRawSpecFailed());
             m_specGuessingWorker.execute();
+        }
+
+        private void calculatingRawSpecFailed() {
+            // the raw spec could not be calculated because of some configuration problem
+            // (not the path though because in that case retrieving the path would have already failed)
+            m_transformationModel.updateRawSpec(null);
         }
 
         private void consumeNewStagedMultiRead(final GenericStagedMultiTableRead<I, T> stagedMultiTableRead) {
@@ -294,7 +301,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
             }
             try {
                 final GenericMultiTableRead<I> mtr =
-                        m_currentRead.withTransformation(m_transformationModel.getTransformationModel());
+                    m_currentRead.withTransformation(m_transformationModel.getTransformationModel());
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
@@ -303,11 +310,6 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
                 NodeLogger.getLogger(TableReaderPreviewTransformationController.class).debug(ex);
                 m_analysisComponent.setError(ex.getMessage());
                 m_previewModel.setDataTable(null);
-                if (isUpdatingPreview()) {
-                    // if we aren't updating the preview, then the breaking change must be due to the user specified
-                    // TableTransformation and they must be able to correct their mistake (e.g. duplicate names)
-                    m_transformationModel.updateRawSpec(null);
-                }
             }
         }
 

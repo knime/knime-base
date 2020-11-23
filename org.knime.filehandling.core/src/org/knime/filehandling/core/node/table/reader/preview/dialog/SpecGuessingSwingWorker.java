@@ -102,6 +102,8 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
 
     private final Consumer<GenericStagedMultiTableRead<I, T>> m_resultConsumer;
 
+    private final Consumer<ExecutionException> m_exceptionConsumer;
+
     /**
      * Constructor.
      *
@@ -111,11 +113,12 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
      * @param config the config
      * @param analysisComponent the analysis component
      * @param resultConsumer the result consumer
+     * @param exceptionConsumer consumer for any exception thrown during execution
      */
     public SpecGuessingSwingWorker(final GenericMultiTableReadFactory<I, C, T> reader, final String rootPath,
         final List<I> paths, final GenericImmutableMultiTableReadConfig<I, C> config,
         final AnalysisComponentModel analysisComponent,
-        final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer) {
+        final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer, final Consumer<ExecutionException> exceptionConsumer) {
         m_rootPath = rootPath;
         m_reader = reader;
         m_config = config;
@@ -123,6 +126,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
         m_analysisComponent = analysisComponent;
         m_resultConsumer = resultConsumer;
         m_exec.setNumItemsToRead(paths.size());
+        m_exceptionConsumer = exceptionConsumer;
     }
 
     @Override
@@ -196,6 +200,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
         } catch (ExecutionException ex) {
             LOGGER.debug("An exception occurred during spec analysis.", ex);
             displayExecutionException(ex);
+            m_exceptionConsumer.accept(ex);
         }
     }
 
