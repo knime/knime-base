@@ -120,7 +120,7 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
         final GenericMultiTableReadConfig<I, C> config) throws IOException {
         GenericStagedMultiTableRead<I, ?> stagedMultiRead =
             createMultiRead(rootItem, items, config, new ExecutionMonitor());
-        GenericMultiTableRead<I> multiRead = stagedMultiRead.withoutTransformation();
+        GenericMultiTableRead<I> multiRead = stagedMultiRead.withoutTransformation(items);
         return multiRead.getOutputSpec();
     }
 
@@ -151,7 +151,7 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
         final GenericStagedMultiTableRead<I, ?> runConfig =
             getMultiRead(rootItem, items, config, exec.createSubExecutionContext(specConfigured ? 0 : 0.5));
         exec.setMessage("Reading table");
-        final GenericMultiTableRead<I> multiTableRead = runConfig.withoutTransformation();
+        final GenericMultiTableRead<I> multiTableRead = runConfig.withoutTransformation(items);
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(multiTableRead.getOutputSpec()));
         fillRowOutput(multiTableRead, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
@@ -177,7 +177,7 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
         exec.setMessage("Creating table spec");
         final GenericStagedMultiTableRead<I, ?> multiRead = getMultiRead(rootItem, items, config, exec);
         exec.setMessage("Reading table");
-        fillRowOutput(multiRead.withoutTransformation(), output, exec);
+        fillRowOutput(multiRead.withoutTransformation(items), output, exec);
     }
 
     private GenericStagedMultiTableRead<I, ?> getMultiRead(final String rootItem, final List<I> items,

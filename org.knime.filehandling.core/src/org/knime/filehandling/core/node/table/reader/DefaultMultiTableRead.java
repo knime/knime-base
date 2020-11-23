@@ -50,7 +50,7 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -74,14 +74,14 @@ final class DefaultMultiTableRead<V> extends GenericDefaultMultiTableRead<Path, 
     /**
      * Constructor.
      *
-     * @param paths the list of {@link Path Paths} to read from
+     * @param paths the collection of {@link Path Paths} to read from
      * @param readFn produces a {@link Read} from a {@link Path}
      * @param individualTableReaderFactory creates {@link IndividualTableReader IndividualTableReaders} from {@link Path
      *            Paths}
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
-    DefaultMultiTableRead(final List<Path> paths, final CheckedExceptionFunction<Path, Read<V>, IOException> readFn,
+    DefaultMultiTableRead(final Collection<Path> paths, final CheckedExceptionFunction<Path, Read<V>, IOException> readFn,
         final Supplier<BiFunction<Path, FileStoreFactory, ? extends GenericIndividualTableReader<Path, V>>> individualTableReaderFactorySupplier,
         final GenericTableSpecConfig<Path> tableSpecConfig, final DataTableSpec outputSpec) {
         super(paths, readFn, individualTableReaderFactorySupplier, tableSpecConfig, outputSpec);

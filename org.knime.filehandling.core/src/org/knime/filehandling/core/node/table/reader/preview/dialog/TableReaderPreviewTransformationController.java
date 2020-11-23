@@ -211,6 +211,8 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
 
         private boolean m_updatingPreview = true;
 
+        private List<I> m_items;
+
         PreviewRun(final GenericMultiTableReadConfig<I, C> config) {
             m_config = new GenericImmutableMultiTableReadConfig<>(config);
             m_readPathAccessor = m_readPathAccessorSupplier.get();
@@ -262,6 +264,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
                 // and the invocation of its background worker
                 return;
             }
+            m_items = rootPathAndPaths.getSecond();
             m_analysisComponent.setVisible(true);
             m_specGuessingWorker = new SpecGuessingSwingWorker<>(m_readFactory, rootPathAndPaths.getFirst().toString(),
                 rootPathAndPaths.getSecond(), m_config, m_analysisComponent, this::consumeNewStagedMultiRead,
@@ -301,7 +304,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
             }
             try {
                 final GenericMultiTableRead<I> mtr =
-                    m_currentRead.withTransformation(m_transformationModel.getTransformationModel());
+                    m_currentRead.withTransformation(m_items, m_transformationModel.getTransformationModel());
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());

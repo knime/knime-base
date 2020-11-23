@@ -50,7 +50,7 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -75,29 +75,30 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @param <V> the type representing values
  */
 final class DefaultStagedMultiTableRead<C extends ReaderSpecificConfig<C>, T, V>
-extends GenericDefaultStagedMultiTableReader<Path, C, T, V> implements StagedMultiTableRead<T> {
+    extends GenericDefaultStagedMultiTableReader<Path, C, T, V> implements StagedMultiTableRead<T> {
 
     DefaultStagedMultiTableRead(final TableReader<C, T, V> reader, final String rootPath,
         final Map<Path, TypedReaderTableSpec<T>> individualSpecs,
-        final GenericRowKeyGeneratorContextFactory<Path, V> rowKeyGenFactory, final Supplier<ReadAdapter<T, V>> readAdapterSupplier,
-        final TableTransformation<T> defaultTransformation, final TableReadConfig<C> tableReadConfig) {
+        final GenericRowKeyGeneratorContextFactory<Path, V> rowKeyGenFactory,
+        final Supplier<ReadAdapter<T, V>> readAdapterSupplier, final TableTransformation<T> defaultTransformation,
+        final TableReadConfig<C> tableReadConfig) {
         super(reader, rootPath, individualSpecs, rowKeyGenFactory, readAdapterSupplier, defaultTransformation,
             tableReadConfig);
     }
 
     @Override
-    public MultiTableRead withTransformation(final TableTransformation<T> transformationModel) {
-        final DefaultTableSpecConfig tableSpecConfig =
-                DefaultTableSpecConfig.<T>createFromTransformationModel(getRootItem(),
-                getIndividualSpecs(), transformationModel);
-        return new DefaultMultiTableRead<>(new ArrayList<>(getIndividualSpecs().keySet()),
-            p -> createRead(p, getTableReadConfig()), () -> {
-                IndividualTableReaderFactory<T, V> factory = createIndividualTableReaderFactory(transformationModel);
-                return factory::create;
-            }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
+    public MultiTableRead withTransformation(final Collection<Path> paths,
+        final TableTransformation<T> transformationModel) {
+        final DefaultTableSpecConfig tableSpecConfig = DefaultTableSpecConfig
+            .<T> createFromTransformationModel(getRootItem(), getIndividualSpecs(), transformationModel);
+        return new DefaultMultiTableRead<>(paths, p -> createRead(p, getTableReadConfig()), () -> {
+            IndividualTableReaderFactory<T, V> factory = createIndividualTableReaderFactory(transformationModel);
+            return factory::create;
+        }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
     }
 
-    private IndividualTableReaderFactory<T, V> createIndividualTableReaderFactory(final TableTransformation<T> transformationModel) {
+    private IndividualTableReaderFactory<T, V>
+        createIndividualTableReaderFactory(final TableTransformation<T> transformationModel) {
         return new IndividualTableReaderFactory<>(getIndividualSpecs(), getTableReadConfig(),
             TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
             getRowKeyGenFactory().createContext(getTableReadConfig()));
@@ -113,8 +114,8 @@ extends GenericDefaultStagedMultiTableReader<Path, C, T, V> implements StagedMul
     }
 
     @Override
-    public MultiTableRead withoutTransformation() {
-        return withTransformation(getDefaultTransformation());
+    public MultiTableRead withoutTransformation(final Collection<Path> items) {
+        return withTransformation(items, getDefaultTransformation());
     }
 
 }

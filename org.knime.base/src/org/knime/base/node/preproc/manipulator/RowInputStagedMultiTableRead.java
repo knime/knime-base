@@ -49,7 +49,7 @@
 package org.knime.base.node.preproc.manipulator;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -89,11 +89,11 @@ final class RowInputStagedMultiTableRead
     }
 
     @Override
-    public RowInputMultiTableRead withTransformation(final TableTransformation<DataType> transformationModel) {
+    public RowInputMultiTableRead withTransformation(final Collection<Table> tables, final TableTransformation<DataType> transformationModel) {
         final GenericTableSpecConfig<Table> tableSpecConfig =
             GenericDefaultTableSpecConfig.<Table, DataType>createFromTransformationModel(getRootItem(),
                 transformationModel, getIndividualSpecs());
-        return new RowInputMultiTableRead(new ArrayList<>(getIndividualSpecs().keySet()),
+        return new RowInputMultiTableRead(tables,
             p -> createRead(p, getTableReadConfig()), () -> {
                 RowInputTableReaderFactory factory = createIndividualTableReaderFactory(transformationModel);
                 return factory::create;

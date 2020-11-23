@@ -49,7 +49,7 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -81,7 +81,7 @@ public abstract class GenericDefaultMultiTableRead<I, V> implements GenericMulti
 
     private final GenericTableSpecConfig<I> m_tableSpecConfig;
 
-    private final List<I> m_items;
+    private final Collection<I> m_items;
 
     private final CheckedExceptionFunction<I, ? extends GenericRead<I, V>, IOException> m_readFn;
 
@@ -90,14 +90,14 @@ public abstract class GenericDefaultMultiTableRead<I, V> implements GenericMulti
     /**
      * Constructor.
      *
-     * @param items the list of items to read from
+     * @param items the collection of items to read from
      * @param readFn produces a {@link Read} from a item
      * @param individualTableReaderFactorySupplier creates {@link IndividualTableReader IndividualTableReaders} from
      *            item
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
-    public GenericDefaultMultiTableRead(final List<I> items,
+    public GenericDefaultMultiTableRead(final Collection<I> items,
         final CheckedExceptionFunction<I, ? extends GenericRead<I, V>, IOException> readFn,
         final Supplier<BiFunction<I, FileStoreFactory, ? extends GenericIndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
         final GenericTableSpecConfig<I> tableSpecConfig, final DataTableSpec outputSpec) {
@@ -138,7 +138,7 @@ public abstract class GenericDefaultMultiTableRead<I, V> implements GenericMulti
     /**
      * @return the items to read from
      */
-    protected List<I> getItems() {
+    protected Collection<I> getItems() {
         return m_items;
     }
 

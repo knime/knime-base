@@ -47,7 +47,7 @@ package org.knime.base.node.preproc.manipulator;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -75,14 +75,14 @@ final class RowInputMultiTableRead extends GenericDefaultMultiTableRead<Table, D
     /**
      * Constructor.
      *
-     * @param paths the list of {@link Table Paths} to read from
+     * @param paths the collection of {@link Table Paths} to read from
      * @param readFn produces a {@link Read} from a {@link Path}
      * @param individualTableReaderFactory creates {@link IndividualTableReader IndividualTableReaders} from {@link Path
      *            Paths}
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
-    RowInputMultiTableRead(final List<Table> paths,
+    RowInputMultiTableRead(final Collection<Table> paths,
         final CheckedExceptionFunction<Table, ? extends GenericRead<Table, DataValue>, IOException> readFn,
         final Supplier<BiFunction<Table, FileStoreFactory, ? extends GenericIndividualTableReader<Table, DataValue>>> individualTableReaderFactorySupplier,
         final GenericTableSpecConfig<Table> tableSpecConfig, final DataTableSpec outputSpec) {

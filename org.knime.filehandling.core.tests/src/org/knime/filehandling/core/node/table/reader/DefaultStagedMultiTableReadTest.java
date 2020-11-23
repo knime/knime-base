@@ -58,6 +58,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -147,6 +148,8 @@ public class DefaultStagedMultiTableReadTest {
     @Mock
     private ColumnTransformation<String> m_transformation3;
 
+    private List<Path> m_paths;
+
     private ProductionPath m_pp1;
 
     private ProductionPath m_pp2;
@@ -167,6 +170,7 @@ public class DefaultStagedMultiTableReadTest {
         m_pp2 = mockProductionPath();
         m_pp3 = mockProductionPath();
 
+        m_paths = asList(m_path1, m_path2);
         individualSpecs.put(m_path1, SPEC1);
         individualSpecs.put(m_path2, SPEC2);
         m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, ROOT, individualSpecs,
@@ -184,7 +188,7 @@ public class DefaultStagedMultiTableReadTest {
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
 
-        final MultiTableRead mtr = m_testInstance.withoutTransformation();
+        final MultiTableRead mtr = m_testInstance.withoutTransformation(m_paths);
         assertEquals(knimeSpec, mtr.getOutputSpec());
 
     }
@@ -202,7 +206,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, StringCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(lastColumnToString);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, lastColumnToString);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -215,7 +219,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_transformation2.keep()).thenReturn(false);
         final DataTableSpec knimeSpec =
             new DataTableSpec(TABLE_NAME, new String[]{"A", "C"}, new DataType[]{StringCell.TYPE, DoubleCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(filterSecondColumn);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, filterSecondColumn);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -229,7 +233,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_transformation2.getName()).thenReturn("M");
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(renameSecondColumn);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, renameSecondColumn);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -247,7 +251,7 @@ public class DefaultStagedMultiTableReadTest {
 
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "C", "B"},
             new DataType[]{StringCell.TYPE, DoubleCell.TYPE, IntCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(reorderColumns);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, reorderColumns);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 

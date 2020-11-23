@@ -137,7 +137,7 @@ public class MultiTableReaderTest {
             when(m_multiTableReadFactory.create(eq(ROOT_PATH), eq(m_paths), eq(m_multiReadConfig), any()))
                 .thenReturn(m_stagedMultiTableRead);
         }
-        when(m_stagedMultiTableRead.withoutTransformation()).thenReturn(m_multiTableRead);
+        when(m_stagedMultiTableRead.withoutTransformation(m_paths)).thenReturn(m_multiTableRead);
         when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
     }
 

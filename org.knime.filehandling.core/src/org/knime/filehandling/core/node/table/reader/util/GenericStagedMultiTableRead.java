@@ -67,19 +67,25 @@ public interface GenericStagedMultiTableRead<I, T> {
 
     /**
      * Creates a {@link MultiTableRead} that uses the default settings i.e. the default type mapping, no filtering, no
-     * renaming and no reordering.
+     * renaming and no reordering.<br>
+     * Note: the item collection is passed as argument because for paths the file system might have been closed in the
+     * meantime.
      *
+     * @param items the collection of items, {@link #isValidFor(Collection)} must return {@code true} for it
      * @return a {@link MultiTableRead} that uses the defaults
      */
-    GenericMultiTableRead<I> withoutTransformation();
+    GenericMultiTableRead<I> withoutTransformation(Collection<I> items);
 
     /**
-     * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.
+     * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.<br>
+     * Note: the item collection is passed as argument because for paths the file system might have been closed in the
+     * meantime.
      *
+     * @param items the collection of items, {@link #isValidFor(Collection)} must return {@code true} for it
      * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
      * @return a {@link MultiTableRead} using the provided {@link TableTransformation}
      */
-    GenericMultiTableRead<I> withTransformation(TableTransformation<T> selectorModel);
+    GenericMultiTableRead<I> withTransformation(Collection<I> items, TableTransformation<T> selectorModel);
 
     /**
      * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type

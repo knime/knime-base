@@ -131,12 +131,12 @@ public abstract class GenericDefaultStagedMultiTableReader<I, C extends ReaderSp
     }
 
     @Override
-    public GenericMultiTableRead<I> withoutTransformation() {
-        return withTransformation(m_defaultTransformation);
+    public GenericMultiTableRead<I> withoutTransformation(final Collection<I> items) {
+        return withTransformation(items, m_defaultTransformation);
     }
 
     @Override
-    public abstract GenericMultiTableRead<I> withTransformation(final TableTransformation<T> transformationModel);
+    public abstract GenericMultiTableRead<I> withTransformation(final Collection<I> items, final TableTransformation<T> transformationModel);
 
     /**
      * @param prodPaths {@link ProductionPath}s
