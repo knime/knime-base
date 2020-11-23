@@ -110,7 +110,8 @@ public final class RawSpec<T> {
             return true;
         }
         if (obj.getClass() == getClass()) {
-            return equals((RawSpec<T>) obj);
+            final RawSpec<T> rawSpec = (RawSpec<T>)obj;
+            return m_union.equals(rawSpec.getUnion()) && m_intersection.equals(rawSpec.getIntersection());
         }
         return false;
     }
@@ -120,13 +121,4 @@ public final class RawSpec<T> {
         return m_hashCode;
     }
 
-    /**
-     * Checks if {@link RawSpec rawSpec} is equal to this instance.
-     *
-     * @param rawSpec the {@link RawSpec} to test for equality
-     * @return {@code true} if {@link RawSpec rawSpec} is equal to this instance
-     */
-    public boolean equals(final RawSpec<T> rawSpec) {
-        return m_union.equals(rawSpec.getUnion()) && m_intersection.equals(rawSpec.getIntersection());
-    }
 }
