@@ -90,7 +90,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
 
     private static final String CFG_USE_REGEX = "use_regex";
 
-    private static final String CFG_REPLACE_MISSSING_LINE = "replace_missing";
+    private static final String CFG_EMPTY_LINE_MODE = "empty_line_mode";
 
     private static final String CFG_EMPTY_REPLACEMENT = "empty_line_replacement";
 
@@ -138,10 +138,11 @@ enum LineReaderMultiTableReadConfigSerializer implements
         tc.setMaxRows(settings.getLong(CFG_MAX_ROWS, 1000L));
 
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
-        lineReaderCfg.setRegex(settings.getString(CFG_REGEX, ""));
+        lineReaderCfg.setRegex(settings.getString(CFG_REGEX, ".*"));
         lineReaderCfg.setUseRegex(settings.getBoolean(CFG_USE_REGEX, false));
         lineReaderCfg.setEmptyLineReplacement(settings.getString(CFG_EMPTY_REPLACEMENT, ""));
-        lineReaderCfg.setReplaceEmpty(settings.getBoolean(CFG_REPLACE_MISSSING_LINE, false));
+        lineReaderCfg.setEmptyLineMode(EmptyLineMode
+            .valueOf(settings.getString(CFG_EMPTY_LINE_MODE, EmptyLineMode.REPLACE_BY_MISSING.name())));
 
     }
 
@@ -150,8 +151,8 @@ enum LineReaderMultiTableReadConfigSerializer implements
         final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
-        loadAdvancedSettingsTabInModel(config, settings.getNodeSettings( CFG_ADVANCED_SETTINGS_TAB));
-        loadEncodingTabInModel(config, settings.getNodeSettings( CFG_ENCODING_TAB));
+        loadAdvancedSettingsTabInModel(config, settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
+        loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
     }
 
     private static void loadSettingsTabInModel(
@@ -187,7 +188,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         lineReaderCfg.setRegex(settings.getString(CFG_REGEX));
         lineReaderCfg.setUseRegex(settings.getBoolean(CFG_USE_REGEX));
         lineReaderCfg.setEmptyLineReplacement(settings.getString(CFG_EMPTY_REPLACEMENT));
-        lineReaderCfg.setReplaceEmpty(settings.getBoolean(CFG_REPLACE_MISSSING_LINE));
+        lineReaderCfg.setEmptyLineMode(EmptyLineMode.valueOf(settings.getString(CFG_EMPTY_LINE_MODE)));
     }
 
     @Override
@@ -226,7 +227,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         settings.addString(CFG_REGEX, lineReaderCfg.getRegex());
         settings.addBoolean(CFG_USE_REGEX, lineReaderCfg.useRegex());
         settings.addString(CFG_EMPTY_REPLACEMENT, lineReaderCfg.getEmptyLineReplacement());
-        settings.addBoolean(CFG_REPLACE_MISSSING_LINE, lineReaderCfg.replaceEmpty());
+        settings.addString(CFG_EMPTY_LINE_MODE, lineReaderCfg.getReplaceEmptyMode().name());
     }
 
     @Override
@@ -271,7 +272,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         settings.getLong(CFG_MAX_ROWS);
         settings.getString(CFG_REGEX);
         settings.getBoolean(CFG_USE_REGEX);
-        settings.getBoolean(CFG_REPLACE_MISSSING_LINE);
+        settings.getString(CFG_EMPTY_LINE_MODE);
         settings.getString(CFG_EMPTY_REPLACEMENT);
     }
 

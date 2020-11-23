@@ -44,102 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   04.11.2020 (Lars Schweikardt, KNIME GmbH, Konstanz, Germany): created
+ *   23 Nov 2020 (lars.schweikardt): created
  */
 package org.knime.base.node.io.filehandling.linereader;
 
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-
 /**
- * {@link ReaderSpecificConfig} for the line reader node.
+ * Enum for the handling of empty lines in the Line Reader node.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class LineReaderConfig2 implements ReaderSpecificConfig<LineReaderConfig2> {
+enum EmptyLineMode{
 
-    /** Setting used to store the character set name (encoding) */
-    private String m_charSet = null;
+        /** Replace by missing cell **/
+        REPLACE_BY_MISSING("Replace empty lines with missing cells"),
+        /** Replace by custom text **/
+        REPLACE_EMPTY("Replace empty lines"),
+        /** Skip empty lines **/
+        SKIP_EMPTY("Skip empty lines");
 
-    /** Setting to store the name of the column header */
-    private String m_columnHeaderName = "Column";
+    private final String m_label;
 
-    /** Setting to store the regular expression */
-    private String m_regex = ".*";
-
-    /** Setting to store the flag whether to use the regular expression or not */
-    private boolean m_useRegex = false;
-
-    /** Setting to store the the replacement of an empty line expression */
-    private String m_emptyLineReplacement = "";
-
-    /** Setting to store the flag whether to replace empty rows */
-    private EmptyLineMode m_emptyLineMode = EmptyLineMode.REPLACE_BY_MISSING;
-
-    /**
-     * Constructor.
-     */
-    LineReaderConfig2() {
+    private EmptyLineMode(final String label) {
+        m_label = label;
     }
 
-    private LineReaderConfig2(final LineReaderConfig2 toCopy) {
-        setCharSetName(toCopy.getCharSetName());
-        setColumnHeaderName(toCopy.getColumnHeaderName());
-        setRegex(toCopy.getRegex());
-        setUseRegex(toCopy.useRegex());
-        setEmptyLineMode(toCopy.getReplaceEmptyMode());
-        setEmptyLineReplacement(toCopy.getEmptyLineReplacement());
-    }
-
-    @Override
-    public LineReaderConfig2 copy() {
-        return new LineReaderConfig2(this);
-    }
-
-    public String getCharSetName() {
-        return m_charSet;
-    }
-
-    public void setCharSetName(final String charSet) {
-        m_charSet = charSet;
-    }
-
-    public String getColumnHeaderName() {
-        return m_columnHeaderName;
-    }
-
-    public void setColumnHeaderName(final String columnHeaderName) {
-        m_columnHeaderName = columnHeaderName;
-    }
-
-    public String getRegex() {
-        return m_regex;
-    }
-
-    public void setRegex(final String regex) {
-        m_regex = regex;
-    }
-
-    public boolean useRegex() {
-        return m_useRegex;
-    }
-
-    public void setUseRegex(final boolean useRegex) {
-        m_useRegex = useRegex;
-    }
-
-    public String getEmptyLineReplacement() {
-        return m_emptyLineReplacement;
-    }
-
-    public void setEmptyLineReplacement(final String replacement) {
-        m_emptyLineReplacement = replacement;
-    }
-
-    public EmptyLineMode getReplaceEmptyMode() {
-        return m_emptyLineMode;
-    }
-
-    public void setEmptyLineMode(final EmptyLineMode emptyLineMode) {
-        m_emptyLineMode = emptyLineMode;
+    String getText() {
+        return m_label;
     }
 }

@@ -127,7 +127,7 @@ final class LineRead implements Read<String> {
         m_linesRead = m_config.useColumnHeaderIdx() ? -1 : 0;
         m_limitRows = m_config.limitRows();
         m_maxRows = m_config.getMaxRows();
-        m_replaceEmpty = m_lineReaderConfig.replaceEmpty();
+        m_replaceEmpty = m_lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_EMPTY;
         m_emptyLineReplacement = m_lineReaderConfig.getEmptyLineReplacement();
     }
 

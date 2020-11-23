@@ -101,9 +101,11 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
 
     private final JRadioButton m_useFirstLineColHeader;
 
-    private final JCheckBox m_skipEmptyLines;
+    private final JRadioButton m_skipEmptyLines;
 
-    private final JCheckBox m_replaceEmpty;
+    private final JRadioButton m_replaceEmpty;
+
+    private final JRadioButton m_replaceEmptyByMissing;
 
     private final JCheckBox m_limitRowsChecker;
 
@@ -166,10 +168,14 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
 
         m_failOnDiffSpecs = new JCheckBox("Fail on differing specs");
 
-        m_skipEmptyLines = new JCheckBox("Skip empty lines");
-        m_skipEmptyLines.addActionListener(l -> skipEmptyLinesListener());
-        m_replaceEmpty = new JCheckBox("Replace empty lines");
-        m_replaceEmpty.addActionListener(l -> m_replaceEmptyField.setEnabled(m_replaceEmpty.isSelected()));
+        final ButtonGroup emptyLineBtnGrp = new ButtonGroup();
+        m_skipEmptyLines = new JRadioButton(EmptyLineMode.SKIP_EMPTY.getText());
+        emptyLineBtnGrp.add(m_skipEmptyLines);
+        m_replaceEmpty = new JRadioButton(EmptyLineMode.REPLACE_EMPTY.getText());
+        emptyLineBtnGrp.add(m_replaceEmpty);
+        m_replaceEmpty.addChangeListener(l -> m_replaceEmptyField.setEnabled(m_replaceEmpty.isSelected()));
+        m_replaceEmptyByMissing = new JRadioButton(EmptyLineMode.REPLACE_BY_MISSING.getText());
+        emptyLineBtnGrp.add(m_replaceEmptyByMissing);
 
         m_limitRowsChecker = new JCheckBox("Limit data rows ");
         m_limitRowsSpinner = new JSpinner(new SpinnerNumberModel(Long.valueOf(1000), Long.valueOf(0),
@@ -183,15 +189,6 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         registerPreviewChangeListeners();
 
         createDialogPanels();
-    }
-
-    /**
-     * The {@link ChangeListener} for the skip empty lines checkbox.
-     */
-    private void skipEmptyLinesListener() {
-        final boolean isSelected = m_skipEmptyLines.isSelected();
-        m_replaceEmpty.setEnabled(!isSelected);
-        m_replaceEmptyField.setEnabled(m_replaceEmpty.isSelected() && !isSelected);
     }
 
     /**
@@ -238,6 +235,8 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         m_replaceEmptyField.getDocument().addDocumentListener(documentListener);
 
         m_skipEmptyLines.addActionListener(actionListener);
+
+        m_replaceEmptyByMissing.addActionListener(actionListener);
 
         m_failOnDiffSpecs.addActionListener(actionListener);
 
@@ -296,10 +295,11 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
     private JPanel createEmptyLinePanel() {
         final JPanel emptyLinePanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal();
-        emptyLinePanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Skip empty lines"));
+        emptyLinePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Empty lines"));
         emptyLinePanel.add(m_skipEmptyLines, gbc.build());
-        gbc.incX();
+        gbc.incY();
+        emptyLinePanel.add(m_replaceEmptyByMissing, gbc.build());
+        gbc.incY();
         emptyLinePanel.add(m_replaceEmpty, gbc.build());
         gbc.incX().setWeightX(1);
         emptyLinePanel.add(m_replaceEmptyField, gbc.build());
@@ -476,14 +476,14 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         m_columnHeaderField.setText(lineReaderConfig.getColumnHeaderName());
         m_regexField.setText(lineReaderConfig.getRegex());
         m_regexChecker.setSelected(lineReaderConfig.useRegex());
-        m_replaceEmpty.setSelected(lineReaderConfig.replaceEmpty());
+        m_replaceEmpty.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_EMPTY);
+        m_replaceEmptyByMissing.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_BY_MISSING);
         m_replaceEmptyField.setText(lineReaderConfig.getEmptyLineReplacement());
 
         final FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
 
-        skipEmptyLinesListener();
     }
 
     /**
@@ -499,7 +499,20 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         config.setRegex(m_regexField.getText());
         config.setUseRegex(m_regexChecker.isSelected());
         config.setEmptyLineReplacement(m_replaceEmptyField.getText());
-        config.setReplaceEmpty(m_replaceEmpty.isSelected());
+        config.setEmptyLineMode(getSelectedEmptyLineMode());
+    }
+
+    /**
+     * Method which returns the {@link EmptyLineMode} which is currently selected.
+     */
+    private EmptyLineMode getSelectedEmptyLineMode() {
+        if (m_skipEmptyLines.isSelected()) {
+            return EmptyLineMode.SKIP_EMPTY;
+        } else if (m_replaceEmpty.isSelected()) {
+            return EmptyLineMode.REPLACE_EMPTY;
+        } else {
+            return EmptyLineMode.REPLACE_BY_MISSING;
+        }
     }
 
     /**

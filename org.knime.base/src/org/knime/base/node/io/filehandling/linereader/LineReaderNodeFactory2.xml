@@ -6,12 +6,12 @@
 	<name>Line Reader</name>
 
 	<shortDescription>
-		Read lines from a file or URL.
+		Reads lines from a file or URL.
 	</shortDescription>
 
 	<fullDescription>
 		<intro>
-			Read lines from a file or URL. Each line will be represented by a
+			Reads lines from a file or URL. Each line will be represented by a
 			single string data cell in a single row. The row prefix and column header 
 			can be specified in the dialog.
 		</intro>
@@ -101,14 +101,16 @@
 	        <option name="Match input against regex">
 	           If this option is checked every line will be checked against the regular expression in the text field.
 	           For example '12.*' will only match lines starting with 12 and have zero or more characters afterwards.
+	           The default value is '.*' which matches everything.
 	        </option>
 	        <option name="Skip empty lines">
 	           If this option is checked empty lines will be skipped and are not added to the output.
-	            When the option is inactive, empty lines will be displayed as missing cells. 
 	        </option>
-	        <option name="Replace empty lines">
-	           This option can only be activated when the 'Skip empty lines' option is disabled. 
-	           This option allows to specify a text by which an empty line will be replaced.
+	        <option name="Replace empty lines with missing cells">
+	           If this option is checked empty lines will be replaced by a missing cell.
+	        </option>
+	         <option name="Replace empty lines">
+	       		If this option is checked empty lines will be replaced by the text entered in the text field.
 	        </option>
 	        <option name="Limit data rows">
 	           With this option you can limit the number of rows which will be read and be output by the node.
