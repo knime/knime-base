@@ -281,6 +281,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     @Override
     public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
+        CheckUtils.checkSetting(!m_rootLocation.getPath().trim().isEmpty(), "Please specify a path.");
         final FSPath rootPath = getOutputPath(statusMessageConsumer);
 
         CheckUtils.checkSetting(FSFiles.exists(rootPath), "The specified %s %s does not exist.",
