@@ -67,6 +67,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -97,6 +98,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
 public class TableManipulatorNodeModel extends NodeModel {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(TableManipulatorNodeModel.class);
 
     private static final String ROOTPATH = "ROOTPATH";
 
@@ -153,8 +156,9 @@ public class TableManipulatorNodeModel extends NodeModel {
         try {
             final DataTableSpec resultSpec = m_tableReader.createTableSpec(ROOTPATH, rowInputs, m_config);
             return new PortObjectSpec[]{resultSpec};
-        } catch (IOException e) {
-            throw new InvalidSettingsException(e);
+        } catch (IOException|IllegalStateException e) {
+            LOGGER.debug(e);
+            throw new InvalidSettingsException(e.getMessage());
         }
     }
 
