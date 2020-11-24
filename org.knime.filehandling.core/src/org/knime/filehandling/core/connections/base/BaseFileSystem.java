@@ -256,7 +256,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param path the path
      * @param attributes the attributes object to store
      */
-    public void addToAttributeCache(final Path path, final BaseFileAttributes attributes) {
+    public final void addToAttributeCache(final Path path, final BaseFileAttributes attributes) {
         m_cache.storeAttributes(getCachedAttributesKey(path), attributes);
     }
 
@@ -265,7 +265,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      *
      * @param path the path
      */
-    public void removeFromAttributeCache(final Path path) {
+    public final void removeFromAttributeCache(final Path path) {
         m_cache.removeAttribute(getCachedAttributesKey(path));
     }
 
@@ -274,7 +274,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      *
      * @param path the path
      */
-    public void removeFromAttributeCacheDeep(final Path path) {
+    public final void removeFromAttributeCacheDeep(final Path path) {
         String key = getCachedAttributesKey(path);
         m_cache.removeAttribute(key);
         m_cache.removeAttributes(key + getSeparator());
@@ -286,7 +286,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param path the path
      * @return optional file attributes from cache
      */
-    public Optional<BaseFileAttributes> getCachedAttributes(final Path path) {
+    public final Optional<BaseFileAttributes> getCachedAttributes(final Path path) {
         return m_cache.getAttributes(getCachedAttributesKey(path));
     }
 
@@ -296,14 +296,14 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param path the path
      * @return whether a valid entry is in the cache
      */
-    public boolean hasCachedAttributes(final Path path) {
+    public final boolean hasCachedAttributes(final Path path) {
         return m_cache.getAttributes(getCachedAttributesKey(path)).isPresent();
     }
 
     /**
      * Clears the attributes cache
      */
-    public void clearAttributesCache() {
+    public final void clearAttributesCache() {
         m_cache.clearCache();
     }
 
@@ -313,7 +313,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * @param path the path to generate the key for
      * @return attributes cache key
      */
-    protected String getCachedAttributesKey(final Path path) {
+    private static String getCachedAttributesKey(final Path path) {
         return path.toAbsolutePath().normalize().toString();
     }
 }
