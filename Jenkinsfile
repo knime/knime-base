@@ -8,32 +8,51 @@ properties([
 	pipelineTriggers([
 		upstream('knime-expressions/' + env.BRANCH_NAME.replaceAll('/', '%2F'))
 	]),
-	parameters(workflowTests.getConfigurationsAsParameters()),
+    parameters(workflowTests.getConfigurationsAsParameters() + fsTests.getFSConfigurationsAsParameters()),
+
 	buildDiscarder(logRotator(numToKeepStr: '5')),
 	disableConcurrentBuilds()
 ])
 
-SSHD_IMAGE = "${dockerTools.ECR}/knime/sshd:alpine3.10"
+SSHD_IMAGE = "${dockerTools.ECR}/knime/sshd:alpine3.11"
 
 try {
 	// provide the name of the update site project
 	knimetools.defaultTychoBuild('org.knime.update.base')
-	
 
-    workflowTests.runTests(
-        dependencies: [
-            repositories:  ["knime-base", "knime-expressions", "knime-core","knime-pmml", "knime-pmml-compilation",
-            "knime-pmml-translation", "knime-r", "knime-jep","knime-kerberos", "knime-database", "knime-datageneration",
-            "knime-filehandling", "knime-js-base", "knime-ensembles", "knime-distance", "knime-xml", "knime-jfreechart",
-            "knime-timeseries", "knime-python", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
-            "knime-js-labs", "knime-optimization", "knime-streaming", "knime-textprocessing", "knime-chemistry", "knime-testing-internal",
-            "knime-dl4j", "knime-exttool", "knime-parquet", "knime-bigdata", "knime-bigdata-externals", "knime-cloud", "knime-js-core",
-            "knime-database-proprietary","knime-svg", "knime-excel"]
-        ],
-         sidecarContainers: [
-            [ image: SSHD_IMAGE, namePrefix: "SSHD", port: 22 ]
-         ]
-    )
+    testConfigs = [
+        WorkflowTests: {
+            workflowTests.runTests(
+                dependencies: [
+                    repositories:  ["knime-base", "knime-expressions", "knime-core","knime-pmml", "knime-pmml-compilation",
+                    "knime-pmml-translation", "knime-r", "knime-jep","knime-kerberos", "knime-database", "knime-datageneration",
+                    "knime-filehandling", "knime-js-base", "knime-ensembles", "knime-distance", "knime-xml", "knime-jfreechart",
+                    "knime-timeseries", "knime-python", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
+                    "knime-js-labs", "knime-optimization", "knime-streaming", "knime-textprocessing", "knime-chemistry", "knime-testing-internal",
+                    "knime-dl4j", "knime-exttool", "knime-parquet", "knime-bigdata", "knime-bigdata-externals", "knime-cloud", "knime-js-core",
+                    "knime-database-proprietary","knime-svg", "knime-excel"]
+                ],
+                sidecarContainers: [
+                    [ image: SSHD_IMAGE, namePrefix: "SSHD", port: 22 ]
+                ]
+            )
+        },
+        FileHandlingTests: {
+            workflowTests.runFilehandlingTests (
+                dependencies: [
+                    repositories: [
+                        "knime-base", "knime-core", "knime-expressions",
+                        "knime-jep", "knime-datageneration", "knime-js-base",
+                        "knime-js-core", "knime-r", "knime-database",
+                        "knime-kerberos", "knime-timeseries", "knime-arima",
+                        "knime-jfreechart", "knime-distance"
+                    ]
+                ],
+            )
+        }
+    ]
+
+    parallel testConfigs
 
     stage('Sonarqube analysis') {
         env.lastStage = env.STAGE_NAME
