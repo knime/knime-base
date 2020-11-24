@@ -1,35 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./manipulator.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+<knimeNode icon="./manipulator.png" type="Manipulator"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Table Manipulator</name>
 
 	<shortDescription>
-		Allows to perform several column transformations such as renaming, filtering, re-ordering and type changing.
+		Allows to perform several transformations on any number of input tables such
+		as renaming, filtering, re-ordering and type changing of the input columns. If more than one input table
+		is available the node concatenates all input rows into a single result table.
 	</shortDescription>
 
 	<fullDescription>
-	<intro>
-		Allows to perform several column transformations such as renaming, filtering, re-ordering and type changing.		
-	</intro>
-	<option name="Use existing row ID">
-		Check this box if the row IDs from the input tables should be used for the output tables. If unchecked, a new row ID is generated.
-		The generated row ID follows the schema "Row0", "Row1" and so on.
-	</option>
-	<option name="Prepend table index to row ID">
-		Only enabled if the existing row IDs are used. If checked, a prefix is prepended to the row IDs that indicates which table the row came from.
-		The format of the prefix is "Table_0_", "Table_1_" and so on.
-	</option>
-	
-</fullDescription>
+		<intro>
+        Allows to perform several column transformations on any number of input tables such
+        as renaming, filtering, re-ordering and type changing of the input columns.
+        <p>If more than one input table is available the node concatenates all input rows into a single result table. 
+        If the input tables contain the same row ID the node can either generate a new row ID
+        or prepend the input table index to the original row ID of the corresponding input table. 
+        </p>
+		</intro>
+		<option name="Use existing row ID">
+			Check this box if the row IDs from the input tables should be used for the
+			output tables. If unchecked, a new row ID is generated.
+			The generated row ID follows the schema "Row0", "Row1" and so on.
+		</option>
+		<option name="Prepend table index to row ID">
+			Only enabled if the existing row IDs are used. If checked, a prefix is
+			prepended to the row IDs that indicates which table the row came
+			from.
+			The format of the prefix is "Table_0_", "Table_1_" and so on.
+		</option>
+		<option name="Transformations">
+			This option displays every column as a row in a table that allows modifying
+			the structure of the output table.
+			It supports reordering, filtering and renaming columns. It is also
+			possible to change the type of the columns.
+			Reordering is done via drag-and-drop. Just drag a column to the position it
+			should have in the output table.
+			Whether and where to add unknown columns during execution is specified via
+			the special row &lt;any unknown new column&gt;.
+		</option>
+		<option name="Reset order">Resets the order of columns to the order in the
+			input input tables.</option>
+		<option name="Reset filter">Clicking this button will reset the filters i.e.
+			all columns will be included.</option>
+		<option name="Reset names">Resets the names to the names that are read from
+			file or created if the file/folder doesn't contain column names.
+		</option>
+		<option name="Reset types">Resets the output types to the default types
+			guessed from the input table specification.</option>
+		<option name="Reset all">Resets all transformations.</option>
+		<option name="Enforce types">
+				Controls how columns whose type changes are dealt with.
+				If selected, we attempt to map to the KNIME type you configured and fail if that's not possible.
+				If unselected, the KNIME type corresponding to the new type is used.
+		</option>
+		<option name="Take columns from">
+			Only enabled in several input tables are available. Specifies which set of
+			columns are considered for the output table.
+			<ul>
+				<li>Union: Any column that is part of any input table is considered.
+					If an input table is missing a column, it's filled up with missing values.
+				</li>
+				<li>Intersection: Only columns that appear in all input tables are
+					considered for the output table.</li>
+			</ul>
+			<b>NOTE:</b>
+			<p>
+			This setting has special implications if you are changing the input table without reconfiguring the node.
+			If Intersection is selected any column that moves into the intersection during execution will be considered 
+			to be new, even if it was previously part of the union of columns.
+			</p>
+			<p>
+			It is also important to note that the transformation matching during execution is based on name.
+			That means if there was a column [A, Integer] during configuration in the
+			dialog and this column becomes [A, String] during execution, then the
+			stored transformation is applied
+			to it. For filtering, ordering and renaming, this is straight forward.
+			For type mapping the following is done: If there is an alternative
+			converter to the specified KNIME type, then this converter is used,
+			otherwise we default to the default KNIME type for the new type. In
+			our example we might have specified that [A, Integer] should be
+			mapped to Long.
+			For the changed column [A, String] there is no converter to Long, so we
+			default back to String and A becomes a String column in the output
+			table.
+			</p>
+		</option>
+	</fullDescription>
 
 	<ports>
-		<inPort index="0" name="Table 0">Table to manipulate</inPort>
-        <dynInPort insert-before="1" name="Table ..." group-identifier="input"> 
-            Table contributing subsequent rows and columns. 
-        </dynInPort>
-		<outPort index="0" name="Appended table">A table with the transformed columns from all input tables
-			(Table 0, Table 1, Table ...)
+		<inPort index="0" name="Table 0">
+            Table to manipulate
+	    </inPort>
+		<dynInPort insert-before="1" name="Table ..." group-identifier="input">
+            Table(s) contributing subsequent rows and columns.
+		</dynInPort>
+		<outPort index="0" name="Appended table">
+            A table with the transformed columns from all input tables (Table 0, Table 1, Table ...)
 		</outPort>
 	</ports>
 </knimeNode>
