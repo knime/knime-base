@@ -4,6 +4,7 @@
    <extension
          point="org.knime.workbench.repository.categories">
       <category
+            after="connectors"
             description="Utility nodes to work with files and folders"
             icon="icons/c_fileFolderUtility16x16.png"
             level-id="f-f-util"

@@ -219,7 +219,7 @@
             name="Scoring"
             path="/analytics/mining"/>
       <category
-            after="write"
+            after="f-f-util"
             icon="icons/missing.gif"
             level-id="io-other"
             name="Other"

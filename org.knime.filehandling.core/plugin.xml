@@ -13,6 +13,7 @@
             path="/labs/">
       </category>
       <category
+            after="write"
             icon="icons/file_system_connector.png"
             level-id="connectors"
             locked="true"
