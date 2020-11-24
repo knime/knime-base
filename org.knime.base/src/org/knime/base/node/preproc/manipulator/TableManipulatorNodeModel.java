@@ -55,6 +55,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.knime.base.node.preproc.manipulator.framework.MultiTableReadFactory;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.base.node.preproc.manipulator.table.DataTableBackedBoundedTable;
 import org.knime.base.node.preproc.manipulator.table.EmptyTable;
 import org.knime.base.node.preproc.manipulator.table.RowInputBackedTable;
@@ -90,7 +92,7 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.GenericDefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.GenericStorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 
 /**
  * Node model implementation of the table manipulation node.
@@ -136,9 +138,7 @@ public class TableManipulatorNodeModel extends NodeModel {
     static GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> createReadFactory() {
         final ReadAdapterFactory<DataType, DataValue> readAdapterFactory = DataValueReadAdapterFactory.INSTANCE;
         final ProductionPathProvider<DataType> productionPathProvider = createProductionPathProvider();
-        RowInputTableReader reader = new RowInputTableReader();
-        final TypeHierarchy<DataType, DataType> typeHierarchy = new DataTypeTypeHierarchy();
-        return new RowInputMultiTableReadFactory(typeHierarchy , reader, productionPathProvider,
+        return new MultiTableReadFactory(productionPathProvider,
             readAdapterFactory::createReadAdapter);
     }
 
@@ -155,8 +155,12 @@ public class TableManipulatorNodeModel extends NodeModel {
             rowInputs.add(new EmptyTable((DataTableSpec)spec));
         }
         try {
-            final DataTableSpec resultSpec = m_tableReader.createTableSpec(ROOTPATH, rowInputs, m_config);
-            return new PortObjectSpec[]{resultSpec};
+            final GenericTableSpecConfig<Table> tableSpecConfig =
+                    m_tableReader.createTableSpecConfig(ROOTPATH, rowInputs, m_config);
+            if (!m_config.hasTableSpecConfig()) {
+                m_config.setTableSpecConfig(tableSpecConfig);
+            }
+            return new PortObjectSpec[]{tableSpecConfig.getDataTableSpec()};
         } catch (IOException|IllegalStateException e) {
             LOGGER.debug(e);
             throw new InvalidSettingsException(e.getMessage());

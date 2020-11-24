@@ -169,7 +169,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         m_tableReadConfigSerializer.validate(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            GenericDefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
+            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);
         }
 
     }

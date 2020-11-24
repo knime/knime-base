@@ -48,19 +48,16 @@
  */
 package org.knime.base.node.preproc.manipulator;
 
+import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_LOADER;
 import static org.knime.filehandling.core.util.SettingsUtils.getOrEmpty;
 
 import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.GenericDefaultMultiTableReadConfig;
@@ -91,6 +88,8 @@ enum TableManipulatorConfigSerializer implements
 
     private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
+
+
     @Override
     public void saveInDialog(
         final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
@@ -106,8 +105,7 @@ enum TableManipulatorConfigSerializer implements
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
                 config.setTableSpecConfig(GenericDefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
-                    settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                    DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(), null));
+                    settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -136,8 +134,7 @@ enum TableManipulatorConfigSerializer implements
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             config.setTableSpecConfig(GenericDefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
-                settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(), null));
+                settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -146,14 +143,9 @@ enum TableManipulatorConfigSerializer implements
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            GenericDefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                getProducerRegistry());
+            GenericDefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER);
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
-    }
-
-    private static ProducerRegistry<DataType, ? extends ReadAdapter<DataType, DataValue>> getProducerRegistry() {
-        return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
     }
 
     private static void loadSettingsTabInDialog(

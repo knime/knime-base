@@ -44,65 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 16, 2020 (Tobias): created
+ *   Nov 27, 2020 (Tobias): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import java.util.Optional;
+
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
+ * Loads {@link ProductionPath}s.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @noimplement non-public API
+ * @noreference non-public API
  */
-public class DataTypeTypeHierarchy implements TypeHierarchy<DataType, DataType> {
+public interface ProductionPathLoader {
 
-    /**The top element of the hierarchy.*/
-    public static final DataType TOP = DataType.getType(DataCell.class);
+    /**
+     * Load a {@link ProductionPath} from given config.
+     *
+     * @param config Config to load from
+     * @param key setting key
+     * @return an optional {@link ProductionPath}, present if the converter factory identifier was found in the
+     *         {@link JavaToDataCellConverterRegistry} and producer factory identifier was found in the registry.
+     * @throws InvalidSettingsException
+     */
+    Optional<ProductionPath> loadProductionPath(NodeSettingsRO config, String key) throws InvalidSettingsException;
 
-    static class DataTypeResolver implements TypeResolver<DataType, DataType> {
+    /**
+     * Returns the {@link ProducerRegistry} this path loader uses.
+     *
+     * @return the {@link ProducerRegistry} to use
+     */
+    ProducerRegistry<?, ?> getProducerRegistry();
 
-        private DataType m_current;
-
-        @Override
-        public DataType getMostSpecificType() {
-            return m_current == null ? TOP : m_current;
-        }
-
-        @Override
-        public void accept(final DataType value) {
-            if (m_current == null) {
-                m_current = value;
-            } else if (m_current != value) { //NOSONAR
-                final DataType superType = DataType.getCommonSuperType(m_current, value);
-                if (superType != m_current && superType != value) {
-                    m_current = TOP;
-                } else {
-                    m_current = superType;
-                }
-            }
-        }
-
-        @Override
-        public boolean reachedTop() {
-            return TOP.equals(m_current);
-        }
-
-        @Override
-        public boolean hasType() {
-            return m_current != null;
-        }
-
-    }
-
-    @Override
-    public TypeResolver<DataType, DataType> createResolver() {
-        return new DataTypeResolver();
-    }
-
-    @Override
-    public boolean supports(final DataType value) {
-        return true;
-    }
 }

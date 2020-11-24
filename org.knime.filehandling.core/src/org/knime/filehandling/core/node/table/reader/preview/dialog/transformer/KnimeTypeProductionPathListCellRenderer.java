@@ -54,7 +54,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.DataTypeListCellRenderer;
 import org.knime.core.node.util.SharedIcons;
@@ -76,8 +78,17 @@ final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<
         if (value == null) {
             return UNKNOWN;
         }
-        final DataType knimeType = value.getConverterFactory().getDestinationType();
-        return m_dataTypeRenderer.getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+        final JavaToDataCellConverterFactory<?> converterFactory = value.getConverterFactory();
+        final DataType knimeType = converterFactory.getDestinationType();
+        DataTypeListCellRenderer component = (DataTypeListCellRenderer)m_dataTypeRenderer.getListCellRendererComponent(
+            list, knimeType, index, isSelected, cellHasFocus);
+        Class<?> sourceType = converterFactory.getSourceType();
+        if (DataCell.class == sourceType ) {
+            component.setToolTipText(null);
+        } else {
+            component.setToolTipText("via " + sourceType.getSimpleName());
+        }
+        return component;
     }
 
 }

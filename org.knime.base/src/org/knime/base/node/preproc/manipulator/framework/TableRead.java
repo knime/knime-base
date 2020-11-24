@@ -46,12 +46,13 @@
  * History
  *   Nov 14, 2020 (Tobias): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.def.StringCell;
@@ -62,11 +63,14 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandom
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.GenericRead;
 
+import com.google.common.collect.Tables;
+
 /**
+ * {@link GenericRead} implementation that works with {@link Tables}.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class RowInputRead implements GenericRead<Table, DataValue> {
+public class TableRead implements GenericRead<Table, DataValue> {
 
     static class RandomAccessibleDataRow extends AbstractRandomAccessible<DataValue> {
 
@@ -112,7 +116,7 @@ public class RowInputRead implements GenericRead<Table, DataValue> {
     private TableReadConfig<TableManipulatorConfig> m_config;
     private RowCursor m_rowCursor;
 
-    RowInputRead(final Table input, final TableReadConfig<TableManipulatorConfig> config) {
+    TableRead(final Table input, final TableReadConfig<TableManipulatorConfig> config) {
         m_input = input;
         m_rowCursor = input.cursor();
         m_config = config;

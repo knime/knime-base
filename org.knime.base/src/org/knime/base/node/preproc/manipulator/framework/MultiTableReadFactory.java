@@ -44,23 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   6 Apr 2020 (Temesgen H. Dadi, KNIME GmbH, Berlin, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import java.util.Map;
+import java.util.function.Supplier;
 
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.table.Table;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.filehandling.core.node.table.reader.GenericDefaultMultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Table manipulator {@link ReaderSpecificConfig} implementation.
+ * Implementation of the {@link GenericDefaultMultiTableReadFactory} for {@link Table}s.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public final class TableManipulatorConfig implements ReaderSpecificConfig<TableManipulatorConfig> {
+public class MultiTableReadFactory
+    extends GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> {
+
+    /**
+     * Constructor.
+     *
+     * @param productionPathProvider {@link ProductionPathProvider}
+     * @param readAdpaterSupplier {@link ReadAdapter} supplier
+     */
+    public MultiTableReadFactory(
+        final ProductionPathProvider<DataType> productionPathProvider,
+        final Supplier<ReadAdapter<DataType, DataValue>> readAdpaterSupplier) {
+        super(new DataTypeTypeHierarchy(), new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString, "Table"),
+            new RowInputTableReader(), productionPathProvider, readAdpaterSupplier);
+    }
 
     @Override
-    public TableManipulatorConfig copy() {
-        return new TableManipulatorConfig();
+    protected StagedMultiTableRead createStagedMultiTableReader(
+        final String rootPath, final Map<Table, TypedReaderTableSpec<DataType>> individualSpecs,
+        final GenericMultiTableReadConfig<Table, TableManipulatorConfig> config,
+        final TableTransformation<DataType> defaultTransformation) {
+        return new StagedMultiTableRead((RowInputTableReader)getReader(), rootPath, individualSpecs,
+            getRowKeyGeneratorFactory(),
+            getReadAdapterSupplier(), defaultTransformation, config.getTableReadConfig());
     }
 
 }

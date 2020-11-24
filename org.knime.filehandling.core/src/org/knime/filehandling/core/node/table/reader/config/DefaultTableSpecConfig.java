@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
@@ -60,6 +61,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.convert.util.SerializeUtil;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.CheckUtils;
@@ -81,6 +83,27 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @noinstantiate non-public API
  */
 public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<Path> implements TableSpecConfig {
+
+    static final private class DefaultProductionPathLoader implements ProductionPathLoader {
+
+        private ProducerRegistry<?, ?> m_registry;
+
+        private DefaultProductionPathLoader(final ProducerRegistry<?, ?> registry) {
+            m_registry = registry;
+        }
+
+        @Override
+        public Optional<ProductionPath> loadProductionPath(final NodeSettingsRO config, final String key)
+            throws InvalidSettingsException {
+            return SerializeUtil.loadProductionPath(config, getProducerRegistry(), key);
+        }
+
+        @Override
+        public ProducerRegistry<?, ?> getProducerRegistry() {
+            return m_registry;
+        }
+
+    }
 
     /**
      * Constructor for testing.</br>
@@ -157,8 +180,8 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
         final DataTableSpec loadedKnimeSpec = DataTableSpec.load(settings.getConfig(CFG_DATATABLE_SPEC));
         final DataTableSpec fullKnimeSpec = constructFullKnimeSpec(allColumns, loadedKnimeSpec);
 
-        ProductionPath[] allProdPaths =
-            loadProductionPaths(settings, registry, mostGenericExternalType, allColumns, loadedKnimeSpec);
+        ProductionPath[] allProdPaths = loadProductionPaths(settings, new DefaultProductionPathLoader(registry),
+            mostGenericExternalType, allColumns, loadedKnimeSpec);
 
         final String[] originalNames = loadOriginalNames(fullKnimeSpec, settings);
         final int[] positionalMapping = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);
@@ -168,6 +191,17 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
 
         return new DefaultTableSpecConfig(rootPath, fullKnimeSpec, paths, individualSpecs, allProdPaths, originalNames,
             positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns, enforceTypes);
+    }
+    /**
+     * Checks that this configuration can be loaded from the provided settings.
+     *
+     * @param settings to validate
+     * @param registry the {@link ProducerRegistry}
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    public static void validate(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
+        throws InvalidSettingsException {
+        GenericDefaultTableSpecConfig.validate(settings, new DefaultProductionPathLoader(registry));
     }
 
     /**

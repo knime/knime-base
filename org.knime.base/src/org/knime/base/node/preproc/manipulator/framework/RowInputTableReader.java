@@ -44,39 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
 
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.GenericIndividualTableReaderFactory;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.read.GenericRead;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
-import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 
 /**
- * Creates {@link IndividualTableReader IndividualTableReaders} for particular {@link Path Paths}.
+ * {@link GenericTableReader} that reads {@link RowInput}s.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class RowInputTableReaderFactory extends GenericIndividualTableReaderFactory<Table, DataType, DataValue> {
+public final class RowInputTableReader implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
 
-    RowInputTableReaderFactory(final Map<Table, TypedReaderTableSpec<DataType>> specs,
-        final TableReadConfig<?> config, final List<ColumnTransformation<DataType>> outputTransformations,
-        final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<DataValue>> typeMapperFactory,
-        final GenericRowKeyGeneratorContext<Table, DataValue> rowKeyGenContext) {
-        super(specs, config, outputTransformations, typeMapperFactory, rowKeyGenContext);
+    @Override
+    public GenericRead<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
+            throws IOException {
+        return new TableRead(path, config);
+    }
+
+
+    @Override
+    public TypedReaderTableSpec<DataType> readSpec(final Table rowInput, final TableReadConfig<TableManipulatorConfig> config,
+        final ExecutionMonitor exec) throws IOException {
+        final List<TypedReaderColumnSpec<DataType>> columnSpecs = new ArrayList<>();
+        final DataTableSpec spec = rowInput.getDataTableSpec();
+        for (final DataColumnSpec colSpec : spec) {
+            columnSpecs.add(TypedReaderColumnSpec.createWithName(colSpec.getName(), colSpec.getType(), true));
+        }
+        return new TypedReaderTableSpec<>(columnSpecs);
     }
 }

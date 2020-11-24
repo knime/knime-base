@@ -42,61 +42,41 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Oct 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.GenericDefaultMultiTableRead;
-import org.knime.filehandling.core.node.table.reader.GenericIndividualTablePreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.read.GenericRead;
-import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.util.GenericIndividualTableReader;
+import org.knime.filehandling.core.node.table.reader.GenericIndividualTableReaderFactory;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
-import org.knime.filehandling.core.util.CheckedExceptionFunction;
 
 /**
- * Default implementation of MultiTableRead.
+ * Creates {@link IndividualTableReader IndividualTableReaders} for particular {@link Path Paths}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class RowInputMultiTableRead extends GenericDefaultMultiTableRead<Table, DataValue> {
+final class TableReaderFactory extends GenericIndividualTableReaderFactory<Table, DataType, DataValue> {
 
-    /**
-     * Constructor.
-     *
-     * @param paths the collection of {@link Table Paths} to read from
-     * @param readFn produces a {@link Read} from a {@link Path}
-     * @param individualTableReaderFactory creates {@link IndividualTableReader IndividualTableReaders} from {@link Path
-     *            Paths}
-     * @param tableSpecConfig corresponding to this instance
-     * @param outputSpec {@link DataTableSpec} of the output table
-     */
-    RowInputMultiTableRead(final Collection<Table> paths,
-        final CheckedExceptionFunction<Table, ? extends GenericRead<Table, DataValue>, IOException> readFn,
-        final Supplier<BiFunction<Table, FileStoreFactory, ? extends GenericIndividualTableReader<Table, DataValue>>> individualTableReaderFactorySupplier,
-        final GenericTableSpecConfig<Table> tableSpecConfig, final DataTableSpec outputSpec) {
-        super(paths, readFn, individualTableReaderFactorySupplier, tableSpecConfig, outputSpec);
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    public PreviewRowIterator createPreviewIterator() {
-        final BiFunction<Table, FileStoreFactory, ? extends GenericIndividualTableReader<Table, DataValue>> individualTableReaderFactory =
-            getIndividualTableReaderFactory();
-        return new RowInputMultiTablePreviewRowIterator(getItems().iterator(), (p, f) -> {
-            final GenericIndividualTableReader<Table, DataValue> reader = individualTableReaderFactory.apply(p, f);
-            return new GenericIndividualTablePreviewRowIterator<>(getReadFn().apply(p), reader::toRow);
-        });
+    TableReaderFactory(final Map<Table, TypedReaderTableSpec<DataType>> specs,
+        final TableReadConfig<?> config, final List<ColumnTransformation<DataType>> outputTransformations,
+        final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<DataValue>> typeMapperFactory,
+        final GenericRowKeyGeneratorContext<Table, DataValue> rowKeyGenContext) {
+        super(specs, config, outputTransformations, typeMapperFactory, rowKeyGenContext);
     }
 }

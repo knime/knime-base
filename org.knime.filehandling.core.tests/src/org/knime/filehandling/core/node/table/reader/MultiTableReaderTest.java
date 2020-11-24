@@ -71,6 +71,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
@@ -99,6 +100,9 @@ public class MultiTableReaderTest {
 
     @Mock
     private MultiTableReadConfig<DummyReaderSpecificConfig> m_multiReadConfig = null;
+
+    @Mock
+    private GenericTableSpecConfig<Path> m_tableSpecConfig = null;
 
     @Mock
     private Path m_path1 = null;
@@ -139,6 +143,8 @@ public class MultiTableReaderTest {
         }
         when(m_stagedMultiTableRead.withoutTransformation(m_paths)).thenReturn(m_multiTableRead);
         when(m_multiTableRead.getOutputSpec()).thenReturn(m_knimeSpec);
+        when(m_multiTableRead.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
+        when(m_tableSpecConfig.getDataTableSpec()).thenReturn(m_knimeSpec);
     }
 
     /**

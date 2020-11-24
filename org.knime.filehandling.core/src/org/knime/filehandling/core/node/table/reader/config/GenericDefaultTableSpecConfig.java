@@ -380,16 +380,17 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * Checks that this configuration can be loaded from the provided settings.
      *
      * @param settings to validate
-     * @param registry the {@link ProducerRegistry}
+     * @param pathLoader the {@link ProductionPathLoader}
      * @throws InvalidSettingsException if the settings are invalid
      */
-    public static void validate(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
+    public static void validate(final NodeSettingsRO settings, final ProductionPathLoader pathLoader)
         throws InvalidSettingsException {
         settings.getString(CFG_ROOT_PATH);
         DataTableSpec.load(settings.getNodeSettings(CFG_DATATABLE_SPEC));
         final int numIndividualPaths = settings.getStringArray(CFG_FILE_PATHS).length;
         validateIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), numIndividualPaths);
-        validateProductionPaths(settings.getNodeSettings(CFG_PRODUCTION_PATHS), registry);
+        //try to load the production paths
+        loadProductionPathsFromSettings(settings.getNodeSettings(CFG_PRODUCTION_PATHS), pathLoader);
     }
 
     @Override
@@ -466,14 +467,6 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         throws InvalidSettingsException {
         for (int i = 0; i < numIndividualPaths; i++) {
             settings.getStringArray(CFG_INDIVIDUAL_SPEC + i);
-        }
-    }
-
-    private static void validateProductionPaths(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
-        throws InvalidSettingsException {
-        final int numProductionPaths = settings.getInt(CFG_NUM_PRODUCTION_PATHS);
-        for (int i = 0; i < numProductionPaths; i++) {
-            SerializeUtil.loadProductionPath(settings, registry, CFG_PRODUCTION_PATH + i);
         }
     }
 
@@ -579,7 +572,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
 
     /**
      * @param settings {@link NodeSettingsRO}
-     * @param registry {@link ProducerRegistry}
+     * @param pathLoader {@link ProductionPathLoader}
      * @param mostGenericExternalType the most generic external type
      * @param allColumns all column names
      * @param dataTableSpec {@link DataTableSpec}
@@ -587,15 +580,15 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @throws InvalidSettingsException
      */
     protected static ProductionPath[] loadProductionPaths(final NodeSettingsRO settings,
-        final ProducerRegistry<?, ?> registry, final Object mostGenericExternalType, final Set<String> allColumns,
+        final ProductionPathLoader pathLoader, final Object mostGenericExternalType, final Set<String> allColumns,
         final DataTableSpec dataTableSpec) throws InvalidSettingsException {
         final ProductionPath[] prodPaths =
-            loadProductionPathsFromSettings(settings.getNodeSettings(CFG_PRODUCTION_PATHS), registry);
+            loadProductionPathsFromSettings(settings.getNodeSettings(CFG_PRODUCTION_PATHS), pathLoader);
         if (allColumns.size() == dataTableSpec.getNumColumns()) {
             return prodPaths;
         } else {
-            return reconstructProdPathsFor42Intersection(registry, mostGenericExternalType, allColumns, dataTableSpec,
-                prodPaths);
+            return reconstructProdPathsFor42Intersection(pathLoader.getProducerRegistry(), mostGenericExternalType,
+                allColumns, dataTableSpec, prodPaths);
         }
     }
 
@@ -731,11 +724,11 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
     }
 
     private static ProductionPath[] loadProductionPathsFromSettings(final NodeSettingsRO settings,
-        final ProducerRegistry<?, ?> registry) throws InvalidSettingsException {
+        final ProductionPathLoader pathLoader) throws InvalidSettingsException {
         final ProductionPath[] prodPaths = new ProductionPath[settings.getInt(CFG_NUM_PRODUCTION_PATHS)];
         for (int i = 0; i < prodPaths.length; i++) {
             final int idx = i;
-            prodPaths[i] = SerializeUtil.loadProductionPath(settings, registry, CFG_PRODUCTION_PATH + i)
+            prodPaths[i] = pathLoader.loadProductionPath(settings, CFG_PRODUCTION_PATH + i)
                 .orElseThrow(() -> new InvalidSettingsException(
                     String.format("No production path associated with key <%s>", CFG_PRODUCTION_PATH + idx)));
         }
@@ -746,7 +739,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * De-serializes the {@link DefaultTableSpecConfig} previously written to the given settings.
      *
      * @param settings containing the serialized {@link DefaultTableSpecConfig}
-     * @param registry the {@link ProducerRegistry}
+     * @param pathLoader the {@link ProductionPathLoader}
      * @param mostGenericExternalType used as default type for columns that were previously (4.2) filtered out
      * @param specMergeModeOld for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
      *            later
@@ -754,7 +747,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
     public static <I> GenericTableSpecConfig<I> load(final Object mostGenericExternalType,
-        final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry,
+        final NodeSettingsRO settings, final ProductionPathLoader pathLoader,
         @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
         final String rootItem = settings.getString(CFG_ROOT_PATH);
         final String[] items = settings.getStringArray(CFG_FILE_PATHS);
@@ -772,7 +765,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         final DataTableSpec fullKnimeSpec = constructFullKnimeSpec(allColumns, loadedKnimeSpec);
 
         ProductionPath[] allProdPaths =
-            loadProductionPaths(settings, registry, mostGenericExternalType, allColumns, loadedKnimeSpec);
+            loadProductionPaths(settings, pathLoader, mostGenericExternalType, allColumns, loadedKnimeSpec);
 
         final String[] originalNames = loadOriginalNames(fullKnimeSpec, settings);
         final int[] positionalMapping = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);

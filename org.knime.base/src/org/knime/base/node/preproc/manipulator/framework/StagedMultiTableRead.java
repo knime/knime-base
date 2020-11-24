@@ -46,17 +46,17 @@
  * History
  *   Aug 3, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.node.streamable.RowInput;
 import org.knime.filehandling.core.node.table.reader.GenericDefaultStagedMultiTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.config.GenericDefaultTableSpecConfig;
@@ -68,17 +68,17 @@ import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGenerat
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.GenericStagedMultiTableRead;
 
 /**
- * Implementation of a {@link StagedMultiTableRead} for {@link RowInput}.
+ * Implementation of a {@link GenericStagedMultiTableRead} for {@link Table}.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class RowInputStagedMultiTableRead
+final class StagedMultiTableRead
     extends GenericDefaultStagedMultiTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
 
-    RowInputStagedMultiTableRead(final RowInputTableReader reader, final String rootPath,
+    StagedMultiTableRead(final RowInputTableReader reader, final String rootPath,
         final Map<Table, TypedReaderTableSpec<DataType>> individualSpecs,
         final GenericRowKeyGeneratorContextFactory<Table, DataValue> rowKeyGenFactory,
         final Supplier<ReadAdapter<DataType, DataValue>> readAdapterSupplier,
@@ -89,20 +89,20 @@ final class RowInputStagedMultiTableRead
     }
 
     @Override
-    public RowInputMultiTableRead withTransformation(final Collection<Table> tables, final TableTransformation<DataType> transformationModel) {
+    public MultiTableRead withTransformation(final Collection<Table> tables, final TableTransformation<DataType> transformationModel) {
         final GenericTableSpecConfig<Table> tableSpecConfig =
             GenericDefaultTableSpecConfig.<Table, DataType>createFromTransformationModel(getRootItem(),
                 transformationModel, getIndividualSpecs());
-        return new RowInputMultiTableRead(tables,
+        return new MultiTableRead(tables,
             p -> createRead(p, getTableReadConfig()), () -> {
-                RowInputTableReaderFactory factory = createIndividualTableReaderFactory(transformationModel);
+                TableReaderFactory factory = createIndividualTableReaderFactory(transformationModel);
                 return factory::create;
             }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
     }
 
-    private RowInputTableReaderFactory createIndividualTableReaderFactory(
+    private TableReaderFactory createIndividualTableReaderFactory(
         final TableTransformation<DataType> transformationModel) {
-        return new RowInputTableReaderFactory(getIndividualSpecs(), getTableReadConfig(),
+        return new TableReaderFactory(getIndividualSpecs(), getTableReadConfig(),
             TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
             getRowKeyGenFactory().createContext(getTableReadConfig()));
     }

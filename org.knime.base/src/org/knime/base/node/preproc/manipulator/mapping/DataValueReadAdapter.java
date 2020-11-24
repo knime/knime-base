@@ -46,7 +46,7 @@
  * History
  *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.mapping;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;

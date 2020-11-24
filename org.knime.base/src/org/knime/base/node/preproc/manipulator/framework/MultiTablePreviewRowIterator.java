@@ -42,60 +42,34 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Nov 13, 2020 (Tobias): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.framework;
 
-import java.util.Map;
-import java.util.function.Supplier;
+import java.io.IOException;
+import java.util.Iterator;
 
 import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.filehandling.core.node.table.reader.GenericDefaultMultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
-import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.GenericMultiTablePreviewRowIterator;
+import org.knime.filehandling.core.node.table.reader.IndividualTablePreviewRowIterator;
+import org.knime.filehandling.core.node.table.reader.PreviewIteratorException;
+import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
+import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 
 /**
+ * A {@link PreviewRowIterator} that aggregates multiple {@link IndividualTablePreviewRowIterator} each of which
+ * iterates over one input table. </br>
+ * If one {@link IndividualTablePreviewRowIterator} is exhausted, the next one is created until all input tables are
+ * covered.</br>
+ * Any exception encountered during execution is re-thrown as {@link PreviewIteratorException}.</br>
+ * After such an exception is thrown, no more calls are allowed.
  *
- * @author Tobias
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class RowInputMultiTableReadFactory
-    extends GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> {
+final class MultiTablePreviewRowIterator extends GenericMultiTablePreviewRowIterator<Table> {
 
-    /**
-     * @param typeHierarchy
-     * @param rowKeyGeneratorFactory
-     * @param reader
-     * @param productionPathProvider
-     * @param readAdpaterSupplier
-     */
-    RowInputMultiTableReadFactory(final TypeHierarchy<DataType, DataType> typeHierarchy,
-        final RowInputTableReader reader,
-        final ProductionPathProvider<DataType> productionPathProvider,
-        final Supplier<ReadAdapter<DataType, DataValue>> readAdpaterSupplier) {
-        super(typeHierarchy, new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString, "Table"), reader,
-            productionPathProvider, readAdpaterSupplier);
+    MultiTablePreviewRowIterator(final Iterator<Table> pathIterator,
+        final CheckedExceptionBiFunction<Table, FileStoreFactory, PreviewRowIterator, IOException> iteratorFn) {
+        super(pathIterator, iteratorFn);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected RowInputStagedMultiTableRead createStagedMultiTableReader(
-        final String rootPath, final Map<Table, TypedReaderTableSpec<DataType>> individualSpecs,
-        final GenericMultiTableReadConfig<Table, TableManipulatorConfig> config,
-        final TableTransformation<DataType> defaultTransformation) {
-        return new RowInputStagedMultiTableRead((RowInputTableReader)getReader(), rootPath, individualSpecs,
-            getRowKeyGeneratorFactory(),
-            getReadAdapterSupplier(), defaultTransformation, config.getTableReadConfig());
-    }
-
 }

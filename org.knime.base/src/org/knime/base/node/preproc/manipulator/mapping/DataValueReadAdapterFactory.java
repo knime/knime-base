@@ -44,49 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.mapping;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
-import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowInput;
-import org.knime.filehandling.core.node.table.reader.GenericTableReader;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.read.GenericRead;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.filehandling.core.node.table.reader.ReadAdapter;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 
 /**
- * {@link GenericTableReader} that reads {@link RowInput}s.
+ * Factory for DataValueReadAdapter objects.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public final class RowInputTableReader implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
+public enum DataValueReadAdapterFactory implements ReadAdapterFactory<DataType, DataValue> {
+        /**
+         * The singleton instance.
+         */
+        INSTANCE;
 
     @Override
-    public GenericRead<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
-            throws IOException {
-        return new RowInputRead(path, config);
+    public DataType getDefaultType(final DataType type) {
+        return type;
     }
 
-
     @Override
-    public TypedReaderTableSpec<DataType> readSpec(final Table rowInput, final TableReadConfig<TableManipulatorConfig> config,
-        final ExecutionMonitor exec) throws IOException {
-        final List<TypedReaderColumnSpec<DataType>> columnSpecs = new ArrayList<>();
-        final DataTableSpec spec = rowInput.getDataTableSpec();
-        for (final DataColumnSpec colSpec : spec) {
-            columnSpecs.add(TypedReaderColumnSpec.createWithName(colSpec.getName(), colSpec.getType(), true));
-        }
-        return new TypedReaderTableSpec<>(columnSpecs);
+    public Map<DataType, DataType> getDefaultTypeMap() {
+        throw new UnsupportedOperationException("Type map not supported");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ReadAdapter<DataType, DataValue> createReadAdapter() {
+        return new DataValueReadAdapter();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ProducerRegistry<DataType, ? extends ReadAdapter<DataType, DataValue>> getProducerRegistry() {
+        return DataTypeProducerRegistry.INSTANCE;
     }
 }

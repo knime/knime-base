@@ -59,6 +59,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.util.GenericMultiTableRead;
@@ -118,10 +119,8 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      */
     public DataTableSpec createTableSpec(final String rootItem, final List<I> items,
         final GenericMultiTableReadConfig<I, C> config) throws IOException {
-        GenericStagedMultiTableRead<I, ?> stagedMultiRead =
-            createMultiRead(rootItem, items, config, new ExecutionMonitor());
-        GenericMultiTableRead<I> multiRead = stagedMultiRead.withoutTransformation(items);
-        return multiRead.getOutputSpec();
+        final GenericTableSpecConfig<I> specConfig = createTableSpecConfig(rootItem, items, config);
+        return specConfig.getDataTableSpec();
     }
 
     private GenericStagedMultiTableRead<I, ?> createMultiRead(final String rootItem, final List<I> items,
@@ -132,6 +131,24 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
             m_currentMultiRead = m_multiTableReadFactory.create(rootItem, items, config, exec);
         }
         return m_currentMultiRead;
+    }
+
+    /**
+     * Creates the {@link DataTableSpec} corresponding to the tables stored in <b>items</b> combined according to the
+     * provided {@link MultiTableReadConfig config}.
+     *
+     * @param rootItem the root item
+     * @param items to read from
+     * @param config for reading
+     * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>items</b>
+     * @throws IOException if reading the specs from item fails
+     */
+    public GenericTableSpecConfig<I> createTableSpecConfig(final String rootItem, final List<I> items,
+        final GenericMultiTableReadConfig<I, C> config) throws IOException {
+        final GenericStagedMultiTableRead<I, ?> stagedMultiRead =
+                createMultiRead(rootItem, items, config, new ExecutionMonitor());
+        final GenericMultiTableRead<I> multiRead = stagedMultiRead.withoutTransformation(items);
+        return multiRead.getTableSpecConfig();
     }
 
     /**

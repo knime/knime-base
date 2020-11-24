@@ -42,34 +42,58 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 16, 2020 (Tobias): created
  */
-package org.knime.base.node.preproc.manipulator;
+package org.knime.base.node.preproc.manipulator.mapping;
 
-import java.io.IOException;
-import java.util.Iterator;
-
-import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.GenericMultiTablePreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.IndividualTablePreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.PreviewIteratorException;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
+import org.knime.core.data.DataType;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
- * A {@link PreviewRowIterator} that aggregates multiple {@link IndividualTablePreviewRowIterator} each of which
- * iterates over the table stored in a single file. </br>
- * If one {@link IndividualTablePreviewRowIterator} is exhausted, the next one is created until all files are
- * covered.</br>
- * Any exception encountered during execution is re-thrown as {@link PreviewIteratorException}.</br>
- * After such an exception is thrown, no more calls are allowed.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class RowInputMultiTablePreviewRowIterator extends GenericMultiTablePreviewRowIterator<Table> {
+public class DataTypeTypeHierarchy implements TypeHierarchy<DataType, DataType> {
 
-    RowInputMultiTablePreviewRowIterator(final Iterator<Table> pathIterator,
-        final CheckedExceptionBiFunction<Table, FileStoreFactory, PreviewRowIterator, IOException> iteratorFn) {
-        super(pathIterator, iteratorFn);
+    static class DataTypeResolver implements TypeResolver<DataType, DataType> {
+
+        private DataType m_current;
+
+        @Override
+        public DataType getMostSpecificType() {
+            return m_current;
+        }
+
+        @Override
+        public void accept(final DataType value) {
+            if (m_current == null) {
+                m_current = value;
+            } else if (m_current != value) { //NOSONAR
+                m_current = DataType.getCommonSuperType(m_current, value);
+            }
+        }
+
+        @Override
+        public boolean reachedTop() {
+            return false;
+        }
+
+        @Override
+        public boolean hasType() {
+            return m_current != null;
+        }
+
+    }
+
+    @Override
+    public TypeResolver<DataType, DataType> createResolver() {
+        return new DataTypeResolver();
+    }
+
+    @Override
+    public boolean supports(final DataType value) {
+        return true;
     }
 }
