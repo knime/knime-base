@@ -2445,7 +2445,7 @@
      <extension
            point="org.knime.workbench.repository.registeredFileExtensions">
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filereader.FileReaderNodeFactory">
+              NodeFactory="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory">
            <FileExtension
                  extension=".csv">
            </FileExtension>
@@ -2456,13 +2456,10 @@
                  extension=".txt">
            </FileExtension>
            <FileExtension
-                 extension=".tsv">
-           </FileExtension>
-           <FileExtension
-                 extension=".all">
-           </FileExtension>
-           <FileExtension
                  extension=".txt.gz">
+           </FileExtension>
+           <FileExtension
+                 extension=".tsv">
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
