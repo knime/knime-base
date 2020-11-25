@@ -310,4 +310,9 @@ public class LocalPath extends FSPath {
     public int hashCode() {
         return m_wrappedPath.hashCode();
     }
+
+    @Override
+    public String getURICompatiblePath() {
+        return ((LocalPath)toAbsolutePath()).m_wrappedPath.toUri().getPath();
+    }
 }

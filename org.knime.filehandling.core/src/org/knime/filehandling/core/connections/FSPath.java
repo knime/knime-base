@@ -104,12 +104,41 @@ public abstract class FSPath implements Path {
             toString());
     }
 
+    /**
+     * This method returns a path string that can be embedded into a URI (i.e. it is "URI-compatible"). Primary use case
+     * for this method is the {@link #toUri()} method, however it might be useful in other cases when we need to build
+     * some kind of a URI with a path in it.
+     *
+     * <p>
+     * Note when overriding this method: A path can be considered URI-compatible, if it is (1) absolute and (2) it
+     * starts with a forward slash ("/"). This method must not perform any percent-encoding/URL-encoding of reserved
+     * characters (whitespace, umlauts, ...).
+     * </p>
+     *
+     * @return an path string that can be embedded into a URI (absolute, starts with forward slash, no encodings
+     *         applied).
+     */
+    public String getURICompatiblePath() {
+        return toAbsolutePath().toString();
+    }
+
+    /**
+     * Returns a URI to represent this path. WARNING: THIS METHOD IS UNLIKELY TO DO WHAT YOU WANT!
+     *
+     * <p>
+     * If you are calling this method please think twice, as it is unlikely to do what you want. The scheme of the
+     * returned URI corresponds is an internal identifier for this file system implementation (not instance!) and the
+     * authority of the URI is highly file system specific.
+     * </p>
+     *
+     * @noreference This method is not supposed to be used by any implementations.
+     */
     @Override
     public final URI toUri() {
         try {
             @SuppressWarnings("resource")
             final URI baseURI = getFileSystem().getFileSystemBaseURI();
-            return new URI(baseURI.getScheme(), baseURI.getAuthority(), toAbsolutePath().toString(), null, null);
+            return new URI(baseURI.getScheme(), baseURI.getAuthority(), getURICompatiblePath(), null, null);
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }

@@ -90,6 +90,6 @@ public final class PathURIExporter implements URIExporter {
 
     @Override
     public URI toUri(final FSPath path) throws URISyntaxException {
-        return new URI(null, null, path.toUri().getPath(), null);
+        return new URI(null, null, path.getURICompatiblePath(), null);
     }
 }
