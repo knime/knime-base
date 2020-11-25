@@ -133,7 +133,7 @@ final class FilterOptionsPanel extends JPanel {
     private static final String FILTER_FILE_EXTENSIONS_LABEL = "File extension(s)";
 
     /** Tooltip for the file extension filter */
-    private static final String FILTER_FILE_EXTENSIONS_TOOLTIP = "Enter file extensions separated by ;";
+    private static final String FILTER_FILE_EXTENSIONS_TOOLTIP = "Enter file extensions separated by , or ; or |";
 
     /** Label for the file name filter */
     private static final String FILTER_FILE_NAME_LABEL = "File name";

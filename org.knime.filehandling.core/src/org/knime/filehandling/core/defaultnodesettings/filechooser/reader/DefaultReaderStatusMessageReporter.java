@@ -94,7 +94,8 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
     }
 
     private StatusMessage createFilterMessage(final FileFilterStatistic stat) {
-        if (stat.getIncludedFiles() == 0 && stat.getIncludedFolders() == 0) {
+        if (stat.getIncludedFiles() == 0
+            && (getFilterMode() == FilterMode.FILES_IN_FOLDERS || stat.getIncludedFolders() == 0)) {
             return createNoMatchesError();
         } else {
             return createScanSuccessMessage(stat);

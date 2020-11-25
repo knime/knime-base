@@ -73,6 +73,8 @@ import org.knime.filehandling.core.util.WildcardToRegexUtil;
 @SuppressWarnings("javadoc")
 public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAttributes> {
 
+    private static final Pattern SPLIT_FILE_EXTENSIONS_REGEX = Pattern.compile("[;,|]");
+
     /**
      * FilterType enumeration used for {@link FileAndFolderFilter}.
      *
@@ -175,8 +177,10 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         m_rootPath = rootPath;
         m_filterOptionsSettings = filterOptionsSettings;
         // make sure each extension starts with a dot
-        m_extensions = Arrays.stream(m_filterOptionsSettings.getFilesExtensionExpression().split(";"))
-            .map(ex -> ex.startsWith(".") ? ex : "." + ex).collect(Collectors.toList());
+
+        m_extensions =
+            Arrays.stream(SPLIT_FILE_EXTENSIONS_REGEX.split(m_filterOptionsSettings.getFilesExtensionExpression()))
+                .map(String::trim).map(ex -> ex.startsWith(".") ? ex : ("." + ex)).collect(Collectors.toList());
         m_regexFileName = createRegex(m_filterOptionsSettings.getFilesNameFilterType(),
             m_filterOptionsSettings.getFilesNameExpression(), m_filterOptionsSettings.isFilesNameCaseSensitive());
         m_regexFolderName = createRegex(m_filterOptionsSettings.getFoldersNameFilterType(),
