@@ -68,6 +68,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ObservableTransfor
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.util.GenericMultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.GenericStagedMultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.CheckedExceptionSupplier;
 
 /**
@@ -266,7 +267,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
             }
             m_items = rootPathAndPaths.getSecond();
             m_analysisComponent.setVisible(true);
-            m_specGuessingWorker = new SpecGuessingSwingWorker<>(m_readFactory, rootPathAndPaths.getFirst().toString(),
+            m_specGuessingWorker = new SpecGuessingSwingWorker<>(m_readFactory, MultiTableUtils.extractString(rootPathAndPaths.getFirst()),
                 rootPathAndPaths.getSecond(), m_config, m_analysisComponent, this::consumeNewStagedMultiRead,
                 e -> calculatingRawSpecFailed());
             m_specGuessingWorker.execute();

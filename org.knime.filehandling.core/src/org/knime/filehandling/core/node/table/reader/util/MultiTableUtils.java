@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -74,6 +75,21 @@ public final class MultiTableUtils {
 
     private MultiTableUtils() {
         // static utility class
+    }
+
+    /**
+     * Extracts a string to be stored in the TableSpecConfig from a given root.
+     *
+     * @param <I> the type of item
+     * @param rootItem the item to extract the String from
+     * @return the String extracted from <b>rootItem</b>
+     */
+    public static <I> String extractString(final I rootItem) {
+        if (rootItem instanceof FSPath) {
+            return ((FSPath)rootItem).toFSLocation().getPath();
+        } else {
+            return rootItem.toString();
+        }
     }
 
     /**
