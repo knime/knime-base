@@ -56,6 +56,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
+import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -74,7 +75,7 @@ final class AnalysisComponentView extends JPanel {
 
     private final JLabel m_analysisProgressPathLabel = new JLabel();
 
-    private final JLabel m_errorLabel = new JLabel();
+    private final WordWrapJLabel m_errorLabel = new WordWrapJLabel(" ");
 
     private final JProgressBar m_analysisProgressBar;
 
