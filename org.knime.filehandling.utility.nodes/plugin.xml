@@ -15,7 +15,7 @@
             description="Nodes to handle archives"
             icon="icons/c_archive16x16.png"
             level-id="archive"
-            name="Archive"
+            name="Archive (zip, tar, ...)"
             path="/io/f-f-util">
       </category>
    </extension>
