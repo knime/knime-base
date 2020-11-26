@@ -77,6 +77,16 @@ public interface FSConnection extends AutoCloseable {
     FileSystemBrowser getFileSystemBrowser();
 
     /**
+     * Returns whether this file system supports browsing. If this method returns false, then,
+     * {@link #getFileSystemBrowser()} will return null.
+     *
+     * @return true if this file system supports browsing, false otherwise.
+     */
+    default boolean supportsBrowsing() {
+        return true;
+    }
+
+    /**
      * Returns a default {@link URIExporter} or {@code null} if there is no {@link URI} representation of this connection.
      *
      * @return default exporter or {@code null}
