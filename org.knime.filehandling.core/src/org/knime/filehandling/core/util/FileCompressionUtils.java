@@ -86,12 +86,10 @@ public final class FileCompressionUtils {
      */
     public static InputStream createInputStream(final Path path, final OpenOption... options) throws IOException {
         // path.endsWith() method has a different meaning
-        if (path.toString().endsWith(".gz")) {
-            CheckUtils.checkArgument(!path.toString().endsWith(".tar.gz"),
-                "Cannot create a GZIPInputStream directly from a tar archive (%s).", path.toString());
+        if (mightBeCompressed(path)) {
             InputStream inStream = FSFiles.newInputStream(path, options);
             try {
-                return new GZIPInputStream(inStream);
+                return createDecompressedStream(inStream);
             } catch (ZipException ex) {
                 // Unable to create a GZIPInputStream. We will close the already opened and probably utilized stream
                 // and fallback to a regular InputStream (i.e., the return statement at the end of the method).
@@ -99,5 +97,29 @@ public final class FileCompressionUtils {
             }
         }
         return FSFiles.newInputStream(path, options);
+    }
+
+    /**
+     * Wraps a {@link GZIPInputStream} around a {@link InputStream}.
+     *
+     * @param is the passed {@link InputStream}
+     * @return a {@link GZIPInputStream}
+     * @throws IOException
+     */
+    public static InputStream createDecompressedStream(final InputStream is) throws IOException {
+        return new GZIPInputStream(is);
+    }
+
+    /**
+     *
+     * Checks if a file might be compressed based on check if the file ends with '.gz'.
+     *
+     * @param path the {@link Path} to the file
+     * @return a flag whether a file is compressed or not
+     */
+    public static boolean mightBeCompressed(final Path path) {
+        CheckUtils.checkArgument(!path.toString().endsWith(".tar.gz"),
+            "Cannot create a GZIPInputStream directly from a tar archive (%s).", path.toString());
+        return path.toString().endsWith(".gz");
     }
 }
