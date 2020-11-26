@@ -88,6 +88,8 @@ public final class DialogComponentWriterFileChooser
 
     private JLabel m_writeOptionsLabel;
 
+    private JLabel m_ifExistsLabel;
+
     private JCheckBox m_createMissingFolders;
 
     private ButtonGroup m_policyButtons;
@@ -160,12 +162,13 @@ public final class DialogComponentWriterFileChooser
     private void initComponents() {
         initCreateMissingFolders();
         initPolicyButtons();
-        initWriteOptionsLabel();
+        initLabels();
     }
 
-    private void initWriteOptionsLabel() {
+    private void initLabels() {
         if (m_writeOptionsLabel == null) {
             m_writeOptionsLabel = new JLabel("Write options");
+            m_ifExistsLabel = new JLabel("If exists: ");
         }
     }
 
@@ -228,7 +231,7 @@ public final class DialogComponentWriterFileChooser
     private JPanel createOverwritePolicyPanel() {
         final GBCBuilder gbc = new GBCBuilder().anchorLineStart().resetX();
         final JPanel buttonPanel = new JPanel(new GridBagLayout());
-        buttonPanel.add(new JLabel("If exists: "), gbc.build());
+        buttonPanel.add(m_ifExistsLabel, gbc.build());
         forEachButton(b -> buttonPanel.add(b, gbc.incX().build()));
         return buttonPanel;
     }
@@ -268,12 +271,13 @@ public final class DialogComponentWriterFileChooser
     }
 
     private void updateEnabledStatus() {
-        m_writeOptionsLabel.setEnabled(enableComponents());
-        m_createMissingFolders.setEnabled(enableComponents());
-        forEachButton(b -> b.setEnabled(enableComponents()));
+        m_createMissingFolders.setEnabled(enableCreateMissingFolders());
+        m_writeOptionsLabel.setEnabled(m_isEnabled);
+        m_ifExistsLabel.setEnabled(m_isEnabled);
+        forEachButton(b -> b.setEnabled(m_isEnabled));
     }
 
-    private boolean enableComponents() {
+    private boolean enableCreateMissingFolders() {
         return m_isEnabled && !isCustomURL();
     }
 
