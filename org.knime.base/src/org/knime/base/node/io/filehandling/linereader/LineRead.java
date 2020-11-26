@@ -50,7 +50,6 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,15 +57,13 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.regex.Pattern;
 
+import org.knime.base.node.io.filehandling.streams.CompressionAwareCountingInputStream;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleUtils;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.util.BomEncodingUtils;
-import org.knime.filehandling.core.util.FileCompressionUtils;
-
-import com.google.common.io.CountingInputStream;
 
 /**
  * Class for the line reader which implements {@link Read}.
@@ -81,9 +78,7 @@ final class LineRead implements Read<String> {
 
     private final BufferedReader m_reader;
 
-    private final InputStream m_inputStream;
-
-    private final CountingInputStream m_countingStream;
+    private final CompressionAwareCountingInputStream m_compressionAwareStream;
 
     private final long m_size;
 
@@ -115,14 +110,13 @@ final class LineRead implements Read<String> {
         m_lineReaderConfig = m_config.getReaderSpecificConfig();
 
         m_path = path;
-        m_inputStream = FileCompressionUtils.createInputStream(m_path);
-        //FIXME should be fixed with AP-15641 to get the correct file size of .gz files
         m_size = Files.size(m_path);
-        m_countingStream = new CountingInputStream(m_inputStream);
+
+        m_compressionAwareStream = new CompressionAwareCountingInputStream(path);
 
         final String charSetName = config.getReaderSpecificConfig().getCharSetName();
         final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
-        m_reader = BomEncodingUtils.createBufferedReader(m_countingStream, charset);
+        m_reader = BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
         m_regexPattern = Pattern.compile(config.getReaderSpecificConfig().getRegex());
         m_linesRead = m_config.useColumnHeaderIdx() ? -1 : 0;
         m_limitRows = m_config.limitRows();
@@ -140,7 +134,7 @@ final class LineRead implements Read<String> {
             m_linesRead++;
         } else {
             nextRow = getNextLine();
-            if(nextRow != null && nextRow.size() != 0) {
+            if (nextRow != null && nextRow.size() != 0) {
                 m_linesRead++;
             }
         }
@@ -176,7 +170,7 @@ final class LineRead implements Read<String> {
      * @return a {@link RandomAccessible}
      * @throws IOException
      */
-    private RandomAccessible<String> replaceEmptyRows(){
+    private RandomAccessible<String> replaceEmptyRows() {
         if (m_config.skipEmptyRows()) {
             return RandomAccessibleUtils.createFromArray();
         } else {
@@ -226,16 +220,7 @@ final class LineRead implements Read<String> {
         } catch (IOException e) {
             LOGGER.error(e);
         }
-        try {
-            m_countingStream.close();
-        } catch (IOException e) {
-            LOGGER.error(e);
-        }
-        try {
-            m_inputStream.close();
-        } catch (IOException e) {
-            LOGGER.error(e);
-        }
+        m_compressionAwareStream.close();
     }
 
     @Override
@@ -245,6 +230,6 @@ final class LineRead implements Read<String> {
 
     @Override
     public long getProgress() {
-        return m_countingStream.getCount();
+        return m_compressionAwareStream.getCount();
     }
 }
