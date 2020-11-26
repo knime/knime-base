@@ -521,6 +521,13 @@
       </category>
       <category
             description="Nodes for Deep Learning"
+            icon="icons/missing.gif"
+            level-id="deeplearning"
+            name="Deep Learning"
+            path="/analytics/mining">
+      </category>
+      <category
+            description="Nodes for Deep Learning"
             icon="icons/16x16/category_dl.png"
             level-id="deeplearning"
             name="Deep Learning"
