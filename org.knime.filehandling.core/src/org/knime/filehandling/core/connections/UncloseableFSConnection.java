@@ -108,4 +108,9 @@ class UncloseableFSConnection implements FSConnection {
     public Map<URIExporterID, URIExporter> getURIExporters() {
         return m_wrapped.getURIExporters();
     }
+
+    @Override
+    public boolean supportsBrowsing() {
+        return m_wrapped.supportsBrowsing();
+    }
 }
