@@ -324,20 +324,14 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private void updateBrowser() {
         final T sm = getSettingsModel();
-        final FSLocation location = sm.getLocation();
-        if (location.getFSCategory() != FSCategory.CUSTOM_URL) {
-            // we can only browse if the file system connection is available
-            if (!isRemoteJobView() && sm.canCreateConnection()) {
-                // the connection is present, otherwise browser couldn't be
-                m_fileSelection.setEnableBrowsing(true);
-                m_fileSelection.setFileExtensions(sm.getFileExtensions());
-                m_fileSelection.setFSConnectionSupplier(sm::getConnection);
-                m_fileSelection.setFileSelectionMode(getFileSelectionMode());
-            } else {
-                // if we are in the remote job view, we need to close the connection since we can't browse anyway
-                m_fileSelection.setEnableBrowsing(false);
-            }
+        if (!isRemoteJobView() && sm.canBrowse()) {
+            // the connection is present, otherwise browser couldn't be
+            m_fileSelection.setEnableBrowsing(true);
+            m_fileSelection.setFileExtensions(sm.getFileExtensions());
+            m_fileSelection.setFSConnectionSupplier(sm::getConnection);
+            m_fileSelection.setFileSelectionMode(getFileSelectionMode());
         } else {
+            // if we are in the remote job view, we need to close the connection since we can't browse anyway
             m_fileSelection.setEnableBrowsing(false);
         }
     }

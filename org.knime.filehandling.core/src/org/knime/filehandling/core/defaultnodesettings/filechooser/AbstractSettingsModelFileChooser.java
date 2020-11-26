@@ -298,6 +298,10 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         return FileSystemHelper.canRetrieveFSConnection(m_fsConfig.getConnection(), getLocation());
     }
 
+    boolean canBrowse() {
+        return FileSystemHelper.canBrowse(m_fsConfig.getConnection(), getLocation());
+    }
+
     /**
      * Sets the given {@link FSLocation}.
      *

@@ -176,6 +176,25 @@ public final class FileSystemHelper {
         }
     }
 
+    /**
+     * Indicates whether browsing is supported by the file system of {@link FSLocation location}.
+     *
+     * @param portObjectConnection {@link Optional} that contains the file system provided via the file system port of a
+     *            node
+     * @param location to browse
+     * @return {@code true} if browsing is supported, {@code false} otherwise
+     */
+    public static boolean canBrowse(final Optional<FSConnection> portObjectConnection, final FSLocation location) {
+        final FSCategory category = location.getFSCategory();
+        if (category == FSCategory.CUSTOM_URL) {
+            return false;
+        } else if (category == FSCategory.CONNECTED) {
+            return portObjectConnection.map(FSConnection::supportsBrowsing).orElse(false);
+        } else {
+            return canRetrieveFSConnection(portObjectConnection, location);
+        }
+    }
+
     private static Type extractRelativeToHost(final FSLocation location) {
         final String knimeFileSystemHost =
             location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(String
