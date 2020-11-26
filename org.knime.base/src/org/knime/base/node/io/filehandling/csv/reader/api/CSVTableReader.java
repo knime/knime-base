@@ -60,6 +60,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.knime.base.node.io.filehandling.streams.CompressionAwareCountingInputStream;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -75,9 +76,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusabl
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
-import org.knime.filehandling.core.util.FileCompressionUtils;
 
-import com.google.common.io.CountingInputStream;
 import com.univocity.parsers.common.TextParsingException;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
@@ -145,7 +144,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         }
     }
 
-    private static TableSpecGuesser<Class<?>, String> createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
+    private static TableSpecGuesser<Class<?>, String>
+        createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
         return new TableSpecGuesser<>(createHierarchy(csvConfig), Function.identity());
     }
@@ -158,7 +158,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             .addType(Double.class, createTypeTester(Long.class, integerParser::parseLong))
             .addType(Long.class, createTypeTester(Integer.class, integerParser::parseInt)).build();
     }
-
 
     /**
      * Creates a decorated {@link Read} from {@link CSVRead}, taking into account how many rows should be skipped or
@@ -177,13 +176,13 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         final boolean skipRows = config.skipRows();
         if (skipRows) {
             final long numRowsToSkip = config.getNumRowsToSkip();
-            filtered = ReadUtils.skip(filtered, hasColumnHeader ? numRowsToSkip + 1 : numRowsToSkip);
+            filtered = ReadUtils.skip(filtered, hasColumnHeader ? (numRowsToSkip + 1) : numRowsToSkip);
         }
         if (config.limitRows()) {
             final long numRowsToKeep = config.getMaxRows();
             // in case we skip rows, we already skipped the column header
             // otherwise we have to read one more row since the first is the column header
-            filtered = ReadUtils.limit(filtered, hasColumnHeader && !skipRows ? numRowsToKeep + 1 : numRowsToKeep);
+            filtered = ReadUtils.limit(filtered, hasColumnHeader && !skipRows ? (numRowsToKeep + 1) : numRowsToKeep);
         }
         return filtered;
     }
@@ -201,9 +200,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         /** a parser used to parse the file */
         private final CsvParser m_parser;
 
-        /** the stream to read from */
-        private final CountingInputStream m_countingStream;
-
         /** the reader reading from m_countingStream */
         private final BufferedReader m_reader;
 
@@ -216,6 +212,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         /** the path of the underlying source */
         private final Path m_path;
 
+        /** The {@link CompressionAwareCountingInputStream} which creates the necessary streams */
+        private final CompressionAwareCountingInputStream m_compressionAwareStream;
+
         /**
          * Constructor
          *
@@ -225,7 +224,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          */
         @SuppressWarnings("resource") // The input stream is closed by the close method
         CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(FileCompressionUtils.createInputStream(path), Files.size(path), path, config);//NOSONAR
+            this(new CompressionAwareCountingInputStream(path), Files.size(path), path, config);//NOSONAR
         }
 
         /**
@@ -235,20 +234,21 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @param config the CSV table reader configuration.
          * @throws IOException if a stream can not be created from the provided file.
          */
+        @SuppressWarnings("resource") //streams will be closed in the close method
         CsvRead(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(inputStream, -1, null, config);
+            this(new CompressionAwareCountingInputStream(inputStream), -1, null, config);
         }
 
-        private CsvRead(final InputStream inputStream, final long size, final Path path,
+        private CsvRead(final CompressionAwareCountingInputStream inputStream, final long size, final Path path,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             m_size = size;
             m_path = path;
-            m_countingStream = new CountingInputStream(inputStream);
+            m_compressionAwareStream = inputStream;
 
             final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
             final String charSetName = csvReaderConfig.getCharSetName();
             final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
-            m_reader = BomEncodingUtils.createBufferedReader(m_countingStream, charset);
+            m_reader = BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
             if (csvReaderConfig.skipLines()) {
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
@@ -281,7 +281,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 }
                 throw new IOException(
                     "Something went wrong during the parsing process. For further details please have a look into "
-                        + "the log.", e);
+                        + "the log.",
+                    e);
 
             }
             return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
@@ -298,9 +299,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         @Override
         public void close() throws IOException {
             m_parser.stopParsing();
-            // the parser should already close the reader and the stream but we close them anyway just to be sure
+            // the parser should already close the reader and the streams but we close them anyway just to be sure
             m_reader.close();
-            m_countingStream.close();
+            m_compressionAwareStream.close();
         }
 
         @Override
@@ -310,7 +311,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         @Override
         public long getProgress() {
-            return m_countingStream.getCount();
+            return m_compressionAwareStream.getCount();
         }
 
         /**
@@ -321,7 +322,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          */
         private void skipLines(final long n) throws IOException {
             for (int i = 0; i < n; i++) {
-                m_reader.readLine();
+                m_reader.readLine(); //NOSONAR
             }
         }
 
