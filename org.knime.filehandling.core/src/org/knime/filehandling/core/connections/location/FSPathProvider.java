@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
 
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 
@@ -82,6 +83,11 @@ public interface FSPathProvider extends AutoCloseable {
      * @see FSPathProviderFactory#create(FSLocation)
      */
     FSPath getPath();
+
+    /**
+     * @return the underlying {@link FSConnection} of the file system instance.
+     */
+    FSConnection getFSConnection();
 
     @Override
     void close() throws IOException;

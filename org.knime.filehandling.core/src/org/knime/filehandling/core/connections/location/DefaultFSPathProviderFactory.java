@@ -83,6 +83,10 @@ final class DefaultFSPathProviderFactory extends FSPathProviderFactory {
             return m_fsConnection.getFileSystem().getPath(m_fsLocation);
         }
 
+        @Override
+        public FSConnection getFSConnection() {
+            return m_fsConnection;
+        }
     }
 
     public DefaultFSPathProviderFactory(final FSConnection fsConnection) {

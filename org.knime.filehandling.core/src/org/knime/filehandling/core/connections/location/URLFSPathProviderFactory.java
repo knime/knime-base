@@ -94,6 +94,11 @@ final class URLFSPathProviderFactory extends FSPathProviderFactory {
             public FSPath getPath() {
                 return fsConnection.getFileSystem().getPath(fsLocation);
             }
+
+            @Override
+            public FSConnection getFSConnection() {
+                return fsConnection;
+            }
         };
     }
 }
