@@ -58,7 +58,9 @@ import javax.swing.CellEditor;
 import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -68,6 +70,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -84,15 +87,23 @@ public final class TableTransformationPanel extends JPanel {
 
     private final TableTransformationTableModel<?> m_tableModel;
 
-    private final JButton m_resetAllBtn = new JButton("Reset all");
+    private final JButton m_resetMenuBtn = new JButton("Reset actions");
 
-    private final JButton m_resetNames = new JButton("Reset names");
+    private final JPopupMenu m_resetPopup = new JPopupMenu();
 
-    private final JButton m_resetPositions = new JButton("Reset order");
+    private final JMenuItem m_resetAllBtn = new JMenuItem("Reset all");
 
-    private final JButton m_resetTypes = new JButton("Reset types");
+    private final JMenuItem m_resetNames = new JMenuItem("Reset names");
 
-    private final JButton m_includeAll = new JButton("Reset filter");
+    private final JMenuItem m_resetPositions = new JMenuItem("Reset order");
+
+    private final JMenuItem m_resetTypes = new JMenuItem("Reset types");
+
+    private final JMenuItem m_includeAll = new JMenuItem("Reset filter");
+
+    private final JButton m_moveUp = new JButton("Move up", SharedIcons.MOVE_UP.get());
+
+    private final JButton m_moveDown = new JButton("Move down", SharedIcons.MOVE_DOWN.get());
 
     private final JLabel m_colFilterModeLabel = new JLabel("Take columns from:");
 
@@ -117,28 +128,64 @@ public final class TableTransformationPanel extends JPanel {
         m_tableModel = model;
         setupTable(model, productionPathProvider);
 
+        m_resetPopup.add(m_resetPositions);
+        m_resetPopup.add(m_includeAll);
+        m_resetPopup.add(m_resetNames);
+        m_resetPopup.add(m_resetTypes);
+        m_resetPopup.add(m_resetAllBtn);
+
+        m_resetMenuBtn.addActionListener(l -> displayResetPopup());
+
         m_resetAllBtn.addActionListener(l -> m_tableModel.resetAll());
         m_resetNames.addActionListener(l -> m_tableModel.resetNames());
         m_resetPositions.addActionListener(l -> m_tableModel.resetPositions());
         m_resetTypes.addActionListener(l -> m_tableModel.resetProductionPaths());
         m_includeAll.addActionListener(l -> m_tableModel.resetKeep());
 
+        m_moveUp.addActionListener(l -> move(MoveDirection.UP));
+        m_moveDown.addActionListener(l -> move(MoveDirection.DOWN));
+        m_moveUp.setEnabled(false);
+        m_moveDown.setEnabled(false);
+
+        m_transformationTable.getSelectionModel().addListSelectionListener(l -> updateMoveButtons());
+
         setBorder(BorderFactory.createTitledBorder("Transformations"));
 
         final GBCBuilder gbc = new GBCBuilder()//
             .resetPos()//
             .anchorPageStart().insets(0, 0, 5, 5);
-        add(m_resetAllBtn, gbc.build());
-        add(m_includeAll, gbc.incX().build());
-        add(m_resetNames, gbc.incX().build());
-        add(m_resetTypes, gbc.incX().build());
-        add(m_resetPositions, gbc.incX().build());
+        add(m_resetMenuBtn, gbc.build());
+        add(m_moveUp, gbc.incX().build());
+        add(m_moveDown, gbc.incX().build());
         if (includeColumnFilterButtons) {
             add(m_colFilterModeLabel, gbc.incX().insetTop(3).build());
             add(m_columnFilterModePanel, gbc.incX().insetTop(0).build());
         }
         add(new JPanel(), gbc.incX().fillBoth().setWeightX(1.0).build());
         add(new JScrollPane(m_transformationTable), gbc.resetX().incY().widthRemainder().setWeightY(1.0).build());
+    }
+
+    private void displayResetPopup() {
+        final int height = m_resetMenuBtn.getSize().height;
+        m_resetPopup.show(m_resetMenuBtn, 0, height);
+    }
+
+    private void updateMoveButtons() {
+        final int row = m_transformationTable.getSelectedRow();
+        m_moveUp.setEnabled(row > 0);
+        m_moveDown.setEnabled(row >= 0 && row < m_tableModel.getRowCount() - 1);
+    }
+
+    private void move(final MoveDirection direction) {
+        final int row = m_transformationTable.getSelectedRow();
+        if (row == -1) {
+            // happens e.g. when the dialog is opened
+            return;
+        }
+        m_tableModel.reorder(row, direction);
+        m_transformationTable.getSelectionModel().clearSelection();
+        final int newSelection = direction == MoveDirection.UP ? (row - 1) : (row + 1);
+        m_transformationTable.getSelectionModel().setSelectionInterval(newSelection, newSelection);
     }
 
     private void setupTable(final TableTransformationTableModel<?> model,

@@ -110,6 +110,9 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
     private static final String[] COLUMN_NAMES = {"", "", "Column", "New name", "Type"};
 
+    private static final Class<?>[] COLUMN_CLASSES =
+        new Class[]{Icon.class, Boolean.class, DataColumnSpec.class, String.class, ProductionPath.class};
+
     private static final DataColumnSpec NEW_COL_SPEC =
         new DataColumnSpecCreator("<any unknown new column>", DataType.getType(DataCell.class)).createSpec();
 
@@ -500,6 +503,16 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         }
     }
 
+    void reorder(final int rowIndex, final MoveDirection direction) {
+        if (direction == MoveDirection.UP && rowIndex > 0) {
+            reorder(rowIndex, rowIndex - 1);
+        } else if (direction == MoveDirection.DOWN && rowIndex < getRowCount() - 1) {
+            // +2 because reorder is written for DnD and DnD addresses the gaps between
+            // rows. I.e. 0 means before row 0, 1 means after row 0 and 2 means after row 1
+            reorder(rowIndex, rowIndex + 2);
+        }
+    }
+
     /**
      * Updates the name and verifies that the set of names is still valid i.e. contains no duplicates.
      *
@@ -509,8 +522,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
      */
     private boolean updateName(final Object aValue, final MutableColumnTransformation<T> transformation) {
         final String stringValue = (String)aValue;
-        final String newName =
-            stringValue.isEmpty() ? transformation.getOriginalName() : stringValue;
+        final String newName = stringValue.isEmpty() ? transformation.getOriginalName() : stringValue;
         final String oldName = transformation.getName();
         boolean fireEventForOtherRows = false;
         if (!newName.equals(oldName)) {
@@ -600,25 +612,13 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
     @Override
     public Class<?> getColumnClass(final int columnIndex) {// NOSONAR, stupid rule
-        if (columnIndex == REORDER) {
-            return Icon.class;
-        } else if (columnIndex == KEEP) {
-            return Boolean.class;
-        } else if (columnIndex == COLUMN) {
-            return DataColumnSpec.class;
-        } else if (columnIndex == RENAME) {
-            return String.class;
-        } else if (columnIndex == TYPE) {
-            return ProductionPath.class;
-        } else {
-            throw new IndexOutOfBoundsException();
-        }
+        return COLUMN_CLASSES[columnIndex];
     }
 
     @Override
     public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-        if (getTransformation(rowIndex) == m_newColTransformationPlaceholder && columnIndex != KEEP) {
-            return false;
+        if (getTransformation(rowIndex) == m_newColTransformationPlaceholder) {
+            return columnIndex == KEEP;
         }
         return columnIndex == KEEP || columnIndex == RENAME || columnIndex == TYPE;
     }
