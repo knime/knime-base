@@ -58,7 +58,8 @@ amazon-s3.roleSwitchName = <ROLE-TO-SWITCH-TO>
 
 ################ Databricks DBFS ################
 dbfs.workingDirPrefix = /knime-filehandling-test-dir
-dbfs.host = <DATABRICKS-DEPLOYMENT>
+# dbfs typically looks like https://<some-id>.cloud.databricks.com/
+dbfs.url = <DATABRICKS-DEPLOYMENT-URL>
 dbfs.token = <TOKEN>
 
 ################ FTP ###################
