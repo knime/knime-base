@@ -44,89 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 24, 2020 (bjoern): created
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
+import java.net.URISyntaxException;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
+ * {@link URIExporter} that provides legacy knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
  */
-public final class WorkflowDataRelativeFSConnection implements FSConnection {
+final class LegacyKNIMEUrlExporter implements URIExporter {
 
-    private final LocalRelativeToFileSystem m_fileSystem;
+    static final LegacyKNIMEUrlExporter INSTANCE = new LegacyKNIMEUrlExporter();
 
-    private final RelativeToFileSystemBrowser m_browser;
-
-    /**
-     * Constructor.
-     *
-     */
-    public WorkflowDataRelativeFSConnection(final boolean isConnected) {
-
-        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
-        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-
-        try {
-            m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected);
-        } catch (IOException ex) {
-            // should never happen
-            throw new UncheckedIOException(ex);
-        }
-
-        m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
-    }
-
-    private LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-        final boolean isConnected) throws IOException {
-
-        final Path workflowDataDir = workflowLocation.resolve("data");
-        Files.createDirectories(workflowDataDir);
-
-        final FSLocationSpec fsLocationSpec;
-        if (isConnected) {
-            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-        } else {
-            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-        }
-
-        final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
-        return new LocalRelativeToFileSystem(uri, //
-            workflowDataDir, //
-            Type.WORKFLOW_DATA_RELATIVE, //
-            BaseRelativeToFileSystem.PATH_SEPARATOR, //
-            fsLocationSpec);
+    private LegacyKNIMEUrlExporter() {
     }
 
     @Override
-    public LocalRelativeToFileSystem getFileSystem() {
-        return m_fileSystem;
+    public String getLabel() {
+        return "knime:// URL";
     }
 
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_browser;
+    public String getDescription() {
+        return "Provides a knime:// URL";
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return RelativeToUtil.RELATIVE_TO_URI_EXPORTERS;
+    public URI toUri(final FSPath path) throws URISyntaxException {
+        return ((RelativeToPath)path).toKNIMEProtocolURI();
     }
 }

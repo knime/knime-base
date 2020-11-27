@@ -48,9 +48,15 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.Validate;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 
 /**
  *
@@ -59,8 +65,12 @@ import org.knime.core.node.workflow.WorkflowContext;
  */
 public final class RelativeToUtil {
 
-    private RelativeToUtil() {
+    static final Map<URIExporterID, URIExporter> RELATIVE_TO_URI_EXPORTERS = new URIExporterMapBuilder() //
+        .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporter.INSTANCE) //
+        .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporter.INSTANCE) //
+        .build();
 
+    private RelativeToUtil() {
     }
 
     /**

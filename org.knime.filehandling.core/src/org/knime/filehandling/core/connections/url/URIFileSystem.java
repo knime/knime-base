@@ -66,6 +66,7 @@ import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 
 /**
+ * Pseudo file system that allows to read user-provided URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */

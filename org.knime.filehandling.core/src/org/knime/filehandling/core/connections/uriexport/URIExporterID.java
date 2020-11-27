@@ -45,12 +45,14 @@
  */
 package org.knime.filehandling.core.connections.uriexport;
 
+import org.knime.core.node.util.CheckUtils;
+
 /**
  * Unique URI exporter identifier.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public class URIExporterID {
+public final class URIExporterID {
 
     private final String m_id;
 
@@ -60,6 +62,7 @@ public class URIExporterID {
      * @param id the unique exporter identifier
      */
     public URIExporterID(final String id) {
+        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
         m_id = id;
     }
 
@@ -82,19 +85,12 @@ public class URIExporterID {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        URIExporterID other = (URIExporterID)obj;
-        if (m_id == null) {
-            if (other.m_id != null) {
-                return false;
-            }
-        } else if (!m_id.equals(other.m_id)) {
-            return false;
-        }
-        return true;
+        final URIExporterID other = (URIExporterID)obj;
+        return m_id.equals(other.m_id);
     }
 
     @Override
     public String toString() {
-        return "URIExporterID( " + m_id + ")";
+        return m_id;
     }
 }

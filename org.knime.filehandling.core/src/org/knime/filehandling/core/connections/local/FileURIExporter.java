@@ -56,14 +56,10 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterID;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public final class FileURIExporter implements URIExporter {
+final class FileURIExporter implements URIExporter {
 
-    /**
-     * Unique identifier of this exporter.
-     */
-    public static final URIExporterID ID = new URIExporterID("file");
-
-    private static final FileURIExporter INSTANCE = new FileURIExporter();
+    static final URIExporterID ID = new URIExporterID("knime-file-url");
+    static final FileURIExporter INSTANCE = new FileURIExporter();
 
     private FileURIExporter() {}
 
@@ -72,11 +68,6 @@ public final class FileURIExporter implements URIExporter {
      */
     public static FileURIExporter getInstance() {
         return INSTANCE;
-    }
-
-    @Override
-    public URIExporterID getID() {
-        return ID;
     }
 
     @Override

@@ -51,10 +51,15 @@ package org.knime.filehandling.core.connections.knimeremote;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -65,6 +70,11 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  * @noinstantiate non-public API
  */
 public final class KNIMERemoteFSConnection implements FSConnection {
+
+    private static final Map<URIExporterID, URIExporter> URI_EXPORTERS = new URIExporterMapBuilder() //
+            .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporter.INSTANCE) //
+            .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporter.INSTANCE) //
+            .build();
 
     private final KNIMERemoteFileSystem m_fileSystem;
 
@@ -96,5 +106,10 @@ public final class KNIMERemoteFSConnection implements FSConnection {
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return m_browser;
+    }
+
+    @Override
+    public Map<URIExporterID, URIExporter> getURIExporters() {
+        return URI_EXPORTERS;
     }
 }

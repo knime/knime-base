@@ -44,51 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.url;
+package org.knime.filehandling.core.connections.uriexport;
 
-import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 
 /**
- * Creates a pseudo file system that allows to read user-provided URLs.
+ * Builder class to make it easier to correctly build the map for {@link FSConnection#getURIExporters()}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFSConnection implements FSConnection {
+public class URIExporterMapBuilder {
 
-    private static final Map<URIExporterID, URIExporter> URI_EXPORTERS = new URIExporterMapBuilder() //
-            .add(URIExporterIDs.DEFAULT, CustomUrlExporter.INSTANCE) //
-            .add(CustomUrlExporter.ID, CustomUrlExporter.INSTANCE) //
-            .build();
+    private final HashMap<URIExporterID, URIExporter> m_exporters = new HashMap<>();
 
-    final URIFileSystem m_uriFileSystem;
-
-    public URIFSConnection(final URI uri, final int timeoutInMillis) {
-        m_uriFileSystem = new URIFileSystem(uri, false, timeoutInMillis);
+    /**
+     * Creates a new instance.
+     */
+    public URIExporterMapBuilder() {
+        m_exporters.put(URIExporterIDs.PATH, PathURIExporter.getInstance());
     }
 
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_uriFileSystem;
+    /**
+     * Fluent API method to add an exporter.
+     *
+     * @param id The ID under which to add the {@link URIExporter}.
+     * @param exporter The {@link URIExporter} to add.
+     * @return this builder object.
+     */
+    public URIExporterMapBuilder add(final URIExporterID id, final URIExporter exporter) {
+        final URIExporter oldValue = m_exporters.putIfAbsent(id, exporter);
+        if (oldValue != null) {
+            throw new IllegalStateException("There already is a URIExporter with ID " + id.toString());
+        }
+        return this;
     }
 
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return null;
-    }
-
-    @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return URI_EXPORTERS;
+    /**
+     * Finalizes this build into an immutable map.
+     *
+     * @return an immutable map from {@link URIExporterID} to {@link URIExporter}.
+     */
+    public Map<URIExporterID, URIExporter> build() {
+        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) != null,
+            "No default URI exporter has been specified.");
+        return Collections.unmodifiableMap(m_exporters);
     }
 }

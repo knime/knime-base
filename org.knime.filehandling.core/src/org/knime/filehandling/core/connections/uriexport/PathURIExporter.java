@@ -74,18 +74,13 @@ public final class PathURIExporter implements URIExporter {
     }
 
     @Override
-    public URIExporterID getID() {
-        return ID;
-    }
-
-    @Override
     public String getLabel() {
         return "Path";
     }
 
     @Override
     public String getDescription() {
-        return "Exports only the path (useful on clusters).";
+        return "Provides the path.";
     }
 
     @Override

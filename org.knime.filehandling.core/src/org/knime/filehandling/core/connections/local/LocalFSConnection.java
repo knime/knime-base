@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.util.Collections;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
@@ -58,6 +57,8 @@ import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
@@ -68,6 +69,11 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
 public class LocalFSConnection implements FSConnection {
 
     private static final String WORKSPACE_PATH = System.getProperty("user.home");
+
+    private static final Map<URIExporterID, URIExporter> URI_EXPORTERS = new URIExporterMapBuilder() //
+        .add(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
+        .add(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
+        .build();
 
     private final LocalFileSystem m_fileSystem;
 
@@ -95,12 +101,7 @@ public class LocalFSConnection implements FSConnection {
     }
 
     @Override
-    public URIExporter getDefaultURIExporter() {
-        return FileURIExporter.getInstance();
-    }
-
-    @Override
     public Map<URIExporterID, URIExporter> getURIExporters() {
-        return Collections.singletonMap(FileURIExporter.ID, FileURIExporter.getInstance());
+        return URI_EXPORTERS;
     }
 }

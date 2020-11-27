@@ -95,7 +95,7 @@ public final class KNIMERemotePath extends UnixStylePath implements WorkflowAwar
 
     URI toKNIMEProtocolURI() {
         try {
-            return new URI("knime", getFileSystem().getMountpoint(), toAbsolutePath().toString(), null);
+            return new URI("knime", getFileSystem().getMountpoint(), getURICompatiblePath(), null);
         } catch (final URISyntaxException ex) {
             throw new IllegalStateException("Failed to create valid URL: " + ex.getMessage(), ex);
         }

@@ -59,13 +59,6 @@ import org.knime.filehandling.core.connections.FSPath;
 public interface URIExporter {
 
     /**
-     * Unique identifier of this exporter.
-     *
-     * @return unique identifier
-     */
-    public URIExporterID getID();
-
-    /**
      * Human readable label of this exporter.
      *
      * @return label representing this exporter

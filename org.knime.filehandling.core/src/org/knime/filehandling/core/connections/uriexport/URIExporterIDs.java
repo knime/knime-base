@@ -42,53 +42,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.uriexport;
 
-import java.net.URI;
-
-import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.FSConnection;
 
 /**
- * Default {@link URIExporter} implementation using {@code toUri()}.
+ * Declares IDs for of {@link URIExporter}s which are used by various file system implementations.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class DefaultURIExporter implements URIExporter {
+public final class URIExporterIDs {
 
     /**
-     * Unique identifier of this exporter.
+     * ID of the default {@link URIExporter}. Every {@link FSConnection} provides this exporter.
      */
-    public static final URIExporterID ID = new URIExporterID("default");
-
-    private static final DefaultURIExporter INSTANCE = new DefaultURIExporter();
-
-    private DefaultURIExporter() {}
+    public static final URIExporterID DEFAULT = new URIExporterID("default");
 
     /**
-     * @return singleton instance of this exporter
+     * ID of an {@link URIExporter} that maps to a URI, which contains the path in URI-compatible notation. Please see
+     * {@link PathURIExporter}. Every {@link FSConnection} provides this exporter.
      */
-    public static DefaultURIExporter getInstance() {
-        return INSTANCE;
-    }
+    public static final URIExporterID PATH = new URIExporterID("knime-path");
 
-    @Override
-    public URIExporterID getID() {
-        return ID;
-    }
+    /**
+     * ID of an {@link URIExporter} that maps to legacy knime:// URLs (for example knime://knime.workflow/...). This
+     * {@link URIExporter} is available on several, but not all {@link FSConnection}s. This exporter is only available
+     * on certaub {@link FSConnection}s.
+     */
+    public static final URIExporterID LEGACY_KNIME_URL = new URIExporterID("knime-legacy-url");
 
-    @Override
-    public String getLabel() {
-        return "Full URI";
-    }
+    /**
+     * ID of an {@link URIExporter} that provides a URI which is compatible with the Apache Hadoop file system API. This
+     * exporter is available for all file systems provided by KNIME big data extensions but potentially also by others.
+     * All connector nodes that are supposes to be connected to big data nodes must provide this {@link URIExporter}.
+     */
+    public static final URIExporterID DEFAULT_HADOOP = new URIExporterID("default_hadoop");
 
-    @Override
-    public String getDescription() {
-        return "Exports the full URI.";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) {
-        return path.toUri();
+    private URIExporterIDs() {
     }
 }

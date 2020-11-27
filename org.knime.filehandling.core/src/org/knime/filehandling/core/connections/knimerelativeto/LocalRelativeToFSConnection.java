@@ -53,12 +53,15 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.EnumSet;
+import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
@@ -165,5 +168,10 @@ public final class LocalRelativeToFSConnection implements FSConnection {
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return m_browser;
+    }
+
+    @Override
+    public Map<URIExporterID, URIExporter> getURIExporters() {
+        return RelativeToUtil.RELATIVE_TO_URI_EXPORTERS;
     }
 }

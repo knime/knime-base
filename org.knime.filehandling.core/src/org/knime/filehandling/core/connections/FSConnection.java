@@ -2,16 +2,15 @@ package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.DefaultURIExporter;
 import org.knime.filehandling.core.connections.uriexport.PathURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 
 /**
  * Interface for file system connections.
@@ -92,7 +91,7 @@ public interface FSConnection extends AutoCloseable {
      * @return default exporter or {@code null}
      */
     default URIExporter getDefaultURIExporter() {
-        return DefaultURIExporter.getInstance();
+        return getURIExporters().get(URIExporterIDs.DEFAULT);
     }
 
     /**
@@ -101,9 +100,8 @@ public interface FSConnection extends AutoCloseable {
      * @return map supported exporters by identifier
      */
     default Map<URIExporterID, URIExporter> getURIExporters() {
-        final HashMap<URIExporterID, URIExporter> exporters = new HashMap<>();
-        exporters.put(DefaultURIExporter.ID, DefaultURIExporter.getInstance());
-        exporters.put(PathURIExporter.ID, PathURIExporter.getInstance());
-        return Collections.unmodifiableMap(exporters);
+        return new URIExporterMapBuilder() //
+                .add(URIExporterIDs.DEFAULT, PathURIExporter.getInstance()) //
+                .build();
     }
 }
