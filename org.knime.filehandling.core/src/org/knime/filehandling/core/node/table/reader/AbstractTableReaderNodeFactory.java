@@ -74,10 +74,9 @@ import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGenerat
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
     extends GenericAbstractTableReaderNodeFactory<Path, C, T, V> {
 
-
     @Override
     public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final StorableMultiTableReadConfig<C> config = createConfig();
+        final StorableMultiTableReadConfig<C> config = createConfig(creationConfig);
         final PathSettings pathSettings = createPathSettings(creationConfig);
         final MultiTableReader<C> reader = createMultiTableReader();
         final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
@@ -113,13 +112,14 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @return a new multi table reader
      */
     @Override
-    protected final MultiTableReadFactory<C, T> createMultiTableReadFactory(final GenericTableReader<Path, C, T, V> reader) {
+    protected final MultiTableReadFactory<C, T>
+        createMultiTableReadFactory(final GenericTableReader<Path, C, T, V> reader) {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         final GenericRowKeyGeneratorContextFactory<Path, V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey, "File");
         return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory, (TableReader<C, T, V>)reader,
-                productionPathProvider, readAdapterFactory::createReadAdapter);
+            productionPathProvider, readAdapterFactory::createReadAdapter);
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     protected AbstractTableReaderNodeDialog<C, T> createNodeDialogPane(final NodeCreationConfiguration creationConfig,
         final GenericMultiTableReadFactory<Path, C, T> readFactory,
         final ProductionPathProvider<T> defaultProductionPathFn) {
-        return createNodeDialogPane(creationConfig, (MultiTableReadFactory<C, T>) readFactory, defaultProductionPathFn);
+        return createNodeDialogPane(creationConfig, (MultiTableReadFactory<C, T>)readFactory, defaultProductionPathFn);
     }
 
     /**

@@ -179,9 +179,10 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      * {@link DefaultMultiTableReadConfig#create(ReaderSpecificConfig, ConfigSerializer, ProducerRegistry, Object)} but
      * it is highly recommended to adjust the settings structure to fit the dialog of your reader node.
      *
+     * @param nodeCreationConfig the {@link NodeCreationConfiguration}
      * @return {@link MultiTableReadConfig} for a node model
      */
-    protected abstract StorableMultiTableReadConfig<C> createConfig();
+    protected abstract StorableMultiTableReadConfig<C> createConfig(final NodeCreationConfiguration nodeCreationConfig);
 
     @Override
     protected final int getNrNodeViews() {

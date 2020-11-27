@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
@@ -90,8 +91,10 @@ public abstract class AbstractCSVTableReaderNodeFactory
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> createConfig() {
-        final DefaultTableReadConfig<CSVTableReaderConfig> tc = new DefaultTableReadConfig<>(new CSVTableReaderConfig());
+    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>
+        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final DefaultTableReadConfig<CSVTableReaderConfig> tc =
+            new DefaultTableReadConfig<>(new CSVTableReaderConfig());
         return new DefaultMultiTableReadConfig<>(tc, CSVMultiTableReadConfigSerializer.INSTANCE);
     }
 

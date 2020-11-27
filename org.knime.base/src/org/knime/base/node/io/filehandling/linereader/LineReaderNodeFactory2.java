@@ -72,8 +72,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
  */
 public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory<LineReaderConfig2, Class<?>, String> {
 
-    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = TreeTypeHierarchy
-        .builder(createTypeTester(String.class)).build();
+    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
+        TreeTypeHierarchy.builder(createTypeTester(String.class)).build();
 
     private static TypeTester<Class<?>, Class<?>> createTypeTester(final Class<?> type) {
         return TypeTester.createTypeTester(type, s -> true);
@@ -112,12 +112,13 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
         final MultiTableReadFactory<LineReaderConfig2, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> defaultProductionPathFn) {
 
-        return new LineReaderNodeDialog2(createPathSettings(creationConfig), createConfig(), readFactory,
+        return new LineReaderNodeDialog2(createPathSettings(creationConfig), createConfig(creationConfig), readFactory,
             defaultProductionPathFn);
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> createConfig() {
+    protected DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>>
+        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         final DefaultTableReadConfig<LineReaderConfig2> tc = new DefaultTableReadConfig<>(new LineReaderConfig2());
         return new DefaultMultiTableReadConfig<>(tc, LineReaderMultiTableReadConfigSerializer.INSTANCE);
     }

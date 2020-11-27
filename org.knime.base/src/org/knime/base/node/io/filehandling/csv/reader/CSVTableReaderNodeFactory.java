@@ -59,6 +59,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 
 /**
@@ -67,7 +69,7 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTabl
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {
+public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory { //NOSONAR
 
     private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
 
@@ -89,8 +91,20 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
         final NodeCreationConfiguration creationConfig,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(), readFactory,
-            productionPathProvider);
+        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
+            readFactory, productionPathProvider);
     }
 
+    @Override
+    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>
+        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> cfg =
+            super.createConfig(nodeCreationConfig);
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        cfg.getTableReadConfig().setColumnHeaderIdx(0);
+        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) {
+            cfg.getReaderSpecificConfig().setDelimiter("\t");
+        }
+        return cfg;
+    }
 }
