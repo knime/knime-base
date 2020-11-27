@@ -62,6 +62,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
@@ -86,6 +87,8 @@ final class PathToStringNodeDialog extends NodeDialogPane {
 
     private final DialogComponentString m_appendedColumnNameComponent;
 
+    private final DialogComponentBoolean m_createKNIMEUrl;
+
     public PathToStringNodeDialog() {
         m_selectedColumnNameComponent = new DialogComponentColumnNameSelection(
             PathToStringNodeModel.createSettingsModelColumnName(), "", 0, new ColumnFilter() {
@@ -105,6 +108,9 @@ final class PathToStringNodeDialog extends NodeDialogPane {
         m_generatedColumnModeComponent =
             new DialogComponentButtonGroup(m_generatedColumnModeModel, null, true, GenerateColumnMode.values());
         m_generatedColumnModeComponent.getModel().addChangeListener(e -> checkGeneratedColumnMode());
+
+        m_createKNIMEUrl = new DialogComponentBoolean(PathToStringNodeModel.createSettingsModelCreateKNIMEUrl(),
+            "Create KNIME URL for 'Relative to' and 'Mounpoint' file systems");
 
         addTab("Settings", createPanel());
     }
@@ -153,6 +159,8 @@ final class PathToStringNodeDialog extends NodeDialogPane {
         gbc = gbc.insets(5, 0, 0, 0).incX();
         p.add(m_appendedColumnNameComponent.getComponentPanel(), gbc.build());
 
+        p.add(m_createKNIMEUrl.getComponentPanel(), gbc.resetX().incY().setWidth(2).insets(5, 5, 0, 0).build());
+
         gbc = gbc.incX().setWeightX(1).fillHorizontal();
         p.add(Box.createHorizontalBox(), gbc.build());
 
@@ -164,6 +172,7 @@ final class PathToStringNodeDialog extends NodeDialogPane {
         m_selectedColumnNameComponent.saveSettingsTo(settings);
         m_generatedColumnModeComponent.saveSettingsTo(settings);
         m_appendedColumnNameComponent.saveSettingsTo(settings);
+        m_createKNIMEUrl.saveSettingsTo(settings);
     }
 
     @Override
@@ -172,7 +181,7 @@ final class PathToStringNodeDialog extends NodeDialogPane {
         m_selectedColumnNameComponent.loadSettingsFrom(settings, specs);
         m_generatedColumnModeComponent.loadSettingsFrom(settings, specs);
         m_appendedColumnNameComponent.loadSettingsFrom(settings, specs);
-
+        m_createKNIMEUrl.loadSettingsFrom(settings, specs);
     }
 
 }

@@ -50,6 +50,8 @@ package org.knime.filehandling.utility.nodes.pathtostring;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -57,32 +59,54 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableFunction;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 
 /**
- * This node allows you to convert a {@link FSLocationCell} to a {@link StringCell}. The {@link StringCell} will contain
- * the value returned by {@link FSLocation#getPath()} stored in the {@link FSLocationCell}.
+ * This node allows you to convert a {@link FSLocationCell} to a {@link StringCell}. Depending on the settings, the
+ * {@link StringCell} will contain the value returned by {@link FSLocation#getPath()} stored in the
+ * {@link FSLocationCell} or the string value of the {@link URI} returned by the {@link URIExporter} with id
+ * {@link URIExporterIDs#LEGACY_KNIME_URL}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
+final class PathToStringNodeModel extends NodeModel {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathToStringNodeModel.class);
 
     private static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
 
@@ -90,11 +114,15 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
 
     private static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
 
+    private static final String CFG_CREATE_KNIME_URL = "create_knime_url";
+
     private final SettingsModelString m_selectedColumn = createSettingsModelColumnName();
 
     private final SettingsModelString m_columnMode = createSettingsModelColumnMode();
 
     private final SettingsModelString m_appendColumnName = createSettingsModelAppendedColumnName();
+
+    private final SettingsModelBoolean m_createKNIMEUrl = createSettingsModelCreateKNIMEUrl();
 
     static SettingsModelString createSettingsModelColumnName() {
         return new SettingsModelString(CFG_SELECTED_COLUMN_NAME, null);
@@ -108,17 +136,41 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         return new SettingsModelString(CFG_APPENDED_COLUMN_NAME, "Location");
     }
 
+    static SettingsModelBoolean createSettingsModelCreateKNIMEUrl() {
+        return new SettingsModelBoolean(CFG_CREATE_KNIME_URL, true);
+    }
+
+    PathToStringNodeModel() {
+        super(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE});
+    }
+
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+        final DataTableSpec inSpec = inSpecs[0];
         // auto-guessing
         if (m_selectedColumn.getStringValue() == null) {
             autoGuess(inSpecs);
             setWarningMessage(String.format("Auto-guessed column to convert '%s'", m_selectedColumn.getStringValue()));
         }
         // validate
-        validateSettings(inSpecs);
-        // return spec
-        return super.configure(inSpecs);
+        validateSettings(inSpec);
+        // create output spec
+        try (final PathToStringCellFactory factory = createPathToStringCellFactory(inSpec)) {
+            final ColumnRearranger rearranger = createColumnRearranger(inSpec, factory);
+            return new DataTableSpec[]{rearranger.createSpec()};
+        }
+    }
+
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] data, final ExecutionContext exec)
+        throws Exception {
+        final BufferedDataTable inTable = data[0];
+        final DataTableSpec inSpec = inTable.getDataTableSpec();
+        try (final PathToStringCellFactory factory = createPathToStringCellFactory(inSpec)) {
+            final BufferedDataTable out =
+                exec.createColumnRearrangeTable(inTable, createColumnRearranger(inSpec, factory), exec);
+            return new BufferedDataTable[]{out};
+        }
     }
 
     private void autoGuess(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
@@ -131,8 +183,7 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         );
     }
 
-    private void validateSettings(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final DataTableSpec inSpec = (DataTableSpec)inSpecs[0];
+    private void validateSettings(final DataTableSpec inSpec) throws InvalidSettingsException {
         final String pathColName = m_selectedColumn.getStringValue();
         final int colIndex = inSpec.findColumnIndex(pathColName);
 
@@ -163,17 +214,21 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         return DataTableSpec.getUniqueColumnName(inSpec, m_appendColumnName.getStringValue());
     }
 
-    @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+    private ColumnRearranger createColumnRearranger(final DataTableSpec spec, final PathToStringCellFactory factory) {
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
         final int colIdx = spec.findColumnIndex(m_selectedColumn.getStringValue());
-        final CellFactory cf = new PathToStringCellFactory(createNewSpec(spec), colIdx);
         if (isAppendMode()) {
-            rearranger.append(cf);
+            rearranger.append(factory);
         } else {
-            rearranger.replace(cf, colIdx);
+            rearranger.replace(factory, colIdx);
         }
         return rearranger;
+    }
+
+    private PathToStringCellFactory createPathToStringCellFactory(final DataTableSpec inSpec) {
+        final int colIdx = inSpec.findColumnIndex(m_selectedColumn.getStringValue());
+        final DataColumnSpec colSpec = createNewSpec(inSpec);
+        return new PathToStringCellFactory(colSpec, colIdx, inSpec.getColumnSpec(colIdx));
     }
 
     private DataColumnSpec createNewSpec(final DataTableSpec inSpec) {
@@ -187,10 +242,28 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
     }
 
     @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return new StringToPathStreamableOperator();
+
+    }
+
+    @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_selectedColumn.saveSettingsTo(settings);
         m_columnMode.saveSettingsTo(settings);
         m_appendColumnName.saveSettingsTo(settings);
+        m_createKNIMEUrl.saveSettingsTo(settings);
     }
 
     @Override
@@ -198,6 +271,7 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         m_selectedColumn.validateSettings(settings);
         m_columnMode.validateSettings(settings);
         m_appendColumnName.validateSettings(settings);
+        m_createKNIMEUrl.validateSettings(settings);
     }
 
     @Override
@@ -205,6 +279,7 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         m_selectedColumn.loadSettingsFrom(settings);
         m_columnMode.loadSettingsFrom(settings);
         m_appendColumnName.loadSettingsFrom(settings);
+        m_createKNIMEUrl.loadSettingsFrom(settings);
     }
 
     @Override
@@ -224,22 +299,81 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
         // nothing to do
     }
 
-    private static class PathToStringCellFactory extends SingleCellFactory {
+    private class PathToStringCellFactory extends SingleCellFactory implements AutoCloseable {
 
         private final int m_colIdx;
 
-        public PathToStringCellFactory(final DataColumnSpec newColSpec, final int colIdx) {
+        private final FSPathProviderFactory m_fsPathProviderFactory;
+
+        public PathToStringCellFactory(final DataColumnSpec newColSpec, final int colIdx,
+            final DataColumnSpec fsLocationColSpec) {
             super(newColSpec);
             m_colIdx = colIdx;
+            m_fsPathProviderFactory = getFSPathProviderFactory(fsLocationColSpec);
+        }
+
+        private FSPathProviderFactory getFSPathProviderFactory(final DataColumnSpec colSpec) {
+            if (m_createKNIMEUrl.getBooleanValue()) {
+                final FSLocationValueMetaData fsLocationValueMetaData = colSpec
+                    .getMetaDataOfType(FSLocationValueMetaData.class).orElseThrow(() -> new IllegalStateException(
+                        String.format("Path column '%s' does not contain meta data.", colSpec.getName())));
+                final FSCategory fsCategory = fsLocationValueMetaData.getFSCategory();
+                if (fsCategory == FSCategory.RELATIVE || fsCategory == FSCategory.MOUNTPOINT) {
+                    return FSPathProviderFactory.newFactory(Optional.empty(), fsLocationValueMetaData);
+                }
+            }
+            return null;
         }
 
         @Override
         public DataCell getCell(final DataRow row) {
             final DataCell c = row.getCell(m_colIdx);
-            return c.isMissing() ? DataType.getMissingCell()
-                : StringCellFactory.create(((FSLocationValue)c).getFSLocation().getPath());
+            if (c.isMissing()) {
+                return DataType.getMissingCell();
+            }
+            final FSLocation fsLocation = ((FSLocationValue)c).getFSLocation();
+            return StringCellFactory.create(m_fsPathProviderFactory == null ? fsLocation.getPath()
+                : PathToStringUtils.fsLocationToString(fsLocation, m_fsPathProviderFactory));
         }
 
+        @Override
+        public void close() {
+            if (m_fsPathProviderFactory != null) {
+                try {
+                    m_fsPathProviderFactory.close();
+                } catch (final IOException e) {
+                    LOGGER.debug("Unable to close fs path provider factory.", e);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Inner class allowing the node to be executed in streaming mode.
+     *
+     * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+     */
+    private class StringToPathStreamableOperator extends StreamableOperator {
+
+        @Override
+        public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+            throws Exception {
+            final RowInput in = (RowInput)inputs[0];
+            final RowOutput out = (RowOutput)outputs[0];
+            final DataTableSpec inSpec = in.getDataTableSpec();
+            try (final PathToStringCellFactory factory = createPathToStringCellFactory(inSpec)) {
+                final StreamableFunction streamableFunction =
+                    createColumnRearranger(inSpec, factory).createStreamableFunction();
+                DataRow row;
+                while ((row = in.poll()) != null) {
+                    out.push(streamableFunction.compute(row));
+                }
+            } finally {
+                in.close();
+                out.close();
+            }
+        }
     }
 
     /**
@@ -255,7 +389,7 @@ final class PathToStringNodeModel extends SimpleStreamableFunctionNodeModel {
             REPLACE_SELECTED("Replace selected column");
 
         private static final String TOOLTIP =
-            "<html>The newly generated column should replace selected column or should be appended as new.";
+            "Choose whether a new column should be appended with the given name or the selected one be replaced.";
 
         private final String m_text;
 

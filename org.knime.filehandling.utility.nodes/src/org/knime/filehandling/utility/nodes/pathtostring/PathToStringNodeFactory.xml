@@ -25,6 +25,15 @@
 				</li>
 			</ul>
 		</option>
+		<option name="Create KNIME URL for 'Relative to' and 'Mounpoint' file systems">
+			This option is only relevant for paths with the 
+			<i>Relative to workflow data area</i>, <i>Relative to workflow</i>, <i>Relative to mountpoint</i> or 
+			<i>Mountpoint</i> file system.
+			If checked, a String is created that contains a KNIME URL. Such a KNIME URL starts 
+			with "knime://" and can be used to e.g. control legacy reader nodes via flow variables. If unchecked,
+			a String is created that contains solely the path, i.e. without the knime protocol and hostname. Such a 
+			String can e.g. be used for manipulations and converted back to a Path using the <i>String to Path</i> node.
+		</option>
 	</fullDescription>
 	<ports>
 		<inPort index="0" name="Input Table">Table that contains a Path column.
