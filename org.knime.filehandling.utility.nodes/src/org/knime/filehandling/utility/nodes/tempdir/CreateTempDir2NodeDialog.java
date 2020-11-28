@@ -52,6 +52,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -71,10 +73,18 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSFiles;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 import org.knime.filehandling.utility.nodes.dialog.variables.BaseLocationListener;
 import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariablePanel;
 import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableTableModel;
@@ -108,7 +118,8 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
         final SettingsModelWriterFileChooser baseLocationModel = m_config.getParentDirChooserModel();
         final FlowVariableModel writeFvm =
             createFlowVariableModel(baseLocationModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_parentDirChooserPanel = new DialogComponentWriterFileChooser(baseLocationModel, FILE_HISTORY_ID, writeFvm);
+        m_parentDirChooserPanel = new DialogComponentWriterFileChooser(baseLocationModel, FILE_HISTORY_ID, writeFvm,
+            FolderStatusMessageReporter::new);
 
         m_deleteDirOnResetChecker = new JCheckBox("Delete temp folder on reset");
 
@@ -282,4 +293,44 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
             return base + m_tempDirPrefix.getText() + UNIQUE_ID;
         }
     }
+
+    /**
+     * {@link StatusMessageReporter} that throws an exception if the selected folder does not exist.
+     *
+     * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+     */
+    private static class FolderStatusMessageReporter implements StatusMessageReporter {
+
+        private final SettingsModelWriterFileChooser m_settings;
+
+        /**
+         * Constructor.
+         *
+         * @param settings the writer file chooser settings
+         */
+        FolderStatusMessageReporter(final SettingsModelWriterFileChooser settings) {
+            m_settings = settings;
+        }
+
+        @Override
+        public StatusMessage report() throws IOException, InvalidSettingsException {
+            try (final WritePathAccessor accessor = m_settings.createWritePathAccessor()) {
+                final FSPath path = accessor.getOutputPath(StatusMessageUtils.NO_OP_CONSUMER);
+                if (m_settings.isCreateMissingFolders()) {
+                    return DefaultStatusMessage.SUCCESS_MSG;
+                }
+                if (FSFiles.exists(path)) {
+                    if (!Files.isWritable(path)) {
+                        throw ExceptionUtil.createAccessDeniedException(path);
+                    }
+                    return DefaultStatusMessage.SUCCESS_MSG;
+                } else {
+                    return StatusMessageUtils.MISSING_FOLDERS_MSG;
+                }
+            }
+
+        }
+
+    }
+
 }

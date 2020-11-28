@@ -65,7 +65,8 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Dialog
  */
 public final class StatusMessageUtils {
 
-    private static final StatusMessage MISSING_FOLDERS_MSG =
+    /** Status Message for missing folders. */
+    public static final StatusMessage MISSING_FOLDERS_MSG =
         DefaultStatusMessage.mkError("Some folders in the specified path are missing.");
 
     private StatusMessageUtils() {
@@ -73,7 +74,8 @@ public final class StatusMessageUtils {
     }
 
     /** A {@link StatusMessage} consumer that ignores any message. */
-    public static final Consumer<StatusMessage> NO_OP_CONSUMER = s -> {};
+    public static final Consumer<StatusMessage> NO_OP_CONSUMER = s -> {
+    };
 
     /**
      * Handler in case the {@link DialogComponentWriterFileChooser} gets a path which does not already exist.
