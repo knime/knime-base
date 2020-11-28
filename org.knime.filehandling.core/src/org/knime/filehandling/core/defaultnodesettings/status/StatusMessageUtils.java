@@ -65,6 +65,9 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Dialog
  */
 public final class StatusMessageUtils {
 
+    /** Default success message */
+    public static final StatusMessage SUCCESS_MSG = DefaultStatusMessage.mkInfo("");
+
     /** Status Message for missing folders. */
     public static final StatusMessage MISSING_FOLDERS_MSG =
         DefaultStatusMessage.mkError("Some folders in the specified path are missing.");
@@ -88,7 +91,7 @@ public final class StatusMessageUtils {
     public static StatusMessage handleNewPath(final FSPath path, final boolean isCreateMissingFolders)
         throws AccessDeniedException {
         if (isCreateMissingFolders) {
-            return DefaultStatusMessage.SUCCESS_MSG;
+            return StatusMessageUtils.SUCCESS_MSG;
         } else {
             return checkIfParentFoldersAreMissing(path);
         }
@@ -104,7 +107,7 @@ public final class StatusMessageUtils {
      */
     public static StatusMessage handleNewPath(final boolean isCreateMissingFolders) throws AccessDeniedException {
         if (isCreateMissingFolders) {
-            return DefaultStatusMessage.SUCCESS_MSG;
+            return StatusMessageUtils.SUCCESS_MSG;
         } else {
             return DefaultStatusMessage.mkError("Destination folder does not exist.");
         }
@@ -120,13 +123,13 @@ public final class StatusMessageUtils {
     public static StatusMessage checkIfParentFoldersAreMissing(final FSPath path) throws AccessDeniedException {
         final Path parent = path.getParent();
         if (parent == null) {
-            return DefaultStatusMessage.SUCCESS_MSG;
+            return StatusMessageUtils.SUCCESS_MSG;
         }
         if (FSFiles.exists(parent)) {
             if (!Files.isWritable(parent)) {
                 throw ExceptionUtil.createAccessDeniedException(parent);
             }
-            return DefaultStatusMessage.SUCCESS_MSG;
+            return StatusMessageUtils.SUCCESS_MSG;
         } else {
             // TODO recursively go through ancestors until an existing one is found and check if we can write into it
             return MISSING_FOLDERS_MSG;

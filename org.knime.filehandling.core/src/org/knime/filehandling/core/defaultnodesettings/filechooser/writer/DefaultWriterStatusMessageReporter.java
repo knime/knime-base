@@ -124,7 +124,7 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             case FAIL:
                 return DefaultWriterStatusMessageReporter::createFailStatusMsg;
             case IGNORE:
-                return (p, a) -> DefaultStatusMessage.SUCCESS_MSG;
+                return (p, a) -> StatusMessageUtils.SUCCESS_MSG;
             case OVERWRITE:
                 return this::createOverwriteStatusMsg;
             default:
@@ -169,7 +169,7 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
         @Override
         public StatusMessage create(final Path path, final BasicFileAttributes attrs) {
             if (m_successPredicate.test(attrs)) {
-                return DefaultStatusMessage.SUCCESS_MSG;
+                return StatusMessageUtils.SUCCESS_MSG;
             } else {
                 return DefaultStatusMessage.mkError("The specified path '%s' does not point to a %s", path,
                     m_expectedEntity);

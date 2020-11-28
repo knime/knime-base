@@ -82,7 +82,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessage
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 import org.knime.filehandling.utility.nodes.dialog.variables.BaseLocationListener;
@@ -317,13 +316,13 @@ final class CreateTempDir2NodeDialog extends NodeDialogPane {
             try (final WritePathAccessor accessor = m_settings.createWritePathAccessor()) {
                 final FSPath path = accessor.getOutputPath(StatusMessageUtils.NO_OP_CONSUMER);
                 if (m_settings.isCreateMissingFolders()) {
-                    return DefaultStatusMessage.SUCCESS_MSG;
+                    return StatusMessageUtils.SUCCESS_MSG;
                 }
                 if (FSFiles.exists(path)) {
                     if (!Files.isWritable(path)) {
                         throw ExceptionUtil.createAccessDeniedException(path);
                     }
-                    return DefaultStatusMessage.SUCCESS_MSG;
+                    return StatusMessageUtils.SUCCESS_MSG;
                 } else {
                     return StatusMessageUtils.MISSING_FOLDERS_MSG;
                 }

@@ -186,7 +186,7 @@ final class DecompressStatusMessageReporter implements StatusMessageReporter {
      */
     private static StatusMessage createStatusMessage(final Path path, final BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
-            return DefaultStatusMessage.SUCCESS_MSG;
+            return StatusMessageUtils.SUCCESS_MSG;
         } else {
             return DefaultStatusMessage.mkError("%s is not a folder.", path);
         }

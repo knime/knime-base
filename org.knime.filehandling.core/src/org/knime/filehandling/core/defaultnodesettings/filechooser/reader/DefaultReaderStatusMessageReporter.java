@@ -55,6 +55,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  * Computes the status message for dialogs of type "open".
@@ -83,7 +84,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
             if (scanningStatus.isPresent()) {
                 return scanningStatus.get();
             } else if (getFilterMode() == FilterMode.FILE || getFilterMode() == FilterMode.FOLDER) {
-                return DefaultStatusMessage.SUCCESS_MSG;
+                return StatusMessageUtils.SUCCESS_MSG;
             } else {
                 final FileFilterStatistic stats = accessor.getFileFilterStatistic();
                 return createFilterMessage(stats);

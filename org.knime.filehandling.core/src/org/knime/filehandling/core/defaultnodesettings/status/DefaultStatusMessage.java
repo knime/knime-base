@@ -59,9 +59,6 @@ import org.knime.core.node.util.CheckUtils;
  */
 public final class DefaultStatusMessage implements StatusMessage {
 
-    /** Default success message */
-    public static final StatusMessage SUCCESS_MSG = mkInfo("");
-
     private final MessageType m_type;
 
     private final String m_msg;

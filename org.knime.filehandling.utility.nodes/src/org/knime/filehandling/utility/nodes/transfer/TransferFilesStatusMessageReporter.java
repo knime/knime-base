@@ -272,7 +272,7 @@ final class TransferFilesStatusMessageReporter implements StatusMessageReporter 
 
         if (attrs.isDirectory()) {
             if (numberOfExistingPaths == 0) {
-                statusMessage = DefaultStatusMessage.SUCCESS_MSG;
+                statusMessage = StatusMessageUtils.SUCCESS_MSG;
             } else {
                 statusMessage = createFileExistingMessages(fileOverwritePolicy, numberOfExistingPaths);
             }
