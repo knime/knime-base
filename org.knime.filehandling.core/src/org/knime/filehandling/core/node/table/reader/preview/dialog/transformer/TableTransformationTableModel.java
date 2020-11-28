@@ -394,6 +394,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             if (intersection.contains(column)) {
                 m_intersection.add(transformation);
             }
+            idx++;
         }
         sortByOutputIdx();
         fireTableDataChanged();
