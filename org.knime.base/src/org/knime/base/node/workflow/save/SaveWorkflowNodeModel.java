@@ -59,7 +59,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 
 /** Model to node.
@@ -84,19 +84,14 @@ final class SaveWorkflowNodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] inObjects,
             final ExecutionContext exec) throws Exception {
-        for (NodeContainer nc : WorkflowManager.ROOT.getNodeContainers()) {
-            if (nc instanceof WorkflowManager) {
-                WorkflowManager wfm = (WorkflowManager)nc;
-                for (SaveWorkflowNodeModel m : wfm.findNodes(
-                        SaveWorkflowNodeModel.class, true).values()) {
-                    if (m == this) {
-                        wfm.save(wfm.getWorkingDir().getFile(), exec, true);
-                    }
-                }
-            }
+        WorkflowManager project = NodeContext.getContext().getWorkflowManager();
+        if (project != null) {
+            project.save(project.getWorkingDir().getFile(), exec, true);
+        } else {
+            setWarningMessage("Workflow not saved. No workflow found in node context.");
         }
         return inObjects;
-    };
+    }
 
     /** {@inheritDoc} */
     @Override
