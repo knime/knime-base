@@ -912,6 +912,14 @@ public class DecisionTreeLearnerNodeModel2 extends NodeModel {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onDispose() {
+        reset();
+    }
+
+    /**
      * The number of the class column must be &gt; 0 and &lt; number of input columns.
      *
      * @param inSpecs the tabel specs on the input port to use for configuration
