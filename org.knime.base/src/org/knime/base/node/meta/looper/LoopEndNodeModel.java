@@ -190,6 +190,15 @@ public class LoopEndNodeModel extends NodeModel implements LoopEndNode {
     }
 
     /**
+     * @since 4.3
+     */
+    @Override
+    protected void onDispose() {
+        reset();
+        super.onDispose();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
