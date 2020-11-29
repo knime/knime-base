@@ -305,7 +305,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
             }
             try {
                 final GenericMultiTableRead<I> mtr =
-                    m_currentRead.withTransformation(m_items, m_transformationModel.getTransformationModel());
+                    m_currentRead.withTransformation(m_items, m_transformationModel.getTableTransformation());
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());

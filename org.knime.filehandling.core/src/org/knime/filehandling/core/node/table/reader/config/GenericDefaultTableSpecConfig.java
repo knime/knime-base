@@ -106,31 +106,35 @@ import com.google.common.collect.Iterators;
  */
 public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<I> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTableSpecConfig.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(GenericDefaultTableSpecConfig.class);
 
-    /**Include unknown column config key.*/
+    /** Enforce types key. */
+    protected static final String CFG_ENFORCE_TYPES = "enforce_types";
+
+    /** Include unknown column config key. */
     protected static final String CFG_INCLUDE_UNKNOWN = "include_unknown_columns" + SettingsModel.CFGKEY_INTERNAL;
 
-    /**New column position config key.*/
+    /** New column position config key. */
     protected static final String CFG_NEW_COLUMN_POSITION = "unknown_column_position" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_KEEP = "keep" + SettingsModel.CFGKEY_INTERNAL;
 
-    /**Individual spec config key.*/
+    /** Individual spec config key. */
     protected static final String CFG_INDIVIDUAL_SPECS = "individual_specs" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_INDIVIDUAL_SPEC = "individual_spec_";
 
-    /**Root path/item config key.*/
+    /** Root path/item config key. */
     protected static final String CFG_ROOT_PATH = "root_path" + SettingsModel.CFGKEY_INTERNAL;
-    /**File path config key.*/
+
+    /** File path config key. */
     protected static final String CFG_FILE_PATHS = "file_paths" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PRODUCTION_PATHS = "production_paths" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_NUM_PRODUCTION_PATHS = "num_production_paths" + SettingsModel.CFGKEY_INTERNAL;
 
-    /**Table spec config key.*/
+    /** Table spec config key. */
     protected static final String CFG_DATATABLE_SPEC = "datatable_spec" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PRODUCTION_PATH = "production_path_";
@@ -144,6 +148,8 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
     private final String m_rootItem;
 
     private final Map<String, ReaderTableSpec<?>> m_individualSpecs;
+
+    private final boolean m_enforceTypes;
 
     /**
      * The production paths for all columns in original order (no filtering).
@@ -185,6 +191,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * Consequently, the {@link #load(NodeSettingsRO, ProducerRegistry, Object, ColumnFilterMode)} function receives it
      * as parameter.
      */
+    @SuppressWarnings("javadoc")
     protected final ColumnFilterMode m_columnFilterMode;
 
     /**
@@ -205,12 +212,13 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @param newColPosition the column position
      * @param columnFilterMode the {@link ColumnFilterMode}
      * @param includeUnknownColumns if unknown columns should be included
+     * @param enforceTypes indicates whether configured KNIME types should be enforced even if the external type changes
      *
      */
     public GenericDefaultTableSpecConfig(final String rootItem, final DataTableSpec outputSpec,
         final Map<I, ? extends ReaderTableSpec<?>> individualSpecs, final ProductionPath[] productionPaths,
         final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
-        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final boolean enforceTypes) {
         // check for nulls
         CheckUtils.checkNotNull(rootItem, "The rootPath cannot be null");
         CheckUtils.checkNotNull(individualSpecs, "The individual specs cannot be null");
@@ -240,6 +248,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         m_unknownColPosition = newColPosition;
         m_columnFilterMode = columnFilterMode;
         m_includeUnknownColumns = includeUnknownColumns;
+        m_enforceTypes = enforceTypes;
     }
 
     /**
@@ -258,11 +267,12 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @param newColPosition the column position
      * @param columnFilterMode the {@link ColumnFilterMode}
      * @param includeUnknownColumns if unknown columns should be included
+     * @param enforceTypes indicates whether configured KNIME types should be enforced even if the external type changes
      */
     protected GenericDefaultTableSpecConfig(final String rootItem, final DataTableSpec outputSpec, final String[] items,
         final ReaderTableSpec<?>[] individualSpecs, final ProductionPath[] productionPaths,
         final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
-        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final boolean enforceTypes) {
         m_rootItem = rootItem;
         m_dataTableSpec = outputSpec;
         m_individualSpecs = IntStream.range(0, items.length)//
@@ -279,6 +289,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         m_unknownColPosition = newColPosition;
         m_columnFilterMode = columnFilterMode;
         m_includeUnknownColumns = includeUnknownColumns;
+        m_enforceTypes = enforceTypes;
     }
 
     /**
@@ -287,13 +298,13 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @param <T> the type used to identify external types
      * @param rootItem the root item
      * @param individualSpecs a map from the path/file to its individual {@link ReaderTableSpec}
-     * @param transformationModel defines the transformation (type-mapping, filtering, renaming and reordering) of the
+     * @param tableTransformation defines the transformation (type-mapping, filtering, renaming and reordering) of the
      *            output spec
      * @return a {@link DefaultTableSpecConfig} for the provided parameters
      */
     public static <I, T> GenericTableSpecConfig<I> createFromTransformationModel(final String rootItem,
-        final TableTransformation<T> transformationModel, final Map<I, ? extends ReaderTableSpec<?>> individualSpecs) {
-        final TypedReaderTableSpec<T> rawSpec = transformationModel.getRawSpec().getUnion();
+        final TableTransformation<T> tableTransformation, final Map<I, ? extends ReaderTableSpec<?>> individualSpecs) {
+        final TypedReaderTableSpec<T> rawSpec = tableTransformation.getRawSpec().getUnion();
         final int unionSize = rawSpec.size();
         final List<DataColumnSpec> columns = new ArrayList<>(unionSize);
         final List<ProductionPath> productionPaths = new ArrayList<>(unionSize);
@@ -302,7 +313,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         final boolean[] keep = new boolean[unionSize];
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : rawSpec) {
-            final ColumnTransformation<T> transformation = transformationModel.getTransformation(column);
+            final ColumnTransformation<T> transformation = tableTransformation.getTransformation(column);
             final ProductionPath productionPath = transformation.getProductionPath();
             productionPaths.add(productionPath);
             originalNames.add(MultiTableUtils.getNameAfterInit(column));
@@ -317,8 +328,9 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         }
         return new GenericDefaultTableSpecConfig<I>(rootItem, new DataTableSpec(columns.toArray(new DataColumnSpec[0])),
             individualSpecs, productionPaths.toArray(new ProductionPath[0]), originalNames.toArray(new String[0]),
-            positions, keep, transformationModel.getPositionForUnknownColumns(),
-            transformationModel.getColumnFilterMode(), transformationModel.keepUnknownColumns());
+            positions, keep, tableTransformation.getPositionForUnknownColumns(),
+            tableTransformation.getColumnFilterMode(), tableTransformation.keepUnknownColumns(),
+            tableTransformation.enforceTypes());
     }
 
     private static <T extends ReaderColumnSpec> Set<String> extractNameSet(final ReaderTableSpec<T> spec) {
@@ -390,7 +402,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
             transformations.add(createTransformation(union.getColumnSpec(i), i));
         }
         return new DefaultTableTransformation<>(rawSpec, transformations, m_columnFilterMode, m_includeUnknownColumns,
-            m_unknownColPosition);
+            m_unknownColPosition, m_enforceTypes);
     }
 
     private <T> ColumnTransformation<T> createTransformation(final TypedReaderColumnSpec<T> colSpec, final int idx) {
@@ -479,6 +491,7 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         settings.addBooleanArray(CFG_KEEP, m_keep);
         settings.addInt(CFG_NEW_COLUMN_POSITION, m_unknownColPosition);
         settings.addBoolean(CFG_INCLUDE_UNKNOWN, m_includeUnknownColumns);
+        settings.addBoolean(CFG_ENFORCE_TYPES, m_enforceTypes);
         settings.addString(CFG_COLUMN_FILTER_MODE, m_columnFilterMode.name());
     }
 
@@ -510,14 +523,14 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @throws InvalidSettingsException
      */
     protected static ColumnFilterMode loadColumnFilterMode(final NodeSettingsRO settings,
-        final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
+        @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
         try {
             return ColumnFilterMode.valueOf(settings.getString(CFG_COLUMN_FILTER_MODE));
         } catch (InvalidSettingsException ise) {
             LOGGER.debug("The settings contained no ColumnFilterMode.", ise);
             CheckUtils.checkSetting(specMergeModeOld != null,
                 "The settings are missing both the SpecMergeMode (4.2) and the ColumnFilterMode (4.3 and later).");
-            @SuppressWarnings("null") // checked above
+            @SuppressWarnings({"null", "deprecation"}) // checked above
             final ColumnFilterMode columnFilterMode = specMergeModeOld.getColumnFilterMode();
             return columnFilterMode;
         }
@@ -741,8 +754,8 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
     public static <I> GenericTableSpecConfig<I> load(final Object mostGenericExternalType,
-        final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry, final SpecMergeMode specMergeModeOld)
-        throws InvalidSettingsException {
+        final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry,
+        @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
         final String rootItem = settings.getString(CFG_ROOT_PATH);
         final String[] items = settings.getStringArray(CFG_FILE_PATHS);
         final ReaderTableSpec<?>[] individualSpecs =
@@ -750,6 +763,8 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         final Set<String> allColumns = union(individualSpecs);
 
         final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN, true);
+
+        final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES, false);
 
         // For old workflows (created with 4.2), the spec might not contain all columns contained in union if
         // SpecMergeMode#INTERSECTION was used to create the final spec
@@ -766,7 +781,8 @@ public class GenericDefaultTableSpecConfig<I> implements GenericTableSpecConfig<
         final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
 
         return new GenericDefaultTableSpecConfig<>(rootItem, fullKnimeSpec, items, individualSpecs, allProdPaths,
-            originalNames, positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns);
+            originalNames, positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns,
+            enforceTypes);
     }
 
     @Override

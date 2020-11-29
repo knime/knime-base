@@ -57,6 +57,7 @@ import javax.swing.BorderFactory;
 import javax.swing.CellEditor;
 import javax.swing.DropMode;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -105,6 +106,8 @@ public final class TableTransformationPanel extends JPanel {
 
     private final JButton m_moveDown = new JButton("Move down", SharedIcons.MOVE_DOWN.get());
 
+    private final JCheckBox m_enforceTypes = new JCheckBox("Enforce types");
+
     private final JLabel m_colFilterModeLabel = new JLabel("Take columns from:");
 
     private final ColumnFilterModePanel m_columnFilterModePanel;
@@ -127,6 +130,8 @@ public final class TableTransformationPanel extends JPanel {
         m_transformationTable = new JTable(model);
         m_tableModel = model;
         setupTable(model, productionPathProvider);
+
+        m_enforceTypes.setModel(model.getEnforceTypesModel());
 
         m_resetPopup.add(m_resetPositions);
         m_resetPopup.add(m_includeAll);
@@ -157,6 +162,7 @@ public final class TableTransformationPanel extends JPanel {
         add(m_resetMenuBtn, gbc.build());
         add(m_moveUp, gbc.incX().build());
         add(m_moveDown, gbc.incX().build());
+        add(m_enforceTypes, gbc.incX().build());
         if (includeColumnFilterButtons) {
             add(m_colFilterModeLabel, gbc.incX().insetTop(3).build());
             add(m_columnFilterModePanel, gbc.incX().insetTop(0).build());

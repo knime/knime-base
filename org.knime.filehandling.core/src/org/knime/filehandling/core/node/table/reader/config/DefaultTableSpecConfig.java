@@ -96,13 +96,14 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
      * @param newColPosition new column position
      * @param columnFilterMode {@link ColumnFilterMode}
      * @param includeUnknownColumns flag if unknown columns should be included
+     * @param enforceTypes indicates whether configured KNIME types should be enforced even if the external type changes
      */
     public DefaultTableSpecConfig(final String rootItem, final DataTableSpec outputSpec,
         final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs, final ProductionPath[] productionPaths,
         final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
-        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final boolean enforceTypes) {
         super(rootItem, outputSpec, individualSpecs, productionPaths, originalNames, positionalMapping, keep,
-            newColPosition, columnFilterMode, includeUnknownColumns);
+            newColPosition, columnFilterMode, includeUnknownColumns, enforceTypes);
     }
 
     /**
@@ -117,13 +118,14 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
      * @param newColPosition new column position
      * @param columnFilterMode {@link ColumnFilterMode}
      * @param includeUnknownColumns flag if unknown columns should be included
+     * @param enforceTypes indicates whether configured KNIME types should be enforced even if the external type changes
      */
     public DefaultTableSpecConfig(final String rootItem, final DataTableSpec outputSpec, final String[] items,
         final ReaderTableSpec<?>[] individualSpecs, final ProductionPath[] productionPaths,
         final String[] originalNames, final int[] positionalMapping, final boolean[] keep, final int newColPosition,
-        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns) {
+        final ColumnFilterMode columnFilterMode, final boolean includeUnknownColumns, final boolean enforceTypes) {
         super(rootItem, outputSpec, items, individualSpecs, productionPaths, originalNames, positionalMapping, keep,
-            newColPosition, columnFilterMode, includeUnknownColumns);
+            newColPosition, columnFilterMode, includeUnknownColumns, enforceTypes);
     }
 
     /**
@@ -137,9 +139,9 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
      * @return the de-serialized {@link DefaultTableSpecConfig}
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
-    public static DefaultTableSpecConfig load(final NodeSettingsRO settings,
-        final ProducerRegistry<?, ?> registry, final Object mostGenericExternalType,
-        final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
+    public static DefaultTableSpecConfig load(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry,
+        final Object mostGenericExternalType, @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld)
+        throws InvalidSettingsException {
         final String rootPath = settings.getString(CFG_ROOT_PATH);
         final String[] paths = settings.getStringArray(CFG_FILE_PATHS);
         final ReaderTableSpec<?>[] individualSpecs =
@@ -147,6 +149,8 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
         final Set<String> allColumns = union(individualSpecs);
 
         final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN, true);
+
+        final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES, false);
 
         // For old workflows (created with 4.2), the spec might not contain all columns contained in union if
         // SpecMergeMode#INTERSECTION was used to create the final spec
@@ -162,8 +166,8 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
         final int newColPosition = settings.getInt(CFG_NEW_COLUMN_POSITION, allProdPaths.length);
         final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
 
-        return new DefaultTableSpecConfig(rootPath, fullKnimeSpec, paths, individualSpecs, allProdPaths,
-                originalNames, positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns);
+        return new DefaultTableSpecConfig(rootPath, fullKnimeSpec, paths, individualSpecs, allProdPaths, originalNames,
+            positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns, enforceTypes);
     }
 
     /**
@@ -174,13 +178,14 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
      *            folder, otherwise the <b>rootPath</b> equals the {@link Path#toString()} version of the
      *            <b>individualSpecs<b> key and <b>individualSpecs<b> contains only a single element.
      * @param individualSpecs a map from the path/file to its individual {@link ReaderTableSpec}
-     * @param transformationModel defines the transformation (type-mapping, filtering, renaming and reordering) of the
+     * @param tableTransformation defines the transformation (type-mapping, filtering, renaming and reordering) of the
      *            output spec
      * @return a {@link DefaultTableSpecConfig} for the provided parameters
      */
     public static <T> DefaultTableSpecConfig createFromTransformationModel(final String rootPath,
-        final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs, final TableTransformation<T> transformationModel) {
-        final TypedReaderTableSpec<T> rawSpec = transformationModel.getRawSpec().getUnion();
+        final Map<Path, ? extends ReaderTableSpec<?>> individualSpecs,
+        final TableTransformation<T> tableTransformation) {
+        final TypedReaderTableSpec<T> rawSpec = tableTransformation.getRawSpec().getUnion();
         final int unionSize = rawSpec.size();
         final List<DataColumnSpec> columns = new ArrayList<>(unionSize);
         final List<ProductionPath> productionPaths = new ArrayList<>(unionSize);
@@ -189,7 +194,7 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
         final boolean[] keep = new boolean[unionSize];
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : rawSpec) {
-            final ColumnTransformation<T> transformation = transformationModel.getTransformation(column);
+            final ColumnTransformation<T> transformation = tableTransformation.getTransformation(column);
             final ProductionPath productionPath = transformation.getProductionPath();
             productionPaths.add(productionPath);
             originalNames.add(MultiTableUtils.getNameAfterInit(column));
@@ -204,7 +209,8 @@ public final class DefaultTableSpecConfig extends GenericDefaultTableSpecConfig<
         }
         return new DefaultTableSpecConfig(rootPath, new DataTableSpec(columns.toArray(new DataColumnSpec[0])),
             individualSpecs, productionPaths.toArray(new ProductionPath[0]), originalNames.toArray(new String[0]),
-            positions, keep, transformationModel.getPositionForUnknownColumns(),
-            transformationModel.getColumnFilterMode(), transformationModel.keepUnknownColumns());
+            positions, keep, tableTransformation.getPositionForUnknownColumns(),
+            tableTransformation.getColumnFilterMode(), tableTransformation.keepUnknownColumns(),
+            tableTransformation.enforceTypes());
     }
 }

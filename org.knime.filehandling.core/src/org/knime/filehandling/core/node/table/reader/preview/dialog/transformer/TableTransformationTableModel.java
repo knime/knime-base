@@ -65,7 +65,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.swing.ButtonModel;
 import javax.swing.Icon;
+import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
@@ -151,6 +153,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private final transient ColumnFilterModeModel m_columnFilterMode =
         new ColumnFilterModeModel(ColumnFilterMode.UNION);
 
+    private final transient ButtonModel m_enforceTypesModel = new JToggleButton.ToggleButtonModel();
+
     private transient RawSpec<T> m_rawSpec = null;
 
     private boolean m_enabled = true;
@@ -172,10 +176,17 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_bySpec.put(TypedReaderColumnSpec.getNull(), m_newColTransformationPlaceholder);
         m_union.add(m_newColTransformationPlaceholder);
         m_columnFilterMode.addChangeListener(e -> handleColumnFilterChange());
+        // The default for enforceTypes is true
+        m_enforceTypesModel.setSelected(true);
+        m_enforceTypesModel.addItemListener(e -> notifyChangeListeners());
     }
 
     private void handleColumnFilterChange() {
         fireTableDataChanged();
+    }
+
+    ButtonModel getEnforceTypesModel() {
+        return m_enforceTypesModel;
     }
 
     private interface TransformationResetter<T> extends Predicate<MutableColumnTransformation<T>> {
@@ -371,6 +382,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_bySpec.clear();
         final ColumnFilterMode colFilterMode = transformationModel.getColumnFilterMode();
         m_columnFilterMode.setColumnFilterModel(colFilterMode);
+        m_enforceTypesModel.setSelected(transformationModel.enforceTypes());
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
@@ -642,7 +654,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     }
 
     @Override
-    public TableTransformation<T> getTransformationModel() {
+    public TableTransformation<T> getTableTransformation() {
         int idx = 0;
         List<ColumnTransformation<T>> transformations = new ArrayList<>();
         for (ColumnTransformation<T> t : m_union) {
@@ -655,7 +667,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             idx++;
         }
         return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
-            getPositionForUnknownColumns());
+            getPositionForUnknownColumns(), m_enforceTypesModel.isSelected());
     }
 
 }

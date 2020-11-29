@@ -66,7 +66,7 @@ public interface ObservableTransformationModelProvider<T> {
      *
      * @return the current {@link TableTransformation}
      */
-    TableTransformation<T> getTransformationModel();
+    TableTransformation<T> getTableTransformation();
 
     /**
      * Adds the provided {@link ChangeListener}.

@@ -79,6 +79,8 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
 
     private final boolean m_includeUnknownColumns;
 
+    private final boolean m_enforceTypes;
+
     /**
      * Constructor.
      *
@@ -87,16 +89,18 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
      * @param columnFilterMode indicating which columns should be included
      * @param includeUnknownColumns flag indicating if new columns should be included or not
      * @param unknownColumnPosition the positions at which new columns should be inserted
+     * @param enforceTypes indicates whether configured types should be enforced
      */
     public DefaultTableTransformation(final RawSpec<T> rawSpec,
         final Collection<ColumnTransformation<T>> transformations, final ColumnFilterMode columnFilterMode,
-        final boolean includeUnknownColumns, final int unknownColumnPosition) {
+        final boolean includeUnknownColumns, final int unknownColumnPosition, final boolean enforceTypes) {
         m_rawSpec = rawSpec;
         m_transformations = transformations.stream()
             .collect(Collectors.toMap(ColumnTransformation::getExternalSpec, Function.identity()));
         m_columnFilterMode = columnFilterMode;
         m_includeUnknownColumns = includeUnknownColumns;
         m_unknownColumnPosition = unknownColumnPosition;
+        m_enforceTypes = enforceTypes;
     }
 
     @Override
@@ -134,6 +138,11 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
     @Override
     public Stream<ColumnTransformation<T>> stream() {
         return m_transformations.values().stream().map(Function.identity());
+    }
+
+    @Override
+    public boolean enforceTypes() {
+        return m_enforceTypes;
     }
 
 }

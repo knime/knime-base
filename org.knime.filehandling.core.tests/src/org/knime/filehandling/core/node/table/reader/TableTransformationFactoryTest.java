@@ -54,6 +54,8 @@ import static org.knime.filehandling.core.node.table.reader.spec.TypedReaderColu
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.Before;
@@ -63,6 +65,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.LongCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -143,7 +146,7 @@ public class TableTransformationFactoryTest {
     }
 
     @Test
-    public void testProductionPathResolution() {
+    public void testDontEnforceTypes() {
         TypedReaderTableSpec<String> hansByHimself = createTableSpec(HANS);
         TypedReaderColumnSpec<String> hansWithDifferentType = createColSpec("hans", SIEGFRIEDA);
         TypedReaderTableSpec<String> newHansByHimself = createTableSpec(hansWithDifferentType);
@@ -156,7 +159,6 @@ public class TableTransformationFactoryTest {
         when(m_configuredTransformationModel.getRawSpec()).thenReturn(new RawSpec<>(hansByHimself, hansByHimself));
         final ProductionPath siegfriedaProdPath = mockProductionPath(IntCell.TYPE);
         when(m_prodPathProvider.getDefaultProductionPath(SIEGFRIEDA)).thenReturn(siegfriedaProdPath);
-        when(m_prodPathProvider.getAvailableProductionPaths(SIEGFRIEDA)).thenReturn(asList(siegfriedaProdPath));
 
         when(m_config.hasTableSpecConfig()).thenReturn(true);
         when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
@@ -166,13 +168,46 @@ public class TableTransformationFactoryTest {
 
         checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
             siegfriedaProdPath, 0, true);
+    }
 
-        final ProductionPath alternativePath = mockProductionPath(DoubleCell.TYPE);
+    @Test
+    public void testEnforceTypes() {
+        testEnforceTypes(true);
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void testEnforceTypesFailsBecauseNoAlternativePathIsAvailable() {
+        testEnforceTypes(false);
+    }
+
+    private void testEnforceTypes(final boolean alternativePathAvailable) {
+        final TypedReaderTableSpec<String> configured = createTableSpec(HANS);
+        TypedReaderColumnSpec<String> hansWithDifferentType = createColSpec("hans", SIEGFRIEDA);
+        final TypedReaderTableSpec<String> newSpec = createTableSpec(hansWithDifferentType);
+        final RawSpec<String> newRawSpec = new RawSpec<>(newSpec, newSpec);
+        when(m_configuredTransformationModel.enforceTypes()).thenReturn(true);
+        final ProductionPath elsaProdPath = mockProductionPath(LongCell.TYPE);
+
+        ColumnTransformation<String> hansTrans = mockTransformation(HANS, "hans", elsaProdPath, 0, true);
+        when(m_configuredTransformationModel.getTransformation(HANS)).thenReturn(hansTrans);
+        when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
+        when(m_configuredTransformationModel.getRawSpec()).thenReturn(new RawSpec<>(configured, configured));
+
+        final ProductionPath siegfriedaProdPath = mockProductionPath(IntCell.TYPE);
+        List<ProductionPath> availablePaths = new ArrayList<>(asList(siegfriedaProdPath));
+        if (alternativePathAvailable) {
+            availablePaths.add(elsaProdPath);
+        }
         when(m_prodPathProvider.getAvailableProductionPaths(SIEGFRIEDA))
-            .thenReturn(asList(siegfriedaProdPath, alternativePath));
-        result = m_testInstance.create(newRawSpec, m_config);
+            .thenReturn(availablePaths);
+
+        when(m_config.hasTableSpecConfig()).thenReturn(true);
+        when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
+        when(m_tableSpecConfig.getTransformationModel()).thenReturn(m_configuredTransformationModel);
+
+        TableTransformation<String> result = m_testInstance.create(newRawSpec, m_config);
         checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
-            alternativePath, 0, true);
+            elsaProdPath, 0, true);
     }
 
     @Test

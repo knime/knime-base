@@ -99,6 +99,10 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  */
 final class TableTransformationFactory<I, T> {
 
+    private static final String ENFORCE_TYPES_ERROR =
+        "The column '%s' can't be converted to the configured data type '%s'. "
+            + "Change the target type or uncheck the enforce types option to map it to a compatible type.";
+
     private final ProductionPathProvider<T> m_prodPathProvider;
 
     TableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
@@ -125,16 +129,18 @@ final class TableTransformationFactory<I, T> {
         if (columnFilterMode == ColumnFilterMode.INTERSECTION) {
             CheckUtils.checkArgument(rawSpec.getIntersection().size() > 0, "The intersection of all specs is empty.");
         }
-        TypedReaderTableSpec<T> union = rawSpec.getUnion();
+        final TypedReaderTableSpec<T> union = rawSpec.getUnion();
         final List<ColumnTransformation<T>> transformations = new ArrayList<>(union.size());
         int idx = 0;
+        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(true, true);
         for (TypedReaderColumnSpec<T> column : union) {
-            transformations.add(new ImmutableColumnTransformation<>(column,
-                m_prodPathProvider.getDefaultProductionPath(column.getType()), true, idx, getNameAfterInit(column)));
+            transformations.add(transformationFactory.createNew(column, idx));
             idx++;
         }
+        // defaulting enforceTypes to true is save because this transformation is only stored for the Table Manipulator
+        // which is a new node in 4.3. Reader nodes don't store the transformation created here.
         return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
-            transformations.size());
+            transformations.size(), true);
     }
 
     private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
@@ -181,8 +187,20 @@ final class TableTransformationFactory<I, T> {
             .filter(e -> !relevantTransformations.containsKey(getNameAfterInit(e)))//
             .collect(toList());
 
-        final List<ColumnTransformation<T>> newTransformations = new ArrayList<>();
         final boolean keepUnknownColumns = existingModel.keepUnknownColumns();
+        final boolean enforceTypes = existingModel.enforceTypes();
+        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(enforceTypes, keepUnknownColumns);
+        final List<ColumnTransformation<T>> newTransformations = createColumnTransformations(relevantColumns,
+            relevantTransformations, insertUnknownsAt, unknowns, transformationFactory);
+        return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
+            insertUnknownsAt + unknowns.size(), enforceTypes);
+    }
+
+    private List<ColumnTransformation<T>> createColumnTransformations(
+        final LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns,
+        final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations, final int insertUnknownsAt,
+        final List<TypedReaderColumnSpec<T>> unknowns, final ColumnTransformationFactory transformationFactory) {
+        final List<ColumnTransformation<T>> newTransformations = new ArrayList<>();
         int idx = 0;
         final Iterator<ColumnTransformation<T>> existingTransformationIterator =
             relevantTransformations.values().iterator();
@@ -191,50 +209,66 @@ final class TableTransformationFactory<I, T> {
             assert existingTransformationIterator.hasNext();
             final ColumnTransformation<T> existingTransformation = existingTransformationIterator.next();
             final TypedReaderColumnSpec<T> newSpec = relevantColumns.get(existingTransformation.getOriginalName());
-            newTransformations.add(createFromExisting(existingTransformation, newSpec, idx));
+            newTransformations.add(transformationFactory.adaptExisting(newSpec, existingTransformation, idx));
         }
         // insert all new ColumnTransformations
         for (TypedReaderColumnSpec<T> unknownColumn : unknowns) {
-            newTransformations.add(new ImmutableColumnTransformation<>(unknownColumn,
-                m_prodPathProvider.getDefaultProductionPath(unknownColumn.getType()), keepUnknownColumns, idx,
-                getNameAfterInit(unknownColumn)));
+            newTransformations.add(transformationFactory.createNew(unknownColumn, idx));
             idx++;
         }
         // add the remaining (updated) old transformations
         for (; existingTransformationIterator.hasNext(); idx++) {
             final ColumnTransformation<T> existingTransformation = existingTransformationIterator.next();
-            newTransformations.add(createFromExisting(existingTransformation,
-                relevantColumns.get(existingTransformation.getOriginalName()), idx));
+            TypedReaderColumnSpec<T> newSpec = relevantColumns.get(existingTransformation.getOriginalName());
+            newTransformations.add(transformationFactory.adaptExisting(newSpec, existingTransformation, idx));
         }
-        return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
-            insertUnknownsAt + unknowns.size());
+        return newTransformations;
     }
 
-    private ImmutableColumnTransformation<T> createFromExisting(final ColumnTransformation<T> existingTransformation,
-        final TypedReaderColumnSpec<T> newSpec, final int newPos) {
-        final ProductionPath prodPath = determineProductionPath(newSpec, existingTransformation);
-        return new ImmutableColumnTransformation<>(newSpec, prodPath, existingTransformation.keep(), newPos,
-            existingTransformation.getName());
-    }
+    private class ColumnTransformationFactory {
 
-    private ProductionPath determineProductionPath(final TypedReaderColumnSpec<T> column,
-        final ColumnTransformation<T> transformation) {
-        ProductionPath prodPath;
-        final T externalType = column.getType();
-        if (externalType.equals(transformation.getExternalSpec().getType())) {
-            // same external type, so it's save to use the configured production path
-            prodPath = transformation.getProductionPath();
-        } else {
-            final DataType configuredKnimeType =
-                transformation.getProductionPath().getConverterFactory().getDestinationType();
-            // check if we can convert from the new external type to the configured knime type
-            // if that's not possible fall back onto the default
-            prodPath = m_prodPathProvider.getAvailableProductionPaths(externalType).stream()//
-                .filter(p -> p.getConverterFactory().getDestinationType().equals(configuredKnimeType))//
-                .findFirst()//
-                .orElseGet(() -> m_prodPathProvider.getDefaultProductionPath(externalType));
+        private boolean m_enforceTypes;
+
+        private boolean m_keepUnknownColumns;
+
+        ColumnTransformationFactory(final boolean enforceTypes, final boolean keepUnknownColumns) {
+            m_enforceTypes = enforceTypes;
+            m_keepUnknownColumns = keepUnknownColumns;
         }
-        return prodPath;
+
+        ColumnTransformation<T> createNew(final TypedReaderColumnSpec<T> column, final int idx) {
+            return new ImmutableColumnTransformation<>(column,
+                m_prodPathProvider.getDefaultProductionPath(column.getType()), m_keepUnknownColumns, idx,
+                getNameAfterInit(column));
+        }
+
+        ColumnTransformation<T> adaptExisting(final TypedReaderColumnSpec<T> column,
+            final ColumnTransformation<T> transformation, final int idx) {
+            final ProductionPath prodPath = determineProductionPath(column, transformation);
+            return new ImmutableColumnTransformation<>(column, prodPath, transformation.keep(), idx,
+                transformation.getName());
+        }
+
+        private ProductionPath determineProductionPath(final TypedReaderColumnSpec<T> column,
+            final ColumnTransformation<T> transformation) {
+            final T externalType = column.getType();
+            if (externalType.equals(transformation.getExternalSpec().getType())) {
+                // same external type, so it's save to use the configured production path
+                return transformation.getProductionPath();
+            } else if (m_enforceTypes) {
+                final DataType configuredKnimeType =
+                    transformation.getProductionPath().getConverterFactory().getDestinationType();
+                // check if we can convert from the new external type to the configured knime type
+                // if that's not possible fall back onto the default
+                return m_prodPathProvider.getAvailableProductionPaths(externalType).stream()//
+                    .filter(p -> p.getConverterFactory().getDestinationType().equals(configuredKnimeType))//
+                    .findFirst()//
+                    .orElseThrow(() -> new IllegalArgumentException(
+                        String.format(ENFORCE_TYPES_ERROR, getNameAfterInit(column), configuredKnimeType)));
+            } else {
+                return m_prodPathProvider.getDefaultProductionPath(externalType);
+            }
+        }
     }
 
 }
