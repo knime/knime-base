@@ -148,8 +148,10 @@ public class GenericMultiTableReader<I, C extends ReaderSpecificConfig<C>> {
         final GenericMultiTableReadConfig<I, C> config, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
         final boolean specConfigured = config.isConfiguredWith(rootItem, items);
+        ExecutionContext specExec = exec.createSubExecutionContext(specConfigured ? 0 : 0.5);
         final GenericStagedMultiTableRead<I, ?> runConfig =
-            getMultiRead(rootItem, items, config, exec.createSubExecutionContext(specConfigured ? 0 : 0.5));
+            getMultiRead(rootItem, items, config, specExec);
+        specExec.setProgress(1.0);
         exec.setMessage("Reading table");
         final GenericMultiTableRead<I> multiTableRead = runConfig.withoutTransformation(items);
         final BufferedDataTableRowOutput output =
