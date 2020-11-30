@@ -82,6 +82,9 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
  * Abstract implementation of a {@link NodeDialogPane} for table reader nodes.</br>
  * It takes care of creating and managing the table preview.
  *
+ * NOTE: Extending classes should call {@link #loadFromTableSpecConfig(TableSpecConfig)} when loading there settings
+ * once the TableSpecConfig has been loaded.
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used by the reader node
  * @param <T> the type used to identify external types
@@ -265,7 +268,9 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     }
 
     /**
-     * See {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}.
+     * See {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}.<br>
+     * NOTE: Extending classes should call {@link #loadFromTableSpecConfig(TableSpecConfig)} once the TableSpecConfig
+     * has been loaded.
      *
      * @param settings the settings
      * @param specs the specs
