@@ -83,6 +83,11 @@ public class URIFSConnection implements FSConnection {
     }
 
     @Override
+    public boolean supportsBrowsing() {
+        return false;
+    }
+
+    @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return null;
     }
