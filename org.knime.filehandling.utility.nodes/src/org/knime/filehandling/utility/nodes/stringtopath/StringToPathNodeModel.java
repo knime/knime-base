@@ -52,8 +52,6 @@ package org.knime.filehandling.utility.nodes.stringtopath;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 
 import org.knime.core.data.DataCell;
@@ -94,6 +92,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -437,7 +436,7 @@ final class StringToPathNodeModel extends NodeModel {
         private void checkIfFileExists(final FSLocation fsLocation) {
             try (final FSPathProvider pathProvider = m_fsPathProviderFactory.create(fsLocation)) {
                 final FSPath fsPath = pathProvider.getPath();
-                Files.readAttributes(fsPath, BasicFileAttributes.class);
+                FSFiles.exists(fsPath);
             } catch (final IOException e) {
                 throw new IllegalArgumentException(
                     String.format("The file/folder '%s' does not exists or cannot be accessed", fsLocation.getPath()),

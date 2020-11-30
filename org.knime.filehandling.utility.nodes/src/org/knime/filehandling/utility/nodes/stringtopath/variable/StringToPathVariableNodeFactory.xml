@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="stringtopath.png" type="Manipulator"
+<knimeNode icon="../stringtopath.png" type="Manipulator"
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1
 	http://knime.org/node/v4.1.xsd">
-	<name>String to Path</name>
+	<name>String to Path (Variable)</name>
 	<shortDescription>
-		Converts a String column into a Path column.
+		Converts String variables into Path variables.
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			This node converts a selected String column into a column of the type Path.
+			This node converts the selected String variables into variables of the type Path.
 		</intro>
+		<option name="Variable selection">
+			The String variables that will be converted to Path variables. The variables have to contain Strings with 
+			correct Path /foo/bar.txt syntax.
+		</option>
 		<option name="File system">
 			Select the file system to which the created paths should be related to. There are four default file system
 			options to choose from:
@@ -49,42 +53,24 @@
 			Note: The default file systems listed above can't be selected if a file system is provided via the input
 			port.
 		</option>
-		<option name="Column selection">
-			Column that will be converted. It has to contain a string with correct Path /foo/bar.txt syntax.
+		<option name="Suffix added to the new variables">
+			The suffix that will be added to the name of the String variables that are converted to create the names of
+			the new Path variables.
 		</option>
 		<option name="Fail if file/folder does not exist">
 			Checks if the files or folders referenced by the created Paths are existing and will abort if one is not.
 		</option>
-		<option name="Fail on missing values">
-			If selected the node will fail if the selected column contains missing values.
-		</option>
-		<option name="Output">
-			<ul>
-				<li>
-					<b>Append column:</b> Append the new column to the table with the selected column name.
-				</li>
-				<li>
-					<b>Replace:</b> Replace the selected column with the new Path column.
-				</li>
-			</ul>
-		</option>
-		<option name="New column name">
-			Name of the appended column.
-		</option>
 	</fullDescription>
 
 	<ports>
-		<inPort index="0" name="Input table">Table that contains a String column with
-			path information.
+		<inPort index="0" name="Input variables">Input variables.
 		</inPort>
 		<dynInPort insert-before="0" name="File system connection"
 			group-identifier="File System Connection">
 			The file system connection.
 		</dynInPort>
-		<outPort name="Output table" index="0">
-			Input table with the
-			corresponding Path column to the selected column. It will either be
-			appended or replacing the old column, depending on the configuration.
+		<outPort name="Appended variables" index="0">
+			Input variables with additional converted Path variables.
 		</outPort>
 	</ports>
 </knimeNode>

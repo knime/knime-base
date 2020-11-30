@@ -84,6 +84,12 @@
       <node
             category-path="/io/f-f-util"
             deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.stringtopath.variable.StringToPathVariableNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory"
             hidden="false">
       </node>
