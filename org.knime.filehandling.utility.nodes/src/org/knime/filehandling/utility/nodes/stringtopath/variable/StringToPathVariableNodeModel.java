@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.stringtopath.variable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -199,10 +200,16 @@ final class StringToPathVariableNodeModel extends NodeModel {
         final FSPathProviderFactory fsPathProviderFactory) {
         try (final FSPathProvider pathProvider = fsPathProviderFactory.create(fsLocation)) {
             final FSPath fsPath = pathProvider.getPath();
-            FSFiles.exists(fsPath);
+            if (!FSFiles.exists(fsPath)) {
+                throw new IllegalArgumentException(
+                    String.format("The file/folder '%s' does not exist", fsLocation.getPath()));
+            }
+        } catch (final AccessDeniedException e) {
+            throw new IllegalArgumentException(
+                String.format("The file/folder '%s' cannot be accessed", fsLocation.getPath()), e);
         } catch (final IOException e) {
             throw new IllegalArgumentException(
-                String.format("The file/folder '%s' does not exists or cannot be accessed", fsLocation.getPath()), e);
+                String.format("The file/folder '%s' does not exist or cannot be accessed", fsLocation.getPath()), e);
         }
     }
 
