@@ -55,18 +55,19 @@ import java.util.Map;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
- * A factory class allowing to easily create {@link FSLocationCell}s. This class especially useful when the same column
- * contains {@link FSLocationCell}s originating from / pointing to different {@link FileSystem}s.
+ * A factory class allowing to easily create {@link FSLocationCell}s. This class is especially useful when the same
+ * column contains {@link FSLocationCell}s originating from / pointing to different {@link FileSystem}s.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public final class MultiFSLocationCellFactory implements AutoCloseable {
 
-    private final Map<FSLocationSpec, Pair<FileStoreFactory, FSLocationCellFactory>> m_factories;
+    private final Map<DefaultFSLocationSpec, Pair<FileStoreFactory, FSLocationCellFactory>> m_factories;
 
     /**
      * Constructor.
@@ -86,8 +87,10 @@ public final class MultiFSLocationCellFactory implements AutoCloseable {
      *             in the meta data
      */
     public FSLocationCell createCell(final ExecutionContext exec, final FSLocation fsLocation) {
-        final FSLocationCellFactory fac =
-            m_factories.computeIfAbsent(fsLocation, fsLocSpec -> createFactory(exec, fsLocSpec)).getSecond();
+        final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
+            fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
+        final FSLocationCellFactory fac = m_factories
+            .computeIfAbsent(defaultFSLocationSpec, fsLocSpec -> createFactory(exec, fsLocation)).getSecond();
         return fac.createCell(fsLocation);
     }
 
