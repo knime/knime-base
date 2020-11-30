@@ -56,6 +56,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.ClosedFileSystemException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -78,8 +80,10 @@ import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -124,8 +128,7 @@ final class PathAwareFileHistoryPanel implements PathSettings {
         gbc.insets = new Insets(0, 5, 5, 5);
         filePanel.add(new JLabel("Connection timeout [s]"), gbc);
         gbc.gridx++;
-        m_timeoutSpinner =
-                new JSpinner(new SpinnerNumberModel(DEFAULT_URL_TIMEOUT_SECONDS, 1, Integer.MAX_VALUE, 1));
+        m_timeoutSpinner = new JSpinner(new SpinnerNumberModel(DEFAULT_URL_TIMEOUT_SECONDS, 1, Integer.MAX_VALUE, 1));
         m_timeoutSpinner.setPreferredSize(new Dimension(70, m_timeoutSpinner.getPreferredSize().height));
         filePanel.add(m_timeoutSpinner, gbc);
         return filePanel;
@@ -200,7 +203,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
     @Override
     public ReadPathAccessor createReadPathAccessor() {
-        final int timeoutInSec = m_timeoutSpinner != null ? (int) m_timeoutSpinner.getValue() : DEFAULT_URL_TIMEOUT_SECONDS;
+        final int timeoutInSec =
+            m_timeoutSpinner != null ? (int)m_timeoutSpinner.getValue() : DEFAULT_URL_TIMEOUT_SECONDS;
         return new PathAwareReadAccessor(getPath(), timeoutInSec * 1000L);
     }
 
@@ -243,7 +247,8 @@ final class PathAwareFileHistoryPanel implements PathSettings {
 
         @SuppressWarnings("resource")
         @Override
-        public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer) {
+        public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
+            throws InvalidSettingsException, IOException {
             if (m_wasClosed) {
                 throw new ClosedFileSystemException();
             }
@@ -256,7 +261,15 @@ final class PathAwareFileHistoryPanel implements PathSettings {
             }
             m_connection = FileSystemHelper.retrieveFSConnection(Optional.empty(), m_fsLocation)
                 .orElseThrow(IllegalStateException::new);
-            return m_connection.getFileSystem().getPath(m_fsLocation);
+            final FSPath rootPath = m_connection.getFileSystem().getPath(m_fsLocation);
+            CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
+            CheckUtils.checkSetting(FSFiles.exists(rootPath), "The specified file %s does not exist.", rootPath);
+            if (!Files.isReadable(rootPath)) {
+                throw ExceptionUtil.createAccessDeniedException(rootPath);
+            }
+            final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
+            CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
+            return rootPath;
         }
 
         @SuppressWarnings("unused")
