@@ -55,6 +55,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -69,14 +70,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
+import org.knime.filehandling.core.util.IOESupplier;
 
 /**
  * Special file system provider that provides file handling functionality for a URL.
@@ -85,7 +90,14 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
  */
 public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSystem> {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(URIFileSystemProvider.class);
+
     private final int m_timeoutInMillis;
+
+    /**
+     * Context to resolve KNIME URIs.
+     */
+    private final NodeContext m_nodeContext;
 
     /**
      * Constructor.
@@ -94,6 +106,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
      */
     public URIFileSystemProvider(final int timeoutInMillis) {
         m_timeoutInMillis = timeoutInMillis;
+        m_nodeContext = NodeContext.getContext();
     }
 
     /**
@@ -101,6 +114,22 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
      */
     public int getTimeout() {
         return m_timeoutInMillis;
+    }
+
+    /**
+     * Run a given action with node context.
+     */
+    private <R> R doWithNodeContext(final IOESupplier<R> action) throws IOException {
+        try {
+            if (m_nodeContext != null) {
+                NodeContext.pushContext(m_nodeContext);
+            }
+            return action.get();
+        } finally {
+            if (m_nodeContext != null) {
+                NodeContext.removeLastContext();
+            }
+        }
     }
 
     @SuppressWarnings("resource")
@@ -136,7 +165,19 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     protected SeekableByteChannel newByteChannelInternal(final URIPath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
-        return new URITempFileSeekableChannel(path, options);
+
+        return doWithNodeContext(() -> { // NOSONAR
+            try {
+                final Path localURL = FileUtil.resolveToPath(path.getURI().toURL());
+                if (localURL != null) {
+                    return Files.newByteChannel(localURL, options, attrs);
+                } else {
+                    return new URITempFileSeekableChannel(path, options);
+                }
+            } catch (final URISyntaxException ex) {
+                throw new IOException(ex);
+            }
+        });
     }
 
     @Override
@@ -210,26 +251,35 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     }
 
     @Override
-    protected boolean exists(final URIPath path) {
-        try {
-            if (path.isDirectory()) {
-                //Workaround for the ejb knime server connection. Directories are always assumed to exist.
-                return true;
-            }
-            try (final InputStream in = path.openURLConnection(m_timeoutInMillis).getInputStream()) {
-                // yes, do nothing.
-            }
-            return true;
-        } catch (final Exception e) {
-            return false;
-        }
-    }
+    protected boolean exists(final URIPath path) throws IOException {
+        return doWithNodeContext(() -> { // NOSONAR
+            try {
+                if (path.isDirectory()) {
+                    //Workaround for the ejb knime server connection. Directories are always assumed to exist.
+                    return true;
+                }
 
+                try (final InputStream in = path.openURLConnection(m_timeoutInMillis, "HEAD").getInputStream()) {
+                    // yes, do nothing.
+                }
+                return true;
+
+            } catch (final FileNotFoundException|NoSuchFileException e) { // NOSONAR
+                return false;
+
+            } catch (final Exception e) { // NOSONAR
+                if (!isNoSuchFileOnServerMountpoint(e)) {
+                    LOGGER.debug("Failed to check if path '" + path + "' exists: " + e.getMessage(), e);
+                }
+                return false;
+            }
+        });
+    }
 
     @Override
     protected InputStream newInputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            return path.openURLConnection(getTimeout()).getInputStream();
+            return doWithNodeContext(() -> path.openURLConnection(getTimeout()).getInputStream());
         } catch (IOException e) {
             throw convertToFileSystemExceptionIfPossible(path, e);
         }
@@ -244,17 +294,23 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     }
 
     @Override
+    @SuppressWarnings("resource")
     protected OutputStream newOutputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
-        try {
-            final Path localURL = FileUtil.resolveToPath(path.getURI().toURL());
-            if (localURL != null) {
-                return Files.newOutputStream(localURL, options);
-            } else {
-                return FileUtil.openOutputStream(path.getURI().toURL(), "PUT");
+        return doWithNodeContext(() -> {
+            try {
+                final Path localURL = FileUtil.resolveToPath(path.getURI().toURL());
+                if (localURL != null) {
+                    return Files.newOutputStream(localURL, options);
+                } else if (Arrays.asList(options).contains(StandardOpenOption.APPEND)) {
+                    final Set<OpenOption> opts = new HashSet<>(Arrays.asList(options));
+                    return Channels.newOutputStream(new URITempFileSeekableChannel(path, opts));
+                } else {
+                    return FileUtil.openOutputStream(path.getURI().toURL(), "PUT");
+                }
+            } catch (final URISyntaxException ex) {
+                throw new IOException(ex);
             }
-        } catch (final URISyntaxException ex) {
-            throw new IOException(ex);
-        }
+        });
     }
 
     @Override
@@ -264,13 +320,51 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
 
     @Override
     protected BaseFileAttributes fetchAttributesInternal(final URIPath path, final Class<?> type) throws IOException {
-
-        if (type == BasicFileAttributes.class) {
-            return new BaseFileAttributes(!path.isDirectory(), path,
-                FileTime.fromMillis(0L), FileTime.fromMillis(0L), FileTime.fromMillis(0L),
-                    0L, false, false, null);
+        if (type != BasicFileAttributes.class) {
+            throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
         }
-        throw new UnsupportedOperationException(String.format("only %s supported", BasicFileAttributes.class));
+
+        return doWithNodeContext(() -> { // NOSONAR
+            try {
+                final Path localFile = FileUtil.resolveToPath(path.getURI().toURL());
+                if (localFile != null) {
+                    final BasicFileAttributes attr = Files.readAttributes(localFile, BasicFileAttributes.class);
+                    return new BaseFileAttributes(attr.isRegularFile(), //
+                        path, //
+                        attr.lastModifiedTime(), //
+                        attr.lastAccessTime(), //
+                        attr.creationTime(), //
+                        attr.size(), //
+                        attr.isSymbolicLink(), //
+                        attr.isOther(),
+                        null);
+                } else {
+                    final long fileSize;
+
+                    if (path.isDirectory()) {
+                        fileSize = 0L;
+                    } else {
+                        fileSize = getRemoteFileSize(path);
+                    }
+
+                    return new BaseFileAttributes(!path.isDirectory(), path, FileTime.fromMillis(0L),
+                        FileTime.fromMillis(0L), FileTime.fromMillis(0L), fileSize, false, false, null);
+                }
+            } catch (final URISyntaxException ex) {
+                throw new IOException(ex);
+            }
+        });
+    }
+
+    /**
+     * @return content-length from HTTP HEAD response or {@code -1} on failures or missing header
+     */
+    private long getRemoteFileSize(final URIPath path) {
+        try {
+            return path.openURLConnection(getTimeout(), "HEAD").getContentLength();
+        } catch (final IOException e) {  // NOSONAR
+            return -1;
+        }
     }
 
     @Override

@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.url;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -148,6 +149,26 @@ public class URIPath extends UnixStylePath {
         final URLConnection connection = url.openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
+        connection.connect();
+        return connection;
+    }
+
+    /**
+     * Opens a {@link URLConnection} to the resource.
+     *
+     * @param timeoutMillis Timeout in millis for the connect and read operations.
+     * @param httpMethod the HTTP method in case the url is http
+     * @return an already connected {@link URLConnection}.
+     * @throws IOException
+     */
+    public URLConnection openURLConnection(final int timeoutMillis, final String httpMethod) throws IOException {
+        final URL url = FileUtil.toURL(m_uri.toString());
+        final URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(timeoutMillis);
+        connection.setReadTimeout(timeoutMillis);
+        if (connection instanceof HttpURLConnection) {
+            ((HttpURLConnection)connection).setRequestMethod(httpMethod);
+        }
         connection.connect();
         return connection;
     }
