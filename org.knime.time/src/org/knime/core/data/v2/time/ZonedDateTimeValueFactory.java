@@ -10,9 +10,9 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.data.v2.access.ZonedDateTimeAccess.ZonedDateTimeAccessSpec;
-import org.knime.core.data.v2.access.ZonedDateTimeAccess.ZonedDateTimeReadAccess;
-import org.knime.core.data.v2.access.ZonedDateTimeAccess.ZonedDateTimeWriteAccess;
+import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
+import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
+import org.knime.core.data.v2.access.ObjectAccess.ZonedDateTimeAccessSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link ZonedDateTimeCell}.
@@ -21,18 +21,18 @@ import org.knime.core.data.v2.access.ZonedDateTimeAccess.ZonedDateTimeWriteAcces
  * @since 4.3
  */
 public final class ZonedDateTimeValueFactory
-    implements ValueFactory<ZonedDateTimeReadAccess, ZonedDateTimeWriteAccess> {
+    implements ValueFactory<ObjectReadAccess<ZonedDateTime>, ObjectWriteAccess<ZonedDateTime>> {
 
     /** A stateless instance of {@link ZonedDateTimeValueFactory} */
     public static final ZonedDateTimeValueFactory INSTANCE = new ZonedDateTimeValueFactory();
 
     @Override
-    public ZonedDateTimeReadValue createReadValue(final ZonedDateTimeReadAccess access) {
+    public ZonedDateTimeReadValue createReadValue(final ObjectReadAccess<ZonedDateTime> access) {
         return new DefaultZonedDateTimeReadValue(access);
     }
 
     @Override
-    public ZonedDateTimeWriteValue createWriteValue(final ZonedDateTimeWriteAccess access) {
+    public ZonedDateTimeWriteValue createWriteValue(final ObjectWriteAccess<ZonedDateTime> access) {
         return new DefaultZonedDateTimeWriteValue(access);
     }
 
@@ -64,39 +64,44 @@ public final class ZonedDateTimeValueFactory
 
     private static final class DefaultZonedDateTimeReadValue implements ZonedDateTimeReadValue {
 
-        private final ZonedDateTimeReadAccess m_access;
+        private final ObjectReadAccess<ZonedDateTime> m_access;
 
-        private DefaultZonedDateTimeReadValue(final ZonedDateTimeReadAccess access) {
+        private DefaultZonedDateTimeReadValue(final ObjectReadAccess<ZonedDateTime> access) {
             m_access = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return ZonedDateTimeCellFactory.create(m_access.getZonedDateTime());
+            return ZonedDateTimeCellFactory.create(m_access.getObject());
         }
 
         @Override
         public ZonedDateTime getZonedDateTime() {
-            return m_access.getZonedDateTime();
+            return m_access.getObject();
+        }
+
+        @Override
+        public String toString() {
+            return m_access.getObject().toString();
         }
     }
 
     private static final class DefaultZonedDateTimeWriteValue implements ZonedDateTimeWriteValue {
 
-        private final ZonedDateTimeWriteAccess m_access;
+        private final ObjectWriteAccess<ZonedDateTime> m_access;
 
-        private DefaultZonedDateTimeWriteValue(final ZonedDateTimeWriteAccess access) {
+        private DefaultZonedDateTimeWriteValue(final ObjectWriteAccess<ZonedDateTime> access) {
             m_access = access;
         }
 
         @Override
         public void setValue(final ZonedDateTimeValue value) {
-            m_access.setZonedDateTime(value.getZonedDateTime());
+            m_access.setObject(value.getZonedDateTime());
         }
 
         @Override
         public void setZonedDateTime(final ZonedDateTime date) {
-            m_access.setZonedDateTime(date);
+            m_access.setObject(date);
         }
     }
 }

@@ -12,9 +12,9 @@ import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.data.v2.access.LocalDateAccess.LocalDateAccessSpec;
-import org.knime.core.data.v2.access.LocalDateAccess.LocalDateReadAccess;
-import org.knime.core.data.v2.access.LocalDateAccess.LocalDateWriteAccess;
+import org.knime.core.data.v2.access.ObjectAccess.LocalDateAccessSpec;
+import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
+import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link LocalDateCell}.
@@ -22,18 +22,19 @@ import org.knime.core.data.v2.access.LocalDateAccess.LocalDateWriteAccess;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @since 4.3
  */
-public final class LocalDateValueFactory implements ValueFactory<LocalDateReadAccess, LocalDateWriteAccess> {
+public final class LocalDateValueFactory
+    implements ValueFactory<ObjectReadAccess<LocalDate>, ObjectWriteAccess<LocalDate>> {
 
     /** A stateless instance of {@link LocalDateValueFactory} */
     public static final LocalDateValueFactory INSTANCE = new LocalDateValueFactory();
 
     @Override
-    public LocalDateReadValue createReadValue(final LocalDateReadAccess access) {
+    public LocalDateReadValue createReadValue(final ObjectReadAccess<LocalDate> access) {
         return new DefaultLocalDateReadValue(access);
     }
 
     @Override
-    public LocalDateWriteValue createWriteValue(final LocalDateWriteAccess access) {
+    public LocalDateWriteValue createWriteValue(final ObjectWriteAccess<LocalDate> access) {
         return new DefaultLocalDateWriteValue(access);
     }
 
@@ -65,44 +66,44 @@ public final class LocalDateValueFactory implements ValueFactory<LocalDateReadAc
 
     private static final class DefaultLocalDateReadValue implements LocalDateReadValue {
 
-        private final LocalDateReadAccess m_access;
+        private final ObjectReadAccess<LocalDate> m_access;
 
-        private DefaultLocalDateReadValue(final LocalDateReadAccess access) {
+        private DefaultLocalDateReadValue(final ObjectReadAccess<LocalDate> access) {
             m_access = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return LocalDateCellFactory.create(m_access.getLocalDate());
+            return LocalDateCellFactory.create(m_access.getObject());
         }
 
         @Override
         public LocalDate getLocalDate() {
-            return m_access.getLocalDate();
+            return m_access.getObject();
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getLocalDate().toString();
+            return m_access.getObject().toString();
         }
     }
 
     private static final class DefaultLocalDateWriteValue implements LocalDateWriteValue {
 
-        private final LocalDateWriteAccess m_access;
+        private final ObjectWriteAccess<LocalDate> m_access;
 
-        private DefaultLocalDateWriteValue(final LocalDateWriteAccess access) {
+        private DefaultLocalDateWriteValue(final ObjectWriteAccess<LocalDate> access) {
             m_access = access;
         }
 
         @Override
         public void setValue(final LocalDateValue value) {
-            m_access.setLocalDate(value.getLocalDate());
+            m_access.setObject(value.getLocalDate());
         }
 
         @Override
         public void setLocalDate(final LocalDate date) {
-            m_access.setLocalDate(date);
+            m_access.setObject(date);
         }
     }
 }
