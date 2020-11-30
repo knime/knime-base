@@ -306,6 +306,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_intersection.clear();
         m_union.add(m_newColTransformationPlaceholder);
         m_intersection.add(m_newColTransformationPlaceholder);
+        m_newColTransformationPlaceholder.setPosition(-1);
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
             MutableColumnTransformation<T> transformation = m_bySpec.get(column);
