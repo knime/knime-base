@@ -72,6 +72,12 @@
       <node
             category-path="/io/f-f-util"
             deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.pathtostring.variable.PathToStringVariableNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory"
             hidden="false">
       </node>
