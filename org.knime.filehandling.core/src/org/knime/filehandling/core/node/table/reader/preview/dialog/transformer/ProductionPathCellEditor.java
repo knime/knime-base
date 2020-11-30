@@ -55,6 +55,7 @@ import java.util.function.Function;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellEditor;
 
 import org.knime.core.data.convert.map.ProductionPath;
@@ -72,9 +73,10 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
 
     private final transient Function<Object, List<ProductionPath>> m_productionPathProvider;
 
-    ProductionPathCellEditor(final Function<Object, List<ProductionPath>> productionPathProvider) {
+    ProductionPathCellEditor(final Function<Object, List<ProductionPath>> productionPathProvider,
+        final ListCellRenderer<ProductionPath> renderer) {
         m_productionPathProvider = productionPathProvider;
-        m_productionPaths.setRenderer(new KnimeTypeProductionPathListCellRenderer());
+        m_productionPaths.setRenderer(renderer);
         m_productionPaths.addActionListener(e -> stopCellEditing());
     }
 

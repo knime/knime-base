@@ -44,40 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
+import java.awt.Color;
 import java.awt.Component;
 
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
+import javax.swing.Icon;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.util.DataTypeListCellRenderer;
 import org.knime.core.node.util.SharedIcons;
 
 /**
- * {@link ListCellRenderer} for {@link ProductionPath} that displays only the destination KNIME {@link DataType}.
+ * Renderer for cells containing a {@link ProductionPath}.</br>
+ * Represents a {@link ProductionPath} by its destination {@link DataType}.</br>
+ * If {@code null} is provided (i.e. for the placeholder row for unknown columns) only the unknown icon is displayed.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<ProductionPath> {
+// This Sonar rule is impossible to satisfy when dealing with Swing
+final class KnimeTypeFullProductionPathTableCellRenderer extends DefaultTableCellRenderer {//NOSONAR
 
-    private final DataTypeListCellRenderer m_dataTypeRenderer = new DataTypeListCellRenderer();
+    private static final long serialVersionUID = 1L;
 
-    private static final JLabel UNKNOWN = new JLabel(SharedIcons.TYPE_DEFAULT.get());
+    private static final Icon UNKNOWN = SharedIcons.TYPE_DEFAULT.get();
 
     @Override
-    public Component getListCellRendererComponent(final JList<? extends ProductionPath> list, final ProductionPath value,
-        final int index, final boolean isSelected, final boolean cellHasFocus) {
-        if (value == null) {
-            return UNKNOWN;
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+        final boolean hasFocus, final int row, final int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        final ProductionPath prodPath = (ProductionPath)value;
+        if (isSelected) {
+            // use selection color from parent
+        } else {
+            setBackground(Color.WHITE);
         }
-        final DataType knimeType = value.getConverterFactory().getDestinationType();
-        return m_dataTypeRenderer.getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+        if (prodPath == null) {
+            setText("");
+            setIcon(UNKNOWN);
+            return this;
+        }
+        final JavaToDataCellConverterFactory<?> converterFactory = prodPath.getConverterFactory();
+        final DataType knimeType = converterFactory.getDestinationType();
+        final Class<?> sourceType = converterFactory.getSourceType();
+        final String text;
+        if (DataCell.class != sourceType ) {
+            text = sourceType.getSimpleName() + " \u2192 " + knimeType.toPrettyString();
+        } else {
+            text = knimeType.toPrettyString();
+        }
+        setText(text);
+        setIcon(knimeType.getIcon());
+        return this;
     }
-
 }

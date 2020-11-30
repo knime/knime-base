@@ -172,7 +172,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::getReadPathAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
-            t -> productionPathProvider.getAvailableProductionPaths((DataType)t), true);
+            t -> productionPathProvider.getAvailableProductionPaths((DataType)t), true, true);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
         m_useRowID = new JCheckBox("Use existing row ID");
         m_useRowID.addActionListener(l -> configChanged());

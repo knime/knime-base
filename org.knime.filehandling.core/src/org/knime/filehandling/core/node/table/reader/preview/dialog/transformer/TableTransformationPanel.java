@@ -111,7 +111,6 @@ public final class TableTransformationPanel extends JPanel {
     private final JLabel m_colFilterModeLabel = new JLabel("Take columns from:");
 
     private final ColumnFilterModePanel m_columnFilterModePanel;
-
     /**
      * Constructor.
      *
@@ -121,6 +120,20 @@ public final class TableTransformationPanel extends JPanel {
      */
     public TableTransformationPanel(final TableTransformationTableModel<?> model,
         final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons) {
+        this(model, productionPathProvider, includeColumnFilterButtons, false);
+    }
+    /**
+     * Constructor.
+     *
+     * @param model the underlying {@link TableTransformationTableModel}
+     * @param productionPathProvider provides a list of {@link ProductionPath} for a given external type
+     * @param includeColumnFilterButtons {@code true} if the column filter buttons should be included
+     * @param showFullProductionPath <code>true</code> if the full production path should be displayed
+     * in the transformation table otherwise only the target DataType is displayed
+     */
+    public TableTransformationPanel(final TableTransformationTableModel<?> model,
+        final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons,
+        final boolean showFullProductionPath) {
         super(new GridBagLayout());
         if (includeColumnFilterButtons) {
             m_columnFilterModePanel = new ColumnFilterModePanel(model.getColumnFilterModeModel());
@@ -129,7 +142,7 @@ public final class TableTransformationPanel extends JPanel {
         }
         m_transformationTable = new JTable(model);
         m_tableModel = model;
-        setupTable(model, productionPathProvider);
+        setupTable(model, productionPathProvider, showFullProductionPath);
 
         m_enforceTypes.setModel(model.getEnforceTypesModel());
 
@@ -195,7 +208,7 @@ public final class TableTransformationPanel extends JPanel {
     }
 
     private void setupTable(final TableTransformationTableModel<?> model,
-        final Function<Object, List<ProductionPath>> productionPathProvider) {
+        final Function<Object, List<ProductionPath>> productionPathProvider, final boolean showFullProductionPath) {
         TableColumnModel columnModel = m_transformationTable.getColumnModel();
         columnModel.getColumn(0).setMaxWidth(30);
         columnModel.getColumn(1).setMaxWidth(30);
@@ -204,12 +217,21 @@ public final class TableTransformationPanel extends JPanel {
         m_transformationTable.setRowSelectionAllowed(true);
         m_transformationTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         m_transformationTable.setTableHeader(header);
-        m_transformationTable.setDefaultEditor(ProductionPath.class,
-            new ProductionPathCellEditor(productionPathProvider));
         m_transformationTable.setDefaultEditor(String.class, new ColumnNameCellEditor(model));
         // this property ensures that currently edited values are committed to the model if the table loses focus
         m_transformationTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-        m_transformationTable.setDefaultRenderer(ProductionPath.class, new KnimeTypeProductionPathTableCellRenderer());
+        if (showFullProductionPath) {
+            m_transformationTable.setDefaultEditor(ProductionPath.class,
+                new ProductionPathCellEditor(productionPathProvider,
+                    new KnimeTypeFullProductionPathListCellRenderer()));
+            m_transformationTable.setDefaultRenderer(ProductionPath.class,
+                new KnimeTypeFullProductionPathTableCellRenderer());
+        } else {
+            m_transformationTable.setDefaultEditor(ProductionPath.class,
+                new ProductionPathCellEditor(productionPathProvider, new KnimeTypeProductionPathListCellRenderer()));
+            m_transformationTable.setDefaultRenderer(ProductionPath.class,
+                new KnimeTypeProductionPathTableCellRenderer());
+        }
         m_transformationTable.setDefaultRenderer(String.class, new ColumnNameCellRenderer());
         m_transformationTable.setDefaultRenderer(DataColumnSpec.class, new SpecCellRenderer());
         m_transformationTable.setRowHeight(25);

@@ -54,7 +54,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.DataTypeListCellRenderer;
 import org.knime.core.node.util.SharedIcons;
@@ -63,8 +65,9 @@ import org.knime.core.node.util.SharedIcons;
  * {@link ListCellRenderer} for {@link ProductionPath} that displays only the destination KNIME {@link DataType}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<ProductionPath> {
+final class KnimeTypeFullProductionPathListCellRenderer implements ListCellRenderer<ProductionPath> {
 
     private final DataTypeListCellRenderer m_dataTypeRenderer = new DataTypeListCellRenderer();
 
@@ -76,8 +79,16 @@ final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<
         if (value == null) {
             return UNKNOWN;
         }
-        final DataType knimeType = value.getConverterFactory().getDestinationType();
-        return m_dataTypeRenderer.getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+        final JavaToDataCellConverterFactory<?> converterFactory = value.getConverterFactory();
+        final DataType knimeType = converterFactory.getDestinationType();
+        final DataTypeListCellRenderer component = (DataTypeListCellRenderer)m_dataTypeRenderer.getListCellRendererComponent(
+            list, knimeType, index, isSelected, cellHasFocus);
+        final Class<?> sourceType = converterFactory.getSourceType();
+        if (DataCell.class != sourceType ) {
+            final String text = converterFactory.getSourceType().getSimpleName() + " \u2192 "
+                    + knimeType.toPrettyString();
+            component.setText(text);
+        }
+        return component;
     }
-
 }
