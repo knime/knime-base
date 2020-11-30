@@ -77,11 +77,16 @@
 				Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown new column&gt;.
 				Note that the positions of columns are reset in the dialog if a new file or folder is selected.
 			</option>
-			<option name="Reset">Resets all transformations.</option>
+			<option name="Reset order">Resets the order of columns to the order in the input file/folder.</option>
 			<option name="Reset filter">Clicking this button will reset the filters i.e. all columns will be included.</option>
 			<option name="Reset names">Resets the names to the names that are read from file or created if the file/folder doesn't contain column names.</option>
 			<option name="Reset types">Resets the output types to the default types guessed from the input file/folder.</option>
-			<option name="Reset order">Resets the order of columns to the order in the input file/folder.</option>
+			<option name="Reset all">Resets all transformations.</option>
+			<option name="Enforce types">
+				Controls how columns whose type changes are dealt with. If selected, we attempt to map to the KNIME type you
+				configured and fail if that's not possible.
+				If unselected, the KNIME type corresponding to the new type is used.
+			</option>
 		</tab>
 		<tab name="Advanced Settings">
 			<option name="Limit memory per column">
