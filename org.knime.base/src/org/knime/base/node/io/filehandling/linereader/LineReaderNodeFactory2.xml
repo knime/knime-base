@@ -98,11 +98,6 @@
 			</option>
 		</tab>
 		<tab name="Advanced Settings">
-	        <option name="Match input against regex">
-	           If this option is checked every line will be checked against the regular expression in the text field.
-	           For example '12.*' will only match lines starting with 12 and have zero or more characters afterwards.
-	           The default value is '.*' which matches everything.
-	        </option>
 	        <option name="Skip empty lines">
 	           If this option is checked empty lines will be skipped and are not added to the output.
 	        </option>
@@ -111,6 +106,11 @@
 	        </option>
 	         <option name="Replace empty lines">
 	       		If this option is checked empty lines will be replaced by the text entered in the text field.
+	        </option>
+	      	<option name="Match input against regex">
+	           If this option is checked every line will be checked against the regular expression in the text field.
+	           For example '12.*' will only match lines starting with 12 and have zero or more characters afterwards.
+	           The default value is '.*' which matches everything.
 	        </option>
 	        <option name="Limit data rows">
 	           With this option you can limit the number of rows which will be read and be output by the node.

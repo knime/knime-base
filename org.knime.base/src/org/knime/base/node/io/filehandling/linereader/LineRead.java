@@ -131,18 +131,15 @@ final class LineRead implements Read<String> {
         //First row used as column header
         if (m_config.useColumnHeaderIdx() && m_linesRead == -1) {
             nextRow = RandomAccessibleUtils.createFromArray(m_reader.readLine());
-            m_linesRead++;
         } else {
             nextRow = getNextLine();
-            if (nextRow != null && nextRow.size() != 0) {
-                m_linesRead++;
-            }
         }
+        m_linesRead++;
         return nextRow;
     }
 
     /**
-     * Returns the next {@link RandomAccessible}.
+     * Returns the next line.
      *
      * @return the next line
      * @throws IOException
@@ -150,12 +147,7 @@ final class LineRead implements Read<String> {
     private RandomAccessible<String> getNextLine() throws IOException {
         RandomAccessible<String> row;
         if (!m_limitRows || m_linesRead < m_maxRows) {
-            final String line = m_lineReaderConfig.useRegex() ? getNextLineRegex() : m_reader.readLine();
-            if (line == null) {
-                row = null;
-            } else {
-                row = line.equals("") ? replaceEmptyRows() : createRandomAccessible(line);
-            }
+            row = getLine();
         } else {
             //When limit rows true and it exceeds the set limit
             row = null;
@@ -165,37 +157,39 @@ final class LineRead implements Read<String> {
     }
 
     /**
-     * In case we have an empty line this method returns a {@link RandomAccessible} based on the reader settings.
+     * Returns the next line.
      *
-     * @return a {@link RandomAccessible}
+     * @return the next {@link RandomAccessible}
      * @throws IOException
      */
-    private RandomAccessible<String> replaceEmptyRows() {
-        if (m_config.skipEmptyRows()) {
-            return RandomAccessibleUtils.createFromArray();
-        } else {
-            return createRandomAccessible(m_replaceEmpty ? m_emptyLineReplacement : null);
-        }
-    }
-
-    /**
-     * Returns the next line which matches the regular expression.
-     *
-     * @return the next line of the {@link BufferedReader}
-     * @throws IOException
-     */
-    private String getNextLineRegex() throws IOException {
-        boolean hasNext = true;
-        boolean isNull = false;
-        String line = "";
-        while (hasNext) {
+    private RandomAccessible<String> getLine() throws IOException {
+        boolean matches = false;
+        String line;
+        do {
             line = m_reader.readLine();
-            isNull = line == null;
-            if (isNull || m_regexPattern.matcher(line).matches()) {
-                hasNext = false;
+            if (line == null) {
+                //no more lines to read
+                return null;
             }
-        }
-        return isNull ? null : line;
+
+            if (line.trim().isEmpty()) {
+                if (m_config.skipEmptyRows()) {
+                    continue;
+                } else if (m_replaceEmpty) {
+                    line = m_emptyLineReplacement;
+                } else {
+                    return createRandomAccessible(null);
+                }
+            }
+
+            if (m_lineReaderConfig.useRegex()) {
+                matches = m_regexPattern.matcher(line).matches();
+            } else {
+                matches = true;
+            }
+        } while (!matches);
+
+        return createRandomAccessible(line);
     }
 
     /**

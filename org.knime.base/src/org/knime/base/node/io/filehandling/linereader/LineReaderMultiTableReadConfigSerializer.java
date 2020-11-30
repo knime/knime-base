@@ -119,10 +119,10 @@ enum LineReaderMultiTableReadConfigSerializer implements
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_DIFFERING_SPECS, true));
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
+        tc.setPrefixForGeneratedRowIds(settings.getString(CFG_ROW_HEADER_PREFIX, "Row"));
         tc.setRowIDIdx(-1);
         tc.setUseColumnHeaderIdx(settings.getBoolean(CFG_HAS_COL_HEADER, false));
         tc.setLimitRowsForSpec(false);
-        tc.setPrefixForGeneratedRowIds(settings.getString(CFG_ROW_HEADER_PREFIX, "Row"));
 
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
         lineReaderCfg.setColumnHeaderName(settings.getString(CFG_CUSTOM_COL_HEADER, "Column"));
@@ -203,15 +203,13 @@ enum LineReaderMultiTableReadConfigSerializer implements
     private static void saveSettingsTab(
         final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> config,
         final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_FAIL_DIFFERING_SPECS, config.failOnDifferingSpecs());
-
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
-        settings.addBoolean(CFG_HAS_COL_HEADER, tc.useColumnHeaderIdx());
-
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
-        settings.addString(CFG_CUSTOM_COL_HEADER, lineReaderCfg.getColumnHeaderName());
 
+        settings.addBoolean(CFG_FAIL_DIFFERING_SPECS, config.failOnDifferingSpecs());
         settings.addString(CFG_ROW_HEADER_PREFIX, tc.getPrefixForGeneratedRowIDs());
+        settings.addBoolean(CFG_HAS_COL_HEADER, tc.useColumnHeaderIdx());
+        settings.addString(CFG_CUSTOM_COL_HEADER, lineReaderCfg.getColumnHeaderName());
     }
 
     private static void saveAdvancedSettingsTab(
@@ -219,15 +217,15 @@ enum LineReaderMultiTableReadConfigSerializer implements
         final NodeSettingsWO settings) {
 
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
+        final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
+
         settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, tc.skipEmptyRows());
+        settings.addString(CFG_EMPTY_LINE_MODE, lineReaderCfg.getReplaceEmptyMode().name());
+        settings.addString(CFG_EMPTY_REPLACEMENT, lineReaderCfg.getEmptyLineReplacement());
+        settings.addBoolean(CFG_USE_REGEX, lineReaderCfg.useRegex());
+        settings.addString(CFG_REGEX, lineReaderCfg.getRegex());
         settings.addBoolean(CFG_LIMIT_DATA_ROWS, tc.limitRows());
         settings.addLong(CFG_MAX_ROWS, tc.getMaxRows());
-
-        final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
-        settings.addString(CFG_REGEX, lineReaderCfg.getRegex());
-        settings.addBoolean(CFG_USE_REGEX, lineReaderCfg.useRegex());
-        settings.addString(CFG_EMPTY_REPLACEMENT, lineReaderCfg.getEmptyLineReplacement());
-        settings.addString(CFG_EMPTY_LINE_MODE, lineReaderCfg.getReplaceEmptyMode().name());
     }
 
     @Override

@@ -282,9 +282,9 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
     private JPanel createAdvancedSettingsPanel() {
         final JPanel advPanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal().setWeightX(1).anchorPageStart();
-        advPanel.add(createRegexPanel(), gbc.build());
-        gbc.incY();
         advPanel.add(createEmptyLinePanel(), gbc.build());
+        gbc.incY();
+        advPanel.add(createRegexPanel(), gbc.build());
         gbc.incY();
         advPanel.add(createLimitRowsPanel(), gbc.build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().insetBottom(0).fillBoth();
@@ -465,20 +465,24 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
 
         m_failOnDiffSpecs.setSelected(m_config.failOnDifferingSpecs());
 
-        m_useFirstLineColHeader.setSelected(tableReadConfig.useColumnHeaderIdx());
-        m_useFixColHeader.setSelected(!tableReadConfig.useColumnHeaderIdx());
         m_rowHeaderPrefix.setText(tableReadConfig.getPrefixForGeneratedRowIDs());
+
+        m_useFirstLineColHeader.setSelected(tableReadConfig.useColumnHeaderIdx());
+        m_columnHeaderField.setText(lineReaderConfig.getColumnHeaderName());
+        m_useFixColHeader.setSelected(!tableReadConfig.useColumnHeaderIdx());
+
         m_skipEmptyLines.setSelected(tableReadConfig.skipEmptyRows());
+        m_replaceEmptyByMissing.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_BY_MISSING);
+        m_replaceEmpty.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_EMPTY);
+        m_replaceEmptyField.setText(lineReaderConfig.getEmptyLineReplacement());
+
+        m_regexField.setText(lineReaderConfig.getRegex());
+        m_regexChecker.setSelected(lineReaderConfig.useRegex());
+
+
         m_limitRowsChecker.setSelected(tableReadConfig.limitRows());
         m_limitRowsSpinner.setValue(tableReadConfig.getMaxRows());
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
-
-        m_columnHeaderField.setText(lineReaderConfig.getColumnHeaderName());
-        m_regexField.setText(lineReaderConfig.getRegex());
-        m_regexChecker.setSelected(lineReaderConfig.useRegex());
-        m_replaceEmpty.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_EMPTY);
-        m_replaceEmptyByMissing.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_BY_MISSING);
-        m_replaceEmptyField.setText(lineReaderConfig.getEmptyLineReplacement());
 
         final FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
