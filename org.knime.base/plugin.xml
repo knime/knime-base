@@ -309,7 +309,7 @@
             icon="icons/16x16/weka.png"
             level-id="weka"
             name="Weka"
-            path="/analytics/mining"/>
+            path="/analytics/integrations"/>
       <category
             icon="icons/missing.gif"
             level-id="mining-pmml"
@@ -520,11 +520,17 @@
             path="/">
       </category>
       <category
-            description="Nodes for Deep Learning"
+            after="statistics"
             icon="icons/missing.gif"
+            level-id="integrations"
+            name="Integrations"
+            path="/analytics"/>
+      <category
+            description="Nodes for Deep Learning"
+            icon="icons/16x16/category_dl.png"
             level-id="deeplearning"
             name="Deep Learning"
-            path="/analytics/mining">
+            path="/analytics/integrations">
       </category>
       <category
             description="Nodes for Deep Learning"
