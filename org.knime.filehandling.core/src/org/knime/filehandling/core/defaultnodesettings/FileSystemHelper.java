@@ -219,7 +219,7 @@ public final class FileSystemHelper {
         }
     }
 
-    private static FSConnection getRelativeToConnection(final Type type) {
+    public static FSConnection getRelativeToConnection(final Type type) {
 
         if (isRelativeToWorkflowOrWorkflowDataArea(type) && CheckNodeContextUtil.isInComponentProject()) {
             throw new IllegalStateException(

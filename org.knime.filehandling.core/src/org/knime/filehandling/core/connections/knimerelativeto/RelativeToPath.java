@@ -99,23 +99,19 @@ public final class RelativeToPath extends UnixStylePath implements WorkflowAware
     }
 
     private URI toWorkflowDataRelativeURI() throws URISyntaxException {
-        final String path = getFileSystem().getSeparator() + "data" + toAbsolutePath().toString();
+        final String path = getFileSystem().getSeparator() + "data" + toAbsolutePath().normalize().toString();
         return new URI("knime", "knime.workflow", path, null);
     }
 
     private URI toWorkflowRelativeURI() throws URISyntaxException {
-        String path;
-        if (isAbsolute()) {
-            path = getFileSystem().getSeparator() + getFileSystem().getWorkingDirectory().relativize(this);
-        } else {
-            path = getFileSystem().getSeparator() + this;
-        }
-        return new URI("knime", "knime.workflow", path, null);
+        final String urlPath = getFileSystem().getSeparator()
+            + getFileSystem().getWorkingDirectory().relativize(toAbsolutePath().normalize()).toString();
+        return new URI("knime", "knime.workflow", urlPath, null);
     }
 
     private URI toMountpointRelativeURI() throws URISyntaxException {
-        final String path = toAbsolutePath().toString();
-        return new URI("knime", "knime.mountpoint", path, null);
+        final String urlPath = toAbsolutePath().normalize().toString();
+        return new URI("knime", "knime.mountpoint", urlPath, null);
     }
 
     /**

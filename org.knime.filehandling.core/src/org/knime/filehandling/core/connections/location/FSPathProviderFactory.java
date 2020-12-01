@@ -56,10 +56,9 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.WorkflowDataRelativeFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
+import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -159,10 +158,6 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
         }
 
         final Type type = KNIMEConnection.connectionTypeForHost(fsLocationSpec.getFileSystemSpecifier().get());
-        if (type == Type.WORKFLOW_DATA_RELATIVE) {
-            return new WorkflowDataRelativeFSConnection(false);
-        } else {
-            return new LocalRelativeToFSConnection(type, false);
-        }
+        return FileSystemHelper.getRelativeToConnection(type);
     }
 }
