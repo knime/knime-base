@@ -7,6 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.connections.base,
  org.knime.filehandling.core.connections.base.attributes,
+ org.knime.filehandling.core.connections.base.auth,
  org.knime.filehandling.core.connections.base.ui,
  org.knime.filehandling.core.connections.knimerelativeto,
  org.knime.filehandling.core.connections.local,
