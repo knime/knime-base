@@ -484,6 +484,26 @@ public final class FSFiles {
         Files.walkFileTree(source, new RecursiveCopyVisitor(source, target, options));
     }
 
+    public static void copy(final FSPath source, final FSPath target, final CopyOption... options) throws IOException {
+        final FSLocation srcLocation= ((FSPath)source.toAbsolutePath()).toFSLocation();
+        final FSLocation targetLocation = ((FSPath)target.toAbsolutePath()).toFSLocation();
+        if (srcLocation.equals(targetLocation)) {
+            throw new IOException(source.toString() + ": Source and target of copy operation are identical");
+        } else {
+            Files.copy(source, target, options);
+        }
+    }
+
+    public static void move(final FSPath source, final FSPath target, final CopyOption... options) throws IOException {
+        final FSLocation srcLocation= ((FSPath)source.toAbsolutePath()).toFSLocation();
+        final FSLocation targetLocation = ((FSPath)target.toAbsolutePath()).toFSLocation();
+        if (srcLocation.equals(targetLocation)) {
+            throw new IOException(source.toString() + ": Source and target of move operation are identical");
+        } else {
+            Files.copy(source, target, options);
+        }
+    }
+
     private static final class RecursiveCopyVisitor implements FileVisitor<Path> {
 
         private final FSPath m_source;
