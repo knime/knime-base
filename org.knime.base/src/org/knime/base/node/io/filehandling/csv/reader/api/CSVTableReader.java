@@ -270,7 +270,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 if (cause instanceof ArrayIndexOutOfBoundsException) {
                     //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
                     final int index = extractErrorIndex(cause);
-                    if (index == m_csvParserSettings.getMaxCharsPerColumn()) {
+                    // for some reason when running in non-debug mode the memory limit per column exception often
+                    // contains a null message
+                    if (index == m_csvParserSettings.getMaxCharsPerColumn() || e.getCause().getMessage() == null) {
                         throw new IOException("Memory limit per column exceeded. Please adapt the according setting.");
                     } else if (index == m_csvParserSettings.getMaxColumns()) {
                         throw new IOException("Number of parsed columns exceeds the defined limit ("
