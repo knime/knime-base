@@ -16,8 +16,9 @@ import org.xml.sax.SAXException;
  * @author Alexander Fillbrunn
  * @noreference This class is not intended to be referenced by clients.
  */
-public class MissingValueHandlerNodeFactory
-        extends NodeFactory<MissingValueHandlerNodeModel> {
+public class MissingValueHandlerNodeFactory extends NodeFactory<MissingValueHandlerNodeModel> {
+
+    private static NodeDescription m_description;
 
     /**
      * {@inheritDoc}
@@ -40,7 +41,7 @@ public class MissingValueHandlerNodeFactory
      */
     @Override
     public NodeView<MissingValueHandlerNodeModel> createNodeView(final int viewIndex,
-            final MissingValueHandlerNodeModel nodeModel) {
+        final MissingValueHandlerNodeModel nodeModel) {
         return null;
     }
 
@@ -65,8 +66,12 @@ public class MissingValueHandlerNodeFactory
      */
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        NodeDescription createNodeDescription = super.createNodeDescription();
-        return MissingValueNodeDescriptionHelper.createNodeDescription(createNodeDescription);
+        // TODO remove once we have a more general description cache implemented with AP-15784
+        synchronized (MissingValueHandlerNodeFactory.class) {
+            if (m_description == null) {
+                m_description = MissingValueNodeDescriptionHelper.createNodeDescription(super.createNodeDescription());
+            }
+        }
+        return m_description;
     }
 }
-
