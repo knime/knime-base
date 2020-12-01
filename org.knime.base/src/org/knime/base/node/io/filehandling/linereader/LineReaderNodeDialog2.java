@@ -50,6 +50,8 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -144,8 +146,11 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         super(multiReader, productionPathProvider, true);
 
         final SettingsModelReaderFileChooser fileChooserModel = (SettingsModelReaderFileChooser)pathSettings;
-        final FlowVariableModel sourceFvm =
-            createFlowVariableModel(fileChooserModel.getKeysForFSLocation(), FSLocationSpecVariableType.INSTANCE);
+        final FlowVariableModel sourceFvm = createFlowVariableModel(
+            Stream.concat(Stream.of(SettingsUtils.CFG_SETTINGS_TAB),
+                Arrays.stream(fileChooserModel.getKeysForFSLocation()))
+                .toArray(String[]::new),
+            FSLocationSpecVariableType.INSTANCE);
 
         m_config = config;
         m_pathSettings = pathSettings;
@@ -385,7 +390,6 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         return panel;
     }
 
-
     /**
      * Creates the source file {@link JPanel}.
      *
@@ -478,7 +482,6 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
 
         m_regexField.setText(lineReaderConfig.getRegex());
         m_regexChecker.setSelected(lineReaderConfig.useRegex());
-
 
         m_limitRowsChecker.setSelected(tableReadConfig.limitRows());
         m_limitRowsSpinner.setValue(tableReadConfig.getMaxRows());
