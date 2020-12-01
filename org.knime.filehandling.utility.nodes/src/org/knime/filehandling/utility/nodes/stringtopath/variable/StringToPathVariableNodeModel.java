@@ -54,7 +54,6 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,6 +77,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.util.UniqueNameGenerator;
@@ -164,7 +164,8 @@ final class StringToPathVariableNodeModel extends NodeModel {
 
     private Map<String, FlowVariable> getFilteredVariables() {
         final Map<String, FlowVariable> availableVars = getAvailableFlowVariables(StringType.INSTANCE);
-        final Set<String> includeNames = new HashSet<>(Arrays.asList(m_filter.applyTo(availableVars).getIncludes()));
+        final Set<String> includeNames = Arrays.asList(m_filter.applyTo(availableVars).getIncludes()).stream()
+            .filter(s -> !s.startsWith(Scope.Global.getPrefix())).collect(Collectors.toSet());
         return availableVars.entrySet().stream() //
             .filter(e -> includeNames.contains(e.getKey())) //
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));

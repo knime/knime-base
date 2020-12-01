@@ -68,9 +68,11 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.FlowVariableListCellRenderer.FlowVariableCell;
+import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
-import org.knime.core.node.util.filter.variable.VariableTypeFilter;
+import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.DialogComponentFileSystem;
@@ -98,7 +100,14 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
      * @param portsConfig the ports configuration
      */
     StringToPathVariableNodeDialog(final PortsConfiguration portsConfig) {
-        m_filter = new FlowVariableFilterPanel(new VariableTypeFilter(StringType.INSTANCE));
+        m_filter = new FlowVariableFilterPanel(new InputFilter<FlowVariableCell>() {
+            @Override
+            public boolean include(final FlowVariableCell cell) {
+                // true if variable does not start with "knime" and is of type String (see VariableTypeFilter)
+                return !cell.getName().startsWith(Scope.Global.getPrefix())
+                    && (!cell.isValid() || cell.getFlowVariable().getVariableType() == StringType.INSTANCE);
+            }
+        });
 
         final SettingsModelFileSystem fileSystemModel =
             StringToPathVariableNodeModel.createSettingsModelFileSystem(portsConfig);
