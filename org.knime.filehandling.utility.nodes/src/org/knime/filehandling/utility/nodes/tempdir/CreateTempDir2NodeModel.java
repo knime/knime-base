@@ -54,6 +54,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -106,6 +107,10 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 final class CreateTempDir2NodeModel extends NodeModel {
+
+    private static final String CFG_ON_DISPOSE_TEMP_FOLDER_PATHS = "on_dispose_temp_folder_paths";
+
+    private static final String CFG_ON_RESET_TEMP_FOLDER_PATH = "on_reset_temp_folder_path";
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CreateTempDir2NodeModel.class);
 
@@ -280,8 +285,22 @@ final class CreateTempDir2NodeModel extends NodeModel {
     private boolean readInDataAreaPaths(final InputStream in, final FSPathProviderFactory pathFac)
         throws IOException, InvalidSettingsException {
         NodeSettingsRO s = NodeSettings.loadFromXML(in);
-        final String path =
-            CheckUtils.checkSettingNotNull(s.getString("temp-folder-path"), "Data area temp folder must not be null");
+        boolean issueWarning = false;
+        CheckUtils.checkSetting(
+            s.containsKey(CFG_ON_RESET_TEMP_FOLDER_PATH) || s.containsKey(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS),
+            "Unable to load internal state.");
+        if (s.containsKey(CFG_ON_RESET_TEMP_FOLDER_PATH)) {
+            issueWarning = readResetTempDir(pathFac, s);
+        }
+        if (!issueWarning && s.containsKey(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS)) {
+            issueWarning = readOnDisposeTempDir(pathFac, s);
+        }
+        return issueWarning;
+    }
+
+    private boolean readResetTempDir(final FSPathProviderFactory pathFac, final NodeSettingsRO s)
+        throws InvalidSettingsException, IOException {
+        final String path = s.getString(CFG_ON_RESET_TEMP_FOLDER_PATH);
         final FSLocation fsLoc = new FSLocation(DATA_AREA_LOCATION_SPEC.getFileSystemCategory(),
             DATA_AREA_LOCATION_SPEC.getFileSystemSpecifier().orElse(null), path);
         try (final FSPathProvider prov = pathFac.create(fsLoc)) {
@@ -291,21 +310,60 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 m_onResetTempDir = fsLoc;
                 return false;
             } else {
+                m_onResetTempDir = null;
                 return true;
             }
         }
     }
 
+    private boolean readOnDisposeTempDir(final FSPathProviderFactory pathFac, final NodeSettingsRO s)
+        throws InvalidSettingsException, IOException {
+        for (final String path : s.getStringArray(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS)) {
+            final FSLocation fsLoc = new FSLocation(DATA_AREA_LOCATION_SPEC.getFileSystemCategory(),
+                DATA_AREA_LOCATION_SPEC.getFileSystemSpecifier().orElse(null), path);
+            try (final FSPathProvider prov = pathFac.create(fsLoc)) {
+                final FSPath fsPath = prov.getPath();
+                try {
+                    final boolean fileExists = FSFiles.exists(fsPath);
+                    if (fileExists) { // NOSONAR
+                        addOnDisposeLocation(fsLoc);
+                    } else {
+                        m_onDisposeTempDirs.clear();
+                        return true;
+                    }
+                } catch (final AccessDeniedException ae) {
+                    m_onDisposeTempDirs.clear();
+                    throw ae;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        if (m_onResetTempDir != null && FSLocationSpec.areEqual(m_onResetTempDir, DATA_AREA_LOCATION_SPEC)) {
+        if (saveOnResetTempDir() || saveOnDisposeTempDirs()) {
+            NodeSettings s = new NodeSettings("temp_folder_node");
+            if (saveOnResetTempDir()) {
+                s.addString(CFG_ON_RESET_TEMP_FOLDER_PATH, m_onResetTempDir.getPath());
+            }
+            if (saveOnDisposeTempDirs()) {
+                s.addStringArray(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS, m_onDisposeTempDirs.get(DATA_AREA_LOCATION_SPEC)
+                    .stream().map(FSLocation::getPath).toArray(String[]::new));
+            }
             try (OutputStream w = new FileOutputStream(new File(nodeInternDir, INTERNAL_FILE_NAME))) {
-                NodeSettings s = new NodeSettings("temp-folder-node");
-                s.addStringArray("temp-folder-path", m_onResetTempDir.getPath());
                 s.saveToXML(w);
             }
         }
+    }
+
+    private boolean saveOnResetTempDir() {
+        return m_onResetTempDir != null && FSLocationSpec.areEqual(m_onResetTempDir, DATA_AREA_LOCATION_SPEC);
+    }
+
+    private boolean saveOnDisposeTempDirs() {
+        return m_onDisposeTempDirs != null && m_onDisposeTempDirs.containsKey(DATA_AREA_LOCATION_SPEC);
     }
 
     private static final class DeleteTempDirs extends ThreadWithContext {
