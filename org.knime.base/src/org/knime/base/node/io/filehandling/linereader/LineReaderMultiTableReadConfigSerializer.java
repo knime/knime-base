@@ -80,8 +80,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
 
     private static final String CFG_CUSTOM_COL_HEADER = "custom_col_header";
 
-    private static final String CFG_SKIP_EMPTY_DATA_ROWS = "skip_empty_data_rows";
-
     private static final String CFG_LIMIT_DATA_ROWS = "limit_data_rows";
 
     private static final String CFG_MAX_ROWS = "max_rows";
@@ -133,7 +131,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
         final NodeSettingsRO settings) {
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
-        tc.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS, false));
         tc.setLimitRows(settings.getBoolean(CFG_LIMIT_DATA_ROWS, false));
         tc.setMaxRows(settings.getLong(CFG_MAX_ROWS, 1000L));
 
@@ -143,7 +140,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
         lineReaderCfg.setEmptyLineReplacement(settings.getString(CFG_EMPTY_REPLACEMENT, ""));
         lineReaderCfg.setEmptyLineMode(EmptyLineMode
             .valueOf(settings.getString(CFG_EMPTY_LINE_MODE, EmptyLineMode.REPLACE_BY_MISSING.name())));
-
     }
 
     @Override
@@ -179,7 +175,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
 
-        tc.setSkipEmptyRows(settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS));
         tc.setLimitRows(settings.getBoolean(CFG_LIMIT_DATA_ROWS));
         tc.setMaxRows(settings.getLong(CFG_MAX_ROWS));
 
@@ -189,6 +184,8 @@ enum LineReaderMultiTableReadConfigSerializer implements
         lineReaderCfg.setUseRegex(settings.getBoolean(CFG_USE_REGEX));
         lineReaderCfg.setEmptyLineReplacement(settings.getString(CFG_EMPTY_REPLACEMENT));
         lineReaderCfg.setEmptyLineMode(EmptyLineMode.valueOf(settings.getString(CFG_EMPTY_LINE_MODE)));
+
+        tc.setSkipEmptyRows(lineReaderCfg.getReplaceEmptyMode() == EmptyLineMode.SKIP_EMPTY);
     }
 
     @Override
@@ -219,7 +216,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
 
-        settings.addBoolean(CFG_SKIP_EMPTY_DATA_ROWS, tc.skipEmptyRows());
         settings.addString(CFG_EMPTY_LINE_MODE, lineReaderCfg.getReplaceEmptyMode().name());
         settings.addString(CFG_EMPTY_REPLACEMENT, lineReaderCfg.getEmptyLineReplacement());
         settings.addBoolean(CFG_USE_REGEX, lineReaderCfg.useRegex());
@@ -266,7 +262,6 @@ enum LineReaderMultiTableReadConfigSerializer implements
 
     public static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getBoolean(CFG_LIMIT_DATA_ROWS);
-        settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS);
         settings.getLong(CFG_MAX_ROWS);
         settings.getString(CFG_REGEX);
         settings.getBoolean(CFG_USE_REGEX);

@@ -471,7 +471,7 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
         m_columnHeaderField.setText(lineReaderConfig.getColumnHeaderName());
         m_useFixColHeader.setSelected(!tableReadConfig.useColumnHeaderIdx());
 
-        m_skipEmptyLines.setSelected(tableReadConfig.skipEmptyRows());
+        m_skipEmptyLines.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.SKIP_EMPTY);
         m_replaceEmptyByMissing.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_BY_MISSING);
         m_replaceEmpty.setSelected(lineReaderConfig.getReplaceEmptyMode() == EmptyLineMode.REPLACE_EMPTY);
         m_replaceEmptyField.setText(lineReaderConfig.getEmptyLineReplacement());
