@@ -260,10 +260,6 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
         m_credentialsName.validateSettings(settings);
         m_user.validateSettings(settings);
         m_password.validateSettings(settings);
-
-        UserPasswordAuthProviderSettings temp = new UserPasswordAuthProviderSettings(m_authType, m_allowBlankPassword);
-        temp.loadSettingsForModel(settings);
-        temp.validate();
     }
 
     @Override

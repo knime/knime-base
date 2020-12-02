@@ -77,7 +77,7 @@ public final class AuthSettings {
      */
     public static final String KEY_AUTH = "auth";
 
-    private static final String KEY_AUTH_TYPE = "authType";
+    private static final String KEY_AUTH_TYPE = "type";
 
     private final Map<AuthType, AuthProviderSettings> m_providerSettings;
 
@@ -98,17 +98,17 @@ public final class AuthSettings {
         /**
          * Add a new auth type.
          *
-         * @param authType
          * @param providerSettings
          * @return this builder instance.
          */
-        public Builder add(final AuthType authType, final AuthProviderSettings providerSettings) {
+        public Builder add(final AuthProviderSettings providerSettings) {
+            final AuthType authType = providerSettings.getAuthType();
             if (m_buildingProviderSettings.containsKey(authType)) {
                 throw new IllegalArgumentException("Already contains auth type " + authType.toString());
             }
 
             m_buildingProviderSettings.put(authType, providerSettings);
-            return this;
+            return defaultType(authType);
         }
 
         /**
@@ -128,7 +128,6 @@ public final class AuthSettings {
          * @return a new {@link AuthSettings} instance.
          */
         public AuthSettings build() {
-            CheckUtils.checkArgumentNotNull(m_builderDefaultAuthType, "No default auth type set");
             return new AuthSettings(m_buildingProviderSettings, m_builderDefaultAuthType);
         }
     }
@@ -194,9 +193,7 @@ public final class AuthSettings {
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer, final CredentialsProvider credentialsProvider)
         throws InvalidSettingsException {
 
-        for (AuthProviderSettings provSettings : m_providerSettings.values()) {
-            provSettings.configureInModel(specs, statusMessageConsumer, credentialsProvider);
-        }
+        m_providerSettings.get(getAuthType()).configureInModel(specs, statusMessageConsumer, credentialsProvider);
     }
 
     /**
@@ -236,15 +233,15 @@ public final class AuthSettings {
     /**
      * Loads settings from the given {@link NodeSettingsRO} (to be called by the node model).
      *
-     * @param authSettingsParent Parent node for these auth settings.
+     * @param authSettings Parent node for these auth settings.
      * @throws InvalidSettingsException
      */
-    public void loadSettingsForModel(final NodeSettingsRO authSettingsParent) throws InvalidSettingsException {
-        load(authSettingsParent);
+    public void loadSettingsForModel(final NodeSettingsRO authSettings) throws InvalidSettingsException {
+        load(authSettings);
 
         for (AuthProviderSettings provSettings : m_providerSettings.values()) {
             provSettings
-                .loadSettingsForModel(authSettingsParent.getNodeSettings(provSettings.getAuthType().getSettingsKey()));
+                .loadSettingsForModel(authSettings.getNodeSettings(provSettings.getAuthType().getSettingsKey()));
         }
 
         updateEnabledness();
@@ -253,15 +250,15 @@ public final class AuthSettings {
     /**
      * Validates the settings in the given {@link NodeSettingsRO}.
      *
-     * @param authSettingsParent Parent node for these auth settings.
+     * @param authSettings Parent node for these auth settings.
      * @throws InvalidSettingsException
      */
-    public void validateSettings(final NodeSettingsRO authSettingsParent) throws InvalidSettingsException {
-        m_authType.validateSettings(authSettingsParent);
+    public void validateSettings(final NodeSettingsRO authSettings) throws InvalidSettingsException {
+        m_authType.validateSettings(authSettings);
 
         for (AuthProviderSettings provSettings : m_providerSettings.values()) {
             provSettings
-                .validateSettings(authSettingsParent.getNodeSettings(provSettings.getAuthType().getSettingsKey()));
+                .validateSettings(authSettings.getNodeSettings(provSettings.getAuthType().getSettingsKey()));
         }
     }
 
@@ -281,9 +278,7 @@ public final class AuthSettings {
             throw new InvalidSettingsException("Unknown auth type: " + m_authType.getStringValue());
         }
 
-        for (AuthProviderSettings provSettings : m_providerSettings.values()) {
-            provSettings.validate();
-        }
+        m_providerSettings.get(getAuthType()).validate();
     }
 
     /**

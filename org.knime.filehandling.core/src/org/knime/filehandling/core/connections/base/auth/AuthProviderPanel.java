@@ -95,7 +95,7 @@ public abstract class AuthProviderPanel<T extends AuthProviderSettings> extends 
 
     @Override
     public final void setEnabled(final boolean enabled) {
-        setEnabled(enabled);
+        super.setEnabled(enabled);
         m_settings.setEnabled(enabled);
         updateComponentsEnablement();
     }
@@ -110,6 +110,13 @@ public abstract class AuthProviderPanel<T extends AuthProviderSettings> extends 
      **/
     public void onOpen() {
         updateComponentsEnablement();
+    }
+
+    /**
+     * Override this method if actions need to be performed when closing the dialog.
+     */
+    public void onClose() {
+        // do nothing, can be overriden
     }
 
     /**

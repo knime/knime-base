@@ -229,14 +229,9 @@ public class SingleSecretAuthProviderSettings implements AuthProviderSettings {
 
     @Override
     public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-
         m_useCredentials.validateSettings(settings);
         m_credentialsName.validateSettings(settings);
         m_secret.validateSettings(settings);
-
-        SingleSecretAuthProviderSettings temp = new SingleSecretAuthProviderSettings(m_authType, m_allowBlankSecret);
-        temp.loadSettingsForModel(settings);
-        temp.validate();
     }
 
     @Override
