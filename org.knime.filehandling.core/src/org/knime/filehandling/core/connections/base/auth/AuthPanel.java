@@ -67,6 +67,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * @author Bjoern Lohrmann, KNIME GmbH
@@ -91,6 +92,7 @@ public class AuthPanel extends JPanel {
      */
     public AuthPanel(final AuthSettings settings, final List<AuthProviderPanel<?>> authProviderPanels) {
         super(new BorderLayout());
+        CheckUtils.checkArgument(!authProviderPanels.isEmpty(), "At least one AuthProviderPanel is required.");
         m_settings = settings;
 
         m_typeRadioButtons = new HashMap<>();
@@ -124,15 +126,21 @@ public class AuthPanel extends JPanel {
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        for (AuthProviderPanel<?> panel : authProviderPanels) {
+        if (authProviderPanels.size() > 1) {
+            for (AuthProviderPanel<?> panel : authProviderPanels) {
+                gbc.insets = new Insets(0, 5, 0, 5);
+                add(m_typeRadioButtons.get(panel.getAuthType()), gbc);
+
+                gbc.gridy++;
+                gbc.insets = new Insets(0, LEFT_INSET, 0, 5);
+                add(panel, gbc);
+
+                gbc.gridy++;
+            }
+        } else {
+            // do not display a radio button if there is only one authentication option
             gbc.insets = new Insets(0, 5, 0, 5);
-            add(m_typeRadioButtons.get(panel.getAuthType()), gbc);
-
-            gbc.gridy++;
-            gbc.insets = new Insets(0, LEFT_INSET, 0, 5);
-            add(panel, gbc);
-
-            gbc.gridy++;
+            add(authProviderPanels.get(0), gbc);
         }
     }
 
