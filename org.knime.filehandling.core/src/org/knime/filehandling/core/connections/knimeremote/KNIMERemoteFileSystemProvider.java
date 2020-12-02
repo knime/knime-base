@@ -85,7 +85,7 @@ final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERe
     @Override
     protected SeekableByteChannel newByteChannelInternal(final KNIMERemotePath path, final Set<? extends OpenOption> options,
         final FileAttribute<?>... attrs) throws IOException {
-        throw new UnsupportedOperationException();
+        return new KNIMERemoteTempFileSeekableChannel(path, options);
     }
 
     private static int getTimeout() {
