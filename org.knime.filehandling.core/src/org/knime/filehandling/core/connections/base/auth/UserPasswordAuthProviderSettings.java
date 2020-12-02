@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.base.auth;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
@@ -61,6 +62,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelPassword;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.node.workflow.ICredentials;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
@@ -191,11 +193,11 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
      * @param cp credentials provider if credentials should be used
      * @return user to use
      */
-    public String getUser(final CredentialsProvider cp) {
+    public String getUser(final Function<String, ICredentials> cp) {
         if (useCredentials() && cp == null) {
             throw new IllegalStateException("Credential provider is not available");
         } else if (useCredentials()) {
-            return cp.get(getCredentialsName()).getLogin();
+            return cp.apply(getCredentialsName()).getLogin();
         } else {
             return m_user.getStringValue();
         }
@@ -205,11 +207,11 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
      * @param cp credentials provider if credentials should be used
      * @return password to use
      */
-    public String getPassword(final CredentialsProvider cp) {
+    public String getPassword(final Function<String, ICredentials> cp) {
         if (useCredentials() && cp == null) {
             throw new IllegalStateException("Credential provider is not available");
         } else if (useCredentials()) {
-            return cp.get(getCredentialsName()).getPassword();
+            return cp.apply(getCredentialsName()).getPassword();
         } else {
             return m_password.getStringValue();
         }
