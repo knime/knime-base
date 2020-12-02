@@ -53,7 +53,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -67,11 +66,14 @@ import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * {@link SettingsModel} that stores information about a file system.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noinstantiate non-public API
+ * @noreference non-public API
  */
 public final class SettingsModelFileSystem extends SettingsModel {
 
@@ -90,11 +92,7 @@ public final class SettingsModelFileSystem extends SettingsModel {
      */
     public SettingsModelFileSystem(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final Set<FSCategory> convenienceFS) {
-        if (portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null) {
-            m_configName = configName + SettingsModel.CFGKEY_INTERNAL;
-        } else {
-            m_configName = configName;
-        }
+        m_configName = configName;
         m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
             DefaultFSLocationSpecHandler.INSTANCE, convenienceFS);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
@@ -181,13 +179,8 @@ public final class SettingsModelFileSystem extends SettingsModel {
     @Override
     protected final void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        NodeSettingsRO subsettings;
-        try {
-            subsettings = settings.getNodeSettings(m_configName);
-        } catch (InvalidSettingsException ex) {
-            subsettings = new NodeSettings(m_configName);
-        }
-        m_fsConfig.loadSettingsForDialog(subsettings, specs);
+        final NodeSettingsRO fsSettings = SettingsUtils.getOrEmpty(settings, m_configName);
+        m_fsConfig.loadSettingsForDialog(fsSettings, specs);
     }
 
     @Override

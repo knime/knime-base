@@ -77,6 +77,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
@@ -329,7 +330,9 @@ final class StringToPathNodeModel extends NodeModel {
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileSystemModel.loadSettingsFrom(settings);
+        if (!isOldConnectedSettings(settings)) {
+            m_fileSystemModel.loadSettingsFrom(settings);
+        }
         m_selectedColumnNameModel.loadSettingsFrom(settings);
         m_abortOnMissingFileModel.loadSettingsFrom(settings);
         m_failOnMissingValues.loadSettingsFrom(settings);
@@ -337,9 +340,25 @@ final class StringToPathNodeModel extends NodeModel {
         m_generatedColumnModeModel.loadSettingsFrom(settings);
     }
 
+    /**
+     * In 4.2 the settings were hidden using {@link SettingsModel#CFGKEY_INTERNAL} as suffix. However, that was a bug
+     * because this name is used by the framework to store the enabled status and settings model id.
+     * In 4.3 we removed the suffix because it also causes problems when adding/removing the file system port.
+     * Therefore we don't validate/load the settings in the case we have a fs port AND the settings are old.
+     * That's save because in the connected case nothing is loaded anyway.
+     *
+     * @param settings to validate/load
+     * @return {@code true} if the settings are old
+     */
+    private static boolean isOldConnectedSettings(final NodeSettingsRO settings) {
+        return settings.containsKey(CFG_FILE_SYSTEM + SettingsModel.CFGKEY_INTERNAL + SettingsModel.CFGKEY_INTERNAL);
+    }
+
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileSystemModel.validateSettings(settings);
+        if (!isOldConnectedSettings(settings)) {
+            m_fileSystemModel.validateSettings(settings);
+        }
         m_selectedColumnNameModel.validateSettings(settings);
         m_abortOnMissingFileModel.validateSettings(settings);
         m_failOnMissingValues.validateSettings(settings);
