@@ -75,7 +75,6 @@ import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
@@ -325,7 +324,7 @@ final class PathCopier {
     /**
      * Creates a {@link DataColumnSpec} for the source or destination path which includes the meta data.
      *
-     * @param settingsModelFS the {@link SettingsModelFileSystem}
+     * @param locationsSpec the location spec specifying the file system
      * @param columnName the name of the column
      * @return the {@link DataColumnSpec}
      */
