@@ -45,9 +45,14 @@
  */
 package org.knime.base.node.io.filehandling.pmml.reader;
 
+import java.util.Optional;
+
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory;
@@ -60,6 +65,8 @@ import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFa
  */
 public final class PMMLReaderNodeFactory3
     extends PortObjectReaderNodeFactory<PMMLReaderNodeModel3, PortObjectReaderNodeDialog<PortObjectReaderNodeConfig>> {
+
+    private static final String URL_TIMEOUT = "1000";
 
     /** File chooser history Id. */
     private static final String HISTORY_ID = "pmml_model_reader_writer";
@@ -90,6 +97,12 @@ public final class PMMLReaderNodeFactory3
      * @return the reader configuration
      */
     private static PortObjectReaderNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeConfig(creationConfig, PMML_SUFFIX);
+        final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
+        final PortObjectReaderNodeConfig cfg = new PortObjectReaderNodeConfig(creationConfig, PMML_SUFFIX);
+        if (urlConfig.isPresent()) {
+            cfg.getFileChooserModel()
+                .setLocation(new FSLocation(FSCategory.CUSTOM_URL, URL_TIMEOUT, urlConfig.get().getUrl().toString()));
+        }
+        return cfg;
     }
 }
