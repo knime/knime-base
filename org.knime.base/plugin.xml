@@ -2482,7 +2482,7 @@
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.pmml.read.PMMLReaderNodeFactory2">
+              NodeFactory="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
            <FileExtension
                  extension=".pmml">
            </FileExtension>
